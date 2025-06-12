@@ -23,8 +23,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
       automaticallyAdjustContentInsets={false}
       contentContainerStyle={
         {
-          "flexGrow": 1,
-          "flexShrink": 0,
+          "flex": 1,
         }
       }
       contentInset={
@@ -271,8 +270,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                 "padding": 20,
               },
               {
-                "flexGrow": 1,
-                "flexShrink": 0,
+                "flex": 1,
               },
             ]
           }
@@ -437,8 +435,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
       automaticallyAdjustContentInsets={false}
       contentContainerStyle={
         {
-          "flexGrow": 1,
-          "flexShrink": 0,
+          "flex": 1,
         }
       }
       contentInset={
@@ -685,8 +682,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                 "padding": 20,
               },
               {
-                "flexGrow": 1,
-                "flexShrink": 0,
+                "flex": 1,
               },
             ]
           }
@@ -851,8 +847,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
       automaticallyAdjustContentInsets={false}
       contentContainerStyle={
         {
-          "flexGrow": 1,
-          "flexShrink": 0,
+          "flex": 1,
         }
       }
       contentInset={
@@ -1247,8 +1242,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
                 "padding": 20,
               },
               {
-                "flexGrow": 1,
-                "flexShrink": 0,
+                "flex": 1,
               },
             ]
           }
@@ -1413,8 +1407,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
       automaticallyAdjustContentInsets={false}
       contentContainerStyle={
         {
-          "flexGrow": 1,
-          "flexShrink": 0,
+          "flex": 1,
         }
       }
       contentInset={
@@ -1809,8 +1802,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
                 "padding": 20,
               },
               {
-                "flexGrow": 1,
-                "flexShrink": 0,
+                "flex": 1,
               },
             ]
           }
