@@ -10,6 +10,10 @@ import { strings } from '../../../../locales/i18n';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import Device from '../../../util/device';
+import StorageWrapper from '../../../store/storage-wrapper';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import { BIOMETRY_TYPE } from 'react-native-keychain';
+import { Authentication } from '../../../core';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -255,5 +259,111 @@ describe('ChoosePassword', () => {
     });
 
     expect(mockNavigation.goBack).toHaveBeenCalled();
+  });
+
+  it('should set biometryType and biometryChoice when currentAuthType is PASSCODE', async () => {
+    // Mock Authentication.getType to return PASSCODE
+    const mockGetType = jest.spyOn(Authentication, 'getType');
+    mockGetType.mockResolvedValueOnce({
+      currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+      availableBiometryType: undefined,
+    });
+
+    // Mock StorageWrapper.getItem for all keys called during componentDidMount
+    const mockStorageWrapper = jest.mocked(StorageWrapper);
+    mockStorageWrapper.getItem.mockImplementation((key) => {
+      if (key === '@MetaMask:passcodeDisabled') {
+        return Promise.resolve('TRUE');
+      }
+      if (key === '@MetaMask:biometryChoiceDisabled') {
+        return Promise.resolve(null);
+      }
+      if (key === '@MetaMask:UserTermsAcceptedv1.0') {
+        return Promise.resolve('true');
+      }
+      return Promise.resolve(null);
+    });
+
+    const props: ChoosePasswordProps = {
+      route: { params: { [ONBOARDING]: true } },
+      navigation: mockNavigation,
+    };
+
+    const component = renderWithProviders(<ChoosePassword {...props} />);
+
+    // Wait for componentDidMount to complete
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    // Verify that getType was called
+    expect(mockGetType).toHaveBeenCalled();
+
+    // Verify that StorageWrapper.getItem was called with correct parameters
+    expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+      '@MetaMask:biometryChoiceDisabled',
+    );
+    expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+      '@MetaMask:passcodeDisabled',
+    );
+    expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+      '@MetaMask:UserTermsAcceptedv1.0',
+    );
+
+    // Component should render without errors
+    expect(component).toBeTruthy();
+  });
+
+  it('should set biometryType and biometryChoice when availableBiometryType exists', async () => {
+    // Mock Authentication.getType to return availableBiometryType
+    const mockGetType = jest.spyOn(Authentication, 'getType');
+    mockGetType.mockResolvedValueOnce({
+      currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+      availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+    });
+
+    // Mock StorageWrapper.getItem for all keys called during componentDidMount
+    const mockStorageWrapper = jest.mocked(StorageWrapper);
+    mockStorageWrapper.getItem.mockImplementation((key) => {
+      if (key === '@MetaMask:biometryChoiceDisabled') {
+        return Promise.resolve('TRUE');
+      }
+      if (key === '@MetaMask:passcodeDisabled') {
+        return Promise.resolve(null);
+      }
+      if (key === '@MetaMask:UserTermsAcceptedv1.0') {
+        return Promise.resolve('true');
+      }
+      return Promise.resolve(null);
+    });
+
+    const props: ChoosePasswordProps = {
+      route: { params: { [ONBOARDING]: true } },
+      navigation: mockNavigation,
+    };
+
+    const component = renderWithProviders(<ChoosePassword {...props} />);
+
+    // Wait for componentDidMount to complete
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    // Verify that getType was called
+    expect(mockGetType).toHaveBeenCalled();
+
+    // Component should render without errors
+    expect(component).toBeTruthy();
+
+    // Verify that StorageWrapper.getItem was called with all expected keys
+    expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+      '@MetaMask:biometryChoiceDisabled',
+    );
+    expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+      '@MetaMask:passcodeDisabled',
+    );
+    expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+      '@MetaMask:UserTermsAcceptedv1.0',
+    );
   });
 });
