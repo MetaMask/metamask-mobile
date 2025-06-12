@@ -5,6 +5,7 @@ import { Box } from '../../../../../UI/Box/Box';
 import {
   isHDOrFirstPartySnapAccount,
   isPrivateKeyAccount,
+  areAddressesEqual,
 } from '../../../../../../util/address';
 import styleSheet from './ExportCredentials.styles';
 import Text, {
@@ -28,6 +29,7 @@ import {
 import { useStyles } from '../../../../../hooks/useStyles';
 import { ExportCredentialsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/ExportCredentials.selectors';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { RootState } from '../../../../../../reducers';
 
 interface ExportCredentialsProps {
   account: InternalAccount;
@@ -42,17 +44,13 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
   const bothOptionsEnabled = canExportPrivateKey && canExportMnemonic;
   const { styles } = useStyles(styleSheet, { bothOptionsEnabled });
 
-  const { seedphraseBackedUp } = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.user,
-  );
+  const { seedphraseBackedUp } = useSelector((state: RootState) => state.user);
 
   const hdKeyringsWithSnapAccounts = useHdKeyringsWithSnapAccounts();
   const srpName = useMemo(() => {
     const keyringIndex = hdKeyringsWithSnapAccounts.findIndex((keyring) =>
-      keyring.accounts.find(
-        (address) => address.toLowerCase() === account.address.toLowerCase(),
+      keyring.accounts.find((address) =>
+        areAddressesEqual(address, account.address),
       ),
     );
 
@@ -64,10 +62,10 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
     return name;
   }, [hdKeyringsWithSnapAccounts, account]);
 
-  const showSeedphraseBackedUp = useMemo(() => {
+  const showSeedphraseBackReminder = useMemo(() => {
     const [primaryKeyring] = hdKeyringsWithSnapAccounts;
     const accountAssociatedWithPrimaryKeyring = primaryKeyring.accounts.find(
-      (address) => address.toLowerCase() === account.address.toLowerCase(),
+      (address) => areAddressesEqual(address, account.address),
     );
 
     return !seedphraseBackedUp && accountAssociatedWithPrimaryKeyring;
@@ -79,19 +77,22 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
     });
   }, [navigate, account]);
 
-  const onExportPrivateKey = () => {
+  const onExportPrivateKey = useCallback(() => {
     navigate(
       Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL,
       {
         account,
       },
     );
-  };
+  }, [navigate, account]);
 
   return (
     <Box style={styles.container} data-testid={ExportCredentialsIds.CONTAINER}>
       {canExportMnemonic && srpName && (
-        <TouchableOpacity onPress={onExportMnemonic}>
+        <TouchableOpacity
+          onPress={onExportMnemonic}
+          testID={ExportCredentialsIds.EXPORT_SRP_BUTTON}
+        >
           <Box
             style={styles.exportMnemonic}
             flexDirection={FlexDirection.Row}
@@ -110,7 +111,7 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
               justifyContent={JustifyContent.flexEnd}
               gap={8}
             >
-              {showSeedphraseBackedUp && (
+              {showSeedphraseBackReminder && (
                 <Text
                   variant={TextVariant.BodyMDMedium}
                   color={TextColor.Error}
@@ -124,7 +125,10 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
         </TouchableOpacity>
       )}
       {canExportPrivateKey && (
-        <TouchableOpacity onPress={onExportPrivateKey} testID="hihi">
+        <TouchableOpacity
+          onPress={onExportPrivateKey}
+          testID={ExportCredentialsIds.EXPORT_PRIVATE_KEY_BUTTON}
+        >
           <Box
             style={styles.exportPrivateKey}
             flexDirection={FlexDirection.Row}

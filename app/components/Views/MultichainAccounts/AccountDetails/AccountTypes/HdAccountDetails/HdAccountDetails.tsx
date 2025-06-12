@@ -4,11 +4,11 @@ import { BaseAccountDetails } from '../BaseAccountDetails';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import ExportCredentials from '../../components/ExportCredentials';
 
-interface HDAccountDetailsProps {
+interface HdAccountDetailsProps {
   account: InternalAccount;
 }
 
-export const HDAccountDetails = ({ account }: HDAccountDetailsProps) => (
+export const HdAccountDetails = ({ account }: HdAccountDetailsProps) => (
   <BaseAccountDetails account={account}>
     <ExportCredentials account={account} />
   </BaseAccountDetails>

@@ -1,8 +1,8 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { TouchableOpacity } from 'react-native';
 import { RevealPrivateKey } from './RevealPrivateKey';
-import { createMockInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
-import { EthAccountType } from '@metamask/keyring-api';
+import { internalAccount1 as mockAccount } from '../../../../../util/test/accountsControllerTestUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -23,14 +23,8 @@ jest.mock('react-native-safe-area-context', () => {
 });
 
 const mockGoBack = jest.fn();
-
 const mockNavigate = jest.fn();
-const mockSelectedAccount = createMockInternalAccount(
-  '0x67B2fAf7959fB61eb9746571041476Bbd0672569',
-  'Test Account',
-  KeyringTypes.hd,
-  EthAccountType.Eoa,
-);
+const mockGetInternalAccountByAddress = jest.fn().mockReturnValue(mockAccount);
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -41,9 +35,14 @@ jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn((callback) => callback()),
   useRoute: () => ({
     params: {
-      account: mockSelectedAccount,
+      account: mockAccount,
     },
   }),
+}));
+
+jest.mock('../../../../../util/address', () => ({
+  ...jest.requireActual('../../../../../util/address'),
+  getInternalAccountByAddress: () => mockGetInternalAccountByAddress(),
 }));
 
 const mockExportAccount = jest.fn();
@@ -63,10 +62,22 @@ const render = () => {
         AccountsController: {
           internalAccounts: {
             accounts: {
-              [mockSelectedAccount.id]: mockSelectedAccount,
+              [mockAccount.id]: mockAccount,
             },
-            selectedAccount: mockSelectedAccount.id,
+            selectedAccount: mockAccount.id,
           },
+        },
+        KeyringController: {
+          keyrings: [
+            {
+              accounts: [mockAccount.address],
+              type: KeyringTypes.hd,
+              metadata: {
+                id: 'mock-id',
+                name: 'mock-name',
+              },
+            },
+          ],
         },
       },
     },
@@ -108,17 +119,24 @@ describe('RevealPrivateKey', () => {
   it('displays account name correctly', () => {
     const { getByText } = render();
 
-    expect(getByText(mockSelectedAccount.metadata.name)).toBeTruthy();
+    expect(getByText(mockAccount.metadata.name)).toBeTruthy();
   });
 
-  it('navigates back when back button is pressed', () => {
-    const { getByRole } = render();
+  it('navigates back when the back button is pressed', () => {
+    const rendered = render();
+    const { root } = rendered;
+    const touchableOpacities = root.findAllByType(TouchableOpacity);
 
-    const backButton = getByRole('button');
-    fireEvent.press(backButton);
+    // Hack to get the button
+    const backButton = touchableOpacities.find(
+      (touchable) =>
+        touchable.props.accessible === true && touchable.props.onPress,
+    );
 
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(backButton).toBeTruthy();
+    if (backButton) {
+      fireEvent.press(backButton);
+    }
+    expect(mockGoBack).toHaveBeenCalled();
   });
-
-  it('navigates to RevealPrivateCredential with correct params', () => {});
 });

@@ -10,14 +10,14 @@ import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
 const mockHdKeyringEntropySource = '01JNG7170V9X27V5NFDTY04PJ4';
-const mockSecondHdKeyringEntropySource = '01JWFMYZ64C4RVB68AT0HGAZ2X';
+const mockHdKeyringEntropySource2 = '01JWFMYZ64C4RVB68AT0HGAZ2X';
 const mockSnapKeyringEntropySource = '01JNG71B7GTWH0J1TSJY9891S0';
 
 const hdAccount = createMockInternalAccount(
   '0x4d8279c715e5BDC4aBb7ECFa8cC5046BE79EA195',
   'HD Account',
 );
-const hdAccountFromSecondKeyring = createMockInternalAccount(
+const hdAccount2 = createMockInternalAccount(
   '0x0aBF1CfDF49aceEbca3BD76b4b3E0C7D797e994E',
   'HD Account 2',
 );
@@ -50,10 +50,10 @@ const hdKeyring = {
 };
 
 const hdKeyring2 = {
-  accounts: [hdAccountFromSecondKeyring.address],
+  accounts: [hdAccount2.address],
   type: KeyringTypes.hd,
   metadata: {
-    id: mockSecondHdKeyringEntropySource,
+    id: mockHdKeyringEntropySource2,
     name: '',
   },
 };
@@ -80,33 +80,33 @@ const mockInitialState = {
 describe('useKeyringId', () => {
   it.each([
     {
-      name: 'should return entropySource for first party snap with entropySource',
+      name: 'returns entropySource for first party snap with entropySource',
       account: solanaAccount,
       expected: mockHdKeyringEntropySource,
     },
     {
-      name: 'should return keyring id for snap account without entropy source',
+      name: 'returns keyring id for snap account without entropy source',
       account: snapAccount,
       expected: mockSnapKeyringEntropySource,
     },
     {
-      name: 'should return keyring id for regular account',
+      name: 'returns keyring id for regular account',
       account: hdAccount,
       expected: mockHdKeyringEntropySource,
     },
     {
-      name: 'should return keyring id for regular account from second keyring',
-      account: hdAccountFromSecondKeyring,
-      expected: mockSecondHdKeyringEntropySource,
+      name: 'returns keyring id for regular account from second keyring',
+      account: hdAccount2,
+      expected: mockHdKeyringEntropySource2,
     },
   ])('$name', ({ account, expected }) => {
     const { result } = renderHookWithProvider(() => useKeyringId(account), {
       state: mockInitialState,
     });
-    expect(result?.current).toBe(account.options?.entropySource ?? expected);
+    expect(result?.current).toBe(expected);
   });
 
-  it('should throw error when keyring not found', () => {
+  it('throws error when keyring not found', () => {
     const account = createMockInternalAccount('0x999', 'Test Account');
     expect(() => {
       renderHookWithProvider(() => useKeyringId(account), {

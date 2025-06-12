@@ -6,6 +6,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { createMockInternalAccount } from '../../../../../../util/test/accountsControllerTestUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { EthAccountType } from '@metamask/keyring-api';
+import { ExportCredentialsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/ExportCredentials.selectors';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -31,6 +32,7 @@ const mockIsHDOrFirstPartySnapAccount = jest.fn();
 const mockIsPrivateKeyAccount = jest.fn();
 
 jest.mock('../../../../../../util/address', () => ({
+  ...jest.requireActual('../../../../../../util/address'),
   isHDOrFirstPartySnapAccount: () => mockIsHDOrFirstPartySnapAccount(),
   isPrivateKeyAccount: () => mockIsPrivateKeyAccount(),
 }));
@@ -60,7 +62,7 @@ describe('ExportCredentials', () => {
     );
   });
 
-  it('should render nothing when account cannot export private key or mnemonic', () => {
+  it('renders nothing when account cannot export private key or mnemonic', () => {
     mockHdKeyringsWithSnapAccounts.mockReturnValue([
       { accounts: [mockAccount.address], metadata: { id: mockKeyringId } },
     ]);
@@ -81,7 +83,7 @@ describe('ExportCredentials', () => {
     ).toBeNull();
   });
 
-  it('should show only private key export option for private key accounts', () => {
+  it('shows only private key export option for private key accounts', () => {
     mockHdKeyringsWithSnapAccounts.mockReturnValue([
       { accounts: [mockAccount.address], metadata: { id: mockKeyringId } },
     ]);
@@ -101,7 +103,7 @@ describe('ExportCredentials', () => {
     ).toBeNull();
   });
 
-  it('should show both export options when HD account', () => {
+  it('shows both export options when HD account', () => {
     mockHdKeyringsWithSnapAccounts.mockReturnValue([
       {
         accounts: [mockAccount.address],
@@ -121,7 +123,7 @@ describe('ExportCredentials', () => {
     ).toBeTruthy();
   });
 
-  it('should show backup warning when seedphrase is not backed up', () => {
+  it('shows backup warning when seedphrase is not backed up', () => {
     mockUseSelector.mockImplementation(
       (
         callback: (state: { user: { seedphraseBackedUp: boolean } }) => boolean,
@@ -144,7 +146,7 @@ describe('ExportCredentials', () => {
     ).toBeTruthy();
   });
 
-  it('should navigate to SRP reveal quiz when export mnemonic is pressed', () => {
+  it('navigates to SRP reveal quiz when export mnemonic is pressed', () => {
     mockHdKeyringsWithSnapAccounts.mockReturnValue([
       {
         accounts: ['0x123'],
@@ -170,7 +172,7 @@ describe('ExportCredentials', () => {
     );
   });
 
-  it('should navigate to reveal private credential when export private key is pressed', () => {
+  it('navigates to reveal private credential when export private key is pressed', () => {
     mockHdKeyringsWithSnapAccounts.mockReturnValue([
       {
         accounts: ['0x123'],
@@ -183,7 +185,9 @@ describe('ExportCredentials', () => {
 
     const { getByTestId } = render(<ExportCredentials account={mockAccount} />);
 
-    const privateKeyButton = getByTestId('hihi');
+    const privateKeyButton = getByTestId(
+      ExportCredentialsIds.EXPORT_PRIVATE_KEY_BUTTON,
+    );
     fireEvent.press(privateKeyButton);
 
     expect(mockNavigate).toHaveBeenCalledWith(

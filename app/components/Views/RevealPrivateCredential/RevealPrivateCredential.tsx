@@ -4,7 +4,7 @@ import {
   Dimensions,
   Linking,
   Platform,
-  Text,
+  ScrollView,
   TextInput,
   TouchableOpacity,
   View,
@@ -19,7 +19,7 @@ import ScrollableTabView, {
 } from 'react-native-scrollable-tab-view';
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const CustomTabView = View as any;
+const CustomTabView = ScrollView as any;
 import StorageWrapper from '../../../store/storage-wrapper';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
@@ -53,7 +53,10 @@ import { Authentication } from '../../../core/';
 import { isTest } from '../../../util/test/utils';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
-import { isHardwareAccount } from '../../../util/address';
+import {
+  getInternalAccountByAddress,
+  isHardwareAccount,
+} from '../../../util/address';
 import AppConstants from '../../../core/AppConstants';
 import { createStyles } from './styles';
 import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
@@ -61,6 +64,12 @@ import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/S
 
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
+import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import { AccountInfo } from '../MultichainAccounts/AccountDetails/components/AccountInfo/AccountInfo';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 export const PRIVATE_KEY = 'private_key';
 
@@ -85,6 +94,7 @@ interface IRevealPrivateCredentialProps {
   credentialName: string;
   cancel: () => void;
   route: RevealPrivateCredentialRouteProp;
+  showCancelButton?: boolean;
 }
 
 const RevealPrivateCredential = ({
@@ -92,6 +102,7 @@ const RevealPrivateCredential = ({
   credentialName,
   cancel,
   route,
+  showCancelButton,
 }: IRevealPrivateCredentialProps) => {
   const hasNavigation = !!navigation;
   // TODO - Refactor or split RevealPrivateCredential when used in Nav stack vs outside of it
@@ -124,6 +135,10 @@ const RevealPrivateCredential = ({
   const credentialSlug = credentialName || route?.params.credentialName;
   const selectedAddress =
     route?.params?.selectedAccount?.address || checkSummedAddress;
+
+  // Address will always be defined because checkSummedAddress is the selectedAccount's address
+  const account = getInternalAccountByAddress(selectedAddress as string);
+
   const isPrivateKey = credentialSlug === PRIVATE_KEY;
 
   const updateNavBar = () => {
@@ -392,10 +407,12 @@ const RevealPrivateCredential = ({
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       onChangeTab={(event: any) => onTabBarChange(event)}
+      style={styles.tabContentContainer}
     >
       <CustomTabView
         tabLabel={strings(`reveal_credential.text`)}
         style={styles.tabContent}
+        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW}
       >
         <Text style={styles.boldText}>
           {strings(`reveal_credential.${privCredentialName}`)}
@@ -431,6 +448,7 @@ const RevealPrivateCredential = ({
       <CustomTabView
         tabLabel={strings(`reveal_credential.qr_code`)}
         style={styles.tabContent}
+        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW}
       >
         <View
           style={styles.qrCodeWrapper}
@@ -447,7 +465,7 @@ const RevealPrivateCredential = ({
 
   const renderPasswordEntry = () => (
     <>
-      <Text style={styles.enterPassword}>
+      <Text style={styles.enterPassword} variant={TextVariant.BodyMDMedium}>
         {strings('reveal_credential.enter_password')}
       </Text>
       <TextInput
@@ -626,22 +644,39 @@ const RevealPrivateCredential = ({
           RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID
         }
         contentContainerStyle={styles.stretch}
+        // The cancel button here is not named correctly. When it is unlocked, the button is shown as "Done"
+        showCancelButton={Boolean(showCancelButton || unlocked)}
       >
         <>
           <View style={[styles.rowWrapper, styles.normalText]}>
-            {isPrivateKey ? (
-              <Text style={styles.normalText}>
-                {strings(`reveal_credential.private_key_explanation`)}
-              </Text>
+            {isPrivateKey && account ? (
+              <>
+                <AccountInfo account={account} />
+                <BannerAlert
+                  severity={BannerAlertSeverity.Error}
+                  title={strings(
+                    'multichain_accounts.reveal_private_key.banner_title',
+                  )}
+                  description={strings(
+                    'multichain_accounts.reveal_private_key.banner_description',
+                  )}
+                />
+              </>
             ) : (
-              renderSRPExplanation()
+              <>
+                {renderSRPExplanation()}
+                {renderWarning(credentialSlug)}
+              </>
             )}
           </View>
-          {renderWarning(credentialSlug)}
 
-          <View style={[styles.rowWrapper, styles.stretch]}>
-            {unlocked ? renderTabView(credentialSlug) : renderPasswordEntry()}
-          </View>
+          {unlocked ? (
+            renderTabView(credentialSlug)
+          ) : (
+            <View style={[styles.rowWrapper, styles.stretch]}>
+              {renderPasswordEntry()}
+            </View>
+          )}
         </>
       </ActionView>
       {renderModal(isPrivateKey)}

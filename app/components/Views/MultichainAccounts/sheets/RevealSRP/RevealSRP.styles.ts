@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleSheet } from 'react-native';
+import { Platform, StatusBar, StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
@@ -7,6 +7,7 @@ const styleSheet = () =>
       flex: 1,
       paddingLeft: 16,
       paddingRight: 16,
+      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     },
     headerContainer: {
       display: 'flex',
