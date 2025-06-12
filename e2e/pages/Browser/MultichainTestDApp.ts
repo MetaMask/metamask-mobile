@@ -329,7 +329,7 @@ class MultichainTestDApp {
     // Wait for result to be populated
     await TestHelpers.delay(2000);
 
-    // Tap to expand the result
+    // Try to tap to expand the result (will do nothing if element doesn't exist)
     await this.tapFirstResultSummary(resultIndex);
 
     // Get the revoke result content
@@ -380,6 +380,16 @@ class MultichainTestDApp {
     const webview = this.getWebView();
     const firstResult = webview.element(by.web.id(`session-method-details-${index}`));
 
+    // Check if element exists before trying to interact with it
+    const exists = await firstResult.runScript('(el) => el !== null')
+      .then(() => true)
+      .catch(() => false);
+
+    if (!exists) {
+      // Element doesn't exist, which is expected when there's no session
+      return;
+    }
+
     await firstResult.scrollToView();
     await firstResult.runScript('(el) => { if(!el.open) { el.click(); } }');
 
@@ -394,7 +404,7 @@ class MultichainTestDApp {
     // Wait for result to be populated
     await TestHelpers.delay(2000);
 
-    // Tap to expand the result
+    // Try to tap to expand the result (will do nothing if element doesn't exist)
     await this.tapFirstResultSummary(resultIndex);
 
     // Get the session result content
