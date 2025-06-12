@@ -1,9 +1,11 @@
 import React, { useCallback, useState } from 'react';
+import { Switch, Text, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { AUTHENTICATION_TYPE, BIOMETRY_TYPE } from 'react-native-keychain';
+import { createStyles } from './styles';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
 import { useSelector } from 'react-redux';
-import SecurityOptionToggle from '../SecurityOptionToggle/SecurityOptionToggle';
+import { useTheme } from '../../../util/theme';
 
 interface Props {
   shouldRenderBiometricOption:
@@ -28,6 +30,9 @@ const LoginOptionsSwitch = ({
   onUpdateBiometryChoice,
   onUpdateRememberMe,
 }: Props) => {
+  const theme = useTheme();
+  const { colors } = theme;
+  const styles = createStyles(colors);
   const allowLoginWithRememberMe = useSelector(
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -51,22 +56,44 @@ const LoginOptionsSwitch = ({
   // if both are disabled then this component returns null
   if (shouldRenderBiometricOption !== null) {
     return (
-      <SecurityOptionToggle
-        title={strings(
-          `biometrics.enable_${shouldRenderBiometricOption.toLowerCase()}`,
-        )}
-        value={biometryChoiceState}
-        onOptionUpdated={onBiometryValueChanged}
-      />
+      <View style={styles.container}>
+        <Text style={styles.label}>
+          {strings(
+            `biometrics.enable_${shouldRenderBiometricOption.toLowerCase()}`,
+          )}
+        </Text>
+        <Switch
+          onValueChange={onBiometryValueChanged}
+          value={biometryChoiceState}
+          style={styles.switch}
+          trackColor={{
+            true: colors.primary.default,
+            false: colors.border.muted,
+          }}
+          thumbColor={theme.brandColors.white}
+          ios_backgroundColor={colors.border.muted}
+        />
+      </View>
     );
   } else if (shouldRenderBiometricOption === null && allowLoginWithRememberMe) {
     return (
-      <SecurityOptionToggle
-        title={strings('choose_password.remember_me')}
-        value={rememberMeEnabled}
-        onOptionUpdated={onRememberMeValueChanged}
-        testId={LoginViewSelectors.REMEMBER_ME_SWITCH}
-      />
+      <View style={styles.container}>
+        <Text style={styles.label}>
+          {strings(`choose_password.remember_me`)}
+        </Text>
+        <Switch
+          onValueChange={onRememberMeValueChanged}
+          value={rememberMeEnabled}
+          style={styles.switch}
+          trackColor={{
+            true: colors.primary.default,
+            false: colors.border.muted,
+          }}
+          thumbColor={theme.brandColors.white}
+          ios_backgroundColor={colors.border.muted}
+          testID={LoginViewSelectors.REMEMBER_ME_SWITCH}
+        />
+      </View>
     );
   }
   return null;
