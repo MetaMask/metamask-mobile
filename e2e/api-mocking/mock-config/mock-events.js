@@ -122,7 +122,7 @@ export const mockEvents = {
           enableMultichainAccounts: {
             enabled: true,
             featureVersion: '1',
-            minimumVersion: '7.47.0',
+            minimumVersion: '7.46.0',
           },
         },
       ],
