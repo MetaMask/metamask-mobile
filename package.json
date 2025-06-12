@@ -182,6 +182,7 @@
     "@metamask/design-tokens": "^7.0.0",
     "@metamask/earn-controller": "^0.13.0",
     "@metamask/eip1193-permission-middleware": "^0.1.0",
+    "@metamask/error-reporting-service": "^1.0.0",
     "@metamask/eth-hd-keyring": "^12.1.0",
     "@metamask/eth-json-rpc-filters": "^9.0.0",
     "@metamask/eth-json-rpc-middleware": "^17.0.1",
