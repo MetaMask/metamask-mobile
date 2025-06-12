@@ -5,7 +5,7 @@ import {
   createMockInternalAccount,
   MOCK_ACCOUNTS_CONTROLLER_STATE,
 } from '../../../../../../util/test/accountsControllerTestUtils';
-import { EthAccountType } from '@metamask/keyring-api';
+import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -86,7 +86,7 @@ describe('SmartAccountDetails', () => {
   it('returns null for non-EVM account types', () => {
     const nonEvmAccount = {
       ...mockAccount,
-      type: 'btc' as any, // Non-EVM account type
+      type: SolAccountType.DataAccount,
     };
 
     const { toJSON } = render(nonEvmAccount);
