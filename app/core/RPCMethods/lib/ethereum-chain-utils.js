@@ -261,7 +261,7 @@ export async function switchToNetwork({
     });
   }
 
-  const shouldGrantPermissions = !ethChainIds || !ethChainIds.includes(chainId);
+  const shouldGrantPermissions = !ethChainIds?.includes(chainId);
 
   const requestModalType = autoApprove ? 'new' : 'switch';
 
