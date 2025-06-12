@@ -85,6 +85,7 @@ const parsedArgs = parseArgs({
   args,
   options,
   allowPositionals: true,
+  strict: false, // Allow no value `--device` (expo uses first available device)
 });
 
 // Apply 'ses/hermes' on Android (Hermes)
