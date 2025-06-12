@@ -46,6 +46,7 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetOptions = jest.fn();
 const mockDispatch = jest.fn();
+const mockReset = jest.fn();
 
 // mock useNavigation
 jest.mock('@react-navigation/native', () => {
@@ -58,6 +59,7 @@ jest.mock('@react-navigation/native', () => {
         goBack: mockGoBack,
         setOptions: mockSetOptions,
         dispatch: mockDispatch,
+        reset: mockReset,
       },
     }),
   };
@@ -69,7 +71,10 @@ const mockResetActionOnboardingSuccessWizard = CommonActions.reset({
     {
       name: Routes.ONBOARDING.SUCCESS_FLOW,
       params: {
-        step: 1,
+        screen: Routes.ONBOARDING.SUCCESS,
+        params: {
+          successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+        },
       },
     },
   ],
@@ -97,7 +102,7 @@ describe('AccountBackupStep1', () => {
     };
   };
 
-  it('renders matches snapshot', () => {
+  it('render matches snapshot', () => {
     const { wrapper } = setupTest();
     expect(wrapper).toMatchSnapshot();
   });
@@ -138,7 +143,7 @@ describe('AccountBackupStep1', () => {
 
   it('shows seedphrase modal when srp link is pressed', () => {
     (Engine.hasFunds as jest.Mock).mockReturnValue(true);
-    const { wrapper, mockNavigate } = setupTest();
+    const { wrapper } = setupTest();
     const srpLink = wrapper.getByTestId(
       ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK,
     );
@@ -192,7 +197,7 @@ describe('AccountBackupStep1', () => {
 
   it('navigates to ManualBackupStep1 when continue button is pressed', () => {
     (Engine.hasFunds as jest.Mock).mockReturnValue(false);
-    const { wrapper, mockNavigate } = setupTest();
+    const { wrapper } = setupTest();
     const reminderButton = wrapper.getByText(
       strings('account_backup_step_1.remind_me_later'),
     );
@@ -225,7 +230,7 @@ describe('AccountBackupStep1', () => {
     (Device.isAndroid as jest.Mock).mockReturnValue(true);
     (Engine.hasFunds as jest.Mock).mockReturnValue(false);
 
-    const { wrapper, mockNavigate } = setupTest();
+    const { wrapper } = setupTest();
 
     const androidBackHandler = wrapper.UNSAFE_getByType(AndroidBackHandler);
 
@@ -241,7 +246,7 @@ describe('AccountBackupStep1', () => {
   });
 
   it('renders header left button, calls goBack when pressed', () => {
-    const { mockGoBack, mockSetOptions } = setupTest();
+    setupTest();
 
     // Verify that setOptions was called with the correct configuration
     expect(mockSetOptions).toHaveBeenCalled();
@@ -290,24 +295,8 @@ describe('AccountBackupStep1', () => {
       await modalParams.onConfirm();
 
       // Verify navigation to OnboardingSuccess
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.SUCCESS_FLOW,
-        {
-          screen: Routes.ONBOARDING.SUCCESS,
-          params: { successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP },
-        },
-      );
-
-      // Verify onboarding wizard step was not set
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.ONBOARDING.SUCCESS_FLOW,
-        {
-          screen: Routes.ONBOARDING.SUCCESS,
-          params: {
-            successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
-            step: 1,
-          },
-        },
+      expect(mockDispatch).toHaveBeenCalledWith(
+        mockResetActionOnboardingSuccessWizard,
       );
     });
 
@@ -337,17 +326,6 @@ describe('AccountBackupStep1', () => {
       // Verify navigation to OnboardingSuccess
       expect(mockDispatch).toHaveBeenCalledWith(
         mockResetActionOnboardingSuccessWizard,
-      );
-
-      //
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.SUCCESS_FLOW,
-        {
-          screen: Routes.ONBOARDING.SUCCESS,
-          params: {
-            successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
-          },
-        },
       );
     });
 
