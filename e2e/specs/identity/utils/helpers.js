@@ -1,3 +1,4 @@
+import { MOCK_SRP_E2E_IDENTIFIER_BASE_KEY } from './mocks';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 
 export const determineIfFeatureEntryFromURL = (url) => {
@@ -11,8 +12,16 @@ export const determineIfFeatureEntryFromURL = (url) => {
 export const getDecodedProxiedURL = (url) =>
   decodeURIComponent(String(new URL(url).searchParams.get('url')));
 
+export const getSrpIdentifierFromHeaders = (headers) => {
+  const authHeader = headers.authorization;
+  return (
+    authHeader?.toString()?.split(' ')[1] ||
+    `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`
+  );
+};
+
 export const arrangeTestUtils = (userStorageMockttpController) => {
-  const BASE_TIMEOUT = 30000;
+  const BASE_TIMEOUT = 12000;
   const BASE_INTERVAL = 1000;
 
   /**
