@@ -50,7 +50,6 @@ import AccountNetworkIndicator from '../AccountNetworkIndicator';
 import { Skeleton } from '../../../component-library/components/Skeleton';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
-import { selectMultichainAccountsState1Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 
 interface AccountSection {
   title: string;
@@ -94,12 +93,11 @@ const EvmAccountSelectorList = ({
     shallowEqual,
   );
 
-  const multichainAccountsState1Enabled = useSelector(selectMultichainAccountsState1Enabled);
   const accountTreeSections = useSelector(selectAccountSections);
   const internalAccounts = useSelector(selectInternalAccounts);
 
   const accountSections = useMemo((): AccountSection[] => {
-    if (multichainAccountsState1Enabled) {
+    if (accountTreeSections) {
       const accountsById = new Map<string, Account>();
       internalAccounts.forEach((account) => {
         const formattedAddress =
@@ -126,13 +124,10 @@ const EvmAccountSelectorList = ({
     accounts,
     accountTreeSections,
     internalAccounts,
-    multichainAccountsState1Enabled,
   ]);
 
   const getKeyExtractor = ({ address }: Account) => address;
-  const useMultichainAccountDesign = useSelector(
-    selectMultichainAccountsState1Enabled,
-  );
+  const useMultichainAccountDesign = true;
 
   const selectedAddressesLookup = useMemo(() => {
     if (!selectedAddresses?.length) return undefined;
@@ -346,7 +341,7 @@ const EvmAccountSelectorList = ({
         scopes,
       };
       const shortAddress = formatAddress(address, 'short');
-      const tagLabel = multichainAccountsState1Enabled ? undefined : getLabelTextByAddress(address);
+      const tagLabel = accountTreeSections ? undefined : getLabelTextByAddress(address);
       const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
@@ -457,7 +452,7 @@ const EvmAccountSelectorList = ({
       onNavigateToAccountActions,
       navigate,
       styles.titleText,
-      multichainAccountsState1Enabled,
+      accountTreeSections,
     ],
   );
 
@@ -468,8 +463,8 @@ const EvmAccountSelectorList = ({
       keyExtractor={getKeyExtractor}
       // @ts-expect-error - This will work, for some reason typescript sees null as an option here, but it's not.
       renderItem={renderAccountItem}
-      renderSectionHeader={multichainAccountsState1Enabled ? renderSectionHeader : undefined}
-      renderSectionFooter={multichainAccountsState1Enabled ? renderSectionFooter : undefined}
+      renderSectionHeader={accountTreeSections ? renderSectionHeader : undefined}
+      renderSectionFooter={accountTreeSections ? renderSectionFooter : undefined}
       // Increasing number of items at initial render fixes scroll issue.
       initialNumToRender={999}
       testID={ACCOUNT_SELECTOR_LIST_TESTID}

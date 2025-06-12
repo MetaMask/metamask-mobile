@@ -3,7 +3,7 @@ import { RootState } from '../../reducers';
 
 describe('AccountTreeController Selectors', () => {
   describe('selectAccountSections', () => {
-    it('returns default group when accountTree is undefined', () => {
+    it('returns null when accountTree is undefined', () => {
       const mockState = {
         engine: {
           backgroundState: {
@@ -13,13 +13,10 @@ describe('AccountTreeController Selectors', () => {
       } as unknown as RootState;
 
       const result = selectAccountSections(mockState);
-      expect(result).toEqual([{
-        title: 'Default Group',
-        data: [],
-      }]);
+      expect(result).toEqual(null);
     });
 
-    it('returns default group when accountTree.wallets is null', () => {
+    it('returns null when accountTree.wallets is null', () => {
       const mockState = {
         engine: {
           backgroundState: {
@@ -33,10 +30,7 @@ describe('AccountTreeController Selectors', () => {
       } as unknown as RootState;
 
       const result = selectAccountSections(mockState);
-      expect(result).toEqual([{
-        title: 'Default Group',
-        data: [],
-      }]);
+      expect(result).toEqual(null);
     });
 
     it('returns wallet sections with accounts when wallets exist', () => {
@@ -77,6 +71,15 @@ describe('AccountTreeController Selectors', () => {
                 },
               },
             },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                enableMultichainAccounts: {
+                  enabled: true,
+                  featureVersion: '1',
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
           },
         },
       } as unknown as RootState;
@@ -94,7 +97,7 @@ describe('AccountTreeController Selectors', () => {
       ]);
     });
 
-    it('returns empty sections array when wallets object is empty', () => {
+    it('returns null when wallets object is empty', () => {
       const mockState = {
         engine: {
           backgroundState: {
@@ -108,7 +111,7 @@ describe('AccountTreeController Selectors', () => {
       } as unknown as RootState;
 
       const result = selectAccountSections(mockState);
-      expect(result).toEqual([]);
+      expect(result).toEqual(null);
     });
   });
 });

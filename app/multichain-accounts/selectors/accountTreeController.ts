@@ -1,5 +1,6 @@
-import { createSelector } from 'reselect';
+import { createDeepEqualSelector } from '../../selectors/util';
 import { RootState } from '../../reducers';
+import { selectMultichainAccountsState1Enabled } from '../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 
 /**
  * Get the AccountTreeController state
@@ -12,14 +13,11 @@ const selectAccountTreeControllerState = (state: RootState) => state.engine.back
  * Get account sections from AccountTreeController
  * For now, this returns a simple structure until the controller is fully integrated
  */
-export const selectAccountSections = createSelector(
-  [selectAccountTreeControllerState],
-  (accountTreeState) => {
-    if (!accountTreeState?.accountTree?.wallets) {
-      return [{
-        title: 'Default Group',
-        data: [],
-      }];
+export const selectAccountSections = createDeepEqualSelector(
+  [selectAccountTreeControllerState, selectMultichainAccountsState1Enabled],
+  (accountTreeState, multichainAccountsState1Enabled) => {
+    if (!multichainAccountsState1Enabled || !accountTreeState?.accountTree?.wallets) {
+      return null;
     }
 
     return Object.values(accountTreeState.accountTree.wallets).map((wallet) => ({
