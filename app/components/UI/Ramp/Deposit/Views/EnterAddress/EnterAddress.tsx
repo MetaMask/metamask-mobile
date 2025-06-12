@@ -115,6 +115,9 @@ const EnterAddress = (): JSX.Element => {
     ['Buying/selling crypto for investments'],
   );
 
+  const [{ error: ssnError, isFetching: ssnIsFetching }, submitSsnDetails] =
+    useDepositSdkMethod({ method: 'submitSsnDetails', onMount: false });
+
   useEffect(() => {
     navigation.setOptions(
       getDepositNavbarOptions(
@@ -138,6 +141,15 @@ const EnterAddress = (): JSX.Element => {
       if (kycError) {
         console.error('KYC form submission failed:', kycError);
         return;
+      }
+
+      if (basicInfoFormData.ssn) {
+        await submitSsnDetails(basicInfoFormData.ssn);
+
+        if (ssnError) {
+          console.error('SSN submission failed:', ssnError);
+          return;
+        }
       }
 
       await submitPurpose();
@@ -166,6 +178,8 @@ const EnterAddress = (): JSX.Element => {
     navigation,
     quote,
     kycUrl,
+    submitSsnDetails,
+    ssnError,
   ]);
 
   return (
@@ -251,7 +265,7 @@ const EnterAddress = (): JSX.Element => {
                 type="confirm"
                 onPress={handleOnPressContinue}
                 testID="address-continue-button"
-                disabled={kycIsFetching || purposeIsFetching}
+                disabled={kycIsFetching || purposeIsFetching || ssnIsFetching}
               >
                 {strings('deposit.enter_address.continue')}
               </StyledButton>

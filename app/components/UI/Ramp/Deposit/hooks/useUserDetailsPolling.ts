@@ -20,8 +20,10 @@ export enum KycStatus {
 const useUserDetailsPolling = (
   pollingInterval: number = 10000,
   autoStart: boolean = true,
+  maxPollingAttempts: number = 30,
 ): UserDetailsPollingResult => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const pollCountRef = useRef<number>(0);
   const [pollingError, setPollingError] = useState<string | null>(null);
 
   const [
@@ -41,22 +43,39 @@ const useUserDetailsPolling = (
 
   const startPolling = useCallback(() => {
     stopPolling();
+    pollCountRef.current = 0;
     setPollingError(null);
 
     // Call immediately
     fetchUserDetails();
+    pollCountRef.current += 1;
 
     // Set up interval
     intervalRef.current = setInterval(() => {
+      pollCountRef.current += 1;
+
+      if (pollCountRef.current > maxPollingAttempts) {
+        setPollingError(
+          'User details polling reached maximum attempts. Please try again later.',
+        );
+        stopPolling();
+        return;
+      }
+
       fetchUserDetails();
     }, pollingInterval);
-  }, [fetchUserDetails, pollingInterval, stopPolling]);
+  }, [fetchUserDetails, pollingInterval, stopPolling, maxPollingAttempts]);
+
+  const kycStatus = userDetails?.kyc?.l1?.status;
 
   useEffect(() => {
-    if (userDetails?.kyc?.l1?.status !== KycStatus.NOT_SUBMITTED) {
+    if (
+      kycStatus !== KycStatus.NOT_SUBMITTED &&
+      kycStatus !== KycStatus.SUBMITTED
+    ) {
       stopPolling();
     }
-  }, [userDetails?.kyc?.l1?.status, stopPolling]);
+  }, [kycStatus, stopPolling]);
 
   useEffect(() => {
     if (autoStart) {
