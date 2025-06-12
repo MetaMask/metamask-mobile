@@ -1439,13 +1439,17 @@
   dependencies:
     expo-build-properties "^0.13.1"
 
-"@consensys/native-ramps-sdk@^0.1.5":
-  version "0.1.5"
-  resolved "https://registry.yarnpkg.com/@consensys/native-ramps-sdk/-/native-ramps-sdk-0.1.5.tgz#38f05992886ec91486d7962b52de552ec4593753"
-  integrity sha512-5VB8SRJuK8a7dgVwUiqbaBTt2AAdzF4smo8U76v0zncBqdpAwZr0VWYWu8F+nXEuOncyUvYXrC96eVgCUNPM2g==
+"@consensys/native-ramps-sdk@1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@consensys/native-ramps-sdk/-/native-ramps-sdk-1.0.2.tgz#7be7a1b5d4c5a3585df9b0278b7687e81076d21e"
+  integrity sha512-drJSY16VbLKg+2DqmIR5QdGOqpga8FZsHuH49ooNejZQtA9Ea4lfpMEt6sI9f+S89w7nV5Ew6Iz7lSuhK1TNWQ==
   dependencies:
+    async "^3.2.3"
     axios "^1.8.3"
-    reflect-metadata "^0.2.2"
+    axios-retry "^3.1.2"
+    crypto-js "^4.2.0"
+    reflect-metadata "^0.1.13"
+    uuid "^9.0.0"
 
 "@consensys/on-ramp-sdk@2.1.10":
   version "2.1.10"
@@ -25778,11 +25782,6 @@ reflect-metadata@^0.1.13:
   version "0.1.14"
   resolved "https://registry.yarnpkg.com/reflect-metadata/-/reflect-metadata-0.1.14.tgz#24cf721fe60677146bb77eeb0e1f9dece3d65859"
   integrity sha512-ZhYeb6nRaXCfhnndflDK8qI6ZQ/YcWZCISRAWICW9XYqMUwjZM9Z0DveWX/ABN01oxSHwVxKQmxeYZSsm0jh5A==
-
-reflect-metadata@^0.2.2:
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/reflect-metadata/-/reflect-metadata-0.2.2.tgz#400c845b6cba87a21f2c65c4aeb158f4fa4d9c5b"
-  integrity sha512-urBwgfrvVP/eAyXx4hluJivBKzuEbSQs9rKWCrCkbSxNv8mxPcUZKeuoF3Uy4mJl3Lwprp6yy5/39VWigZ4K6Q==
 
 reflect.getprototypeof@^1.0.4:
   version "1.0.6"
