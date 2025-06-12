@@ -12,6 +12,8 @@ import { RemoteFeatureFlagInitParamTypes } from './types';
 import AppConstants from '../../../AppConstants';
 
 const getFeatureFlagAppEnvironment = () => {
+  return EnvironmentType.Development;
+
   const env = process.env.METAMASK_ENVIRONMENT;
   switch (env) {
     case 'local':
@@ -42,7 +44,8 @@ const getFeatureFlagAppDistribution = () => {
   }
 };
 
-export const isRemoteFeatureFlagOverrideActivated = process.env.OVERRIDE_REMOTE_FEATURE_FLAGS === 'true';
+export const isRemoteFeatureFlagOverrideActivated =
+  process.env.OVERRIDE_REMOTE_FEATURE_FLAGS === 'true';
 
 export const createRemoteFeatureFlagController = ({
   state,
