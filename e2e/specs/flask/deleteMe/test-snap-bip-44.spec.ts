@@ -1,18 +1,18 @@
-import TestHelpers from '../../helpers';
-import { SmokeNetworkExpansion } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import TestHelpers from '../../../helpers';
+import { SmokeNetworkExpansion } from '../../../tags';
+import { loginToApp } from '../../../viewHelper';
+import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../../fixtures/fixture-helper';
-import { getFixturesServerPort } from '../../fixtures/utils';
-import FixtureServer from '../../fixtures/fixture-server';
-import Assertions from '../../utils/Assertions';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import BrowserView from '../../pages/Browser/BrowserView';
-import TestSnaps from '../../pages/Browser/TestSnap';
+} from '../../../fixtures/fixture-helper';
+import { getFixturesServerPort } from '../../../fixtures/utils';
+import FixtureServer from '../../../fixtures/fixture-server';
+import Assertions from '../../../utils/Assertions';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
+import BrowserView from '../../../pages/Browser/BrowserView';
+import TestSnaps from '../../../pages/Browser/TestSnap';
 
 const fixtureServer = new FixtureServer();
 
