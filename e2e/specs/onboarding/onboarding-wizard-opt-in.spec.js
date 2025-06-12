@@ -344,6 +344,11 @@ describe(
           // Capture any analytics events during login with disabled metametrics
           const loginEvents = await getEventsPayloads(mockServer, []);
           console.log('Login events (should be minimal due to disabled metametrics):', loginEvents);
+          
+          // Assert that login events are minimal when metametrics is disabled
+          if (loginEvents.length > 2) {
+            throw new Error(`Expected minimal login events due to disabled metametrics, but got ${loginEvents.length} events: ${JSON.stringify(loginEvents)}`);
+          }
         }
       );
     });
@@ -371,9 +376,9 @@ describe(
           const navigationEvents = await getEventsPayloads(mockServer, []);
           console.log('Navigation events (should be empty due to disabled metametrics):', navigationEvents);
           
-          // Verify no events since metametrics is disabled
+          // Assert that no navigation events are tracked when metametrics is disabled
           if (navigationEvents.length !== 0) {
-            throw new Error(`Expected no analytics events but got ${navigationEvents.length} events: ${JSON.stringify(navigationEvents)}`);
+            throw new Error(`Expected no navigation events due to disabled metametrics, but got ${navigationEvents.length} events: ${JSON.stringify(navigationEvents)}`);
           }
         }
       );
