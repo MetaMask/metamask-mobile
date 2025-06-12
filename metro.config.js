@@ -82,23 +82,6 @@ module.exports = function (baseConfig) {
           ],
         },
       ),
-      // serializer: {
-      //   getPolyfills: () => [
-      //     require.resolve('ses/hermes'),
-      //     require.resolve('./repair.js'),
-      //     // eslint-disable-next-line import/no-extraneous-dependencies
-      //     ...require('@react-native/js-polyfills')(),
-      //     require.resolve('reflect-metadata'),
-      //   ],
-      //   getRunModuleStatement: (moduleId) => {
-      //     const defaultModuleStatement = `__r(${moduleId});`;
-      //     const isEntryFile = moduleId === 0;
-      //     if (isEntryFile) {
-      //       return `hardenIntrinsics();${defaultModuleStatement}`;
-      //     }
-      //     return defaultModuleStatement;
-      //   },
-      // },
       resetCache: true,
     }),
   );
