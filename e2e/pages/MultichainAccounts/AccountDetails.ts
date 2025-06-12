@@ -24,9 +24,9 @@ class AddNewHdAccountComponent {
     return Matchers.getElementByID(AccountDetailsIds.BACK_BUTTON);
   }
 
-  get deleteAccount() {
+  get deleteAccountLink() {
     return Matchers.getElementByID(
-      MultichainDeleteAccountsSelectors.deleteAccountButton,
+      MultichainDeleteAccountsSelectors.deleteAccountRemoveButton,
     );
   }
 
@@ -46,8 +46,8 @@ class AddNewHdAccountComponent {
     await Gestures.waitAndTap(this.backButton);
   }
 
-  async tapDeleteAccount() {
-    await Gestures.waitAndTap(this.deleteAccount);
+  async tapDeleteAccountLink() {
+    await Gestures.waitAndTap(this.deleteAccountLink);
   }
 }
 

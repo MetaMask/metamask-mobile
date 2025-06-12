@@ -9,8 +9,14 @@ class DeleteAccount {
     );
   }
 
+  get deleteAccountButton() {
+    return Matchers.getElementByID(
+      MultichainDeleteAccountsSelectors.deleteAccountRemoveButton,
+    );
+  }
+
   async tapDeleteAccount() {
-    await Gestures.waitAndTap(this.container);
+    await Gestures.waitAndTap(this.deleteAccountButton);
   }
 }
 
