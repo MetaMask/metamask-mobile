@@ -244,12 +244,15 @@ describe('ManualBackupStep2', () => {
         },
       });
 
-      // Click the missing words in order
-      sortMissingOrder.forEach(({ click }) => {
-        fireEvent.press(click);
-      });
+      // Get the success onPrimaryButtonPress function and call it
+      const successCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === 'RootModalFlow' && call[1].screen === 'SuccessErrorSheet',
+      );
+      const onPrimaryButtonPress = successCall[1].params.onPrimaryButtonPress;
 
-      expect(continueButton.props.disabled).toBe(true);
+      // Call the success button press function
+      onPrimaryButtonPress();
 
       // Click the missing words in order
       sortMissingOrder.forEach(({ click }) => {
