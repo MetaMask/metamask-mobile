@@ -150,10 +150,10 @@
     "have_existing_wallet": "I have an existing wallet"
   },
   "onboarding_success": {
-    "title": "Congratulations!",
-    "description": "Your wallet is protected and ready to use. You can find your Secret Recovery Phrase in ",
+    "title": "Keep your Secret Recovery Phrase safe!",
+    "description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
     "description_bold": "Settings > Security & Privacy.",
-    "description_continued": "Keep a reminder of your Secret Recovery Phrase somewhere safe. If you lose it, no one can help you get it back. Even worse, you won’t be able access to your wallet ever again.",
+    "description_continued": " you can keep this phrase safe so you never lose access to your money.",
     "learn_more": "Learn more",
     "learn_how": "Learn how",
     "leave_hint": "Leave yourself a hint?",
@@ -162,10 +162,22 @@
     "default_settings_footer": "Settings are optimized for ease of use and security.\nChange these at any time.",
     "no_srp_title": "Reminder set!",
     "no_srp_description": "If you get locked out of the app or get a new device, you will lose your funds. Be sure to back up your Secret Recovery Phrase in",
-    "import_title": "Your Wallet is ready",
-    "import_description": "Remember, if you lose your Secret Recovery Phrase, you lose access to your wallet. ",
-    "import_description2": "to keep this set of words safe so you can always access your funds.",
-    "done": "Done"
+    "import_title": "Your Wallet is ready!",
+    "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
+    "import_description2": "you can keep this phrase safe so you never lose access to your money.",
+    "done": "Done",
+    "create_hint": "Create a password hint",
+    "hint_title": "Password hint",
+    "hint_description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
+    "hint_description2": "Remember: If you lose your password, you won’t be able to use your wallet.",
+    "hint_button": "Create hint",
+    "hint_placeholder": "e.g. mom’s home",
+    "hint_saved": "Save",
+    "hint_saved_toast": "Password hint saved",
+    "remind_later": "We’ll remind you later",
+    "remind_later_description": "If you don’t back up your Secret Recovery Phrase, you’ll lose access to your funds if you get locked out of the app or get a new device.",
+    "remind_later_description2": "You can back up your wallets or see your Secret Recovery Phrase in",
+    "setting_security_privacy": "Settings > Security & Privacy"
   },
   "onboarding_carousel": {
     "title1": "Welcome to MetaMask",
@@ -440,6 +452,16 @@
   },
   "deposit": {
     "title": "Deposit",
+    "get_started": {
+      "title": "Top up your wallet with USDC",
+      "bullet_1_title": "Value-backed by the US dollar",
+      "bullet_1_description": "1:1 ratio backing with US dollars.",
+      "bullet_2_title": "Low volatility",
+      "bullet_2_description": "Maintains stable value for reliable transactions.",
+      "bullet_3_title": "Faster than banks",
+      "bullet_3_description": "Quick blockchain transfers beat traditional banking.",
+      "button": "Get started"
+    },
     "enter_email": {
       "title": "Enter your email",
       "description": "We'll send a six-digit code to your email to check it's you.",
@@ -478,6 +500,18 @@
       "city": "City",
       "postal_code": "Postal/Zip Code",
       "country": "Country"
+    },
+    "kyc_processing": {
+      "title": "Verifying your identity",
+      "heading": "Hang tight!\nWe’re verifying your identity now.",
+      "description": "You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.",
+      "button": "Browse tokens",
+      "error_heading": "We were unable to verify your identity.",
+      "error_description": "Try uploading your documents again and resubmit for verification.",
+      "error_button": "Retry verification",
+      "success_heading": "Identity successfully verified!",
+      "success_description": "You can now enter your payment info and complete your deposit.",
+      "success_button": "Complete your order"
     }
   },
   "receive": {
@@ -1231,7 +1265,9 @@
       "key": "Key",
       "add": "Add",
       "update": "Update",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "deposit_provider_logout_button": "Log out of {{depositProviderName}}",
+      "deposit_provider_logged_out": "Logged out of {{depositProviderName}}"
     },
     "request_feature": "Request a feature",
     "contact_support": "Contact support",
@@ -2282,16 +2318,21 @@
     "info_text_1_2": "Secret Recovery Phrase",
     "info_text_1_3": "in a place you trust.",
     "info_text_1_4": "It’s the only way to recover your wallet if you get locked out of the app or get a new device.",
-    "cta_text": "Start",
+    "cta_text": "Get Started",
     "cta_subText": "Highly recommended",
     "skip_button_cancel": "Secure now",
     "skip_button_confirm": "Skip",
     "skip_title": "Skip account security?",
-    "skip_check": "I understand that if I lose my Secret Recovery Phrase I will not be able to access my wallet.",
-    "what_is_seedphrase_title": "What is a ‘Secret Recovery Phrase’",
-    "what_is_seedphrase_text_1": "A Secret Recovery Phrase is a set of twelve words that contains all the information about your wallet, including your funds. It’s like a secret code used to access your entire wallet.",
+    "skip_check": "If you lose this Secret Recovery Phrase, you won’t be able to access this wallet.",
+    "what_is_seedphrase_title": "What’s a Secret Recovery Phrase?",
+    "what_is_seedphrase_text_1": "A Secret Recovery Phrase, also called a seed phrase or mnemonic, is a set of words that lets you access and control your crypto wallet. To move your wallet to MetaMask, you need this phrase.",
     "what_is_seedphrase_text_2": "You must keep your Secret Recovery Phrase secret and safe. If someone gets your Secret Recovery Phrase, they’ll gain control over your accounts.",
-    "what_is_seedphrase_text_3": "Save it in a place where only you can access it. If you lose it, not even MetaMask can help you recover it."
+    "what_is_seedphrase_text_3": "Save it in a place where only you can access it. If you lose it, not even MetaMask can help you recover it.",
+    "what_is_seedphrase_text_4": "Anyone with your Secret Recovery Phrase can:",
+    "seedPhrase_point_1": "Take all your money",
+    "seedPhrase_point_2": "Confirm transactions",
+    "seedPhrase_point_3": "Change your login information",
+    "what_is_seedphrase_confirm": "Got it"
   },
   "account_backup_step_1B": {
     "title": "Secure your wallet",
@@ -2382,25 +2423,40 @@
     "progressThree": "Confirm Secret Recovery Phrase"
   },
   "manual_backup_step_1": {
-    "action": "Write down your Secret Recovery Phrase",
-    "info": "This is your Secret Recovery Phrase. Write it down on paper and keep it in a safe place. You'll be asked to re-enter this phrase (in order) on the next step.",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Save your Secret Recovery Phrase",
+    "info-1": "This is your",
+    "info-2": "Secret Recovery Phrase",
+    "info-3": "Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.",
+    "info-4": "Don’t share it with anyone, ever.",
     "continue": "Continue",
-    "reveal": "Tap to reveal your Secret Recovery Phrase",
+    "reveal": "Tap to reveal",
     "watching": "Make sure no one is watching your screen.",
     "view": "View",
     "confirm_password": "Confirm your password",
     "before_continiuing": "Before continuing we need you to confirm your password",
-    "confirm": "CONFIRM",
+    "enter_current_password": "Enter your current password",
+    "confirm": "Confirm",
     "got_it": "Got it",
-    "learn_more": "Learn More"
+    "learn_more": "Learn More",
+    "password": "Password"
   },
   "manual_backup_step_2": {
-    "action": "Confirm Secret Recovery Phrase",
-    "info": "Select each word in the order it was presented to you.",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Confirm your Secret Recovery Phrase",
+    "info": "Select the missing words in the correct order.",
     "complete": "Complete Backup",
-    "success": "Success"
+    "success": "Success",
+    "error-title": "Not quite right",
+    "error-description": "Double-check your Secret Recovery Phrase and try again.",
+    "success-title": "Perfect!",
+    "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
+    "success-button": "Got It",
+    "error-button": "Try Again",
+    "continue": "Continue"
   },
   "manual_backup_step_3": {
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
     "congratulations": "Congratulations",
     "success": "You’ve successfully protected your wallet. Remember to keep your Secret Recovery Phrase safe, it's your responsibility!",
     "hint": "Leave yourself a hint?",

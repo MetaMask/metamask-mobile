@@ -9,6 +9,19 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 
+interface MockQuote {
+  id: string;
+  amount: number;
+  currency: string;
+}
+
+// Mock the quote object
+const mockQuote: MockQuote = {
+  id: 'test-quote-id',
+  amount: 100,
+  currency: 'USD',
+};
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -19,6 +32,9 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetNavigationOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
+    }),
+    useRoute: () => ({
+      params: { quote: mockQuote },
     }),
   };
 });
@@ -46,6 +62,10 @@ function render(Component: React.ComponentType) {
 }
 
 describe('VerifyIdentity Component', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('render matches snapshot', () => {
     render(VerifyIdentity);
     expect(screen.toJSON()).toMatchSnapshot();
@@ -64,10 +84,9 @@ describe('VerifyIdentity Component', () => {
     render(VerifyIdentity);
     fireEvent.press(screen.getByRole('button', { name: 'Get started' }));
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.DEPOSIT.BASIC_INFO,
-        undefined,
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.BASIC_INFO, {
+        quote: mockQuote,
+      });
     });
   });
 });

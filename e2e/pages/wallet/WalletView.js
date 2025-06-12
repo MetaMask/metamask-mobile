@@ -138,6 +138,11 @@ class WalletView {
       WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS,
     );
   }
+  get testCollectible() {
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByID(WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK, 1)
+      : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE, 1);
+  }
 
   getCarouselSlide(id) {
     return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_SLIDE(id));
@@ -187,18 +192,17 @@ class WalletView {
     await Gestures.swipe(this.nftTabContainer, 'up', 'slow', 0.6);
   }
 
+  async scrollDownOnTokensTab(tokenName) {
+    const tokenElement = await this.tokenInWallet(tokenName)
+    await Gestures.swipe(tokenElement, 'up', 'slow', 0.2);
+  }
+
   async scrollUpOnNFTsTab() {
     await Gestures.swipe(this.nftTabContainer, 'down', 'slow', 0.6);
   }
 
   async tapImportNFTButton() {
     await Gestures.waitAndTap(this.importNFTButton);
-  }
-
-  get testCollectible() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByID(WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK, 1)
-      : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE, 1);
   }
 
   async tapOnNftName() {

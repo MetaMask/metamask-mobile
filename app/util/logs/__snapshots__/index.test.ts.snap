@@ -30,6 +30,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "BridgeController": {
         "assetExchangeRates": {},
+        "minimumBalanceForRentExemptionInLamports": "0",
         "quoteFetchError": null,
         "quoteRequest": {
           "srcTokenAddress": "0x0000000000000000000000000000000000000000",
@@ -206,6 +207,21 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
                 "networkClientId": "megaeth-testnet",
                 "type": "custom",
                 "url": "https://carrot.megaeth.com/rpc",
+              },
+            ],
+          },
+          "0x2105": {
+            "blockExplorerUrls": [],
+            "chainId": "0x2105",
+            "defaultRpcEndpointIndex": 0,
+            "name": "Base Mainnet",
+            "nativeCurrency": "ETH",
+            "rpcEndpoints": [
+              {
+                "failoverUrls": [],
+                "networkClientId": "base-mainnet",
+                "type": "infura",
+                "url": "https://base-mainnet.infura.io/v3/{infuraProjectId}",
               },
             ],
           },

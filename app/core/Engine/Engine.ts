@@ -187,7 +187,6 @@ import {
 } from './constants';
 import {
   getGlobalChainId,
-  getGlobalNetworkClientId,
 } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
 import { initModularizedControllers } from './utils';
@@ -354,6 +353,10 @@ export class Engine {
         ChainId['linea-mainnet']
       ].rpcEndpoints[0].failoverUrls =
         getFailoverUrlsForInfuraNetwork('linea-mainnet');
+      initialNetworkControllerState.networkConfigurationsByChainId[
+        ChainId['base-mainnet']
+      ].rpcEndpoints[0].failoverUrls =
+        getFailoverUrlsForInfuraNetwork('base-mainnet');
     }
 
     const infuraProjectId = INFURA_PROJECT_ID || NON_EMPTY;
@@ -1270,7 +1273,6 @@ export class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     const nftController = new NftController({
-      chainId: getGlobalChainId(networkController),
       useIpfsSubdomains: false,
       messenger: this.controllerMessenger.getRestricted({
         name: 'NftController',
@@ -1285,10 +1287,10 @@ export class Engine {
           'AssetsContractController:getERC1155BalanceOf',
           'AssetsContractController:getERC1155TokenURI',
           'NetworkController:getNetworkClientById',
+          'NetworkController:findNetworkClientIdByChainId',
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
-          'NetworkController:networkDidChange',
           'AccountsController:selectedEvmAccountChange',
         ],
       }),
@@ -1413,6 +1415,7 @@ export class Engine {
             'NetworkController:getNetworkClientById',
             'PreferencesController:getState',
             'AccountsController:getSelectedAccount',
+            'NetworkController:findNetworkClientIdByChainId',
           ],
         }),
         disabled: false,
@@ -1768,144 +1771,160 @@ export class Engine {
         AccountsController.state.internalAccounts.selectedAccount,
       );
 
-    if (selectedInternalAccount) {
-      const selectedInternalAccountFormattedAddress = toFormattedAddress(
-        selectedInternalAccount.address,
-      );
-      const { currentCurrency } = CurrencyRateController.state;
-      const { chainId, ticker } = NetworkController.getNetworkClientById(
-        getGlobalNetworkClientId(NetworkController),
-      ).configuration;
-      const { settings: { showFiatOnTestnets } = {} } = store.getState();
+    if (!selectedInternalAccount) {
+      return {
+        ethFiat: 0,
+        tokenFiat: 0,
+        ethFiat1dAgo: 0,
+        tokenFiat1dAgo: 0,
+        totalNativeTokenBalance: '0',
+        ticker: '',
+      };
+    }
+
+    const selectedInternalAccountFormattedAddress = toFormattedAddress(
+      selectedInternalAccount.address,
+    );
+    const { currentCurrency } = CurrencyRateController.state;
+    const { settings: { showFiatOnTestnets } = {} } = store.getState();
+
+    const { accountsByChainId } = AccountTrackerController.state;
+    const { marketData } = TokenRatesController.state;
+
+    let totalEthFiat = 0;
+    let totalEthFiat1dAgo = 0;
+    let totalTokenFiat = 0;
+    let totalTokenFiat1dAgo = 0;
+    let aggregatedNativeTokenBalance = '';
+    let primaryTicker = '';
+
+    const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
+
+    const networkConfigurations = Object.values(NetworkController.state.networkConfigurationsByChainId || {});
+
+    networkConfigurations.forEach((networkConfig) => {
+      const { chainId } = networkConfig;
+      const chainIdHex = toHexadecimal(chainId);
 
       if (isTestNet(chainId) && !showFiatOnTestnets) {
-        return {
-          ethFiat: 0,
-          tokenFiat: 0,
-          ethFiat1dAgo: 0,
-          tokenFiat1dAgo: 0,
-          totalNativeTokenBalance: '0',
-          ticker: '',
-        };
+        return;
+      }
+
+      let ticker = '';
+      try {
+        const networkClientId = NetworkController.findNetworkClientIdByChainId(chainId);
+        if (networkClientId) {
+          const networkClient = NetworkController.getNetworkClientById(networkClientId);
+          ticker = networkClient.configuration.ticker;
+        }
+      } catch (error) {
+        return;
       }
 
       const conversionRate =
-        CurrencyRateController.state?.currencyRates?.[ticker]?.conversionRate ??
-        0;
+        CurrencyRateController.state?.currencyRates?.[ticker]?.conversionRate ?? 0;
 
-      const { accountsByChainId } = AccountTrackerController.state;
-      const chainIdHex = toHexadecimal(chainId);
-      const tokens =
-        TokensController.state.allTokens?.[chainIdHex]?.[
-          selectedInternalAccount.address
-        ] || [];
-      const { marketData } = TokenRatesController.state;
-      const tokenExchangeRates = marketData?.[toHexadecimal(chainId)];
+      if (conversionRate === 0) {
+        return;
+      }
 
-      let ethFiat = 0;
-      let ethFiat1dAgo = 0;
-      let tokenFiat = 0;
-      let tokenFiat1dAgo = 0;
-      let totalNativeTokenBalance = '0';
-      const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
-      if (
-        accountsByChainId?.[toHexadecimal(chainId)]?.[
-          selectedInternalAccountFormattedAddress
-        ]
-      ) {
-        const balanceHex =
-          accountsByChainId[toHexadecimal(chainId)][
-            selectedInternalAccountFormattedAddress
-          ].balance;
+      if (!primaryTicker) {
+        primaryTicker = ticker;
+      }
 
+      const accountData = accountsByChainId?.[chainIdHex]?.[selectedInternalAccountFormattedAddress];
+      if (accountData) {
+        const balanceHex = accountData.balance;
         const balanceBN = hexToBN(balanceHex);
-        totalNativeTokenBalance = renderFromWei(balanceHex);
 
-        // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to use CAIP-2 identifiers in the future.
-        const stakedBalanceBN = hexToBN(
-          accountsByChainId[toHexadecimal(chainId)][
-            selectedInternalAccountFormattedAddress
-          ].stakedBalance || '0x00',
-        );
-        const totalAccountBalance = balanceBN
-          .add(stakedBalanceBN)
-          .toString('hex');
-        ethFiat = weiToFiatNumber(
+        const stakedBalanceBN = hexToBN(accountData.stakedBalance || '0x00');
+        const totalAccountBalance = balanceBN.add(stakedBalanceBN).toString('hex');
+
+        const chainEthFiat = weiToFiatNumber(
           totalAccountBalance,
           conversionRate,
           decimalsToShow,
         );
+
+        // Avoid NaN and Infinity values
+        if (isFinite(chainEthFiat)) {
+          totalEthFiat += chainEthFiat;
+        }
+
+        const tokenExchangeRates = marketData?.[chainIdHex];
+        const ethPricePercentChange1d = tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
+
+        let chainEthFiat1dAgo = chainEthFiat;
+        if (ethPricePercentChange1d !== undefined && isFinite(ethPricePercentChange1d) && ethPricePercentChange1d !== -100) {
+          chainEthFiat1dAgo = chainEthFiat / (1 + ethPricePercentChange1d / 100);
+        }
+
+        if (isFinite(chainEthFiat1dAgo)) {
+          totalEthFiat1dAgo += chainEthFiat1dAgo;
+        }
+
+        const chainNativeBalance = renderFromWei(balanceHex);
+        if (chainNativeBalance && parseFloat(chainNativeBalance) > 0) {
+          const currentAggregated = parseFloat(aggregatedNativeTokenBalance || '0');
+          aggregatedNativeTokenBalance = (currentAggregated + parseFloat(chainNativeBalance)).toString();
+        }
       }
 
-      const ethPricePercentChange1d =
-        tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
-
-      ethFiat1dAgo =
-        ethPricePercentChange1d !== undefined
-          ? ethFiat / (1 + ethPricePercentChange1d / 100)
-          : ethFiat;
+      const tokens = TokensController.state.allTokens?.[chainIdHex]?.[selectedInternalAccount.address] || [];
+      const tokenExchangeRates = marketData?.[chainIdHex];
 
       if (tokens.length > 0) {
-        const { tokenBalances: allTokenBalances } =
-          TokenBalancesController.state;
+        const { tokenBalances: allTokenBalances } = TokenBalancesController.state;
+        const tokenBalances = allTokenBalances?.[selectedInternalAccount.address as Hex]?.[chainId] ?? {};
 
-        const tokenBalances =
-          allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
-            chainId
-          ] ?? {};
-        tokens.forEach(
-          (item: { address: string; balance?: string; decimals: number }) => {
-            const exchangeRate =
-              tokenExchangeRates?.[item.address as Hex]?.price;
+        tokens.forEach((item: { address: string; balance?: string; decimals: number }) => {
+          const exchangeRate = tokenExchangeRates?.[item.address as Hex]?.price;
 
-            const tokenBalance =
-              item.balance ||
-              (item.address in tokenBalances
-                ? renderFromTokenMinimalUnit(
-                    tokenBalances[item.address as Hex],
-                    item.decimals,
-                  )
-                : undefined);
-            const tokenBalanceFiat = balanceToFiatNumber(
-              // TODO: Fix this by handling or eliminating the undefined case
-              // @ts-expect-error This variable can be `undefined`, which would break here.
-              tokenBalance,
-              conversionRate,
-              exchangeRate,
-              decimalsToShow,
-            );
+          if (!exchangeRate || !isFinite(exchangeRate)) {
+            return;
+          }
 
-            const tokenPricePercentChange1d =
-              tokenExchangeRates?.[item.address as Hex]?.pricePercentChange1d;
+          const tokenBalance = item.balance ||
+            (item.address in tokenBalances
+              ? renderFromTokenMinimalUnit(tokenBalances[item.address as Hex], item.decimals)
+              : undefined);
 
-            const tokenBalance1dAgo =
-              tokenPricePercentChange1d !== undefined
-                ? tokenBalanceFiat / (1 + tokenPricePercentChange1d / 100)
-                : tokenBalanceFiat;
+          if (!tokenBalance) {
+            return;
+          }
 
-            tokenFiat += tokenBalanceFiat;
-            tokenFiat1dAgo += tokenBalance1dAgo;
-          },
-        );
+          const tokenBalanceFiat = balanceToFiatNumber(
+            tokenBalance,
+            conversionRate,
+            exchangeRate,
+            decimalsToShow,
+          );
+
+          if (isFinite(tokenBalanceFiat)) {
+            totalTokenFiat += tokenBalanceFiat;
+          }
+
+          const tokenPricePercentChange1d = tokenExchangeRates?.[item.address as Hex]?.pricePercentChange1d;
+          let tokenBalance1dAgo = tokenBalanceFiat;
+
+          if (tokenPricePercentChange1d !== undefined && isFinite(tokenPricePercentChange1d) && tokenPricePercentChange1d !== -100) {
+            tokenBalance1dAgo = tokenBalanceFiat / (1 + tokenPricePercentChange1d / 100);
+          }
+
+          if (isFinite(tokenBalance1dAgo)) {
+            totalTokenFiat1dAgo += tokenBalance1dAgo;
+          }
+        });
       }
+    });
 
-      return {
-        ethFiat: ethFiat ?? 0,
-        ethFiat1dAgo: ethFiat1dAgo ?? 0,
-        tokenFiat: tokenFiat ?? 0,
-        tokenFiat1dAgo: tokenFiat1dAgo ?? 0,
-        totalNativeTokenBalance: totalNativeTokenBalance ?? '0',
-        ticker,
-      };
-    }
-    // if selectedInternalAccount is undefined, return default 0 value.
     return {
-      ethFiat: 0,
-      tokenFiat: 0,
-      ethFiat1dAgo: 0,
-      tokenFiat1dAgo: 0,
-      totalNativeTokenBalance: '0',
-      ticker: '',
+      ethFiat: totalEthFiat ?? 0,
+      ethFiat1dAgo: totalEthFiat1dAgo ?? 0,
+      tokenFiat: totalTokenFiat ?? 0,
+      tokenFiat1dAgo: totalTokenFiat1dAgo ?? 0,
+      totalNativeTokenBalance: aggregatedNativeTokenBalance ?? '0',
+      ticker: primaryTicker,
     };
   };
 

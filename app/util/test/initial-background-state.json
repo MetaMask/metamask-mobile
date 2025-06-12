@@ -143,6 +143,21 @@
             "failoverUrls": []
           }
         ]
+      },
+      "0x2105": {
+        "blockExplorerUrls": [],
+        "chainId": "0x2105",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Base Mainnet",
+        "nativeCurrency": "ETH",
+        "rpcEndpoints": [
+          {
+            "failoverUrls": [],
+            "networkClientId": "base-mainnet",
+            "type": "infura",
+            "url": "https://base-mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
       }
     }
   },
@@ -445,6 +460,7 @@
   },
   "BridgeController": {
     "assetExchangeRates": {},
+    "minimumBalanceForRentExemptionInLamports": "0",
     "quoteFetchError": null,
     "quoteRequest": {
       "srcTokenAddress": "0x0000000000000000000000000000000000000000"
@@ -510,6 +526,7 @@
     }
   },
   "DeFiPositionsController": {
-    "allDeFiPositions": {}
+    "allDeFiPositions": {},
+    "allDeFiPositionsCount": {}
   }
 }
