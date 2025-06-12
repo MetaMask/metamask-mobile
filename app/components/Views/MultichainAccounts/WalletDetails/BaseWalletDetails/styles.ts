@@ -42,15 +42,17 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 32,
     },
 
-    accountName: {
+    walletName: {
       ...baseRowStyle,
       borderTopLeftRadius: 8,
       borderTopRightRadius: 8,
     },
-    accountAddress: {
+    balance: {
       ...baseRowStyle,
+      borderBottomLeftRadius: 8,
+      borderBottomRightRadius: 8,
     },
-    wallet: {
+    accounts: {
       ...baseRowStyle,
       marginBottom: 16,
       borderBottomLeftRadius: 8,

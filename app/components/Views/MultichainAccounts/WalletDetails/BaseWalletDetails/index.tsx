@@ -55,7 +55,7 @@ export const BaseWalletDetails = ({
         style={styles.container}
         testID={WalletDetailsIds.WALLET_DETAILS_CONTAINER}
       >
-        <View style={styles.accountName}>
+        <View style={styles.walletName}>
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('multichain_accounts.wallet_details.wallet_name')}
           </Text>
@@ -78,6 +78,20 @@ export const BaseWalletDetails = ({
               />
             </Box>
           </TouchableOpacity>
+        </View>
+        <View testID={WalletDetailsIds.WALLET_BALANCE} style={styles.balance}>
+          <Text variant={TextVariant.BodyMDMedium}>
+            {strings('multichain_accounts.wallet_details.balance')}
+          </Text>
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            gap={8}
+          >
+            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+              $123.45
+            </Text>
+          </Box>
         </View>
         {children}
       </View>
