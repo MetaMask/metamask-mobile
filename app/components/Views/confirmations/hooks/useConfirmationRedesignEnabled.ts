@@ -84,8 +84,8 @@ function isRedesignedTransaction({
   return false;
 }
 
-function isBatchTransaction(approvalRequestType: ApprovalType | 'transaction_batch') {
-  return approvalRequestType === 'transaction_batch';
+function isBatchTransaction(approvalRequestType: ApprovalType) {
+  return approvalRequestType === ApprovalType.TransactionBatch;
 }
 
 export const useConfirmationRedesignEnabled = () => {
