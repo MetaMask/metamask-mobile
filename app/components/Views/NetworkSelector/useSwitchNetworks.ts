@@ -116,9 +116,9 @@ export function useSwitchNetworks({
   /**
    * Switches to a custom EVM network configuration
    */
-  // const onSetRpcTarget = useCallback(
-  //   async (networkConfiguration: NetworkConfiguration) => {
-  //     if (!networkConfiguration) return;
+  const onSetRpcTarget = useCallback(
+    async (networkConfiguration: NetworkConfiguration) => {
+      if (!networkConfiguration) return;
 
       const { MultichainNetworkController, SelectedNetworkController } =
         Engine.context;
@@ -139,6 +139,11 @@ export function useSwitchNetworks({
         );
         isPerDappSelectedNetworkEnabled() && dismissModal?.();
       } else {
+        trace({
+          name: TraceName.SwitchCustomNetwork,
+          parentContext: parentSpan,
+          op: TraceOperation.SwitchCustomNetwork,
+        });
         const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
         try {
           if (source === 'SendFlow') {
@@ -147,7 +152,7 @@ export function useSwitchNetworks({
             await MultichainNetworkController.setActiveNetwork(networkClientId);
           }
         } catch (error) {
-          Logger.error(new Error(`Error i setActiveNetwork: ${error}`));
+          Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
         }
       }
 
@@ -164,91 +169,36 @@ export function useSwitchNetworks({
           })
           .build(),
       );
-    }
-  };
+    },
+    [
+      domainIsConnectedDapp,
+      origin,
+      setTokenNetworkFilter,
+      selectedNetworkName,
+      trackEvent,
+      createEventBuilder,
+      parentSpan,
+      dismissModal,
+    ],
+  );
 
-  // /**
-  //  * Switches to a built-in network
-  //  * The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
-  //  */
-  // const onNetworkChange = useCallback(
-  //   async (type: InfuraNetworkType) => {
-  //     trace({
-  //       name: TraceName.SwitchBuiltInNetwork,
-  //       parentContext: parentSpan,
-  //       op: TraceOperation.SwitchBuiltInNetwork,
-  //     });
+  /**
+   * Switches to a built-in network
+   * The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
+   */
+  const onNetworkChange = useCallback(
+    async (type: InfuraNetworkType) => {
+      trace({
+        name: TraceName.SwitchBuiltInNetwork,
+        parentContext: parentSpan,
+        op: TraceOperation.SwitchBuiltInNetwork,
+      });
 
-  //     const {
-  //       MultichainNetworkController,
-  //       AccountTrackerController,
-  //       SelectedNetworkController,
-  //     } = Engine.context;
-
-  //     if (domainIsConnectedDapp && isMultichainV1Enabled()) {
-  //       SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
-  //       dismissModal?.();
-  //     } else {
-  //       const networkConfiguration =
-  //         networkConfigurations[BUILT_IN_NETWORKS[type].chainId];
-
-  //       const clientId =
-  //         networkConfiguration?.rpcEndpoints[
-  //           networkConfiguration.defaultRpcEndpointIndex
-  //         ].networkClientId ?? type;
-
-  //       setTokenNetworkFilter(networkConfiguration.chainId);
-  //       await MultichainNetworkController.setActiveNetwork(clientId);
-
-  //       closeRpcModal?.();
-  //       AccountTrackerController.refresh();
-
-  //       // Update incoming transactions after a delay
-  //       setTimeout(async () => {
-  //         await updateIncomingTransactions();
-  //       }, 1000);
-  //     }
-
-  //     dismissModal?.();
-  //     endTrace({ name: TraceName.SwitchBuiltInNetwork });
-  //     endTrace({ name: TraceName.NetworkSwitch });
-
-  //     trackEvent(
-  //       createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
-  //         .addProperties({
-  //           chain_id: getDecimalChainId(selectedChainId),
-  //           from_network: selectedNetworkName,
-  //           to_network: type,
-  //         })
-  //         .build(),
-  //     );
-  //   },
-  //   [
-  //     domainIsConnectedDapp,
-  //     origin,
-  //     networkConfigurations,
-  //     setTokenNetworkFilter,
-  //     selectedChainId,
-  //     selectedNetworkName,
-  //     trackEvent,
-  //     createEventBuilder,
-  //     parentSpan,
-  //     dismissModal,
-  //     closeRpcModal,
-  //   ],
-  // );
-  // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
-  const onNetworkChange = async (type: InfuraNetworkType) => {
-    trace({
-      name: TraceName.SwitchBuiltInNetwork,
-      parentContext: parentSpan,
-      op: TraceOperation.SwitchBuiltInNetwork,
-    });
-    const {
-      MultichainNetworkController,
-      AccountTrackerController,
-      SelectedNetworkController,
-    } = Engine.context;
+      const {
+        MultichainNetworkController,
+        AccountTrackerController,
+        SelectedNetworkController,
+      } = Engine.context;
 
       if (domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()) {
         SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
@@ -262,23 +212,23 @@ export function useSwitchNetworks({
             networkConfiguration.defaultRpcEndpointIndex
           ].networkClientId ?? type;
 
-        setTokenNetworkFilter(networkConfiguration.chainId);
-        await MultichainNetworkController.setActiveNetwork(clientId);
-      } else {
-        dispatch(
-          setTransactionSendFlowContextualChainId(networkConfiguration.chainId),
-        );
-      }
+          if (source !== 'SendFlow') {
+            setTokenNetworkFilter(networkConfiguration.chainId);
+            await MultichainNetworkController.setActiveNetwork(clientId);
+          } else {
+            dispatch(
+              setTransactionSendFlowContextualChainId(networkConfiguration.chainId),
+            );
+          }
 
         closeRpcModal?.();
         AccountTrackerController.refresh([clientId]);
 
-      setTimeout(async () => {
-        await updateIncomingTransactions();
-        // TODO: should be the one below, check with Dan from TX controller if this became unnecessary, looks like it might be since M. Arthu's controller upgrade
-        // await updateIncomingTransactions([networkConfiguration.chainId]);
-      }, 1000);
-    }
+        // Update incoming transactions after a delay
+        setTimeout(async () => {
+          await updateIncomingTransactions();
+        }, 1000);
+      }
 
       dismissModal?.();
       endTrace({ name: TraceName.SwitchBuiltInNetwork });

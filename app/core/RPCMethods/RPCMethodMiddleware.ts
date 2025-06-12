@@ -42,7 +42,7 @@ import {
 } from '../Permissions';
 import AppConstants from '../AppConstants';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import { selectEvmChainId, selectProviderConfig } from '../../selectors/networkController';
+import { selectProviderConfig } from '../../selectors/networkController';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';

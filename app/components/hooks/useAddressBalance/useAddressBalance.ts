@@ -14,7 +14,6 @@ import { selectEvmTicker, selectNetworkConfigurationByChainId, selectSelectedNet
 import { selectAccounts, selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { Asset } from './useAddressBalance.types';
-import { RootState } from '../../../reducers';
 import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import { safeToChecksumAddress, getTokenDetails } from '../../../util/address';
 import {
