@@ -41,6 +41,7 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
+import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -170,7 +171,13 @@ const AccountBackupStep1 = (props) => {
     // Get onboarding wizard state
     const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     !onboardingWizard && props.setOnboardingWizardStep(1);
-    props.navigation.navigate('OnboardingSuccess');
+    props.navigation.navigate(Routes.ONBOARDING.SUCCESS_FLOW, {
+      screen: Routes.ONBOARDING.SUCCESS,
+      params: {
+        ...props.route.params,
+        successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+      },
+    });
   };
 
   const showRemindLater = () => {

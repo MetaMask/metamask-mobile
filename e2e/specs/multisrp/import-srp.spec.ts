@@ -32,6 +32,8 @@ describe(SmokeWalletPlatform('Import new srp to wallet'), () => {
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await TestHelpers.launchApp({
+      delete: true,
+      newInstance: true,
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();
