@@ -56,6 +56,10 @@ import { AppThemeKey } from '../../../util/theme/models';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
+import {
+  lockAccountSyncing,
+  unlockAccountSyncing,
+} from '../../../actions/identity';
 
 const defaultNumberOfWords = 12;
 
@@ -227,6 +231,7 @@ const ImportNewSecretRecoveryPhrase = () => {
   const onSubmit = async () => {
     setLoading(true);
     try {
+      await lockAccountSyncing();
       await importNewSecretRecoveryPhrase(secretRecoveryPhrase.join(' '));
       setLoading(false);
       setSecretRecoveryPhrase(Array(numberOfWords).fill(''));
@@ -263,6 +268,8 @@ const ImportNewSecretRecoveryPhrase = () => {
         );
       }
       setLoading(false);
+    } finally {
+      unlockAccountSyncing();
     }
   };
 
