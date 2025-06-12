@@ -777,6 +777,7 @@ class TestSnaps {
   }
 
   async tapSignBip44MessageButton() {
+    await Gestures.swipe(this.container, 'up', 'slow', 0.5);
     await this.tapButton(this.getSignBip44MessageButton);
   }
 
