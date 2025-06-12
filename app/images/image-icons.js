@@ -30,6 +30,7 @@ import GENESYS from './genesys.png';
 import KATANA from './katana.png';
 import SOPHON from './sophon.png';
 import SOPHON_TESTNET from './sophon-testnet.png';
+import APECHAIN from './apechain.png';
 
 export default {
   PALM,
@@ -66,4 +67,5 @@ export default {
   KATANA,
   SOPHON,
   'SOPHON-TESTNET': SOPHON_TESTNET,
+  APECHAIN,
 };
