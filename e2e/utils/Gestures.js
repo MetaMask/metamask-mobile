@@ -7,87 +7,84 @@ class Gestures {
   /**
    * Tap an element and long press.
    *
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to tap
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
    * @param {number} timeout - Timeout for waiting (default: 2000ms)
    */
-  static async tapAndLongPress(element, timeout = 2000) {
-    await (await element).longPress(timeout);
+  static async tapAndLongPress(elementID, timeout = 2000) {
+    const element = await elementID;
+
+    await element.longPress(timeout);
   }
 
   /**
    * Tap an element at a specific point.
    *
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to tap
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
    * @param {Object} point - Coordinates { x, y } where the element will be tapped
    */
-  static async tapAtPoint(element, point) {
-    await (await element).tap(point);
+  static async tapAtPoint(elementID, point) {
+    const element = await elementID;
+    await element.tap(point);
   }
 
   /**
    * Wait for an element to be visible and then tap it.
    *
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to tap
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
 
    */
-  static async tap(element) {
-    await (await element).tap();
+  static async tap(elementID) {
+    const element = await elementID;
+    await element.tap();
   }
 
-  /**
-   * Tap an element with text partial text matching before tapping it
-   *
-   * @param {string} textPattern - Regular expression pattern to match the text
-   */
-  static async tapTextBeginingWith(textPattern) {
-    await element(by.text(new RegExp(`^/${textPattern} .*$/`))).tap();
+/**
+ * Wait for an element to be visible and then tap it.
+ *
+ * @param {Promise<Detox.IndexableNativeElement | Detox.SystemElement>} elementID - ID of the element to tap
+ * @param {Object} [options={}] - Configuration options
+ * @param {number} [options.timeout=15000] - Timeout for waiting in milliseconds
+ * @param {number} [options.delayBeforeTap=0] - Additional delay in milliseconds before tapping after element is visible
+ * @param {boolean} [options.skipVisibilityCheck=false] - When true, skips the initial visibility check before tapping. Useful for elements that may be technically present but not passing Detox's visibility threshold.
+ */
+static async waitAndTap(elementID, options = {}) {
+  const { timeout = 15000, delayBeforeTap = 0, skipVisibilityCheck = false } = options;
+  const element = await elementID;
+  if (!skipVisibilityCheck) {
+    await waitFor(element).toBeVisible().withTimeout(timeout);
   }
-
-  /**
-   * Wait for an element to be visible and then tap it.
-   *
-   * @param {Promise<Detox.IndexableNativeElement | Detox.SystemElement>} element - The element to tap
-   * @param {Object} [options={}] - Configuration options
-   * @param {number} [options.timeout=15000] - Timeout for waiting in milliseconds
-   * @param {number} [options.delayBeforeTap=0] - Additional delay in milliseconds before tapping after element is visible
-   * @param {boolean} [options.skipVisibilityCheck=false] - When true, skips the initial visibility check before tapping. Useful for elements that may be technically present but not passing Detox's visibility threshold.
-   */
-  static async waitAndTap(element, options = {}) {
-    const { timeout = 15000, delayBeforeTap = 0, skipVisibilityCheck = false } = options;
-    if (!skipVisibilityCheck) {
-      await waitFor(await element).toBeVisible().withTimeout(timeout);
-    }
-    if (delayBeforeTap > 0) {
-      await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.
-    }
-    await (await element).tap();
+  if (delayBeforeTap > 0) {
+    await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.
   }
+  await element.tap();
+}
 
   /**
    * Wait for an element at a specific index to be visible and then tap it.
    *
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to tap
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
    * @param {number} index - Index of the element to tap
    * @param {number} timeout - Timeout for waiting (default: 15000ms)
    */
-  static async tapAtIndex(element, index, timeout = 15000) {
-    const itemElementAtIndex = (await element).atIndex(index);
-    await waitFor(itemElementAtIndex).toBeVisible().withTimeout(timeout);
-    await itemElementAtIndex.tap();
+  static async TapAtIndex(elementID, index, timeout = 15000) {
+    const element = (await elementID).atIndex(index);
+    await waitFor(element).toBeVisible().withTimeout(timeout);
+    await element.tap();
   }
 
   /**
    * Wait for an element to be visible and then tap it.
    *
-   * @param {Promise<Detox.IndexableWebElement>} element - The element to tap
+   * @param {Promise<Detox.IndexableWebElement>} elementID - ID of the element to tap
    */
-  static async tapWebElement(element, timeout = 15000) {
+  static async tapWebElement(elementID, timeout = 15000) {
+    const element = await elementID;
     // For web elements, we need to use a different approach to wait
     const start = Date.now();
     while (Date.now() - start < timeout) {
       try {
-        await expect(await element).toExist();
-        await (await element).tap();
+        await expect(element).toExist();
+        await element.tap();
         return;
       } catch {
         await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -99,78 +96,74 @@ class Gestures {
   /**
    * Double tap an element by text.
    *
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to double tap
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - Text of the element to double tap
    */
-  static async doubleTap(element) {
-    await (await element).multiTap(2);
+  static async doubleTap(elementID) {
+    const element = await elementID;
+
+    await element.multiTap(2);
   }
 
   /**
    * Clear the text field of an element identified by ID.
    *
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to clear
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to clear
    * @param {number} timeout - Timeout for waiting (default: 8000ms)
 
   */
-  static async clearField(element, timeout = 2500) {
-    await waitFor(await element).toBeVisible().withTimeout(timeout);
+  static async clearField(elementID, timeout = 2500) {
+    const element = await elementID;
+    await waitFor(element).toBeVisible().withTimeout(timeout);
 
-    await (await element).replaceText('');
+    await element.replaceText('');
   }
 
   /**
    * Type text into an element and hide the keyboard.
    *
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to type into
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to type into
    * @param {string} text - Text to be typed into the element
    */
-  static async typeTextAndHideKeyboard(element, text) {
-    await this.clearField(element);
+  static async typeTextAndHideKeyboard(elementID, text) {
+    const element = await elementID;
+    await this.clearField(elementID);
 
-    await (await element).typeText(text + '\n');
-  }
-
-
-  /**
-   * Type text into an element without hiding the keyboard.
-   *
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to type into
-   * @param {string} text - Text to be typed into the element
-   */
-  static async typeTextWithoutKeyboard(element, text) {
-    await (await element).typeText(text);
+    await element.typeText(text + '\n');
   }
 
   /**
    * Replace the text in the field of an element identified by ID.
    *
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to replace the text in
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to replace the text in
    * @param {string} text - Text to replace the existing text in the element
    */
-  static async replaceTextInField(element, text, timeout = 10000) {
-    await waitFor(await element).toBeVisible().withTimeout(timeout);
+  static async replaceTextInField(elementID, text, timeout = 10000) {
+    const element = await elementID;
+    await waitFor(element).toBeVisible().withTimeout(timeout);
 
-    await (await element).replaceText(text);
+    await element.replaceText(text);
   }
 
   /**
    * Swipe on an element identified by ID.
    *
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to swipe on
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to swipe on
    * @param {Detox.Direction} direction - Direction of the swipe - left | right | top | bottom | up | down
    * @param {Detox.Speed} [speed] - Speed of the swipe (fast, slow)
    * @param {number} [percentage] - Percentage of the swipe (0 to 1)
    * @param {number} [xStart] - X-coordinate to start the swipe
    * @param {number} [yStart] - Y-coordinate to start the swipe
    */
-  static async swipe(element, direction, speed, percentage, xStart, yStart) {
-    await (await element).swipe(direction, speed, percentage, xStart, yStart);
+  static async swipe(elementID, direction, speed, percentage, xStart, yStart) {
+    const element = await elementID;
+
+    await element.swipe(direction, speed, percentage, xStart, yStart);
   }
 
   /**
    * Swipe on an element identified by ID.
    *
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to swipe on
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to swipe on
    * @param {Detox.Direction} direction - Direction of the swipe - left | right | top | bottom | up | down
    * @param {Detox.Speed} [speed] - Speed of the swipe (fast, slow)
    * @param {number} [percentage] - Percentage of the swipe (0 to 1)
@@ -179,7 +172,7 @@ class Gestures {
    * @param {number} index - Index of the element (default 0)
    */
   static async swipeAtIndex(
-    element,
+    elementID,
     direction,
     speed,
     percentage,
@@ -187,35 +180,41 @@ class Gestures {
     yStart,
     index = 0,
   ) {
-    await (await element)
+    const element = await elementID;
+
+    await element
       .atIndex(index)
       .swipe(direction, speed, percentage, xStart, yStart);
   }
 
   /**
    * Scrolls the web element until its top is at the top of the viewport.
-   * @param {Promise<Element>} element - The element to scroll to the viewport.
+   * @param {Promise<Element>} elementID - A promise resolving to the target element.
    */
-  static async scrollToWebViewPort(element) {
-    await (await element).scrollToView();
+  static async scrollToWebViewPort(elem) {
+    const element = await elem;
+    await element.scrollToView();
   }
 
   /**
    * Dynamically Scrolls to an element identified by ID.
    *
-   * @param {Promise<Detox.IndexableNativeElement>} destinationElement - The element to scroll up to
-   * @param {Promise<Detox.NativeMatcher>} scrollIdentifier - The identifier (by.id) NOT element (element(by.id)). Keep this distinction in mind. If you pass in an elementID this method would not work as intended
+   * @param {Promise<Detox.IndexableNativeElement>} destinationElementID - ID of the element to scroll up to
+   * @param {number} scrollIdentifier - The identifier (by.id) NOT elementID (element(by.id)). Keep this distinction in mind. If you pass in an elementID this method would not work as intended
    * @param {Detox.Direction} direction - Direction of the scroll (up, down, left, right). The default is down.
    * @param {number} [scrollAmount=350] - The amount to scroll (default is 350). Optional parameter.   */
   static async scrollToElement(
-    destinationElement,
+    destinationElementID,
     scrollIdentifier,
     direction = 'down',
     scrollAmount = 350,
   ) {
-    await waitFor(await destinationElement)
+    const destinationElement = await destinationElementID;
+    const scrollableElement = await scrollIdentifier;
+
+    await waitFor(destinationElement)
       .toBeVisible()
-      .whileElement(await scrollIdentifier)
+      .whileElement(scrollableElement)
       .scroll(scrollAmount, direction);
   }
 }

@@ -10,60 +10,60 @@ const TIMEOUT = 15000;
 class Assertions {
   /**
    * Check if an element with the specified ID is visible.
-   * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement | Detox.NativeElement>} element - The element to check.
+   * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement | Detox.NativeElement>} elementId - The ID of the element to check.
    * @param timeout
    */
-  static async checkIfVisible(element, timeout = TIMEOUT) {
-    return await waitFor(await element)
+  static async checkIfVisible(elementId, timeout = TIMEOUT) {
+    return await waitFor(await elementId)
       .toBeVisible()
       .withTimeout(timeout);
   }
 
   /**
    * Check if an element with the specified web selector exists.
-   * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement | Detox.NativeElement>} element - The element to check.
+   * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement | Detox.NativeElement>} elementId - The ID of the element to check.
    */
-  static async webViewElementExists(element) {
+  static async webViewElementExists(elementId) {
     // rename this. We are checking if element is visible.
-    return await expect(await element).toExist();
+    return await expect(await elementId).toExist();
   }
 
 
   /**
    * Check if an element with the specified ID is not visible.
-   * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement>} element - The element to check.
+   * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement>} elementId - The ID of the element to check.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
    */
-  static async checkIfNotVisible(element, timeout = TIMEOUT) {
+  static async checkIfNotVisible(elementId, timeout = TIMEOUT) {
     // rename this. We are checking if element is not visible.
 
-    return await waitFor(await element)
+    return await waitFor(await elementId)
       .not.toBeVisible()
       .withTimeout(timeout);
   }
 
   /**
    * Check if an element with the specified ID does have the specified text.
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to check.
+   * @param {Promise<Detox.IndexableNativeElement>} elementId - The ID of the element to check.
    * @param {string} text - The text content to check.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
    */
-  static async checkIfElementToHaveText(element, text, timeout = TIMEOUT) {
+  static async checkIfElementToHaveText(elementId, text, timeout = TIMEOUT) {
     // Rename me. The naming convention here is terrible.
 
-    return await waitFor(await element)
+    return await waitFor(await elementId)
       .toHaveText(text)
       .withTimeout(timeout);
   }
 
   /**
    * Check if an element with the specified ID does have the specified label.
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to check.
+   * @param {Promise<Detox.IndexableNativeElement>} elementId - The ID of the element to check.
    * @param {string} label - The label content to check.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
    */
-  static async checkIfElementHasLabel(element, label, timeout = TIMEOUT) {
-    return await waitFor(await element)
+  static async checkIfElementHasLabel(elementId, label, timeout = TIMEOUT) {
+    return await waitFor(await elementId)
       .toHaveLabel(label)
       .withTimeout(timeout);
   }
@@ -93,50 +93,50 @@ class Assertions {
 
   /**
    * Check if an element with the specified ID does not have the specified text.
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to check.
+   * @param {Promise<Detox.IndexableNativeElement>} elementId - The ID of the element to check.
    * @param {string} text - The text content to check.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
    */
-  static async checkIfElementNotToHaveText(element, text, timeout = TIMEOUT) {
+  static async checkIfElementNotToHaveText(elementId, text, timeout = TIMEOUT) {
     // Rename me. The naming convention here is terrible.
 
-    return await waitFor(await element)
+    return await waitFor(await elementId)
       .not.toHaveText(text)
       .withTimeout(timeout);
   }
 
   /**
    * Check if an element with the specified ID does not have the specified label.
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to check.
+   * @param {Promise<Detox.IndexableNativeElement>} elementId - The ID of the element to check.
    * @param {string} label - The label content to check.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
    */
   static async checkIfElementDoesNotHaveLabel(
-    element,
+    elementId,
     label,
     timeout = TIMEOUT,
   ) {
     // Rename me. The naming convention here is terrible.
 
-    return await waitFor(await element)
+    return await waitFor(await elementId)
       .not.toHaveLabel(label)
       .withTimeout(timeout);
   }
 
   /**
    * Check if the toggle with the specified ID is in the "on" state.
-   * @param {Promise<Detox.IndexableNativeElement>} element - The ID of the toggle element.
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - The ID of the toggle element.
    */
-  static async checkIfToggleIsOn(element) {
-    return expect(await element).toHaveToggleValue(true);
+  static async checkIfToggleIsOn(elementID) {
+    return expect(await elementID).toHaveToggleValue(true);
   }
 
   /**
    * Check if the toggle with the specified ID is in the "off" state.
-   * @param {Promise<Detox.IndexableNativeElement>} element - The toggle element.
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - The ID of the toggle element.
    */
-  static async checkIfToggleIsOff(element) {
-    return expect(await element).toHaveToggleValue(false);
+  static async checkIfToggleIsOff(elementID) {
+    return expect(await elementID).toHaveToggleValue(false);
   }
 
   /**
@@ -267,29 +267,6 @@ class Assertions {
     }
   }
 
-  /**
-   * Check if element is enabled
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to check
-   * @return {Promise<boolean>} - Resolves to true if the element is enabled, false otherwise
-   */
-  static async checkIfEnabled(element) {
-    return (await (await element).getAttributes()).enabled;
-  }
-
-  /**
-   * Check if element is disabled
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to check
-   * @return {Promise<boolean>} - Resolves to true if the element is disabled, false otherwise
-   */
-  static async checkIfDisabled(element) {
-    return (await (await element).getAttributes()).enabled;
-  }
-
-  /**
-   * Check if label contains text
-   * @param {string} text - The text to check if the label contains
-   * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
-   */
   static async checkIfLabelContainsText(text, timeout = TIMEOUT) {
     const labelMatcher = element(by.label(new RegExp(text)));
     return await waitFor(labelMatcher)
