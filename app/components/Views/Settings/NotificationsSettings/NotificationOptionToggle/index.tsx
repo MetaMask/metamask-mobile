@@ -123,7 +123,7 @@ const NotificationOptionToggle = ({
         </Text>
         {Boolean(address) && (
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {formatAddress(address, 'short').toLowerCase()}
+            {formatAddress(address, 'short')}
           </Text>
         )}
       </View>

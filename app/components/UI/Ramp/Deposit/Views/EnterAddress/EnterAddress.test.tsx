@@ -1,13 +1,60 @@
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
-import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import EnterAddress from './EnterAddress';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
+import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
+
+interface MockQuote {
+  id: string;
+  amount: number;
+  currency: string;
+}
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
+
+const mockFormData: BasicInfoFormData = {
+  firstName: 'John',
+  lastName: 'Doe',
+  mobileNumber: '+1234567890',
+  dob: '01/01/1990',
+  ssn: '123-45-6789',
+};
+
+// Mock the quote object
+const mockQuote: MockQuote = {
+  id: 'test-quote-id',
+  amount: 100,
+  currency: 'USD',
+};
+
+const mockUseDepositSdkMethodInitialState = {
+  data: null,
+  error: null,
+  isFetching: false,
+};
+
+let mockKycFunction = jest.fn().mockResolvedValue(undefined);
+let mockPurposeFunction = jest.fn().mockResolvedValue(undefined);
+let mockKycValues = [mockUseDepositSdkMethodInitialState, mockKycFunction];
+let mockPurposeValues = [
+  mockUseDepositSdkMethodInitialState,
+  mockPurposeFunction,
+];
+
+jest.mock('../../hooks/useDepositSdkMethod', () => ({
+  useDepositSdkMethod: jest.fn((config, ..._args) => {
+    if (config?.method === 'patchUser') {
+      return mockKycValues;
+    }
+    if (config?.method === 'submitPurposeOfUsageForm') {
+      return mockPurposeValues;
+    }
+    return [mockUseDepositSdkMethodInitialState, jest.fn()];
+  }),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -20,28 +67,29 @@ jest.mock('@react-navigation/native', () => {
         actualReactNavigation.useNavigation().setOptions,
       ),
     }),
+    useRoute: () => ({
+      params: { formData: mockFormData, quote: mockQuote },
+    }),
   };
 });
 
 function render(Component: React.ComponentType) {
-  return renderScreen(
-    Component,
-    {
-      name: Routes.DEPOSIT.ENTER_ADDRESS,
-    },
-    {
-      state: {
-        engine: {
-          backgroundState,
-        },
-      },
-    },
-  );
+  return renderDepositTestComponent(Component, Routes.DEPOSIT.ENTER_ADDRESS);
 }
 
 describe('EnterAddress Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockKycFunction = jest.fn().mockResolvedValue(undefined);
+    mockPurposeFunction = jest.fn().mockResolvedValue(undefined);
+    mockKycValues = [
+      { ...mockUseDepositSdkMethodInitialState },
+      mockKycFunction,
+    ];
+    mockPurposeValues = [
+      { ...mockUseDepositSdkMethodInitialState },
+      mockPurposeFunction,
+    ];
   });
 
   it('render matches snapshot', () => {
@@ -56,8 +104,10 @@ describe('EnterAddress Component', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('navigates to next page when form is valid and continue is pressed', () => {
+  it('submits form data and navigates to next page when form is valid and continue is pressed', async () => {
     render(EnterAddress);
+
+    // Fill form fields
     fireEvent.changeText(
       screen.getByTestId('address-line-1-input'),
       '123 Main St',
@@ -65,9 +115,39 @@ describe('EnterAddress Component', () => {
     fireEvent.changeText(screen.getByTestId('city-input'), 'New York');
     fireEvent.changeText(screen.getByTestId('state-input'), 'NY');
     fireEvent.changeText(screen.getByTestId('postal-code-input'), '10001');
-    fireEvent.changeText(screen.getByTestId('country-input'), 'USA');
+    fireEvent.changeText(screen.getByTestId('country-input'), 'US');
+
     fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.KYC_PROCESSING, {
+        quote: mockQuote,
+      });
+    });
+  });
+
+  it('does not navigate if form submission fails', async () => {
+    mockKycFunction.mockResolvedValueOnce({ error: 'API error' });
+
+    render(EnterAddress);
+
+    // Fill form fields
+    fireEvent.changeText(
+      screen.getByTestId('address-line-1-input'),
+      '123 Main St',
+    );
+    fireEvent.changeText(screen.getByTestId('city-input'), 'New York');
+    fireEvent.changeText(screen.getByTestId('state-input'), 'NY');
+    fireEvent.changeText(screen.getByTestId('postal-code-input'), '10001');
+    fireEvent.changeText(screen.getByTestId('country-input'), 'US');
+
+    fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+
+    expect(mockKycFunction).toHaveBeenCalled();
+
+    await waitFor(() => {
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
   });
 
   it('calls setOptions with correct title when the component mounts', () => {

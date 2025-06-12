@@ -96,10 +96,12 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
     const [formattedPhoneNumber, setFormattedPhoneNumber] = useState('');
 
     const handlePhoneNumberChange = (text: string) => {
-      const rawValue = text.slice(0, 10).replace(/\D/g, '');
-      const formattedValue = formatPhoneNumber(text);
+      const rawValue = text.replace(/\D/g, '');
+      const limitedRawValue = rawValue.slice(0, 10);
+      const formattedValue = formatPhoneNumber(rawValue);
+
       setFormattedPhoneNumber(formattedValue);
-      onChangeText(rawValue);
+      onChangeText(limitedRawValue);
     };
 
     return (
