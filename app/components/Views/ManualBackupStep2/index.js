@@ -34,6 +34,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { useMetrics } from '../../hooks/useMetrics';
 import { CommonActions } from '@react-navigation/native';
+import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 
 const ManualBackupStep2 = ({
   navigation,
@@ -114,6 +115,12 @@ const ManualBackupStep2 = ({
             routes: [
               {
                 name: Routes.ONBOARDING.SUCCESS_FLOW,
+                params: {
+                  screen: Routes.ONBOARDING.SUCCESS,
+                  params: {
+                    successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
+                  },
+                },
               },
             ],
           });

@@ -15,8 +15,8 @@ class SkipAccountSecurityModal {
 
   get skipButton() {
     return Matchers.getElementByID(
-          SkipAccountSecurityModalSelectorsIDs.SKIP_BUTTON,
-        );
+      SkipAccountSecurityModalSelectorsIDs.SKIP_BUTTON,
+    );
   }
 
   get cancelButton() {

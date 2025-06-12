@@ -43,6 +43,7 @@ import Icon, {
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useMetrics } from '../../hooks/useMetrics';
+import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -182,7 +183,11 @@ const AccountBackupStep1 = (props) => {
         {
           name: Routes.ONBOARDING.SUCCESS_FLOW,
           params: {
-            step: 1,
+            screen: Routes.ONBOARDING.SUCCESS,
+            params: {
+              ...props.route.params,
+              successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+            },
           },
         },
       ],

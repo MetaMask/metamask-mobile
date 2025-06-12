@@ -1,7 +1,7 @@
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import ImportFromSecretRecoveryPhrase from '.';
 import Routes from '../../../constants/navigation/Routes';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
 import { strings } from '../../../../locales/i18n';
 import { Authentication } from '../../../core';
@@ -60,17 +60,57 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('should toggle show/hide all button', () => {
-      const { getByText } = renderScreen(
+      const { getByText, getByPlaceholderText, getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
       );
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+      fireEvent.changeText(
+        input,
+        'say devote wasp video cool lunch brief add fever uncover novel offer',
+      );
 
+      const getInput = (index: number) =>
+        getByTestId(
+          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
+        );
+
+      fireEvent(getInput(0), 'focus');
+
+      expect(getInput(0).props.secureTextEntry).toBe(false);
+      for (let i = 1; i < 12; i++) {
+        expect(getInput(i)).toBeOnTheScreen();
+        expect(getInput(i).props.secureTextEntry).toBe(true);
+      }
+
+      // Press show all button
       const showAllButton = getByText('Show all');
       expect(showAllButton).toBeTruthy();
-
       fireEvent.press(showAllButton);
-      expect(getByText('Hide all')).toBeTruthy();
+
+      for (let i = 0; i < 12; i++) {
+        expect(getInput(i).props.secureTextEntry).toBe(false);
+      }
+
+      // Press hide all button
+      const hideAllButton = getByText('Hide all');
+      expect(hideAllButton).toBeTruthy();
+      fireEvent.press(hideAllButton);
+
+      expect(getInput(0).props.secureTextEntry).toBe(false);
+      for (let i = 1; i < 12; i++) {
+        expect(getInput(i).props.secureTextEntry).toBe(true);
+      }
+      expect(getByText('Show all')).toBeTruthy();
+
+      fireEvent(getInput(11), 'focus');
+      expect(getInput(11).props.secureTextEntry).toBe(false);
+      for (let i = 0; i < 11; i++) {
+        expect(getInput(i).props.secureTextEntry).toBe(true);
+      }
     });
 
     it('should have continue button disabled initially', () => {
@@ -840,24 +880,26 @@ describe('handleOnFocus', () => {
     ).toBeTruthy();
   });
 
-  it('should handle new word input correctly', () => {
+  it('should handle new word input correctly', async () => {
     const { getByPlaceholderText, getByTestId } = renderScreen(
       ImportFromSecretRecoveryPhrase,
       { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
       { state: initialState },
     );
 
-    const getInput = (index: number) =>
-      getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
-      );
-
     // Enter invalid seed phrase
     const input = getByPlaceholderText(
       strings('import_from_seed.srp_placeholder'),
     );
 
-    fireEvent.changeText(input, 'horse ');
+    await act(async () => {
+      fireEvent.changeText(input, 'horse one');
+    });
+
+    const getInput = (index: number) =>
+      getByTestId(
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
+      );
 
     const input0 = getInput(0);
     const input1 = getInput(1);
@@ -865,16 +907,12 @@ describe('handleOnFocus', () => {
     expect(input0).toBeOnTheScreen();
     expect(input1).toBeOnTheScreen();
 
-    fireEvent.changeText(input1, 'invalid2 ');
+    fireEvent.changeText(input1, 'one invalid2');
     const input2 = getInput(2);
     expect(input2).toBeOnTheScreen();
 
-    fireEvent.changeText(input2, 'invalid3 ');
+    fireEvent.changeText(input2, 'invalid2 invalid3');
     const input3 = getInput(3);
     expect(input3).toBeOnTheScreen();
-
-    fireEvent.changeText(getInput(1), 'invalid4 ');
-    const input4 = getInput(4);
-    expect(input4).toBeOnTheScreen();
   });
 });

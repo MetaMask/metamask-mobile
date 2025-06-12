@@ -1,13 +1,6 @@
-import { captureException } from '@sentry/react-native';
-import { cloneDeep } from 'lodash';
-import {
-  NetworkConfiguration,
-  RpcEndpointType,
-} from '@metamask/network-controller';
-import { Hex } from '@metamask/utils';
-
-import { ensureValidState } from './util';
 import migrate from './078';
+import { ensureValidState } from './util';
+import { captureException } from '@sentry/react-native';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -20,243 +13,128 @@ jest.mock('./util', () => ({
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 
-const createTestState = () => ({
-  engine: {
-    backgroundState: {
-      NetworkController: {
-        selectedNetworkClientId: 'mainnet',
-        networksMetadata: {},
-        networkConfigurationsByChainId: {
-          '0x1': {
-            chainId: '0x1',
-            rpcEndpoints: [
-              {
-                networkClientId: 'mainnet',
-                url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
-                type: 'infura',
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
-            blockExplorerUrls: ['https://etherscan.io'],
-            defaultBlockExplorerUrlIndex: 0,
-            name: 'Ethereum Mainnet',
-            nativeCurrency: 'ETH',
-          },
-          '0xaa36a7': {
-            chainId: '0xaa36a7',
-            rpcEndpoints: [
-              {
-                networkClientId: 'sepolia',
-                url: 'https://sepolia.infura.io/v3/{infuraProjectId}',
-                type: 'infura',
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
-            blockExplorerUrls: ['https://sepolia.etherscan.io'],
-            defaultBlockExplorerUrlIndex: 0,
-            name: 'Sepolia',
-            nativeCurrency: 'SepoliaETH',
-          },
-          '0xe705': {
-            chainId: '0xe705',
-            rpcEndpoints: [
-              {
-                networkClientId: 'linea-sepolia',
-                url: 'https://linea-sepolia.infura.io/v3/{infuraProjectId}',
-                type: 'infura',
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
-            blockExplorerUrls: ['https://sepolia.lineascan.build'],
-            defaultBlockExplorerUrlIndex: 0,
-            name: 'Linea Sepolia',
-            nativeCurrency: 'LineaETH',
-          },
-          '0xe708': {
-            chainId: '0xe708',
-            rpcEndpoints: [
-              {
-                networkClientId: 'linea-mainnet',
-                url: 'https://linea-mainnet.infura.io/v3/{infuraProjectId}',
-                type: 'infura',
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
-            blockExplorerUrls: ['https://lineascan.build'],
-            defaultBlockExplorerUrlIndex: 0,
-            name: 'Linea Mainnet',
-            nativeCurrency: 'ETH',
-          },
-          '0x18c6': {
-            chainId: '0x18c6',
-            rpcEndpoints: [
-              {
-                networkClientId: 'megaeth-testnet',
-                url: 'https://carrot.megaeth.com/rpc',
-                type: RpcEndpointType.Custom,
-                failoverUrls: [],
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
-            blockExplorerUrls: ['https://megaexplorer.xyz'],
-            defaultBlockExplorerUrlIndex: 0,
-            name: 'Mega Testnet',
-            nativeCurrency: 'MegaETH',
-          },
-        },
-      },
-    },
-  },
-});
-
-const createMonadTestnetConfiguration = (): NetworkConfiguration => ({
-  chainId: '0x279f',
-  rpcEndpoints: [
-    {
-      networkClientId: 'monad-testnet',
-      url: 'https://testnet-rpc.monad.xyz',
-      type: RpcEndpointType.Custom,
-      failoverUrls: [],
-    },
-  ],
-  defaultRpcEndpointIndex: 0,
-  blockExplorerUrls: ['https://testnet.monadexplorer.com'],
-  defaultBlockExplorerUrlIndex: 0,
-  name: 'Monad Testnet',
-  nativeCurrency: 'MON',
-});
-
-describe('Migration 77: Add `Monad Testnet`', () => {
+describe('Migration 078: Reset PhishingController phishingLists', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
 
   it('returns state unchanged if ensureValidState fails', () => {
     const state = { some: 'state' };
+
     mockedEnsureValidState.mockReturnValue(false);
 
     const migratedState = migrate(state);
 
-    expect(migratedState).toStrictEqual({ some: 'state' });
+    expect(migratedState).toBe(state);
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('adds `Monad Testnet` as default network to state', () => {
-    const monadTestnetConfiguration = createMonadTestnetConfiguration();
-    const oldState = createTestState();
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const expectedData = {
+  it('captures exception if PhishingController state is invalid', () => {
+    const state = {
       engine: {
         backgroundState: {
-          NetworkController: {
-            ...oldState.engine.backgroundState.NetworkController,
-            networkConfigurationsByChainId: {
-              ...oldState.engine.backgroundState.NetworkController
-                .networkConfigurationsByChainId,
-              [monadTestnetConfiguration.chainId]: monadTestnetConfiguration,
-            },
-          },
+          // PhishingController is missing
         },
       },
     };
 
-    const migratedState = migrate(oldState);
-
-    expect(migratedState).toStrictEqual(expectedData);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('replaces `Monad Testnet` NetworkConfiguration if there is one', () => {
-    const monadTestnetConfiguration = createMonadTestnetConfiguration();
-    const oldState = createTestState();
-    const networkConfigurationsByChainId = oldState.engine.backgroundState
-      .NetworkController.networkConfigurationsByChainId as Record<
-      Hex,
-      NetworkConfiguration
-    >;
-    networkConfigurationsByChainId[monadTestnetConfiguration.chainId] = {
-      ...monadTestnetConfiguration,
-      rpcEndpoints: [
-        {
-          networkClientId: 'some-client-id',
-          url: 'https://some-url.com/rpc',
-          type: RpcEndpointType.Custom,
-        },
-      ],
-    };
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const expectedData = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            ...oldState.engine.backgroundState.NetworkController,
-            networkConfigurationsByChainId: {
-              ...oldState.engine.backgroundState.NetworkController
-                .networkConfigurationsByChainId,
-              [monadTestnetConfiguration.chainId]: monadTestnetConfiguration,
-            },
-          },
-        },
-      },
-    };
-
-    const migratedState = migrate(oldState);
-
-    expect(migratedState).toStrictEqual(expectedData);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it.each([
-    {
-      state: {
-        engine: {},
-      },
-      test: 'empty engine state',
-    },
-    {
-      state: {
-        engine: {
-          backgroundState: {},
-        },
-      },
-      test: 'empty backgroundState',
-    },
-    {
-      state: {
-        engine: {
-          backgroundState: {
-            NetworkController: 'invalid',
-          },
-        },
-      },
-      test: 'invalid NetworkController state',
-    },
-    {
-      state: {
-        engine: {
-          backgroundState: {
-            NetworkController: {
-              networkConfigurationsByChainId: 'invalid',
-            },
-          },
-        },
-      },
-      test: 'invalid networkConfigurationsByChainId state',
-    },
-  ])('does not modify state if the state is invalid - $test', ({ state }) => {
-    const orgState = cloneDeep(state);
     mockedEnsureValidState.mockReturnValue(true);
 
     const migratedState = migrate(state);
 
-    // State should be unchanged
-    expect(migratedState).toStrictEqual(orgState);
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        'Migration 78: NetworkController or networkConfigurationsByChainId not found in state',
-      ),
+    expect(migratedState).toEqual(state);
+    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
+      'Migration 078: Invalid PhishingController state',
     );
   });
-});
+
+  it('resets PhishingController phishingLists to empty array and stalelistLastFetched to 0 while preserving other fields', () => {
+    interface TestState {
+      engine: {
+        backgroundState: {
+          PhishingController: {
+            c2DomainBlocklistLastFetched: number;
+            phishingLists: string[];
+            whitelist: string[];
+            hotlistLastFetched: number;
+            stalelistLastFetched: number;
+            extraProperty?: string;
+          };
+          OtherController: {
+            shouldStayUntouched: boolean;
+          };
+        };
+      };
+    }
+
+    const state: TestState = {
+      engine: {
+        backgroundState: {
+          PhishingController: {
+            c2DomainBlocklistLastFetched: 123456789,
+            phishingLists: ['list1', 'list2'],
+            whitelist: ['site1', 'site2'],
+            hotlistLastFetched: 987654321,
+            stalelistLastFetched: 123123123,
+            extraProperty: 'should remain',
+          },
+          OtherController: {
+            shouldStayUntouched: true,
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state) as typeof state;
+
+    // PhishingLists should be reset to empty array and stalelistLastFetched to 0
+    expect(migratedState.engine.backgroundState.PhishingController.phishingLists).toEqual([]);
+    expect(migratedState.engine.backgroundState.PhishingController.stalelistLastFetched).toBe(0);
+
+    // Other fields should remain unchanged
+    expect(migratedState.engine.backgroundState.PhishingController.c2DomainBlocklistLastFetched).toBe(123456789);
+    expect(migratedState.engine.backgroundState.PhishingController.whitelist).toEqual(['site1', 'site2']);
+    expect(migratedState.engine.backgroundState.PhishingController.hotlistLastFetched).toBe(987654321);
+    expect(migratedState.engine.backgroundState.PhishingController.extraProperty).toBe('should remain');
+
+    // Other controllers should remain untouched
+    expect(migratedState.engine.backgroundState.OtherController).toEqual({
+      shouldStayUntouched: true,
+    });
+
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('handles error during migration', () => {
+    // Create state with a PhishingController that throws when phishingLists is accessed
+    const state = {
+      engine: {
+        backgroundState: {
+          PhishingController: Object.defineProperty({}, 'phishingLists', {
+            get: () => {
+              throw new Error('Test error');
+            },
+            set: () => {
+              throw new Error('Test error');
+            },
+            configurable: true,
+            enumerable: true,
+          }),
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    expect(migratedState).toEqual(state);
+    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
+      'Migration 078: cleaning PhishingController state failed with error',
+    );
+  });
+}); 

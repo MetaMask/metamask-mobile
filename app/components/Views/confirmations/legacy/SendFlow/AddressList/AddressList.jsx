@@ -12,7 +12,7 @@ import Text from '../../../../../../component-library/components/Texts/Text/Text
 import { TextVariant } from '../../../../../../component-library/components/Texts/Text';
 import { regex } from '../../../../../../util/regex';
 import { SendViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/SendView.selectors';
-import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
+import { selectInternalEvmAccounts } from '../../../../../../selectors/accountsController';
 import styleSheet from './AddressList.styles';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
@@ -38,7 +38,7 @@ const AddressList = ({
   const styles = styleSheet(colors);
   const [contactElements, setContactElements] = useState([]);
   const [fuse, setFuse] = useState(undefined);
-  const internalAccounts = useSelector(selectInternalAccounts);
+  const internalAccounts = useSelector(selectInternalEvmAccounts);
   const addressBook = useSelector(selectAddressBook);
   const ambiguousAddressEntries = useSelector(
     (state) => state.user.ambiguousAddressEntries,

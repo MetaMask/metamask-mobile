@@ -94,6 +94,8 @@ import {
   IOS_REJECTED_BIOMETRICS_ERROR,
 } from './constant';
 import { useMetrics } from '../../hooks/useMetrics';
+import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 
 const checkValidSeedWord = (text) => wordlist.includes(text);
 
@@ -138,6 +140,10 @@ const ImportFromSecretRecoveryPhrase = ({
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [containerWidth, setContainerWidth] = useState(0);
+  const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
+    onFirstLoad: false,
+    onTransactionComplete: false,
+  });
 
   const seedPhraseLength = seedPhrase.filter((item) => item !== '').length;
 
@@ -161,12 +167,18 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const handleClear = useCallback(() => {
     setSeedPhrase([]);
+    setErrorWordIndexes({});
     setShowAllSeedPhrase(false);
     setError('');
   }, []);
 
   const handleSeedPhraseChange = useCallback(
-    (text, index) => {
+    (seedPhraseText, index) => {
+      const text = seedPhraseText
+        .split('\n')
+        .map((item) => item.trim())
+        .join(' ');
+
       if (text.includes(SPACE_CHAR)) {
         const isEndWithSpace = text.at(-1) === SPACE_CHAR;
         // handle use pasting multiple words / whole seed phrase separated by spaces
@@ -528,11 +540,15 @@ const ImportFromSecretRecoveryPhrase = ({
         });
         !onboardingWizard && setOnboardingWizardStep(1);
 
+        fetchAccountsWithActivity();
         const resetAction = CommonActions.reset({
           index: 1,
           routes: [
             {
               name: Routes.ONBOARDING.SUCCESS_FLOW,
+              params: {
+                successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
+              },
             },
           ],
         });
@@ -574,6 +590,14 @@ const ImportFromSecretRecoveryPhrase = ({
       screen: Routes.SHEET.SEEDPHRASE_MODAL,
     });
   };
+
+  const canShowSeedPhraseWord = useCallback(
+    (index) =>
+      showAllSeedPhrase ||
+      errorWordIndexes[index] ||
+      index === seedPhraseInputFocusedIndex,
+    [showAllSeedPhrase, errorWordIndexes, seedPhraseInputFocusedIndex],
+  );
 
   const learnMoreLink = () => {
     navigation.push('Webview', {
@@ -720,9 +744,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                   }
                                   value={item}
                                   secureTextEntry={
-                                    (!showAllSeedPhrase ||
-                                      !errorWordIndexes[index]) &&
-                                    seedPhraseInputFocusedIndex !== index
+                                    !canShowSeedPhraseWord(index)
                                   }
                                   onFocus={(e) => {
                                     if (
@@ -754,6 +776,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                   isError={errorWordIndexes[index]}
                                   autoCapitalize="none"
                                   numberOfLines={1}
+                                  autoFocus={index === seedPhrase.length - 1}
                                   testID={`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`}
                                 />
                               </View>
