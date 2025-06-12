@@ -8,10 +8,10 @@ import {
 const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
   StyleSheet.create({
     bookmarkIco: {
-      width: 26,
-      height: 26,
+      width: 40,
+      height: 40,
       marginRight: 7,
-      borderRadius: 13,
+      borderRadius: 20,
     },
     fallbackTextStyle: {
       fontSize: 12,
@@ -26,12 +26,24 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
       ...typography.sBodySM,
       fontFamily: getFontFamily(TextVariant.BodySM),
     } as TextStyle,
+    categoryWrapper: {
+      padding: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.background.default,
+    },
+    categoryTitle: {
+      color: colors.text.alternative,
+      ...typography.sBodyMD,
+      fontFamily: getFontFamily(TextVariant.BodyMD),
+    } as TextStyle,
     item: {
       paddingVertical: 8,
       marginBottom: 8,
     },
     itemWrapper: {
       flexDirection: 'row',
+      alignItems: 'center',
       paddingHorizontal: 15,
     },
     textContent: {
@@ -40,6 +52,7 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
     },
     resultActionButton: {
       marginLeft: 10,
+      backgroundColor: colors.background.muted,
     },
     hiddenButton: {
       opacity: 0,
@@ -50,7 +63,9 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
     },
     price: {
       color: colors.text.default,
-    }
+      ...typography.sBodyMD,
+      fontFamily: getFontFamily(TextVariant.BodyMD),
+    } as TextStyle,
   });
 
 export default styleSheet;

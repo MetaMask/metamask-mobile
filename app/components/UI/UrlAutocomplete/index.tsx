@@ -21,6 +21,7 @@ import dappUrlList from '../../../util/dapp-url-list';
 import Fuse from 'fuse.js';
 import { useSelector } from 'react-redux';
 import styleSheet from './styles';
+import searchDiscoveryStylesheet from '../SearchDiscoveryResult/styles';
 import { useStyles } from '../../../component-library/hooks';
 import {
   UrlAutocompleteComponentProps,
@@ -120,6 +121,7 @@ const UrlAutocomplete = forwardRef<
   const fuseRef = useRef<Fuse<FuseSearchResult> | null>(null);
   const resultsRef = useRef<View | null>(null);
   const { styles } = useStyles(styleSheet, {});
+  const { styles: searchDiscoveryStyles } = useStyles(searchDiscoveryStylesheet, {});
 
   /**
    * Show the results view
@@ -208,13 +210,13 @@ const UrlAutocomplete = forwardRef<
   }, [browserHistory, bookmarks, search]);
 
   const renderSectionHeader = useCallback(({section: { category }}: {section: ResultsWithCategory}) => (
-    <View style={styles.categoryWrapper}>
-      <Text style={styles.category}>{strings(`autocomplete.${category}`)}</Text>
+    <View style={searchDiscoveryStyles.categoryWrapper}>
+      <Text style={searchDiscoveryStyles.categoryTitle}>{strings(`autocomplete.${category}`)}</Text>
       {category === SearchDiscoveryCategory.Tokens && isTokenSearchLoading && (
         <ActivityIndicator testID="loading-indicator" size="small" />
       )}
     </View>
-  ), [styles, isTokenSearchLoading]);
+  ), [searchDiscoveryStyles, isTokenSearchLoading]);
 
   const onItemSelect = useCallback((item: SearchDiscoveryResultItem) => {
     if (item.category !== SearchDiscoveryCategory.Tokens) {

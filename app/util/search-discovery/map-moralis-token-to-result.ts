@@ -7,6 +7,7 @@ export const mapMoralisTokenToResult = (token: MoralisTokenResponseItem, usdConv
     name: token.token_name,
     symbol: token.token_symbol,
     address: token.token_address,
+    logoUrl: token.token_logo,
     decimals: 18,
     chainId: token.chain_id as Hex,
     price: usdConversionRate ? token.price_usd / usdConversionRate : -1,

@@ -3,14 +3,14 @@ import { TouchableOpacity, View, Text } from 'react-native';
 import { useTheme } from '../../../util/theme';
 import { getHost } from '../../../util/browser';
 import WebsiteIcon from '../WebsiteIcon';
-import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon, { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
 import { deleteFavoriteTestId } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/UrlAutocomplete.testIds';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useDispatch, useSelector } from 'react-redux';
 import { removeBookmark } from '../../../actions/bookmarks';
 import stylesheet from './styles';
 import { SearchDiscoveryCategory, SearchDiscoveryResultProps } from './types';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
+import BadgeWrapper, { BadgePosition } from '../../../component-library/components/Badges/BadgeWrapper';
 import Badge, { BadgeVariant } from '../../../component-library/components/Badges/Badge';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
@@ -20,6 +20,7 @@ import { selectCurrentCurrency } from '../../../selectors/currencyRateController
 import { addCurrencySymbol } from '../../../util/number';
 import PercentageChange from '../../../component-library/components-temp/Price/PercentageChange';
 import { SwapBridgeNavigationLocation, useSwapBridgeNavigation } from '../Bridge/hooks/useSwapBridgeNavigation';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 
 export const SearchDiscoveryResult: React.FC<SearchDiscoveryResultProps> = memo(({ result, onSelect }) => {
     const theme = useTheme();
@@ -58,10 +59,12 @@ export const SearchDiscoveryResult: React.FC<SearchDiscoveryResultProps> = memo(
                     imageSource={NetworkBadgeSource(result.chainId)}
                   />
                 )}
+                badgePosition={BadgePosition.BottomRight}
               >
                 <AvatarToken
                   imageSource={result.logoUrl ? {uri: result.logoUrl} : undefined}
                   name={result.name}
+                  size={AvatarSize.Lg}
                 />
               </BadgeWrapper>
             ) : (
@@ -85,8 +88,9 @@ export const SearchDiscoveryResult: React.FC<SearchDiscoveryResultProps> = memo(
                 <ButtonIcon
                   testID={deleteFavoriteTestId(result.url)}
                   style={styles.resultActionButton}
-                  iconName={IconName.Trash}
+                  iconName={IconName.Close}
                   onPress={onPressRemove}
+                  size={ButtonIconSizes.Md}
                 />
               )
             }
@@ -107,6 +111,7 @@ export const SearchDiscoveryResult: React.FC<SearchDiscoveryResultProps> = memo(
                     ...styles.resultActionButton,
                     ...(swapsEnabled ? {} : styles.hiddenButton),
                   }}
+                  size={ButtonIconSizes.Md}
                   iconName={IconName.SwapHorizontal}
                   onPress={() => goToSwaps()}
                   disabled={!swapsEnabled}

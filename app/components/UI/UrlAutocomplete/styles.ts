@@ -20,19 +20,6 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
     contentContainer: {
       paddingVertical: 15,
     },
-    categoryWrapper: {
-      padding: 10,
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: colors.background.default,
-    },
-    category: {
-      color: colors.text.default,
-      backgroundColor: colors.background.default,
-      marginRight: 10,
-      ...typography.lHeadingSM,
-      fontFamily: getFontFamily(TextVariant.HeadingSM),
-    } as TextStyle,
     bg: {
       flex: 1,
     },
