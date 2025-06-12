@@ -306,6 +306,9 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={6}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1478,6 +1481,9 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={7}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2204,6 +2210,9 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={4}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2755,6 +2764,9 @@ exports[`Settings Region renders correctly when region is set 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={3}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -3344,6 +3356,9 @@ exports[`Settings renders correctly 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -3933,6 +3948,9 @@ exports[`Settings renders correctly for internal builds 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={2}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={

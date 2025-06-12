@@ -18,7 +18,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
     </Row>
   }
   ListHeaderComponent={
-    <ScrollView
+    <ForwardRef
       horizontal={true}
     >
       <Row
@@ -48,7 +48,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
           selected={false}
         />
       </Row>
-    </ScrollView>
+    </ForwardRef>
   }
   data={
     [
@@ -143,6 +143,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
     >
       <RCTScrollView
         collapsable={false}
+        handlerTag={2}
+        handlerType="NativeViewGestureHandler"
         horizontal={true}
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
@@ -853,7 +855,7 @@ exports[`OrdersList renders correctly 1`] = `
     </Row>
   }
   ListHeaderComponent={
-    <ScrollView
+    <ForwardRef
       horizontal={true}
     >
       <Row
@@ -883,7 +885,7 @@ exports[`OrdersList renders correctly 1`] = `
           selected={false}
         />
       </Row>
-    </ScrollView>
+    </ForwardRef>
   }
   data={
     [
@@ -1001,6 +1003,8 @@ exports[`OrdersList renders correctly 1`] = `
     >
       <RCTScrollView
         collapsable={false}
+        handlerTag={-1}
+        handlerType="NativeViewGestureHandler"
         horizontal={true}
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
@@ -1896,7 +1900,7 @@ exports[`OrdersList renders empty buy message 1`] = `
     </Row>
   }
   ListHeaderComponent={
-    <ScrollView
+    <ForwardRef
       horizontal={true}
     >
       <Row
@@ -1926,7 +1930,7 @@ exports[`OrdersList renders empty buy message 1`] = `
           selected={false}
         />
       </Row>
-    </ScrollView>
+    </ForwardRef>
   }
   data={[]}
   getItem={[Function]}
@@ -1952,6 +1956,8 @@ exports[`OrdersList renders empty buy message 1`] = `
     >
       <RCTScrollView
         collapsable={false}
+        handlerTag={5}
+        handlerType="NativeViewGestureHandler"
         horizontal={true}
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
@@ -2145,7 +2151,7 @@ exports[`OrdersList renders empty sell message 1`] = `
     </Row>
   }
   ListHeaderComponent={
-    <ScrollView
+    <ForwardRef
       horizontal={true}
     >
       <Row
@@ -2175,7 +2181,7 @@ exports[`OrdersList renders empty sell message 1`] = `
           selected={true}
         />
       </Row>
-    </ScrollView>
+    </ForwardRef>
   }
   data={[]}
   getItem={[Function]}
@@ -2201,6 +2207,8 @@ exports[`OrdersList renders empty sell message 1`] = `
     >
       <RCTScrollView
         collapsable={false}
+        handlerTag={4}
+        handlerType="NativeViewGestureHandler"
         horizontal={true}
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
@@ -2394,7 +2402,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
     </Row>
   }
   ListHeaderComponent={
-    <ScrollView
+    <ForwardRef
       horizontal={true}
     >
       <Row
@@ -2424,7 +2432,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
           selected={true}
         />
       </Row>
-    </ScrollView>
+    </ForwardRef>
   }
   data={
     [
@@ -2476,6 +2484,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
     >
       <RCTScrollView
         collapsable={false}
+        handlerTag={3}
+        handlerType="NativeViewGestureHandler"
         horizontal={true}
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
@@ -2822,7 +2832,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
     </Row>
   }
   ListHeaderComponent={
-    <ScrollView
+    <ForwardRef
       horizontal={true}
     >
       <Row
@@ -2852,7 +2862,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
           selected={true}
         />
       </Row>
-    </ScrollView>
+    </ForwardRef>
   }
   data={
     [
@@ -2904,6 +2914,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
     >
       <RCTScrollView
         collapsable={false}
+        handlerTag={6}
+        handlerType="NativeViewGestureHandler"
         horizontal={true}
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
@@ -3248,7 +3260,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
     </Row>
   }
   ListHeaderComponent={
-    <ScrollView
+    <ForwardRef
       horizontal={true}
     >
       <Row
@@ -3278,7 +3290,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
           selected={false}
         />
       </Row>
-    </ScrollView>
+    </ForwardRef>
   }
   data={
     [
@@ -3396,6 +3408,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
     >
       <RCTScrollView
         collapsable={false}
+        handlerTag={6}
+        handlerType="NativeViewGestureHandler"
         horizontal={true}
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}

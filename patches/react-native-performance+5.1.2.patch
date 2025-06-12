@@ -1,0 +1,14 @@
+diff --git a/node_modules/react-native-performance/android/src/main/java/com/oblador/performance/PerformanceModule.java b/node_modules/react-native-performance/android/src/main/java/com/oblador/performance/PerformanceModule.java
+index d40793e..6fc67e2 100644
+--- a/node_modules/react-native-performance/android/src/main/java/com/oblador/performance/PerformanceModule.java
++++ b/node_modules/react-native-performance/android/src/main/java/com/oblador/performance/PerformanceModule.java
+@@ -219,4 +219,9 @@ public class PerformanceModule extends ReactContextBaseJavaModule implements Tur
+         super.onCatalystInstanceDestroy();
+         RNPerformance.getInstance().removeListener(this);
+     }
++
++    // Fix new arch runtime error
++    public void addListener(String eventName) {
++
++    }
+ }

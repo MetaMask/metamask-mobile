@@ -241,6 +241,9 @@ exports[`KycProcessing Component render matches snapshot 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -815,6 +818,9 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={5}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1410,6 +1416,9 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={4}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1991,6 +2000,9 @@ exports[`KycProcessing Component renders loading state snapshot 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={3}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={

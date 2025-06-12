@@ -241,6 +241,9 @@ exports[`NftDetails should render correctly 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -320,6 +323,8 @@ exports[`NftDetails should render correctly 1`] = `
                     >
                       <RCTScrollView
                         collapsable={false}
+                        handlerTag={-1}
+                        handlerType="NativeViewGestureHandler"
                         onGestureHandlerEvent={[Function]}
                         onGestureHandlerStateChange={[Function]}
                       >
@@ -333,11 +338,24 @@ exports[`NftDetails should render correctly 1`] = `
                           >
                             <RNGestureHandlerButton
                               collapsable={false}
-                              onGestureEvent={[Function]}
+                              delayLongPress={600}
+                              enabled={true}
+                              exclusive={true}
+                              handlerTag={-1}
+                              handlerType="NativeViewGestureHandler"
+                              innerRef={null}
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
-                              onHandlerStateChange={[Function]}
-                              rippleColor={0}
+                              rippleColor="transparent"
+                              style={
+                                [
+                                  undefined,
+                                  {
+                                    "cursor": undefined,
+                                  },
+                                ]
+                              }
+                              touchSoundDisabled={false}
                             >
                               <View
                                 accessible={true}
@@ -714,11 +732,24 @@ exports[`NftDetails should render correctly 1`] = `
                                   </Text>
                                   <RNGestureHandlerButton
                                     collapsable={false}
-                                    onGestureEvent={[Function]}
+                                    delayLongPress={600}
+                                    enabled={true}
+                                    exclusive={true}
+                                    handlerTag={-1}
+                                    handlerType="NativeViewGestureHandler"
+                                    innerRef={null}
                                     onGestureHandlerEvent={[Function]}
                                     onGestureHandlerStateChange={[Function]}
-                                    onHandlerStateChange={[Function]}
-                                    rippleColor={0}
+                                    rippleColor="transparent"
+                                    style={
+                                      [
+                                        undefined,
+                                        {
+                                          "cursor": undefined,
+                                        },
+                                      ]
+                                    }
+                                    touchSoundDisabled={false}
                                   >
                                     <View
                                       accessible={true}
@@ -888,11 +919,24 @@ exports[`NftDetails should render correctly 1`] = `
                                   </TouchableOpacity>
                                   <RNGestureHandlerButton
                                     collapsable={false}
-                                    onGestureEvent={[Function]}
+                                    delayLongPress={600}
+                                    enabled={true}
+                                    exclusive={true}
+                                    handlerTag={-1}
+                                    handlerType="NativeViewGestureHandler"
+                                    innerRef={null}
                                     onGestureHandlerEvent={[Function]}
                                     onGestureHandlerStateChange={[Function]}
-                                    onHandlerStateChange={[Function]}
-                                    rippleColor={0}
+                                    rippleColor="transparent"
+                                    style={
+                                      [
+                                        undefined,
+                                        {
+                                          "cursor": undefined,
+                                        },
+                                      ]
+                                    }
+                                    touchSoundDisabled={false}
                                   >
                                     <View
                                       accessible={true}
@@ -1221,11 +1265,24 @@ exports[`NftDetails should render correctly 1`] = `
                                 </Text>
                                 <RNGestureHandlerButton
                                   collapsable={false}
-                                  onGestureEvent={[Function]}
+                                  delayLongPress={600}
+                                  enabled={true}
+                                  exclusive={true}
+                                  handlerTag={-1}
+                                  handlerType="NativeViewGestureHandler"
+                                  innerRef={null}
                                   onGestureHandlerEvent={[Function]}
                                   onGestureHandlerStateChange={[Function]}
-                                  onHandlerStateChange={[Function]}
-                                  rippleColor={0}
+                                  rippleColor="transparent"
+                                  style={
+                                    [
+                                      undefined,
+                                      {
+                                        "cursor": undefined,
+                                      },
+                                    ]
+                                  }
+                                  touchSoundDisabled={false}
                                 >
                                   <View
                                     accessible={true}

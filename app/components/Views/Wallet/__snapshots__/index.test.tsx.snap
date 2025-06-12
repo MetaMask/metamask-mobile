@@ -508,12 +508,25 @@ exports[`Wallet should render correctly 1`] = `
                   >
                     <RNGestureHandlerButton
                       collapsable={false}
-                      onGestureEvent={[Function]}
+                      delayLongPress={600}
+                      enabled={true}
+                      exclusive={true}
+                      handlerTag={-1}
+                      handlerType="NativeViewGestureHandler"
+                      innerRef={null}
                       onGestureHandlerEvent={[Function]}
                       onGestureHandlerStateChange={[Function]}
-                      onHandlerStateChange={[Function]}
-                      rippleColor={0}
+                      rippleColor="transparent"
+                      style={
+                        [
+                          undefined,
+                          {
+                            "cursor": undefined,
+                          },
+                        ]
+                      }
                       testID="wallet-account-copy-button"
+                      touchSoundDisabled={false}
                     >
                       <View
                         accessible={true}
@@ -726,6 +739,9 @@ exports[`Wallet should render correctly 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={2}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -795,6 +811,14 @@ exports[`Wallet should render correctly 1`] = `
                     }
                   >
                     <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -1063,6 +1087,8 @@ exports[`Wallet should render correctly 1`] = `
                         >
                           <RCTScrollView
                             collapsable={false}
+                            handlerTag={1}
+                            handlerType="NativeViewGestureHandler"
                             onGestureHandlerEvent={[Function]}
                             onGestureHandlerStateChange={[Function]}
                           >
@@ -1699,12 +1725,25 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                   >
                     <RNGestureHandlerButton
                       collapsable={false}
-                      onGestureEvent={[Function]}
+                      delayLongPress={600}
+                      enabled={true}
+                      exclusive={true}
+                      handlerTag={-1}
+                      handlerType="NativeViewGestureHandler"
+                      innerRef={null}
                       onGestureHandlerEvent={[Function]}
                       onGestureHandlerStateChange={[Function]}
-                      onHandlerStateChange={[Function]}
-                      rippleColor={0}
+                      rippleColor="transparent"
+                      style={
+                        [
+                          undefined,
+                          {
+                            "cursor": undefined,
+                          },
+                        ]
+                      }
                       testID="wallet-account-copy-button"
+                      touchSoundDisabled={false}
                     >
                       <View
                         accessible={true}
@@ -1917,6 +1956,9 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={23}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1986,6 +2028,14 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                     }
                   >
                     <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -2254,6 +2304,8 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                         >
                           <RCTScrollView
                             collapsable={false}
+                            handlerTag={22}
+                            handlerType="NativeViewGestureHandler"
                             onGestureHandlerEvent={[Function]}
                             onGestureHandlerStateChange={[Function]}
                           >
@@ -2890,12 +2942,25 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                   >
                     <RNGestureHandlerButton
                       collapsable={false}
-                      onGestureEvent={[Function]}
+                      delayLongPress={600}
+                      enabled={true}
+                      exclusive={true}
+                      handlerTag={-1}
+                      handlerType="NativeViewGestureHandler"
+                      innerRef={null}
                       onGestureHandlerEvent={[Function]}
                       onGestureHandlerStateChange={[Function]}
-                      onHandlerStateChange={[Function]}
-                      rippleColor={0}
+                      rippleColor="transparent"
+                      style={
+                        [
+                          undefined,
+                          {
+                            "cursor": undefined,
+                          },
+                        ]
+                      }
                       testID="wallet-account-copy-button"
+                      touchSoundDisabled={false}
                     >
                       <View
                         accessible={true}
@@ -3108,6 +3173,9 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={5}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -3177,6 +3245,14 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                     }
                   >
                     <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -3445,6 +3521,8 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                         >
                           <RCTScrollView
                             collapsable={false}
+                            handlerTag={4}
+                            handlerType="NativeViewGestureHandler"
                             onGestureHandlerEvent={[Function]}
                             onGestureHandlerStateChange={[Function]}
                           >
