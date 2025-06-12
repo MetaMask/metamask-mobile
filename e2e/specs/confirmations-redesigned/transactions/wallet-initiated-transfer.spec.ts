@@ -26,8 +26,9 @@ import NetworkEducationModal from '../../../pages/Network/NetworkEducationModal'
 import { CustomNetworks } from '../../../resources/networks.e2e';
 import enContent from '../../../../locales/languages/en.json';
 
-const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
+const RECIPIENT = '0xbeC040014De5b4f1117EdD010828EA35cEc28B30';
 const AMOUNT = '1';
+const SMALL_AMOUNT = '0.0000001';
 const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
 const MONAD_TOKEN_NAME = enContent.unit.monad;
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
@@ -94,8 +95,6 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
   });
 
   it(`should send native ${MONAD_TESTNET.nickname} from inside the wallet`, async () => {
-    const RECIPIENT = '0xbeC040014De5b4f1117EdD010828EA35cEc28B30';
-    const AMOUNT = '0.0000001';
     await withFixtures(
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
@@ -121,7 +120,7 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
         await SendView.inputAddress(RECIPIENT);
         await SendView.tapNextButton();
 
-        await AmountView.typeInTransactionAmount(AMOUNT);
+        await AmountView.typeInTransactionAmount(SMALL_AMOUNT);
         await AmountView.tapNextButton();
 
         await FooterActions.tapConfirmButton();
@@ -134,8 +133,6 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
   });
 
   it(`should send native ${MEGAETH_TESTNET.nickname} from inside the wallet`, async () => {
-    const RECIPIENT = '0xbeC040014De5b4f1117EdD010828EA35cEc28B30';
-    const AMOUNT = '0.0000001';
     await withFixtures(
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
@@ -163,7 +160,7 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
         await SendView.inputAddress(RECIPIENT);
         await SendView.tapNextButton();
 
-        await AmountView.typeInTransactionAmount(AMOUNT);
+        await AmountView.typeInTransactionAmount(SMALL_AMOUNT);
         await AmountView.tapNextButton();
 
         await FooterActions.tapConfirmButton();

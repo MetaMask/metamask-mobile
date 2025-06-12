@@ -114,8 +114,7 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
     });
   }
 
-  for (let index = 0; index < SIGNATURE_LIST.length; index++) {
-    const { specName, testDappBtn, requestType } = SIGNATURE_LIST[index];
+  for (const { specName, testDappBtn, requestType } of SIGNATURE_LIST) {
     it(`should sign ${specName} using ${MONAD_TESTNET.nickname}`, async () => {
       await withFixtures(
         {
@@ -145,8 +144,7 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
     });
   }
 
-  for (let index = 0; index < SIGNATURE_LIST.length; index++) {
-    const { specName, testDappBtn, requestType } = SIGNATURE_LIST[index];
+ for (const { specName, testDappBtn, requestType } of SIGNATURE_LIST) {
     it(`should sign ${specName} using ${MEGAETH_TESTNET.nickname}`, async () => {
       await withFixtures(
         {
