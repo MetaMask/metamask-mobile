@@ -53,7 +53,10 @@ describe(SmokeWalletPlatform('Import new srp to wallet'), () => {
     await TestHelpers.launchApp({
       delete: true,
       newInstance: true,
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+      launchArgs: {
+        fixtureServerPort: `${getFixturesServerPort()}`,
+        mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT),
+      },
     });
     await loginToApp();
   });
