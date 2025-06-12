@@ -29,6 +29,7 @@ import {
   DepositFiatCurrency,
 } from '../../constants';
 import AccountSelector from '../../components/AccountSelector';
+<<<<<<< Updated upstream
 import { strings } from '../../../../../../../locales/i18n';
 import { formatAmount } from '../../../Aggregator/utils';
 import { useSelector } from 'react-redux';
@@ -37,7 +38,18 @@ import {
   selectContractExchangeRatesByChainId,
   selectTokenMarketData,
 } from '../../../../../../selectors/tokenRatesController';
+=======
+import I18n, { strings } from '../../../../../../../locales/i18n';
+import { useSelector } from 'react-redux';
+import { selectMultichainAssetsRates } from '../../../../../../selectors/multichain';
+import { selectContractExchangeRatesByChainId } from '../../../../../../selectors/tokenRatesController';
+import { getIntlNumberFormatter } from '../../../../../../util/intl';
+import { currency } from '@metamask/snaps-utils';
+>>>>>>> Stashed changes
 
+function formatAmount(amount: number, options): string {
+  return getIntlNumberFormatter(I18n.locale, options).format(amount);
+}
 const BuildQuote = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
@@ -170,8 +182,16 @@ const BuildQuote = () => {
               numberOfLines={1}
               adjustsFontSizeToFit
             >
+<<<<<<< Updated upstream
               {fiatCurrency.symbol}
               {formatAmount(amountAsNumber)}
+=======
+              {formatAmount(amountAsNumber, {
+                style: 'currency',
+                currency: 'eur',
+                currencyDisplay: 'narrowSymbol',
+              })}
+>>>>>>> Stashed changes
             </Text>
 
             <Text
