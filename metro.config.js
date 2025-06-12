@@ -14,7 +14,7 @@ const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
 const { parseArgs } = require('node:util');
 
 // remove path/to/node
-// remove path/to/node_modules/.bin/react-native
+// remove path/to/node_modules/.bin/<react-native|expo>
 const args = process.argv.slice(2);
 
 const options = {
@@ -29,6 +29,10 @@ const options = {
   },
   'bundle-output': {
     type: 'string',
+  },
+  // Expo
+  port: {
+    type: 'string', // default: '8081'
   },
 };
 
