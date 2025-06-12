@@ -88,7 +88,7 @@ class DeeplinkManager {
     });
   }
 
-  parse(
+  async parse(
     url: string,
     {
       browserCallBack,
@@ -100,7 +100,7 @@ class DeeplinkManager {
       onHandled?: () => void;
     },
   ) {
-    return parseDeeplink({
+    return await parseDeeplink({
       deeplinkManager: this,
       url,
       origin,
