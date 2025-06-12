@@ -157,6 +157,8 @@ module.exports = function (baseConfig) {
           },
         }),
       },
+      // Note: 'expo start' not supported since we cannot detect android/ios
+      // Unfortunately it does not 'run:android' or 'run:ios' which would be detectable
       serializer: lockdownSerializer(
         { hermesRuntime },
         {
