@@ -6,6 +6,7 @@ import {
   View,
   ScrollView,
   StyleSheet,
+  Image,
   InteractionManager,
   Animated,
   Easing,
@@ -14,21 +15,27 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';
+import StyledButton from '../../UI/StyledButton';
 import {
   fontStyles,
   baseStyles,
   colors as importedColors,
 } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
+import Button from '@metamask/react-native-button';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
+import {
+  getTransparentBackOnboardingNavbarOptions,
+  getTransparentOnboardingNavbarOptions,
+} from '../../UI/Navbar';
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
 import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../reducers/legalNotices';
 import PreventScreenshot from '../../../core/PreventScreenshot';
+import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { EXISTING_USER } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -36,19 +43,12 @@ import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
+
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import LottieView from 'lottie-react-native';
+import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-  ButtonSize,
-} from '../../../component-library/components/Buttons/Button';
-
-import fox from '../../../animations/Searching_Fox.json';
-import { saveOnboardingEvent } from '../../../actions/onboarding';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -61,43 +61,34 @@ const createStyles = (colors) =>
       paddingVertical: 30,
     },
     foxWrapper: {
-      width: Device.isLargeDevice() ? 200 : 175,
-      height: Device.isLargeDevice() ? 200 : 175,
+      width: Device.isIos() ? 90 : 45,
+      height: Device.isIos() ? 90 : 45,
       marginVertical: 20,
     },
     image: {
       alignSelf: 'center',
-      width: Device.isLargeDevice() ? 200 : 175,
-      height: Device.isLargeDevice() ? 200 : 175,
+      width: Device.isIos() ? 90 : 45,
+      height: Device.isIos() ? 90 : 45,
     },
     largeFoxWrapper: {
       alignItems: 'center',
-      paddingTop: Device.isLargeDevice() ? 60 : 40,
-      paddingBottom: Device.isLargeDevice() ? 100 : 40,
+      marginVertical: 24,
     },
     foxImage: {
-      width: 145,
-      height: 145,
+      width: 125,
+      height: 125,
       resizeMode: 'contain',
     },
     title: {
-      fontSize: 40,
-      lineHeight: 40,
-      justifyContent: 'center',
       textAlign: 'center',
-      paddingHorizontal: 60,
-      fontFamily: 'MMSans-Regular',
-      color: importedColors.gettingStartedTextColor,
     },
     ctas: {
       flex: 1,
       position: 'relative',
-      width: '100%',
-      paddingHorizontal: 20,
     },
     footer: {
-      marginTop: -40,
-      marginBottom: 40,
+      marginTop: -20,
+      marginBottom: 20,
     },
     login: {
       fontSize: 18,
@@ -113,21 +104,11 @@ const createStyles = (colors) =>
     },
     createWrapper: {
       flex: 1,
-      flexDirection: 'column',
       justifyContent: 'flex-end',
-      rowGap: 16,
-      marginBottom: 16,
+      marginBottom: 24,
     },
     buttonWrapper: {
-      flexDirection: 'column',
-      justifyContent: 'flex-end',
-      gap: 16,
-      width: '100%',
-    },
-    buttonLabel: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      columnGap: 8,
+      marginBottom: 16,
     },
     loader: {
       marginTop: 180,
@@ -150,41 +131,6 @@ const createStyles = (colors) =>
       flex: 0.1,
       flexDirection: 'row',
       alignItems: 'flex-end',
-    },
-    divider: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 10,
-    },
-    dividerLine: {
-      flex: 1,
-      height: 1,
-      backgroundColor: colors.border.muted,
-    },
-    bottomSheetContainer: {
-      padding: 16,
-      flexDirection: 'column',
-      rowGap: 16,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    socialBtn: {
-      borderColor: colors.border.muted,
-      borderWidth: 1,
-      color: colors.text.default,
-    },
-    createWalletButton: {
-      borderRadius: 12,
-      color: importedColors.whiteTransparent,
-      backgroundColor: importedColors.btnBlack,
-    },
-    existingWalletButton: {
-      borderRadius: 12,
-      color: importedColors.btnBlack,
-      backgroundColor: colors.transparent,
-      borderWidth: 1,
-      borderColor: importedColors.btnBlack,
     },
   });
 
@@ -226,11 +172,8 @@ class Onboarding extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
-    /**
-     * Function to save onboarding event prior to metrics being enabled
-     */
-    dispatchSaveOnboardingEvent: PropTypes.func,
   };
+
   notificationAnimated = new Animated.Value(100);
   detailsYAnimated = new Animated.Value(0);
   actionXAnimated = new Animated.Value(0);
@@ -249,10 +192,6 @@ class Onboarding extends PureComponent {
     warningModalVisible: false,
     loading: false,
     existingUser: false,
-    createWallet: false,
-    existingWallet: false,
-    bottomSheetVisible: false,
-    errorSheetVisible: false,
   };
 
   seedwords = null;
@@ -284,17 +223,13 @@ class Onboarding extends PureComponent {
     const { route, navigation } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
-      getTransparentOnboardingNavbarOptions(
-        colors,
-        importedColors.gettingStartedPageBackgroundColor,
-        true,
-        importedColors.btnBlack,
-      ),
+      route.params?.delete
+        ? getTransparentOnboardingNavbarOptions(colors)
+        : getTransparentBackOnboardingNavbarOptions(colors),
     );
   };
 
   componentDidMount() {
-    this.props.unsetLoading();
     this.updateNavBar();
     this.mounted = true;
     this.checkIfExistingUser();
@@ -394,10 +329,7 @@ class Onboarding extends PureComponent {
   };
 
   track = (event) => {
-    trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(event).build(),
-      this.props.dispatchSaveOnboardingEvent,
-    );
+    trackOnboarding(MetricsEventBuilder.createEventBuilder(event).build());
   };
 
   alertExistingUser = (callback) => {
@@ -434,49 +366,46 @@ class Onboarding extends PureComponent {
     return (
       <View style={styles.ctas}>
         <View style={styles.largeFoxWrapper}>
-          <LottieView
-            style={styles.image}
-            autoPlay
-            loop
-            source={fox}
-            resizeMode="contain"
+          <Image
+            source={require('../../../images/branding/fox.png')}
+            style={styles.foxImage}
+            resizeMethod={'auto'}
           />
         </View>
-
         <Text
-          variant={TextVariant.HeadingSMRegular}
+          variant={TextVariant.HeadingLG}
           style={styles.title}
           testID={OnboardingSelectorIDs.SCREEN_TITLE}
         >
           {strings('onboarding.title')}
         </Text>
-
+        <View style={styles.importWrapper}>
+          <Text
+            style={styles.buttonDescription}
+            testID={OnboardingSelectorIDs.SCREEN_DESCRIPTION}
+          >
+            {strings('onboarding.import')}
+          </Text>
+        </View>
         <View style={styles.createWrapper}>
-          <Button
-            variant={ButtonVariants.Primary}
-            onPress={() => this.onPressCreate()}
-            testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-            label={strings('onboarding.start_exploring_now')}
-            width={ButtonWidthTypes.Full}
-            size={ButtonSize.Lg}
-            style={styles.createWalletButton}
-          />
-          <Button
-            variant={ButtonVariants.Secondary}
-            onPress={this.onPressImport}
-            testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
-            width={ButtonWidthTypes.Full}
-            size={ButtonSize.Lg}
-            style={styles.existingWalletButton}
-            label={
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={importedColors.btnBlack}
-              >
-                {strings('onboarding.have_existing_wallet')}
-              </Text>
-            }
-          />
+          <View style={styles.buttonWrapper}>
+            <StyledButton
+              type={'normal'}
+              onPress={this.onPressImport}
+              testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
+            >
+              {strings('import_wallet.import_from_seed_button')}
+            </StyledButton>
+          </View>
+          <View style={styles.buttonWrapper}>
+            <StyledButton
+              type={'blue'}
+              onPress={this.onPressCreate}
+              testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
+            >
+              {strings('onboarding.start_exploring_now')}
+            </StyledButton>
+          </View>
         </View>
       </View>
     );
@@ -516,10 +445,7 @@ class Onboarding extends PureComponent {
 
     return (
       <View
-        style={[
-          baseStyles.flexGrow,
-          { backgroundColor: importedColors.gettingStartedPageBackgroundColor },
-        ]}
+        style={baseStyles.flexGrow}
         testID={OnboardingSelectorIDs.CONTAINER_ID}
       >
         <ScrollView
@@ -528,28 +454,21 @@ class Onboarding extends PureComponent {
         >
           <View style={styles.wrapper}>
             {loading && (
-              <View style={styles.largeFoxWrapper}>
-                <LottieView
+              <View style={styles.foxWrapper}>
+                <Image
+                  source={require('../../../images/branding/fox.png')}
                   style={styles.image}
-                  autoPlay
-                  loop
-                  source={fox}
-                  resizeMode="contain"
+                  resizeMethod={'auto'}
                 />
               </View>
             )}
             {loading ? this.renderLoader() : this.renderContent()}
           </View>
-
           {existingUser && !loading && (
             <View style={styles.footer}>
-              <Button
-                variant={ButtonVariants.Link}
-                onPress={this.onLogin}
-                label={strings('onboarding.unlock')}
-                width={ButtonWidthTypes.Full}
-                size={ButtonSize.Lg}
-              />
+              <Button style={styles.login} onPress={this.onLogin}>
+                {strings('onboarding.unlock')}
+              </Button>
             </View>
           )}
         </ScrollView>
@@ -557,6 +476,13 @@ class Onboarding extends PureComponent {
         <FadeOutOverlay />
 
         <View>{this.handleSimpleNotification()}</View>
+
+        <WarningExistingUserModal
+          warningModalVisible={this.state.warningModalVisible}
+          onCancelPress={this.warningCallback}
+          onRequestClose={this.toggleWarningModal}
+          onConfirmPress={this.toggleWarningModal}
+        />
       </View>
     );
   }
@@ -576,7 +502,6 @@ const mapDispatchToProps = (dispatch) => ({
   unsetLoading: () => dispatch(loadingUnset()),
   disableNewPrivacyPolicyToast: () =>
     dispatch(storePrivacyPolicyClickedOrClosedAction()),
-  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
 });
 
 export default connect(

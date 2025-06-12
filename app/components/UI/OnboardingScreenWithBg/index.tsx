@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  StyleSheet,
-  ImageBackground,
-  View,
-  ImageSourcePropType,
-} from 'react-native';
+import { StyleSheet, ImageBackground, View, ImageSourcePropType } from 'react-native';
 import { useTheme } from '../../../util/theme';
 import { Theme } from '@metamask/design-tokens';
 
@@ -53,25 +48,16 @@ interface OnboardingScreenWithBgProps {
    * or an Array with a combination of them
    */
   children: React.ReactNode;
-
-  /**
-   * Background color of the screen
-   */
-  backgroundColor?: string;
 }
 
-const OnboardingScreenWithBg: React.FC<OnboardingScreenWithBgProps> = ({
-  screen,
-  children,
-  backgroundColor,
-}) => {
+const OnboardingScreenWithBg: React.FC<OnboardingScreenWithBgProps> = ({ screen, children }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const backgroundImage = images[screen];
 
   return (
-    <View style={[styles.flex, { backgroundColor }]}>
+    <View style={styles.flex}>
       {backgroundImage && (
         <ImageBackground
           source={backgroundImage}
