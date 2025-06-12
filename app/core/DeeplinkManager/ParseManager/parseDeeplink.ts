@@ -11,13 +11,13 @@ import connectWithWC from './connectWithWC';
 import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import {
-  verifyDeeplinkSignature,
-  hasSignature,
-  VALID,
-  INVALID,
-  MISSING,
-} from './utils/verifySignature';
+// import {
+//   verifyDeeplinkSignature,
+//   hasSignature,
+//   VALID,
+//   INVALID,
+//   MISSING,
+// } from './utils/verifySignature';
 
 async function parseDeeplink({
   deeplinkManager: instance,
