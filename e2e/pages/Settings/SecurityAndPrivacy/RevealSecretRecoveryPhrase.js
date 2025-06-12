@@ -97,6 +97,13 @@ class RevealSecretRecoveryPhrase {
       this.tabScrollViewIdentifier,
     );
   }
+
+  async scrollToQR() {
+    await Gestures.scrollToElement(
+      this.revealCredentialQRCodeImage,
+      this.tabScrollViewIdentifier,
+    );
+  }
 }
 
 export default new RevealSecretRecoveryPhrase();

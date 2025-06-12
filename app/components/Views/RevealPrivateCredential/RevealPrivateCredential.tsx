@@ -407,6 +407,7 @@ const RevealPrivateCredential = ({
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       onChangeTab={(event: any) => onTabBarChange(event)}
+      style={styles.tabContentContainer}
     >
       <CustomTabView
         tabLabel={strings(`reveal_credential.text`)}
