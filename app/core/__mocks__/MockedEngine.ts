@@ -30,7 +30,9 @@ export const mockedEngine = {
   context: {
     AccountsController: {
       listAccounts: jest.fn(),
+      listMultichainAccounts: jest.fn(),
       getSelectedAccount: jest.fn(),
+      getAccountByAddress: jest.fn(),
     },
     AccountTrackerController: {
       state: {
@@ -66,6 +68,11 @@ export const mockedEngine = {
       setLocked: jest.fn(),
       createNewVaultAndRestore: jest.fn(),
       createNewVaultAndKeychain: jest.fn(),
+    },
+    MultichainNetworkController: {
+      state: {
+        multichainNetworkConfigurationsByChainId: {},
+      }
     },
     NetworkController: {
       getNetworkConfigurationByChainId: jest.fn(),

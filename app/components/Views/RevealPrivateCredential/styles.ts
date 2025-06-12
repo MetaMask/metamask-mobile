@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { Theme } from '../../../util/theme/models';
 
@@ -30,6 +30,7 @@ export const createStyles = (theme: Theme) =>
       borderRadius: 10,
       borderWidth: 1,
       borderColor: theme.colors.border.default,
+      marginBottom: 16, // ensure the copy to clipboard is not clipped
     },
     clipboardButton: {
       alignSelf: 'center',
@@ -44,6 +45,11 @@ export const createStyles = (theme: Theme) =>
     rowWrapper: {
       padding: 20,
     },
+    tabContentContainer: {
+      flexGrow: 1,
+      flexShrink: 0,
+      marginBottom: Platform.OS === 'android' ? 20 : 0,
+    },
     warningWrapper: {
       backgroundColor: theme.colors.error.muted,
       margin: 20,
@@ -53,10 +59,10 @@ export const createStyles = (theme: Theme) =>
       borderColor: theme.colors.error.default,
     },
     warningRowWrapper: {
-      flex: 1,
       flexDirection: 'row',
-      alignContent: 'center',
+      flexShrink: 1,
       alignItems: 'center',
+      width: '100%',
     },
     warningText: {
       marginTop: 10,
@@ -87,7 +93,7 @@ export const createStyles = (theme: Theme) =>
       color: theme.colors.text.default,
     },
     enterPassword: {
-      marginBottom: 15,
+      marginBottom: 4,
       color: theme.colors.text.default,
     },
     boldText: {

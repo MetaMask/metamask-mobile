@@ -20,7 +20,13 @@ import {
   isBtcTestnetAddress,
   ///: END:ONLY_INCLUDE_IF
 } from '../core/Multichain/utils';
+import { CaipAccountId, parseCaipChainId } from '@metamask/utils';
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
+import { toFormattedAddress } from '../util/address';
+
+export type InternalAccountWithCaipAccountId = InternalAccount & {
+  caipAccountId: CaipAccountId;
+};
 
 /**
  *
@@ -39,7 +45,7 @@ export const selectInternalAccounts = createDeepEqualSelector(
   (accountControllerState, orderedKeyringAccounts): InternalAccount[] => {
     const keyringAccountsMap = new Map(
       orderedKeyringAccounts.map((account, index) => [
-        account.toLowerCase(),
+        toFormattedAddress(account),
         index,
       ]),
     );
@@ -47,11 +53,33 @@ export const selectInternalAccounts = createDeepEqualSelector(
       accountControllerState.internalAccounts.accounts,
     ).sort(
       (a, b) =>
-        (keyringAccountsMap.get(a.address.toLowerCase()) || 0) -
-        (keyringAccountsMap.get(b.address.toLowerCase()) || 0),
+        (keyringAccountsMap.get(toFormattedAddress(a.address)) || 0) -
+        (keyringAccountsMap.get(toFormattedAddress(b.address)) || 0),
     );
     return sortedAccounts;
   },
+);
+
+export const selectInternalEvmAccounts = createSelector(
+  selectInternalAccounts,
+  (accounts) => accounts.filter((account) => isEvmAccountType(account.type)),
+);
+
+/**
+ * A memoized selector that returns internal accounts from the AccountsController,
+ * sorted by the order of KeyringController's keyring accounts,
+ * with an additional caipAccountId property
+ */
+export const selectInternalAccountsWithCaipAccountId = createDeepEqualSelector(
+  selectInternalAccounts,
+  (accounts): InternalAccountWithCaipAccountId[] =>
+    accounts.map((account) => {
+      const { namespace, reference } = parseCaipChainId(account.scopes[0]);
+      return {
+        ...account,
+        caipAccountId: `${namespace}:${reference}:${account.address}`,
+      };
+    }),
 );
 
 /**
@@ -78,6 +106,14 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
 );
 
 /**
+ * A memoized selector that returns the selected internal account id
+ */
+export const selectSelectedInternalAccountId = createSelector(
+  selectSelectedInternalAccount,
+  (account): string | undefined => account?.id,
+);
+
+/**
  * A memoized selector that returns the internal accounts sorted by the last selected timestamp
  */
 export const selectOrderedInternalAccountsByLastSelected = createSelector(
@@ -98,7 +134,8 @@ export const selectOrderedInternalAccountsByLastSelected = createSelector(
 
 export const getMemoizedInternalAccountByAddress = createDeepEqualSelector(
   [selectInternalAccounts, (_state, address) => address],
-  (internalAccounts, address) => internalAccounts.find((account) =>
+  (internalAccounts, address) =>
+    internalAccounts.find((account) =>
       isEqualCaseInsensitive(account.address, address),
     ),
 );

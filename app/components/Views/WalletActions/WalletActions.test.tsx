@@ -32,6 +32,7 @@ import { trace, TraceName } from '../../../util/trace';
 import { RampType } from '../../../reducers/fiatOrders/types';
 import { selectStablecoinLendingEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
+import { ethers } from 'ethers';
 
 jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
@@ -81,6 +82,14 @@ jest.mock('../../../selectors/networkController', () => ({
   }),
   selectEvmTicker: jest.fn().mockReturnValue('ETH'),
   selectNativeCurrencyByChainId: jest.fn(),
+  selectSelectedNetworkClientId: jest.fn().mockReturnValue('mainnet'),
+  selectNetworkClientId: jest.fn().mockReturnValue('mainnet'),
+  selectEvmNetworkConfigurationsByChainId: jest.fn().mockReturnValue({}),
+  selectRpcUrl: jest.fn().mockReturnValue('https://mainnet.infura.io/v3/123'),
+}));
+
+jest.mock('../../../core/Multichain/utils', () => ({
+  isNonEvmChainId: jest.fn().mockReturnValue(false),
 }));
 
 jest.mock('../../../selectors/accountsController', () => {
@@ -135,7 +144,7 @@ jest.mock('../../UI/Bridge/utils', () => ({
   isBridgeAllowed: jest.fn().mockReturnValue(true),
 }));
 
-jest.mock('../../UI/Ramp/hooks/useRampNetwork', () => ({
+jest.mock('../../UI/Ramp/Aggregator/hooks/useRampNetwork', () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue([true]),
 }));
@@ -299,7 +308,6 @@ describe('WalletActions', () => {
       queryByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     ).toBeNull();
   });
-
   it('should render earn button if the stablecoin lending feature is enabled', () => {
     (
       selectStablecoinLendingEnabledFlag as jest.MockedFunction<
@@ -310,17 +318,15 @@ describe('WalletActions', () => {
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
     });
-
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     ).toBeDefined();
   });
-
   it('should not show the buy button and swap button if the chain does not allow buying', () => {
     (isSwapsAllowed as jest.Mock).mockReturnValue(false);
     (isBridgeAllowed as jest.Mock).mockReturnValue(false);
     jest
-      .requireMock('../../UI/Ramp/hooks/useRampNetwork')
+      .requireMock('../../UI/Ramp/Aggregator/hooks/useRampNetwork')
       .default.mockReturnValue([false]);
 
     const mockState: DeepPartial<RootState> = {
@@ -374,7 +380,7 @@ describe('WalletActions', () => {
 
   it('should call the onBuy function when the Buy button is pressed', () => {
     jest
-      .requireMock('../../UI/Ramp/hooks/useRampNetwork')
+      .requireMock('../../UI/Ramp/Aggregator/hooks/useRampNetwork')
       .default.mockReturnValue([true]);
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
@@ -394,7 +400,7 @@ describe('WalletActions', () => {
 
   it('should call the onSell function when the Sell button is pressed', () => {
     jest
-      .requireMock('../../UI/Ramp/hooks/useRampNetwork')
+      .requireMock('../../UI/Ramp/Aggregator/hooks/useRampNetwork')
       .default.mockReturnValue([true]);
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
@@ -456,7 +462,7 @@ describe('WalletActions', () => {
         bridgeViewMode: 'Swap',
         sourcePage: 'MainView',
         token: {
-          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          address: ethers.constants.AddressZero,
           chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           decimals: 9,
           image: '',
@@ -507,7 +513,7 @@ describe('WalletActions', () => {
     (isSwapsAllowed as jest.Mock).mockReturnValue(true);
     (isBridgeAllowed as jest.Mock).mockReturnValue(true);
     jest
-      .requireMock('../../UI/Ramp/hooks/useRampNetwork')
+      .requireMock('../../UI/Ramp/Aggregator/hooks/useRampNetwork')
       .default.mockReturnValue([true]);
 
     const mockStateWithoutSigningAndStablecoinLendingEnabled: DeepPartial<RootState> =

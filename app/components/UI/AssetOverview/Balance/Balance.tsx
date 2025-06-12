@@ -1,6 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
-import { CaipAssetId, Hex, isCaipChainId } from '@metamask/utils';
+import {
+  CaipAssetId,
+  CaipAssetType,
+  Hex,
+  isCaipChainId,
+} from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './Balance.styles';
@@ -25,7 +30,6 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { TokenI } from '../../Tokens/types';
 import { useNavigation } from '@react-navigation/native';
-import StakingBalance from '../../Stake/components/StakingBalance/StakingBalance';
 import {
   PopularList,
   UnpopularNetworkList,
@@ -33,6 +37,12 @@ import {
   getNonEvmNetworkImageSourceByChainId,
 } from '../../../../util/networks/customNetworks';
 import { RootState } from '../../../../reducers';
+import EarnBalance from '../../Earn/components/EarnBalance';
+import PercentageChange from '../../../../component-library/components-temp/Price/PercentageChange';
+import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
+import { selectPricePercentChange1d } from '../../../../selectors/tokenRatesController';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 
 interface BalanceProps {
   asset: TokenI;
@@ -82,6 +92,27 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
+
+  const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
+  const evmPricePercentChange1d = useSelector((state: RootState) =>
+    selectPricePercentChange1d(
+      state,
+      asset.chainId as Hex,
+      asset?.isNative
+        ? getNativeTokenAddress(asset.chainId as Hex)
+        : (asset?.address as Hex),
+    ),
+  );
+  const allMultichainAssetsRates = useSelector(selectMultichainAssetsRates);
+  const getPricePercentChange1d = () => {
+    if (isEvmNetworkSelected) {
+      return evmPricePercentChange1d;
+    }
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    return allMultichainAssetsRates[asset?.address as CaipAssetType]?.marketData
+      ?.pricePercentChange?.P1D;
+    ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+  };
 
   const tokenChainId = asset.chainId;
 
@@ -148,11 +179,16 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
         >
           {renderNetworkAvatar()}
         </BadgeWrapper>
-        <Text style={styles.balances} variant={TextVariant.BodyLGMedium}>
-          {asset.name || asset.symbol}
-        </Text>
+
+        <View style={styles.percentageChange}>
+          <Text style={styles.balanceInfo} variant={TextVariant.BodyMD}>
+            {asset.name || asset.symbol}
+          </Text>
+
+          <PercentageChange value={getPricePercentChange1d()} />
+        </View>
       </AssetElement>
-      {asset?.isETH && <StakingBalance asset={asset} />}
+      <EarnBalance asset={asset} />
     </View>
   );
 };

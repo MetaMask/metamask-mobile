@@ -20,12 +20,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "AddressBookController": {
         "addressBook": {},
       },
-      "AppMetadataController": {
-        "currentAppVersion": "",
-        "currentMigrationVersion": 0,
-        "previousAppVersion": "",
-        "previousMigrationVersion": 0,
-      },
       "ApprovalController": {
         "approvalFlows": [],
         "pendingApprovalCount": 0,
@@ -36,6 +30,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "BridgeController": {
         "assetExchangeRates": {},
+        "minimumBalanceForRentExemptionInLamports": "0",
         "quoteFetchError": null,
         "quoteRequest": {
           "srcTokenAddress": "0x0000000000000000000000000000000000000000",
@@ -65,45 +60,50 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "EarnController": {
         "lastUpdated": 0,
-        "pooled_staking": {
-          "exchangeRate": "1",
+        "lending": {
           "isEligible": false,
-          "pooledStakes": {
-            "account": "",
-            "assets": "0",
-            "exitRequests": [],
-            "lifetimeRewards": "0",
-          },
-          "vaultApyAverages": {
-            "oneDay": "0",
-            "oneMonth": "0",
-            "oneWeek": "0",
-            "oneYear": "0",
-            "sixMonths": "0",
-            "threeMonths": "0",
-          },
-          "vaultDailyApys": [],
-          "vaultMetadata": {
-            "apy": "0",
-            "capacity": "0",
-            "feePercent": 0,
-            "totalAssets": "0",
-            "vaultAddress": "0x0000000000000000000000000000000000000000",
-          },
-        },
-        "stablecoin_lending": {
-          "vaults": [
+          "markets": [
             {
+              "address": "",
               "chainId": 0,
-              "currentAPY": "0",
-              "liquidity": "0",
+              "id": "",
               "name": "",
-              "supply": "0",
-              "symbol": "",
-              "tokenAddress": "",
-              "vaultAddress": "",
+              "netSupplyRate": 0,
+              "outputToken": {
+                "address": "",
+                "chainId": 0,
+              },
+              "protocol": "",
+              "rewards": [
+                {
+                  "rate": 0,
+                  "token": {
+                    "address": "",
+                    "chainId": 0,
+                  },
+                },
+              ],
+              "totalSupplyRate": 0,
+              "tvlUnderlying": "0",
+              "underlying": {
+                "address": "",
+                "chainId": 0,
+              },
             },
           ],
+          "positions": [
+            {
+              "assets": "0",
+              "chainId": 0,
+              "id": "",
+              "marketAddress": "",
+              "marketId": "",
+              "protocol": "",
+            },
+          ],
+        },
+        "pooled_staking": {
+          "isEligible": false,
         },
       },
       "GasFeeController": {
@@ -118,16 +118,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "keyrings": [
           "keyring1",
           "keyring2",
-        ],
-        "keyringsMetadata": [
-          {
-            "id": "123",
-            "name": "",
-          },
-          {
-            "id": "456",
-            "name": "",
-          },
         ],
       },
       "LoggingController": {
@@ -184,6 +174,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "nativeCurrency": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/slip44:501",
           },
         },
+        "networksWithTransactionActivity": {},
         "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
       },
       "MultichainTransactionsController": {
@@ -221,6 +212,21 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
                 "networkClientId": "megaeth-testnet",
                 "type": "custom",
                 "url": "https://carrot.megaeth.com/rpc",
+              },
+            ],
+          },
+          "0x2105": {
+            "blockExplorerUrls": [],
+            "chainId": "0x2105",
+            "defaultRpcEndpointIndex": 0,
+            "name": "Base Mainnet",
+            "nativeCurrency": "ETH",
+            "rpcEndpoints": [
+              {
+                "failoverUrls": [],
+                "networkClientId": "base-mainnet",
+                "type": "infura",
+                "url": "https://base-mainnet.infura.io/v3/{infuraProjectId}",
               },
             ],
           },
@@ -321,6 +327,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "subjects": {},
       },
       "PreferencesController": {
+        "dismissSmartAccountSuggestionEnabled": false,
         "displayNftMedia": true,
         "featureFlags": {},
         "identities": {},
@@ -516,6 +523,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "lastFetchedBlockNumbers": {},
         "methodData": {},
         "submitHistory": [],
+        "transactionBatches": [],
         "transactions": [],
       },
       "UserStorageController": {

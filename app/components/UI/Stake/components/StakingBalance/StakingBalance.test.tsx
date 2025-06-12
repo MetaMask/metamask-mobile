@@ -17,8 +17,26 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import * as networks from '../../../../../util/networks';
 import { mockNetworkState } from '../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
 import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import {
+  getMockEarnControllerState,
+  getMockUseEarnTokens,
+} from '../../../Earn/__mocks__/earnMockData';
+import { TokenI } from '../../../Tokens/types';
+import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
+
+jest.mock('../../hooks/useStakingEarnings', () => ({
+  __esModule: true,
+  default: () => ({
+    annualRewardRate: '2.6%',
+    lifetimeRewardsETH: '2.5 ETH',
+    lifetimeRewardsFiat: '$5000',
+    estimatedAnnualEarningsETH: '2.5 ETH',
+    estimatedAnnualEarningsFiat: '$5000',
+    isLoadingEarningsData: false,
+    hasStakedPositions: true,
+  }),
+}));
 
 type MockSelectPooledStakingEnabledFlagSelector = jest.MockedFunction<
   typeof selectPooledStakingEnabledFlag
@@ -30,15 +48,70 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_1,
 ]);
 
+const mockPooledStakeData = MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0];
+const mockExchangeRate = MOCK_GET_POOLED_STAKES_API_RESPONSE.exchangeRate;
+
 const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      EarnController: {
+        ...getMockEarnControllerState(),
+      },
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          earnPooledStakingEnabled: true,
+        },
+      },
     },
   },
 };
+
+const mockEarnTokenPair = getMockUseEarnTokens(EARN_EXPERIENCES.POOLED_STAKING);
+
+const MOCK_APR_VALUES: { [symbol: string]: string } = {
+  Ethereum: '2.3',
+  USDC: '4.5',
+  USDT: '4.1',
+  DAI: '5.0',
+};
+
+jest.mock('../../../Earn/hooks/useEarnTokens', () => {
+  const getEarnToken = (token: TokenI) => {
+    const experienceType =
+      token.symbol === 'USDC' ? 'STABLECOIN_LENDING' : 'POOLED_STAKING';
+
+    const experiences = [
+      {
+        type: experienceType as EARN_EXPERIENCES,
+        apr: MOCK_APR_VALUES?.[token.symbol] ?? '',
+        estimatedAnnualRewardsFormatted: '',
+        estimatedAnnualRewardsFiatNumber: 0,
+      },
+    ];
+
+    return {
+      ...token,
+      balanceFormatted: token.symbol === 'USDC' ? '6.84314 USDC' : '0',
+      balanceFiat: token.symbol === 'USDC' ? '$6.84' : '$0.00',
+      balanceMinimalUnit: token.symbol === 'USDC' ? '6.84314' : '0',
+      balanceFiatNumber: token.symbol === 'USDC' ? 6.84314 : 0,
+      experiences,
+      tokenUsdExchangeRate: 0,
+      experience: experiences[0],
+    };
+  };
+
+  return {
+    __esModule: true,
+    default: () => ({
+      getEarnToken,
+      getPairedEarnTokens: () => mockEarnTokenPair,
+    }),
+  };
+});
 
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
 
@@ -65,9 +138,6 @@ jest.mock('@react-navigation/native', () => {
     useFocusEffect: jest.fn((callback) => callback()),
   };
 });
-
-const mockPooledStakeData = MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0];
-const mockExchangeRate = MOCK_GET_POOLED_STAKES_API_RESPONSE.exchangeRate;
 
 const mockVaultMetadata = MOCK_GET_VAULT_RESPONSE;
 // Mock hooks
@@ -134,6 +204,10 @@ jest.mock('../../../../../core/Engine', () => ({
 
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(),
+  selectStablecoinLendingEnabledFlag: jest.fn(),
+  selectPooledStakingServiceInterruptionBannerEnabledFlag: jest
+    .fn()
+    .mockReturnValue(false),
 }));
 
 afterEach(() => {
@@ -180,7 +254,6 @@ describe('StakingBalance', () => {
       screen: Routes.STAKING.STAKE,
       params: {
         token: MOCK_ETH_MAINNET_ASSET,
-        action: EARN_INPUT_VIEW_ACTIONS.STAKE,
       },
     });
   });
@@ -199,7 +272,7 @@ describe('StakingBalance', () => {
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
       params: {
-        token: MOCK_STAKED_ETH_MAINNET_ASSET,
+        token: mockEarnTokenPair.outputToken,
       },
     });
   });

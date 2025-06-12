@@ -1,3 +1,4 @@
+import '../../UI/Bridge/_mocks_/initialState';
 import React from 'react';
 import renderWithProvider, {
   DeepPartial,

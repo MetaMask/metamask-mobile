@@ -1,22 +1,34 @@
+import { LendingProtocol } from '@metamask/stake-sdk';
 import { fireEvent, screen } from '@testing-library/react-native';
 import BN4 from 'bnjs4';
-import React from 'react';
+import React, { act } from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
 } from '../../../../../selectors/featureFlagController/confirmations';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import { flushPromises } from '../../../../../util/test/utils';
+import { getStakingNavbar } from '../../../Navbar';
 import {
   MOCK_ETH_MAINNET_ASSET,
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
   MOCK_GET_VAULT_RESPONSE,
   MOCK_STAKED_ETH_MAINNET_ASSET,
+  MOCK_USDC_MAINNET_ASSET,
 } from '../../../Stake/__mocks__/stakeMockData';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import { EarnTokenDetails } from '../../types/lending.types';
+import { getAaveV3MaxRiskAwareWithdrawalAmount } from '../../utils/tempLending';
 import EarnWithdrawInputView from './EarnWithdrawInputView';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
-import { flushPromises } from '../../../../../util/test/utils';
+
+jest.mock('../../../Navbar', () => ({
+  getStakingNavbar: jest.fn().mockReturnValue({}),
+}));
 
 jest.mock('../../../../../selectors/multichain', () => ({
   selectAccountTokensAcrossChains: jest.fn(() => ({
@@ -138,15 +150,234 @@ jest.mock('../../../../../selectors/featureFlagController/confirmations');
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(false),
+  selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
 }));
 
-describe('UnstakeInputView', () => {
+jest.mock('../../hooks/useEarnTokens', () => ({
+  __esModule: true,
+  default: () => ({
+    getEarnToken: jest.fn().mockImplementation((token) => {
+      if (token.address === MOCK_ETH_MAINNET_ASSET.address) {
+        return {
+          ...MOCK_ETH_MAINNET_ASSET,
+          balanceFormatted: '1000',
+          balanceMinimalUnit: '1000000000000000000',
+          balanceFiatNumber: 1000,
+          tokenUsdExchangeRate: 1,
+          experiences: [
+            {
+              type: 'POOLED_STAKING',
+              apr: '5%',
+              estimatedAnnualRewardsFormatted: '50',
+              estimatedAnnualRewardsFiatNumber: 50,
+              estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+              estimatedAnnualRewardsTokenFormatted: '50',
+            },
+          ],
+          experience: {
+            type: 'POOLED_STAKING',
+            apr: '5%',
+            estimatedAnnualRewardsFormatted: '50',
+            estimatedAnnualRewardsFiatNumber: 50,
+            estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+            estimatedAnnualRewardsTokenFormatted: '50',
+          },
+        };
+      }
+      return null;
+    }),
+    getOutputToken: jest.fn().mockImplementation((token) => {
+      if (token.address === MOCK_STAKED_ETH_MAINNET_ASSET.address) {
+        return {
+          ...MOCK_STAKED_ETH_MAINNET_ASSET,
+          balanceFormatted: '1000',
+          balanceMinimalUnit: '1000000000000000000',
+          balanceFiatNumber: 1000,
+          tokenUsdExchangeRate: 1,
+          experiences: [
+            {
+              type: 'POOLED_STAKING',
+              apr: '5%',
+              estimatedAnnualRewardsFormatted: '50',
+              estimatedAnnualRewardsFiatNumber: 50,
+              estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+              estimatedAnnualRewardsTokenFormatted: '50',
+            },
+          ],
+          experience: {
+            type: 'POOLED_STAKING',
+            apr: '5%',
+            estimatedAnnualRewardsFormatted: '50',
+            estimatedAnnualRewardsFiatNumber: 50,
+            estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+            estimatedAnnualRewardsTokenFormatted: '50',
+          },
+        };
+      }
+      return null;
+    }),
+    getPairedEarnTokens: jest.fn().mockImplementation((token) => {
+      if (token.symbol === MOCK_ETH_MAINNET_ASSET.symbol) {
+        return {
+          earnToken: {
+            ...MOCK_ETH_MAINNET_ASSET,
+            balanceFormatted: '1000',
+            balanceMinimalUnit: '1000000000000000000',
+            balanceFiatNumber: 1000,
+            tokenUsdExchangeRate: 1,
+            experiences: [
+              {
+                type: 'POOLED_STAKING',
+                apr: '5%',
+                estimatedAnnualRewardsFormatted: '50',
+                estimatedAnnualRewardsFiatNumber: 50,
+                estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+                estimatedAnnualRewardsTokenFormatted: '50',
+              },
+            ],
+            experience: {
+              type: 'POOLED_STAKING',
+              apr: '5%',
+              estimatedAnnualRewardsFormatted: '50',
+              estimatedAnnualRewardsFiatNumber: 50,
+              estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+              estimatedAnnualRewardsTokenFormatted: '50',
+            },
+          },
+          outputToken: {
+            ...MOCK_STAKED_ETH_MAINNET_ASSET,
+            balanceFormatted: '1000',
+            balanceMinimalUnit: '1000000000000000000',
+            balanceFiatNumber: 1000,
+            tokenUsdExchangeRate: 1,
+            experiences: [
+              {
+                type: 'POOLED_STAKING',
+                apr: '5%',
+                estimatedAnnualRewardsFormatted: '50',
+                estimatedAnnualRewardsFiatNumber: 50,
+                estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+                estimatedAnnualRewardsTokenFormatted: '50',
+              },
+            ],
+            experience: {
+              type: 'POOLED_STAKING',
+              apr: '5%',
+              estimatedAnnualRewardsFormatted: '50',
+              estimatedAnnualRewardsFiatNumber: 50,
+              estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+              estimatedAnnualRewardsTokenFormatted: '50',
+            },
+          },
+        };
+      }
+      if (token.symbol === MOCK_USDC_MAINNET_ASSET.symbol) {
+        return {
+          earnToken: {
+            ...MOCK_USDC_MAINNET_ASSET,
+            balanceFormatted: '1000',
+            balanceMinimalUnit: '1000000000',
+            balanceFiatNumber: 1000,
+            tokenUsdExchangeRate: 1,
+            experiences: [
+              {
+                type: 'STABLECOIN_LENDING',
+                apr: '5%',
+                estimatedAnnualRewardsFormatted: '50',
+                estimatedAnnualRewardsFiatNumber: 50,
+                estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+                estimatedAnnualRewardsTokenFormatted: '50',
+              },
+            ],
+            experience: {
+              type: 'STABLECOIN_LENDING',
+              apr: '5%',
+              estimatedAnnualRewardsFormatted: '50',
+              estimatedAnnualRewardsFiatNumber: 50,
+              estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+              estimatedAnnualRewardsTokenFormatted: '50',
+            },
+          },
+          outputToken: {
+            ...MOCK_USDC_MAINNET_ASSET,
+            balanceFormatted: '1000',
+            balanceMinimalUnit: '1000000000',
+            balanceFiatNumber: 1000,
+            tokenUsdExchangeRate: 1,
+            experiences: [
+              {
+                type: 'STABLECOIN_LENDING',
+                apr: '5%',
+                estimatedAnnualRewardsFormatted: '50',
+                estimatedAnnualRewardsFiatNumber: 50,
+                estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+                estimatedAnnualRewardsTokenFormatted: '50',
+              },
+            ],
+            experience: {
+              type: 'STABLECOIN_LENDING',
+              apr: '5%',
+              estimatedAnnualRewardsFormatted: '50',
+              estimatedAnnualRewardsFiatNumber: 50,
+              estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+              estimatedAnnualRewardsTokenFormatted: '50',
+            },
+          },
+        };
+      }
+      return { earnToken: null, outputToken: null };
+    }),
+    getEarnExperience: jest.fn().mockImplementation((token) => {
+      if (token.symbol === MOCK_ETH_MAINNET_ASSET.symbol) {
+        return {
+          type: 'POOLED_STAKING',
+          apr: '5%',
+          estimatedAnnualRewardsFormatted: '50',
+          estimatedAnnualRewardsFiatNumber: 50,
+          estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+          estimatedAnnualRewardsTokenFormatted: '50',
+        };
+      }
+      if (token.symbol === MOCK_USDC_MAINNET_ASSET.symbol) {
+        return {
+          type: 'STABLECOIN_LENDING',
+          apr: '5%',
+          estimatedAnnualRewardsFormatted: '50',
+          estimatedAnnualRewardsFiatNumber: 50,
+          estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+          estimatedAnnualRewardsTokenFormatted: '50',
+        };
+      }
+      return null;
+    }),
+    getEstimatedAnnualRewardsForAmount: jest.fn().mockReturnValue({
+      estimatedAnnualRewardsFormatted: '50',
+      estimatedAnnualRewardsFiatNumber: 50,
+      estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+      estimatedAnnualRewardsTokenFormatted: '50',
+    }),
+  }),
+}));
+
+jest.mock('../../utils/tempLending', () => ({
+  getAaveV3MaxRiskAwareWithdrawalAmount: jest
+    .fn()
+    .mockResolvedValue('1000000000000000000'),
+  calculateAaveV3HealthFactorAfterWithdrawal: jest
+    .fn()
+    .mockResolvedValue('1.5'),
+  getLendingPoolLiquidity: jest.fn().mockResolvedValue('1000000000000000000'),
+}));
+
+describe('EarnWithdrawInputView', () => {
   const selectConfirmationRedesignFlagsMock = jest.mocked(
     selectConfirmationRedesignFlags,
   );
+  const mockGetStakingNavbar = jest.mocked(getStakingNavbar);
 
   beforeEach(() => {
     jest.useFakeTimers();
+    jest.clearAllMocks();
 
     selectConfirmationRedesignFlagsMock.mockReturnValue({
       staking_confirmations: false,
@@ -159,10 +390,12 @@ describe('UnstakeInputView', () => {
   });
 
   describe('when values are entered in the keypad', () => {
-    it('updates ETH and fiat values', () => {
+    it('updates ETH and fiat values', async () => {
       render(EarnWithdrawInputView);
 
-      fireEvent.press(screen.getByText('2'));
+      await act(async () => {
+        fireEvent.press(screen.getByText('2'));
+      });
 
       expect(screen.getByText('4000 USD')).toBeTruthy();
     });
@@ -189,14 +422,14 @@ describe('UnstakeInputView', () => {
     });
   });
 
-  describe('stake button states', () => {
+  describe('withdraw button states', () => {
     it('displays `Enter amount` if input is 0', () => {
       render(EarnWithdrawInputView);
 
       expect(screen.getByText('Enter amount')).toBeTruthy();
     });
 
-    it('displays `Review` on stake button if input is valid', () => {
+    it('displays `Review` on withdraw button if input is valid', () => {
       render(EarnWithdrawInputView);
 
       fireEvent.press(screen.getByText('1'));
@@ -245,13 +478,18 @@ describe('UnstakeInputView', () => {
     });
 
     it('calls attemptUnstakeTransaction when Review button is pressed', async () => {
-      render(EarnWithdrawInputView);
-
-      fireEvent.press(screen.getByText('1'));
-
-      fireEvent.press(screen.getByText('Review'));
+      const { getByText } = render(EarnWithdrawInputView);
 
       jest.useFakeTimers({ legacyFakeTimers: true });
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      await act(async () => {
+        fireEvent.press(screen.getByText('Review'));
+      });
+
       await flushPromises();
 
       expect(mockAttemptUnstakeTransaction).toHaveBeenCalled();
@@ -261,6 +499,244 @@ describe('UnstakeInputView', () => {
           amountWei: expect.any(String),
           amountFiat: expect.any(String),
         }),
+      });
+    });
+  });
+
+  describe('title bar', () => {
+    it('renders "Withdraw" for pooled-staking withdrawals', () => {
+      render(EarnWithdrawInputView);
+
+      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
+        'Withdraw',
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('renders "Withdraw" for supported stablecoin lending assets', () => {
+      (
+        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+          typeof selectStablecoinLendingEnabledFlag
+        >
+      ).mockReturnValueOnce(true);
+
+      const mockLendingToken: EarnTokenDetails = {
+        ...MOCK_USDC_MAINNET_ASSET,
+        balanceFormatted: '1000',
+        balanceMinimalUnit: '1000000000',
+        balanceFiatNumber: 1000,
+        tokenUsdExchangeRate: 1,
+        experiences: [
+          {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '5%',
+            estimatedAnnualRewardsFormatted: '50',
+            estimatedAnnualRewardsFiatNumber: 50,
+            estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+            estimatedAnnualRewardsTokenFormatted: '50',
+          },
+        ],
+        experience: {
+          type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          apr: '5%',
+          estimatedAnnualRewardsFormatted: '50',
+          estimatedAnnualRewardsFiatNumber: 50,
+          estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+          estimatedAnnualRewardsTokenFormatted: '50',
+        },
+      };
+
+      const usdcRouteParams: EarnWithdrawInputViewProps['route']['params'] = {
+        token: mockLendingToken,
+      };
+
+      renderScreen(
+        EarnWithdrawInputView,
+        {
+          name: Routes.STAKING.UNSTAKE,
+        },
+        {
+          state: {
+            engine: {
+              backgroundState,
+            },
+          },
+        },
+        usdcRouteParams,
+      );
+
+      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
+        'Withdraw',
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+  });
+
+  describe('max risk-aware withdrawal amount', () => {
+    it('displays max risk-aware withdrawal amount for lending tokens', async () => {
+      (
+        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+          typeof selectStablecoinLendingEnabledFlag
+        >
+      ).mockReturnValue(true);
+
+      const mockLendingToken: EarnTokenDetails = {
+        ...MOCK_USDC_MAINNET_ASSET,
+        balanceFormatted: '1000',
+        balanceMinimalUnit: '1000000000',
+        balanceFiatNumber: 1000,
+        tokenUsdExchangeRate: 1,
+        experiences: [
+          {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '5%',
+            estimatedAnnualRewardsFormatted: '50',
+            estimatedAnnualRewardsFiatNumber: 50,
+            estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+            estimatedAnnualRewardsTokenFormatted: '50',
+            market: {
+              id: '0x123',
+              chainId: 1,
+              protocol: LendingProtocol.AAVE,
+              name: 'USDC Market',
+              address: '0x123',
+              netSupplyRate: 5.0,
+              totalSupplyRate: 5.0,
+              rewards: [],
+              tvlUnderlying: '1000000',
+              underlying: {
+                address: '0x123',
+                chainId: 1,
+              },
+              outputToken: {
+                address: '0x456',
+                chainId: 1,
+              },
+              position: {
+                id: '0x123-0x456-COLLATERAL-0',
+                chainId: 1,
+                assets: '1000000',
+                marketId: '0x123',
+                marketAddress: '0x123',
+                protocol: LendingProtocol.AAVE,
+              },
+            },
+          },
+        ],
+        experience: {
+          type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          apr: '5%',
+          estimatedAnnualRewardsFormatted: '50',
+          estimatedAnnualRewardsFiatNumber: 50,
+          estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+          estimatedAnnualRewardsTokenFormatted: '50',
+          market: {
+            id: '0x123',
+            chainId: 1,
+            protocol: LendingProtocol.AAVE,
+            name: 'USDC Market',
+            address: '0x123',
+            netSupplyRate: 5.0,
+            totalSupplyRate: 5.0,
+            rewards: [],
+            tvlUnderlying: '1000000',
+            underlying: {
+              address: '0x123',
+              chainId: 1,
+            },
+            outputToken: {
+              address: '0x456',
+              chainId: 1,
+            },
+            position: {
+              id: '0x123-0x456-COLLATERAL-0',
+              chainId: 1,
+              assets: '1000000',
+              marketId: '0x123',
+              marketAddress: '0x123',
+              protocol: LendingProtocol.AAVE,
+            },
+          },
+        },
+      };
+
+      const usdcRouteParams: EarnWithdrawInputViewProps['route']['params'] = {
+        token: mockLendingToken,
+      };
+
+      renderScreen(
+        EarnWithdrawInputView,
+        {
+          name: Routes.STAKING.UNSTAKE,
+        },
+        {
+          state: {
+            engine: {
+              backgroundState: {
+                ...backgroundState,
+                AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+              },
+            },
+          },
+        },
+        usdcRouteParams,
+      );
+
+      expect(getAaveV3MaxRiskAwareWithdrawalAmount).toHaveBeenCalledWith(
+        '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
+        {
+          ...MOCK_USDC_MAINNET_ASSET,
+          balanceFormatted: '1000',
+          balanceMinimalUnit: '1000000000',
+          balanceFiatNumber: 1000,
+          tokenUsdExchangeRate: 1,
+          experiences: [
+            {
+              type: 'STABLECOIN_LENDING',
+              apr: '5%',
+              estimatedAnnualRewardsFormatted: '50',
+              estimatedAnnualRewardsFiatNumber: 50,
+              estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+              estimatedAnnualRewardsTokenFormatted: '50',
+            },
+          ],
+          experience: {
+            type: 'STABLECOIN_LENDING',
+            apr: '5%',
+            estimatedAnnualRewardsFormatted: '50',
+            estimatedAnnualRewardsFiatNumber: 50,
+            estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+            estimatedAnnualRewardsTokenFormatted: '50',
+          },
+        },
+      );
+    });
+  });
+
+  describe('navigation events', () => {
+    it('tracks unstake button click event', async () => {
+      render(EarnWithdrawInputView);
+
+      await act(async () => {
+        fireEvent.press(screen.getByText('1'));
+      });
+
+      await act(async () => {
+        fireEvent.press(screen.getByText('Review'));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+        screen: Routes.STAKING.UNSTAKE_CONFIRMATION,
+        params: {
+          amountWei: '1000000000000000000',
+          amountFiat: '2000',
+        },
       });
     });
   });

@@ -7,15 +7,19 @@ import usePooledStakes from './usePooledStakes';
 import useBalance from './useBalance';
 import BigNumber from 'bignumber.js';
 import useVaultMetadata from './useVaultMetadata';
+import { TokenI } from '../../Tokens/types';
+import { getDecimalChainId } from '../../../../util/networks';
 
-const useStakingEarnings = () => {
+const useStakingEarnings = ({ asset }: { asset: TokenI }) => {
+  const assetChainId = getDecimalChainId(asset.chainId);
+
   const { annualRewardRate, annualRewardRateDecimal, isLoadingVaultMetadata } =
-    useVaultMetadata();
+    useVaultMetadata(assetChainId);
 
-  const { currentCurrency, conversionRate } = useBalance();
+  const { currentCurrency, conversionRate } = useBalance(assetChainId);
 
   const { pooledStakesData, isLoadingPooledStakesData, hasStakedPositions } =
-    usePooledStakes();
+    usePooledStakes(assetChainId);
 
   const lifetimeRewards = pooledStakesData?.lifetimeRewards ?? '0';
 

@@ -38,9 +38,6 @@ jest.mock('../../../../core/Engine', () => ({
       },
       getOrAddQRKeyring: jest.fn(),
     },
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
   },
   controllerMessenger: {
     subscribe: jest.fn(),
@@ -53,6 +50,13 @@ describe('useConfirmationRedesignEnabled', () => {
   const confirmationRedesignFlagsMock = jest.mocked(
     selectConfirmationRedesignFlags,
   );
+  const isHardwareAccountMock = jest.mocked(isHardwareAccount);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    isHardwareAccountMock.mockReturnValue(false);
+    confirmationRedesignFlagsMock.mockReturnValue(disabledFeatureFlags);
+  });
 
   describe('signature confirmations', () => {
     it('returns true for personal sign request', async () => {
@@ -72,8 +76,6 @@ describe('useConfirmationRedesignEnabled', () => {
     });
 
     it('returns false when remote flag is disabled', async () => {
-      confirmationRedesignFlagsMock.mockReturnValue(disabledFeatureFlags);
-
       const { result } = renderHookWithProvider(
         useConfirmationRedesignEnabled,
         {
@@ -88,11 +90,6 @@ describe('useConfirmationRedesignEnabled', () => {
   describe('transaction redesigned confirmations', () => {
     describe('staking confirmations', () => {
       describe('staking deposit', () => {
-        beforeEach(() => {
-          jest.clearAllMocks();
-          (isHardwareAccount as jest.Mock).mockReturnValue(false);
-        });
-
         it('returns true when enabled', async () => {
           confirmationRedesignFlagsMock.mockReturnValue({
             ...disabledFeatureFlags,
@@ -190,7 +187,7 @@ describe('useConfirmationRedesignEnabled', () => {
             staking_confirmations: true,
           });
 
-          (isHardwareAccount as jest.Mock).mockReturnValue(true);
+          isHardwareAccountMock.mockReturnValue(true);
           const { result } = renderHookWithProvider(
             useConfirmationRedesignEnabled,
             {
@@ -280,5 +277,26 @@ describe('useConfirmationRedesignEnabled', () => {
         expect(result.current.isRedesignedEnabled).toBe(true);
       });
     });
+  });
+
+  it('if confirmation is a transaction, validates `txParams.from` is hardware account', () => {
+    isHardwareAccountMock.mockReturnValue(true);
+    confirmationRedesignFlagsMock.mockReturnValue({
+      ...disabledFeatureFlags,
+      transfer: true,
+    });
+
+    const { result } = renderHookWithProvider(useConfirmationRedesignEnabled, {
+      state: transferConfirmationState,
+    });
+
+    const expectedFromAddress =
+      transferConfirmationState.engine.backgroundState.TransactionController
+        .transactions[0].txParams.from;
+
+    expect(isHardwareAccountMock).toHaveBeenCalledTimes(1);
+    expect(isHardwareAccountMock).toHaveBeenCalledWith(expectedFromAddress);
+
+    expect(result.current.isRedesignedEnabled).toBe(false);
   });
 });

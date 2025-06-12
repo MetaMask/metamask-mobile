@@ -1,46 +1,50 @@
-import { isObject } from '@metamask/utils';
+import { hasProperty, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
 
 /**
- * Migration 78: Update profile sync state properties to backup and sync ones
- * Copy `isProfileSyncingEnabled` to `isBackupAndSyncEnabled`
- * Copy `isProfileSyncingUpdateLoading` to `isBackupAndSyncUpdateLoading`
- * Delete `isProfileSyncingEnabled` from `UserStorageController`
- * Delete `isProfileSyncingUpdateLoading` from `UserStorageController`
- * from the app storage
+ * Migration 78: Reset PhishingController phishingLists
+ *
+ * This migration resets only the phishingLists array in the PhishingController state
+ * while preserving all other state properties. This allows the app to rebuild the lists
+ * while maintaining user preferences and configuration.
  */
-
 const migration = (state: unknown): unknown => {
-  if (!ensureValidState(state, 77)) {
+  const migrationVersion = 78;
+
+  if (!ensureValidState(state, migrationVersion)) {
     return state;
   }
 
-  const userStorageControllerState =
-    state.engine.backgroundState.UserStorageController;
+  try {
+    if (
+      !hasProperty(state.engine.backgroundState, 'PhishingController') ||
+      !isObject(state.engine.backgroundState.PhishingController)
+    ) {
+      captureException(
+        new Error(
+          `Migration 078: Invalid PhishingController state: '${JSON.stringify(
+            state.engine.backgroundState.PhishingController,
+          )}'`,
+        ),
+      );
+      return state;
+    }
 
-  if (!isObject(userStorageControllerState)) {
+    // Only reset the phishingLists field to an empty array
+    // while preserving all other fields
+    state.engine.backgroundState.PhishingController.phishingLists = [];
+    state.engine.backgroundState.PhishingController.stalelistLastFetched = 0;
+
+    return state;
+  } catch (error) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 78: Invalid UserStorageController state error: '${typeof userStorageControllerState}'`,
+        `Migration 078: cleaning PhishingController state failed with error: ${error}`,
       ),
     );
     return state;
   }
-
-  if ('isProfileSyncingEnabled' in userStorageControllerState) {
-    userStorageControllerState.isBackupAndSyncEnabled =
-      userStorageControllerState.isProfileSyncingEnabled;
-    delete userStorageControllerState.isProfileSyncingEnabled;
-  }
-
-  if ('isProfileSyncingUpdateLoading' in userStorageControllerState) {
-    userStorageControllerState.isBackupAndSyncUpdateLoading =
-      userStorageControllerState.isProfileSyncingUpdateLoading;
-    delete userStorageControllerState.isProfileSyncingUpdateLoading;
-  }
-
-  return state;
 };
 
 export default migration;

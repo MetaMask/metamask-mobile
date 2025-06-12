@@ -16,12 +16,58 @@ import {
   ParamListBase,
 } from '@react-navigation/native';
 import { MOCK_ETH_MAINNET_ASSET } from '../../../__mocks__/stakeMockData';
-import { EARN_INPUT_VIEW_ACTIONS } from '../../../../Earn/Views/EarnInputView/EarnInputView.types';
 import { selectPooledStakingEnabledFlag } from '../../../../Earn/selectors/featureFlags';
+import { TokenI } from '../../../../Tokens/types';
+import { EARN_EXPERIENCES } from '../../../../Earn/constants/experiences';
+import { getMockUseEarnTokens } from '../../../../Earn/__mocks__/earnMockData';
 
 type MockSelectPooledStakingEnabledFlagSelector = jest.MockedFunction<
   typeof selectPooledStakingEnabledFlag
 >;
+
+const MOCK_APR_VALUES: { [symbol: string]: string } = {
+  Ethereum: '2.3',
+  USDC: '4.5',
+  USDT: '4.1',
+  DAI: '5.0',
+};
+
+const mockEarnTokenPair = getMockUseEarnTokens(EARN_EXPERIENCES.POOLED_STAKING);
+
+jest.mock('../../../../Earn/hooks/useEarnTokens', () => {
+  const getEarnToken = (token: TokenI) => {
+    const experienceType =
+      token.symbol === 'USDC' ? 'STABLECOIN_LENDING' : 'POOLED_STAKING';
+
+    const experiences = [
+      {
+        type: experienceType as EARN_EXPERIENCES,
+        apr: MOCK_APR_VALUES?.[token.symbol] ?? '',
+        estimatedAnnualRewardsFormatted: '',
+        estimatedAnnualRewardsFiatNumber: 0,
+      },
+    ];
+
+    return {
+      ...token,
+      balanceFormatted: token.symbol === 'USDC' ? '6.84314 USDC' : '0',
+      balanceFiat: token.symbol === 'USDC' ? '$6.84' : '$0.00',
+      balanceMinimalUnit: token.symbol === 'USDC' ? '6.84314' : '0',
+      balanceFiatNumber: token.symbol === 'USDC' ? 6.84314 : 0,
+      experiences,
+      tokenUsdExchangeRate: 0,
+      experience: experiences[0],
+    };
+  };
+
+  return {
+    __esModule: true,
+    default: () => ({
+      getEarnToken,
+      getPairedEarnTokens: () => mockEarnTokenPair,
+    }),
+  };
+});
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -157,7 +203,6 @@ describe('StakingButtons', () => {
     expect(navigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.STAKE,
       params: {
-        action: EARN_INPUT_VIEW_ACTIONS.STAKE,
         token: MOCK_ETH_MAINNET_ASSET,
       },
     });
@@ -186,7 +231,7 @@ describe('StakingButtons', () => {
     ).toHaveBeenCalledWith('mainnet');
     expect(navigate).toHaveBeenCalledWith('StakeScreens', {
       params: {
-        token: MOCK_ETH_MAINNET_ASSET,
+        token: mockEarnTokenPair.outputToken,
       },
       screen: Routes.STAKING.UNSTAKE,
     });

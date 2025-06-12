@@ -18,7 +18,7 @@ import {
 } from './lib/ethereum-chain-utils';
 import { getDecimalChainId } from '../../util/networks';
 import { RpcEndpointType } from '@metamask/network-controller';
-import { MESSAGE_TYPE } from '../createTracingMiddleware';
+import { addItemToChainIdList } from '../../util/metrics/MultichainAPI/networkMetricUtils';
 
 const waitForInteraction = async () =>
   new Promise((resolve) => {
@@ -75,7 +75,7 @@ export const wallet_addEthereumChain = async ({
     ticker,
   } = params;
 
-  const switchToNetworkAndMetrics = async (network, isAddNetworkFlow) => {
+  const switchToNetworkAndMetrics = async (network) => {
     const { networkClientId } =
       network.rpcEndpoints[network.defaultRpcEndpointIndex];
 
@@ -107,7 +107,6 @@ export const wallet_addEthereumChain = async ({
       requestUserApproval,
       analytics,
       origin,
-      isAddNetworkFlow,
       autoApprove: shouldAddOrUpdateNetwork,
       hooks,
     });
@@ -146,14 +145,11 @@ export const wallet_addEthereumChain = async ({
       (endpoint) => endpoint.url === firstValidRPCUrl,
     );
 
-    switchToNetworkAndMetrics(
-      {
-        ...existingNetworkConfiguration,
-        rpcEndpoints: rpcResult.updatedArray,
-        defaultRpcEndpointIndex: rpcResult.index,
-      },
-      false,
-    );
+    switchToNetworkAndMetrics({
+      ...existingNetworkConfiguration,
+      rpcEndpoints: rpcResult.updatedArray,
+      defaultRpcEndpointIndex: rpcResult.index,
+    });
 
     res.result = null;
     return;
@@ -281,8 +277,10 @@ export const wallet_addEthereumChain = async ({
         })
         .build(),
     );
+
+    MetaMetrics.getInstance().addTraitsToUser(addItemToChainIdList(chainId));
   }
-  switchToNetworkAndMetrics(newNetworkConfiguration, true);
+  switchToNetworkAndMetrics(newNetworkConfiguration);
 
   res.result = null;
 };

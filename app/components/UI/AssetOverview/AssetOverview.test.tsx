@@ -1,3 +1,4 @@
+import '../../UI/Bridge/_mocks_/initialState';
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { zeroAddress } from 'ethereumjs-util';
@@ -9,7 +10,7 @@ import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
 } from '../../../util/test/accountsControllerTestUtils';
-import { createBuyNavigationDetails } from '../Ramp/routes/utils';
+import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import { getDecimalChainId } from '../../../util/networks';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 // eslint-disable-next-line import/no-namespace
@@ -41,9 +42,13 @@ const mockInitialState = {
         },
       },
       NetworkController: {
-        providerConfig: {
+        ...mockNetworkState({
           chainId: MOCK_CHAIN_ID,
-        },
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+          blockExplorerUrl: 'https://etherscan.io',
+        }),
       } as unknown as NetworkController['state'],
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTrackerController: {
