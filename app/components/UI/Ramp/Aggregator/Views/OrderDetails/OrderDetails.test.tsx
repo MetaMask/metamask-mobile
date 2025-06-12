@@ -1,5 +1,5 @@
 import React from 'react';
-import { processFiatOrder } from '../../index';
+import { processFiatOrder } from '../../../index';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import {
   DeepPartial,
@@ -120,7 +120,7 @@ function mockGetUpdatedOrder(order: FiatOrder) {
   };
 }
 
-jest.mock('../../index', () => ({
+jest.mock('../../../index', () => ({
   processFiatOrder: jest.fn().mockImplementation((order, onSuccess) => {
     const updatedOrder = mockGetUpdatedOrder(order);
     if (onSuccess) {

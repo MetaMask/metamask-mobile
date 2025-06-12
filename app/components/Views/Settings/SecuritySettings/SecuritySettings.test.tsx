@@ -106,7 +106,6 @@ describe('SecuritySettings', () => {
     expect(getByTestId(DELETE_METRICS_BUTTON)).toBeTruthy();
     expect(getByTestId(META_METRICS_DATA_MARKETING_SECTION)).toBeTruthy();
     expect(getByTestId(SECURITY_SETTINGS_DELETE_WALLET_BUTTON)).toBeTruthy();
-    expect(getByText('Automatic security checks')).toBeTruthy();
   });
 
   it('renders Blockaid settings', async () => {

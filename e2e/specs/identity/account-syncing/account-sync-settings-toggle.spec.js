@@ -25,12 +25,10 @@ import BackupAndSyncView from '../../../pages/Settings/BackupAndSyncView';
 import CommonView from '../../../pages/CommonView';
 
 describe(
-  SmokeWalletPlatform(
-    'Sync and Backup settings - Account Sync toggle',
-  ),
+  SmokeWalletPlatform('Sync and Backup settings - Account Sync toggle'),
   () => {
     const ADDED_ACCOUNT = 'Account 3';
-    const TEST_SPECIFIC_MOCK_SERVER_PORT = 8000;
+    const TEST_SPECIFIC_MOCK_SERVER_PORT = 8004;
     let decryptedAccountNames = '';
     let mockServer;
 
@@ -76,12 +74,10 @@ describe(
     });
 
     it('should not sync new accounts when accounts sync toggle is off ', async () => {
-      await importWalletWithRecoveryPhrase(
-        {
-          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
-          password: IDENTITY_TEAM_PASSWORD,
-        }
-      );
+      await importWalletWithRecoveryPhrase({
+        seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+        password: IDENTITY_TEAM_PASSWORD,
+      });
 
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
@@ -94,9 +90,7 @@ describe(
       }
 
       await AccountListBottomSheet.swipeToDismissAccountsModal();
-      await Assertions.checkIfNotVisible(
-        AccountListBottomSheet.accountList,
-      );
+      await Assertions.checkIfNotVisible(AccountListBottomSheet.accountList);
 
       await TabBarComponent.tapSettings();
       await Assertions.checkIfVisible(SettingsView.backupAndSyncSectionButton);
@@ -129,13 +123,10 @@ describe(
         launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
       });
 
-
-      await importWalletWithRecoveryPhrase(
-        {
-          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
-          password: IDENTITY_TEAM_PASSWORD,
-        }
-      );
+      await importWalletWithRecoveryPhrase({
+        seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+        password: IDENTITY_TEAM_PASSWORD,
+      });
 
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);

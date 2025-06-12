@@ -114,7 +114,9 @@ async function eth_sendTransaction({
     origin: hostname,
   });
 
-  ppomUtil.validateRequest(req as PPOMRequest, transactionMeta?.id);
+  ppomUtil.validateRequest(req as PPOMRequest, {
+    transactionMeta,
+  });
 
   res.result = await result;
 }
