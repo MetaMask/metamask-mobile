@@ -285,7 +285,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
             [
               [
                 {
-                  "borderRadius": 100,
+                  "borderRadius": 12,
                   "justifyContent": "center",
                   "padding": 15,
                 },
@@ -634,7 +634,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
             [
               [
                 {
-                  "borderRadius": 100,
+                  "borderRadius": 12,
                   "justifyContent": "center",
                   "padding": 15,
                 },
@@ -983,7 +983,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
             [
               [
                 {
-                  "borderRadius": 100,
+                  "borderRadius": 12,
                   "justifyContent": "center",
                   "padding": 15,
                 },
@@ -1332,7 +1332,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
             [
               [
                 {
-                  "borderRadius": 100,
+                  "borderRadius": 12,
                   "justifyContent": "center",
                   "padding": 15,
                 },
