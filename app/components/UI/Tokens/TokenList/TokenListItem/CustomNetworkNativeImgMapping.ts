@@ -5,7 +5,7 @@ import { NETWORK_CHAIN_ID } from '../../../../../util/networks/customNetworks';
 import ethImg from '../../../../../images/eth-logo-new.png';
 import FlareMainnetImg from '../../../../../images/flare-mainnet.png';
 import SongbirdImg from '../../../../../images/songbird.png';
-import ApeNetworkImg from '../../../../../images/ape-network.png';
+import ApeNetworkImg from '../../../../../images/apechain.png';
 import GravityImg from '../../../../../images/gravity.png';
 import KaiaImg from '../../../../../images/kaia.png';
 import XrpLevmImg from '../../../../../images/xrp-logo.png';
