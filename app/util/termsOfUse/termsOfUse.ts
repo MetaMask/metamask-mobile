@@ -27,11 +27,8 @@ interface TermsOfUseParamsI {
   };
 }
 
-const onConfirmUseTerms = async (onAccept?: () => void) => {
+const onConfirmUseTerms = async () => {
   await StorageWrapper.setItem(USE_TERMS, TRUE);
-  if (onAccept) {
-    onAccept();
-  }
   MetaMetrics.getInstance().trackEvent(
     MetricsEventBuilder.createEventBuilder(
       MetaMetricsEvents.USER_TERMS_ACCEPTED,
@@ -49,7 +46,6 @@ const useTermsDisplayed = () => {
 
 export default async function navigateTermsOfUse(
   navigate: (key: string, params: TermsOfUseParamsI) => void,
-  onAccept?: () => void,
 ) {
   const isUseTermsAccepted = await StorageWrapper.getItem(USE_TERMS);
   if (!isUseTermsAccepted) {
@@ -58,12 +54,12 @@ export default async function navigateTermsOfUse(
       params: {
         containerTestId: TermsOfUseModalSelectorsIDs.CONTAINER,
         buttonTestId: TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON,
-        buttonText: strings('terms_of_use_modal.agree_cta'),
+        buttonText: strings('terms_of_use_modal.accept_cta'),
         checkboxText: strings(
           'terms_of_use_modal.terms_of_use_check_description',
         ),
         headerTitle: strings('terms_of_use_modal.title'),
-        onAccept: () => onConfirmUseTerms(onAccept),
+        onAccept: onConfirmUseTerms,
         footerHelpText: strings('terms_of_use_modal.accept_helper_description'),
         body: {
           source: 'WebView',
