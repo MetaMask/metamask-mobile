@@ -8,6 +8,7 @@ import {
   conversionGreaterThan,
 } from './conversion';
 import I18n from '../../locales/i18n';
+import { getIntlNumberFormatter } from './intl';
 
 const NON_ISO4217_CRYPTO_CODES = [
   '1ST',
@@ -121,7 +122,7 @@ export function formatCurrency(value, currencyCode) {
     upperCaseCurrencyCode,
   )
     ? `${Number(value)} ${upperCaseCurrencyCode}`
-    : new Intl.NumberFormat(I18n.locale, {
+    : getIntlNumberFormatter(I18n.locale, {
         currency: upperCaseCurrencyCode,
         style: 'currency',
       }).format(Number(value));

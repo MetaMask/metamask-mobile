@@ -152,6 +152,7 @@ const SkipAccountSecurityModal = ({ route }) => {
             width={ButtonWidthTypes.Full}
             style={styles.skipButton}
             isDisabled={!skipCheckbox}
+            testID={SkipAccountSecurityModalSelectorsIDs.SKIP_BUTTON}
           />
         </View>
       </View>

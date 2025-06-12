@@ -30,7 +30,7 @@ import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
-import { getEventsPayloads } from '../analytics/helpers.js';
+import { getEventsPayloads } from '../analytics/helpers.ts';
 import {
   startMockServer,
   stopMockServer,
@@ -100,6 +100,7 @@ describe(SmokeTrade('Swap from Actions'), () => {
     await AddAccountBottomSheet.tapImportAccount();
     await Assertions.checkIfVisible(ImportAccountView.container);
     await ImportAccountView.enterPrivateKey(wallet.privateKey);
+    await TestHelpers.delay(2000);
     await Assertions.checkIfVisible(SuccessImportAccountView.container);
     await SuccessImportAccountView.tapCloseButton();
     await AccountListBottomSheet.swipeToDismissAccountsModal();

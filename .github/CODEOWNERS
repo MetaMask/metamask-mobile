@@ -75,6 +75,10 @@ app/core/Engine/controllers/accounts-controller             @MetaMask/accounts-e
 app/core/Engine/messengers/accounts-controller-messenger    @MetaMask/accounts-engineers
 app/core/SnapKeyring                                        @MetaMask/accounts-engineers
 
+# Co-owned by accounts and wallet-ux
+app/components/Views/AccountSelector                        @MetaMask/accounts-engineers @MetaMask/wallet-ux
+app/components/UI/EvmAccountSelectorList                    @MetaMask/accounts-engineers @MetaMask/wallet-ux
+
 # Multichain Accounts
 **/multichain-accounts/**                                   @MetaMask/accounts-engineers
 **/MultichainAccounts/**                                    @MetaMask/accounts-engineers
