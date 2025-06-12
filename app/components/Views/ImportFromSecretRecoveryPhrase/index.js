@@ -180,14 +180,13 @@ const ImportFromSecretRecoveryPhrase = ({
           const splitArray = text.trim().split(' ');
 
           const currentErrorWordIndexes = { ...errorWordIndexes };
-          splitArray.reduce((acc, x, currentIndex) => {
+          splitArray.forEach((x, currentIndex) => {
             if (checkValidSeedWord(x)) {
               currentErrorWordIndexes[index + currentIndex] = false;
             } else {
               currentErrorWordIndexes[index + currentIndex] = true;
             }
-            return acc;
-          }, []);
+          });
 
           setSeedPhrase((prev) => {
             const endSlices = prev.slice(index + 1);
