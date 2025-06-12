@@ -278,7 +278,7 @@ describe('Transactions', () => {
     expect(wrapper).toMatchSnapshot();
   });
 
-  describe('Component Rendering Tests', () => {
+  describe('Transactions', () => {
     it('should render with basic props', () => {
       const wrapper = shallow(
         <Provider store={store}>
