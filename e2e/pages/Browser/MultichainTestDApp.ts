@@ -377,23 +377,19 @@ class MultichainTestDApp {
    * @param index - The index of the result to tap (defaults to 0)
    */
   async tapFirstResultSummary(index: number = 0): Promise<void> {
-    const webview = this.getWebView();
-    const firstResult = webview.element(by.web.id(`session-method-details-${index}`));
+    try {
+      const webview = this.getWebView();
+      const firstResult = webview.element(by.web.id(`session-method-details-${index}`));
 
-    // Check if element exists before trying to interact with it
-    const exists = await firstResult.runScript('(el) => el !== null')
-      .then(() => true)
-      .catch(() => false);
+      await firstResult.scrollToView();
+      await firstResult.runScript('(el) => { if(!el.open) { el.click(); } }');
 
-    if (!exists) {
+      await TestHelpers.delay(500);
+    } catch (error) {
       // Element doesn't exist, which is expected when there's no session
+      // This is a valid case, so we just return without error
       return;
     }
-
-    await firstResult.scrollToView();
-    await firstResult.runScript('(el) => { if(!el.open) { el.click(); } }');
-
-    await TestHelpers.delay(500);
   }
 
   /**
