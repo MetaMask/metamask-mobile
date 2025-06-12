@@ -115,7 +115,6 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
                   </Text>
                   {' ' + strings('onboarding_success.description_continued')}
                 </Text>
-                {' ' + strings('onboarding_success.description_continued')}
               </Text>
             </View>
           </>
@@ -235,7 +234,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   );
 };
 
-const OnboardingSuccess = () => {
+export const OnboardingSuccess = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params as { successFlow: ONBOARDING_SUCCESS_FLOW };
