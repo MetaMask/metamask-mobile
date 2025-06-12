@@ -9,6 +9,7 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsContr
 import { strings } from '../../../../locales/i18n';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
+import Device from '../../../util/device';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -40,6 +41,11 @@ jest.mock('../../../core/Authentication', () => ({
     .mockImplementation(
       () => new Promise((resolve) => setTimeout(resolve, 100)),
     ),
+}));
+
+jest.mock('../../../util/device', () => ({
+  isIos: jest.fn(),
+  isAndroid: jest.fn(),
 }));
 
 const mockStore = configureMockStore();
@@ -112,6 +118,7 @@ describe('ChoosePassword', () => {
   });
 
   it('render loading state while creating password', async () => {
+    jest.spyOn(Device, 'isIos').mockReturnValue(true);
     const props: ChoosePasswordProps = {
       route: { params: { [ONBOARDING]: true } },
       navigation: mockNavigation,
@@ -160,6 +167,7 @@ describe('ChoosePassword', () => {
       strings('secure_your_wallet.creating_password'),
     );
     expect(loadingTitle).toBeTruthy();
+    jest.spyOn(Device, 'isIos').mockRestore();
   });
 
   it('error message is shown when passwords do not match', async () => {
