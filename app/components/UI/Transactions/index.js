@@ -360,8 +360,8 @@ class Transactions extends PureComponent {
   };
 
   renderLoader = () => {
-    const { colors, typography } = this.context || mockTheme;
-    const styles = createStyles(colors, typography);
+    const { colors } = this.context || mockTheme;
+    const styles = createStyles(colors);
 
     return (
       <View style={styles.emptyContainer}>
@@ -371,8 +371,8 @@ class Transactions extends PureComponent {
   };
 
   renderEmpty = () => {
-    const { colors, typography } = this.context || mockTheme;
-    const styles = createStyles(colors, typography);
+    const { colors } = this.context || mockTheme;
+    const styles = createStyles(colors);
 
     const shouldShowSwitchNetwork = () => {
       if (!this.props.tokenChainId || !this.props.chainId) {
@@ -680,8 +680,8 @@ class Transactions extends PureComponent {
 
   renderUpdateTxEIP1559Gas = (isCancel) => {
     const { isSigningQRObject } = this.props;
-    const { colors, typography } = this.context || mockTheme;
-    const styles = createStyles(colors, typography);
+    const { colors } = this.context || mockTheme;
+    const styles = createStyles(colors);
 
     if (!this.existingGas) return null;
     if (this.existingGas.isEIP1559Transaction && !isSigningQRObject) {
@@ -753,8 +753,8 @@ class Transactions extends PureComponent {
       isSigningQRObject,
     } = this.props;
     const { cancelConfirmDisabled, speedUpConfirmDisabled } = this.state;
-    const { colors, typography } = this.context || mockTheme;
-    const styles = createStyles(colors, typography);
+    const { colors } = this.context || mockTheme;
+    const styles = createStyles(colors);
 
     const transactions =
       submittedTransactions && submittedTransactions.length
@@ -851,8 +851,8 @@ class Transactions extends PureComponent {
   };
 
   render = () => {
-    const { colors, typography } = this.context || mockTheme;
-    const styles = createStyles(colors, typography);
+    const { colors } = this.context || mockTheme;
+    const styles = createStyles(colors);
 
     return (
       <PriceChartProvider>
