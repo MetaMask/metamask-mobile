@@ -223,6 +223,8 @@ import {
   MultichainRouterGetSupportedAccountsEvent,
   MultichainRouterIsSupportedScopeEvent,
 } from './controllers/multichain-router/constants';
+import { ErrorReportingService } from '@metamask/error-reporting-service';
+import { captureException } from '@sentry/react-native';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -325,10 +327,24 @@ export class Engine {
       },
     });
 
+    const errorReportingServiceMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'ErrorReportingService',
+        allowedActions: [],
+        allowedEvents: [],
+      });
+    // We only use the ErrorReportingService through the
+    // messenger. But we need to assign a variable to make Sonar happy.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const errorReportingService = new ErrorReportingService({
+      messenger: errorReportingServiceMessenger,
+      captureException: (error) => captureException(error as Error),
+    });
+
     const networkControllerMessenger = this.controllerMessenger.getRestricted({
       name: 'NetworkController',
       allowedEvents: [],
-      allowedActions: [],
+      allowedActions: ['ErrorReportingService:captureException'],
     });
 
     const additionalDefaultNetworks = [
