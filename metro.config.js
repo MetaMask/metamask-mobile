@@ -18,6 +18,7 @@ const { parseArgs } = require('node:util');
 const args = process.argv.slice(2);
 
 const options = {
+  // watchman and rncli
   platform: {
     type: 'string',
   },
@@ -30,13 +31,53 @@ const options = {
   'bundle-output': {
     type: 'string',
   },
-  // Expo
-  port: {
-    type: 'string', // default: '8081'
+  'assets-dest': {
+    type: 'string',
   },
-  // Watcher
-  'reset-cache': {
+  'sourcemap-output': {
+    type: 'string',
+  },
+  minify: {
     type: 'boolean',
+  },
+  verbose: {
+    type: 'boolean',
+  },
+  'reset-cache': {
+    type: 'boolean', // Default: false
+  },
+  // expo
+  port: {
+    type: 'string', // Default: 8081
+  },
+  'no-install': {
+    type: 'boolean',
+  },
+  'no-build-cache': {
+    type: 'boolean',
+  },
+  'no-bundler': {
+    type: 'boolean',
+  },
+  device: {
+    type: 'string',
+  },
+  binary: {
+    type: 'string',
+  },
+  // expo run:android
+  variant: {
+    type: 'string', // Default: debug
+  },
+  'app-id': {
+    type: 'string',
+  },
+  // expo run:ios
+  configuration: {
+    type: 'string', // Default: debug
+  },
+  scheme: {
+    type: 'string',
   },
 };
 
