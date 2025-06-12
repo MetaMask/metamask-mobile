@@ -10,8 +10,12 @@ const { getDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('@react-native/metro-config');
 const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
 
-  // eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import/no-nodejs-modules
 const { parseArgs } = require('node:util');
+
+// remove path/to/node
+// remove path/to/node_modules/.bin/react-native
+const args = process.argv.slice(2);
 
 const options = {
   platform: {
@@ -28,10 +32,8 @@ const options = {
   },
 };
 
-const args = parseArgs({
-  // remove path/to/node
-  // remove path/to/node_modules/.bin/react-native
-  args: process.argv.slice(2),
+const parsedArgs = parseArgs({
+  args,
   options,
   allowPositionals: true,
 });
@@ -96,7 +98,7 @@ module.exports = function (baseConfig) {
       // Apply 'ses/hermes' on Android (Hermes)
       // Apply 'ses' on iOS (RN JSC) until on Hermes
       serializer: lockdownSerializer(
-        { hermesRuntime: args.values.platform === 'android' },
+        { hermesRuntime: parsedArgs.values.platform === 'android' },
         {
           getPolyfills: () => [
             // eslint-disable-next-line import/no-extraneous-dependencies
