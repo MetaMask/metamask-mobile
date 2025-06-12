@@ -228,6 +228,21 @@ class AuthenticationService {
   };
 
   /**
+   * Initializes the account tree and updates the accounts if multichain accounts is enabled
+   */
+  private initializeAccountTree = async (): Promise<void> => {
+    const { AccountTreeController, AccountsController, RemoteFeatureFlagController } = Engine.context;
+    const isMultichainAccountsEnabled = isMultichainAccountsEnabledForState1(
+      RemoteFeatureFlagController.state.remoteFeatureFlags.enableMultichainAccounts as Json & MultichainAccountsFeatureFlag
+    );
+
+    if (isMultichainAccountsEnabled) {
+      AccountTreeController.init();
+      await AccountsController.updateAccounts();
+    }
+  };
+
+  /**
    * Reset vault will empty password used to clear/reset vault upon errors during login/creation
    */
   resetVault = async (): Promise<void> => {
@@ -432,7 +447,6 @@ class AuthenticationService {
     authData: AuthData,
   ): Promise<void> => {
     try {
-      const { AccountTreeController, AccountsController, RemoteFeatureFlagController } = Engine.context;
       trace({
         name: TraceName.VaultCreation,
         op: TraceOperation.VaultCreation,
@@ -450,14 +464,7 @@ class AuthenticationService {
       this.retrySolanaDiscoveryIfPending();
       ///: END:ONLY_INCLUDE_IF
 
-      const isMultichainAccountsEnabled = isMultichainAccountsEnabledForState1(
-        RemoteFeatureFlagController.state.remoteFeatureFlags.enableMultichainAccounts as Json & MultichainAccountsFeatureFlag
-      );
-
-      if (isMultichainAccountsEnabled) {
-        AccountTreeController.init();
-        await AccountsController.updateAccounts();
-      }
+      this.initializeAccountTree();
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
@@ -484,7 +491,6 @@ class AuthenticationService {
     const bioStateMachineId = options?.bioStateMachineId;
     const disableAutoLogout = options?.disableAutoLogout;
     try {
-      const { AccountTreeController, AccountsController, RemoteFeatureFlagController } = Engine.context;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const credentials: any = await SecureKeychain.getGenericPassword();
@@ -513,14 +519,7 @@ class AuthenticationService {
       this.retrySolanaDiscoveryIfPending();
       ///: END:ONLY_INCLUDE_IF
 
-      const isMultichainAccountsEnabled = isMultichainAccountsEnabledForState1(
-        RemoteFeatureFlagController.state.remoteFeatureFlags.enableMultichainAccounts as Json & MultichainAccountsFeatureFlag
-      );
-
-      if (isMultichainAccountsEnabled) {
-        AccountTreeController.init();
-        await AccountsController.updateAccounts();
-      }
+      this.initializeAccountTree();
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {

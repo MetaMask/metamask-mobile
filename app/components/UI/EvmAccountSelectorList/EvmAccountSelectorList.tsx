@@ -19,7 +19,7 @@ import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
 import { useStyles } from '../../../component-library/hooks';
-import Text from '../../../component-library/components/Texts/Text';
+import Text, { TextColor, TextVariant } from '../../../component-library/components/Texts/Text';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
@@ -263,12 +263,12 @@ const EvmAccountSelectorList = ({
   const renderSectionHeader = useCallback(
     ({ section: { title } }: { section: AccountSection }) => (
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionHeaderText}>{title}</Text>
-        <Text style={styles.sectionDetailsLink}>
-          Details
+        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>{title}</Text>
+        <Text variant={TextVariant.BodySM} style={styles.sectionDetailsLink}>
+          {strings('multichain_accounts.accounts_list.details')}
         </Text>
       </View>
-    ), [styles.sectionHeader, styles.sectionHeaderText, styles.sectionDetailsLink]);
+    ), [styles.sectionHeader, styles.sectionDetailsLink]);
 
   const renderSectionFooter = useCallback(
     ({ section }: { section: AccountSection }) => {
@@ -301,7 +301,7 @@ const EvmAccountSelectorList = ({
       for (let i = 0; i < accountSections.length; i++) {
         const section = accountSections[i];
         const accountIndex = section.data.findIndex(
-          (acc) => acc.address.toLowerCase() === selectedAccount.address.toLowerCase()
+          (acc) => toFormattedAddress(acc.address) === toFormattedAddress(selectedAccount.address)
         );
         if (accountIndex !== -1) {
           sectionIndex = i;

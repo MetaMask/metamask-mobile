@@ -4624,7 +4624,7 @@
 
 "@metamask/account-tree-controller@0.1.1":
   version "0.1.1"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/account-tree-controller/-/account-tree-controller-0.1.1.tgz#7562b0b7d2bdbc62228367bd11f68cb0701dea2e"
+  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.1.1.tgz#7562b0b7d2bdbc62228367bd11f68cb0701dea2e"
   integrity sha512-UgQwEo1n3mYsoYj4r65YTqISyApGk1luHFZRKQxkULf3fWEfpiEZ7T6D6ceMapE/iCWoVsgb0B70spyr6wbIWA==
   dependencies:
     "@metamask/base-controller" "^8.0.1"

@@ -24,7 +24,7 @@ export const selectAccountSections = createSelector(
 
     return Object.values(accountTreeState.accountTree.wallets).map((wallet) => ({
       title: wallet.metadata.name,
-      data: Object.values(wallet.groups).map((group) => group.accounts).flat(),
+      data: Object.values(wallet.groups).flatMap((group) => group.accounts),
     }));
   }
 );

@@ -4263,6 +4263,9 @@
       "wallet": "Wallet",
       "private_key": "Private key"
     },
+    "accounts_list": {
+      "details": "Details"
+    },
     "smart_account": {
       "title": "Enable Smart Account",
       "description": "You can enable smart account features on supported networks. {{learnMore}}",

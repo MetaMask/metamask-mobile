@@ -26,15 +26,8 @@ const styleSheet = ({theme}: {theme: Theme}) =>
       alignItems: 'center',
       backgroundColor: theme.colors.background.default,
     },
-    sectionHeaderText: {
-      fontSize: 14,
-      fontWeight: '500',
-      color: theme.colors.text.alternative,
-    },
     sectionDetailsLink: {
-      fontSize: 14,
       color: theme.colors.primary.default,
-      fontWeight: '400',
     },
     sectionSeparator: {
       height: 1,
