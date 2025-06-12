@@ -168,7 +168,6 @@ app/components/Views/LockScreen @MetaMask/wallet-ux
 app/components/Views/Login @MetaMask/wallet-ux
 app/components/Views/NetworkConnect @MetaMask/wallet-ux
 app/components/Views/NetworkSelector @MetaMask/wallet-ux
-app/components/Views/Onboarding @MetaMask/wallet-ux
 app/components/Views/OnboardingCarousel @MetaMask/wallet-ux
 app/components/Views/OnboardingSuccess @MetaMask/wallet-ux
 app/components/Views/QRAccountDisplay @MetaMask/wallet-ux
@@ -178,12 +177,16 @@ app/components/Views/TermsAndConditions @MetaMask/wallet-ux
 app/reducers/experimentalSettings @MetaMask/wallet-ux
 app/reducers/modals @MetaMask/wallet-ux
 app/reducers/navigation @MetaMask/wallet-ux
-app/reducers/onboarding @MetaMask/wallet-ux
 app/reducers/privacy @MetaMask/wallet-ux
 app/reducers/settings @MetaMask/wallet-ux
 
 # Transactions Team
 app/components/Views/transactions @MetaMask/transactions
+
+# Web3auth Team
+app/components/Views/Onboarding @MetaMask/web3auth
+app/reducers/onboarding @MetaMask/web3auth
+
 
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.
