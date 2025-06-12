@@ -115,6 +115,7 @@ it(`send an ERC721 token from a dapp using ${MEGAETH_TESTNET.nickname}`, async (
 
         // Accept confirmation
         await FooterActions.tapConfirmButton();
+        await TestHelpers.delay(3000);
 
         // Check activity tab
         await TabBarComponent.tapActivity();
@@ -158,6 +159,7 @@ it(`send an ERC721 token from a dapp using ${MONAD_TESTNET.nickname}`, async () 
 
         // Accept confirmation
         await FooterActions.tapConfirmButton();
+        await TestHelpers.delay(3000);
 
         // Check activity tab
         await TabBarComponent.tapActivity();

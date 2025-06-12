@@ -123,6 +123,7 @@ it(`send an ERC20 token from a dapp using ${MONAD_TESTNET.nickname}`, async () =
 
         // Accept confirmation
         await FooterActions.tapConfirmButton();
+        await TestHelpers.delay(3000);
 
         // Check activity tab
         await TabBarComponent.tapActivity();
@@ -165,6 +166,7 @@ it(`send an ERC20 token from a dapp using ${MONAD_TESTNET.nickname}`, async () =
 
         // Accept confirmation
         await FooterActions.tapConfirmButton();
+        await TestHelpers.delay(3000);
 
         // Check activity tab
         await TabBarComponent.tapActivity();

@@ -117,6 +117,7 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
         await AmountView.tapNextButton();
 
         await FooterActions.tapConfirmButton();
+        await TestHelpers.delay(3000);
         await TabBarComponent.tapActivity();
 
         await Assertions.checkIfTextIsDisplayed('Confirmed');
@@ -151,6 +152,7 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
         await AmountView.tapNextButton();
 
         await FooterActions.tapConfirmButton();
+        await TestHelpers.delay(3000);
         await TabBarComponent.tapActivity();
 
         await Assertions.checkIfTextIsDisplayed('Confirmed');
