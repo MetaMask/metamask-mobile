@@ -3,6 +3,7 @@ import MainNavigator from './MainNavigator';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
 import Routes from '../../../constants/navigation/Routes';
+import { ReactTestInstance } from 'react-test-renderer';
 
 jest.mock('@react-navigation/stack', () => ({
   createStackNavigator: jest.fn().mockReturnValue({
@@ -12,42 +13,46 @@ jest.mock('@react-navigation/stack', () => ({
 }));
 
 describe('MainNavigator', () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('render matches snapshot', () => {
+  it('renders the navigation stack with all screens', () => {
+    // Given the initial app state
+    // When rendering the MainNavigator
     const { toJSON } = renderWithProvider(<MainNavigator />,
         { state: initialRootState },
     );
+    
+    // Then it should match the expected navigation structure
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('routes to SampleFeature', () => {
+  it('includes SampleFeature screen in the navigation stack', () => {
+    // Given the initial app state
+    // When rendering the MainNavigator
     const container = renderWithProvider(<MainNavigator />,
         { state: initialRootState },
     );
 
-    interface Child {type: string, props: {name: string, component: { name: string }}}
+    // Then it should contain the SampleFeature screen with correct configuration
     interface ScreenChild {name: string, component: { name: string }}
-    // Get all Stack.Screen components
-    const screenProps: ScreenChild[] = container.root.children.map((child: Child) => {
-      if (child.type === 'Screen') {
-        return {
-          name: child.props.name,
-          component: child.props.component,
-        };
-      }
-      return undefined;
-    });
+    const screenProps: ScreenChild[] = container.root.children
+      .filter((child): child is ReactTestInstance => 
+        typeof child === 'object' && 
+        'type' in child && 
+        'props' in child && 
+        child.type?.toString() === 'Screen'
+      )
+      .map((child) => ({
+        name: child.props.name,
+        component: child.props.component,
+      }));
 
-    // Find the Sample Feature screen
     const sampleFeatureScreen = screenProps?.find(
         (screen) => screen?.name === Routes.SAMPLE_FEATURE
     );
 
-    // Assert that the screen exists and has the correct component
     expect(sampleFeatureScreen).toBeDefined();
     expect(sampleFeatureScreen?.component.name).toBe('SampleFeatureFlow');
   });
