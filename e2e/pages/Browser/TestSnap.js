@@ -738,8 +738,11 @@ class TestSnaps {
   }
 
   async typeSignMessage(message) {
-    await Gestures.swipe(this.container, 'up', 'slow', 0.5);
     await Gestures.typeInWebElement(this.getMessageBip44Input, message);
+  }
+
+  async swipeUpSmall() {
+    await Gestures.swipe(this.container, 'up', 'slow', 0.2);
   }
 
   // Methods
@@ -777,7 +780,6 @@ class TestSnaps {
   }
 
   async tapSignBip44MessageButton() {
-    await Gestures.swipe(this.container, 'up', 'slow', 0.5);
     await this.tapButton(this.getSignBip44MessageButton);
   }
 

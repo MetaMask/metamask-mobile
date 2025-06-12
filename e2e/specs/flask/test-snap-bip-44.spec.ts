@@ -75,6 +75,7 @@ describe(SmokeNetworkExpansion('BIP-44 Snap Tests'), () => {
     await Assertions.checkIfTextIsDisplayed('Signature request');
     await TestHelpers.delay(1000);
     await TestSnaps.approveSignRequest();
+    await TestSnaps.swipeUpSmall();
     await TestHelpers.delay(3000);
     const actualText = await TestSnaps.getSignBip44MessageResultText();
     await Assertions.checkIfTextMatches(actualText, EXPECTED_SIGNATURE);
@@ -84,6 +85,7 @@ describe(SmokeNetworkExpansion('BIP-44 Snap Tests'), () => {
     await TestSnaps.typeSignMessage(customMessage);
     await TestSnaps.tapSignBip44MessageButton();
     await TestSnaps.approveSignRequest();
+    await TestSnaps.swipeUpSmall();
     await TestHelpers.delay(3000);
     const actualText = await TestSnaps.getSignBip44MessageResultText();
     await Assertions.checkIfTextMatches(actualText, expectedCustomSignature);
