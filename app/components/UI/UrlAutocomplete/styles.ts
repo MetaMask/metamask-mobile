@@ -1,11 +1,7 @@
 import { Theme } from '@metamask/design-tokens';
-import { StyleSheet, TextStyle } from 'react-native';
-import {
-  getFontFamily,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
+import { StyleSheet } from 'react-native';
 
-const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
+const styleSheet = ({ theme: { colors } }: { theme: Theme }) =>
   StyleSheet.create({
     wrapper: {
       ...StyleSheet.absoluteFillObject,
