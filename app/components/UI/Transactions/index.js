@@ -15,10 +15,6 @@ import Modal from 'react-native-modal';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { showAlert } from '../../../actions/alert';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import Engine from '../../../core/Engine';
 import NotificationManager from '../../../core/NotificationManager';
@@ -43,7 +39,6 @@ import {
   findBlockExplorerForRpc,
   getBlockExplorerAddressUrl,
   getBlockExplorerName,
-  isMainnetByChainId,
 } from '../../../util/networks';
 import { addHexPrefix, hexToBN, renderFromWei } from '../../../util/number';
 import { mockTheme, ThemeContext } from '../../../util/theme';
@@ -53,6 +48,7 @@ import TransactionActionModal from '../TransactionActionModal';
 import TransactionElement from '../TransactionElement';
 import UpdateEIP1559Tx from '../../Views/confirmations/legacy/components/UpdateEIP1559Tx';
 import RetryModal from './RetryModal';
+import TransactionsFooter from './TransactionsFooter';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../AssetOverview/PriceChart/PriceChart.context';
@@ -79,12 +75,8 @@ import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import { ActivitiesViewSelectorsIDs } from '../../../../e2e/selectors/Transactions/ActivitiesView.selectors';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import {
-  getFontFamily,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 
-const createStyles = (colors, typography) =>
+const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
@@ -118,20 +110,6 @@ const createStyles = (colors, typography) =>
       marginLeft: 6,
       marginRight: 6,
       ...fontStyles.normal,
-    },
-    viewMoreWrapper: {
-      padding: 16,
-    },
-    viewMoreButton: {
-      width: '100%',
-    },
-    disclaimerWrapper: {
-      padding: 16,
-    },
-    disclaimerText: {
-      color: colors.text.default,
-      ...typography.sBodySM,
-      fontFamily: getFontFamily(TextVariant.BodySM),
     },
   });
 
@@ -465,57 +443,7 @@ class Transactions extends PureComponent {
     }
   };
 
-  renderViewMore = () => {
-    const { colors, typography } = this.context || mockTheme;
-    const styles = createStyles(colors, typography);
-
-    const {
-      chainId,
-      providerConfig: { type },
-    } = this.props;
-    const blockExplorerText = () => {
-      if (this.isNonEvmChain) {
-        if (
-          this.state.rpcBlockExplorer &&
-          this.state.rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER
-        ) {
-          return `${strings(
-            'transactions.view_full_history_on',
-          )} ${getBlockExplorerName(this.state.rpcBlockExplorer)}`;
-        }
-        return null;
-      }
-
-      if (isMainnetByChainId(chainId) || type !== RPC) {
-        return strings('transactions.view_full_history_on_etherscan');
-      }
-
-      if (
-        this.state.rpcBlockExplorer &&
-        this.state.rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER
-      ) {
-        return `${strings(
-          'transactions.view_full_history_on',
-        )} ${getBlockExplorerName(this.state.rpcBlockExplorer)}`;
-      }
-
-      return null;
-    };
-
-    return (
-      <View style={styles.viewMoreWrapper}>
-        <Button
-          variant={ButtonVariants.Link}
-          size={ButtonSize.Lg}
-          label={blockExplorerText()}
-          style={styles.viewMoreButton}
-          onPress={this.viewOnBlockExplore}
-        />
-      </View>
-    );
-  };
-
-  getItemLayout = (data, index) => ({
+  getItemLayout = (index) => ({
     length: ROW_HEIGHT,
     offset: this.props.headerHeight + ROW_HEIGHT * index,
     index,
@@ -799,24 +727,23 @@ class Transactions extends PureComponent {
     }
   };
 
-  renderDisclaimer = () => {
-    const { colors, typography } = this.context || mockTheme;
-    const styles = createStyles(colors, typography);
-    return (
-      <View style={styles.disclaimerWrapper}>
-        <Text style={styles.disclaimerText}>
-          {strings('asset_overview.disclaimer')}
-        </Text>
-      </View>
-    );
-  };
+  get footer() {
+    const {
+      chainId,
+      providerConfig: { type },
+    } = this.props;
 
-  renderFooter = () => (
-    <View>
-      {this.renderViewMore()}
-      {this.renderDisclaimer()}
-    </View>
-  );
+    return (
+      <TransactionsFooter
+        chainId={chainId}
+        providerType={type}
+        rpcBlockExplorer={this.state.rpcBlockExplorer}
+        isNonEvmChain={this.isNonEvmChain}
+        onViewBlockExplorer={this.viewOnBlockExplore}
+        showDisclaimer
+      />
+    );
+  }
 
   renderList = () => {
     const {
@@ -879,7 +806,7 @@ class Transactions extends PureComponent {
               onEndReachedThreshold={0.5}
               ListHeaderComponent={header}
               ListFooterComponent={
-                transactions.length > 0 ? this.renderFooter : this.renderEmpty()
+                transactions.length > 0 ? this.footer : this.renderEmpty()
               }
               style={baseStyles.flexGrow}
               scrollIndicatorInsets={{ right: 1 }}

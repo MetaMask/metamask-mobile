@@ -11,10 +11,6 @@ import { FlashList } from '@shopify/flash-list';
 import { CaipChainId, Transaction } from '@metamask/keyring-api';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
 import Text from '../../../component-library/components/Texts/Text';
 import { baseStyles } from '../../../styles/common';
 import {
@@ -24,10 +20,10 @@ import {
 import { selectSolanaAccountTransactions } from '../../../selectors/multichain/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
-import { getBlockExplorerName } from '../../../util/networks';
 import styles from './MultichainTransactionsView.styles';
 import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
+import MultichainTransactionsFooter from './MultichainTransactionsFooter';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../../UI/AssetOverview/PriceChart/PriceChart.context';
@@ -85,19 +81,19 @@ const MultichainTransactionsView: React.FC<MultichainTransactionsViewProps> = ({
   const { colors } = useTheme();
   const style = styles(colors);
   const defaultNavigation = useNavigation();
-  const navigation = navigationProp || defaultNavigation;
+  const navigation = navigationProp ?? defaultNavigation;
 
   const defaultSelectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const selectedAddress = selectedAddressProp || defaultSelectedAddress;
+  const selectedAddress = selectedAddressProp ?? defaultSelectedAddress;
 
   const solanaAccountTransactions = useSelector(
     selectSolanaAccountTransactions,
   );
 
   const transactions = useMemo(
-    () => transactionsProp || solanaAccountTransactions?.transactions,
+    () => transactionsProp ?? solanaAccountTransactions?.transactions,
     [transactionsProp, solanaAccountTransactions],
   );
 
@@ -121,54 +117,27 @@ const MultichainTransactionsView: React.FC<MultichainTransactionsViewProps> = ({
   const renderEmptyList = () => (
     <View style={style.emptyContainer}>
       <Text style={[style.emptyText, { color: colors.text.default }]}>
-        {emptyMessage || strings('wallet.no_transactions')}
+        {emptyMessage ?? strings('wallet.no_transactions')}
       </Text>
     </View>
   );
 
-  const renderViewMore = () => {
-    const chainId =
-      chainIdProp ||
-      nonEvmNetworkChainIdByAccountAddress(selectedAddress || '');
-    const url = getAddressUrl(selectedAddress || '', chainId as CaipChainId);
+  const chainId =
+    chainIdProp ?? nonEvmNetworkChainIdByAccountAddress(selectedAddress ?? '');
+  const url = getAddressUrl(selectedAddress ?? '', chainId as CaipChainId);
 
-    return (
-      <View style={style.viewMoreWrapper}>
-        <Button
-          variant={ButtonVariants.Link}
-          size={ButtonSize.Lg}
-          label={`${strings(
-            'transactions.view_full_history_on',
-          )} ${getBlockExplorerName(url)}`}
-          style={style.viewMoreButton}
-          onPress={() => {
-            navigation.navigate('Webview', {
-              screen: 'SimpleWebview',
-              params: { url },
-            });
-          }}
-        />
-      </View>
-    );
-  };
-
-  const renderDisclaimer = () => {
-    if (!showDisclaimer) return null;
-
-    return (
-      <View style={style.disclaimerWrapper}>
-        <Text style={style.disclaimerText}>
-          {strings('asset_overview.disclaimer')}
-        </Text>
-      </View>
-    );
-  };
-
-  const renderFooter = () => (
-    <View>
-      {transactions?.length > 0 ? renderViewMore() : null}
-      {renderDisclaimer()}
-    </View>
+  const footer = (
+    <MultichainTransactionsFooter
+      url={url}
+      hasTransactions={(transactions?.length ?? 0) > 0}
+      showDisclaimer={showDisclaimer}
+      onViewMore={() => {
+        navigation.navigate('Webview', {
+          screen: 'SimpleWebview',
+          params: { url },
+        });
+      }}
+    />
   );
 
   const renderTransactionItem = ({
@@ -185,7 +154,7 @@ const MultichainTransactionsView: React.FC<MultichainTransactionsViewProps> = ({
       <MultichainTransactionListItem
         transaction={item}
         bridgeHistoryItem={bridgeHistoryItem}
-        selectedAddress={selectedAddress || ''}
+        selectedAddress={selectedAddress ?? ''}
         navigation={navigation}
         index={index}
       />
@@ -203,7 +172,7 @@ const MultichainTransactionsView: React.FC<MultichainTransactionsViewProps> = ({
               keyExtractor={(item) => item.id}
               ListHeaderComponent={header}
               ListEmptyComponent={renderEmptyList}
-              ListFooterComponent={renderFooter}
+              ListFooterComponent={footer}
               style={baseStyles.flexGrow}
               estimatedItemSize={200}
               refreshControl={

@@ -18,26 +18,10 @@ const createStyles = (colors: ThemeColors) =>
       color: colors.text.muted,
       ...fontStyles.normal,
     },
-    viewMoreWrapper: {
-      padding: 16,
-    },
-    viewMoreButton: {
-      width: '100%',
-    },
     loader: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-    },
-    disclaimerWrapper: {
-      padding: 16,
-      paddingTop: 8,
-    },
-    disclaimerText: {
-      fontSize: 12,
-      color: colors.text.muted,
-      textAlign: 'center',
-      ...fontStyles.normal,
     },
   });
 
