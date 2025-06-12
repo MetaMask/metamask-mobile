@@ -28,7 +28,7 @@ export interface EncryptionLibrary {
    * @param size - The IV size.
    * @return The randomly generated IV.
    */
-  generateIV(size: number): Promise<string>;
+  generateIv(size: number): Promise<string>;
   /**
    * Encrypts data.
    *

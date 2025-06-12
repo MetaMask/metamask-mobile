@@ -19,6 +19,8 @@ import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBotto
 import { mockIdentityServices } from '../utils/mocks';
 import { SmokeWalletPlatform } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
+import { arrangeTestUtils } from '../utils/helpers';
+import { UserStorageMockttpControllerEvents } from '../utils/user-storage/userStorageMockttpController';
 
 describe(
   SmokeWalletPlatform(
@@ -29,6 +31,7 @@ describe(
     const TEST_SPECIFIC_MOCK_SERVER_PORT = 8000;
     let decryptedAccountNames = '';
     let mockServer;
+    let userStorageMockttpController;
 
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
@@ -40,7 +43,9 @@ describe(
       const { userStorageMockttpControllerInstance } =
         await mockIdentityServices(mockServer);
 
-      await userStorageMockttpControllerInstance.setupPath(
+      userStorageMockttpController = userStorageMockttpControllerInstance;
+
+      await userStorageMockttpController.setupPath(
         USER_STORAGE_FEATURE_NAMES.accounts,
         mockServer,
         {
@@ -72,12 +77,10 @@ describe(
     });
 
     it('syncs newly added accounts with custom names and retrieves same accounts after importing the same SRP', async () => {
-      await importWalletWithRecoveryPhrase(
-        {
-          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
-          password: IDENTITY_TEAM_PASSWORD,
-        }
-      );
+      await importWalletWithRecoveryPhrase({
+        seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+        password: IDENTITY_TEAM_PASSWORD,
+      });
 
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
@@ -89,12 +92,22 @@ describe(
         );
       }
 
+      const { prepareEventsEmittedCounter } = arrangeTestUtils(
+        userStorageMockttpController,
+      );
+      const { waitUntilEventsEmittedNumberEquals } =
+        prepareEventsEmittedCounter(
+          UserStorageMockttpControllerEvents.PUT_SINGLE,
+        );
+
       await AccountListBottomSheet.tapAddAccountButton();
       await AddAccountBottomSheet.tapCreateAccount();
       await TestHelpers.delay(2000);
 
       await AccountListBottomSheet.tapEditAccountActionsAtIndex(2);
       await AccountActionsBottomSheet.renameActiveAccount(NEW_ACCOUNT_NAME);
+
+      await waitUntilEventsEmittedNumberEquals(2);
 
       await Assertions.checkIfElementToHaveText(
         WalletView.accountName,
@@ -107,12 +120,10 @@ describe(
         launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
       });
 
-      await importWalletWithRecoveryPhrase(
-        {
-          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
-          password: IDENTITY_TEAM_PASSWORD,
-        }
-      );
+      await importWalletWithRecoveryPhrase({
+        seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+        password: IDENTITY_TEAM_PASSWORD,
+      });
 
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);

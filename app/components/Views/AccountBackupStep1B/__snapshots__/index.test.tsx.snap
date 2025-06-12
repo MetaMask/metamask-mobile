@@ -106,7 +106,24 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <View />
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
@@ -173,7 +190,13 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -181,6 +204,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -819,6 +843,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -1063,7 +1088,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                                   [
                                     [
                                       {
-                                        "borderRadius": 100,
+                                        "borderRadius": 12,
                                         "justifyContent": "center",
                                         "padding": 15,
                                       },
@@ -1110,64 +1135,6 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                           </View>
                         </View>
                       </RCTScrollView>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        onSwipeComplete={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeDirection="down"
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        onSwipeComplete={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeDirection="down"
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
                     </RCTSafeAreaView>
                   </View>
                 </View>

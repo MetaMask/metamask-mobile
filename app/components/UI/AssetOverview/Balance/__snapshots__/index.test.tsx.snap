@@ -26,6 +26,7 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
     Your balance
   </Text>
   <TouchableOpacity
+    disabled={false}
     onLongPress={[Function]}
     onPress={[Function]}
     style={
@@ -159,31 +160,57 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
         </View>
       </View>
     </View>
-    <Text
-      accessibilityRole="text"
+    <View
       style={
         {
-          "alignSelf": "center",
-          "color": "#121314",
+          "alignContent": "flex-start",
+          "alignItems": "flex-start",
           "flex": 1,
-          "fontFamily": "CentraNo1-Medium",
-          "fontSize": 18,
-          "fontWeight": "500",
-          "justifyContent": "center",
-          "letterSpacing": 0,
-          "lineHeight": 24,
-          "marginLeft": 20,
+          "flexDirection": "column",
+          "paddingLeft": 16,
         }
       }
     >
-      Dai Stablecoin
-    </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "alignSelf": "flex-start",
+            "color": "#121314",
+            "flex": 1,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 18,
+            "fontWeight": "500",
+            "justifyContent": "flex-start",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Dai Stablecoin
+      </Text>
+      <View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ca3542",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        />
+      </View>
+    </View>
     <View
       style={
         {
           "alignItems": "flex-end",
           "alignSelf": "flex-end",
-          "flex": 1,
+          "flexShrink": 0,
         }
       }
     >
@@ -214,7 +241,6 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
             "letterSpacing": 0,
             "lineHeight": 24,
             "paddingHorizontal": 0,
-            "textTransform": "uppercase",
           }
         }
         testID="secondary-balance-test-id"
@@ -252,6 +278,7 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
     Your balance
   </Text>
   <TouchableOpacity
+    disabled={false}
     onLongPress={[Function]}
     onPress={[Function]}
     style={
@@ -385,31 +412,57 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
         </View>
       </View>
     </View>
-    <Text
-      accessibilityRole="text"
+    <View
       style={
         {
-          "alignSelf": "center",
-          "color": "#121314",
+          "alignContent": "flex-start",
+          "alignItems": "flex-start",
           "flex": 1,
-          "fontFamily": "CentraNo1-Medium",
-          "fontSize": 18,
-          "fontWeight": "500",
-          "justifyContent": "center",
-          "letterSpacing": 0,
-          "lineHeight": 24,
-          "marginLeft": 20,
+          "flexDirection": "column",
+          "paddingLeft": 16,
         }
       }
     >
-      Dai Stablecoin
-    </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "alignSelf": "flex-start",
+            "color": "#121314",
+            "flex": 1,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 18,
+            "fontWeight": "500",
+            "justifyContent": "flex-start",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Dai Stablecoin
+      </Text>
+      <View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ca3542",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        />
+      </View>
+    </View>
     <View
       style={
         {
           "alignItems": "flex-end",
           "alignSelf": "flex-end",
-          "flex": 1,
+          "flexShrink": 0,
         }
       }
     >

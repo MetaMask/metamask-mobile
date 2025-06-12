@@ -4,10 +4,8 @@ import BridgeStepDescription, { getStepStatus } from './BridgeStepDescription';
 import StepProgressBarItem from './StepProgressBarItem';
 import { Box } from '../../../Box/Box';
 import { DateTime } from 'luxon';
-import {
-  BridgeHistoryItem,
-  StatusTypes,
-} from '@metamask/bridge-status-controller';
+import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import { StatusTypes } from '@metamask/bridge-controller';
 
 /**
  * Get the time for a step

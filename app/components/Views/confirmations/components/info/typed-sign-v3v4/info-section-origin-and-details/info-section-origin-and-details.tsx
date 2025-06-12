@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ConfirmationPageSectionsSelectorIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import InfoRow from '../../../UI/info-row';
@@ -8,7 +8,10 @@ import { InfoRowDivider } from '../../../UI/info-row/divider';
 import InfoSection from '../../../UI/info-row/info-section';
 import InfoRowAddress from '../../../UI/info-row/info-value/address';
 import DisplayURL from '../../../UI/info-row/info-value/display-url';
-import { isRecognizedPermit, parseTypedDataMessageFromSignatureRequest } from '../../../../utils/signature';
+import {
+  isRecognizedPermit,
+  parseAndNormalizeSignTypedDataFromSignatureRequest,
+} from '../../../../utils/signature';
 import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
 import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import { View } from 'react-native';
@@ -26,9 +29,9 @@ export const InfoSectionOriginAndDetails = () => {
   const signatureRequest = useSignatureRequest();
   const isPermit = isRecognizedPermit(signatureRequest);
 
-  const parsedMessage = parseTypedDataMessageFromSignatureRequest(signatureRequest);
-  const spender = parsedMessage?.message?.spender;
-  const verifyingContract = parsedMessage?.domain?.verifyingContract;
+  const parsedData = parseAndNormalizeSignTypedDataFromSignatureRequest(signatureRequest);
+  const spender = parsedData.message?.spender;
+  const verifyingContract = parsedData.domain?.verifyingContract;
 
   if (!signatureRequest) {
     return null;
@@ -38,7 +41,7 @@ export const InfoSectionOriginAndDetails = () => {
 
   return (
     <InfoSection
-      testID={ConfirmationPageSectionsSelectorIDs.ORIGIN_INFO_SECTION}
+      testID={ConfirmationRowComponentIDs.ORIGIN_INFO}
     >
       {isPermit && spender && (
         <>
@@ -57,13 +60,10 @@ export const InfoSectionOriginAndDetails = () => {
         <DisplayURL url={origin} />
       </InfoRow>
       {isValidAddress(verifyingContract) && (
-          <InfoRow label={strings('confirm.label.interacting_with')}>
-            <InfoRowAddress
-              address={verifyingContract}
-              chainId={chainId}
-            />
-          </InfoRow>
-        )}
+        <InfoRow label={strings('confirm.label.interacting_with')}>
+          <InfoRowAddress address={verifyingContract} chainId={chainId} />
+        </InfoRow>
+      )}
     </InfoSection>
   );
 };

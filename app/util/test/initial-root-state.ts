@@ -1,5 +1,6 @@
 import type { RootState } from '../../reducers';
 import type { EngineState } from '../../core/Engine';
+import { initialState as initialConfirmationState } from '../../reducers/confirmation';
 import { initialState as initialFiatOrdersState } from '../../reducers/fiatOrders';
 import { initialState as initialSecurityState } from '../../reducers/security';
 import { initialState as initialInpageProvider } from '../../core/redux/slices/inpageProvider';
@@ -10,7 +11,8 @@ import initialBackgroundState from './initial-background-state.json';
 import { userInitialState } from '../../reducers/user';
 import { initialNavigationState } from '../../reducers/navigation';
 import { initialOnboardingState } from '../../reducers/onboarding';
-
+import { initialState as initialPerformanceState } from '../../core/redux/slices/performance';
+import { isTest } from './utils';
 // A cast is needed here because we use enums in some controllers, and TypeScript doesn't consider
 // the string value of an enum as satisfying an enum type.
 export const backgroundState: EngineState =
@@ -19,6 +21,7 @@ export const backgroundState: EngineState =
 const initialRootState: RootState = {
   legalNotices: undefined,
   collectibles: undefined,
+  confirmation: initialConfirmationState,
   engine: { backgroundState },
   privacy: undefined,
   bookmarks: undefined,
@@ -55,5 +58,9 @@ const initialRootState: RootState = {
     dismissedBanners: [],
   },
 };
+
+if (isTest) {
+  initialRootState.performance = initialPerformanceState;
+}
 
 export default initialRootState;

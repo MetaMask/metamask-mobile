@@ -10,18 +10,20 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
 } from '../../../util/number';
-import { safeToChecksumAddress } from '../../../util/address';
-import {
-  selectEvmTicker,
-  selectNetworkConfigurationByChainId,
-} from '../../../selectors/networkController';
-import {
-  selectAccounts,
-  selectAccountsByChainId,
-} from '../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import { selectEvmTicker, selectNetworkConfigurationByChainId, selectSelectedNetworkClientId } from '../../../selectors/networkController';
+import { selectAccounts, selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { Asset } from './useAddressBalance.types';
+import { RootState } from '../../../reducers';
+import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
+import { safeToChecksumAddress, getTokenDetails } from '../../../util/address';
+import {
+  selectContractBalances,
+  selectContractBalancesPerChainId,
+} from '../../../selectors/tokenBalancesController';
+import { useAsyncResult } from '../useAsyncResult';
+
+export const ERC20_DEFAULT_DECIMALS = 18;
 import { RootState } from '../../../reducers';
 
 const useAddressBalance = (
@@ -29,8 +31,19 @@ const useAddressBalance = (
   address?: string,
   dontWatchAsset?: boolean,
   chainId?: string,
+  networkClientId?: string,
 ) => {
   const [addressBalance, setAddressBalance] = useState('0');
+  const { value: tokenDetails } = useAsyncResult(
+    async () =>
+      await getTokenDetails(
+        asset?.address as string,
+        address,
+        undefined,
+        networkClientId,
+      ),
+    [asset?.address, address, networkClientId],
+  );
 
   let accounts = useSelector(selectAccounts);
   let ticker = useSelector(selectEvmTicker);
@@ -39,12 +52,16 @@ const useAddressBalance = (
     selectNetworkConfigurationByChainId(state, chainId as Hex),
   );
   const contractBalances = useSelector(selectContractBalances);
+  const contractBalancesPerChainId = useSelector(
+    selectContractBalancesPerChainId,
+  );
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  if (chainId) {
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
+  if (isPerDappSelectedNetworkEnabled() && chainId) {
     // If chainId is provided, use the accounts and ticker for that chain
-    accounts = accountsByChainId[chainId];
+    accounts = accountsByChainId[chainId] ?? {};
     ticker = networkConfigurationByChainId?.nativeCurrency;
   }
 
@@ -72,6 +89,7 @@ const useAddressBalance = (
           decimals,
           image,
           name,
+          networkClientId: selectedNetworkClientId,
         });
       }
     }
@@ -109,16 +127,18 @@ const useAddressBalance = (
     } else if (asset?.decimals !== undefined) {
       const { address: rawAddress, symbol = 'ERC20', decimals } = asset;
       const contractAddress = safeToChecksumAddress(rawAddress);
+      const balance =
+        contractBalancesPerChainId?.[chainId as Hex]?.[
+          contractAddress as Hex
+        ] || contractBalances[contractAddress as Hex];
       if (!contractAddress) {
         return;
       }
-      if (selectedAddress === address && contractBalances[contractAddress]) {
+      if (balance) {
         fromAccBalance = `${renderFromTokenMinimalUnit(
-          contractBalances[contractAddress]
-            ? contractBalances[contractAddress]
-            : '0',
-          decimals,
-        )} ${symbol}`;
+          balance ?? '0',
+          Number(tokenDetails?.decimals || decimals || ERC20_DEFAULT_DECIMALS),
+        )} ${tokenDetails?.symbol ?? symbol}`;
         setAddressBalance(fromAccBalance);
       } else {
         (async () => {
@@ -144,7 +164,19 @@ const useAddressBalance = (
         })();
       }
     }
-  }, [accounts, address, asset, contractBalances, selectedAddress, ticker]);
+  }, [
+    accounts,
+    address,
+    asset,
+    chainId,
+    contractBalances,
+    contractBalancesPerChainId,
+    networkClientId,
+    selectedAddress,
+    ticker,
+    tokenDetails?.decimals,
+    tokenDetails?.symbol,
+  ]);
   return { addressBalance };
 };
 

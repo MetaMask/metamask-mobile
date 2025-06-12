@@ -1,5 +1,6 @@
-export { default as useMultichainBalances } from './useMultichainBalances';
+export { default as useMultichainBalancesForAllAccounts } from './useMultichainBalancesForAllAccounts';
+export { default as useSelectedAccountMultichainBalances } from './useSelectedAccountMultichainBalances';
 export type {
-  UseMultichainBalancesHook,
+  UseSelectedAccountMultichainBalancesHook,
   MultichainBalancesData,
 } from './useMultichainBalances.types';

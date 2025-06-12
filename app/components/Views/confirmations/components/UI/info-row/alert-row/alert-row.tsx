@@ -1,14 +1,13 @@
 import React from 'react';
 import InlineAlert from '../../inline-alert';
 import { useAlerts } from '../../../../context/alert-system-context';
-import { useConfirmationAlertMetrics } from '../../../../hooks/metrics/useConfirmationAlertMetrics';
 import { Severity } from '../../../../types/alerts';
 import { TextColor } from '../../../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../../../component-library/hooks';
 import InfoRow, { InfoRowProps } from '../info-row';
+import styleSheet from './alert-row.styles';
 
-function getAlertTextColors(
-  severity?: Severity,
-): TextColor {
+function getAlertTextColors(severity?: Severity): TextColor {
   switch (severity) {
     case Severity.Danger:
       return TextColor.Error;
@@ -25,17 +24,14 @@ export interface AlertRowProps extends InfoRowProps {
   isShownWithAlertsOnly?: boolean;
 }
 
-const AlertRow = ({ alertField, isShownWithAlertsOnly, ...props }: AlertRowProps) => {
-  const { fieldAlerts, showAlertModal, setAlertKey } = useAlerts();
-  const { trackInlineAlertClicked } = useConfirmationAlertMetrics();
+const AlertRow = ({
+  alertField,
+  isShownWithAlertsOnly,
+  ...props
+}: AlertRowProps) => {
+  const { fieldAlerts } = useAlerts();
   const alertSelected = fieldAlerts.find((a) => a.field === alertField);
-
-  const handleInlineAlertClick = () => {
-    if(!alertSelected) return;
-    setAlertKey(alertSelected.key);
-    showAlertModal();
-    trackInlineAlertClicked(alertSelected.field);
-  };
+  const { styles } = useStyles(styleSheet, {});
 
   if (!alertSelected && isShownWithAlertsOnly) {
     return null;
@@ -47,13 +43,16 @@ const AlertRow = ({ alertField, isShownWithAlertsOnly, ...props }: AlertRowProps
   };
 
   const inlineAlert = alertSelected ? (
-    <InlineAlert
-      onClick={handleInlineAlertClick}
-      severity={alertSelected.severity}
-    />
+    <InlineAlert alertObj={alertSelected} />
   ) : null;
 
-  return <InfoRow {...alertRowProps} labelChildren={inlineAlert} />;
+  return (
+    <InfoRow
+      {...alertRowProps}
+      style={styles.infoRowOverride}
+      labelChildren={inlineAlert}
+    />
+  );
 };
 
 export default AlertRow;

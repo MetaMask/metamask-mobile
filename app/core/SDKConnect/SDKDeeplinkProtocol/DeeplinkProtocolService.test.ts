@@ -20,6 +20,10 @@ jest.mock('../utils/DevLogger');
 jest.mock('../../../util/Logger');
 jest.mock('../handlers/handleCustomRpcCalls');
 jest.mock('../handlers/handleBatchRpcResponse');
+jest.mock('../../Permissions', () => ({
+  ...jest.requireActual('../../Permissions'),
+  getPermittedAccounts: jest.fn().mockReturnValue([]),
+}));
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 const mockInternalAccount = createMockInternalAccount(

@@ -28,7 +28,7 @@ const SmartTransactionsMigrationBanner = ({
   const isBannerDismissed = useSelector(selectSmartTransactionsBannerDismissed);
   const chainId = useSelector(selectEvmChainId);
 
-  const shouldUseSmartTransaction = useSelector((state) => 
+  const shouldUseSmartTransaction = useSelector((state) =>
     selectShouldUseSmartTransaction(state, chainId)
   );
 

@@ -92,7 +92,7 @@ import {
 
 import { selectAccounts } from '../../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../../selectors/tokenBalancesController';
-import { isNetworkRampNativeTokenSupported } from '../../../../../../components/UI/Ramp/utils';
+import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
 import { ConfirmViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
 import ExtendedKeyringTypes from '../../../../../../constants/keyringTypes';
@@ -110,7 +110,7 @@ import {
   selectGasFeeEstimates,
 } from '../../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../../selectors/gasFeeController';
-import { createBuyNavigationDetails } from '../../../../../UI/Ramp/routes/utils';
+import { createBuyNavigationDetails } from '../../../../../UI/Ramp/Aggregator/routes/utils';
 import {
   getNetworkNonce,
   updateTransaction,
@@ -123,8 +123,6 @@ import {
   selectConfirmationMetrics,
   updateConfirmationMetric,
 } from '../../../../../../core/redux/slices/confirmationMetrics';
-import SimulationDetails from '../../../../../UI/SimulationDetails/SimulationDetails';
-import { selectUseTransactionSimulations } from '../../../../../../selectors/preferencesController';
 import {
   validateSufficientTokenBalance,
   validateSufficientBalance,
@@ -450,7 +448,10 @@ class Confirm extends PureComponent {
 
     const weiBalance = hexToBN(contractBalances[selectedAsset.address]);
     if (weiBalance?.isZero()) {
-      await TokensController.ignoreTokens([selectedAsset.address]);
+      await TokensController.ignoreTokens(
+        [selectedAsset.address],
+        this.props.networkClientId,
+      );
     }
   };
 
@@ -571,7 +572,9 @@ class Confirm extends PureComponent {
       ],
     };
 
-    ppomUtil.validateRequest(reqObject, id);
+    ppomUtil.validateRequest(reqObject, {
+      transactionMeta,
+    });
   };
 
   componentDidUpdate = (prevProps, prevState) => {
@@ -808,6 +811,7 @@ class Confirm extends PureComponent {
           decimals,
           image,
           name,
+          networkClientId: this.props.networkClientId,
         });
       }
 
@@ -1184,6 +1188,7 @@ class Confirm extends PureComponent {
         isSelectOnly: true,
         onSelectAccount: this.onSelectAccount,
         checkBalanceError: this.getBalanceError,
+        isEvmOnly: true,
       },
     });
   };
@@ -1242,7 +1247,7 @@ class Confirm extends PureComponent {
             onPress={this.toggleHexDataModal}
           >
             <IonicIcon
-              name={'ios-close'}
+              name={'close'}
               size={28}
               color={colors.text.default}
             />
@@ -1406,9 +1411,6 @@ class Confirm extends PureComponent {
       gasEstimateType,
       isNativeTokenBuySupported,
       shouldUseSmartTransaction,
-      transactionMetadata,
-      transactionState,
-      useTransactionSimulations,
     } = this.props;
     const { nonce } = this.props.transaction;
     const {
@@ -1439,7 +1441,6 @@ class Confirm extends PureComponent {
     const isLedgerAccount = isHardwareAccount(fromSelectedAddress, [
       ExtendedKeyringTypes.ledger,
     ]);
-    const transactionSimulationData = transactionMetadata?.simulationData;
 
     const isTestNetwork = isTestNet(chainId);
 
@@ -1513,16 +1514,6 @@ class Confirm extends PureComponent {
               </View>
             </View>
           )}
-          {useTransactionSimulations &&
-            transactionState?.id &&
-            transactionMetadata && (
-              <View style={styles.simulationWrapper}>
-                <SimulationDetails
-                  transaction={transactionMetadata}
-                  enableMetrics
-                />
-              </View>
-            )}
           <TransactionReview
             gasSelected={this.state.gasSelected}
             primaryCurrency={primaryCurrency}
@@ -1678,11 +1669,9 @@ const mapStateToProps = (state) => {
       chainId,
       getRampNetworks(state),
     ),
-    // TODO: confirm if the line below should be used or     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state, chainId),
-    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state, chainId),
     confirmationMetricsById: selectConfirmationMetrics(state),
     transactionMetadata: selectCurrentTransactionMetadata(state),
-    useTransactionSimulations: selectUseTransactionSimulations(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
     sendFlowContextualChainId: sendFlowContextualChainId,
     sendFlowContextualNetworkConfiguration: selectNetworkConfigurationByChainId(

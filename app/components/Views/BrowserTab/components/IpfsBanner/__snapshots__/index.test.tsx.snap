@@ -37,6 +37,7 @@ exports[`IpfsBanner should render banner correctly 1`] = `
     >
       <SvgMock
         color="#4459ff"
+        fill="currentColor"
         height={24}
         name="Info"
         style={
@@ -183,6 +184,7 @@ exports[`IpfsBanner should render banner correctly 1`] = `
       >
         <SvgMock
           color="#121314"
+          fill="currentColor"
           height={16}
           name="Close"
           style={

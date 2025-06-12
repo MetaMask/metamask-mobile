@@ -89,6 +89,8 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     const BNB_NAME = 'BNB Smart Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
+    await TestHelpers.delay(5000);
+    await WalletView.scrollDownOnTokensTab('AVAX');
     const bnb = WalletView.tokenInWallet('BNB');
     await Assertions.checkIfVisible(bnb);
     await WalletView.tapOnToken('BNB');
@@ -100,7 +102,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
       NetworkEducationModal.networkName,
       BNB_NAME,
     );
-    await TestHelpers.delay(1500) // Nasty work. Only adding delay because app is slow on CI. 
+    await TestHelpers.delay(1500); // Nasty work. Only adding delay because app is slow on CI.
     await NetworkEducationModal.tapNetworkName(); // to dismiss keyboard
     await NetworkEducationModal.tapGotItButton();
   });

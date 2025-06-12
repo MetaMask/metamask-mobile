@@ -18,7 +18,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 8,
     },
     text: {
-      fontSize: 16,
       ...fontStyles.normal,
     },
     tooltipHeader: {

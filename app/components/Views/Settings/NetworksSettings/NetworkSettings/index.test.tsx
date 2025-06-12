@@ -16,6 +16,38 @@ import Engine from '../../../../../core/Engine';
 import * as networks from '../../../../../util/networks';
 const { PreferencesController } = Engine.context;
 
+jest.mock(
+  '../../../../../util/metrics/MultichainAPI/networkMetricUtils',
+  () => ({
+    removeItemFromChainIdList: jest.fn().mockReturnValue({
+      chain_id_list: ['eip155:1'],
+    }),
+  }),
+);
+
+jest.mock('../../../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn(() => ({
+        build: jest.fn(),
+      })),
+    })),
+  }),
+  withMetricsAwareness: (Component: unknown) => Component,
+}));
+
+jest.mock('../../../../../core/Analytics', () => ({
+  MetaMetrics: {
+    getInstance: jest.fn().mockReturnValue({
+      addTraitsToUser: jest.fn(),
+    }),
+  },
+  MetaMetricsEvents: {
+    NETWORK_REMOVED: 'Network Removed',
+  },
+}));
+
 // Mock the entire module
 jest.mock('../../../../../util/networks/isNetworkUiRedesignEnabled', () => ({
   isNetworkUiRedesignEnabled: jest.fn(),
@@ -89,7 +121,6 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
           networkClientId: 'mainnet',
           type: 'custom',
           url: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
-          failoverUrls: [],
         },
       ],
     },
@@ -102,7 +133,6 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
           networkClientId: 'goerli',
           type: 'custom',
           url: 'https://goerli.infura.io/v3/{infuraProjectId}',
-          failoverUrls: [],
         },
       ],
     },
@@ -270,7 +300,6 @@ describe('NetworkSettings', () => {
               networkClientId: 'mainnet',
               type: 'Infura',
               url: 'https://mainnet.infura.io/v3/',
-              failoverUrls: [],
             },
           ],
           name: 'Ethereum Main Network',
@@ -325,7 +354,6 @@ describe('NetworkSettings', () => {
               networkClientId: 'mainnet',
               type: 'Infura',
               url: 'https://mainnet.infura.io/v3/',
-              failoverUrls: [],
             },
           ],
           name: 'Ethereum Main Network',
@@ -371,7 +399,6 @@ describe('NetworkSettings', () => {
             {
               networkClientId: 'mainnet',
               url: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
-              failoverUrls: [],
               type: RpcEndpointType.Custom,
             },
           ],
@@ -421,7 +448,6 @@ describe('NetworkSettings', () => {
           rpcEndpoints: [
             {
               url: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
-              failoverUrls: [],
               type: RpcEndpointType.Custom,
               name: 'Ethereum mainnet',
             },
@@ -535,7 +561,6 @@ describe('NetworkSettings', () => {
           rpcEndpoints: [
             {
               url: 'https://rinkeby.infura.io/v3/YOUR-PROJECT-ID',
-              failoverUrls: [],
               type: RpcEndpointType.Infura,
             },
           ],
@@ -629,62 +654,6 @@ describe('NetworkSettings', () => {
     instance.onChainIdBlur();
     expect(wrapper.state('isChainIdFieldFocused')).toBe(false);
   });
-
-  describe('getDecimalChainId', () => {
-    let wrapperTest;
-    // Do not need to mock entire Engine. Only need subset of data for testing purposes.
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let instanceTest: any;
-
-    beforeEach(() => {
-      wrapperTest = shallow(
-        <Provider store={store}>
-          <ThemeContext.Provider value={mockTheme}>
-            <NetworkSettings {...SAMPLE_NETWORKSETTINGS_PROPS} />
-          </ThemeContext.Provider>
-        </Provider>,
-      )
-        .find(NetworkSettings)
-        .dive();
-
-      instanceTest = wrapperTest.instance();
-    });
-
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('should return the chainId as is if it is falsy', () => {
-      expect(instanceTest.getDecimalChainId(null)).toBe(null);
-      expect(instanceTest.getDecimalChainId(undefined)).toBe(undefined);
-    });
-
-    it('should return the chainId as is if it is not a string', () => {
-      expect(instanceTest.getDecimalChainId(123)).toBe(123);
-    });
-
-    it('should return the chainId as is if it does not start with 0x', () => {
-      expect(instanceTest.getDecimalChainId('123')).toBe('123');
-      expect(instanceTest.getDecimalChainId('abc')).toBe('abc');
-    });
-
-    it('should convert hex chainId to decimal string', () => {
-      expect(instanceTest.getDecimalChainId('0x1')).toBe('1');
-      expect(instanceTest.getDecimalChainId('0xa')).toBe('10');
-      expect(instanceTest.getDecimalChainId('0x64')).toBe('100');
-      expect(instanceTest.getDecimalChainId('0x12c')).toBe('300');
-    });
-
-    it('should handle edge cases for hex chainId conversion', () => {
-      expect(instanceTest.getDecimalChainId('0x0')).toBe('0');
-      expect(instanceTest.getDecimalChainId('0xff')).toBe('255');
-      expect(instanceTest.getDecimalChainId('0x7fffffffffffffff')).toBe(
-        '9223372036854776000',
-      );
-    });
-  });
-
   describe('NetworkSettings additional tests', () => {
     beforeEach(() => {
       wrapper = shallow(
@@ -995,7 +964,6 @@ describe('NetworkSettings', () => {
         rpcUrls: [
           {
             url: 'http://localhost:8545',
-            failoverUrls: [],
             type: 'custom',
             name: 'test',
           },
@@ -1149,6 +1117,7 @@ describe('NetworkSettings', () => {
       // Call the function
       await instance.onRpcUrlChangeWithName(
         'https://example.com',
+        undefined,
         'Test Network',
         'Custom',
       );
@@ -1156,7 +1125,7 @@ describe('NetworkSettings', () => {
       // Assert that state was updated
       expect(wrapper.state('rpcUrl')).toBe('https://example.com');
       expect(wrapper.state('validatedRpcURL')).toBe(false);
-      expect(wrapper.state('rpcName')).toBe('Custom');
+      expect(wrapper.state('rpcName')).toBe('Test Network');
       expect(wrapper.state('warningRpcUrl')).toBeUndefined();
       expect(wrapper.state('warningChainId')).toBeUndefined();
       expect(wrapper.state('warningSymbol')).toBeUndefined();
@@ -1174,7 +1143,7 @@ describe('NetworkSettings', () => {
 
       await instance.onRpcUrlChangeWithName(
         'https://example.com',
-        [],
+        undefined,
         null,
         'Custom',
       );
@@ -1194,6 +1163,7 @@ describe('NetworkSettings', () => {
 
       await instance.onRpcUrlChangeWithName(
         'https://example.com',
+        undefined,
         'Test Network',
         'Custom',
       );
@@ -1227,7 +1197,6 @@ describe('NetworkSettings', () => {
                 networkClientId: 'mainnet',
                 type: 'Infura',
                 url: 'https://mainnet.infura.io/v3/',
-                failoverUrls: [],
               },
             ],
             name: 'Ethereum Main Network',
@@ -1305,7 +1274,6 @@ describe('NetworkSettings', () => {
             rpcEndpoints: [
               {
                 url: 'https://custom-network.io',
-                failoverUrls: [],
                 type: RpcEndpointType.Custom,
               },
             ],
@@ -1392,7 +1360,6 @@ describe('NetworkSettings', () => {
               networkClientId: 'mainnet',
               type: 'Infura',
               url: 'https://mainnet.infura.io/v3/',
-              failoverUrls: [],
             },
           ],
           name: 'Ethereum Main Network',
@@ -1421,7 +1388,6 @@ describe('NetworkSettings', () => {
         rpcUrls: [
           {
             url: 'http://localhost:8080',
-            failoverUrls: [],
             type: 'custom',
             name: '',
           },
@@ -1448,7 +1414,6 @@ describe('NetworkSettings', () => {
               name: '',
               type: 'custom',
               url: 'http://localhost:8080',
-              failoverUrls: [],
             },
           ],
         }),
@@ -1466,7 +1431,6 @@ describe('NetworkSettings', () => {
         rpcEndpoints: [
           {
             url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
-            failoverUrls: [],
           },
         ],
       },
@@ -1478,7 +1442,6 @@ describe('NetworkSettings', () => {
             type: 'custom',
             networkClientId: 'goerli',
             url: 'https://goerli.infura.io/v3/{infuraProjectId}',
-            failoverUrls: [],
           },
         ],
       },
@@ -1530,7 +1493,6 @@ describe('NetworkSettings', () => {
             type: 'custom',
             networkClientId: 'goerli',
             url: 'https://goerli.infura.io/v3/{infuraProjectId}',
-            failoverUrls: [],
           },
         ],
       };

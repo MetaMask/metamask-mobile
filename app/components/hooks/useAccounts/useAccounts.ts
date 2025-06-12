@@ -24,7 +24,7 @@ import {
   getFormattedAddressFromInternalAccount,
   isNonEvmAddress,
 } from '../../../core/Multichain/utils';
-import { useMultichainBalances } from '../useMultichainBalances';
+import { useMultichainBalancesForAllAccounts } from '../useMultichainBalances';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -40,11 +40,12 @@ const useAccounts = ({
   const [evmAccounts, setEVMAccounts] = useState<Account[]>([]);
   const [ensByAccountAddress, setENSByAccountAddress] =
     useState<EnsByAccountAddress>({});
-  const chainId = useSelector(selectChainId);
+  const currentChainId = useSelector(selectChainId);
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
-  const { multichainBalancesForAllAccounts } = useMultichainBalances();
+  const { multichainBalancesForAllAccounts } =
+    useMultichainBalancesForAllAccounts();
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
@@ -65,7 +66,8 @@ const useAccounts = ({
       // Ensure index exists in account list.
       let safeStartingIndex = startingIndex;
       let mirrorIndex = safeStartingIndex - 1;
-      let latestENSbyAccountAddress: EnsByAccountAddress = {};
+      const latestENSbyAccountAddress: EnsByAccountAddress = {};
+      let hasChanges = false;
 
       if (startingIndex < 0) {
         safeStartingIndex = 0;
@@ -78,13 +80,11 @@ const useAccounts = ({
         try {
           const ens: string | undefined = await doENSReverseLookup(
             address,
-            chainId,
+            currentChainId,
           );
           if (ens) {
-            latestENSbyAccountAddress = {
-              ...latestENSbyAccountAddress,
-              [address]: ens,
-            };
+            latestENSbyAccountAddress[address] = ens;
+            hasChanges = true;
           }
         } catch (e) {
           // ENS either doesn't exist or failed to fetch.
@@ -102,10 +102,16 @@ const useAccounts = ({
         }
         mirrorIndex--;
         safeStartingIndex++;
-        setENSByAccountAddress(latestENSbyAccountAddress);
+      }
+      // Only update state if we have new ENS names
+      if (hasChanges && isMountedRef.current) {
+        setENSByAccountAddress((prevState) => ({
+          ...prevState,
+          ...latestENSbyAccountAddress,
+        }));
       }
     },
-    [chainId],
+    [currentChainId],
   );
 
   // Memoize the balance calculation to prevent it from causing re-renders
@@ -115,6 +121,7 @@ const useAccounts = ({
       {
         displayBalance: string;
         balanceError: string | undefined;
+        isLoadingAccount: boolean;
       }
     > = {};
 
@@ -132,6 +139,7 @@ const useAccounts = ({
       balances[account.id] = {
         displayBalance,
         balanceError: typeof error === 'string' ? error : undefined,
+        isLoadingAccount: balanceForAccount.isLoadingAccount,
       };
     });
 
@@ -174,6 +182,10 @@ const useAccounts = ({
                 }
               : undefined,
           balanceError: accountBalance.balanceError,
+          // This only works for EOAs
+          caipAccountId: `${internalAccount.scopes[0]}:${internalAccount.address}`,
+          scopes: internalAccount.scopes,
+          isLoadingAccount: accountBalance.isLoadingAccount,
         };
         // Calculate height of the account item.
         yOffset += 78;

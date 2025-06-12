@@ -98,6 +98,8 @@ import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import { useSwitchNetworks } from './useSwitchNetworks';
+import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
+import { MetaMetrics } from '../../../core/Analytics';
 import { selectSendFlowContextualChainId } from '../../../selectors/transaction';
 
 interface infuraNetwork {
@@ -243,14 +245,17 @@ const NetworkSelector = () => {
         networkConfiguration.rpcEndpoints.length > 1,
     );
 
-  const openRpcModal = useCallback(({ chainId, networkName }) => {
-    setShowMultiRpcSelectModal({
-      isVisible: true,
-      chainId,
-      networkName,
-    });
-    rpcMenuSheetRef.current?.onOpenBottomSheet();
-  }, []);
+  const openRpcModal = useCallback(
+    ({ chainId, networkName }: { chainId: Hex; networkName: string }) => {
+      setShowMultiRpcSelectModal({
+        isVisible: true,
+        chainId,
+        networkName,
+      });
+      rpcMenuSheetRef.current?.onOpenBottomSheet();
+    },
+    [],
+  );
 
   const closeRpcModal = useCallback(() => {
     setShowMultiRpcSelectModal({
@@ -262,7 +267,12 @@ const NetworkSelector = () => {
   }, []);
 
   const openModal = useCallback(
-    (chainId, displayEdit, networkTypeOrRpcUrl, isReadOnly) => {
+    (
+      chainId: Hex,
+      displayEdit: boolean,
+      networkTypeOrRpcUrl: string,
+      isReadOnly: boolean,
+    ) => {
       setNetworkMenuModal({
         isVisible: true,
         chainId,
@@ -530,7 +540,6 @@ const NetworkSelector = () => {
 
       if (isNetworkUiRedesignEnabled() && isNoSearchResults(name)) return null;
 
-      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
       const image = getNetworkImageSource({ chainId: chainId?.toString() });
 
       if (isNetworkUiRedesignEnabled()) {
@@ -821,6 +830,10 @@ const NetworkSelector = () => {
       const { chainId } = showConfirmDeleteModal;
       const { NetworkController } = Engine.context;
       NetworkController.removeNetwork(chainId);
+
+      MetaMetrics.getInstance().addTraitsToUser(
+        removeItemFromChainIdList(chainId),
+      );
 
       // set tokenNetworkFilter
       if (isPortfolioViewEnabled()) {

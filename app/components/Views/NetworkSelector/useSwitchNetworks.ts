@@ -2,8 +2,8 @@ import { Dispatch, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 import {
-  isMultichainV1Enabled,
   getDecimalChainId,
+  isPerDappSelectedNetworkEnabled,
 } from '../../../util/networks';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import {
@@ -120,73 +120,8 @@ export function useSwitchNetworks({
   //   async (networkConfiguration: NetworkConfiguration) => {
   //     if (!networkConfiguration) return;
 
-  //     const { MultichainNetworkController, SelectedNetworkController } =
-  //       Engine.context;
-  //     const {
-  //       name: nickname,
-  //       chainId,
-  //       rpcEndpoints,
-  //       defaultRpcEndpointIndex,
-  //     } = networkConfiguration;
-
-  //     const networkConfigurationId =
-  //       rpcEndpoints[defaultRpcEndpointIndex].networkClientId;
-
-  //     if (domainIsConnectedDapp && isMultichainV1Enabled()) {
-  //       SelectedNetworkController.setNetworkClientIdForDomain(
-  //         origin,
-  //         networkConfigurationId,
-  //       );
-  //       dismissModal?.();
-  //     } else {
-  //       trace({
-  //         name: TraceName.SwitchCustomNetwork,
-  //         parentContext: parentSpan,
-  //         op: TraceOperation.SwitchCustomNetwork,
-  //       });
-  //       const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
-  //       try {
-  //         await MultichainNetworkController.setActiveNetwork(networkClientId);
-  //       } catch (error) {
-  //         Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
-  //       }
-  //     }
-
-  //     setTokenNetworkFilter(chainId);
-  //     if (!(domainIsConnectedDapp && isMultichainV1Enabled())) dismissModal?.();
-  //     endTrace({ name: TraceName.SwitchCustomNetwork });
-  //     endTrace({ name: TraceName.NetworkSwitch });
-  //     trackEvent(
-  //       createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
-  //         .addProperties({
-  //           chain_id: getDecimalChainId(chainId),
-  //           from_network: selectedNetworkName,
-  //           to_network: nickname,
-  //         })
-  //         .build(),
-  //     );
-  //   },
-  //   [
-  //     domainIsConnectedDapp,
-  //     origin,
-  //     setTokenNetworkFilter,
-  //     selectedNetworkName,
-  //     trackEvent,
-  //     createEventBuilder,
-  //     parentSpan,
-  //     dismissModal,
-  //   ],
-  // );
-
-  const onSetRpcTarget = async (networkConfiguration: NetworkConfiguration) => {
-    const { MultichainNetworkController, SelectedNetworkController } =
-      Engine.context;
-    trace({
-      name: TraceName.SwitchCustomNetwork,
-      parentContext: parentSpan,
-      op: TraceOperation.SwitchCustomNetwork,
-    });
-    if (networkConfiguration) {
+      const { MultichainNetworkController, SelectedNetworkController } =
+        Engine.context;
       const {
         name: nickname,
         chainId,
@@ -197,12 +132,12 @@ export function useSwitchNetworks({
       const networkConfigurationId =
         rpcEndpoints[defaultRpcEndpointIndex].networkClientId;
 
-      if (domainIsConnectedDapp && isMultichainV1Enabled()) {
+      if (domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()) {
         SelectedNetworkController.setNetworkClientIdForDomain(
           origin,
           networkConfigurationId,
         );
-        dismissModal?.();
+        isPerDappSelectedNetworkEnabled() && dismissModal?.();
       } else {
         const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
         try {
@@ -217,7 +152,7 @@ export function useSwitchNetworks({
       }
 
       setTokenNetworkFilter(chainId);
-      if (!(domainIsConnectedDapp && isMultichainV1Enabled())) dismissModal?.();
+      if (!(domainIsConnectedDapp && isPerDappSelectedNetworkEnabled())) dismissModal?.();
       endTrace({ name: TraceName.SwitchCustomNetwork });
       endTrace({ name: TraceName.NetworkSwitch });
       trackEvent(
@@ -315,13 +250,13 @@ export function useSwitchNetworks({
       SelectedNetworkController,
     } = Engine.context;
 
-    if (domainIsConnectedDapp && isMultichainV1Enabled()) {
-      SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
-      closeRpcModal?.();
-    } else {
-      const networkConfiguration =
-        networkConfigurations[BUILT_IN_NETWORKS[type].chainId];
-      if (source !== 'SendFlow') {
+      if (domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()) {
+        SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
+        isPerDappSelectedNetworkEnabled() && dismissModal?.();
+      } else {
+        const networkConfiguration =
+          networkConfigurations[BUILT_IN_NETWORKS[type].chainId];
+
         const clientId =
           networkConfiguration?.rpcEndpoints[
             networkConfiguration.defaultRpcEndpointIndex
@@ -335,8 +270,8 @@ export function useSwitchNetworks({
         );
       }
 
-      closeRpcModal?.();
-      AccountTrackerController.refresh();
+        closeRpcModal?.();
+        AccountTrackerController.refresh([clientId]);
 
       setTimeout(async () => {
         await updateIncomingTransactions();
@@ -345,19 +280,35 @@ export function useSwitchNetworks({
       }, 1000);
     }
 
-    dismissModal?.();
-    endTrace({ name: TraceName.SwitchBuiltInNetwork });
-    endTrace({ name: TraceName.NetworkSwitch });
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
-        .addProperties({
-          chain_id: getDecimalChainId(selectedChainId),
-          from_network: selectedNetworkName,
-          to_network: type,
-        })
-        .build(),
-    );
-  };
+      dismissModal?.();
+      endTrace({ name: TraceName.SwitchBuiltInNetwork });
+      endTrace({ name: TraceName.NetworkSwitch });
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
+          .addProperties({
+            chain_id: getDecimalChainId(selectedChainId),
+            from_network: selectedNetworkName,
+            to_network: type,
+          })
+          .build(),
+      );
+    },
+    [
+      domainIsConnectedDapp,
+      origin,
+      networkConfigurations,
+      setTokenNetworkFilter,
+      selectedChainId,
+      selectedNetworkName,
+      trackEvent,
+      createEventBuilder,
+      parentSpan,
+      dismissModal,
+      closeRpcModal,
+    ],
+  );
+
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   /**
    * Switches to a non-EVM network

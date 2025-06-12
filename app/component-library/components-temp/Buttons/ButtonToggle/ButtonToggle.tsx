@@ -7,6 +7,7 @@ import React from 'react';
 import { useStyles } from '../../../hooks';
 import Button from '../../../components/Buttons/Button/foundation/ButtonBase';
 import Text from '../../../components/Texts/Text/Text';
+import { ButtonSize } from '../../../components/Buttons/Button';
 
 // Internal dependencies.
 import { ButtonToggleProps } from './ButtonToggle.types';
@@ -20,12 +21,14 @@ import {
 const ButtonToggle = ({
   style,
   isActive = false,
+  size = ButtonSize.Md,
   label,
   ...props
 }: ButtonToggleProps) => {
   const { styles } = useStyles(styleSheet, {
     style,
     isActive,
+    size,
   });
 
   const getLabelColor = () =>

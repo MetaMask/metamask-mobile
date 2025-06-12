@@ -1,3 +1,4 @@
+import '../../_mocks_/initialState';
 import React from 'react';
 import { BridgeTransactionDetails } from './TransactionDetails';
 import {
@@ -7,10 +8,7 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
-import {
-  formatChainIdToCaip,
-  BridgeFeatureFlagsKey,
-} from '@metamask/bridge-controller';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
 import { BridgeState } from '../../../../../core/redux/slices/bridge';
@@ -102,9 +100,9 @@ describe('BridgeTransactionDetails', () => {
             },
           },
         },
-        BridgeController: {
-          bridgeFeatureFlags: {
-            [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            bridgeConfig: {
               chains: {
                 [formatChainIdToCaip(mockChainId)]: {
                   isActiveSrc: true,
@@ -117,6 +115,8 @@ describe('BridgeTransactionDetails', () => {
               },
             },
           },
+        },
+        BridgeController: {
           quoteRequest: {
             slippage: 0.5,
           },
@@ -403,7 +403,9 @@ describe('BridgeTransactionDetails', () => {
 
   it('renders without crashing', () => {
     const { getByText } = renderScreen(
-      () => <BridgeTransactionDetails route={{ params: { evmTxMeta: mockTx } }} />,
+      () => (
+        <BridgeTransactionDetails route={{ params: { evmTxMeta: mockTx } }} />
+      ),
       {
         name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
       },
@@ -414,7 +416,9 @@ describe('BridgeTransactionDetails', () => {
 
   it('displays source and destination token information', () => {
     const { getByText } = renderScreen(
-      () => <BridgeTransactionDetails route={{ params: { evmTxMeta: mockTx } }} />,
+      () => (
+        <BridgeTransactionDetails route={{ params: { evmTxMeta: mockTx } }} />
+      ),
       {
         name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
       },
@@ -426,7 +430,9 @@ describe('BridgeTransactionDetails', () => {
 
   it('displays submission date', () => {
     const { getByText } = renderScreen(
-      () => <BridgeTransactionDetails route={{ params: { evmTxMeta: mockTx } }} />,
+      () => (
+        <BridgeTransactionDetails route={{ params: { evmTxMeta: mockTx } }} />
+      ),
       {
         name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
       },
@@ -437,7 +443,9 @@ describe('BridgeTransactionDetails', () => {
 
   it('shows total gas fee', () => {
     const { getByText } = renderScreen(
-      () => <BridgeTransactionDetails route={{ params: { evmTxMeta: mockTx } }} />,
+      () => (
+        <BridgeTransactionDetails route={{ params: { evmTxMeta: mockTx } }} />
+      ),
       {
         name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
       },
@@ -448,7 +456,9 @@ describe('BridgeTransactionDetails', () => {
 
   it('displays block explorer button', () => {
     const { getByText } = renderScreen(
-      () => <BridgeTransactionDetails route={{ params: { evmTxMeta: mockTx } }} />,
+      () => (
+        <BridgeTransactionDetails route={{ params: { evmTxMeta: mockTx } }} />
+      ),
       {
         name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
       },

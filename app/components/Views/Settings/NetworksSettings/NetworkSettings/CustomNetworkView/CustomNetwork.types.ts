@@ -1,5 +1,22 @@
+import { ImageSourcePropType } from 'react-native';
 import { TabBarProps } from 'react-native-scrollable-tab-view';
-import { Network } from '../../../../../../util/networks/customNetworks';
+
+export interface Network {
+  chainId: string;
+  nickname: string;
+  rpcPrefs: {
+    blockExplorerUrl: string;
+    imageSource?: ImageSourcePropType;
+    imageUrl?: string;
+  };
+  rpcUrl: string;
+  failoverRpcUrls?: string[];
+  ticker: string;
+  /**
+   * Not supported by Infura
+   */
+  warning?: boolean;
+}
 
 export interface ExtendedNetwork extends Network {
   name?: string;

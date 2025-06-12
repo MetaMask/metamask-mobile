@@ -32,6 +32,7 @@ import {
 import ApproveTransactionHeader from '../../Views/confirmations/legacy/components/ApproveTransactionHeader';
 import Identicon from '../Identicon';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
+import { selectSignatureRequests } from '../../../selectors/signatureController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -136,6 +137,7 @@ class AccountInfoCard extends PureComponent {
     ticker: PropTypes.string,
     transaction: PropTypes.object,
     origin: PropTypes.string,
+    signatureRequests: PropTypes.object,
   };
 
   render() {
@@ -150,8 +152,10 @@ class AccountInfoCard extends PureComponent {
       fromAddress: rawFromAddress,
       transaction,
       origin,
+      signatureRequests,
     } = this.props;
 
+    const signatureRequest = Object.values(signatureRequests || {})?.[0];
     const fromAddress = safeToChecksumAddress(rawFromAddress);
     const accountLabelTag = getLabelTextByAddress(fromAddress);
     const colors = this.context.colors || mockTheme.colors;
@@ -184,6 +188,7 @@ class AccountInfoCard extends PureComponent {
 
     return operation === 'signing' && transaction !== undefined ? (
       <ApproveTransactionHeader
+        chainId={transaction?.chainId ?? signatureRequest?.chainId}
         origin={actualOriginUrl}
         url={actualOriginUrl}
         from={rawFromAddress}
@@ -250,6 +255,7 @@ const mapStateToProps = (state) => ({
   ticker: selectEvmTicker(state),
   transaction: getNormalizedTxState(state),
   activeTabUrl: getActiveTabUrl(state),
+  signatureRequests: selectSignatureRequests(state),
 });
 
 AccountInfoCard.contextType = ThemeContext;

@@ -1,3 +1,4 @@
+import '../../UI/Bridge/_mocks_/initialState';
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { zeroAddress } from 'ethereumjs-util';
@@ -9,7 +10,7 @@ import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
 } from '../../../util/test/accountsControllerTestUtils';
-import { createBuyNavigationDetails } from '../Ramp/routes/utils';
+import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import { getDecimalChainId } from '../../../util/networks';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 // eslint-disable-next-line import/no-namespace
@@ -73,8 +74,8 @@ const mockInitialState = {
           logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
           name: 'Ethereum',
           symbol: 'ETH',
-          price: {}
-        }
+          price: {},
+        },
       ],
     },
   },
@@ -129,12 +130,14 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-const mockAddPopularNetwork = jest.fn().mockImplementation(() => Promise.resolve());
+const mockAddPopularNetwork = jest
+  .fn()
+  .mockImplementation(() => Promise.resolve());
 jest.mock('../../../components/hooks/useAddNetwork', () => ({
   useAddNetwork: jest.fn().mockImplementation(() => ({
-      addPopularNetwork: mockAddPopularNetwork,
-      networkModal: null,
-    }))
+    addPopularNetwork: mockAddPopularNetwork,
+    networkModal: null,
+  })),
 }));
 
 const asset = {
@@ -437,6 +440,7 @@ describe('AssetOverview', () => {
       <AssetOverview
         asset={{
           ...asset,
+          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
           chainId: SolScope.Mainnet,
           isNative: true,
         }}
@@ -454,6 +458,13 @@ describe('AssetOverview', () => {
               ...mockInitialState.engine.backgroundState,
               MultichainNetworkController: {
                 selectedMultichainNetworkChainId: SolScope.Mainnet,
+              },
+              MultichainAssetsRatesController: {
+                conversionRates: {
+                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
+                    rate: '151.23',
+                  },
+                },
               },
             },
           },
@@ -488,12 +499,15 @@ describe('AssetOverview', () => {
         destinationToken: assetFromSearch.address,
         sourcePage: 'MainView',
         chainId: assetFromSearch.chainId,
-      }
+      },
     });
   });
 
   it('should prompt to add the network if coming from search and on a different chain', async () => {
-    (Engine.context.NetworkController.getNetworkConfigurationByChainId as jest.Mock).mockReturnValueOnce(null);
+    (
+      Engine.context.NetworkController
+        .getNetworkConfigurationByChainId as jest.Mock
+    ).mockReturnValueOnce(null);
     const differentChainAssetFromSearch = {
       ...assetFromSearch,
       chainId: '0xa',
@@ -525,7 +539,7 @@ describe('AssetOverview', () => {
     });
 
     afterEach(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
 
     it('should switch networks before sending when on different chain', async () => {

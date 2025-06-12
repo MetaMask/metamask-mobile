@@ -17,6 +17,7 @@ import {
   isENS,
   isValidHexAddress,
   validateAddressOrENS,
+  areAddressesEqual,
 } from '../../../../../../util/address';
 import { getEther, getTicker } from '../../../../../../util/transactions';
 import {
@@ -53,15 +54,14 @@ import {
   selectSelectedInternalAccountFormattedAddress,
 } from '../../../../../../selectors/accountsController';
 import AddToAddressBookWrapper from '../../../../../UI/AddToAddressBookWrapper';
-import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/utils';
-import { createBuyNavigationDetails } from '../../../../../UI/Ramp/routes/utils';
+import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
+import { createBuyNavigationDetails } from '../../../../../UI/Ramp/Aggregator/routes/utils';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
 import SendFlowAddressFrom from '../AddressFrom';
 import SendFlowAddressTo from '../AddressTo';
 import { includes } from 'lodash';
 import { SendViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/SendView.selectors';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
-import { toLowerCaseEquals } from '../../../../../../util/general';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
 import { selectSendFlowContextualChainId } from '../../../../../../selectors/transaction';
 import { setTransactionSendFlowContextualChainId } from '../../../../../../actions/transaction';
@@ -250,11 +250,11 @@ class SendFlow extends PureComponent {
     const { toAccount } = this.state;
     const { addressBook, globalChainId, internalAccounts } = this.props;
     const networkAddressBook = addressBook[globalChainId] || {};
-    const checksummedAddress = toChecksumAddress(toAccount);
+    const checksummedAddress = this.safeChecksumAddress(toAccount);
     return !!(
       networkAddressBook[checksummedAddress] ||
       internalAccounts.find((account) =>
-        toLowerCaseEquals(account.address, checksummedAddress),
+        areAddressesEqual(account.address, checksummedAddress),
       )
     );
   };
@@ -407,9 +407,9 @@ class SendFlow extends PureComponent {
 
     const networkAddressBook = addressBook[globalChainId] || {};
 
-    const checksummedAddress = toChecksumAddress(toAccount);
+    const checksummedAddress = this.safeChecksumAddress(toAccount);
     const matchingAccount = internalAccounts.find((account) =>
-      toLowerCaseEquals(account.address, checksummedAddress),
+      areAddressesEqual(account.address, checksummedAddress),
     );
 
     return networkAddressBook[checksummedAddress]
@@ -507,6 +507,14 @@ class SendFlow extends PureComponent {
     this.setState({ showAmbiguousAcountWarning: false });
   };
 
+  safeChecksumAddress = (address) => {
+    try {
+      return toChecksumAddress(address);
+    } catch (error) {
+      return address;
+    }
+  };
+
   render = () => {
     const { ticker, addressBook, globalChainId } = this.props;
     const {
@@ -525,7 +533,7 @@ class SendFlow extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const checksummedAddress = toAccount && toChecksumAddress(toAccount);
+    const checksummedAddress = this.safeChecksumAddress(toAccount);
     const existingAddressName = this.getAddressNameFromBookOrInternalAccounts(
       toEnsAddressResolved || toAccount,
     );

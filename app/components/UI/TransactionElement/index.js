@@ -22,14 +22,17 @@ import { TRANSACTION_TYPES } from '../../../util/transactions';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
-import { isTestNet } from '../../../util/networks';
+import { isTestNet, isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import { weiHexToGweiDec } from '@metamask/controller-utils';
 import {
   WalletDevice,
   isEIP1559Transaction,
 } from '@metamask/transaction-controller';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { selectTickerByChainId } from '../../../selectors/networkController';
+import {
+  selectTickerByChainId,
+  selectEvmNetworkConfigurationsByChainId,
+} from '../../../selectors/networkController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectPrimaryCurrency } from '../../../selectors/settings';
 import { selectSwapsTransactions } from '../../../selectors/transactionController';
@@ -187,10 +190,12 @@ class TransactionElement extends PureComponent {
      * Chain Id
      */
     txChainId: PropTypes.string,
-    /**
+     /**
      * Network configurations by chain id
      */
-    networkConfigurationsByChainId: PropTypes.object,
+     // adding a disable rule since this prop is part of a prop spread <TransactionElement {...props} but ts lint cant see that
+     // eslint-disable-next-line react/no-unused-prop-types
+     networkConfigurationsByChainId: PropTypes.object,
     /**
      * Navigation object for routing
      */
@@ -693,6 +698,7 @@ class TransactionElement extends PureComponent {
 }
 
 const mapStateToProps = (state, ownProps) => ({
+  networkConfigurationsByChainId: isPerDappSelectedNetworkEnabled() ? undefined : selectEvmNetworkConfigurationsByChainId(state),
   selectedInternalAccount: selectSelectedInternalAccount(state),
   primaryCurrency: selectPrimaryCurrency(state),
   swapsTransactions: selectSwapsTransactions(state),

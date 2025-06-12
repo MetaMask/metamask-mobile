@@ -112,9 +112,21 @@ const createStyles = (colors: Colors) =>
     assetName: {
       flexDirection: 'row',
     },
-    stakeButton: {
+    percentageChange: {
       flexDirection: 'row',
       alignItems: 'center',
+      alignContent: 'center',
+    },
+    stakeButton: {
+      flexDirection: 'row',
+    },
+    dot: {
+      marginLeft: 2,
+      marginRight: 2,
+    },
+    sprout: {
+      marginTop: 3,
+      marginLeft: 2,
     },
     portfolioBalance: {
       flexDirection: 'row',
@@ -186,6 +198,7 @@ const createStyles = (colors: Colors) =>
       marginLeft: 5,
       marginRight: 5,
       maxWidth: '60%',
+      borderRadius: 20,
     },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
@@ -196,6 +209,7 @@ const createStyles = (colors: Colors) =>
       marginRight: 5,
       maxWidth: '60%',
       opacity: 0.5,
+      borderRadius: 20,
     },
     controlButtonText: {
       color: colors.text.default,

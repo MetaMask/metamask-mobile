@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useAccounts } from '../../../../hooks/useAccounts';
-import AccountSelectorList from '../../../AccountSelectorList';
+import EvmAccountSelectorList from '../../../EvmAccountSelectorList';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import {
@@ -70,8 +70,7 @@ const DestinationAccountSelector = () => {
   const filteredAccounts = useMemo(() => {
     if (isEvmToSolana) {
       return accounts.filter((account) => isSolanaAddress(account.address));
-    }
-    if (isSolanaToEvm) {
+    } else if (isSolanaToEvm) {
       return accounts.filter((account) => !isSolanaAddress(account.address));
     }
     return []; // No addresses to pick if EVM <> EVM, or Solana <> Solana, will go to current account
@@ -89,15 +88,30 @@ const DestinationAccountSelector = () => {
   }, [handleSelectAccount]);
 
   useEffect(() => {
+    if (filteredAccounts.length === 0) {
+      return;
+    }
+
+    // Allow undefined so user can pick an account
+    const doesDestAddrMatchNetworkType =
+      !destAddress ||
+      ((isSolanaToEvm && !isSolanaAddress(destAddress)) ||
+        (isEvmToSolana && isSolanaAddress(destAddress)));
+
     if (
-      !hasInitialized.current &&
-      filteredAccounts.length > 0 &&
-      !destAddress
+      (!hasInitialized.current && !destAddress) ||
+      !doesDestAddrMatchNetworkType
     ) {
       handleSelectAccount(filteredAccounts[0].address);
       hasInitialized.current = true;
     }
-  }, [filteredAccounts, destAddress, handleSelectAccount]);
+  }, [
+    filteredAccounts,
+    destAddress,
+    handleSelectAccount,
+    isEvmToSolana,
+    isSolanaToEvm,
+  ]);
 
   return (
     <Box style={styles.container}>
@@ -126,7 +140,7 @@ const DestinationAccountSelector = () => {
         </View>
       ) : (
         <Box>
-          <AccountSelectorList
+          <EvmAccountSelectorList
             accounts={filteredAccounts}
             onSelectAccount={handleSelectAccount}
             ensByAccountAddress={ensByAccountAddress}

@@ -81,6 +81,7 @@ exports[`PaymentRequest renders correctly 1`] = `
         >
           <Text
             allowFontScaling={false}
+            selectable={false}
             style={
               [
                 {
@@ -101,7 +102,7 @@ exports[`PaymentRequest renders correctly 1`] = `
               ]
             }
           >
-            
+            
           </Text>
           <TextInput
             autoCapitalize="none"
@@ -167,7 +168,7 @@ exports[`PaymentRequest renders correctly 1`] = `
                 [
                   [
                     {
-                      "borderRadius": 100,
+                      "borderRadius": 12,
                       "justifyContent": "center",
                       "padding": 15,
                     },
@@ -316,7 +317,7 @@ exports[`PaymentRequest renders correctly 1`] = `
                 [
                   [
                     {
-                      "borderRadius": 100,
+                      "borderRadius": 12,
                       "justifyContent": "center",
                       "padding": 15,
                     },

@@ -18,7 +18,8 @@ import {
 } from '../../../util/address';
 import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import stylesheet from './AddressFrom.styles';
-import { selectInternalAccounts } from '../../../selectors/accountsController';
+import { selectInternalEvmAccounts } from '../../../selectors/accountsController';
+import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { getNetworkImageSource } from '../../../util/networks';
 
@@ -63,20 +64,27 @@ const AddressFrom = ({
     chainId ? selectNetworkConfigurationByChainId(state, toHex(chainId)) : null,
   );
 
-  const internalAccounts = useSelector(selectInternalAccounts);
+  const internalAccounts = useSelector(selectInternalEvmAccounts);
   const activeAddress = toChecksumAddress(from);
 
-  let { networkName, networkImageSource } = useNetworkInfo(origin);
+  let perDappNetworkName, perDappNetworkImageSource;
+  if(origin) {
+    const perDappNetworkInfo = useNetworkInfo(origin);
+    perDappNetworkName = perDappNetworkInfo.networkName;
+    perDappNetworkImageSource = perDappNetworkInfo.networkImageSource;
+  }
+
+  let sendFlowNetworkName, sendFlowNetworkImageSource;
 
   if (networkConfiguration) {
-    networkName = networkConfiguration.name;
+    sendFlowNetworkName = networkConfiguration.name;
   }
 
   if (chainId) {
     // @ts-expect-error The utils/network file is still JS and this function expects a networkType, which should be optional
-    const chainImage = getNetworkImageSource({ chainId: toHex(chainId) });
-    if (chainImage) {
-      networkImageSource = chainImage;
+    const sendFlowChainImage = getNetworkImageSource({ chainId: toHex(chainId) });
+    if (sendFlowChainImage) {
+      sendFlowNetworkImageSource = sendFlowChainImage;
     }
   }
 
@@ -97,7 +105,13 @@ const AddressFrom = ({
     }
   }, [accountsByChainId, internalAccounts, activeAddress, origin]);
 
-  // const networkImage = useSelector(selectNetworkImageSource);
+  const displayNetworkName = origin 
+    ? perDappNetworkName 
+    : sendFlowNetworkName;
+  
+  const displayNetworkImage = origin 
+    ? perDappNetworkImageSource
+    : sendFlowNetworkImageSource;
 
   const accountTypeLabel = getLabelTextByAddress(activeAddress);
 
@@ -114,11 +128,11 @@ const AddressFrom = ({
         accountName={accountName}
         accountBalanceLabel={strings('transaction.balance')}
         accountTypeLabel={accountTypeLabel as string}
-        accountNetwork={networkName}
+        accountNetwork={displayNetworkName}
         badgeProps={{
           variant: BadgeVariant.Network,
-          name: networkName,
-          imageSource: networkImageSource,
+          name: displayNetworkName,
+          imageSource: displayNetworkImage,
         }}
         useBlockieIcon={useBlockieIcon}
       />

@@ -24,7 +24,7 @@ import {
 } from '../../../reducers/collectibles';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import AppConstants from '../../../core/AppConstants';
-import { toLowerCaseEquals } from '../../../util/general';
+import { areAddressesEqual } from '../../../util/address';
 import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import { useTheme } from '../../../util/theme';
@@ -34,10 +34,12 @@ import {
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectProviderType,
+  selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import {
   selectDisplayNftMedia,
   selectIsIpfsGatewayEnabled,
+  selectTokenNetworkFilter,
   selectUseNftDetection,
 } from '../../../selectors/preferencesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
@@ -96,6 +98,7 @@ const createStyles = (colors) =>
       marginRight: 5,
       maxWidth: '60%',
       opacity: 0.5,
+      borderRadius: 20,
     },
     controlButton: {
       backgroundColor: colors.background.default,
@@ -105,6 +108,7 @@ const createStyles = (colors) =>
       marginLeft: 5,
       marginRight: 5,
       maxWidth: '60%',
+      borderRadius: 20,
     },
     emptyView: {
       justifyContent: 'center',
@@ -168,6 +172,22 @@ const CollectibleContracts = ({
   displayNftMedia,
 }) => {
   const isAllNetworks = useSelector(selectIsAllNetworks);
+  const allNetworks = useSelector(selectNetworkConfigurations);
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+
+  const allNetworkClientIds = useMemo(
+    () =>
+      Object.keys(tokenNetworkFilter).flatMap((chainId) => {
+        const entry = allNetworks[chainId];
+        if (!entry) {
+          return [];
+        }
+        const index = entry.defaultRpcEndpointIndex;
+        const endpoint = entry.rpcEndpoints[index];
+        return endpoint?.networkClientId ? [endpoint.networkClientId] : [];
+      }),
+    [tokenNetworkFilter, allNetworks],
+  );
 
   const filteredCollectibleContracts = useMemo(
     () =>
@@ -337,7 +357,7 @@ const CollectibleContracts = ({
   const renderCollectibleContract = useCallback(
     (item, index) => {
       const contractCollectibles = collectibles?.filter((collectible) =>
-        toLowerCaseEquals(collectible.address, item.address),
+        areAddressesEqual(collectible.address, item.address),
       );
       return (
         <CollectibleContractElement
@@ -400,8 +420,13 @@ const CollectibleContracts = ({
 
       const actions = [
         NftDetectionController.detectNfts(chainIdsToDetectNftsFor),
-        NftController.checkAndUpdateAllNftsOwnershipStatus(),
       ];
+      allNetworkClientIds.forEach((networkClientId) => {
+        actions.push(
+          NftController.checkAndUpdateAllNftsOwnershipStatus(networkClientId),
+        );
+      });
+
       await Promise.allSettled(actions);
       setRefreshing(false);
 
@@ -429,6 +454,7 @@ const CollectibleContracts = ({
     getNftDetectionAnalyticsParams,
     selectedAddress,
     trackEvent,
+    allNetworkClientIds,
   ]);
 
   const goToLearnMore = useCallback(
@@ -515,9 +541,7 @@ const CollectibleContracts = ({
             label={
               <Text style={styles.controlButtonText} numberOfLines={1}>
                 {isAllNetworks && isPopularNetwork && isEvmSelected
-                  ? `${strings('app_settings.popular')} ${strings(
-                      'app_settings.networks',
-                    )}`
+                  ? strings('wallet.popular_networks')
                   : networkName ?? strings('wallet.current_network')}
               </Text>
             }

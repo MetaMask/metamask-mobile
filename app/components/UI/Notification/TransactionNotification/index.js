@@ -25,6 +25,7 @@ import { collectibleContractsSelector } from '../../../../reducers/collectibles'
 import { useTheme } from '../../../../util/theme';
 import {
   selectChainId,
+  selectEvmTicker,
   selectTickerByChainId,
 } from '../../../../selectors/networkController';
 import {
@@ -36,6 +37,7 @@ import { selectContractExchangeRates } from '../../../../selectors/tokenRatesCon
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { speedUpTransaction } from '../../../../util/transaction-controller';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { isPerDappSelectedNetworkEnabled } from '../../../../util/networks';
 import { selectCurrentTransactionMetadata } from '../../../../selectors/confirmTransaction';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
@@ -321,7 +323,7 @@ function TransactionNotification(props) {
                 </Text>
                 <Ionicons
                   onPress={onCloseDetails}
-                  name={'ios-close'}
+                  name={'close'}
                   size={38}
                   style={styles.closeIcon}
                 />
@@ -452,11 +454,13 @@ const mapStateToProps = (state, ownProps) => {
   const tx = TransactionController.transactions.find(
     ({ id }) => id === ownProps?.currentNotification.transaction.id,
   );
+
+  const ticker = isPerDappSelectedNetworkEnabled() ? selectTickerByChainId(state, tx?.chainId) : selectEvmTicker(state);
   return {
     accounts: selectAccounts(state),
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
     transactions: TransactionController.transactions,
-    ticker: selectTickerByChainId(state, tx.chainId),
+    ticker,
     chainId,
     tokens: selectTokensByAddress(state),
     collectibleContracts: collectibleContractsSelector(state),

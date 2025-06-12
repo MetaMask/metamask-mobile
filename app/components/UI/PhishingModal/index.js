@@ -16,7 +16,10 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { ETHEREUM_DETECTION_TITLE } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/ExternalWebsites.testIds';
 import Button from '../../../component-library/components/Buttons/Button/Button';
-import { ButtonVariants, ButtonWidthTypes } from '../../../component-library/components/Buttons/Button/Button.types';
+import {
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button/Button.types';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -118,9 +121,12 @@ export default class PhishingModal extends PureComponent {
   };
 
   shareToTwitter = () => {
-    const tweetText = 'MetaMask just protected me from a phishing attack! Remember to always stay vigilant when clicking on links. Learn more at https://metamask.io';
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
-    Linking.canOpenURL(twitterUrl).then(supported => {
+    const tweetText =
+      'MetaMask just protected me from a phishing attack! Remember to always stay vigilant when clicking on links. Learn more at https://metamask.io';
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+      tweetText,
+    )}`;
+    Linking.canOpenURL(twitterUrl).then((supported) => {
       if (supported) {
         Linking.openURL(twitterUrl);
       }
@@ -148,21 +154,29 @@ export default class PhishingModal extends PureComponent {
           {strings('phishing.metamask_flagged_site')}
         </Text>
         <Text style={styles.phishingText}>
-          {strings('phishing.you_may_proceed_anyway')} <Text style={styles.link} onPress={this.props.continueToPhishingSite}>{strings('phishing.proceed_anyway')}</Text>, {strings('phishing.but_please_do_so_at_your_own_risk')}
+          {strings('phishing.you_may_proceed_anyway')}{' '}
+          <Text style={styles.link} onPress={this.props.continueToPhishingSite}>
+            {strings('phishing.proceed_anyway')}
+          </Text>
+          , {strings('phishing.but_please_do_so_at_your_own_risk')}
         </Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.buttonContainer}
           onPress={this.props.goToFilePhishingIssue}
         >
           <Icon name="flag" size={16} style={styles.buttonIcon} />
-          <Text style={styles.buttonText}>{strings('phishing.report_detection_problem')}</Text>
+          <Text style={styles.buttonText}>
+            {strings('phishing.report_detection_problem')}
+          </Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.buttonContainer}
           onPress={this.shareToTwitter}
         >
           <Icon name="twitter" size={16} style={styles.buttonIcon} />
-          <Text style={styles.buttonText}>{strings('phishing.share_on_twitter')}</Text>
+          <Text style={styles.buttonText}>
+            {strings('phishing.share_on_twitter')}
+          </Text>
         </TouchableOpacity>
         <Button
           variant={ButtonVariants.Primary}

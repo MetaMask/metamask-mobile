@@ -1,4 +1,3 @@
-import { Json, hasProperty, isObject } from '@metamask/utils';
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { getFeatureFlagValue } from '../env';
@@ -9,50 +8,81 @@ export type ConfirmationRedesignRemoteFlags = {
   signatures: boolean;
   staking_confirmations: boolean;
   contract_interaction: boolean;
-}
+  transfer: boolean;
+};
 
-const isRemoteFeatureFlagValuesValid = (
-  obj: Json
-): obj is ConfirmationRedesignRemoteFlags =>
-  isObject(obj) &&
-  hasProperty(obj, 'signatures') &&
-  hasProperty(obj, 'staking_confirmations') &&
-  hasProperty(obj, 'contract_interaction');
+/**
+ * Determines the enabled state of confirmation redesign features by combining
+ * local environment variables with remote feature flags.
+ *
+ * Remote feature flags act as a "kill switch" - when no local environment variable
+ * is set, the remote flag value takes precedence. If a remote flag is explicitly
+ * set to `false`, it can disable the feature remotely.
+ *
+ * ## Adding New Confirmation Flag
+ *
+ * **During Development:**
+ * Use a local environment variable with a default fallback:
+ * ```
+ * const isNewConfirmationTypeEnabled = getFeatureFlagValue(
+ *   process.env.FEATURE_FLAG_REDESIGNED_NEW_CONFIRMATION_TYPE,
+ *   false,
+ * );
+ * ```
+ *
+ * **After Development (On Release):**
+ * Replace the fallback with the remote kill switch:
+ * ```
+ * const isNewConfirmationTypeEnabled = getFeatureFlagValue(
+ *   process.env.FEATURE_FLAG_REDESIGNED_NEW_CONFIRMATION_TYPE,
+ *   remoteValues?.new_confirmation_type !== false,
+ * );
+ * ```
+ * 
+ * **After Validation In Production For Certain Time(When old code is decided to be removed):**
+ * Remove the both local environment variable and remote flag as kill switch is non-functional.
+ * ```
+ * const isNewConfirmationTypeEnabled = true;
+ * ```
+ *
+ * @param remoteFeatureFlags - The remote feature flags object containing confirmation_redesign settings
+ * @returns An object with boolean flags for each confirmation redesign feature
+ */
+export const selectConfirmationRedesignFlagsFromRemoteFeatureFlags = (
+  remoteFeatureFlags: ReturnType<typeof selectRemoteFeatureFlags>,
+): ConfirmationRedesignRemoteFlags => {
+  const remoteValues =
+    remoteFeatureFlags.confirmation_redesign as ConfirmationRedesignRemoteFlags;
 
-const confirmationRedesignFlagsDefaultValues: ConfirmationRedesignRemoteFlags = {
-  signatures: true,
-  staking_confirmations: false,
-  contract_interaction: false,
-}
+  const isSignaturesEnabled = getFeatureFlagValue(
+    process.env.FEATURE_FLAG_REDESIGNED_SIGNATURES,
+    remoteValues?.signatures !== false,
+  );
+
+  const isStakingConfirmationsEnabled = getFeatureFlagValue(
+    process.env.FEATURE_FLAG_REDESIGNED_STAKING_TRANSACTIONS,
+    remoteValues?.staking_confirmations !== false,
+  );
+
+  const isContractInteractionEnabled = getFeatureFlagValue(
+    process.env.FEATURE_FLAG_REDESIGNED_CONTRACT_INTERACTION,
+    remoteValues?.contract_interaction !== false,
+  );
+
+  const isTransferEnabled = getFeatureFlagValue(
+    process.env.FEATURE_FLAG_REDESIGNED_TRANSFER,
+    remoteValues?.transfer !== false,
+  );
+
+  return {
+    signatures: isSignaturesEnabled,
+    staking_confirmations: isStakingConfirmationsEnabled,
+    contract_interaction: isContractInteractionEnabled,
+    transfer: isTransferEnabled,
+  };
+};
 
 export const selectConfirmationRedesignFlags = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-  const remoteValues = remoteFeatureFlags.confirmation_redesign;
-
-  const confirmationRedesignFlags = isRemoteFeatureFlagValuesValid(remoteValues) ?
-    remoteValues :
-    confirmationRedesignFlagsDefaultValues;
-
-    const isSignaturesEnabled = getFeatureFlagValue(
-      process.env.FEATURE_FLAG_REDESIGNED_SIGNATURES,
-      confirmationRedesignFlags.signatures,
-    );
-
-    const isStakingConfirmationsEnabled = getFeatureFlagValue(
-      process.env.FEATURE_FLAG_REDESIGNED_STAKING_TRANSACTIONS,
-      confirmationRedesignFlags.staking_confirmations,
-    );
-
-    const isContractInteractionEnabled = getFeatureFlagValue(
-      process.env.FEATURE_FLAG_REDESIGNED_CONTRACT_INTERACTION,
-      confirmationRedesignFlags.contract_interaction,
-    )
-
-    return {
-      signatures: isSignaturesEnabled,
-      staking_confirmations: isStakingConfirmationsEnabled,
-      contract_interaction: isContractInteractionEnabled,
-    };
-  },
+  selectConfirmationRedesignFlagsFromRemoteFeatureFlags,
 );

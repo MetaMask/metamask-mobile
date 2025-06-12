@@ -5,7 +5,7 @@ import renderWithProvider, {
 import AccountConnect from './AccountConnect';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector/AccountConnectMultiSelector';
 import Engine from '../../../core/Engine';
 import {
@@ -13,6 +13,42 @@ import {
   MOCK_ADDRESS_1 as mockAddress1,
   MOCK_ADDRESS_2 as mockAddress2,
 } from '../../../util/test/accountsControllerTestUtils';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+  Caip25CaveatValue,
+} from '@metamask/chain-agnostic-permission';
+import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
+import { AccountConnectSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountConnect.selectors';
+import { AddNewAccountIds } from '../../../../e2e/selectors/MultiSRP/AddHdAccount.selectors';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import { SolScope } from '@metamask/keyring-api';
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerStateUtil([
+  mockAddress1,
+  mockAddress2,
+]);
+const mockKeyringId = '01JNG71B7GTWH0J1TSJY9891S0';
+
+// Helper function to create properly typed CAIP-25 permissions
+const createMockCaip25Permission = (
+  optionalScopes: Record<string, { accounts: string[] }>,
+) => ({
+  [Caip25EndowmentPermissionName]: {
+    parentCapability: Caip25EndowmentPermissionName,
+    caveats: [
+      {
+        type: Caip25CaveatType,
+        value: {
+          requiredScopes: {},
+          optionalScopes,
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      },
+    ] as [{ type: string; value: Caip25CaveatValue }],
+  },
+});
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
@@ -22,6 +58,9 @@ const mockCreateEventBuilder = jest.fn().mockReturnValue({
     build: jest.fn(),
   }),
 });
+const mockGetNextAvailableAccountName = jest
+  .fn()
+  .mockReturnValue('Snap Account 1');
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -33,6 +72,14 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('react-native-scrollable-tab-view', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  DefaultTabBar: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+}));
 
 jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
@@ -65,6 +112,9 @@ jest.mock('../../../core/Engine', () => {
     [MOCK_ADDRESS_1, MOCK_ADDRESS_2],
     MOCK_ADDRESS_1,
   );
+  // Ignore no shadowing warning for mocks.
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
 
   return {
     context: {
@@ -74,12 +124,34 @@ jest.mock('../../../core/Engine', () => {
           if (url === 'phishing.com') return { result: true };
           return { result: false };
         }),
+        scanUrl: jest.fn(async (url: string) => {
+          if (url === 'https://phishing.com') {
+            return { recommendedAction: 'BLOCK' };
+          }
+          return { recommendedAction: 'NONE' };
+        }),
       },
       PermissionController: {
         rejectPermissionsRequest: jest.fn(),
       },
       AccountsController: {
         state: mockAccountsState,
+        getAccountByAddress: jest.fn(),
+        getNextAvailableAccountName: () => mockGetNextAvailableAccountName(),
+      },
+      KeyringController: {
+        state: {
+          keyrings: [
+            {
+              type: KeyringTypes.hd,
+              accounts: [MOCK_ADDRESS_1, MOCK_ADDRESS_2],
+              metadata: {
+                id: '01JNG71B7GTWH0J1TSJY9891S0',
+                name: '',
+              },
+            },
+          ],
+        },
       },
     },
   };
@@ -103,14 +175,16 @@ jest.mock('../../../core/SDKConnect/utils/isUUID', () => ({
 // Mock useAccounts to return test accounts
 jest.mock('../../hooks/useAccounts', () => ({
   useAccounts: jest.fn(() => ({
-    evmAccounts: [
+    accounts: [
       {
         address: mockAddress1,
         name: 'Account 1',
+        caipAccountId: `eip155:0:${mockAddress1}`,
       },
       {
         address: mockAddress2,
         name: 'Account 2',
+        caipAccountId: `eip155:0:${mockAddress2}`,
       },
     ],
     ensByAccountAddress: {},
@@ -139,12 +213,76 @@ const mockInitialState: DeepPartial<RootState> = {
         },
         selectedNetworkClientId: '1',
       },
+      KeyringController: {
+        keyrings: [
+          {
+            type: KeyringTypes.hd,
+            accounts: [mockAddress1, mockAddress2],
+            metadata: {
+              id: mockKeyringId,
+              name: '',
+            },
+          },
+        ],
+      },
     },
   },
 };
 
+const mockCreateMultichainAccount = jest.fn().mockResolvedValue(null);
+const mockMultichainWalletSnapClient = {
+  createAccount: mockCreateMultichainAccount,
+  getSnapId: jest.fn().mockReturnValue('mock-snap-id'),
+  getSnapName: jest.fn().mockReturnValue('mock-snap-name'),
+  getScopes: jest.fn().mockReturnValue([]),
+  getSnapSender: jest.fn().mockReturnValue({}),
+  withSnapKeyring: jest.fn().mockImplementation(async (callback) => {
+    await callback({ createAccount: mockCreateMultichainAccount });
+  }),
+};
+
+jest.mock('../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
+  ...jest.requireActual('../../../core/SnapKeyring/MultichainWalletSnapClient'),
+  WalletClientType: {
+    Bitcoin: 'bitcoin',
+    Solana: 'solana',
+  },
+  MultichainWalletSnapFactory: {
+    createClient: jest
+      .fn()
+      .mockImplementation(() => mockMultichainWalletSnapClient),
+  },
+}));
+
 describe('AccountConnect', () => {
-  it('renders correctly', () => {
+  it('renders correctly with base request', () => {
+    const { toJSON } = renderWithProvider(
+      <AccountConnect
+        route={{
+          params: {
+            hostInfo: {
+              metadata: {
+                id: 'mockId',
+                origin: 'mockOrigin',
+                isEip1193Request: true,
+              },
+              permissions: createMockCaip25Permission({
+                'wallet:eip155': {
+                  accounts: [],
+                },
+              }),
+            },
+            permissionRequestId: 'test',
+          },
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly with request including chains and accounts', () => {
     const { toJSON } = renderWithProvider(
       <AccountConnect
         route={{
@@ -154,11 +292,11 @@ describe('AccountConnect', () => {
                 id: 'mockId',
                 origin: 'mockOrigin',
               },
-              permissions: {
-                eth_accounts: {
-                  parentCapability: 'eth_accounts',
+              permissions: createMockCaip25Permission({
+                'eip155:1': {
+                  accounts: [`eip155:1:${mockAddress1}`],
                 },
-              },
+              }),
             },
             permissionRequestId: 'test',
           },
@@ -167,7 +305,32 @@ describe('AccountConnect', () => {
       { state: mockInitialState },
     );
 
-    // Create a new snapshot since the component UI has changed
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly with request including only chains', () => {
+    const { toJSON } = renderWithProvider(
+      <AccountConnect
+        route={{
+          params: {
+            hostInfo: {
+              metadata: {
+                id: 'mockId',
+                origin: 'mockOrigin',
+              },
+              permissions: createMockCaip25Permission({
+                'eip155:1': {
+                  accounts: [],
+                },
+              }),
+            },
+            permissionRequestId: 'test',
+          },
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -182,11 +345,11 @@ describe('AccountConnect', () => {
                 // Using an invalid/unknown format for origin
                 origin: '',
               },
-              permissions: {
-                eth_accounts: {
-                  parentCapability: 'eth_accounts',
+              permissions: createMockCaip25Permission({
+                'wallet:eip155': {
+                  accounts: [],
                 },
-              },
+              }),
             },
             permissionRequestId: 'test',
           },
@@ -211,11 +374,11 @@ describe('AccountConnect', () => {
                 // Using a valid URL format
                 origin: 'https://example.com',
               },
-              permissions: {
-                eth_accounts: {
-                  parentCapability: 'eth_accounts',
+              permissions: createMockCaip25Permission({
+                'wallet:eip155': {
+                  accounts: [],
                 },
-              },
+              }),
             },
             permissionRequestId: 'test',
           },
@@ -232,7 +395,7 @@ describe('AccountConnect', () => {
   });
 
   describe('AccountConnectMultiSelector handlers', () => {
-    it('invokes onPrimaryActionButtonPress property and renders permissions summary', async () => {
+    it('invokes onSubmit property and renders permissions summary', async () => {
       // Render the container component with necessary props
       const { getByTestId, UNSAFE_getByType, findByTestId } =
         renderWithProvider(
@@ -245,11 +408,11 @@ describe('AccountConnect', () => {
                     // Using a valid URL format to ensure PermissionsSummary renders first
                     origin: 'https://example.com',
                   },
-                  permissions: {
-                    eth_accounts: {
-                      parentCapability: 'eth_accounts',
+                  permissions: createMockCaip25Permission({
+                    'wallet:eip155': {
+                      accounts: [],
                     },
-                  },
+                  }),
                 },
                 permissionRequestId: 'test',
               },
@@ -266,7 +429,7 @@ describe('AccountConnect', () => {
       const multiSelector = UNSAFE_getByType(AccountConnectMultiSelector);
 
       // Now we can access the component's props
-      multiSelector.props.onPrimaryActionButtonPress();
+      multiSelector.props.onSubmit([`eip155:0:${mockAddress2}`]);
 
       // Verify that the screen changed back to PermissionsSummary
       expect(
@@ -285,11 +448,11 @@ describe('AccountConnect', () => {
                 id: 'mockId',
                 origin: 'mockOrigin',
               },
-              permissions: {
-                eth_accounts: {
-                  parentCapability: 'eth_accounts',
+              permissions: createMockCaip25Permission({
+                'wallet:eip155': {
+                  accounts: [],
                 },
-              },
+              }),
             },
             permissionRequestId: 'test',
           },
@@ -314,5 +477,212 @@ describe('AccountConnect', () => {
     });
     // Verify createEventBuilder was called
     expect(mockCreateEventBuilder).toHaveBeenCalled();
+  });
+
+  it('AccountConnect should not change origin if browser URL changes', () => {
+    // Setup a mock store with browser tabs
+    const originalURL = 'https://dapp-requesting-connection.com';
+    const parsedOriginalURL = new URL(originalURL);
+    const mockState = {
+      browser: {
+        activeTab: 1,
+        tabs: [{ id: 1, url: originalURL }],
+      },
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+        },
+      },
+    };
+
+    // Create a function for rendering that we can use in our test
+    const renderComponent = () =>
+      renderWithProvider(
+        <AccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: originalURL,
+                },
+                permissions: {
+                  eth_accounts: { parentCapability: 'eth_accounts' },
+                },
+              },
+              permissionRequestId: 'test-id',
+            },
+          }}
+        />,
+        { state: mockState },
+      );
+
+    // Execute the render function (may succeed or fail)
+    let result = renderComponent();
+
+    // check that component with testID 'permission-network-permissions-container' is rendered
+    // with the correct origin
+    const permissionsRequestOriginWrap = result.getByTestId(
+      PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER,
+    );
+    // check if this wrap component includes the original URL
+    expect(permissionsRequestOriginWrap).toBeDefined();
+    // get inner text of permissionsRequestOriginWrap and check for original URL
+    const permissionsRequestOriginText =
+      // @ts-expect-error - This is a valid way to access the children of the permissionsRequestOriginWrap component
+      permissionsRequestOriginWrap.children[0].children[0].props.children;
+    expect(permissionsRequestOriginText).toContain(parsedOriginalURL.hostname);
+
+    // now change the mockState to have a different active tab URL
+    const newURL = 'https://different-site.com';
+    mockState.browser.tabs[0].url = newURL;
+    // re-render the component
+    result = renderComponent();
+    // check that the component with testID 'permission-network-permissions-container' is rendered
+    // with the correct origin
+    expect(
+      result.getByTestId(
+        PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER,
+      ),
+    ).toBeDefined();
+    expect(permissionsRequestOriginText).toContain(parsedOriginalURL.hostname);
+    expect(permissionsRequestOriginText).not.toContain(
+      new URL(newURL).hostname,
+    );
+  });
+
+  describe('Phishing detection', () => {
+    describe('dapp scanning is enabled', () => {
+      it('should show phishing modal for phishing URLs', async () => {
+        const { findByText } = renderWithProvider(
+          <AccountConnect
+            route={{
+              params: {
+                hostInfo: {
+                  metadata: {
+                    id: 'mockId',
+                    origin: 'phishing.com',
+                  },
+                  permissions: {
+                    eth_accounts: {
+                      parentCapability: 'eth_accounts',
+                    },
+                  },
+                },
+                permissionRequestId: 'test',
+              },
+            }}
+          />,
+          { state: mockInitialState },
+        );
+
+        const warningText = await findByText(
+          `MetaMask flagged the site you're trying to visit as potentially deceptive. Attackers may trick you into doing something dangerous.`,
+        );
+        expect(warningText).toBeTruthy();
+        expect(Engine.context.PhishingController.scanUrl).toHaveBeenCalledWith(
+          'https://phishing.com',
+        );
+      });
+
+      it('should not show phishing modal for safe URLs', async () => {
+        const { queryByText } = renderWithProvider(
+          <AccountConnect
+            route={{
+              params: {
+                hostInfo: {
+                  metadata: {
+                    id: 'mockId',
+                    origin: 'safe-site.com',
+                  },
+                  permissions: {
+                    eth_accounts: {
+                      parentCapability: 'eth_accounts',
+                    },
+                  },
+                },
+                permissionRequestId: 'test',
+              },
+            }}
+          />,
+          { state: mockInitialState },
+        );
+
+        const warningText = queryByText(
+          `MetaMask flagged the site you're trying to visit as potentially deceptive.`,
+        );
+        expect(warningText).toBeNull();
+        expect(Engine.context.PhishingController.scanUrl).toHaveBeenCalledWith(
+          'https://safe-site.com',
+        );
+      });
+    });
+  });
+
+  describe('CreateInitialAccount', () => {
+    it('creates the initial solana account', async () => {
+      const { getByTestId } = renderWithProvider(
+        <AccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'mockOrigin',
+                  promptToCreateSolanaAccount: true,
+                },
+                permissions: {
+                  [Caip25EndowmentPermissionName]: {
+                    parentCapability: Caip25EndowmentPermissionName,
+                    caveats: [
+                      {
+                        type: Caip25CaveatType,
+                        value: {
+                          requiredScopes: {},
+                          optionalScopes: {
+                            'wallet:eip155': {
+                              accounts: [],
+                            },
+                          },
+                          isMultichainOrigin: false,
+                          sessionProperties: {},
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+              permissionRequestId: 'test',
+            },
+          }}
+        />,
+        { state: mockInitialState },
+      );
+
+      const addAccountButton = getByTestId(
+        AccountConnectSelectorsIDs.CREATE_ACCOUNT_BUTTON,
+      );
+
+      expect(addAccountButton).toBeDefined();
+
+      fireEvent.press(addAccountButton);
+
+      expect(getByTestId(AddNewAccountIds.CONTAINER)).toBeDefined();
+
+      const confirmButton = getByTestId(AddNewAccountIds.CONFIRM);
+
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(
+          mockMultichainWalletSnapClient.createAccount,
+        ).toHaveBeenCalledWith({
+          scope: SolScope.Mainnet,
+          accountNameSuggestion: 'Solana Account 1',
+          entropySource: mockKeyringId,
+        });
+      });
+    });
   });
 });

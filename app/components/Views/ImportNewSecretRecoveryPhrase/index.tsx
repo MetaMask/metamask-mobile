@@ -53,6 +53,9 @@ import {
   validateMnemonic,
 } from './validation';
 import { AppThemeKey } from '../../../util/theme/models';
+import useMetrics from '../../hooks/useMetrics/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 
 const defaultNumberOfWords = 12;
 
@@ -94,8 +97,12 @@ const ImportNewSecretRecoveryPhrase = () => {
     Array(numberOfWords).fill(false),
   );
   const hdKeyrings = useSelector(selectHDKeyrings);
-
+  const { trackEvent, createEventBuilder } = useMetrics();
   const copyToClipboard = useCopyClipboard();
+  const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
+    onFirstLoad: false,
+    onTransactionComplete: false,
+  });
 
   useEffect(() => {
     mounted.current = true;
@@ -205,7 +212,7 @@ const ImportNewSecretRecoveryPhrase = () => {
   }, [copyToClipboard, numberOfWords, onSrpChange]);
 
   const onSrpWordChange = useCallback(
-    (index, newWord) => {
+    (index: number, newWord: string) => {
       const newSrp = secretRecoveryPhrase.slice();
       newSrp[index] = newWord.trim();
       onSrpChange(newSrp);
@@ -235,6 +242,12 @@ const ImportNewSecretRecoveryPhrase = () => {
         iconName: IconName.Check,
         hasNoTimeout: false,
       });
+      fetchAccountsWithActivity();
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
+        ).build(),
+      );
       navigation.navigate('WalletView');
     } catch (e) {
       if (
@@ -286,7 +299,7 @@ const ImportNewSecretRecoveryPhrase = () => {
                 label={strings(
                   'import_new_secret_recovery_phrase.srp_number_of_words_option_title',
                 )}
-                selectedValue={selectedDropdownValue}
+                selectedValue={String(selectedDropdownValue)}
                 onValueChange={handleSrpNumberChange}
                 options={srpOptions}
                 testID={ImportSRPIDs.SRP_SELECTION_DROPDOWN}
@@ -351,7 +364,7 @@ const ImportNewSecretRecoveryPhrase = () => {
             containerStyle={styles.button}
             type={'confirm'}
             onPress={onSubmit}
-            disabled={Boolean(srpError) || !isValidSrp}
+            disabled={Boolean(srpError) || !isValidSrp || loading}
             testID={ImportSRPIDs.IMPORT_BUTTON}
           >
             {loading ? (

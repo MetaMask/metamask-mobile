@@ -1,7 +1,7 @@
 import React from 'react';
 import { Hex } from '@metamask/utils';
 
-import { ConfirmationPageSectionsSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../locales/i18n';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import { getSIWEDetails } from '../../../utils/signature';
@@ -14,9 +14,11 @@ import AlertRow from '../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 
-const InfoRowOrigin = (
-  { isSignatureRequest }: { isSignatureRequest: boolean }
-) => {
+const InfoRowOrigin = ({
+  isSignatureRequest,
+}: {
+  isSignatureRequest: boolean;
+}) => {
   const signatureRequest = useSignatureRequest();
   const transactionMetadata = useTransactionMetadataRequest();
   const { approvalRequest } = useApprovalRequest();
@@ -41,14 +43,15 @@ const InfoRowOrigin = (
 
   return (
     <InfoSection
-      testID={ConfirmationPageSectionsSelectorIDs.ORIGIN_INFO_SECTION}
+      testID={ConfirmationRowComponentIDs.ORIGIN_INFO}
     >
       <AlertRow
         alertField={RowAlertKey.RequestFrom}
         label={strings('confirm.label.request_from')}
-        tooltip={strings(isSignatureRequest ?
-          'confirm.personal_sign_tooltip' :
-          'confirm.transaction_tooltip'
+        tooltip={strings(
+          isSignatureRequest
+            ? 'confirm.personal_sign_tooltip'
+            : 'confirm.transaction_tooltip',
         )}
       >
         <DisplayURL url={url ?? ''} />
@@ -57,7 +60,7 @@ const InfoRowOrigin = (
         <InfoRow
           label={strings('confirm.label.signing_in_with')}
           testID={
-            ConfirmationPageSectionsSelectorIDs.SIWE_SIGNING_ACCOUNT_INFO_SECTION
+            ConfirmationRowComponentIDs.SIWE_SIGNING_ACCOUNT_INFO
           }
         >
           <Address address={fromAddress} chainId={chainId} />

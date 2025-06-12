@@ -106,9 +106,7 @@ const NftOptions = (props: Props) => {
     NftController.removeAndIgnoreNft(
       collectible.address,
       collectible.tokenId.toString(),
-      {
-        networkClientId: nftNetworkClientId,
-      },
+      nftNetworkClientId,
     );
     trackEvent(
       createEventBuilder(MetaMetricsEvents.COLLECTIBLE_REMOVED)
