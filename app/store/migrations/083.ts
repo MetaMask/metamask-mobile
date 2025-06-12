@@ -14,7 +14,7 @@ interface ValidStateWithUser extends ValidState {
 }
 
 /**
- * Migration 80: Move EXISTING_USER flag from MMKV to Redux state
+ * Migration 83: Move EXISTING_USER flag from MMKV to Redux state
  * This unifies user state management and fixes iCloud backup inconsistencies
  */
 const migration = async (state: unknown): Promise<unknown> => {
