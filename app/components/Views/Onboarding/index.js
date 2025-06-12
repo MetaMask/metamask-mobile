@@ -444,7 +444,7 @@ class Onboarding extends PureComponent {
         </View>
 
         <Text
-          variant={TextVariant.HeadingSMRegular}
+          variant={TextVariant.BodyLGMedium}
           style={styles.title}
           testID={OnboardingSelectorIDs.SCREEN_TITLE}
         >
