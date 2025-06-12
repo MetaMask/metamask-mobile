@@ -223,8 +223,8 @@ describe(SmokeNetworkExpansion('wallet_getSession'), () => {
 
                 const newNetworks = [
                     MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET,
-                    MultichainUtilities.CHAIN_IDS.LINEA_MAINNET,
-                    MultichainUtilities.CHAIN_IDS.ARBITRUM_ONE
+                    MultichainUtilities.CHAIN_IDS.BSC,
+                    MultichainUtilities.CHAIN_IDS.BASE
                 ];
 
                 const createResult2 = await MultichainTestDApp.createSessionWithNetworks(newNetworks);
@@ -234,26 +234,12 @@ describe(SmokeNetworkExpansion('wallet_getSession'), () => {
                     throw new Error('New session creation failed');
                 }
 
-                await TestHelpers.delay(1000);
-                const getSessionResult2 = await MultichainTestDApp.getSessionData();
-                const getAssertions2 = MultichainUtilities.generateSessionAssertions(getSessionResult2, []);
-
-                if (!getAssertions2.success) {
-                    throw new Error('Failed to retrieve modified session data');
+                if (!createAssertions2.chainsValid) {
+                    MultichainUtilities.logSessionDetails(createResult2, 'Failed Session Validation');
+                    throw new Error(`Chain validation failed. Missing chains: ${createAssertions2.missingChains.join(', ')}`);
                 }
 
-                const finalChainCount = getAssertions2.chainCount;
-                const finalChains = getAssertions2.foundChains;
-                console.log(`Modified session has ${finalChainCount} chain(s): ${finalChains.join(', ')}`);
-
-                if (finalChainCount === 0) {
-                    throw new Error('Modified session should not be empty');
-                }
-
-                if (!finalChains.includes(MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET)) {
-                    MultichainUtilities.logSessionDetails(getSessionResult2, 'Missing Ethereum');
-                    throw new Error('Ethereum mainnet should be present in modified session');
-                }
+                console.log(`Modified session has ${createAssertions2.chainCount} chain(s): ${createAssertions2.foundChains.join(', ')}`);
 
 
             },

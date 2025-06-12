@@ -307,8 +307,9 @@ class MultichainTestDApp {
   /**
    * Revoke session and get the result data
    * Similar to the web extension's revokeSession method
+   * @param resultIndex - The index of the result to retrieve (defaults to 0)
    */
-  async revokeSessionWithData(): Promise<SessionResponse> {
+  async revokeSessionWithData(resultIndex: number = 0): Promise<SessionResponse> {
     // Click revoke session button first
     const revokeClicked = await this.clickRevokeSessionButton();
     if (!revokeClicked) {
@@ -319,12 +320,17 @@ class MultichainTestDApp {
     // Wait for result to be populated
     await TestHelpers.delay(2000);
 
-    // Click to expand the first result (which should be the revoke result)
-    await this.clickFirstResultSummary();
+    // Click to expand the result
+    const expanded = await this.clickFirstResultSummary(resultIndex);
+    
+    if (!expanded) {
+      // If we can't expand the result, it might not exist
+      return { success: false, sessionScopes: {} };
+    }
 
     // Get the revoke result content
     const webview = this.getWebView();
-    const revokeResult = webview.element(by.web.id('session-method-result-0'));
+    const revokeResult = webview.element(by.web.id(`session-method-result-${resultIndex}`));
 
     const resultData = await revokeResult.runScript('(el) => el.textContent');
 
@@ -365,40 +371,55 @@ class MultichainTestDApp {
   }
 
   /**
-   * Click the first result summary to expand session details
+   * Click the result summary to expand session details
+   * @param index - The index of the result to click (defaults to 0)
    */
-  async clickFirstResultSummary(): Promise<boolean> {
-    const webview = this.getWebView();
-    const firstResult = webview.element(by.web.id('session-method-details-0'));
+  async clickFirstResultSummary(index: number = 0): Promise<boolean> {
+    try {
+      const webview = this.getWebView();
+      const firstResult = webview.element(by.web.id(`session-method-details-${index}`));
 
-    await firstResult.scrollToView();
-    await firstResult.runScript('(el) => { if(!el.open) { el.click(); } }');
+      await firstResult.scrollToView();
+      await firstResult.runScript('(el) => { if(!el.open) { el.click(); } }');
 
-    await TestHelpers.delay(500);
-    return true;
+      await TestHelpers.delay(500);
+      return true;
+    } catch (error) {
+      console.log(`Result element session-method-details-${index} not found or couldn't be clicked`);
+      return false;
+    }
   }
 
   /**
    * Get session data by parsing the result from the dapp
    * Similar to the web extension's getSession method
+   * @param resultIndex - The index of the result to retrieve (defaults to 0)
+   * @param skipGetSessionClick - If true, skips clicking the get session button (useful when data is already available)
    */
-  async getSessionData(): Promise<SessionResponse> {
-    // Click get session button first
-    const sessionRetrieved = await this.clickGetSessionButton();
-    if (!sessionRetrieved) {
-      console.error('❌ Failed to click get session button');
-      return { success: false };
+  async getSessionData(resultIndex: number = 0, skipGetSessionClick: boolean = false): Promise<SessionResponse> {
+    if (!skipGetSessionClick) {
+      // Click get session button first
+      const sessionRetrieved = await this.clickGetSessionButton();
+      if (!sessionRetrieved) {
+        console.error('❌ Failed to click get session button');
+        return { success: false };
+      }
+
+      // Wait for result to be populated
+      await TestHelpers.delay(2000);
     }
 
-    // Wait for result to be populated
-    await TestHelpers.delay(2000);
-
-    // Click to expand the first result
-    await this.clickFirstResultSummary();
+    // Click to expand the result
+    const expanded = await this.clickFirstResultSummary(resultIndex);
+    
+    if (!expanded) {
+      // If we can't expand the result, it might not exist (e.g., error case)
+      return { success: false, sessionScopes: {} };
+    }
 
     // Get the session result content
     const webview = this.getWebView();
-    const sessionResult = webview.element(by.web.id('session-method-result-0'));
+    const sessionResult = webview.element(by.web.id(`session-method-result-${resultIndex}`));
 
     const sessionData = await sessionResult.runScript('(el) => el.textContent');
 
@@ -650,7 +671,13 @@ class MultichainTestDApp {
     await TestHelpers.delay(2000);
 
     // Get and return session data
-    return await this.getSessionData();
+    // The create session result is available without clicking get session button
+    // and will be at index 0 since it's the latest operation
+    // If no networks selected, there might not be a result to read
+    if (chainIds.length === 0) {
+      return { success: false, sessionScopes: {} };
+    }
+    return await this.getSessionData(0, true);
   }
 }
 
