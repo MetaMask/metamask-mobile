@@ -39,6 +39,14 @@ import {
   WalletClientType,
 } from '../SnapKeyring/MultichainWalletSnapClient';
 ///: END:ONLY_INCLUDE_IF
+import {
+  assertMultichainAccountsFeatureFlagType,
+  isMultichainAccountsFeatureEnabled,
+  MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1,
+  MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
+  MultichainAccountsFeatureFlag,
+} from '../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import { Json } from '@metamask/utils';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -100,7 +108,7 @@ class AuthenticationService {
       StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, TRUE);
     });
     ///: END:ONLY_INCLUDE_IF
-    
+
     password = this.wipeSensitiveData();
     parsedSeed = this.wipeSensitiveData();
   };
@@ -117,14 +125,14 @@ class AuthenticationService {
         },
       );
       await client.addDiscoveredAccounts(primaryHdKeyringId);
-      
+
       await StorageWrapper.removeItem(SOLANA_DISCOVERY_PENDING);
     };
 
     try {
       await retryWithExponentialDelay(
         performSolanaAccountDiscovery,
-        3, // maxRetries 
+        3, // maxRetries
         1000, // baseDelay
         10000, // maxDelay
       );
@@ -223,6 +231,34 @@ class AuthenticationService {
       currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
       availableBiometryType,
     };
+  };
+
+  /**
+   * Checks if multichain accounts are enabled for state 1.
+   * @param remoteFeatureFlags - The remote feature flags object containing the multichain accounts feature flag.
+   * @returns True if the multichain accounts feature is enabled for state 1, false otherwise.
+   */
+  private isMultichainAccountsEnabledForState1 = (remoteFeatureFlags: Json & MultichainAccountsFeatureFlag) => (
+    [MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1, MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2].some((featureVersion) =>
+      isMultichainAccountsFeatureEnabled(remoteFeatureFlags, featureVersion)
+    )
+  );
+
+  /**
+   * Initializes the account tree and updates the accounts if multichain accounts is enabled
+   */
+  private initializeAccountTree = async (): Promise<void> => {
+    const { AccountTreeController, AccountsController, RemoteFeatureFlagController } = Engine.context;
+    const { enableMultichainAccounts } = RemoteFeatureFlagController.state.remoteFeatureFlags;
+    if(!assertMultichainAccountsFeatureFlagType(enableMultichainAccounts)) {
+      return;
+    }
+    const isMultichainAccountsEnabled = this.isMultichainAccountsEnabledForState1(enableMultichainAccounts);
+
+    if (isMultichainAccountsEnabled) {
+      AccountTreeController.init();
+      await AccountsController.updateAccounts();
+    }
   };
 
   /**
@@ -441,12 +477,14 @@ class AuthenticationService {
       this.dispatchLogin();
       this.authData = authData;
       this.dispatchPasswordSet();
-      
+
       // Try to complete any pending Solana account discovery
       ///: BEGIN:ONLY_INCLUDE_IF(solana)
       this.retrySolanaDiscoveryIfPending();
       ///: END:ONLY_INCLUDE_IF
-      
+
+      //TODO: Move this logic to the Engine when the account tree state will be persisted
+      this.initializeAccountTree();
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
@@ -495,12 +533,14 @@ class AuthenticationService {
       this.dispatchLogin();
       ReduxService.store.dispatch(authSuccess(bioStateMachineId));
       this.dispatchPasswordSet();
-      
+
       // Try to complete any pending Solana account discovery
       ///: BEGIN:ONLY_INCLUDE_IF(solana)
       this.retrySolanaDiscoveryIfPending();
       ///: END:ONLY_INCLUDE_IF
-      
+
+      //TODO: Move this logic to the Engine when the account tree state will be persisted
+      this.initializeAccountTree();
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
