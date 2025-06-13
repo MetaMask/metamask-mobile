@@ -56,7 +56,7 @@ const PopularNetworksList = {
       chainId: toHex('137'),
       rpcUrl: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
       nickname: 'Polygon Mainnet',
-      ticker: 'MATIC',
+      ticker: 'POL',
     },
   },
   Palm: {
@@ -140,16 +140,16 @@ const CustomNetworks = {
       },
     }
   },
-  Gnosis: {
-    providerConfig: {
-      type: 'rpc',
-      chainId: '100',
-      rpcUrl: 'https://rpc.gnosischain.com',
-      nickname: 'Gnosis',
-      ticker: 'xDAI',
-      BlockExplorerUrl: 'https://gnosisscan.io',
-    },
-  },
+  // Gnosis: {
+  //   providerConfig: {
+  //     type: 'rpc',
+  //     chainId: '100',
+  //     rpcUrl: 'https://rpc.gnosischain.com',
+  //     nickname: 'Gnosis',
+  //     ticker: 'xDAI',
+  //     BlockExplorerUrl: 'https://gnosisscan.io',
+  //   },
+  // },
   Holesky: {
     providerConfig: {
       type: 'rpc',
