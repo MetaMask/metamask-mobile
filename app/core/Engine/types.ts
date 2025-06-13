@@ -266,7 +266,8 @@ import {
   SeedlessOnboardingControllerState,
   SeedlessOnboardingControllerEvents,
 } from '@metamask/seedless-onboarding-controller';
-///: END:ONLY_INCLUDE_IF
+import { EncryptionKey } from '../Encryptor/types';
+///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 import { Hex } from '@metamask/utils';
 
@@ -278,9 +279,6 @@ import {
   AppMetadataControllerEvents,
   AppMetadataControllerState,
 } from '@metamask/app-metadata-controller';
-///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
-import { EncryptionKey } from '../Encryptor/types';
-///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 import type { ErrorReportingServiceActions } from '@metamask/error-reporting-service';
 
 /**
@@ -422,7 +420,7 @@ type GlobalEvents =
   | AppMetadataControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   | SeedlessOnboardingControllerEvents
-  ///: END:ONLY_INCLUDE_IF
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   | DeFiPositionsControllerEvents;
 
 /**
@@ -500,7 +498,7 @@ export type Controllers = {
   EarnController: EarnController;
   ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
-  ///: END:ONLY_INCLUDE_IF
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 };
 
 /**
@@ -567,7 +565,7 @@ export type EngineState = {
   EarnController: EarnControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
-  ///: END:ONLY_INCLUDE_IF
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 };
 
 /** Controller names */
@@ -622,7 +620,7 @@ export type ControllersToInitialize =
   | 'SignatureController'
   ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   | 'SeedlessOnboardingController'
-  ///: END:ONLY_INCLUDE_IF`
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   | 'DeFiPositionsController';
 
 /**
