@@ -274,6 +274,7 @@ import {
   AppMetadataControllerEvents,
   AppMetadataControllerState,
 } from '@metamask/app-metadata-controller';
+import type { ErrorReportingServiceActions } from '@metamask/error-reporting-service';
 
 /**
  * Controllers that area always instantiated
@@ -359,7 +360,8 @@ type GlobalActions =
   | EarnControllerActions
   | AppMetadataControllerActions
   | MultichainRouterActions
-  | DeFiPositionsControllerActions;
+  | DeFiPositionsControllerActions
+  | ErrorReportingServiceActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
