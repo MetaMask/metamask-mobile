@@ -1,7 +1,6 @@
 import SecureKeychain from '../SecureKeychain';
 import Engine from '../Engine';
 import {
-  EXISTING_USER,
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
   PASSCODE_DISABLED,
@@ -14,6 +13,7 @@ import {
   logIn,
   logOut,
   passwordSet,
+  setExistingUser,
 } from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
@@ -39,6 +39,8 @@ import {
   WalletClientType,
 } from '../SnapKeyring/MultichainWalletSnapClient';
 ///: END:ONLY_INCLUDE_IF
+
+import { selectExistingUser } from '../../reducers/user/selectors';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -210,7 +212,7 @@ class AuthenticationService {
         availableBiometryType,
       };
     }
-    const existingUser = await StorageWrapper.getItem(EXISTING_USER);
+    const existingUser = selectExistingUser(ReduxService.store.getState());
     if (existingUser) {
       if (await SecureKeychain.getGenericPassword()) {
         return {
@@ -369,7 +371,7 @@ class AuthenticationService {
     try {
       await this.createWalletVaultAndKeychain(password);
       await this.storePassword(password, authData?.currentAuthType);
-      await StorageWrapper.setItem(EXISTING_USER, TRUE);
+      ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       this.dispatchLogin();
       this.authData = authData;
@@ -402,7 +404,7 @@ class AuthenticationService {
     try {
       await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
       await this.storePassword(password, authData.currentAuthType);
-      await StorageWrapper.setItem(EXISTING_USER, TRUE);
+      ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       this.dispatchLogin();
       this.authData = authData;

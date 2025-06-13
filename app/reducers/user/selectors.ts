@@ -26,3 +26,8 @@ export const selectPasswordSet = (state: RootState) => state.user.passwordSet;
  */
 export const selectSeedphraseBackedUp = (state: RootState) =>
   state.user.seedphraseBackedUp;
+
+/**
+ * Selects the existingUser state
+ */
+export const selectExistingUser = (state: RootState) => state.user.existingUser;

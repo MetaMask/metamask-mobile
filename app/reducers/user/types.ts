@@ -17,4 +17,5 @@ export interface UserState {
   appTheme: AppThemeKey;
   ambiguousAddressEntries: Record<string, unknown>;
   appServicesReady: boolean;
+  existingUser: boolean;
 }

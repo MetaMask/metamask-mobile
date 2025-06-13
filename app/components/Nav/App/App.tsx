@@ -31,7 +31,6 @@ import Logger from '../../../util/Logger';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
-  EXISTING_USER,
   LAST_APP_VERSION,
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
@@ -128,7 +127,10 @@ import {
   TraceOperation,
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
-import { selectUserLoggedIn } from '../../../reducers/user/selectors';
+import {
+  selectUserLoggedIn,
+  selectExistingUser,
+} from '../../../reducers/user/selectors';
 import { Confirm } from '../../Views/confirmations/components/confirm';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
@@ -790,9 +792,12 @@ const App: React.FC = () => {
     endTrace({ name: TraceName.UIStartup });
   }, []);
 
+  const existingUser = useSelector(selectExistingUser);
+
+  // existingUser is not present in the dependency array because it is not needed to re-run the effect when it changes and it will cause a bug.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const appTriggeredAuth = async () => {
-      const existingUser = await StorageWrapper.getItem(EXISTING_USER);
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {
@@ -959,7 +964,6 @@ const App: React.FC = () => {
 
   useEffect(() => {
     async function startApp() {
-      const existingUser = await StorageWrapper.getItem(EXISTING_USER);
       if (!existingUser) {
         // List of chainIds to add (as hex strings)
         const chainIdsToAdd: `0x${string}`[] = [
@@ -1004,12 +1008,12 @@ const App: React.FC = () => {
       try {
         const currentVersion = getVersion();
         const savedVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);
+
         if (currentVersion !== savedVersion) {
           if (savedVersion)
             await StorageWrapper.setItem(LAST_APP_VERSION, savedVersion);
           await StorageWrapper.setItem(CURRENT_APP_VERSION, currentVersion);
         }
-
         const lastVersion = await StorageWrapper.getItem(LAST_APP_VERSION);
         if (!lastVersion) {
           if (existingUser) {
