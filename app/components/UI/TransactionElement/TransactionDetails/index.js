@@ -31,7 +31,6 @@ import { withNavigation } from '@react-navigation/compat';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import decodeTransaction from '../../TransactionElement/utils';
 import {
-  selectChainId,
   selectNetworkConfigurations,
   selectEvmTicker,
   selectProviderConfig,

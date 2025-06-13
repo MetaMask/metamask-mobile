@@ -24,13 +24,14 @@ import AddressFrom from './AddressFrom';
 import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 
 const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
-  const { internalAccounts, chainId, ticker, transactionState, origin } = props;
+  const { internalAccounts, ticker, transactionState, origin } = props;
   const {
     transaction: { from: rawFromAddress, data, to },
     transactionTo,
     transactionFromName,
     selectedAsset,
     ensRecipient,
+    chainId,
   } = transactionState;
 
   const fromAddress = toFormattedAddress(rawFromAddress);

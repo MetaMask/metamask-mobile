@@ -26,6 +26,7 @@ export interface AccountPermissionsProps {
       };
       isRenderedAsBottomSheet?: boolean;
       initialScreen?: AccountPermissionsScreens;
+      // TODO: remove isNonDappNetworkSwitch prop once the per-dapp network switch is implemented
       isNonDappNetworkSwitch?: boolean;
     };
   };
