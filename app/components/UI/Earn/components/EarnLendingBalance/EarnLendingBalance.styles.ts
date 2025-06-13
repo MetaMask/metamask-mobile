@@ -7,7 +7,6 @@ const styleSheet = () =>
       justifyContent: 'space-between',
       paddingHorizontal: 16,
       paddingTop: 14,
-      paddingBottom: 6,
       gap: 16,
     },
     button: {
