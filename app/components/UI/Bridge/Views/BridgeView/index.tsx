@@ -288,6 +288,14 @@ const BridgeView = () => {
       }
     } catch (error) {
       console.error('Error submitting bridge tx', error);
+
+      // Restart polling if tx fails
+      if (Engine.context.BridgeController?.resetState) {
+        dispatch(setIsSubmittingTx(true));
+        Engine.context.BridgeController.resetState();
+        // Update quote params to fetch new quote
+        updateQuoteParams();
+      }
     } finally {
       dispatch(setIsSubmittingTx(false));
     }
