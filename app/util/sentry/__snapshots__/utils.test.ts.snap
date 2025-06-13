@@ -238,10 +238,7 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
   },
   "security": {
     "allowLoginWithRememberMe": false,
-    "automaticSecurityChecksEnabled": false,
     "dataCollectionForMarketing": null,
-    "hasUserSelectedAutomaticSecurityCheckOption": false,
-    "isAutomaticSecurityChecksModalOpen": false,
     "isNFTAutoDetectionModalViewed": false,
   },
   "settings": {

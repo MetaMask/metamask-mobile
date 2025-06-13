@@ -80,7 +80,7 @@ class FixtureBuilder {
       '@MetaMask:onboardingWizard': 'explored',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
       '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
-      '@MetaMask:solanaFeatureModalShown': 'false'
+      '@MetaMask:solanaFeatureModalShown': 'false',
     };
     return this;
   }
@@ -679,9 +679,6 @@ class FixtureBuilder {
         },
         security: {
           allowLoginWithRememberMe: false,
-          automaticSecurityChecksEnabled: false,
-          hasUserSelectedAutomaticSecurityCheckOption: true,
-          isAutomaticSecurityChecksModalOpen: false,
         },
         experimentalSettings: {
           securityAlertsEnabled: true,
@@ -862,8 +859,14 @@ class FixtureBuilder {
       isMultichainOrigin: false,
     };
 
-    const caip25CaveatValueWithChains = setPermittedEthChainIds(defaultCaip25CaveatValue, chainIds);
-    const caip25CaveatValueWithDefaultAccount = setEthAccounts(caip25CaveatValueWithChains, [DEFAULT_FIXTURE_ACCOUNT]);
+    const caip25CaveatValueWithChains = setPermittedEthChainIds(
+      defaultCaip25CaveatValue,
+      chainIds,
+    );
+    const caip25CaveatValueWithDefaultAccount = setEthAccounts(
+      caip25CaveatValueWithChains,
+      [DEFAULT_FIXTURE_ACCOUNT],
+    );
     const chainPermission = {
       [Caip25EndowmentPermissionName]: {
         id: 'Lde5rzDG2bUF6HbXl4xxT',
@@ -1133,7 +1136,7 @@ class FixtureBuilder {
     return this;
   }
 
-/**
+  /**
    * Sets up a minimal Solana fixture with mainnet configuration
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
    */
@@ -1147,10 +1150,10 @@ class FixtureBuilder {
           chainId: SolScope.Mainnet,
           name: 'Solana Mainnet',
           nativeCurrency: `${SolScope.Mainnet}/${SOLANA_TOKEN}`,
-          isEvm: false
-        }
+          isEvm: false,
+        },
       },
-      isEvmSelected: false
+      isEvmSelected: false,
     };
 
     return this;
