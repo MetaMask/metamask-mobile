@@ -63,11 +63,15 @@ Given(/^I have imported my wallet$/, async () => {
   await MetaMetricsScreen.tapIAgreeButton();
   await ImportFromSeedScreen.isScreenTitleVisible();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(validAccount.seedPhrase);
-  await ImportFromSeedScreen.typeNewPassword(validAccount.password);
   await ImportFromSeedScreen.tapImportScreenTitleToDismissKeyboard();
-  await ImportFromSeedScreen.typeConfirmPassword(validAccount.password);
-  await ImportFromSeedScreen.tapConfirmPasswordTextToDismissKeyboard();
-  await ImportFromSeedScreen.clickImportButton();
+  await ImportFromSeedScreen.tapContinueButton();
+
+  await CreatePasswordScreen.enterPassword(validAccount.password);
+  await CreatePasswordScreen.reEnterPassword(validAccount.password);
+  await CreatePasswordScreen.tapIUnderstandCheckBox();
+  await CreatePasswordScreen.tapCreatePasswordButton();
+
+  await driver.pause(timeOut);
   await OnboardingSucessScreen.tapDone()
 });
 

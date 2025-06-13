@@ -20,13 +20,13 @@ class WelcomeScreen {
 
   get getStartedButton() {
     return Selectors.getXpathElementByResourceId(
-      'welcome-screen-get-started-button-id',
+      OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID,
     );
   }
 
   get screen() {
     return Selectors.getXpathElementByResourceId(
-      WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
+      OnboardingCarouselSelectorIDs.CONTAINER_ID,
     );
   }
 
