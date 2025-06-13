@@ -53,7 +53,6 @@ import {
   EARN_LENDING_ACTIONS,
   EarnTokenDetails,
 } from '../../types/lending.types';
-// TODO: Check to see if bug has been resolved without use of debounce with recent changes
 import { debounce } from 'lodash';
 
 const EarnInputView = () => {
