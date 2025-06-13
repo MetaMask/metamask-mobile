@@ -128,14 +128,9 @@ export const recreateVaultWithNewPassword = async (
   selectedAddress,
 ) => {
   const { KeyringController, AccountsController } = Engine.context;
-  const hdKeyringsWithMetadata = KeyringController.state.keyrings
-    .map((keyring, _index) => ({
-      ...keyring,
-      ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-      metadata: KeyringController.state.keyringsMetadata?.[_index] || {},
-      ///: END:ONLY_INCLUDE_IF
-    }))
-    .filter((keyring) => keyring.type === KeyringTypes.hd);
+  const hdKeyringsWithMetadata = KeyringController.state.keyrings.filter(
+    (keyring) => keyring.type === KeyringTypes.hd,
+  );
 
   const seedPhrases = await Promise.all(
     hdKeyringsWithMetadata.map(async (keyring) => {
@@ -211,8 +206,8 @@ export const recreateVaultWithNewPassword = async (
     newPassword,
     primaryKeyringSeedPhrase,
   );
-  const [newPrimaryKeyringMetadata] = KeyringController.state.keyringsMetadata;
-  const newPrimaryKeyringId = newPrimaryKeyringMetadata.id;
+  const [newPrimaryKeyring] = KeyringController.state.keyrings;
+  const newPrimaryKeyringId = newPrimaryKeyring.metadata.id;
 
   // START: Restoring keyrings
 
