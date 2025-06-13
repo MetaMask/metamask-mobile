@@ -193,17 +193,14 @@ export const getOrders = createSelector(
   ordersSelector,
   selectedAddressSelector,
   chainIdSelector,
-  (orders, selectedAddress, chainId) => {
-    console.log('getOrders called with chainId:', chainId);
-    console.log('getOrders orders', orders);
-    return orders.filter(
+  (orders, selectedAddress, chainId) =>
+    orders.filter(
       (order) =>
         !order.excludeFromPurchases &&
         order.account === selectedAddress &&
         (networkChainIdEquals(order.network, chainId) ||
           isTestNet(toHex(chainId))),
-    );
-  },
+    ),
 );
 
 export const getPendingOrders = createSelector(
