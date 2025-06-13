@@ -54,17 +54,23 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     accountsList: {
       marginTop: 16,
-      flex: 1,
-    },
-    accountsTitle: {
-      marginBottom: 12,
-      color: colors.text.default,
+      flexDirection: 'column',
     },
     accountBox: {
-      marginBottom: 8,
       backgroundColor: colors.background.alternative,
       borderRadius: 8,
       padding: 16,
+    },
+    firstAccountBox: {
+      borderBottomLeftRadius: 0,
+      borderBottomRightRadius: 0,
+    },
+    lastAccountBox: {
+      borderTopLeftRadius: 0,
+      borderTopRightRadius: 0,
+    },
+    middleAccountBox: {
+      borderRadius: 0,
     },
     text: {
       color: colors.text.alternative,
