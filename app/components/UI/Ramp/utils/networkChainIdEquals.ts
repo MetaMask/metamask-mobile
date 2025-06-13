@@ -1,6 +1,9 @@
 import { isCaipChainId } from '@metamask/utils';
 
 function networkChainIdEquals(network: string, chainId: string): boolean {
+  if (network == null || chainId == null || network === '' || chainId === '') {
+    return false;
+  }
   if (network === chainId) {
     return true;
   }
