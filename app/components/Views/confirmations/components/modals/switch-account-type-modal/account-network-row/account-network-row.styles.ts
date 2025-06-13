@@ -23,6 +23,7 @@ const styleSheet = () =>
     },
     multichain_accounts_row_wrapper: {
       width: '100%',
+      marginBottom: 8,
     },
   });
 
