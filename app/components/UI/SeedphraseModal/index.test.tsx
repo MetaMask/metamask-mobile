@@ -64,7 +64,6 @@ describe('SeedphraseModal', () => {
     mockNavigation.mockRestore();
   });
 
-
   it('renders matches snapshot', () => {
     const { wrapper } = setupTest();
     expect(wrapper).toMatchSnapshot();
@@ -86,7 +85,6 @@ describe('SeedphraseModal', () => {
     expect(listItem).toBeTruthy();
     const bullet = wrapper.getAllByText('•');
     expect(bullet.length).toBe(3);
-
   });
 
   it('renders Got it button', () => {
@@ -110,6 +108,5 @@ describe('SeedphraseModal', () => {
     expect(confirmButton).toBeEnabled();
     fireEvent.press(confirmButton);
     expect(mockGoBack).toHaveBeenCalled();
-
   });
 });

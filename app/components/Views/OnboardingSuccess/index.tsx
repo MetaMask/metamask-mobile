@@ -234,7 +234,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   );
 };
 
-const OnboardingSuccess = () => {
+export const OnboardingSuccess = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params as { successFlow: ONBOARDING_SUCCESS_FLOW };

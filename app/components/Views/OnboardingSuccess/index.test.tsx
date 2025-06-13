@@ -49,7 +49,6 @@ const mockUseDispatch = jest.fn();
 const mockDispatch = jest.fn();
 mockUseDispatch.mockImplementation(() => mockDispatch);
 
-
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: mockUseSelector,
@@ -157,6 +156,7 @@ describe('OnboardingSuccess', () => {
         successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
       },
     });
+
     it('renders matching snapshot with route params backedUpSRP false and noSRP false', () => {
       const { toJSON } = renderWithProvider(<OnboardingSuccess />);
       expect(toJSON()).toMatchSnapshot();
