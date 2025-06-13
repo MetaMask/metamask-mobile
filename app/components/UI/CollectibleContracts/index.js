@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 import PropTypes from 'prop-types';
 import {
   TouchableOpacity,
@@ -173,7 +179,11 @@ const CollectibleContracts = ({
   displayNftMedia,
 }) => {
   // Start tracing component loading
-  trace({ name: TraceName.CollectibleContractsComponent });
+  const isFirstRender = useRef(true);
+
+  if (isFirstRender.current) {
+    trace({ name: TraceName.CollectibleContractsComponent });
+  }
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const allNetworks = useSelector(selectNetworkConfigurations);
@@ -540,6 +550,7 @@ const CollectibleContracts = ({
   // End trace when component has finished initial loading
   useEffect(() => {
     endTrace({ name: TraceName.CollectibleContractsComponent });
+    isFirstRender.current = false;
   }, []);
 
   return (
