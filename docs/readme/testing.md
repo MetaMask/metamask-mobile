@@ -50,11 +50,13 @@ Ensure that these devices are set up. You can change the default devices at any 
 
   Instead of building apps localy, you can download prebuilt `.app`/`.ipa`/`.apk` files from [Runway buckets](../../README.md#download-and-install-the-development-build) and run the tests against them.
 
-  After downloading the prebuilt apps, update your local environment variables so that the prebuilds are picked up in the [.detoxrc.js](../../.detoxrc.js) file:
+  After downloading the prebuilt apps, update your local environment variables (`.e2e.env`) so that the prebuilds are picked up in the [.detoxrc.js](../../.detoxrc.js) file:
 
-  - `PREBULT_IOS_APP_PATH` for iOS
-  - `PREBULT_ANDROID_APP_PATH` for Android APK
-  - `PREBULT_ANDROID_TEST_APP_PATH` for Android test APK (needs to be set when using prebuilds)
+  - `PREBUILT_IOS_APP_PATH` for iOS
+  - `PREBUILT_ANDROID_APK_PATH` for Android APK
+  - `PREBUILT_ANDROID_TEST_APK_PATH` for Android test APK (needs to be set when using prebuilds)
+
+  _If environment variables are not picked up you can run `source .e2e.env && yarn <e2e test command>`_
 
 - **Option #2 - Building locally**:
 
