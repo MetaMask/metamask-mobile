@@ -14,6 +14,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import { selectSelectedNetworkClientId } from '../../../selectors/networkController';
 import { areAddressesEqual } from '../../../util/address';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -86,7 +87,9 @@ class Collectible extends PureComponent {
     const { NftDetectionController } = Engine.context;
     const chainIdsToDetectNftsFor = useNftDetectionChainIds();
     try {
+      trace({ name: TraceName.DetectNfts });
       await NftDetectionController.detectNfts(chainIdsToDetectNftsFor);
+      endTrace({ name: TraceName.DetectNfts });
     } finally {
       this.setState({ refreshing: false });
     }
