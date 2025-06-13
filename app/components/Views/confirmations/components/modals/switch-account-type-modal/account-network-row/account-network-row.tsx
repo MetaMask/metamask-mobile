@@ -42,7 +42,7 @@ const AccountNetworkRow = ({
   address: Hex;
   network: EIP7702NetworkConfiguration;
 }) => {
-  const useMultichainAccountDesign = useSelector(
+  const useMultichainAccountsDesign = useSelector(
     selectMultichainAccountsState1Enabled,
   );
   const navigation = useNavigation();
@@ -100,7 +100,7 @@ const AccountNetworkRow = ({
     prevHasPendingRequests.current = hasPendingRequests;
   }, [addressSupportSmartAccount, hasPendingRequests, prevHasPendingRequests]);
 
-  if (useMultichainAccountDesign) {
+  if (useMultichainAccountsDesign) {
     return (
       <Box
         flexDirection={FlexDirection.Row}

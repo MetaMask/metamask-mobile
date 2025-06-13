@@ -18,6 +18,8 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import ButtonLink from '../../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import { ButtonSize } from '../../../../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
+import { FlatList } from 'react-native';
+import AppConstants from '../../../../../../core/AppConstants';
 
 interface SmartAccountDetailsProps {
   account: InternalAccount;
@@ -36,7 +38,7 @@ export const SmartAccountDetails = ({ account }: SmartAccountDetailsProps) => {
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://metamask.io/smart-accounts/',
+        url: AppConstants.URLS.SMART_ACCOUNTS,
         title: 'Smart Accounts',
       },
     });
@@ -69,14 +71,14 @@ export const SmartAccountDetails = ({ account }: SmartAccountDetailsProps) => {
           {strings('multichain_accounts.smart_account.learn_more')}
         </ButtonLink>
       </Box>
-
-      {network7702List?.map((network) => (
-        <AccountNetworkRow
-          key={network.chainId}
-          network={network}
-          address={account.address as Hex}
-        />
-      ))}
+      <FlatList
+        style={styles.networkList}
+        data={network7702List}
+        keyExtractor={(item) => item.chainId}
+        renderItem={({ item }) => (
+          <AccountNetworkRow network={item} address={account.address as Hex} />
+        )}
+      />
     </Box>
   );
 };

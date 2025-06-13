@@ -3,6 +3,7 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { BaseAccountDetails } from '../BaseAccountDetails';
 import RemoveAccount from '../../components/RemoveAccount';
 import ExportCredentials from '../../components/ExportCredentials';
+import SmartAccount from '../../components/SmartAccount';
 
 interface PrivateKeyAccountDetailsProps {
   account: InternalAccount;
@@ -14,5 +15,6 @@ export const PrivateKeyAccountDetails = ({
   <BaseAccountDetails account={account}>
     <ExportCredentials account={account} />
     <RemoveAccount account={account} />
+    <SmartAccount account={account} />
   </BaseAccountDetails>
 );

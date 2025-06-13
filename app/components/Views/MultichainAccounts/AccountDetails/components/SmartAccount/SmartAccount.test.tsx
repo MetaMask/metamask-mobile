@@ -24,6 +24,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 import { useEIP7702Networks } from '../../../../confirmations/hooks/7702/useEIP7702Networks';
+import AppConstants from '../../../../../../core/AppConstants';
 
 const mockUseEIP7702Networks = useEIP7702Networks as jest.MockedFunction<
   typeof useEIP7702Networks
@@ -77,7 +78,7 @@ describe('SmartAccountDetails', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://metamask.io/smart-accounts/',
+        url: AppConstants.URLS.SMART_ACCOUNTS,
         title: 'Smart Accounts',
       },
     });

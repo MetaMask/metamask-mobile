@@ -102,7 +102,7 @@ describe('Account Network Row', () => {
     expect(getByText('Switch')).toBeTruthy();
   });
 
-  describe('Multichain Account Design', () => {
+  describe('Multichain Accounts Design', () => {
     it('renders network name correctly', () => {
       mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
       const { getByText } = renderWithProvider(
@@ -110,7 +110,7 @@ describe('Account Network Row', () => {
         { state: MOCK_STATE },
       );
 
-      expect(getByText('Sepolia')).toBeTruthy();
+      expect(getByText(MOCK_NETWORK.name)).toBeTruthy();
     });
 
     it('renders switch component with correct testID', () => {
