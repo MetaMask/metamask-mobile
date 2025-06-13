@@ -52,11 +52,19 @@ const styleSheet = (params: { theme: Theme }) => {
       borderBottomLeftRadius: 8,
       borderBottomRightRadius: 8,
     },
-    accounts: {
-      ...baseRowStyle,
-      marginBottom: 16,
-      borderBottomLeftRadius: 8,
-      borderBottomRightRadius: 8,
+    accountsList: {
+      marginTop: 16,
+      flex: 1,
+    },
+    accountsTitle: {
+      marginBottom: 12,
+      color: colors.text.default,
+    },
+    accountBox: {
+      marginBottom: 8,
+      backgroundColor: colors.background.alternative,
+      borderRadius: 8,
+      padding: 16,
     },
     text: {
       color: colors.text.alternative,
