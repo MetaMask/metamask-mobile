@@ -5,6 +5,13 @@ import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import handleUniversalLink from './handleUniversalLink';
 import connectWithWC from './connectWithWC';
 import parseDeeplink from './parseDeeplink';
+import {
+  verifyDeeplinkSignature,
+  hasSignature,
+  VALID,
+  INVALID,
+  MISSING,
+} from './utils/verifySignature';
 
 jest.mock('../../../constants/deeplinks');
 jest.mock('../../../util/Logger');
@@ -14,6 +21,7 @@ jest.mock('./handleDappUrl');
 jest.mock('./handleMetaMaskDeeplink');
 jest.mock('./handleUniversalLink');
 jest.mock('./connectWithWC');
+jest.mock('./utils/verifySignature');
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
@@ -46,6 +54,14 @@ describe('parseDeeplink', () => {
   const mockHandleMetaMaskProtocol =
     handleMetaMaskDeeplink as jest.MockedFunction<
       typeof handleMetaMaskDeeplink
+    >;
+
+  const mockHasSignature = hasSignature as jest.MockedFunction<
+    typeof hasSignature
+  >;
+  const mockVerifyDeeplinkSignature =
+    verifyDeeplinkSignature as jest.MockedFunction<
+      typeof verifyDeeplinkSignature
     >;
 
   beforeEach(() => {
@@ -204,6 +220,79 @@ describe('parseDeeplink', () => {
       });
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('signature verification', () => {
+    it('should return true for valid signature', async () => {
+      const url = 'https://example.com?param1=value1&sig=validSignature';
+      mockHasSignature.mockReturnValue(true);
+      mockVerifyDeeplinkSignature.mockResolvedValue(VALID);
+
+      const result = await parseDeeplink({
+        deeplinkManager: instance,
+        url,
+        origin: 'testOrigin',
+        browserCallBack: mockBrowserCallBack,
+        onHandled: mockOnHandled,
+      });
+
+      expect(result).toBe(true);
+      expect(mockHasSignature).toHaveBeenCalled();
+      expect(mockVerifyDeeplinkSignature).toHaveBeenCalled();
+    });
+
+    it('should return false for invalid signature', async () => {
+      const url = 'https://example.com?param1=value1&sig=invalidSignature';
+      mockHasSignature.mockReturnValue(true);
+      mockVerifyDeeplinkSignature.mockResolvedValue(INVALID);
+
+      const result = await parseDeeplink({
+        deeplinkManager: instance,
+        url,
+        origin: 'testOrigin',
+        browserCallBack: mockBrowserCallBack,
+        onHandled: mockOnHandled,
+      });
+
+      expect(result).toBe(false);
+      expect(mockHasSignature).toHaveBeenCalled();
+      expect(mockVerifyDeeplinkSignature).toHaveBeenCalled();
+    });
+
+    it('should return false for missing signature', async () => {
+      const url = 'https://example.com?param1=value1';
+      mockHasSignature.mockReturnValue(true);
+      mockVerifyDeeplinkSignature.mockResolvedValue(MISSING);
+
+      const result = await parseDeeplink({
+        deeplinkManager: instance,
+        url,
+        origin: 'testOrigin',
+        browserCallBack: mockBrowserCallBack,
+        onHandled: mockOnHandled,
+      });
+
+      expect(result).toBe(false);
+      expect(mockHasSignature).toHaveBeenCalled();
+      expect(mockVerifyDeeplinkSignature).toHaveBeenCalled();
+    });
+
+    it('should continue normal processing when no signature is present', async () => {
+      const url = 'https://example.com?param1=value1';
+      mockHasSignature.mockReturnValue(false);
+
+      await parseDeeplink({
+        deeplinkManager: instance,
+        url,
+        origin: 'testOrigin',
+        browserCallBack: mockBrowserCallBack,
+        onHandled: mockOnHandled,
+      });
+
+      expect(mockHasSignature).toHaveBeenCalled();
+      expect(mockVerifyDeeplinkSignature).not.toHaveBeenCalled();
+      expect(mockHandleUniversalLinks).toHaveBeenCalled();
     });
   });
 });
