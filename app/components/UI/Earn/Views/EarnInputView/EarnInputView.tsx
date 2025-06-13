@@ -5,7 +5,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import { formatEther } from 'ethers/lib/utils';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -410,31 +410,17 @@ const EarnInputView = () => {
     ? earnNavBarEventOptions
     : stakingNavBarEventOptions;
 
-  const title = useMemo(() => {
-    if (isStablecoinLendingEnabled) {
-      return strings('earn.deposit');
-    }
-    return strings('stake.stake');
-  }, [isStablecoinLendingEnabled]);
-
   useEffect(() => {
     navigation.setOptions(
       getStakingNavbar(
-        title,
+        strings('earn.deposit'),
         navigation,
         theme.colors,
         navBarOptions,
         navBarEventOptions,
       ),
     );
-  }, [
-    navigation,
-    token,
-    theme.colors,
-    navBarEventOptions,
-    navBarOptions,
-    title,
-  ]);
+  }, [navigation, token, theme.colors, navBarEventOptions, navBarOptions]);
 
   useEffect(() => {
     calculateEstimatedAnnualRewards();
