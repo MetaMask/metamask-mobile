@@ -225,6 +225,7 @@ const Routes = {
   },
   MULTICHAIN_ACCOUNTS: {
     ACCOUNT_DETAILS: 'MultichainAccountDetails',
+    WALLET_DETAILS: 'MultichainWalletDetails',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {

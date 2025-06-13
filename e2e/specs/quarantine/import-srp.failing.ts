@@ -13,7 +13,7 @@ import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
 import TestHelpers from '../../helpers';
 import ImportSrpView from '../../pages/importSrp/ImportSrpView';
-import { goToImportSrp, inputSrp } from './utils';
+import { goToImportSrp, inputSrp } from '../multisrp/utils';
 
 const fixtureServer = new FixtureServer();
 

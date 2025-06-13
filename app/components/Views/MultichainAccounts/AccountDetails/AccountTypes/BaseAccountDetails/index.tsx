@@ -48,6 +48,7 @@ export const BaseAccountDetails = ({
   )
     ? AvatarAccountType.Blockies
     : AvatarAccountType.JazzIcon;
+
   const walletName = 'Wallet 1'; //TODO: replace with useSelector(selectWalletName);
 
   const handleEditAccountName = useCallback(() => {
