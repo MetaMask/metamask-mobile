@@ -63,9 +63,12 @@ const DepositReceiveSection = ({
           <View style={styles.receiptTokenRowLeft}>
             <AvatarToken
               name={token.symbol}
-              imageSource={{ uri: token.image }}
+              imageSource={{
+                uri: token.image,
+              }}
               size={AvatarSize.Xs}
               style={styles.receiveTokenIcon}
+              isIpfsGatewayCheckBypassed
             />
             <Text variant={TextVariant.BodyMD}>{receiptTokenName}</Text>
           </View>
