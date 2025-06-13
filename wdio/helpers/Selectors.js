@@ -45,14 +45,7 @@ class Selectors {
   }
 
   static async getXpathElementByResourceId(id) {
-    const platform = await driver.getPlatform();
-    if (platform === 'iOS') {
-      return await $(`~${id}`);
-    }
-
-    if (platform === 'Android') {
-      return await $(`//*[@resource-id='${id}']`);
-    }
+    return await $(`~${id}`);
   }
 
   static async getElementByCss(css) {
