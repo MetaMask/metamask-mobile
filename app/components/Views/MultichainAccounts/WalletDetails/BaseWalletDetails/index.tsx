@@ -21,6 +21,13 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AccountId } from '@metamask/accounts-controller';
 import Engine from '../../../../../core/Engine';
 import { AccountWallet } from '@metamask/account-tree-controller';
+import Avatar, {
+  AvatarAccountType,
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../../component-library/components/Avatars/Avatar';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 
 interface BaseWalletDetailsProps {
   wallet: AccountWallet;
@@ -60,6 +67,12 @@ export const BaseWalletDetails = ({
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
 
+  const accountAvatarType = useSelector(
+    (state: RootState) => state.settings.useBlockieIcon,
+  )
+    ? AvatarAccountType.Blockies
+    : AvatarAccountType.JazzIcon;
+
   const handleEditWalletName = useCallback(() => {
     // TODO: Implement edit wallet name
   }, []);
@@ -91,6 +104,12 @@ export const BaseWalletDetails = ({
         alignItems={AlignItems.center}
         gap={8}
       >
+        <Avatar
+          variant={AvatarVariant.Account}
+          size={AvatarSize.Md}
+          accountAddress={account.address}
+          type={accountAvatarType}
+        />
         <Text variant={TextVariant.BodyMDMedium}>{account.metadata.name}</Text>
       </Box>
     );
