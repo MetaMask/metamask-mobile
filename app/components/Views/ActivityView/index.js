@@ -10,7 +10,7 @@ import TransactionsView from '../TransactionsView';
 import MultichainTransactionsView from '../MultichainTransactionsView';
 import TabBar from '../../Base/TabBar';
 import { strings } from '../../../../locales/i18n';
-import RampOrdersList from '../../UI/Ramp/Views/OrdersList';
+import RampOrdersList from '../../UI/Ramp/Aggregator/Views/OrdersList';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';

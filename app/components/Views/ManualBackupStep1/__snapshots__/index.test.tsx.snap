@@ -1,53 +1,416 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ManualBackupStep1 should render correctly 1`] = `
-<ContextProvider
-  value={
+exports[`ManualBackupStep1 render matches snapshot 1`] = `
+<RCTSafeAreaView
+  style={
     {
-      "getServerState": undefined,
-      "noopCheck": "once",
-      "stabilityCheck": "once",
-      "store": {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
+      "backgroundColor": "#ffffff",
+      "flex": 1,
     }
   }
 >
-  <Component
-    route={
-      {
-        "params": {
-          "words": [
-            "abstract",
-            "accident",
-            "acoustic",
-            "announce",
-            "artefact",
-            "attitude",
-            "bachelor",
-            "broccoli",
-            "business",
-            "category",
-            "champion",
-            "cinnamon",
-          ],
+  <View
+    style={
+      [
+        {
+          "flex": 1,
+          "paddingHorizontal": 16,
         },
-      }
+      ]
     }
-  />
-</ContextProvider>
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#686e7d",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Step 2 of 3
+    </Text>
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <RCTScrollView
+        automaticallyAdjustContentInsets={false}
+        contentContainerStyle={
+          {
+            "flex": 1,
+          }
+        }
+        contentInset={
+          {
+            "bottom": 0,
+          }
+        }
+        enableAutomaticScroll={true}
+        enableOnAndroid={false}
+        enableResetScrollToCoords={true}
+        extraHeight={75}
+        extraScrollHeight={0}
+        getScrollResponder={[Function]}
+        handleOnScroll={[Function]}
+        keyboardDismissMode="interactive"
+        keyboardOpeningTime={250}
+        keyboardShouldPersistTaps="never"
+        keyboardSpace={0}
+        onScroll={[Function]}
+        resetKeyboardSpace={[Function]}
+        resetScrollToCoords={
+          {
+            "x": 0,
+            "y": 0,
+          }
+        }
+        scrollEventThrottle={1}
+        scrollForExtraHeightOnAndroid={[Function]}
+        scrollIntoView={[Function]}
+        scrollToEnd={[Function]}
+        scrollToFocusedInput={[Function]}
+        scrollToPosition={[Function]}
+        showsVerticalScrollIndicator={true}
+        style={
+          [
+            {
+              "flex": 1,
+            },
+            undefined,
+          ]
+        }
+        update={[Function]}
+        viewIsInsideTabBar={false}
+      >
+        <View>
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessible={true}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "flex": 1,
+                "flexDirection": "column",
+                "gap": 16,
+              }
+            }
+            testID="manual_backup_step_1-screen"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Bold",
+                  "fontSize": 32,
+                  "fontWeight": "700",
+                  "letterSpacing": 0,
+                  "lineHeight": 40,
+                }
+              }
+            >
+              Save your Secret Recovery Phrase
+            </Text>
+            <View
+              style={
+                {
+                  "justifyContent": "flex-start",
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                This is your
+                 
+                <Text
+                  accessibilityRole="text"
+                  onPress={[Function]}
+                  style={
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Secret Recovery Phrase
+                   
+                </Text>
+                Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.
+                 
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#686e7d",
+                      "fontFamily": "CentraNo1-Medium",
+                      "fontSize": 16,
+                      "fontWeight": "500",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Don’t share it with anyone, ever.
+                </Text>
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "minHeight": 230,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "borderRadius": 8,
+                    "flex": 1,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  onPress={[Function]}
+                  style={
+                    {
+                      "borderRadius": 8,
+                      "bottom": 0,
+                      "flex": 1,
+                      "height": "100%",
+                      "left": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="blur-button"
+                >
+                  <View
+                    accessibilityIgnoresInvertColors={true}
+                    style={
+                      {
+                        "borderRadius": 8,
+                        "bottom": 0,
+                        "flex": 1,
+                        "height": "100%",
+                        "left": 0,
+                        "opacity": 0.5,
+                        "position": "absolute",
+                        "right": 0,
+                        "top": 0,
+                      }
+                    }
+                  >
+                    <Image
+                      resizeMode="cover"
+                      source={1}
+                      style={
+                        [
+                          {
+                            "bottom": 0,
+                            "left": 0,
+                            "position": "absolute",
+                            "right": 0,
+                            "top": 0,
+                          },
+                          {
+                            "height": "100%",
+                            "width": undefined,
+                          },
+                          undefined,
+                        ]
+                      }
+                    />
+                  </View>
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 8,
+                        "flex": 1,
+                        "flexDirection": "column",
+                        "height": "100%",
+                        "justifyContent": "center",
+                        "paddingHorizontal": 24,
+                        "paddingVertical": 45,
+                        "rowGap": 16,
+                      }
+                    }
+                  >
+                    <SvgMock
+                      color="#00000066"
+                      fill="currentColor"
+                      height={32}
+                      name="EyeSlash"
+                      style={
+                        {
+                          "height": 32,
+                          "width": 32,
+                        }
+                      }
+                      width={32}
+                    />
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Medium",
+                          "fontSize": 16,
+                          "fontWeight": "500",
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
+                      }
+                    >
+                      Tap to reveal
+                    </Text>
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    >
+                      Make sure no one is watching your screen.
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "flex": 0,
+                "flexDirection": "row",
+                "paddingHorizontal": 24,
+                "paddingVertical": 16,
+              }
+            }
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              disabled={true}
+              style={
+                [
+                  [
+                    {
+                      "borderRadius": 12,
+                      "justifyContent": "center",
+                      "padding": 15,
+                    },
+                    {
+                      "backgroundColor": "#4459ff",
+                      "minHeight": 50,
+                    },
+                    [
+                      {
+                        "flex": 1,
+                      },
+                      {
+                        "marginLeft": 8,
+                      },
+                      {},
+                      {},
+                    ],
+                  ],
+                  {
+                    "opacity": 0.6,
+                  },
+                ]
+              }
+              testID="manual-backup-step-continue-button"
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#007aff",
+                      "fontSize": 17,
+                      "fontWeight": "500",
+                      "textAlign": "center",
+                    },
+                    {
+                      "color": "#dcdcdc",
+                    },
+                    [
+                      {
+                        "fontFamily": "CentraNo1-Bold",
+                        "fontSize": 14,
+                        "fontWeight": "600",
+                        "textAlign": "center",
+                      },
+                      {
+                        "color": "#ffffff",
+                      },
+                      undefined,
+                    ],
+                    {
+                      "opacity": 0.6,
+                    },
+                  ]
+                }
+              >
+                Continue
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </RCTScrollView>
+    </View>
+  </View>
+  <View />
+</RCTSafeAreaView>
 `;

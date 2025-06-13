@@ -44,10 +44,6 @@ jest.mock('../../core/Engine', () => ({
       state: {
         keyrings: ['keyring1', 'keyring2'],
         isUnlocked: true,
-        keyringsMetadata: [
-          { id: '123', name: '' },
-          { id: '456', name: '' },
-        ],
       },
     },
   },

@@ -68,8 +68,12 @@ export const WalletViewSelectorsIDs = {
   CAROUSEL_PROGRESS_DOTS: 'progress-dots',
   CAROUSEL_SLIDE: (id) => `carousel-slide-${id}`,
   CAROUSEL_SLIDE_TITLE: (id) => `carousel-slide-${id}-title`,
-  CAROUSEL_SLIDE_CLOSE_BUTTON: (id) =>
-    `carousel-slide-${id}-close-button`,
+  CAROUSEL_SLIDE_CLOSE_BUTTON: (id) => `carousel-slide-${id}-close-button`,
+
+  DEFI_POSITIONS_CONTAINER: 'defi-positions-container',
+  DEFI_POSITIONS_NETWORK_FILTER: 'defi-positions-network-filter',
+  DEFI_POSITIONS_LIST: 'defi-positions-list',
+  DEFI_POSITIONS_DETAILS_CONTAINER: 'defi-positions-details-container',
 };
 
 export const WalletViewSelectorsText = {
@@ -82,4 +86,8 @@ export const WalletViewSelectorsText = {
   NAVBAR_TITLE_TEXT: 'Wallet',
   PERMISSIONS_SUMMARY_TAB: 'Permissions',
   ACCOUNTS_SUMMARY_TAB: 'Accounts',
+  DEFI_TAB: enContent.wallet.defi,
+  DEFI_NO_POSITIONS: enContent.defi_positions.no_positions,
+  DEFI_ERROR_CANNOT_LOAD_PAGE: enContent.defi_positions.error_cannot_load_page,
+  DEFI_ERROR_VISIT_AGAIN: enContent.defi_positions.error_visit_again,
 };

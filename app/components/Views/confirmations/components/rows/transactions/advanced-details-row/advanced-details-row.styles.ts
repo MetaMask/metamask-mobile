@@ -8,6 +8,9 @@ const styleSheet = () => StyleSheet.create({
       paddingBottom: 4,
       paddingHorizontal: 8,
     },
+    dataScrollContainer: {
+      height: 200,
+    },
   });
 
 export default styleSheet;

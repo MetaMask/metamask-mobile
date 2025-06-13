@@ -47,6 +47,7 @@ const SwitchCustomNetwork = ({
       onConfirm={onConfirm}
       isDisconnectAllShown={false}
       isNetworkSwitch
+      showPermissionsOnly
     />
   );
 };

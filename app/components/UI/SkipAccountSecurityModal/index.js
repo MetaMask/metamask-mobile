@@ -10,7 +10,6 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import PropTypes from 'prop-types';
-import { fontStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { SkipAccountSecurityModalSelectorsIDs } from '../../../../e2e/selectors/Onboarding/SkipAccountSecurityModal.selectors';
@@ -21,6 +20,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
+import { useNavigation } from '@react-navigation/native';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -29,18 +29,6 @@ const createStyles = (colors) =>
       color: colors.error.default,
       marginBottom: 16,
     },
-    modalNoBorder: {
-      borderTopWidth: 0,
-      paddingHorizontal: 0,
-    },
-    skipTitle: {
-      fontSize: 24,
-      marginTop: 12,
-      marginBottom: 16,
-      color: colors.text.default,
-      textAlign: 'center',
-      ...fontStyles.bold,
-    },
     skipModalContainer: {
       flexDirection: 'column',
       justifyContent: 'center',
@@ -48,13 +36,6 @@ const createStyles = (colors) =>
       paddingHorizontal: 16,
       paddingTop: 16,
       width: '100%',
-    },
-    skipModalXButton: {
-      alignItems: 'flex-end',
-    },
-    skipModalXIcon: {
-      fontSize: 16,
-      color: colors.text.default,
     },
     skipModalActionButtons: {
       flexDirection: 'row',
@@ -68,20 +49,16 @@ const createStyles = (colors) =>
       marginRight: 12,
       marginTop: 3,
     },
-    skipModalText: {
-      flex: 1,
-      ...fontStyles.normal,
-      lineHeight: 20,
-      fontSize: 14,
-      paddingHorizontal: 10,
-      color: colors.text.default,
-    },
     ctaContainer: {
       flexDirection: 'row',
       justifyContent: 'flex-start',
       gap: 16,
       marginTop: 24,
-      marginBottom: Platform.OS === 'ios' ? 8 : 16,
+      marginBottom: Platform.select({
+        ios: 8,
+        macos: 8,
+        default: 16,
+      }),
     },
     button: {
       flex: 1,
@@ -96,6 +73,7 @@ const SkipAccountSecurityModal = ({ route }) => {
   const sheetRef = useRef(null);
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const navigation = useNavigation();
 
   const [skipCheckbox, setSkipCheckbox] = useState(false);
 
@@ -104,14 +82,16 @@ const SkipAccountSecurityModal = ({ route }) => {
   };
 
   const onConfirmAction = () => {
-    if (route && route.params && route.params.onConfirm) {
-      sheetRef.current?.onCloseBottomSheet?.(route.params.onConfirm);
+    navigation.goBack();
+    if (route?.params?.onConfirm) {
+      route.params.onConfirm();
     }
   };
 
   const onCancelAction = () => {
-    if (route && route.params && route.params.onCancel) {
-      sheetRef.current?.onCloseBottomSheet?.(route.params.onCancel);
+    navigation.goBack();
+    if (route?.params?.onCancel) {
+      route.params.onCancel();
     }
   };
 
@@ -119,7 +99,7 @@ const SkipAccountSecurityModal = ({ route }) => {
     <BottomSheet ref={sheetRef}>
       <View style={styles.skipModalContainer}>
         <Icon
-          name={IconName.DangerSolid}
+          name={IconName.Danger}
           size={IconSize.Lg}
           style={styles.imageWarning}
           {...generateTestId(Platform, 'skip-backup-warning')}

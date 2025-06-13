@@ -73,6 +73,12 @@ function getChildrenForHash(component: JSXElement) {
     return null;
   }
 
+  // Prevent re-rendering when rendering forms, we don't care what children it contains
+  // since we can identify it by its name. 
+  if (component.type === 'Form') {
+    return null;
+  }
+
   const { children } = component.props;
 
   // Field has special handling to determine the primary child to use for the key

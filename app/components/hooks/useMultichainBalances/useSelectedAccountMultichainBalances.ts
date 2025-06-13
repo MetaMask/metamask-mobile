@@ -107,6 +107,8 @@ const useSelectedAccountMultichainBalances =
           ),
           isPortfolioVieEnabled: isPortfolioEnabled,
           aggregatedBalance: getAggregatedBalance(selectedInternalAccount),
+          isLoadingAccount:
+            accountBalanceData.totalNativeTokenBalance === undefined,
         };
       }
       return undefined;

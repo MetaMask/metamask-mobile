@@ -100,7 +100,7 @@ class TransactionConfirmationView {
   async tapEstimatedGasLink(index = 0) {
     await Gestures.swipe(this.transactionAmount, 'up', 'fast');
     await TestHelpers.delay(1000);
-    await Gestures.TapAtIndex(this.estimatedGasLink, index);
+    await Gestures.tapAtIndex(this.estimatedGasLink, index);
   }
 
   async tapLowPriorityGasOption() {

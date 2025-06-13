@@ -37,6 +37,7 @@ import {
   walletGetSession,
   walletInvokeMethod,
   walletRevokeSession,
+  MultichainApiNotifications,
 } from '@metamask/multichain-api-middleware';
 
 import { createEngineStream } from '@metamask/json-rpc-middleware-stream';
@@ -48,7 +49,11 @@ const pump = require('pump');
 const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
 import DevLogger from '../SDKConnect/utils/DevLogger';
-import { getCaip25Caveat, getPermittedAccounts } from '../Permissions';
+import {
+  getCaip25Caveat,
+  getPermittedAccounts,
+  sortMultichainAccountsByLastSelected,
+} from '../Permissions';
 import { NetworkStatus } from '@metamask/network-controller';
 import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
 import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
@@ -60,7 +65,9 @@ import { createEip1193MethodMiddleware } from '../RPCMethods/createEip1193Method
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
+  getPermittedAccountsForScopes,
   getSessionScopes,
+  KnownSessionProperties,
 } from '@metamask/chain-agnostic-permission';
 import {
   makeMethodMiddlewareMaker,
@@ -72,7 +79,12 @@ import {
   getRemovedAuthorization,
 } from '../../util/permissions';
 import { createMultichainMethodMiddleware } from '../RPCMethods/createMultichainMethodMiddleware';
+import { createAsyncWalletMiddleware } from '../RPCMethods/createAsyncWalletMiddleware';
+import { createOriginThrottlingMiddleware } from '../RPCMethods/OriginThrottlingMiddleware';
 import { getAuthorizedScopes } from '../../selectors/permissions';
+import { SolAccountType, SolScope } from '@metamask/keyring-api';
+import { uniq } from 'lodash';
+import { parseCaipAccountId } from '@metamask/utils';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -127,6 +139,8 @@ export class BackgroundBridge extends EventEmitter {
     this.multichainEngine = null;
     this.multichainSubscriptionManager = null;
     this.multichainMiddlewareManager = null;
+
+    this.lastSelectedSolanaAccountAddress = null;
 
     const networkClientId = Engine.controllerMessenger.call(
       'SelectedNetworkController:getNetworkClientIdForDomain',
@@ -183,7 +197,7 @@ export class BackgroundBridge extends EventEmitter {
       this.onUnlock.bind(this),
     );
 
-    if (AppConstants.MULTICHAIN_API && !this.isMMSDK && !this.isWalletConnect) {
+    if (!this.isMMSDK && !this.isWalletConnect) {
       this.multichainSubscriptionManager = new MultichainSubscriptionManager({
         getNetworkClientById:
           Engine.context.NetworkController.getNetworkClientById.bind(
@@ -243,21 +257,12 @@ export class BackgroundBridge extends EventEmitter {
 
     if (this.isRemoteConn) {
       // Not sending the lock event in case of a remote connection as this is handled correctly already by the SDK
-      // In case we want to send, use  new structure
-      /*const memState = this.getState();
-      const selectedAddress = memState.selectedAddress;
+      // In case we want to send, use new structure
 
-      this.sendNotification({
-        method: NOTIFICATION_NAMES.unlockStateChanged,
-        params: {
-          isUnlocked: true,
-          accounts: [selectedAddress],
-        },
-      });*/
       return;
     }
 
-    this.sendNotification({
+    this.sendNotificationEip1193({
       method: NOTIFICATION_NAMES.unlockStateChanged,
       params: true,
     });
@@ -269,27 +274,27 @@ export class BackgroundBridge extends EventEmitter {
 
     if (this.isRemoteConn) {
       // Not sending the lock event in case of a remote connection as this is handled correctly already by the SDK
-      // In case we want to send, use  new structure
-      /*this.sendNotification({
-        method: NOTIFICATION_NAMES.unlockStateChanged,
-        params: {
-          isUnlocked: false,
-        },
-      });*/
+      // In case we want to send, use new structure
+
       return;
     }
 
-    this.sendNotification({
+    this.sendNotificationEip1193({
       method: NOTIFICATION_NAMES.unlockStateChanged,
       params: false,
     });
   }
 
-  async getProviderNetworkState(origin = METAMASK_DOMAIN, requestNetworkClientId) {
-    const networkClientId = requestNetworkClientId ?? Engine.controllerMessenger.call(
-      'SelectedNetworkController:getNetworkClientIdForDomain',
-      origin,
-    );
+  async getProviderNetworkState(
+    origin = METAMASK_DOMAIN,
+    requestNetworkClientId,
+  ) {
+    const networkClientId =
+      requestNetworkClientId ??
+      Engine.controllerMessenger.call(
+        'SelectedNetworkController:getNetworkClientIdForDomain',
+        origin,
+      );
 
     const networkClient = Engine.controllerMessenger.call(
       'NetworkController:getNetworkClientById',
@@ -322,7 +327,7 @@ export class BackgroundBridge extends EventEmitter {
 
   async notifyChainChanged(params) {
     DevLogger.log(`notifyChainChanged: `, params);
-    this.sendNotification({
+    this.sendNotificationEip1193({
       method: NOTIFICATION_NAMES.chainChanged,
       params: params ?? (await this.getProviderNetworkState(this.origin)),
     });
@@ -370,7 +375,7 @@ export class BackgroundBridge extends EventEmitter {
           `notifySelectedAddressChanged url: ${this.url} hostname: ${this.hostname}: ${selectedAddress}`,
           approvedAccounts,
         );
-        this.sendNotification({
+        this.sendNotificationEip1193({
           method: NOTIFICATION_NAMES.accountsChanged,
           params: approvedAccounts,
         });
@@ -432,20 +437,32 @@ export class BackgroundBridge extends EventEmitter {
   };
 
   onDisconnect = () => {
+    const {
+      controllerMessenger,
+      context: { AccountsController, PermissionController },
+    } = Engine;
     this.disconnected = true;
-    Engine.controllerMessenger.tryUnsubscribe(
+    controllerMessenger.tryUnsubscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       this.sendStateUpdate,
     );
-    Engine.controllerMessenger.tryUnsubscribe(
+    controllerMessenger.tryUnsubscribe(
       'PreferencesController:stateChange',
       this.sendStateUpdate,
     );
 
-    if (AppConstants.MULTICHAIN_API && !this.isMMSDK && !this.isWalletConnect) {
-      Engine.controllerMessenger.unsubscribe(
-        `${Engine.context.PermissionController.name}:stateChange`,
+    if (!this.isMMSDK && !this.isWalletConnect) {
+      controllerMessenger.unsubscribe(
+        `${PermissionController.name}:stateChange`,
         this.handleCaipSessionScopeChanges,
+      );
+      controllerMessenger.unsubscribe(
+        `${PermissionController.name}:stateChange`,
+        this.handleSolanaAccountChangedFromScopeChanges,
+      );
+      controllerMessenger.unsubscribe(
+        `${AccountsController.name}:selectedAccountChange`,
+        this.handleSolanaAccountChangedFromSelectedAccountChanges,
       );
     }
 
@@ -481,6 +498,14 @@ export class BackgroundBridge extends EventEmitter {
     const providerStream = createEngineStream({
       engine: this.multichainEngine,
     });
+
+    // This is not delayed like it is in Extension because Mobile does not have to
+    // support externally_connectable but instead only the faked window.postMessage
+    // transport. Unlike externally_connectable's chrome.runtime.connect() API, the
+    // window.postMessage API allows the inpage provider to setup listeners for
+    // messages before attempting to establish the connection meaning that it will
+    // have listeners ready for this solana accountChanged event below.
+    this.notifySolanaAccountChangedForCurrentAccount();
 
     pump(outStream, providerStream, outStream, (err) => {
       // handle any middleware cleanup
@@ -549,6 +574,11 @@ export class BackgroundBridge extends EventEmitter {
           PermissionController.requestPermissions(
             { origin },
             requestedPermissions,
+            {
+              metadata: {
+                isEip1193Request: true,
+              },
+            },
           ),
         revokePermissionsForOrigin: (permissionKeys) => {
           try {
@@ -631,6 +661,9 @@ export class BackgroundBridge extends EventEmitter {
     }
     ///: END:ONLY_INCLUDE_IF
 
+    // Origin throttling middleware for spam filtering
+    engine.push(createOriginThrottlingMiddleware(this.navigation));
+
     // user-facing RPC methods
     engine.push(
       this.createMiddleware({
@@ -638,6 +671,9 @@ export class BackgroundBridge extends EventEmitter {
         getProviderState: this.getProviderState.bind(this),
       }),
     );
+
+    // Middleware to handle wallet_xxx requests
+    engine.push(createAsyncWalletMiddleware());
 
     engine.push(createSanitizationMiddleware());
 
@@ -650,10 +686,6 @@ export class BackgroundBridge extends EventEmitter {
    * A method for creating a CAIP Multichain provider that is safely restricted for the requesting subject.
    */
   setupProviderEngineCaip() {
-    if (!AppConstants.MULTICHAIN_API) {
-      return null;
-    }
-
     const origin = this.origin;
 
     const { NetworkController, AccountsController, PermissionController } =
@@ -696,10 +728,11 @@ export class BackgroundBridge extends EventEmitter {
             NetworkController,
           ),
         listAccounts: AccountsController.listAccounts.bind(AccountsController),
-        requestPermissionsForOrigin: (requestedPermissions) =>
+        requestPermissionsForOrigin: (requestedPermissions, options = {}) =>
           PermissionController.requestPermissions(
             { origin },
             requestedPermissions,
+            options,
           ),
         getCaveatForOrigin: PermissionController.getCaveat.bind(
           PermissionController,
@@ -714,7 +747,7 @@ export class BackgroundBridge extends EventEmitter {
 
         getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
         isNonEvmScopeSupported: Engine.controllerMessenger.call.bind(
-          Engine.controllerMessenger.controllerMessenger,
+          Engine.controllerMessenger,
           'MultichainRouter:isSupportedScope',
         ),
         handleNonEvmRequestForOrigin: (params) =>
@@ -814,13 +847,39 @@ export class BackgroundBridge extends EventEmitter {
    * This handles CAIP-25 authorization changes every time relevant permission state changes, for any reason.
    */
   setupCaipEventSubscriptions() {
-    const { controllerMessenger, context } = Engine;
+    const {
+      controllerMessenger,
+      context: { AccountsController, PermissionController },
+    } = Engine;
+
+    // this throws if there is no solana account... perhaps we should handle this better at the controller level
+    try {
+      this.lastSelectedSolanaAccountAddress =
+        AccountsController.getSelectedMultichainAccount(
+          SolScope.Mainnet,
+        )?.address;
+    } catch {
+      // noop
+    }
 
     // wallet_sessionChanged and eth_subscription setup/teardown
     controllerMessenger.subscribe(
-      `${context.PermissionController.name}:stateChange`,
+      `${PermissionController.name}:stateChange`,
       this.handleCaipSessionScopeChanges,
       getAuthorizedScopes(this.origin),
+    );
+
+    // wallet_notify for solana accountChanged when permission changes
+    controllerMessenger.subscribe(
+      `${PermissionController.name}:stateChange`,
+      this.handleSolanaAccountChangedFromScopeChanges,
+      getAuthorizedScopes(this.origin),
+    );
+
+    // wallet_notify for solana accountChanged when selected account changes
+    controllerMessenger.subscribe(
+      `${AccountsController.name}:selectedAccountChange`,
+      this.handleSolanaAccountChangedFromSelectedAccountChanges,
     );
   }
 
@@ -887,9 +946,122 @@ export class BackgroundBridge extends EventEmitter {
     this.notifyCaipAuthorizationChange(changedAuthorization);
   };
 
-  sendNotification(payload) {
-    DevLogger.log(`BackgroundBridge::sendNotification: `, payload);
+  handleSolanaAccountChangedFromScopeChanges = (
+    currentValue,
+    previousValue,
+  ) => {
+    const previousSolanaAccountChangedNotificationsEnabled = Boolean(
+      previousValue?.sessionProperties?.[
+        KnownSessionProperties.SolanaAccountChangedNotifications
+      ],
+    );
+    const currentSolanaAccountChangedNotificationsEnabled = Boolean(
+      currentValue?.sessionProperties?.[
+        KnownSessionProperties.SolanaAccountChangedNotifications
+      ],
+    );
+
+    if (
+      !previousSolanaAccountChangedNotificationsEnabled &&
+      !currentSolanaAccountChangedNotificationsEnabled
+    ) {
+      return;
+    }
+
+    const previousSolanaCaipAccountIds = previousValue
+      ? getPermittedAccountsForScopes(previousValue, [
+          SolScope.Mainnet,
+          SolScope.Devnet,
+          SolScope.Testnet,
+        ])
+      : [];
+
+    const [previousSelectedSolanaAccountId] =
+      sortMultichainAccountsByLastSelected(previousSolanaCaipAccountIds);
+    const previousSelectedSolanaAccountAddress = previousSelectedSolanaAccountId
+      ? parseCaipAccountId(previousSelectedSolanaAccountId).address
+      : '';
+
+    const currentSolanaCaipAccountIds = currentValue
+      ? getPermittedAccountsForScopes(currentValue, [
+          SolScope.Mainnet,
+          SolScope.Devnet,
+          SolScope.Testnet,
+        ])
+      : [];
+    const [currentSelectedSolanaAccountId] =
+      sortMultichainAccountsByLastSelected(currentSolanaCaipAccountIds);
+    const currentSelectedSolanaAccountAddress = currentSelectedSolanaAccountId
+      ? parseCaipAccountId(currentSelectedSolanaAccountId).address
+      : '';
+
+    if (
+      previousSelectedSolanaAccountAddress !==
+      currentSelectedSolanaAccountAddress
+    ) {
+      this._notifySolanaAccountChange(
+        currentSelectedSolanaAccountAddress
+          ? [currentSelectedSolanaAccountAddress]
+          : [],
+      );
+    }
+  };
+
+  handleSolanaAccountChangedFromSelectedAccountChanges = (account) => {
+    if (
+      account.type === SolAccountType.DataAccount &&
+      account.address !== this.lastSelectedSolanaAccountAddress
+    ) {
+      this.lastSelectedSolanaAccountAddress = account.address;
+
+      let caip25Caveat;
+      try {
+        caip25Caveat = Engine.context.PermissionController.getCaveat(
+          this.origin,
+          Caip25EndowmentPermissionName,
+          Caip25CaveatType,
+        );
+      } catch {
+        // noop
+      }
+      if (!caip25Caveat) {
+        return;
+      }
+
+      const shouldNotifySolanaAccountChanged =
+        caip25Caveat.value.sessionProperties?.[
+          KnownSessionProperties.SolanaAccountChangedNotifications
+        ];
+      if (!shouldNotifySolanaAccountChanged) {
+        return;
+      }
+
+      const solanaAccounts = getPermittedAccountsForScopes(caip25Caveat.value, [
+        SolScope.Mainnet,
+        SolScope.Devnet,
+        SolScope.Testnet,
+      ]);
+
+      const parsedSolanaAddresses = solanaAccounts.map((caipAccountId) => {
+        const { address } = parseCaipAccountId(caipAccountId);
+        return address;
+      });
+
+      if (parsedSolanaAddresses.includes(account.address)) {
+        this._notifySolanaAccountChange([account.address]);
+      }
+    }
+  };
+
+  sendNotificationEip1193(payload) {
+    DevLogger.log(`BackgroundBridge::sendNotificationEip1193: `, payload);
     this.engine && this.engine.emit('notification', payload);
+  }
+
+  sendNotificationMultichain(payload) {
+    DevLogger.log(`BackgroundBridge::sendNotificationMultichain: `, payload);
+    this.multichainEngine &&
+      this.multichainEngine.emit('notification', payload);
   }
 
   /**
@@ -969,6 +1141,72 @@ export class BackgroundBridge extends EventEmitter {
         },
       });
     }
+  }
+
+  /**
+   * For origins with a solana scope permitted, sends a wallet_notify -> metamask_accountChanged
+   * event to fire for the solana scope with the currently selected solana account if any are
+   * permitted or empty array otherwise.
+   *
+   * @param {string} origin - The origin to notify with the current solana account
+   */
+  notifySolanaAccountChangedForCurrentAccount() {
+    let caip25Caveat;
+    try {
+      caip25Caveat = Engine.context.PermissionController.getCaveat(
+        this.origin,
+        Caip25EndowmentPermissionName,
+        Caip25CaveatType,
+      );
+    } catch (err) {
+      if (err instanceof PermissionDoesNotExistError) {
+        // suppress expected error in case that the origin
+        // does not have the target permission yet
+        return;
+      }
+      throw err;
+    }
+    if (!caip25Caveat) {
+      return;
+    }
+    const solanaAccountsChangedNotifications =
+      caip25Caveat.value.sessionProperties[
+        KnownSessionProperties.SolanaAccountChangedNotifications
+      ];
+
+    const sessionScopes = getSessionScopes(caip25Caveat.value, {
+      getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
+    });
+
+    const solanaScope =
+      sessionScopes[SolScope.Mainnet] ||
+      sessionScopes[SolScope.Devnet] ||
+      sessionScopes[SolScope.Testnet];
+
+    if (solanaAccountsChangedNotifications && solanaScope) {
+      const { accounts } = solanaScope;
+
+      const [accountIdToEmit] = sortMultichainAccountsByLastSelected(accounts);
+
+      if (accountIdToEmit) {
+        const accountAddressToEmit =
+          parseCaipAccountId(accountIdToEmit).address;
+        this._notifySolanaAccountChange([accountAddressToEmit]);
+      }
+    }
+  }
+
+  _notifySolanaAccountChange(value) {
+    this.sendNotificationMultichain({
+      method: MultichainApiNotifications.walletNotify,
+      params: {
+        scope: SolScope.Mainnet,
+        notification: {
+          method: NOTIFICATION_NAMES.accountsChanged,
+          params: value,
+        },
+      },
+    });
   }
 }
 

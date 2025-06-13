@@ -11,48 +11,54 @@ export interface SnapUIImageProps {
   borderRadius?: number;
 }
 
-function getViewBox(svg: string) {
+function parseSvg(svg: string) {
   const viewBoxMatch = svg.match(/viewBox="([^"]+)"/);
-
-  if (viewBoxMatch?.[1]) {
-    return viewBoxMatch?.[1];
-  }
-
   const widthMatch = svg.match(/width="([^"]+)"/);
   const heightMatch = svg.match(/height="([^"]+)"/);
 
-  if (widthMatch?.[1] && heightMatch?.[1]) {
-    const width = widthMatch[1];
-    const height = heightMatch[1];
-    return `0 0 ${width} ${height}`;
+  const viewBox = viewBoxMatch?.[1];
+  const width = widthMatch?.[1];
+  const height = heightMatch?.[1];
+
+  if (viewBox && width && height) {
+    return { viewBox, height, width };
   }
 
-  return undefined;
+  if (viewBox) {
+    const viewBoxElements = viewBox.split(' ');
+    return { viewBox, width: viewBoxElements[2], height: viewBoxElements[3] };
+  }
+
+  if (width && height) {
+    return { viewBox: `0 0 ${width} ${height}`, width, height };
+  }
+
+  return null;
 }
 
-function getDimensions(viewBox?: string) {
-  if (!viewBox) {
+function getDimensions(svg: string) {
+  const result = parseSvg(svg);
+
+  if (!result) {
     return null;
   }
 
-  const viewBoxElements = viewBox.split(' ');
-  const originalWidth = viewBoxElements[2];
-  const originalHeight = viewBoxElements[3];
+  const { viewBox, height, width } = result;
 
-  if (!originalHeight || !originalWidth) {
-    return null;
+  if (!height || !width) {
+    return { viewBox };
   }
 
-  const parsedWidth = parseInt(originalWidth, 10);
-  const parsedHeight = parseInt(originalHeight, 10);
+  const parsedWidth = parseInt(width, 10);
+  const parsedHeight = parseInt(height, 10);
 
   const aspectRatio = parsedWidth / parsedHeight;
 
   if (!Number.isFinite(aspectRatio)) {
-    return null;
+    return { viewBox };
   }
 
-  return { aspectRatio, height: parsedHeight, width: parsedWidth };
+  return { viewBox, aspectRatio, height: parsedHeight, width: parsedWidth };
 }
 
 export const SnapUIImage: React.FC<SnapUIImageProps> = ({
@@ -62,8 +68,7 @@ export const SnapUIImage: React.FC<SnapUIImageProps> = ({
   style,
   borderRadius,
 }) => {
-  const viewBox = getViewBox(value);
-  const dimensions = getDimensions(viewBox);
+  const dimensions = getDimensions(value);
   const aspectRatio = dimensions?.aspectRatio ?? 1;
   const width = propWidth ?? dimensions?.width;
   const height = propHeight ?? dimensions?.height;
@@ -93,7 +98,7 @@ export const SnapUIImage: React.FC<SnapUIImageProps> = ({
         }}
         height="100%"
         width="100%"
-        viewBox={viewBox}
+        viewBox={dimensions?.viewBox}
       />
     </View>
   );

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   ScrollView,
   View,
@@ -40,6 +40,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import { saveOnboardingEvent } from '../../../actions/onboarding';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -101,7 +102,7 @@ const createStyles = (colors) =>
  * the backup seed phrase flow
  */
 const AccountBackupStep1 = (props) => {
-  const { navigation, route } = props;
+  const { navigation, route, dispatchSaveOnboardingEvent } = props;
   const [hasFunds, setHasFunds] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -109,31 +110,36 @@ const AccountBackupStep1 = (props) => {
   const track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
-    trackOnboarding(eventBuilder.build());
+    trackOnboarding(eventBuilder.build(), dispatchSaveOnboardingEvent);
   };
+
+  const headerLeft = useCallback(
+    () => (
+      <TouchableOpacity onPress={() => navigation.goBack()}>
+        <Icon
+          name={IconName.ArrowLeft}
+          size={IconSize.Lg}
+          color={colors.text.default}
+          style={styles.headerLeft}
+        />
+      </TouchableOpacity>
+    ),
+    [navigation, colors, styles.headerLeft],
+  );
 
   useEffect(() => {
     navigation.setOptions({
       ...getOnboardingNavbarOptions(
         route,
         {
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Icon
-                name={IconName.ArrowLeft}
-                size={IconSize.Lg}
-                color={colors.text.default}
-                style={styles.headerLeft}
-              />
-            </TouchableOpacity>
-          ),
+          headerLeft,
         },
         colors,
         false,
       ),
       gesturesEnabled: false,
     });
-  }, [navigation, route, colors, styles.headerLeft]);
+  }, [navigation, route, colors, headerLeft]);
 
   useEffect(
     () => {
@@ -164,13 +170,7 @@ const AccountBackupStep1 = (props) => {
     // Get onboarding wizard state
     const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     !onboardingWizard && props.setOnboardingWizardStep(1);
-    props.navigation.navigate('OptinMetrics', {
-      onContinue: () => {
-        props.navigation.navigate('OnboardingSuccess', {
-          noSRP: true,
-        });
-      },
-    });
+    props.navigation.navigate('OnboardingSuccess');
   };
 
   const showRemindLater = () => {
@@ -222,6 +222,7 @@ const AccountBackupStep1 = (props) => {
                   variant={TextVariant.BodyMD}
                   color={TextColor.Primary}
                   onPress={showWhatIsSeedphrase}
+                  testID={ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK}
                 >
                   {strings('account_backup_step_1.info_text_1_2')}
                 </Text>{' '}
@@ -278,10 +279,15 @@ AccountBackupStep1.propTypes = {
    * Action to set onboarding wizard step
    */
   setOnboardingWizardStep: PropTypes.func,
+  /**
+   * Action to save onboarding event
+   */
+  dispatchSaveOnboardingEvent: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
+  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
 });
 
 export default connect(null, mapDispatchToProps)(AccountBackupStep1);

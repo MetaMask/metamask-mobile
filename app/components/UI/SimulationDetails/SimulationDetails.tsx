@@ -12,22 +12,25 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import { ConfirmationRowComponentIDs } from '../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../hooks/useStyles';
 import { TooltipModal } from '../../Views/confirmations/components/UI/Tooltip/Tooltip';
+import { use7702TransactionType } from '../../Views/confirmations/hooks/7702/use7702TransactionType';
 import AnimatedSpinner, { SpinnerSize } from '../AnimatedSpinner';
 import BalanceChangeList from './BalanceChangeList/BalanceChangeList';
+import BatchApprovalRow from './BatchApprovalRow/BatchApprovalRow';
 import styleSheet from './SimulationDetails.styles';
 import useBalanceChanges from './useBalanceChanges';
 import { useSimulationMetrics } from './useSimulationMetrics';
 
 export interface SimulationDetailsProps {
-  transaction: TransactionMeta;
   enableMetrics: boolean;
   isTransactionsRedesign?: boolean;
+  transaction: TransactionMeta;
 }
 
 /**
@@ -67,7 +70,7 @@ const ErrorContent: React.FC<{
  * Content when there are no balance changes.
  */
 const EmptyContent: React.FC = () => (
-  <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+  <Text>
     {strings('simulation_details.no_balance_changes')}
   </Text>
 );
@@ -124,15 +127,21 @@ const HeaderLayout: React.FC<{
 const SimulationDetailsLayout: React.FC<{
   inHeader?: React.ReactNode;
   isTransactionsRedesign: boolean;
+  noBalanceChanges?: boolean;
   children?: React.ReactNode;
-}> = ({ inHeader, children, isTransactionsRedesign }) => {
-  const { styles } = useStyles(styleSheet, { isTransactionsRedesign });
+}> = ({ inHeader, children, isTransactionsRedesign, noBalanceChanges = false }) => {
+  const { styles } = useStyles(styleSheet, { isTransactionsRedesign, noBalanceChanges });
   return (
-    <View style={styles.container}>
-      <HeaderLayout isTransactionsRedesign={isTransactionsRedesign}>
-        {inHeader}
-      </HeaderLayout>
-      {children}
+    <View 
+      style={isTransactionsRedesign ? styles.redesignedRowContainer : {}} 
+      testID={ConfirmationRowComponentIDs.SIMULATION_DETAILS}
+    >
+      <View style={[styles.container]}>
+        <HeaderLayout isTransactionsRedesign={isTransactionsRedesign}>
+          {inHeader}
+        </HeaderLayout>
+        {children}
+      </View>
     </View>
   );
 };
@@ -149,8 +158,18 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   isTransactionsRedesign = false,
 }: SimulationDetailsProps) => {
   const { styles } = useStyles(styleSheet, { isTransactionsRedesign });
-  const { chainId, id: transactionId, simulationData, networkClientId } = transaction;
-  const balanceChangesResult = useBalanceChanges({ chainId, simulationData, networkClientId });
+  const {
+    chainId,
+    id: transactionId,
+    simulationData,
+    networkClientId,
+  } = transaction;
+  const balanceChangesResult = useBalanceChanges({
+    chainId,
+    simulationData,
+    networkClientId,
+  });
+  const { isBatched } = use7702TransactionType();
   const loading = !simulationData || balanceChangesResult.pending;
 
   useSimulationMetrics({
@@ -201,7 +220,7 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   const empty = balanceChanges.length === 0;
   if (empty) {
     return (
-      <SimulationDetailsLayout isTransactionsRedesign={isTransactionsRedesign}>
+      <SimulationDetailsLayout isTransactionsRedesign={isTransactionsRedesign} noBalanceChanges>
         <EmptyContent />
       </SimulationDetailsLayout>
     );
@@ -213,6 +232,7 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   return (
     <SimulationDetailsLayout isTransactionsRedesign={isTransactionsRedesign}>
       <View style={styles.changeListContainer}>
+        {isBatched && <BatchApprovalRow />}
         <BalanceChangeList
           testID="simulation-details-balance-change-list-outgoing"
           heading={strings('simulation_details.outgoing_heading')}

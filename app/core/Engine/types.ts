@@ -166,6 +166,7 @@ import {
   CronjobControllerEvents,
   CronjobControllerActions,
   CronjobController,
+  MultichainRouterActions,
 } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -364,6 +365,7 @@ type GlobalActions =
   | BridgeStatusControllerActions
   | EarnControllerActions
   | AppMetadataControllerActions
+  | MultichainRouterActions
   | DeFiPositionsControllerActions;
 
 type GlobalEvents =

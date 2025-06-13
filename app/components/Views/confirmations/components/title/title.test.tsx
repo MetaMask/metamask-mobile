@@ -1,4 +1,5 @@
 import React from 'react';
+import { merge } from 'lodash';
 import {
   generateContractInteractionState,
   personalSignatureConfirmationState,
@@ -13,14 +14,6 @@ import {
 } from '../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Title from './title';
-
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
-}));
 
 describe('Confirm Title', () => {
   it('renders the title and subtitle for a permit signature', () => {
@@ -77,7 +70,19 @@ describe('Confirm Title', () => {
 
   it('renders correct title for transfer', () => {
     const { getByText } = renderWithProvider(<Title />, {
-      state: transferConfirmationState,
+      state: merge(transferConfirmationState, {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  origin: 'test-dapp',
+                },
+              ],
+            },
+          },
+        },
+      }),
     });
     expect(getByText('Transfer request')).toBeTruthy();
   });

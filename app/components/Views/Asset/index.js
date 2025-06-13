@@ -49,7 +49,7 @@ import ActivityHeader from './ActivityHeader';
 import {
   isNetworkRampNativeTokenSupported,
   isNetworkRampSupported,
-} from '../../UI/Ramp/utils';
+} from '../../UI/Ramp/Aggregator/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import Device from '../../../util/device';
 import {

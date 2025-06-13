@@ -38,9 +38,6 @@ export const useEIP7702Networks = (address: string) => {
   );
 
   const { pending, value } = useAsyncResultOrThrow(async () => {
-    if (!process.env.MM_SMART_ACCOUNT_UI_ENABLED) {
-      return [];
-    }
     const chainIds = Object.keys(networkList) as Hex[];
 
     return await Engine.context.TransactionController.isAtomicBatchSupported({

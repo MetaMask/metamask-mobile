@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   ScrollView,
   TouchableOpacity,
@@ -18,7 +18,6 @@ import { strings } from '../../../../locales/i18n';
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
 import ActionModal from '../../UI/ActionModal';
-import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -28,6 +27,8 @@ import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboard
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Routes from '../../../constants/navigation/Routes';
+import { saveOnboardingEvent } from '../../../actions/onboarding';
+import { connect } from 'react-redux';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -202,22 +203,24 @@ const createStyles = (colors) =>
  * the backup seed phrase flow
  */
 const AccountBackupStep1B = (props) => {
-  const { navigation, route } = props;
+  const { navigation, route, dispatchSaveOnboardingEvent } = props;
   const [showWhySecureWalletModal, setWhySecureWalletModal] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
+  const headerLeft = useCallback(() => <View />, []);
 
   useEffect(() => {
     navigation.setOptions(
       getOnboardingNavbarOptions(
         route,
         {
-          headerLeft: () => <View />,
+          headerLeft,
         },
         colors,
       ),
     );
-  }, [navigation, route, colors]);
+  }, [navigation, route, colors, headerLeft]);
 
   const goNext = () => {
     props.navigation.navigate('ManualBackupStep1', {
@@ -228,6 +231,7 @@ const AccountBackupStep1B = (props) => {
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED,
       ).build(),
+      dispatchSaveOnboardingEvent,
     );
   };
 
@@ -404,6 +408,14 @@ AccountBackupStep1B.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
+  /**
+   * Action to save onboarding event
+   */
+  dispatchSaveOnboardingEvent: PropTypes.func,
 };
 
-export default AccountBackupStep1B;
+const mapDispatchToProps = (dispatch) => ({
+  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
+});
+
+export default connect(null, mapDispatchToProps)(AccountBackupStep1B);

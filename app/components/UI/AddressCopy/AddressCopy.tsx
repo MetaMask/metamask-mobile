@@ -1,6 +1,6 @@
 // Third parties dependencies
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 
 // External dependencies
 import { TouchableOpacity } from 'react-native-gesture-handler';
@@ -17,14 +17,19 @@ import { View } from 'react-native';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useStyles } from '../../../component-library/hooks';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 // Internal dependencies
 import styleSheet from './AddressCopy.styles';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 
-const AddressCopy = () => {
+interface AddressCopyProps {
+  account: InternalAccount;
+  iconColor?: IconColor;
+}
+
+const AddressCopy = ({ account, iconColor }: AddressCopyProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   const dispatch = useDispatch();
@@ -43,14 +48,11 @@ const AddressCopy = () => {
   /**
    * A string that represents the selected address
    */
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   const copyAccountToClipboard = async () => {
-    if (selectedInternalAccount?.address) {
-      await ClipboardManager.setString(
-        getFormattedAddressFromInternalAccount(selectedInternalAccount),
-      );
-    }
+    await ClipboardManager.setString(
+      getFormattedAddressFromInternalAccount(account),
+    );
     handleShowAlert({
       isVisible: true,
       autodismiss: 1500,
@@ -73,7 +75,7 @@ const AddressCopy = () => {
         <Icon
           name={IconName.Copy}
           size={IconSize.Lg}
-          color={IconColor.Default}
+          color={iconColor || IconColor.Default}
         />
       </TouchableOpacity>
     </View>

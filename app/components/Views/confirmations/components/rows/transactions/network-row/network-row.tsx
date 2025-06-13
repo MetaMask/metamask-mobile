@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 
+import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import { selectNetworkConfigurationByChainId } from '../../../../../../../selectors/networkController';
 import Text, {
@@ -35,7 +36,7 @@ const NetworkRow = () => {
   }
 
   return (
-    <InfoSection>
+    <InfoSection testID={ConfirmationRowComponentIDs.NETWORK}>
       <InfoRow
         label={strings('transactions.network')}
         style={styles.infoRowOverride}

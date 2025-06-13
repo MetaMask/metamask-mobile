@@ -20,6 +20,16 @@ export async function addTransaction(
   return await TransactionController.addTransaction(transaction, opts);
 }
 
+export async function updateAtomicBatchData(batchData: {
+  transactionId: string;
+  transactionData: Hex;
+  transactionIndex: number;
+}) {
+  const { TransactionController } = Engine.context;
+
+  return await TransactionController.updateAtomicBatchData(batchData);
+}
+
 // Keeping this export as function to put more logic in the future
 export async function estimateGas(
   transaction: TransactionParams,
@@ -132,6 +142,13 @@ export function updateEditableParams(
   sanitizeTransactionParamsGasValues(id, txParams);
 
   return TransactionController.updateEditableParams(...args);
+}
+
+export function updateTransactionGasFees(
+  ...args: Parameters<BaseTransactionController['updateTransactionGasFees']>
+) {
+  const { TransactionController } = Engine.context;
+  return TransactionController.updateTransactionGasFees(...args);
 }
 
 export const getNetworkNonce = async (

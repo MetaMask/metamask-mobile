@@ -1,6 +1,6 @@
 import React, { FunctionComponent } from 'react';
 import { ButtonType, UserInputEventType } from '@metamask/snaps-sdk';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, StyleSheet } from 'react-native';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import AnimatedLottieView from 'lottie-react-native';
 
@@ -12,6 +12,13 @@ export interface SnapUIButtonProps {
   form?: string;
   children: React.ReactNode;
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+});
 
 export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
   name,
@@ -39,7 +46,12 @@ export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
   };
 
   return (
-    <TouchableOpacity id={name} onPress={handlePress} disabled={disabled}>
+    <TouchableOpacity
+      id={name}
+      onPress={handlePress}
+      disabled={disabled}
+      style={styles.container}
+    >
       {loading ? (
         <AnimatedLottieView
           source={{ uri: './loading.json' }}

@@ -189,6 +189,9 @@ const createStyles = (colors: any) =>
     checkbox: {
       alignItems: 'flex-start',
     },
+    inputPadding: {
+      padding: Platform.OS === 'ios' ? 4 : 3,
+    },
   });
 
 export default createStyles;

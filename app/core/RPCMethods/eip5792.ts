@@ -35,8 +35,8 @@ type JSONRPCRequest = JsonRpcRequest & {
 
 export const getAccounts = async () => {
   const { AccountsController } = Engine.context;
-  const selectedAddress = AccountsController.getSelectedAccount()?.address;
-  return Promise.resolve(selectedAddress ? [selectedAddress] : []);
+  const addresses = AccountsController.listAccounts().map((acc) => acc.address);
+  return Promise.resolve(addresses);
 };
 
 function validateSendCallsVersion(sendCalls: SendCalls) {
@@ -115,6 +115,18 @@ function validateCapabilities(sendCalls: SendCalls) {
 }
 
 function validateUpgrade(keyringType?: KeyringTypes) {
+  // Not allow upgrade if user has disabled smart account upgrade prompts
+  if (
+    Engine.context.PreferencesController.state
+      .dismissSmartAccountSuggestionEnabled
+  ) {
+    throw new JsonRpcError(
+      EIP5792ErrorCode.RejectedUpgrade,
+      'EIP-7702 upgrade disabled by the user',
+    );
+  }
+
+  // Not allow upgrade for hardware wallet accounts
   if (keyringType && !SUPPORTED_KEYRING_TYPES.includes(keyringType)) {
     throw new JsonRpcError(
       EIP5792ErrorCode.RejectedUpgrade,

@@ -1,10 +1,5 @@
 import { captureException } from '@sentry/react-native';
 import { cloneDeep } from 'lodash';
-import {
-  NetworkConfiguration,
-  RpcEndpointType,
-} from '@metamask/network-controller';
-import { Hex } from '@metamask/utils';
 
 import { ensureValidState } from './util';
 import migrate from './077';
@@ -23,110 +18,20 @@ const mockedEnsureValidState = jest.mocked(ensureValidState);
 const createTestState = () => ({
   engine: {
     backgroundState: {
-      NetworkController: {
-        selectedNetworkClientId: 'mainnet',
-        networksMetadata: {},
-        networkConfigurationsByChainId: {
-          '0x1': {
-            chainId: '0x1',
-            rpcEndpoints: [
-              {
-                networkClientId: 'mainnet',
-                url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
-                type: 'infura',
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
-            blockExplorerUrls: ['https://etherscan.io'],
-            defaultBlockExplorerUrlIndex: 0,
-            name: 'Ethereum Mainnet',
-            nativeCurrency: 'ETH',
+      KeyringController: {
+        keyringsMetadata: [
+          {
+            id: 'some-id',
+            name: 'some-name',
           },
-          '0xaa36a7': {
-            chainId: '0xaa36a7',
-            rpcEndpoints: [
-              {
-                networkClientId: 'sepolia',
-                url: 'https://sepolia.infura.io/v3/{infuraProjectId}',
-                type: 'infura',
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
-            blockExplorerUrls: ['https://sepolia.etherscan.io'],
-            defaultBlockExplorerUrlIndex: 0,
-            name: 'Sepolia',
-            nativeCurrency: 'SepoliaETH',
-          },
-          '0xe705': {
-            chainId: '0xe705',
-            rpcEndpoints: [
-              {
-                networkClientId: 'linea-sepolia',
-                url: 'https://linea-sepolia.infura.io/v3/{infuraProjectId}',
-                type: 'infura',
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
-            blockExplorerUrls: ['https://sepolia.lineascan.build'],
-            defaultBlockExplorerUrlIndex: 0,
-            name: 'Linea Sepolia',
-            nativeCurrency: 'LineaETH',
-          },
-          '0xe708': {
-            chainId: '0xe708',
-            rpcEndpoints: [
-              {
-                networkClientId: 'linea-mainnet',
-                url: 'https://linea-mainnet.infura.io/v3/{infuraProjectId}',
-                type: 'infura',
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
-            blockExplorerUrls: ['https://lineascan.build'],
-            defaultBlockExplorerUrlIndex: 0,
-            name: 'Linea Mainnet',
-            nativeCurrency: 'ETH',
-          },
-          '0x18c6': {
-            chainId: '0x18c6',
-            rpcEndpoints: [
-              {
-                networkClientId: 'megaeth-testnet',
-                url: 'https://carrot.megaeth.com/rpc',
-                type: RpcEndpointType.Custom,
-                failoverUrls: [],
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
-            blockExplorerUrls: ['https://megaexplorer.xyz'],
-            defaultBlockExplorerUrlIndex: 0,
-            name: 'Mega Testnet',
-            nativeCurrency: 'MegaETH',
-          },
-        },
+        ],
+        vault: 'some-vault',
       },
     },
   },
 });
 
-const createMonadTestnetConfiguration = (): NetworkConfiguration => ({
-  chainId: '0x279f',
-  rpcEndpoints: [
-    {
-      networkClientId: 'monad-testnet',
-      url: 'https://testnet-rpc.monad.xyz',
-      type: RpcEndpointType.Custom,
-      failoverUrls: [],
-    },
-  ],
-  defaultRpcEndpointIndex: 0,
-  blockExplorerUrls: ['https://testnet.monadexplorer.com'],
-  defaultBlockExplorerUrlIndex: 0,
-  name: 'Monad Testnet',
-  nativeCurrency: 'MON',
-});
-
-describe('Migration 77: Add `Monad Testnet`', () => {
+describe('Migration 77: Remove `KeyringController.keyringsMetadata`', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
@@ -141,62 +46,14 @@ describe('Migration 77: Add `Monad Testnet`', () => {
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('adds `Monad Testnet` as default network to state', () => {
-    const monadTestnetConfiguration = createMonadTestnetConfiguration();
+  it('removes `KeyringController.keyringsMetadata` from state', () => {
     const oldState = createTestState();
     mockedEnsureValidState.mockReturnValue(true);
-
     const expectedData = {
       engine: {
         backgroundState: {
-          NetworkController: {
-            ...oldState.engine.backgroundState.NetworkController,
-            networkConfigurationsByChainId: {
-              ...oldState.engine.backgroundState.NetworkController
-                .networkConfigurationsByChainId,
-              [monadTestnetConfiguration.chainId]: monadTestnetConfiguration,
-            },
-          },
-        },
-      },
-    };
-
-    const migratedState = migrate(oldState);
-
-    expect(migratedState).toStrictEqual(expectedData);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('replaces `Monad Testnet` NetworkConfiguration if there is one', () => {
-    const monadTestnetConfiguration = createMonadTestnetConfiguration();
-    const oldState = createTestState();
-    const networkConfigurationsByChainId = oldState.engine.backgroundState
-      .NetworkController.networkConfigurationsByChainId as Record<
-      Hex,
-      NetworkConfiguration
-    >;
-    networkConfigurationsByChainId[monadTestnetConfiguration.chainId] = {
-      ...monadTestnetConfiguration,
-      rpcEndpoints: [
-        {
-          networkClientId: 'some-client-id',
-          url: 'https://some-url.com/rpc',
-          type: RpcEndpointType.Custom,
-        },
-      ],
-    };
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const expectedData = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            ...oldState.engine.backgroundState.NetworkController,
-            networkConfigurationsByChainId: {
-              ...oldState.engine.backgroundState.NetworkController
-                .networkConfigurationsByChainId,
-              [monadTestnetConfiguration.chainId]: monadTestnetConfiguration,
-            },
+          KeyringController: {
+            vault: 'some-vault',
           },
         },
       },
@@ -227,23 +84,21 @@ describe('Migration 77: Add `Monad Testnet`', () => {
       state: {
         engine: {
           backgroundState: {
-            NetworkController: 'invalid',
+            KeyringController: 'invalid',
           },
         },
       },
-      test: 'invalid NetworkController state',
+      test: 'invalid KeyringController state',
     },
     {
       state: {
         engine: {
           backgroundState: {
-            NetworkController: {
-              networkConfigurationsByChainId: 'invalid',
-            },
+            KeyringController: {},
           },
         },
       },
-      test: 'invalid networkConfigurationsByChainId state',
+      test: 'absent `KeyringController.keyringsMetadata`',
     },
   ])('does not modify state if the state is invalid - $test', ({ state }) => {
     const orgState = cloneDeep(state);
@@ -253,10 +108,5 @@ describe('Migration 77: Add `Monad Testnet`', () => {
 
     // State should be unchanged
     expect(migratedState).toStrictEqual(orgState);
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        'Migration 77: NetworkController or networkConfigurationsByChainId not found in state',
-      ),
-    );
   });
 });

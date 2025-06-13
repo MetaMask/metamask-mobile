@@ -168,4 +168,66 @@ describe('useCurrencyRatePolling', () => {
     );
     expect(mockedCurrencyRateController.startPolling).toHaveBeenCalledTimes(0);
   });
+
+  it('polls with provided chain ids', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          MultichainNetworkController: {
+            isEvmSelected: false,
+            selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+            multichainNetworkConfigurationsByChainId: {},
+          },
+          NetworkController: {
+            selectedNetworkClientId: 'selectedNetworkClientId',
+            networkConfigurationsByChainId: {
+              '0x1': {
+                nativeCurrency: 'ETH',
+                chainId: '0x1',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'selectedNetworkClientId',
+                  },
+                ],
+              },
+              '0x89': {
+                nativeCurrency: 'POL',
+                chainId: '0x89',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'selectedNetworkClientId2',
+                  },
+                ],
+              },
+            },
+          },
+          PreferencesController: {
+            tokenNetworkFilter: {
+              '0x1': true,
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    renderHookWithProvider(
+      () => useCurrencyRatePolling({ chainIds: ['0x1', '0x89'] }),
+      {
+        state,
+      },
+    );
+
+    const mockedCurrencyRateController = jest.mocked(
+      Engine.context.CurrencyRateController,
+    );
+
+    expect(mockedCurrencyRateController.startPolling).toHaveBeenCalledTimes(2);
+    expect(mockedCurrencyRateController.startPolling).toHaveBeenNthCalledWith(1, {
+      nativeCurrencies: ['ETH'],
+    });
+    expect(mockedCurrencyRateController.startPolling).toHaveBeenNthCalledWith(2, {
+      nativeCurrencies: ['POL'],
+    });
+  });
 });

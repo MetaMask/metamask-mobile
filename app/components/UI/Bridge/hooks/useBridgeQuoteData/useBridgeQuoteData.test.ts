@@ -1,3 +1,4 @@
+import '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import { createBridgeTestState } from '../../testUtils';

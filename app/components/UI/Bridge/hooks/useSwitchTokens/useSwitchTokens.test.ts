@@ -1,7 +1,7 @@
+import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useSwitchTokens } from '.';
 import { waitFor } from '@testing-library/react-native';
-import { initialState } from '../../_mocks_/initialState';
 import { BridgeToken } from '../../types';
 import { Hex } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';

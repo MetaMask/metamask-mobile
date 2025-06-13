@@ -21,7 +21,7 @@ const MOCK_ACCOUNT = '0x1234';
 jest.mock('../Engine', () => ({
   context: {
     AccountsController: {
-      getSelectedAccount: () => ({ address: MOCK_ACCOUNT }),
+      listAccounts: () => [{ address: MOCK_ACCOUNT }],
     },
     KeyringController: {
       state: {
@@ -46,6 +46,11 @@ jest.mock('../Engine', () => ({
       addTransactionBatch: jest.fn().mockResolvedValue({ batchId: 123 }),
       isAtomicBatchSupported: jest.fn().mockResolvedValue([true]),
     },
+    PreferencesController: {
+      state: {
+        dismissSmartAccountSuggestionEnabled: false,
+      },
+    },
   },
   controllerMessenger: {
     call: jest.fn().mockImplementation((type) => {
@@ -69,15 +74,15 @@ jest.mock('../Engine', () => ({
 const MockEngine = jest.mocked(Engine);
 
 describe('getAccounts', () => {
-  it('return selected account address', async () => {
+  it('list of account addresses', async () => {
     const accounts = await getAccounts();
     expect(accounts).toStrictEqual([MOCK_ACCOUNT]);
   });
 
-  it('return empty array if origin is metamask and AccountsController returns no selected account', async () => {
-    MockEngine.context.AccountsController.getSelectedAccount = (() =>
+  it('return empty array if AccountsController returns no accounts', async () => {
+    MockEngine.context.AccountsController.listAccounts = (() =>
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      undefined) as any;
+      []) as any;
     const accounts = await getAccounts();
     expect(accounts).toStrictEqual([]);
   });
@@ -222,6 +227,17 @@ describe('processSendCalls', () => {
         networkClientId: 'linea',
       } as JsonRpcRequest);
     }).rejects.toThrow('EIP-7702 upgrade not supported on account');
+  });
+
+  it('throw error if user has enabled preference dismissSmartAccountSuggestionEnabled', async () => {
+    Engine.context.PreferencesController.state.dismissSmartAccountSuggestionEnabled =
+      true;
+    expect(async () => {
+      await processSendCalls(MOCK_PARAMS, {
+        ...MOCK_REQUEST,
+        networkClientId: 'linea',
+      } as JsonRpcRequest);
+    }).rejects.toThrow('EIP-7702 upgrade disabled by the user');
   });
 
   describe('getCallsStatus', () => {

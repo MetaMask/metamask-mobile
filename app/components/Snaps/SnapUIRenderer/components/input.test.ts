@@ -1,7 +1,6 @@
 import { renderInterface } from '../testUtils';
 import { Input, Box, Form } from '@metamask/snaps-sdk/jsx';
 import { fireEvent } from '@testing-library/react-native';
-import { INPUT_TEST_ID } from '../../../../component-library/components/Form/TextField/foundation/Input/Input.constants';
 import { TEXTFIELD_TEST_ID } from '../../../../component-library/components/Form/TextField/TextField.constants';
 
 jest.mock('../../../../core/Engine/Engine', () => ({
@@ -33,7 +32,7 @@ describe('SnapUIInput', () => {
       { state: { testInput: 'initial value' } },
     );
 
-    const input = getByTestId(INPUT_TEST_ID);
+    const input = getByTestId('testInput-snap-ui-input');
 
     expect(input.props.value).toBe('initial value');
     expect(toJSON()).toMatchSnapshot();
@@ -48,7 +47,7 @@ describe('SnapUIInput', () => {
       }),
     );
 
-    const input = getByTestId(INPUT_TEST_ID);
+    const input = getByTestId('testInput-snap-ui-input');
     fireEvent.changeText(input, 'test');
 
     expect(input.props.value).toBe('test');
@@ -64,7 +63,7 @@ describe('SnapUIInput', () => {
       }),
     );
 
-    const input = getByTestId(INPUT_TEST_ID);
+    const input = getByTestId('testInput-snap-ui-input');
     fireEvent.changeText(input, 'test');
 
     expect(input.props.value).toBe('test');
@@ -79,7 +78,7 @@ describe('SnapUIInput', () => {
       }),
     );
 
-    const input = getByTestId(INPUT_TEST_ID);
+    const input = getByTestId('testInput-snap-ui-input');
     const textfield = getByTestId(TEXTFIELD_TEST_ID);
 
     const initialBorderColor = textfield.props.style.borderColor;
@@ -100,7 +99,7 @@ describe('SnapUIInput', () => {
       }),
     );
 
-    const input = getByTestId(INPUT_TEST_ID);
+    const input = getByTestId('testInput-snap-ui-input');
     const textfield = getByTestId(TEXTFIELD_TEST_ID);
 
     fireEvent(input, 'focus');
@@ -124,7 +123,7 @@ describe('SnapUIInput', () => {
       }),
     );
 
-    const input = getByTestId(INPUT_TEST_ID);
+    const input = getByTestId('testInput-snap-ui-input');
     expect(input.props.editable).toBe(false);
     expect(toJSON()).toMatchSnapshot();
   });
@@ -135,7 +134,7 @@ describe('SnapUIInput', () => {
       { state: { testInput: 'initial value' } }
     );
 
-    const input = getByTestId(INPUT_TEST_ID);
+    const input = getByTestId('testInput-snap-ui-input');
     expect(input.props.value).toBe('initial value');
 
     updateInterface(
@@ -155,7 +154,7 @@ describe('SnapUIInput', () => {
       }),
     );
 
-    const input = getAllByTestId(INPUT_TEST_ID)[0];
+    const input = getAllByTestId('testInput-snap-ui-input')[0];
     const textfield = getAllByTestId(TEXTFIELD_TEST_ID)[0];
 
     const initialBorderColor = textfield.props.style.borderColor;

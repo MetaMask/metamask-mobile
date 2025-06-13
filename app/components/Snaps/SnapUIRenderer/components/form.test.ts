@@ -82,7 +82,7 @@ describe('SnapUIForm', () => {
       { state: { form: { selector: 'option1' } } },
     );
 
-    const input = getByTestId('input');
+    const input = getByTestId('input-snap-ui-input');
     fireEvent.changeText(input, 'abc');
 
     expect(

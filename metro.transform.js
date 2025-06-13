@@ -56,9 +56,10 @@ const flaskFeatureSet = new Set([
  */
 function getBuildTypeFeatures() {
   const buildType = process.env.METAMASK_BUILD_TYPE ?? 'main';
+  const envType = process.env.METAMASK_ENVIRONMENT ?? 'prod';
   switch (buildType) {
     case 'main':
-      return mainFeatureSet;
+      return envType === 'prod' ? mainFeatureSet : betaFeatureSet;
     case 'beta':
       return betaFeatureSet;
     case 'flask':
