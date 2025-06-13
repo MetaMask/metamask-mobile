@@ -69,7 +69,9 @@ export const BaseWalletDetails = ({
     const totalAccounts = accounts.length;
     const boxStyles: ViewStyle[] = [styles.accountBox];
     const balanceData = multichainBalancesForAllAccounts[account.id];
-    const accountBalance = balanceData?.displayBalance ?? '...';
+    const isAccountBalanceLoading =
+      !balanceData || balanceData.isLoadingAccount;
+    const accountBalance = balanceData?.displayBalance;
 
     if (totalAccounts > 1) {
       if (index === 0) {
@@ -87,7 +89,6 @@ export const BaseWalletDetails = ({
         flexDirection={FlexDirection.Row}
         alignItems={AlignItems.center}
         justifyContent={JustifyContent.spaceBetween}
-        gap={8}
       >
         <Box
           flexDirection={FlexDirection.Row}
@@ -104,13 +105,24 @@ export const BaseWalletDetails = ({
             {account.metadata.name}
           </Text>
         </Box>
-        {accountBalance === undefined ? (
-          <AnimatedSpinner size={SpinnerSize.SM} />
-        ) : (
-          <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-            {accountBalance}
-          </Text>
-        )}
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={8}
+        >
+          {isAccountBalanceLoading ? (
+            <AnimatedSpinner />
+          ) : (
+            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+              {accountBalance}
+            </Text>
+          )}
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Md}
+            color={colors.text.alternative}
+          />
+        </Box>
       </Box>
     );
   };
