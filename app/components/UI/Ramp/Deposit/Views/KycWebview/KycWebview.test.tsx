@@ -1,4 +1,9 @@
 import { KycStatus } from '../../hooks/useUserDetailsPolling';
+import React from 'react';
+import { screen } from '@testing-library/react-native';
+import KycWebview from './KycWebview';
+import Routes from '../../../../../../constants/navigation/Routes';
+import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 
 interface UserDetails {
   kyc?: {
@@ -22,6 +27,71 @@ const shouldNavigateToKycProcessing = (
     kycType !== 'SIMPLE'
   );
 };
+
+const mockNavigate = jest.fn();
+const mockSetNavigationOptions = jest.fn();
+const mockUseUserDetailsPolling = {
+  userDetails: null,
+  error: null as string | null,
+};
+
+const mockQuote = {
+  id: 'test-quote-id',
+  amount: 100,
+  currency: 'USD',
+};
+
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      setOptions: mockSetNavigationOptions.mockImplementation(
+        actualReactNavigation.useNavigation().setOptions,
+      ),
+    }),
+  };
+});
+
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  useParams: () => ({
+    quote: mockQuote,
+    kycUrl: 'https://example.com/kyc',
+  }),
+  createNavigationDetails: () => jest.fn(),
+}));
+
+jest.mock('../../hooks/useUserDetailsPolling', () => ({
+  __esModule: true,
+  default: () => mockUseUserDetailsPolling,
+  KycStatus: {
+    NOT_SUBMITTED: 'NOT_SUBMITTED',
+    SUBMITTED: 'SUBMITTED',
+    APPROVED: 'APPROVED',
+    REJECTED: 'REJECTED',
+  },
+}));
+
+jest.mock('../../../../Navbar', () => ({
+  getDepositNavbarOptions: jest.fn().mockReturnValue({
+    title: 'KYC Verification',
+  }),
+}));
+
+jest.mock('@metamask/react-native-webview', () => ({
+  WebView: 'WebView',
+}));
+
+jest.mock('../../../../../../component-library/hooks', () => ({
+  useStyles: () => ({ theme: {} }),
+}));
+
+jest.mock('./KycWebview.styles', () => ({}));
+
+function render(Component: React.ComponentType) {
+  return renderDepositTestComponent(Component, Routes.DEPOSIT.KYC_WEBVIEW);
+}
 
 describe('KycWebview Logic', () => {
   it('should navigate to KYC processing when status is SUBMITTED and type is STANDARD', () => {
@@ -114,5 +184,18 @@ describe('KycWebview Logic', () => {
     expect(shouldNavigateToKycProcessing({ kyc: { l1: undefined } })).toBe(
       false,
     );
+  });
+});
+
+describe('KycWebview Component', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseUserDetailsPolling.userDetails = null;
+    mockUseUserDetailsPolling.error = null;
+  });
+
+  it('render matches snapshot', () => {
+    render(KycWebview);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });
