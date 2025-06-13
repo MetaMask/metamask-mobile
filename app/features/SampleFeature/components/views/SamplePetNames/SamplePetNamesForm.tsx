@@ -10,9 +10,35 @@ import {SamplePetNamesFormContentProps} from './SamplePetNamesForm.types';
 import {useSamplePetNamesForm} from '../../hooks/useSamplePetNamesForm';
 
 /**
- * Sample PetNamesForm component
- *
+ * SamplePetNamesForm Component
+ * 
+ * A demonstration component that implements a form for adding and editing pet names.
+ * This component showcases form handling, validation, and custom hook usage
+ * in the MetaMask mobile app.
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * <SamplePetNamesForm 
+ *   chainId="0x1"
+ *   initialAddress="0x123..."
+ *   initialName="My Pet Name"
+ * />
+ * ```
+ * 
+ * @remarks
+ * This is a sample feature and should not be used in production code.
+ * It demonstrates:
+ * - Form handling
+ * - Input validation
+ * - Custom hook usage
+ * - Internationalization
+ * - Component composition
+ * 
  * @sampleFeature do not use in production code
+ * 
+ * @param props - The component props
+ * @returns A form for adding and editing pet names
  */
 export function SamplePetNamesForm({
     chainId,

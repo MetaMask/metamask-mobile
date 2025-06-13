@@ -1,6 +1,15 @@
 import { StyleSheet } from 'react-native';
 
-// TODO - implement proper styles for the SampleCounterPane component following our guidelines
+/**
+ * StyleSheet for the SampleNetworkDisplay component
+ * 
+ * Defines the layout and styling for the network display container and text.
+ * The styles create a horizontal layout with centered alignment and proper spacing.
+ * 
+ * @returns {StyleSheet} A StyleSheet object containing the following styles:
+ * - container: Styles for the main container with flex row layout and spacing
+ * - text: Styles for the network name text (currently empty, can be customized as needed)
+ */
 const styleSheet = () => StyleSheet.create({
     container: {
         flexDirection: 'row',

@@ -10,9 +10,31 @@ import {SamplePetNamesForm} from './SamplePetNamesForm';
 import useSampleNetwork from '../../hooks/useSampleNetwork/useSampleNetwork';
 
 /**
- * Sample PetNames component
- *
+ * SamplePetNames Component
+ * 
+ * A demonstration component that implements a pet names management system.
+ * This component showcases form handling, list management, and keyboard
+ * interaction patterns in the MetaMask mobile app.
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * <SamplePetNames />
+ * ```
+ * 
+ * @remarks
+ * This is a sample feature and should not be used in production code.
+ * It demonstrates:
+ * - Form handling
+ * - List management
+ * - Keyboard interaction
+ * - State management
+ * - Component composition
+ * - Internationalization
+ * 
  * @sampleFeature do not use in production code
+ * 
+ * @returns A view containing a list of pet names and a form to add/edit them
  */
 export function SamplePetNames() {
     const {styles} = useStyles(styleSheet, {});
@@ -22,6 +44,14 @@ export function SamplePetNames() {
     const [selectedAddress, setSelectedAddress] = useState('');
     const [selectedName, setSelectedName] = useState('');
 
+    /**
+     * Handles the selection of an account from the list
+     * Updates the selected address and name state
+     * 
+     * @param params - The parameters object
+     * @param params.address - The selected account address
+     * @param params.name - The selected account name
+     */
     const onAccountPress = (params: { address: string; name: string }) => {
         setSelectedAddress(params.address);
         setSelectedName(params.name);

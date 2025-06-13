@@ -12,9 +12,29 @@ import {baseStyles} from '../../../../styles/common';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 /**
- * Main view for app Sample Feature
- *
+ * SampleFeature Component
+ * 
+ * A demonstration component that showcases various features of the MetaMask mobile app.
+ * This component serves as a template and learning resource for developers.
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * <SampleFeature />
+ * ```
+ * 
+ * @remarks
+ * This is a sample feature and should not be used in production code.
+ * It demonstrates:
+ * - Network display functionality
+ * - Counter implementation
+ * - Pet names management
+ * - Internationalization
+ * - Styling patterns
+ * 
  * @sampleFeature do not use in production code
+ * 
+ * @returns A scrollable view containing sample feature components
  */
 const SampleFeature = () => {
 
