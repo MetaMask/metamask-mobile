@@ -16,7 +16,7 @@ import {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button/Button.types';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { POOLED_STAKING_FAQ_URL } from '../../constants';
 import styleSheet from './PoolStakingLearnMoreModal.styles';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -37,6 +37,17 @@ import {
   formatPercent,
   PercentageOutputFormat,
 } from '../../utils/value';
+import { Hex } from 'viem/_types/types/misc';
+import { getDecimalChainId } from '../../../../../util/networks';
+
+interface PoolStakingLearnMoreModalRouteParams {
+  chainId: Hex;
+}
+
+type PoolStakingLearnMoreModalRouteProp = RouteProp<
+  { params: PoolStakingLearnMoreModalRouteParams },
+  'params'
+>;
 
 const BodyText = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -79,9 +90,14 @@ const PoolStakingLearnMoreModal = () => {
 
   const { navigate } = useNavigation();
 
+  const route = useRoute<PoolStakingLearnMoreModalRouteProp>();
+  const { chainId: routeChainId } = route.params;
+
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  const { vaultApys, isLoadingVaultApys } = useVaultApys();
+  const { vaultApys, isLoadingVaultApys } = useVaultApys(
+    getDecimalChainId(routeChainId),
+  );
 
   // Order apys from oldest to newest
   const reversedVaultApys = useMemo(
@@ -89,7 +105,9 @@ const PoolStakingLearnMoreModal = () => {
     [vaultApys],
   );
 
-  const { vaultApyAverages, isLoadingVaultApyAverages } = useVaultApyAverages();
+  const { vaultApyAverages, isLoadingVaultApyAverages } = useVaultApyAverages(
+    getDecimalChainId(routeChainId),
+  );
 
   // Converts VaultApyAverage for use with interactive graph timespan buttons.
   const parsedVaultTimespanApyAverages = useMemo(() => {

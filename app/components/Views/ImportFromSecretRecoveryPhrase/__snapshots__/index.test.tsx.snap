@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
+exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapshot 1`] = `
 <View
   style={
     {
@@ -543,7 +543,8 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       autoCapitalize="none"
                                       autoComplete="off"
                                       autoFocus={true}
-                                      blurOnSubmit={false}
+                                      editable={true}
+                                      keyboardType="default"
                                       label="Secret Recovery Phrase"
                                       multiline={true}
                                       onChangeText={[Function]}
@@ -569,6 +570,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                           "paddingHorizontal": 0,
                                         }
                                       }
+                                      submitBehavior="submit"
                                       testID="import-from-seed-screen-seed-phrase-input-id"
                                       textAlignVertical="top"
                                       value=""
