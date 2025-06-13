@@ -9,7 +9,7 @@ import {
 } from '@metamask/seedless-onboarding-controller';
 import AppConstants from '../../../AppConstants';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
-import { EncryptionKey, EncryptionResult } from '../../../Encryptor/types';
+import { EncryptionKey } from '../../../Encryptor/types';
 
 const web3AuthNetwork = AppConstants.SEEDLESS_ONBOARDING.WEB3AUTH_NETWORK;
 
