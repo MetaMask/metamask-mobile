@@ -106,7 +106,7 @@ export const BaseWalletDetails = ({
       >
         <Avatar
           variant={AvatarVariant.Account}
-          size={AvatarSize.Xl}
+          size={AvatarSize.Md}
           accountAddress={account.address}
           type={accountAvatarType}
         />
