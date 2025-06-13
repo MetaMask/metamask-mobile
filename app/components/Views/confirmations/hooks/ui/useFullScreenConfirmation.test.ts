@@ -7,28 +7,28 @@ import {
 } from '../../../../../util/test/confirm-data-helpers';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { MMM_ORIGIN } from '../../constants/confirmations';
-import { useStandaloneConfirmation } from './useStandaloneConfirmation';
+import { useFullScreenConfirmation } from './useFullScreenConfirmation';
 
-describe('useStandaloneConfirmation', () => {
+describe('useFullScreenConfirmation', () => {
   it('returns true for staking confirmation', async () => {
-    const { result } = renderHookWithProvider(useStandaloneConfirmation, {
+    const { result } = renderHookWithProvider(useFullScreenConfirmation, {
       state: stakingDepositConfirmationState,
     });
 
-    expect(result.current.isStandaloneConfirmation).toBe(true);
+    expect(result.current.isFullScreenConfirmation).toBe(true);
   });
 
   it('returns false for personal sign request', async () => {
-    const { result } = renderHookWithProvider(useStandaloneConfirmation, {
+    const { result } = renderHookWithProvider(useFullScreenConfirmation, {
       state: personalSignatureConfirmationState,
     });
 
-    expect(result.current.isStandaloneConfirmation).toBe(false);
+    expect(result.current.isFullScreenConfirmation).toBe(false);
   });
 
   describe('transfer confirmations', () => {
     it('returns true if transaction origin is MMM', async () => {
-      const { result } = renderHookWithProvider(useStandaloneConfirmation, {
+      const { result } = renderHookWithProvider(useFullScreenConfirmation, {
         state: merge({}, transferConfirmationState, {
           engine: {
             backgroundState: {
@@ -42,11 +42,11 @@ describe('useStandaloneConfirmation', () => {
         }),
       });
 
-      expect(result.current.isStandaloneConfirmation).toBe(true);
+      expect(result.current.isFullScreenConfirmation).toBe(true);
     });
 
     it('returns false if transaction origin is not MMM', async () => {
-      const { result } = renderHookWithProvider(useStandaloneConfirmation, {
+      const { result } = renderHookWithProvider(useFullScreenConfirmation, {
         state: merge({}, transferConfirmationState, {
           engine: {
             backgroundState: {
@@ -60,7 +60,7 @@ describe('useStandaloneConfirmation', () => {
         }),
       });
 
-      expect(result.current.isStandaloneConfirmation).toBe(false);
+      expect(result.current.isFullScreenConfirmation).toBe(false);
     });
   });
 });

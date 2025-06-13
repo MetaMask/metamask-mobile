@@ -1,0 +1,27 @@
+import {
+  personalSignatureConfirmationState
+} from '../../../../../util/test/confirm-data-helpers';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+import { generateStablecoinLendingDepositConfirmationState } from '../../mock-data/transaction-batch-mock';
+import { useTransactionBatchesMetadata } from './useTransactionBatchesMetadata';
+
+describe('useTransactionBatchesMetadata', () => {
+  it('returns transaction metadata', () => {
+    const { result } = renderHookWithProvider(useTransactionBatchesMetadata, {
+      state: generateStablecoinLendingDepositConfirmationState,
+    });
+
+    expect(result.current).toEqual(
+      generateStablecoinLendingDepositConfirmationState.engine.backgroundState
+        .TransactionController.transactions[0],
+    );
+  });
+
+  it('returns undefined when approval type is not Transaction', () => {
+    const { result } = renderHookWithProvider(useTransactionBatchesMetadata, {
+      state: personalSignatureConfirmationState,
+    });
+
+    expect(result.current).toBeUndefined();
+  });
+});

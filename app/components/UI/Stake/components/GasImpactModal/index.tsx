@@ -103,7 +103,7 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
           activeAccount?.address as string,
         );
         navigate('StakeScreens', {
-          screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         });
       } catch (error) {
         console.error(error);

@@ -727,7 +727,7 @@ class Amount extends PureComponent {
         });
         this.setState({ isRedesignedTransferTransactionLoading: false });
         navigation.navigate('SendFlowView', {
-          screen: Routes.STANDALONE_CONFIRMATIONS.TRANSFER,
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         });
       } else {
         navigation.navigate(Routes.SEND_FLOW.CONFIRM);
