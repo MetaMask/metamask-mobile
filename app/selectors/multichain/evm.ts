@@ -259,7 +259,6 @@ export const selectAccountTokensAcrossChainsForAddress =
 
       // Create a list of available chainIds
       const chainIds = Object.keys(networkConfigurations);
-
       for (const chainId of chainIds) {
         const currentChainId = chainId as Hex;
         const nonNativeTokens =

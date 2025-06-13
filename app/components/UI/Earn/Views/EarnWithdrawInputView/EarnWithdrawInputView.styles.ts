@@ -25,6 +25,10 @@ const styleSheet = (params: { theme: Theme }) => {
     unstakeBanner: {
       marginHorizontal: 16,
     },
+    earnTokenSelectorContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+    },
   });
 };
 
