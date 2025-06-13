@@ -1,5 +1,6 @@
 'use strict';
 import { ethers } from 'ethers';
+import type { IndexableNativeElement } from 'detox/detox';
 import { loginToApp } from '../../viewHelper';
 import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
@@ -32,13 +33,13 @@ import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 import Tenderly from '../../tenderly';
 
 const fixtureServer = new FixtureServer();
-const firstElement = 0;
+const firstElement: number = 0;
 
 describe(Regression('Multiple Swaps from Actions'), () => {
-  const FIRST_ROW = 0;
-  const SECOND_ROW = 1;
-  let currentNetwork = CustomNetworks.Tenderly.Mainnet.providerConfig.nickname;
-  const wallet = ethers.Wallet.createRandom();
+  const FIRST_ROW: number = 0;
+  const SECOND_ROW: number = 1;
+  let currentNetwork: string = CustomNetworks.Tenderly.Mainnet.providerConfig.nickname;
+  const wallet: ethers.Wallet = ethers.Wallet.createRandom();
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
@@ -96,7 +97,7 @@ describe(Regression('Multiple Swaps from Actions'), () => {
 
       if (network.providerConfig.nickname !== currentNetwork) {
         await WalletView.tapNetworksButtonOnNavBar();
-        await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
+        await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle as Promise<IndexableNativeElement>);
         await NetworkListModal.changeNetworkTo(
           network.providerConfig.nickname,
           false,

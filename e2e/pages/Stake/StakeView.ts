@@ -4,33 +4,33 @@ import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 
 class StakeView {
-  get stakeContainer() {
+  get stakeContainer(): DetoxElement {
     return Matchers.getElementByText(StakeViewSelectors.STAKE_CONTAINER);
   }
 
-  get unstakeContainer() {
+  get unstakeContainer(): DetoxElement {
     return Matchers.getElementByText(StakeViewSelectors.UNSTAKE_CONTAINER);
   }
 
-  get reviewButton() {
+  get reviewButton(): DetoxElement {
     return Matchers.getElementByText(StakeViewSelectors.REVIEW_BUTTON);
   }
 
-  get continueButton() {
+  get continueButton(): DetoxElement {
     return Matchers.getElementByText(StakeViewSelectors.CONTINUE);
   }
 
-  async selectAmount(amount) {
-      const amountButton = await Matchers.getElementByText(amount);
-      await Gestures.waitAndTap(amountButton);
+  async selectAmount(amount: string) {
+    const amountButton = Matchers.getElementByText(amount);
+    await Gestures.waitAndTap(amountButton);
   }
 
-  async enterAmount(amount) {
-    for (let idx = 0; idx < amount.length; idx++) {
-      const element = Matchers.getElementByText(amount[idx]);
-      await Gestures.waitAndTap(element);
-    }
+ async enterAmount(amount: string) {
+  for (const digit of amount) {
+    const button = Matchers.getElementByText(digit);
+    await Gestures.waitAndTap(button);
   }
+}
 
   async tapReview() {
     await Gestures.waitAndTap(this.reviewButton);
@@ -39,7 +39,6 @@ class StakeView {
   async tapContinue() {
     await Gestures.waitAndTap(this.continueButton);
   }
-
 }
 
 export default new StakeView();

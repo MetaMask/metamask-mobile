@@ -29,14 +29,14 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 import Tenderly from '../../tenderly';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 
-const fixtureServer = new FixtureServer();
+const fixtureServer: FixtureServer = new FixtureServer();
 
-describe(Regression('Swap from Token view'), () => {
-  const FIRST_ROW = 0;
-  const swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
-  const wallet = ethers.Wallet.createRandom();
+describe(Regression('Swap from Token view'), (): void => {
+  const FIRST_ROW: number = 0;
+  const swapOnboarded: boolean = true; // TODO: Set it to false once we show the onboarding page again.
+  const wallet: ethers.Wallet = ethers.Wallet.createRandom();
 
-  beforeAll(async () => {
+  beforeAll(async (): Promise<void> => {
     await Tenderly.addFunds(
       CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
       wallet.address,
@@ -54,22 +54,22 @@ describe(Regression('Swap from Token view'), () => {
     await loginToApp();
   });
 
-  afterAll(async () => {
+  afterAll(async (): Promise<void> => {
     await stopFixtureServer(fixtureServer);
   });
 
-  beforeEach(async () => {
+  beforeEach(async (): Promise<void> => {
     jest.setTimeout(150000);
   });
 
-  it('should turn off stx', async () => {
+  it('should turn off stx', async (): Promise<void> => {
     await TabBarComponent.tapSettings();
     await SettingsView.tapAdvancedTitle();
     await AdvancedSettingsView.tapSmartTransactionSwitch();
     await TabBarComponent.tapWallet();
   });
 
-  it('should be able to import account', async () => {
+  it('should be able to import account', async (): Promise<void> => {
     await WalletView.tapIdenticon();
     await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
     await AccountListBottomSheet.tapAddAccountButton();
@@ -82,9 +82,10 @@ describe(Regression('Swap from Token view'), () => {
     await Assertions.checkIfVisible(WalletView.container);
   });
 
-  it('should complete a USDC to DAI swap from the token chart', async () => {
-    const sourceTokenSymbol = 'ETH',
-      destTokenSymbol = 'DAI';
+  it('should complete a USDC to DAI swap from the token chart', async (): Promise<void> => {
+    const sourceTokenSymbol: string = 'ETH';
+    const destTokenSymbol: string = 'DAI';
+
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnToken('Ethereum');

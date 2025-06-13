@@ -32,7 +32,7 @@ import { Mockttp } from 'mockttp';
 
 const fixtureServer = new FixtureServer();
 
-describe.skip(SmokeTrade('Bridge functionality'), () => {
+describe(SmokeTrade('Bridge functionality'), () => {
   const FIRST_ROW = 0;
   let mockServer: Mockttp;
   let localNode: Ganache;
@@ -94,9 +94,9 @@ describe.skip(SmokeTrade('Bridge functionality'), () => {
     await QuoteView.selectNetwork('Solana');
     await Assertions.checkIfVisible(QuoteView.token('SOL'));
     await QuoteView.selectToken('SOL');
-    await Assertions.checkIfVisible(QuoteView.quotesLabel);
-    await Assertions.checkIfVisible(QuoteView.continueButton);
-    await QuoteView.tapContinue();
+    await Assertions.checkIfVisible(QuoteView.networkFeeLabel);
+    await Assertions.checkIfVisible(QuoteView.confirmButton);
+    await QuoteView.tapConfirm();
 
     // Check the bridge activity completed
     await TabBarComponent.tapActivity();
@@ -112,6 +112,7 @@ describe.skip(SmokeTrade('Bridge functionality'), () => {
   });
 
   it('should bridge ETH (Mainnet) to ETH (Base Network)', async () => {
+    await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
 
     await TabBarComponent.tapActions();
@@ -123,9 +124,9 @@ describe.skip(SmokeTrade('Bridge functionality'), () => {
     await QuoteView.selectNetwork('Base');
     await Assertions.checkIfVisible(QuoteView.token('ETH'));
     await QuoteView.selectToken('ETH');
-    await Assertions.checkIfVisible(QuoteView.quotesLabel);
-    await Assertions.checkIfVisible(QuoteView.continueButton);
-    await QuoteView.tapContinue();
+    await Assertions.checkIfVisible(QuoteView.networkFeeLabel);
+    await Assertions.checkIfVisible(QuoteView.confirmButton);
+    await QuoteView.tapConfirm();
 
     // Check the bridge activity completed
     await TabBarComponent.tapActivity();
@@ -139,7 +140,9 @@ describe.skip(SmokeTrade('Bridge functionality'), () => {
   });
 
   it('should bridge ETH (Mainnet) to ETH (BNB Smart Chain Mainnet)', async () => {
+    await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
+
     await TabBarComponent.tapSettings();
     await SettingsView.tapAdvancedTitle();
     await AdvancedSettingsView.tapSmartTransactionSwitch();
@@ -154,9 +157,9 @@ describe.skip(SmokeTrade('Bridge functionality'), () => {
     await QuoteView.selectNetwork('OP Mainnet');
     await Assertions.checkIfVisible(QuoteView.token('ETH'));
     await QuoteView.selectToken('ETH');
-    await Assertions.checkIfVisible(QuoteView.quotesLabel);
-    await Assertions.checkIfVisible(QuoteView.continueButton);
-    await QuoteView.tapContinue();
+    await Assertions.checkIfVisible(QuoteView.networkFeeLabel);
+    await Assertions.checkIfVisible(QuoteView.confirmButton);
+    await QuoteView.tapConfirm();
 
     // Check the bridge activity completed
     await TabBarComponent.tapActivity();
