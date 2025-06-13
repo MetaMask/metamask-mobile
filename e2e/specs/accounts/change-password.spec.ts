@@ -23,7 +23,6 @@ import Gestures from '../../utils/Gestures.js';
 import Assertions from '../../utils/Assertions.js';
 
 const fixtureServer = new FixtureServer();
-// These keys are from the fixture and are used to test the reveal private key functionality
 describe(Regression('change password'), () => {
   const PASSWORD = '123123123';
   const NEWPASSWORD = '123412341234';
@@ -82,6 +81,7 @@ describe(Regression('change password'), () => {
     await Assertions.checkIfVisible(Matchers.getElementByText('Account 1'));
     await Assertions.checkIfVisible(Matchers.getElementByText('Account 2'));
     await Assertions.checkIfVisible(Matchers.getElementByText('Account 3'));
+    await Assertions.checkIfVisible(Matchers.getElementByText('Account 4'));
     await Assertions.checkIfVisible(Matchers.getElementByText('QR 1'));
   });
 });
