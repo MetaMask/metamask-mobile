@@ -7,12 +7,14 @@ import {
   View,
   ViewStyle,
   SectionList,
+  TouchableOpacity,
 } from 'react-native';
 import { CaipChainId } from '@metamask/utils';
 import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
+import { AccountWallet } from '@metamask/account-tree-controller';
 
 // External dependencies.
 import Cell, {
@@ -109,6 +111,7 @@ const EvmAccountSelectorList = ({
       // Use AccountTreeController sections and match accounts to their IDs
       return accountTreeSections.map((section) => ({
         title: section.title,
+        wallet: section.wallet,
         data: section.data
           .map((accountId: string) => accountsById.get(accountId))
           .filter((account): account is Account => account !== undefined),
@@ -252,12 +255,23 @@ const EvmAccountSelectorList = ({
   );
 
   const renderSectionHeader = useCallback(
-    ({ section: { title } }: { section: AccountSection }) => (
+    ({ section: { title, wallet } }: { section: AccountSection }) => (
       <View style={styles.sectionHeader}>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>{title}</Text>
         <Text variant={TextVariant.BodySM} style={styles.sectionDetailsLink}>
           {strings('multichain_accounts.accounts_list.details')}
         </Text>
+        <TouchableOpacity
+          onPress={() => {
+            navigate(Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS, {
+              wallet,
+            });
+          }}
+        >
+          <Text variant={TextVariant.BodySM} style={styles.sectionDetailsLink}>
+            {strings('multichain_accounts.accounts_list.details')}
+          </Text>
+        </TouchableOpacity>
       </View>
     ), [styles.sectionHeader, styles.sectionDetailsLink]);
 

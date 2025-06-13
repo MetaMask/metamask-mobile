@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { SafeAreaView, TouchableOpacity, View } from 'react-native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { strings } from '../../../../../../../locales/i18n';
@@ -30,8 +30,6 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../../reducers';
-import { AccountWallet } from '../../../WalletDetails/WalletDetails';
-import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 
 interface BaseAccountDetailsProps {
   account: InternalAccount;
@@ -51,26 +49,7 @@ export const BaseAccountDetails = ({
     ? AvatarAccountType.Blockies
     : AvatarAccountType.JazzIcon;
 
-  const internalAccounts = useSelector(selectInternalAccounts);
   const walletName = 'Wallet 1'; //TODO: replace with useSelector(selectWalletName);
-  const mockWallet: AccountWallet = useMemo(
-    () => ({
-      id: '01JKAF3DSGM3AB87EM9N0K41AJ',
-      groups: {
-        '01JKAF3DSGM3AB87EM9N0K41AJ:default': {
-          id: '01JKAF3DSGM3AB87EM9N0K41AJ:default',
-          accounts: internalAccounts.map((acc) => acc.id),
-          metadata: {
-            name: 'Default',
-          },
-        },
-      },
-      metadata: {
-        name: walletName,
-      },
-    }),
-    [internalAccounts, walletName],
-  );
 
   const handleEditAccountName = useCallback(() => {
     navigation.navigate(
@@ -88,10 +67,8 @@ export const BaseAccountDetails = ({
   }, [navigation, account]);
 
   const handleEditWalletName = useCallback(() => {
-    navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS, {
-      wallet: mockWallet,
-    });
-  }, [navigation, mockWallet]);
+    // TODO: implement when the account group
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
