@@ -139,6 +139,7 @@ export default {
       'https://support.metamask.io/privacy-and-security/privacy-best-practices',
     SMART_TXS:
       'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
+    SMART_ACCOUNTS: 'https://metamask.io/smart-accounts/',
     STAKING_RISK_DISCLOSURE: 'https://consensys.io/staking-risk-disclosures',
     ADD_SOLANA_ACCOUNT_PRIVACY_POLICY:
       'https://support.metamask.io/configure/accounts/how-to-add-accounts-in-your-wallet/#solana-accounts',
@@ -233,6 +234,7 @@ export default {
     VERSION: 'v1',
     DEFAULT_FETCH_INTERVAL: 15 * 60 * 1000, // 15 minutes
   },
-  TOKEN_DISCOVERY_BROWSER_ENABLED: process.env.TOKEN_DISCOVERY_BROWSER_ENABLED === 'true',
-  EIP_7702_PUBLIC_KEY: '0x3c7a1cCCe462e96D186B8ca9a1BCB2010C3dABa3'
+  TOKEN_DISCOVERY_BROWSER_ENABLED:
+    process.env.TOKEN_DISCOVERY_BROWSER_ENABLED === 'true',
+  EIP_7702_PUBLIC_KEY: '0x3c7a1cCCe462e96D186B8ca9a1BCB2010C3dABa3',
 } as const;
