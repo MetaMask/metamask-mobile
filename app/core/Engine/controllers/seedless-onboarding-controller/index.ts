@@ -46,11 +46,11 @@ export const seedlessOnboardingControllerInit: ControllerInitFunction<
       seedlessOnboardingControllerState as SeedlessOnboardingControllerState,
     encryptor: {
       ...encryptor,
-      decryptWithKey: async (key: EncryptionKey, encryptedString: string) =>
-        encryptor.decryptWithKey(
-          key,
-          encryptedString as unknown as EncryptionResult,
-        ),
+      // Typing issue
+      decryptWithKey: encryptor.decryptWithKey as unknown as (
+        key: EncryptionKey,
+        encryptedString: string,
+      ) => Promise<unknown>,
     },
     network: web3AuthNetwork as Web3AuthNetwork,
   });
