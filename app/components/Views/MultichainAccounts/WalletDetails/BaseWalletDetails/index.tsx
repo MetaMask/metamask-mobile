@@ -65,6 +65,10 @@ export const BaseWalletDetails = ({
     // TODO: Implement edit wallet name
   }, []);
 
+  const handleEditAccount = useCallback(() => {
+    // TODO: Implement edit wallet name
+  }, []);
+
   const renderAccountItem = (account: InternalAccount, index: number) => {
     const totalAccounts = accounts.length;
     const boxStyles: ViewStyle[] = [styles.accountBox];
@@ -84,46 +88,48 @@ export const BaseWalletDetails = ({
     }
 
     return (
-      <Box
-        style={boxStyles}
-        flexDirection={FlexDirection.Row}
-        alignItems={AlignItems.center}
-        justifyContent={JustifyContent.spaceBetween}
-      >
+      <TouchableOpacity onPress={handleEditAccount}>
         <Box
+          style={boxStyles}
           flexDirection={FlexDirection.Row}
           alignItems={AlignItems.center}
-          gap={8}
+          justifyContent={JustifyContent.spaceBetween}
         >
-          <Avatar
-            variant={AvatarVariant.Account}
-            size={AvatarSize.Md}
-            accountAddress={account.address}
-            type={accountAvatarType}
-          />
-          <Text variant={TextVariant.BodyMDMedium}>
-            {account.metadata.name}
-          </Text>
-        </Box>
-        <Box
-          flexDirection={FlexDirection.Row}
-          alignItems={AlignItems.center}
-          gap={8}
-        >
-          {isAccountBalanceLoading ? (
-            <AnimatedSpinner />
-          ) : (
-            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-              {accountBalance}
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            gap={8}
+          >
+            <Avatar
+              variant={AvatarVariant.Account}
+              size={AvatarSize.Md}
+              accountAddress={account.address}
+              type={accountAvatarType}
+            />
+            <Text variant={TextVariant.BodyMDMedium}>
+              {account.metadata.name}
             </Text>
-          )}
-          <Icon
-            name={IconName.ArrowRight}
-            size={IconSize.Md}
-            color={colors.text.alternative}
-          />
+          </Box>
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            gap={8}
+          >
+            {isAccountBalanceLoading ? (
+              <AnimatedSpinner />
+            ) : (
+              <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+                {accountBalance}
+              </Text>
+            )}
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Md}
+              color={colors.text.alternative}
+            />
+          </Box>
         </Box>
-      </Box>
+      </TouchableOpacity>
     );
   };
 
