@@ -15,6 +15,10 @@ const styleSheet = () =>
     icon: {
       paddingTop: 2,
     },
+    footer: {
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+    },
   });
 
 export default styleSheet;

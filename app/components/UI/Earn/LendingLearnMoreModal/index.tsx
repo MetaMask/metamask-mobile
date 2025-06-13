@@ -42,6 +42,12 @@ import Icon, {
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
 import useLendingMarketApys from '../hooks/useLendingMarketApys';
+import { capitalize } from '../../../../util/general';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from 'react-native-reanimated';
 
 interface BodyTextProps {
   assetSymbol: string;
@@ -66,7 +72,7 @@ const BodyText = ({ assetSymbol, protocol }: BodyTextProps) => {
           <Text color={TextColor.Alternative}>
             {strings(
               'earn.market_historic_apr_modal.lend_and_earn_daily_rewards',
-              { tokenSymbol: assetSymbol, protocol },
+              { tokenSymbol: assetSymbol, protocol: capitalize(protocol) },
             )}
           </Text>
         </View>
@@ -126,7 +132,12 @@ type EarnLendingLearnMoreModalRouteProp = RouteProp<
   'params'
 >;
 
+const CHART_HEIGHT = 300; // Adjust to your chart's height
+
+// TODO: Add tests
 export const LendingLearnMoreModal = () => {
+  const { styles } = useStyles(styleSheet, {});
+
   const route = useRoute<EarnLendingLearnMoreModalRouteProp>();
 
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -189,6 +200,35 @@ export const LendingLearnMoreModal = () => {
     );
   };
 
+  // Chart reveal animation
+  const chartReveal = useSharedValue(0);
+
+  const showChart = useMemo(
+    () =>
+      Boolean(reversedMarketApys) &&
+      reversedMarketApys !== null &&
+      activeTimespanApyAverage,
+    [activeTimespanApyAverage, reversedMarketApys],
+  );
+
+  useEffect(() => {
+    if (showChart) {
+      chartReveal.value = withTiming(1, { duration: 350 });
+    }
+  }, [showChart, chartReveal]);
+
+  const animatedChartContainerStyle = useAnimatedStyle(() => ({
+    height: chartReveal.value * CHART_HEIGHT,
+    opacity: chartReveal.value,
+    transform: [
+      {
+        // Slides up as it appears
+        translateY: (1 - chartReveal.value) * 20,
+      },
+    ],
+    overflow: 'hidden',
+  }));
+
   return (
     <BottomSheet ref={sheetRef} isInteractable={false}>
       <View>
@@ -197,16 +237,15 @@ export const LendingLearnMoreModal = () => {
             {strings('earn.how_it_works')}
           </Text>
         </BottomSheetHeader>
-        {Boolean(reversedMarketApys) &&
-          reversedMarketApys !== null &&
-          activeTimespanApyAverage && (
+        <Animated.View style={animatedChartContainerStyle}>
+          {showChart && (
             <InteractiveTimespanChart
               dataPoints={reversedMarketApys}
               yAccessor={(point) =>
                 new BigNumber(point.netSupplyRate).toNumber()
               }
               defaultTitle={`${formatPercent(
-                activeTimespanApyAverage.apyAverage,
+                activeTimespanApyAverage?.apyAverage ?? '',
                 {
                   inputFormat: CommonPercentageInputUnits.PERCENTAGE,
                   outputFormat: PercentageOutputFormat.PERCENT_SIGN,
@@ -220,15 +259,14 @@ export const LendingLearnMoreModal = () => {
                   fixed: 1,
                 })} ${strings('stake.apr')}`
               }
-              defaultSubtitle={activeTimespanApyAverage.label}
+              defaultSubtitle={activeTimespanApyAverage?.label ?? ''}
               subtitleAccessor={(point) =>
-                // Market APY timestamp is in seconds and we need it in milliseconds
                 formatChartDate(new Date(point.timestamp * 1000).toISOString())
               }
               onTimespanPressed={handleTimespanPressed}
               graphOptions={{
                 ...getGraphInsetsByDataPointLength(
-                  activeTimespanApyAverage.numDays,
+                  activeTimespanApyAverage?.numDays ?? 0,
                 ),
                 timespanButtons: [
                   {
@@ -254,6 +292,7 @@ export const LendingLearnMoreModal = () => {
               isLoading={isLoadingMarketApys}
             />
           )}
+        </Animated.View>
         <BodyText
           assetSymbol={route?.params?.asset?.symbol}
           protocol={
@@ -265,6 +304,7 @@ export const LendingLearnMoreModal = () => {
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
         buttonPropsArray={footerButtons}
+        style={styles.footer}
       />
     </BottomSheet>
   );
