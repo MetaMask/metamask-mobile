@@ -4808,20 +4808,7 @@
     "@metamask/utils" "^11.2.0"
     lodash "^4.17.21"
 
-"@metamask/chain-agnostic-permission@^0.7.0":
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/@metamask/chain-agnostic-permission/-/chain-agnostic-permission-0.7.0.tgz#6a34f213dee46234fab2d8dec760f63079243a1d"
-  integrity sha512-Encfd594BrKb4kk9nLczcz9zmFu3MXXgIOfwIPtguuttAUOrkoRIyVNPT4R9p67EAkwVvSy4+NZGv43f+iGH5Q==
-  dependencies:
-    "@metamask/api-specs" "^0.14.0"
-    "@metamask/controller-utils" "^11.9.0"
-    "@metamask/network-controller" "^23.5.0"
-    "@metamask/permission-controller" "^11.0.6"
-    "@metamask/rpc-errors" "^7.0.2"
-    "@metamask/utils" "^11.2.0"
-    lodash "^4.17.21"
-
-"@metamask/chain-agnostic-permission@^0.7.1":
+"@metamask/chain-agnostic-permission@^0.7.0", "@metamask/chain-agnostic-permission@^0.7.1":
   version "0.7.1"
   resolved "https://registry.yarnpkg.com/@metamask/chain-agnostic-permission/-/chain-agnostic-permission-0.7.1.tgz#9f2b45c21fe1447f33fd7c3007db91a860483c9e"
   integrity sha512-q2Hro95cgHkXPAsKMaWRaH8C6sGudsNLHqlG/ym62qbImx4Wjjh0abHMHjJN4TbIvDoyWqNZxYeCeUgKnfynIA==
