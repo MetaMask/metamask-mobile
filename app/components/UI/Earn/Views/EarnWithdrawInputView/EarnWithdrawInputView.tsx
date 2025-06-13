@@ -405,7 +405,6 @@ const EarnWithdrawInputView = () => {
         isOverMaximum={isOverMaximum}
         balanceText={stakedBalanceText}
         balanceValue={earnBalanceValue}
-        isNonZeroAmount={isNonZeroAmount}
         amountToken={amountToken}
         amountFiatNumber={amountFiatNumber}
         isFiat={isFiat}
