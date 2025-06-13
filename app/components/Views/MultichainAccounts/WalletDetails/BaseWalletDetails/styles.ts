@@ -64,12 +64,14 @@ const styleSheet = (params: { theme: Theme }) => {
     firstAccountBox: {
       borderBottomLeftRadius: 0,
       borderBottomRightRadius: 0,
+      marginBottom: 2,
     },
     lastAccountBox: {
       borderTopLeftRadius: 0,
       borderTopRightRadius: 0,
     },
     middleAccountBox: {
+      marginBottom: 2,
       borderRadius: 0,
     },
     text: {
