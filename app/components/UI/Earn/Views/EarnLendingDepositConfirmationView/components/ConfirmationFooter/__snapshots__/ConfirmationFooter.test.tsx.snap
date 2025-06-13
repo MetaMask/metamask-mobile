@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Deposit Footer renders correctly 1`] = `
+exports[`ConfirmationFooter renders correctly 1`] = `
 <View
   style={
     {
@@ -8,7 +8,7 @@ exports[`Deposit Footer renders correctly 1`] = `
       "paddingTop": 32,
     }
   }
-  testID="depositFooter"
+  testID="earn-lending-confirmation-footer"
 >
   <View>
     <View>
@@ -250,7 +250,7 @@ exports[`Deposit Footer renders correctly 1`] = `
           "paddingHorizontal": 16,
         }
       }
-      testID="earn-lending-deposit-confirmation-footer-cancel-button"
+      testID="earn-lending-confirmation-footer-cancel-button"
     >
       <Text
         accessibilityRole="text"
@@ -291,7 +291,7 @@ exports[`Deposit Footer renders correctly 1`] = `
           "paddingHorizontal": 16,
         }
       }
-      testID="earn-lending-deposit-confirmation-footer-confirm-button"
+      testID="earn-lending-confirmation-footer-confirm-button"
     >
       <Text
         accessibilityRole="text"
@@ -356,6 +356,7 @@ exports[`Deposit Footer renders correctly 1`] = `
             "textDecorationLine": "underline",
           }
         }
+        testID="earn-lending-confirmation-footer-terms-of-use-button"
       >
         Terms of Use
       </Text>
@@ -399,6 +400,7 @@ exports[`Deposit Footer renders correctly 1`] = `
             "textDecorationLine": "underline",
           }
         }
+        testID="earn-lending-confirmation-footer-risk-disclosure-button"
       >
         Risk Disclosure
       </Text>

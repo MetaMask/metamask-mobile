@@ -1,39 +1,34 @@
-import React from 'react';
-import { TokenI, BrowserTab } from '../../../Tokens/types';
+import { toHex } from '@metamask/controller-utils';
 import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
-import { useSelector } from 'react-redux';
-import AppConstants from '../../../../../core/AppConstants';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { getDecimalChainId } from '../../../../../util/networks';
-import { selectEvmChainId } from '../../../../../selectors/networkController';
+import React from 'react';
 import { Pressable } from 'react-native';
+import { useSelector } from 'react-redux';
+import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
-import { useTheme } from '../../../../../util/theme';
-import createStyles from '../../../Tokens/styles';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import { strings } from '../../../../../../locales/i18n';
-import { RootState } from '../../../../../reducers';
-import useStakingEligibility from '../../hooks/useStakingEligibility';
-import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
-import { EVENT_LOCATIONS } from '../../constants/events';
-import useStakingChain from '../../hooks/useStakingChain';
+import Routes from '../../../../../constants/navigation/Routes';
+import AppConstants from '../../../../../core/AppConstants';
 import Engine from '../../../../../core/Engine';
+import { RootState } from '../../../../../reducers';
+import { selectEvmChainId } from '../../../../../selectors/networkController';
+import { getDecimalChainId } from '../../../../../util/networks';
+import { useTheme } from '../../../../../util/theme';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
+import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
-import { useEarnTokenDetails } from '../../../Earn/hooks/useEarnTokenDetails';
-import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
-import { toHex } from '@metamask/controller-utils';
+import createStyles from '../../../Tokens/styles';
+import { BrowserTab, TokenI } from '../../../Tokens/types';
+import { EVENT_LOCATIONS } from '../../constants/events';
+import useStakingChain from '../../hooks/useStakingChain';
+import useStakingEligibility from '../../hooks/useStakingEligibility';
+import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -55,9 +50,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     selectStablecoinLendingEnabledFlag,
   );
 
-  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
-
-  const earnToken = getTokenWithBalanceAndApr(asset);
+  const { getEarnToken } = useEarnTokens();
+  const earnToken = getEarnToken(asset);
 
   const areEarnExperiencesDisabled =
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;
@@ -135,16 +129,20 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   };
 
   const onEarnButtonPress = async () => {
-    if (earnToken.experience === EARN_EXPERIENCES.POOLED_STAKING) {
+    if (earnToken?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING) {
       return handleStakeRedirect();
     }
 
-    if (earnToken.experience === EARN_EXPERIENCES.STABLECOIN_LENDING) {
+    if (earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING) {
       return handleLendingRedirect();
     }
   };
 
-  if (areEarnExperiencesDisabled) return <></>;
+  if (
+    areEarnExperiencesDisabled ||
+    (!earnToken?.isETH && earnToken?.balanceMinimalUnit === '0')
+  )
+    return <></>;
 
   return (
     <Pressable
@@ -152,18 +150,13 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       testID={WalletViewSelectorsIDs.STAKE_BUTTON}
       style={styles.stakeButton}
     >
-      <Text variant={TextVariant.BodyMDMedium} style={styles.dot}>
+      <Text variant={TextVariant.BodySMMedium} style={styles.dot}>
         {' • '}
       </Text>
-      <Text color={TextColor.Primary} variant={TextVariant.BodyMDMedium}>
-        {`${strings('stake.earn')}`}
+      <Text color={TextColor.Primary} variant={TextVariant.BodySMMedium}>
+        {`${strings('stake.earn')}`}{' '}
+        {parseFloat(earnToken?.experience?.apr || '').toFixed(1)}%
       </Text>
-      <Icon
-        name={IconName.Plant}
-        size={IconSize.Sm}
-        color={IconColor.Primary}
-        style={styles.sprout}
-      />
     </Pressable>
   );
 };
