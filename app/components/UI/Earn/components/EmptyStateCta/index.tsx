@@ -24,8 +24,6 @@ import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { capitalize } from '../../../../../util/general';
 import { parseFloatSafe } from '../../utils/number';
-import { Linking } from 'react-native';
-import { EARN_URLS } from '../../constants/urls';
 
 interface EarnEmptyStateCta {
   token: TokenI;
