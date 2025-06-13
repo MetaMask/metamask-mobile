@@ -11,14 +11,6 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 12,
       padding: 16,
     },
-    iconContainer: {
-      paddingBottom: 16,
-    },
-    icon: {
-      height: 36,
-      width: 36,
-      borderRadius: 100,
-    },
     heading: {
       paddingBottom: 8,
     },
