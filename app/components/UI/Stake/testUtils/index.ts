@@ -1,23 +1,20 @@
+import { EarnControllerState } from '@metamask/earn-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
-  CreateMockTokenOptions,
-  TOKENS_WITH_DEFAULT_OPTIONS,
-} from './testUtils.types';
-import { PooledStakingState } from '@metamask/earn-controller';
-import {
-  VaultData,
-  VaultApyAverages,
-  VaultDailyApy,
-} from '@metamask/stake-sdk';
-import {
+  MOCK_EXCHANGE_RATE,
+  MOCK_LENDING_MARKETS,
+  MOCK_LENDING_POSITIONS,
   MOCK_POOLED_STAKES_DATA,
   MOCK_VAULT_DATA,
-  MOCK_EXCHANGE_RATE,
 } from '../__mocks__/earnControllerMockData';
 import {
   MOCK_VAULT_APY_AVERAGES,
   MOCK_VAULT_DAILY_APYS,
 } from '../components/PoolStakingLearnMoreModal/mockVaultRewards';
+import {
+  CreateMockTokenOptions,
+  TOKENS_WITH_DEFAULT_OPTIONS,
+} from './testUtils.types';
 
 export const HOLESKY_CHAIN_ID = '0x4268';
 
@@ -127,19 +124,25 @@ export const getCreateMockTokenOptions = (
 };
 
 export const mockEarnControllerRootState = ({
+  chainId = 1,
   isEligible = true,
   pooledStakes = MOCK_POOLED_STAKES_DATA,
   vaultMetadata = MOCK_VAULT_DATA,
   exchangeRate = MOCK_EXCHANGE_RATE,
   vaultApyAverages = MOCK_VAULT_APY_AVERAGES,
   vaultDailyApys = MOCK_VAULT_DAILY_APYS,
+  markets = MOCK_LENDING_MARKETS,
+  positions = MOCK_LENDING_POSITIONS,
 }: {
+  chainId?: number;
   isEligible?: boolean;
-  pooledStakes?: PooledStakingState['pooledStakes'];
-  vaultMetadata?: VaultData;
-  exchangeRate?: string;
-  vaultApyAverages?: VaultApyAverages;
-  vaultDailyApys?: VaultDailyApy[];
+  pooledStakes?: EarnControllerState['pooled_staking'][0]['pooledStakes'];
+  vaultMetadata?: EarnControllerState['pooled_staking'][0]['vaultMetadata'];
+  exchangeRate?: EarnControllerState['pooled_staking'][0]['exchangeRate'];
+  vaultApyAverages?: EarnControllerState['pooled_staking'][0]['vaultApyAverages'];
+  vaultDailyApys?: EarnControllerState['pooled_staking'][0]['vaultDailyApys'];
+  markets?: EarnControllerState['lending']['markets'];
+  positions?: EarnControllerState['lending']['positions'];
 } = {}) => ({
   engine: {
     backgroundState: {
@@ -147,13 +150,19 @@ export const mockEarnControllerRootState = ({
         lastUpdated: 0,
         pooled_staking: {
           isEligible,
-          pooledStakes,
-          vaultMetadata,
-          exchangeRate,
-          vaultApyAverages,
-          vaultDailyApys,
+          [chainId]: {
+            pooledStakes,
+            vaultMetadata,
+            exchangeRate,
+            vaultApyAverages,
+            vaultDailyApys,
+          },
         },
-        stablecoin_lending: {},
+        lending: {
+          isEligible,
+          markets,
+          positions,
+        },
       },
     },
   },
