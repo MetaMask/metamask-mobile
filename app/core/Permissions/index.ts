@@ -187,8 +187,9 @@ export const sortMultichainAccountsByLastSelected = (
  * @returns An array of data extracted from the subject.
  */
 function getDataFromSubject<T>(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   subject: any,
-  extractor: (caveat: any) => T[],
+  extractor: (caveat: { type: string, value: Caip25CaveatValue }) => T[],
 ): T[] {
   const caveats = subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
   if (!caveats) {
@@ -210,9 +211,9 @@ function getDataFromSubject<T>(
  * @returns An array of permitted data for the specified hostname.
  */
 function getPermittedDataByHostname<T>(
-  state: any,
+  state: { subjects: Record<string, unknown> },
   hostname: string,
-  extractor: (subject: any) => T[],
+  extractor: (subject: unknown) => T[],
 ): T[] {
   const { subjects } = state;
   const subject = subjects[hostname];
@@ -225,6 +226,7 @@ function getPermittedDataByHostname<T>(
  * @param subject - The subject object containing permissions and caveats.
  * @returns An array of CAIP account IDs.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getCaipAccountIdsFromSubject(subject: any): CaipAccountId[] {
   return getDataFromSubject(subject, (caveat) =>
     getCaipAccountIdsFromCaip25CaveatValue(caveat.value)
@@ -237,6 +239,7 @@ function getCaipAccountIdsFromSubject(subject: any): CaipAccountId[] {
  * @param subject - The subject object containing permissions and caveats.
  * @returns An array of EVM addresses.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getEvmAddessesFromSubject(subject: any): Hex[] {
   return getDataFromSubject(subject, (caveat) => {
     const ethAccounts = getEthAccounts(caveat.value);
@@ -250,6 +253,7 @@ function getEvmAddessesFromSubject(subject: any): Hex[] {
  * @param subject - The subject object containing permissions and caveats.
  * @returns An array of permitted CAIP chain IDs.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getPermittedScopesFromSubject(subject: any): CaipChainId[] {
   return getDataFromSubject(subject, (caveat) =>
     getAllScopesFromCaip25CaveatValue(caveat.value)
@@ -257,21 +261,19 @@ function getPermittedScopesFromSubject(subject: any): CaipChainId[] {
 }
 
 export const getPermittedCaipAccountIdsByHostname = (
-  state: any,
+  state: { subjects: Record<string, unknown> },
   hostname: string,
-): CaipAccountId[] => {
-  return getPermittedDataByHostname(state, hostname, getCaipAccountIdsFromSubject);
-};
+): CaipAccountId[] =>
+  getPermittedDataByHostname(state, hostname, getCaipAccountIdsFromSubject);
+
 
 export const getPermittedEvmAddressesByHostname = (
-  state: any,
+  state: { subjects: Record<string, unknown> },
   hostname: string,
-): Hex[] => {
-  return getPermittedDataByHostname(state, hostname, getEvmAddessesFromSubject);
-};
+): Hex[] => getPermittedDataByHostname(state, hostname, getEvmAddessesFromSubject);
 
 export const getPermittedCaipChainIdsByHostname = (
-  state: any,
+  state: { subjects: Record<string, unknown> },
   hostname: string,
 ): CaipChainId[] => {
   const permittedScopes = getPermittedDataByHostname(state, hostname, getPermittedScopesFromSubject);
