@@ -68,8 +68,6 @@ const AddressFrom = ({
   const networkImage = useSelector(selectEvmNetworkImageSource);
   const perDappNetworkInfo = useNetworkInfo(chainId);
 
-  console.log('AddressFrom: >>>>', perDappNetworkInfo);
-
   const useBlockieIcon = useSelector(
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
