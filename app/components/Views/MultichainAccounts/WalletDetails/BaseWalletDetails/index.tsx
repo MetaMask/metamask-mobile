@@ -33,6 +33,7 @@ import { RootState } from '../../../../UI/BasicFunctionality/BasicFunctionalityM
 import { useSelector } from 'react-redux';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { getInternalAccountsFromWallet } from '../utils/getInternalAccountsFromWallet';
+import Routes from '../../../../../constants/navigation/Routes';
 
 interface BaseWalletDetailsProps {
   wallet: AccountWallet;
@@ -61,9 +62,14 @@ export const BaseWalletDetails = ({
   const { formattedWalletTotalBalance, multichainBalancesForAllAccounts } =
     useWalletBalances(accounts);
 
-  const handleEditWalletName = useCallback(() => {
-    // TODO: Implement edit wallet name
-  }, []);
+  const handleGoToAccountDetails = useCallback(
+    (account: InternalAccount) => {
+      navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS, {
+        account,
+      });
+    },
+    [navigation],
+  );
 
   const renderAccountItem = (account: InternalAccount, index: number) => {
     const totalAccounts = accounts.length;
@@ -84,46 +90,51 @@ export const BaseWalletDetails = ({
     }
 
     return (
-      <Box
-        style={boxStyles}
-        flexDirection={FlexDirection.Row}
-        alignItems={AlignItems.center}
-        justifyContent={JustifyContent.spaceBetween}
+      <TouchableOpacity
+        key={account.id}
+        onPress={() => handleGoToAccountDetails(account)}
       >
         <Box
+          style={boxStyles}
           flexDirection={FlexDirection.Row}
           alignItems={AlignItems.center}
-          gap={8}
+          justifyContent={JustifyContent.spaceBetween}
         >
-          <Avatar
-            variant={AvatarVariant.Account}
-            size={AvatarSize.Md}
-            accountAddress={account.address}
-            type={accountAvatarType}
-          />
-          <Text variant={TextVariant.BodyMDMedium}>
-            {account.metadata.name}
-          </Text>
-        </Box>
-        <Box
-          flexDirection={FlexDirection.Row}
-          alignItems={AlignItems.center}
-          gap={8}
-        >
-          {isAccountBalanceLoading ? (
-            <AnimatedSpinner />
-          ) : (
-            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-              {accountBalance}
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            gap={8}
+          >
+            <Avatar
+              variant={AvatarVariant.Account}
+              size={AvatarSize.Md}
+              accountAddress={account.address}
+              type={accountAvatarType}
+            />
+            <Text variant={TextVariant.BodyMDMedium}>
+              {account.metadata.name}
             </Text>
-          )}
-          <Icon
-            name={IconName.ArrowRight}
-            size={IconSize.Md}
-            color={colors.text.alternative}
-          />
+          </Box>
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            gap={8}
+          >
+            {isAccountBalanceLoading ? (
+              <AnimatedSpinner />
+            ) : (
+              <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+                {accountBalance}
+              </Text>
+            )}
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Md}
+              color={colors.text.alternative}
+            />
+          </Box>
         </Box>
-      </Box>
+      </TouchableOpacity>
     );
   };
 
@@ -150,25 +161,16 @@ export const BaseWalletDetails = ({
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('multichain_accounts.wallet_details.wallet_name')}
           </Text>
-          <TouchableOpacity
+          <Box
             testID={WalletDetailsIds.WALLET_NAME}
-            onPress={handleEditWalletName}
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            gap={8}
           >
-            <Box
-              flexDirection={FlexDirection.Row}
-              alignItems={AlignItems.center}
-              gap={8}
-            >
-              <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-                {wallet.metadata.name}
-              </Text>
-              <Icon
-                name={IconName.Edit}
-                size={IconSize.Md}
-                color={colors.text.alternative}
-              />
-            </Box>
-          </TouchableOpacity>
+            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+              {wallet.metadata.name}
+            </Text>
+          </Box>
         </View>
         <View testID={WalletDetailsIds.WALLET_BALANCE} style={styles.balance}>
           <Text variant={TextVariant.BodyMDMedium}>

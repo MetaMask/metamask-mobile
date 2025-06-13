@@ -14,7 +14,6 @@ import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
-import { AccountWallet } from '@metamask/account-tree-controller';
 
 // External dependencies.
 import Cell, {

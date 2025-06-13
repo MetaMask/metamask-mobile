@@ -4,6 +4,7 @@ import { FlatListProps } from 'react-native';
 
 // External dependencies.
 import { Account, UseAccounts } from '../../hooks/useAccounts';
+import { AccountWallet } from '@metamask/account-tree-controller';
 
 /**
  * EvmAccountSelectorList props.
@@ -68,5 +69,6 @@ export interface EvmAccountSelectorListProps
 
 export interface AccountSection {
   title: string;
+  wallet: AccountWallet;
   data: Account[];
 }
