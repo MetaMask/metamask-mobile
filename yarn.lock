@@ -1439,13 +1439,17 @@
   dependencies:
     expo-build-properties "^0.13.1"
 
-"@consensys/native-ramps-sdk@^0.1.5":
-  version "0.1.5"
-  resolved "https://registry.yarnpkg.com/@consensys/native-ramps-sdk/-/native-ramps-sdk-0.1.5.tgz#38f05992886ec91486d7962b52de552ec4593753"
-  integrity sha512-5VB8SRJuK8a7dgVwUiqbaBTt2AAdzF4smo8U76v0zncBqdpAwZr0VWYWu8F+nXEuOncyUvYXrC96eVgCUNPM2g==
+"@consensys/native-ramps-sdk@1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@consensys/native-ramps-sdk/-/native-ramps-sdk-1.0.4.tgz#a39a71e81f8df08d3ac467323c1baa12f0d0add6"
+  integrity sha512-EVxKD843Pdb7ZMxgYzDqkSiEumDY+cE3qf0Jps7kFj6/9jZv9y3tIccxaLi/sDc+2zc4iwV48HnRzem/aQ63dw==
   dependencies:
+    async "^3.2.3"
     axios "^1.8.3"
-    reflect-metadata "^0.2.2"
+    axios-retry "^3.1.2"
+    crypto-js "^4.2.0"
+    reflect-metadata "^0.1.13"
+    uuid "^9.0.0"
 
 "@consensys/on-ramp-sdk@2.1.10":
   version "2.1.10"
@@ -4859,15 +4863,17 @@
   resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-7.0.0.tgz#3434c19fb52a0cba15242085867236c3ec1c2aea"
   integrity sha512-M92BTgygZ4zteKL0tlWnXMpeWUY2cyraP1g+f6xIH67litdSu5iUyp2nhzVIlzHwGR+ycQAaicSscKyKm3aUVQ==
 
-"@metamask/earn-controller@^0.13.0":
-  version "0.13.0"
-  resolved "https://registry.yarnpkg.com/@metamask/earn-controller/-/earn-controller-0.13.0.tgz#4fb05d563351ead7fe0dc153c7b6b6d453346fb7"
-  integrity sha512-Dn6+johhYnjb4DK6DG9RLyJJ0BRmQobZuJwYHbX3DgkC3Y1hVoPnXEqQYPfIEvHZQFHo1A8XhGl0HTjAQvvSGg==
+"@metamask/earn-controller@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-1.1.0.tgz#c2181aa5767c94e22ac5fe15019976818af3d5bb"
+  integrity sha512-3RSvyoiXMm3HtkBTTUQ0CmPzFMtoYzi9GofRUdvvEqH/RjYJHXtMytPoBVH6GKdYFkWKldIqdKCRkoy1JxnXjQ==
   dependencies:
+    "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.7.0"
-    "@metamask/stake-sdk" "^1.0.0"
+    "@metamask/controller-utils" "^11.10.0"
+    "@metamask/stake-sdk" "^3.2.0"
+    reselect "^5.1.1"
 
 "@metamask/eip1193-permission-middleware@^0.1.0":
   version "0.1.0"
@@ -5813,10 +5819,10 @@
     ses "^1.12.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/solana-wallet-snap@^1.31.2":
-  version "1.31.2"
-  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.31.2.tgz#6b22069282c24b8a720ce533502b6d19bf30db13"
-  integrity sha512-Dnsdr2H3Mj0TsQ5y8ZYnfclKeZO+ocDeIZ7n08hcS0/Uuiq4ytkxHmLK9RYE/a/o96OwybLygu5SLpnHbrLZaA==
+"@metamask/solana-wallet-snap@^1.33.1":
+  version "1.33.1"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.33.1.tgz#0250f244e484094a784c057adf1632d15eb322d7"
+  integrity sha512-L+SL24joD/MOROCCDWVLJqf8dEAQoKljtrFkmvR1nhOXClwBUVCp51oUCNCfiEs2KW8c2+jE7TYgwi9gP9RkDQ==
 
 "@metamask/solana-wallet-standard@^0.4.1":
   version "0.4.1"
@@ -5830,10 +5836,10 @@
     "@wallet-standard/wallet" "^1.1.0"
     bs58 "^6.0.0"
 
-"@metamask/stake-sdk@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.npmjs.org/@metamask/stake-sdk/-/stake-sdk-1.0.0.tgz#44f599a0b9a785a03c5c40a2dffd9f463045de0e"
-  integrity sha512-AjpQq2fstCpqcgMuIAW1VLaKdUmmdR5zQCJz1KgaXVkp9MFCa3GWfrgfZynN2S+h+39hst/2KNHHOeJrGWYGGw==
+"@metamask/stake-sdk@^3.2.0":
+  version "3.2.0"
+  resolved "https://registry.npmjs.org/@metamask/stake-sdk/-/stake-sdk-3.2.0.tgz#30b52ad6c190f4473d44ae2106b7346aaaa2e28f"
+  integrity sha512-llrtdY7k+P93Tu67N8bJxiQ4tXqZPPXOL+8ltZ854wf2P7vZOsdBXMO9dZOeLEjf3lCebNaIgZMddDbXP39tmQ==
 
 "@metamask/superstruct@^3.0.0", "@metamask/superstruct@^3.1.0", "@metamask/superstruct@^3.2.1":
   version "3.2.1"
@@ -25782,11 +25788,6 @@ reflect-metadata@^0.1.13:
   version "0.1.14"
   resolved "https://registry.yarnpkg.com/reflect-metadata/-/reflect-metadata-0.1.14.tgz#24cf721fe60677146bb77eeb0e1f9dece3d65859"
   integrity sha512-ZhYeb6nRaXCfhnndflDK8qI6ZQ/YcWZCISRAWICW9XYqMUwjZM9Z0DveWX/ABN01oxSHwVxKQmxeYZSsm0jh5A==
-
-reflect-metadata@^0.2.2:
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/reflect-metadata/-/reflect-metadata-0.2.2.tgz#400c845b6cba87a21f2c65c4aeb158f4fa4d9c5b"
-  integrity sha512-urBwgfrvVP/eAyXx4hluJivBKzuEbSQs9rKWCrCkbSxNv8mxPcUZKeuoF3Uy4mJl3Lwprp6yy5/39VWigZ4K6Q==
 
 reflect.getprototypeof@^1.0.4:
   version "1.0.6"

@@ -1,15 +1,12 @@
+import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
+import { BigNumber, Contract } from 'ethers';
 import usePoolStakedUnstake from '.';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import {
-  PooledStakingContract,
-  StakingType,
-  ChainId,
-} from '@metamask/stake-sdk';
-import { BigNumber, Contract } from 'ethers';
 import { Stake } from '../../sdk/stakeSdkProvider';
 import useBalance from '../useBalance';
+import trackErrorAsAnalytics from '../../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 
 const MOCK_ADDRESS_1 = '0x0';
 
@@ -47,7 +44,6 @@ const ENCODED_TX_UNSTAKE_DATA = {
   value: '0',
 };
 
-const mockConnectSignerOrProvider = jest.fn().mockReturnValue({ provider: {} });
 const mockEstimateEnterExitQueueGas = jest
   .fn()
   .mockResolvedValue(MOCK_UNSTAKE_GAS_LIMIT);
@@ -90,7 +86,6 @@ jest.mock('../../../../../core/Engine', () => {
 
 const mockPooledStakingContractService: PooledStakingContract = {
   chainId: ChainId.ETHEREUM,
-  connectSignerOrProvider: mockConnectSignerOrProvider,
   contract: {
     ...new Contract('0x0000000000000000000000000000000000000000', []),
     provider: {
@@ -111,8 +106,6 @@ const mockPooledStakingContractService: PooledStakingContract = {
 
 const mockSdkContext: Stake = {
   stakingContract: mockPooledStakingContractService,
-  sdkType: StakingType.POOLED,
-  setSdkType: jest.fn(),
   networkClientId: MOCK_NETWORK_CLIENT_ID,
 };
 
@@ -128,6 +121,8 @@ jest.mock('../useBalance', () => ({
   __esModule: true,
   default: () => mockBalance,
 }));
+
+jest.mock('../../../../../util/metrics/TrackError/trackErrorAsAnalytics');
 
 describe('usePoolStakedUnstake', () => {
   afterEach(() => {
@@ -170,7 +165,74 @@ describe('usePoolStakedUnstake', () => {
       expect(mockGetShares).toHaveBeenCalledTimes(1);
       expect(mockEstimateEnterExitQueueGas).toHaveBeenCalledTimes(1);
       expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledTimes(1);
-      expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledWith(BigNumber.from(MOCK_USER_SHARES), MOCK_RECEIVER_ADDRESS, { gasLimit: MOCK_UNSTAKE_GAS_LIMIT });
+      expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledWith(
+        BigNumber.from(MOCK_USER_SHARES),
+        MOCK_RECEIVER_ADDRESS,
+        { gasLimit: MOCK_UNSTAKE_GAS_LIMIT },
+      );
+      expect(mockAddTransaction).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles gas estimation error', async () => {
+      mockEstimateEnterExitQueueGas.mockRejectedValueOnce(
+        new Error('Gas estimation failed'),
+      );
+      const { result } = renderHookWithProvider(() => usePoolStakedUnstake(), {
+        state: mockInitialState,
+      });
+      await result.current.attemptUnstakeTransaction(
+        MOCK_UNSTAKE_VALUE_WEI,
+        MOCK_RECEIVER_ADDRESS,
+      );
+      expect(trackErrorAsAnalytics).toHaveBeenCalledWith(
+        'Pooled Staking Unstake Transaction Failed',
+        'Gas estimation failed',
+      );
+      expect(mockConvertToShares).toHaveBeenCalledTimes(1);
+      expect(mockEstimateEnterExitQueueGas).toHaveBeenCalledTimes(1);
+      expect(mockEncodeEnterExitQueueTransactionData).not.toHaveBeenCalled();
+      expect(mockAddTransaction).not.toHaveBeenCalled();
+    });
+
+    it('handles transaction encoding error', async () => {
+      mockEncodeEnterExitQueueTransactionData.mockImplementationOnce(() => {
+        throw new Error('Transaction encoding failed');
+      });
+      const { result } = renderHookWithProvider(() => usePoolStakedUnstake(), {
+        state: mockInitialState,
+      });
+      await result.current.attemptUnstakeTransaction(
+        MOCK_UNSTAKE_VALUE_WEI,
+        MOCK_RECEIVER_ADDRESS,
+      );
+      expect(trackErrorAsAnalytics).toHaveBeenCalledWith(
+        'Pooled Staking Unstake Transaction Failed',
+        'Transaction encoding failed',
+      );
+      expect(mockConvertToShares).toHaveBeenCalledTimes(1);
+      expect(mockEstimateEnterExitQueueGas).toHaveBeenCalledTimes(1);
+      expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledTimes(1);
+      expect(mockAddTransaction).not.toHaveBeenCalled();
+    });
+
+    it('handles transaction submission error', async () => {
+      mockAddTransaction.mockRejectedValueOnce(
+        new Error('Transaction submission failed'),
+      );
+      const { result } = renderHookWithProvider(() => usePoolStakedUnstake(), {
+        state: mockInitialState,
+      });
+      await result.current.attemptUnstakeTransaction(
+        MOCK_UNSTAKE_VALUE_WEI,
+        MOCK_RECEIVER_ADDRESS,
+      );
+      expect(trackErrorAsAnalytics).toHaveBeenCalledWith(
+        'Pooled Staking Unstake Transaction Failed',
+        'Transaction submission failed',
+      );
+      expect(mockConvertToShares).toHaveBeenCalledTimes(1);
+      expect(mockEstimateEnterExitQueueGas).toHaveBeenCalledTimes(1);
+      expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledTimes(1);
       expect(mockAddTransaction).toHaveBeenCalledTimes(1);
     });
   });
