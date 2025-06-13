@@ -642,46 +642,56 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     };
 
     it('should show error when password requirements are not met', async () => {
-      const { getByText, passwordInput, confirmPasswordInput } =
-        renderStep2WithInputs();
+      const {
+        getByText,
+        getByTestId,
+        getByRole,
+        passwordInput,
+        confirmPasswordInput,
+      } = renderStep2WithInputs();
 
       // Enter weak password
       fireEvent.changeText(passwordInput, 'weak');
       fireEvent.changeText(confirmPasswordInput, 'weak');
 
-      // Check learn more checkbox
-      const learnMoreCheckbox = getByText(
-        'MetaMask can’t reset this password if you forget it',
+      await waitFor(() => {
+        expect(getByText('Password strength: Weak')).toBeTruthy();
+      });
+
+      const confirmButton = getByRole('button', {
+        name: strings('import_from_seed.confirm'),
+      });
+
+      expect(confirmButton.props.disabled).toBe(true);
+
+      const learnMoreCheckbox = getByTestId(
+        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
       );
       fireEvent.press(learnMoreCheckbox);
 
-      // Try to import
-      const confirmButton = getByText('Confirm');
-      fireEvent.press(confirmButton);
-
       await waitFor(() => {
-        expect(getByText('Password strength: Weak')).toBeTruthy();
+        expect(confirmButton.props.disabled).toBe(false);
       });
     });
 
     it('should show error when passwords do not match', async () => {
-      const { getByText, passwordInput, confirmPasswordInput } =
+      const { getByText, passwordInput, confirmPasswordInput, getByRole } =
         renderStep2WithInputs();
+
+      const confirmButton = getByRole('button', {
+        name: strings('import_from_seed.confirm'),
+      });
 
       // Enter different passwords
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'DifferentPass123!');
 
-      // Check learn more checkbox
-      const learnMoreCheckbox = getByText(
-        'MetaMask can’t reset this password if you forget it',
-      );
-      fireEvent.press(learnMoreCheckbox);
-
-      // Try to import
-      const confirmButton = getByText('Confirm');
-      fireEvent.press(confirmButton);
-      expect(confirmButton).toBeTruthy();
+      await waitFor(() => {
+        expect(
+          getByText(strings('import_from_seed.password_error')),
+        ).toBeTruthy();
+        expect(confirmButton.props.disabled).toBe(true);
+      });
     });
 
     it('should show error when seed phrase is invalid', async () => {
@@ -711,7 +721,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('should show error when passcode is not set', async () => {
-      const { getByText, passwordInput, confirmPasswordInput } =
+      const { getByText, getByTestId, passwordInput, confirmPasswordInput } =
         renderStep2WithInputs();
 
       // Enter valid passwords
@@ -719,8 +729,8 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
 
       // Check learn more checkbox
-      const learnMoreCheckbox = getByText(
-        'MetaMask can’t reset this password if you forget it',
+      const learnMoreCheckbox = getByTestId(
+        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
       );
       fireEvent.press(learnMoreCheckbox);
 
