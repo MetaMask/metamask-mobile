@@ -82,6 +82,105 @@ describe('Migration 083', () => {
     );
   });
 
+  it('works if the state doesn\'t have an `events` property', async () => {
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const oldState = {
+      engine: {
+        backgroundState: {
+          CronjobController: {
+            jobs: {
+              [`${MOCK_SNAP_ID}-0`]: {
+                lastRun: Date.now() - inMilliseconds(1, Duration.Day),
+              },
+              [`${MOCK_SNAP_ID}-1`]: {
+                lastRun: Date.now() - inMilliseconds(1, Duration.Day),
+              },
+            },
+          },
+
+          PermissionController: {
+            subjects: {
+              [MOCK_SNAP_ID]: {
+                origin: MOCK_SNAP_ID,
+                permissions: {
+                  [SnapEndowments.Cronjob]: {
+                    caveats: [
+                      {
+                        type: SnapCaveatType.SnapCronjob,
+                        value: {
+                          jobs: [
+                            {
+                              expression: '*/30 * * * * *',
+                              request: {
+                                method: 'foo',
+                                params: { bar: 'baz' },
+                              },
+                            },
+                            {
+                              expression: '0 0 0 * 11 *',
+                              request: {
+                                method: 'foo',
+                                params: { bar: 'baz' },
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                    date: 1664187844588,
+                    id: 'izn0WGUO8cvq_jqvLQuQP',
+                    invoker: MOCK_ORIGIN,
+                    parentCapability: SnapEndowments.EthereumProvider,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const newState = await migrate(oldState);
+    expect(newState).toStrictEqual({
+      engine: {
+        backgroundState: {
+          CronjobController: {
+            events: {
+              [`cronjob-${MOCK_SNAP_ID}-0`]: {
+                id: `cronjob-${MOCK_SNAP_ID}-0`,
+                recurring: true,
+                date: '2023-09-30T23:59:00.000Z',
+                schedule: '*/30 * * * * *',
+                scheduledAt: '2023-10-01T00:00:00.000Z',
+                snapId: MOCK_SNAP_ID,
+                request: {
+                  method: 'foo',
+                  params: { bar: 'baz' },
+                },
+              },
+              [`cronjob-${MOCK_SNAP_ID}-1`]: {
+                id: `cronjob-${MOCK_SNAP_ID}-1`,
+                recurring: true,
+                date: '2023-11-01T00:00:00.000Z',
+                schedule: '0 0 0 * 11 *',
+                scheduledAt: '2023-10-01T00:00:00.000Z',
+                snapId: MOCK_SNAP_ID,
+                request: {
+                  method: 'foo',
+                  params: { bar: 'baz' },
+                },
+              },
+            },
+          },
+
+          PermissionController:
+          oldState.engine.backgroundState.PermissionController,
+        },
+      },
+    });
+  });
+
   it('adds cronjobs to the `events` property and deletes the `jobs` property', async () => {
     mockedEnsureValidState.mockReturnValue(true);
 
@@ -176,7 +275,7 @@ describe('Migration 083', () => {
           },
 
           PermissionController:
-            oldState.engine.backgroundState.PermissionController,
+          oldState.engine.backgroundState.PermissionController,
         },
       },
     });
