@@ -108,7 +108,6 @@ describe('EmptyStateCta', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
       params: {
-        action: 'LEND',
         token: {
           address: MOCK_USDC_MAINNET_ASSET.address,
           aggregators: [],

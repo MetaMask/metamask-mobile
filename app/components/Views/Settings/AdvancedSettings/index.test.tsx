@@ -16,6 +16,8 @@ const mockNavigate = jest.fn();
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockSetSmartTransactionsOptInStatus: jest.Mock<any, any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let mockDismissSmartAccountSuggestionEnabled: jest.Mock<any, any>;
 
 beforeEach(() => {
   initialState = {
@@ -42,11 +44,14 @@ const mockEngine = Engine;
 
 jest.mock('../../../../core/Engine', () => {
   mockSetSmartTransactionsOptInStatus = jest.fn();
+  mockDismissSmartAccountSuggestionEnabled = jest.fn();
   return {
     init: () => mockEngine.init({}),
     context: {
       PreferencesController: {
         setSmartTransactionsOptInStatus: mockSetSmartTransactionsOptInStatus,
+        setDismissSmartAccountSuggestionEnabled:
+          mockDismissSmartAccountSuggestionEnabled,
       },
     },
   };
@@ -73,6 +78,41 @@ describe('AdvancedSettings', () => {
     Device.isIos = jest.fn().mockReturnValue(true);
     Device.isAndroid = jest.fn().mockReturnValue(false);
 
+    it('should render option to dismiss smart account upgrade', async () => {
+      const { findByLabelText } = renderWithProvider(
+        <AdvancedSettings
+          navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
+        />,
+        {
+          state: initialState,
+        },
+      );
+
+      const switchElement = await findByLabelText(
+        strings('app_settings.dismiss_smart_account_update_heading'),
+      );
+      expect(switchElement.props.value).toBe(false);
+    });
+
+    it('should update dismissSmartAccountSuggestionEnabled when dismiss smart account upgrade is pressed', async () => {
+      const { findByLabelText } = renderWithProvider(
+        <AdvancedSettings
+          navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
+        />,
+        {
+          state: initialState,
+        },
+      );
+
+      const switchElement = await findByLabelText(
+        strings('app_settings.dismiss_smart_account_update_heading'),
+      );
+
+      fireEvent(switchElement, 'onValueChange', false);
+
+      expect(mockDismissSmartAccountSuggestionEnabled).toHaveBeenCalled();
+    });
+
     it('should render smart transactions opt in switch on by default', async () => {
       const { findByLabelText } = renderWithProvider(
         <AdvancedSettings
@@ -88,6 +128,7 @@ describe('AdvancedSettings', () => {
       );
       expect(switchElement.props.value).toBe(true);
     });
+
     it('should update smartTransactionsOptInStatus when smart transactions opt in is pressed', async () => {
       const { findByLabelText } = renderWithProvider(
         <AdvancedSettings

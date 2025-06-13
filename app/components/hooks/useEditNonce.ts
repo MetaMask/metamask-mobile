@@ -44,10 +44,15 @@ export const useEditNonce = () => {
         customNonceValue: String(userSelectedNonce),
       };
 
+      // TODO: We should not update the whole transaction, instead need to create a new atomic updater method for `customNonceValue`
+      // in the transaction controller and use that instead of updateTransaction.
+      // Related issue: https://github.com/MetaMask/MetaMask-planning/issues/5076
       await updateTransaction(updatedTx, transactionMetadata.id);
     };
-    updateTransactionControllerNonce();
-  }, [userSelectedNonce, transactionMetadata]);
+    if(showNonceModal) {
+      updateTransactionControllerNonce();
+    }
+  }, [transactionMetadata, showNonceModal, userSelectedNonce ]);
 
   return {
     setShowNonceModal,

@@ -2,7 +2,7 @@
 import React from 'react';
 import { TouchableOpacity, StyleSheet, Platform, View } from 'react-native';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
-import SkeletonText from '../Ramp/components/SkeletonText';
+import SkeletonText from '../Ramp/Aggregator/components/SkeletonText';
 import { TokenI } from '../Tokens/types';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';

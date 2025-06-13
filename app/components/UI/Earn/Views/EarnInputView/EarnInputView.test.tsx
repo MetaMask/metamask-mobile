@@ -42,10 +42,7 @@ import * as useBalance from '../../../Stake/hooks/useBalance';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
 // eslint-disable-next-line import/no-namespace
 import * as useStakingGasFee from '../../../Stake/hooks/useStakingGasFee';
-import {
-  EARN_INPUT_VIEW_ACTIONS,
-  EarnInputViewProps,
-} from './EarnInputView.types';
+import { EarnInputViewProps } from './EarnInputView.types';
 import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
 import {
   createMockToken,
@@ -263,7 +260,6 @@ describe('EarnInputView', () => {
   const baseProps: EarnInputViewProps = {
     route: {
       params: {
-        action: EARN_INPUT_VIEW_ACTIONS.STAKE,
         token: MOCK_ETH_MAINNET_ASSET,
       },
       key: Routes.STAKING.STAKE,
@@ -328,7 +324,6 @@ describe('EarnInputView', () => {
       const { getByText, getAllByText } = render(EarnInputView, {
         params: {
           ...baseProps.route.params,
-          action: EARN_INPUT_VIEW_ACTIONS.LEND,
           token: MOCK_USDC_MAINNET_ASSET,
         },
         key: Routes.STAKING.STAKE,
@@ -573,7 +568,6 @@ describe('EarnInputView', () => {
 
       const routeParamsWithUSDC: EarnInputViewProps['route'] = {
         params: {
-          action: EARN_INPUT_VIEW_ACTIONS.STAKE,
           token: MOCK_USDC_MAINNET_ASSET,
         },
         key: Routes.STAKING.STAKE,
@@ -624,6 +618,41 @@ describe('EarnInputView', () => {
           },
         });
       });
+    });
+  });
+
+  describe('title bar', () => {
+    it('displays "stake" title when asset is not support by lending', () => {
+      render(EarnInputView);
+
+      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
+        'Stake',
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('displays "deposit" when asset is supported lending token', () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      render(EarnInputView, {
+        params: {
+          ...baseProps.route.params,
+          token: MOCK_USDC_MAINNET_ASSET,
+        },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      });
+
+      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
+        'Deposit',
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
     });
   });
 });

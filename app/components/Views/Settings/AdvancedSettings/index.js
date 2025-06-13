@@ -19,9 +19,10 @@ import {
 } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
-import { mockTheme, ThemeContext } from '../../../../util/theme';
+import { mockTheme, ThemeContext, useTheme } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
 import {
+  selectDismissSmartAccountSuggestionEnabled,
   selectSmartTransactionsOptInStatus,
   selectUseTokenDetection,
 } from '../../../../selectors/preferencesController';
@@ -134,6 +135,58 @@ const createStyles = (colors) =>
     },
   });
 
+const SettingsRow = ({
+  heading,
+  description,
+  value,
+  onValueChange,
+  testId,
+  styles,
+}) => {
+  const { brandColors, colors } = useTheme();
+  return (
+    <View style={styles.setting}>
+      <View style={styles.titleContainer}>
+        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+          {heading}
+        </Text>
+        <View style={styles.toggle}>
+          <Switch
+            testID={testId}
+            value={value}
+            onValueChange={onValueChange}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={brandColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+            accessibilityLabel={heading}
+          />
+        </View>
+      </View>
+
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={styles.desc}
+      >
+        {description}
+      </Text>
+    </View>
+  );
+};
+
+SettingsRow.propTypes = {
+  heading: PropTypes.string,
+  description: PropTypes.string,
+  value: PropTypes.bool,
+  onValueChange: PropTypes.func,
+  testId: PropTypes.string,
+  styles: PropTypes.object,
+};
+
 /**
  * Main view for app configurations
  */
@@ -183,6 +236,10 @@ class AdvancedSettings extends PureComponent {
      * Boolean that checks if smart transactions is enabled
      */
     smartTransactionsOptInStatus: PropTypes.bool,
+    /**
+     * Boolean to disable smart account upgrade prompts
+     */
+    dismissSmartAccountSuggestionEnabled: PropTypes.bool,
   };
 
   scrollView = React.createRef();
@@ -257,20 +314,43 @@ class AdvancedSettings extends PureComponent {
     PreferencesController.setUseTokenDetection(detectionStatus);
   };
 
+  trackMetricsEvent = (event, properties) => {
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(event)
+        .addProperties({
+          location: 'Advanced Settings',
+          ...properties,
+        })
+        .build(),
+    );
+  };
+
   toggleSmartTransactionsOptInStatus = (smartTransactionsOptInStatus) => {
     const { PreferencesController } = Engine.context;
     PreferencesController.setSmartTransactionsOptInStatus(
       smartTransactionsOptInStatus,
     );
 
-    this.props.metrics.trackEvent(
-      this.props.metrics
-        .createEventBuilder(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN)
-        .addProperties({
-          stx_opt_in: smartTransactionsOptInStatus,
-          location: 'Advanced Settings',
-        })
-        .build(),
+    this.trackMetricsEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
+      stx_opt_in: smartTransactionsOptInStatus,
+    });
+  };
+
+  toggleDismissSmartAccountSuggestionEnabled = (
+    dismissSmartAccountSuggestionEnabled,
+  ) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setDismissSmartAccountSuggestionEnabled(
+      dismissSmartAccountSuggestionEnabled,
+    );
+
+    this.trackMetricsEvent(
+      MetaMetricsEvents.DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED,
+      {
+        dismiss_smart_account_suggestion_enabled:
+          dismissSmartAccountSuggestionEnabled,
+      },
     );
   };
 
@@ -287,10 +367,10 @@ class AdvancedSettings extends PureComponent {
       setShowCustomNonce,
       setShowFiatOnTestnets,
       smartTransactionsOptInStatus,
+      dismissSmartAccountSuggestionEnabled,
     } = this.props;
     const { resetModalVisible } = this.state;
-    const { styles, colors } = this.getStyles();
-    const theme = this.context || mockTheme;
+    const { styles } = this.getStyles();
 
     return (
       <SafeAreaView style={baseStyles.flexGrow}>
@@ -342,142 +422,78 @@ class AdvancedSettings extends PureComponent {
               />
             </View>
 
-            <View style={styles.setting}>
-              <View style={styles.titleContainer}>
-                <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-                  {strings('app_settings.smart_transactions_opt_in_heading')}
-                </Text>
-                <View style={styles.toggle}>
-                  <Switch
-                    testID={AdvancedViewSelectorsIDs.STX_OPT_IN_SWITCH}
-                    value={smartTransactionsOptInStatus}
-                    onValueChange={this.toggleSmartTransactionsOptInStatus}
-                    trackColor={{
-                      true: colors.primary.default,
-                      false: colors.border.muted,
-                    }}
-                    thumbColor={theme.brandColors.white}
-                    style={styles.switch}
-                    ios_backgroundColor={colors.border.muted}
-                    accessibilityLabel={strings(
-                      'app_settings.smart_transactions_opt_in_heading',
-                    )}
-                  />
-                </View>
-              </View>
+            <SettingsRow
+              heading={strings(
+                'app_settings.dismiss_smart_account_update_heading',
+              )}
+              description={strings(
+                'app_settings.dismiss_smart_account_update_desc',
+              )}
+              value={dismissSmartAccountSuggestionEnabled}
+              onValueChange={this.toggleDismissSmartAccountSuggestionEnabled}
+              testId={AdvancedViewSelectorsIDs.DISMISS_SMART_ACCOUNT_UPDATE}
+              styles={styles}
+            />
 
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.desc}
-              >
-                {strings(
-                  'app_settings.smart_transactions_opt_in_desc_supported_networks',
-                )}{' '}
-                <Text
-                  color={TextColor.Primary}
-                  link
-                  onPress={this.openLinkAboutStx}
-                >
-                  {strings('app_settings.smart_transactions_learn_more')}
-                </Text>
-              </Text>
-            </View>
+            <SettingsRow
+              heading={strings(
+                'app_settings.smart_transactions_opt_in_heading',
+              )}
+              description={
+                <>
+                  {strings(
+                    'app_settings.smart_transactions_opt_in_desc_supported_networks',
+                  )}{' '}
+                  <Text
+                    color={TextColor.Primary}
+                    link
+                    onPress={this.openLinkAboutStx}
+                  >
+                    {strings('app_settings.smart_transactions_learn_more')}
+                  </Text>
+                </>
+              }
+              value={smartTransactionsOptInStatus}
+              onValueChange={this.toggleSmartTransactionsOptInStatus}
+              testId={AdvancedViewSelectorsIDs.STX_OPT_IN_SWITCH}
+              styles={styles}
+            />
 
-            <View style={styles.setting}>
-              <View style={styles.titleContainer}>
-                <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-                  {strings('app_settings.show_hex_data')}
-                </Text>
-                <View style={styles.toggle}>
-                  <Switch
-                    value={showHexData}
-                    onValueChange={setShowHexData}
-                    trackColor={{
-                      true: colors.primary.default,
-                      false: colors.border.muted,
-                    }}
-                    thumbColor={theme.brandColors.white}
-                    style={styles.switch}
-                    ios_backgroundColor={colors.border.muted}
-                  />
-                </View>
-              </View>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.desc}
-              >
-                {strings('app_settings.hex_desc')}
-              </Text>
-            </View>
-            <View style={styles.setting}>
-              <View style={styles.titleContainer}>
-                <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-                  {strings('app_settings.show_custom_nonce')}
-                </Text>
-                <View style={styles.toggle}>
-                  <Switch
-                    value={showCustomNonce}
-                    onValueChange={setShowCustomNonce}
-                    trackColor={{
-                      true: colors.primary.default,
-                      false: colors.border.muted,
-                    }}
-                    thumbColor={theme.brandColors.white}
-                    style={styles.switch}
-                    ios_backgroundColor={colors.border.muted}
-                  />
-                </View>
-              </View>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.desc}
-              >
-                {strings('app_settings.custom_nonce_desc')}
-              </Text>
-            </View>
+            <SettingsRow
+              heading={strings('app_settings.show_hex_data')}
+              description={strings('app_settings.hex_desc')}
+              value={showHexData}
+              onValueChange={setShowHexData}
+              styles={styles}
+            />
+
+            <SettingsRow
+              heading={strings('app_settings.show_custom_nonce')}
+              description={strings('app_settings.custom_nonce_desc')}
+              value={showCustomNonce}
+              onValueChange={setShowCustomNonce}
+              styles={styles}
+            />
+
             <AutoDetectTokensSettings />
-            <View style={styles.setting}>
-              <View style={styles.titleContainer}>
-                <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-                  {strings('app_settings.show_fiat_on_testnets')}
-                </Text>
-                <View style={styles.toggle}>
-                  <Switch
-                    testID={AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS}
-                    value={showFiatOnTestnets}
-                    onValueChange={(showFiatOnTestnets) => {
-                      if (showFiatOnTestnets) {
-                        this.props.navigation.navigate(
-                          Routes.MODAL.ROOT_MODAL_FLOW,
-                          {
-                            screen: Routes.SHEET.FIAT_ON_TESTNETS_FRICTION,
-                          },
-                        );
-                      } else {
-                        setShowFiatOnTestnets(false);
-                      }
-                    }}
-                    trackColor={{
-                      true: colors.primary.default,
-                      false: colors.border.muted,
-                    }}
-                    thumbColor={theme.brandColors.white}
-                    style={styles.switch}
-                    ios_backgroundColor={colors.border.muted}
-                  />
-                </View>
-              </View>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.desc}
-              >
-                {strings('app_settings.show_fiat_on_testnets_desc')}
-              </Text>
-            </View>
+
+            <SettingsRow
+              heading={strings('app_settings.show_fiat_on_testnets')}
+              description={strings('app_settings.show_fiat_on_testnets_desc')}
+              value={showFiatOnTestnets}
+              onValueChange={(showFiatOnTestnets) => {
+                if (showFiatOnTestnets) {
+                  this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+                    screen: Routes.SHEET.FIAT_ON_TESTNETS_FRICTION,
+                  });
+                } else {
+                  setShowFiatOnTestnets(false);
+                }
+              }}
+              testId={AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS}
+              styles={styles}
+            />
+
             <View style={styles.setting}>
               <Text variant={TextVariant.BodyLGMedium}>
                 {strings('app_settings.state_logs')}
@@ -519,6 +535,8 @@ const mapStateToProps = (state) => ({
     state,
     selectChainId(state),
   ),
+  dismissSmartAccountSuggestionEnabled:
+    selectDismissSmartAccountSuggestionEnabled(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

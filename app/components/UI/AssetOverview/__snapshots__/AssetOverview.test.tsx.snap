@@ -2478,6 +2478,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 "lineHeight": 24,
               }
             }
+            testID="price-label"
           >
             Today
           </Text>
@@ -3437,79 +3438,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
               }
             }
           >
-            <View
-              style={
-                [
-                  {
-                    "flexDirection": "row",
-                    "justifyContent": "space-between",
-                    "paddingVertical": 4,
-                  },
-                  {
-                    "paddingTop": 0,
-                  },
-                ]
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#686e7d",
-                    "fontFamily": "CentraNo1-Medium",
-                    "fontSize": 16,
-                    "fontWeight": "500",
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                Contract address
-              </Text>
-              <TouchableOpacity
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "backgroundColor": "#4459ff1a",
-                    "borderRadius": 20,
-                    "flexDirection": "row",
-                    "marginLeft": 8,
-                    "paddingHorizontal": 8,
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                    }
-                  }
-                >
-                  solana:...4:501
-                </Text>
-                <SvgMock
-                  color="#4459ff"
-                  fill="currentColor"
-                  height={16}
-                  name="Copy"
-                  style={
-                    {
-                      "height": 16,
-                      "marginLeft": 4,
-                      "width": 16,
-                    }
-                  }
-                  width={16}
-                />
-              </TouchableOpacity>
-            </View>
             <View
               style={
                 {

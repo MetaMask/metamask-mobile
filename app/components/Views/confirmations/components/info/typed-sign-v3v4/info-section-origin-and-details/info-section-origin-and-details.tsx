@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ConfirmationPageSectionsSelectorIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import InfoRow from '../../../UI/info-row';
@@ -41,7 +41,7 @@ export const InfoSectionOriginAndDetails = () => {
 
   return (
     <InfoSection
-      testID={ConfirmationPageSectionsSelectorIDs.ORIGIN_INFO_SECTION}
+      testID={ConfirmationRowComponentIDs.ORIGIN_INFO}
     >
       {isPermit && spender && (
         <>

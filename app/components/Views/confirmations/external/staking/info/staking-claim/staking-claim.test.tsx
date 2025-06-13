@@ -6,6 +6,10 @@ import { useConfirmActions } from '../../../../hooks/useConfirmActions';
 import { getNavbar } from '../../../../components/UI/navbar/navbar';
 import StakingClaim from './staking-claim';
 
+jest.mock('../../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
+  AssetPollingProvider: () => null,
+}));
+
 jest.mock('../../../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
@@ -16,14 +20,16 @@ jest.mock('../../../../../../../core/Engine', () => ({
       startPolling: jest.fn(),
       stopPollingByPollingToken: jest.fn(),
     },
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
   },
 }));
 
 jest.mock('../../../../hooks/useConfirmActions', () => ({
   useConfirmActions: jest.fn(),
+}));
+
+jest.mock('../../../../components/UI/animated-pulse', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 jest.mock('../../../../components/UI/navbar/navbar', () => ({

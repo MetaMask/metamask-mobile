@@ -9,7 +9,6 @@ const PORTFOLIO_URL =
 const SECURITY_ALERTS_API_URL =
   process.env.SECURITY_ALERTS_API_URL ??
   'https://security-alerts.api.cx.metamask.io';
-const MULTICHAIN_API = process.env.MULTICHAIN_API || false;
 
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
@@ -25,7 +24,6 @@ export default {
   SECURITY_ALERTS_API: {
     URL: SECURITY_ALERTS_API_URL,
   },
-  MULTICHAIN_API,
   PORTFOLIO: {
     URL: PORTFOLIO_URL,
   },
@@ -247,4 +245,6 @@ export default {
     GROUPED_AUTH_CONNECTION_ID: process.env.GROUPED_AUTH_CONNECTION_ID,
     WEB3AUTH_NETWORK: process.env.WEB3AUTH_NETWORK,
   },
+  TOKEN_DISCOVERY_BROWSER_ENABLED:
+    process.env.TOKEN_DISCOVERY_BROWSER_ENABLED === 'true',
 } as const;

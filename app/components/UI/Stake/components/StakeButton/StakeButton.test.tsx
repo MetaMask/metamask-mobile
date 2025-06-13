@@ -21,7 +21,6 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import { TokenI } from '../../../Tokens/types';
-import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
 
 const mockNavigate = jest.fn();
 
@@ -216,7 +215,6 @@ describe('StakeButton', () => {
           screen: Routes.STAKING.STAKE,
           params: {
             token: MOCK_ETH_MAINNET_ASSET,
-            action: EARN_INPUT_VIEW_ACTIONS.STAKE,
           },
         });
       });
@@ -273,7 +271,6 @@ describe('StakeButton', () => {
           screen: Routes.STAKING.STAKE,
           params: {
             token: MOCK_ETH_MAINNET_ASSET,
-            action: EARN_INPUT_VIEW_ACTIONS.STAKE,
           },
         });
       });

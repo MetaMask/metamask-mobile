@@ -41,6 +41,7 @@ describe('link component', () => {
       ],
       props: {
         href: 'https://metamask.io',
+        isInline: false,
       },
     });
   });
@@ -94,6 +95,7 @@ describe('link component', () => {
       ],
       props: {
         href: 'https://metamask.io',
+        isInline: false,
       },
     });
   });
@@ -142,6 +144,7 @@ describe('link component', () => {
       ],
       props: {
         href: 'https://metamask.io',
+        isInline: false,
       },
     });
   });

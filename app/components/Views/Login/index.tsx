@@ -306,7 +306,6 @@ const Login: React.FC = () => {
         rememberMe,
       );
 
-      console.log('authType', authType);
       ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       if (oauthLoginSuccess) {
         await Authentication.rehydrateSeedPhrase(password, authType);
@@ -609,7 +608,7 @@ const Login: React.FC = () => {
                   variant={ButtonVariants.Link}
                   onPress={toggleWarningModal}
                   testID={LoginViewSelectors.RESET_WALLET}
-                  label={strings('login.reset_wallet')}
+                  label={strings('login.forgot_password')}
                 />
               )}
             </View>

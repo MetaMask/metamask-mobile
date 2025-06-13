@@ -35,7 +35,7 @@ import { selectMultichainAssetsRates } from '../../../../../selectors/multichain
 import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
-import parseAmount from '../../../Ramp/utils/parseAmount';
+import parseAmount from '../../../Ramp/Aggregator/utils/parseAmount';
 
 const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 18;
@@ -69,6 +69,9 @@ const createStyles = ({ vars }: { vars: { fontSize: number } }) =>
       lineHeight: 50,
       height: 50,
       fontSize: vars.fontSize,
+    },
+    currencyContainer: {
+      flex: 1,
     },
   });
 
@@ -267,9 +270,11 @@ export const TokenInputArea = forwardRef<
               <Skeleton width={80} height={24} />
             ) : (
               <>
-                {token && currencyValue ? (
-                  <Text color={TextColor.Alternative}>{currencyValue}</Text>
-                ) : null}
+                <Box style={styles.currencyContainer}>
+                  {token && amount && Number(amount) > 0 && currencyValue ? (
+                    <Text color={TextColor.Alternative}>{currencyValue}</Text>
+                  ) : null}
+                </Box>
                 {subtitle ? (
                   <Text
                     color={

@@ -13,7 +13,7 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 // Polls native currency prices across networks.
 const useAccountTrackerPolling = ({
   networkClientIds,
-}: { networkClientIds?: { networkClientId: string }[] } = {}) => {
+}: { networkClientIds?: string[] } = {}) => {
   // Selectors to determine polling input
   const networkConfigurationsPopularNetworks = useSelector(
     selectAllPopularNetworkConfigurations,
@@ -37,15 +37,22 @@ const useAccountTrackerPolling = ({
       ? networkClientIdsConfig
       : [{ networkClientId: selectedNetworkClientId }];
 
-  const chainIdsToPoll = networkClientIds ?? networkConfigurationsToPoll;
+  const chainIdsToPoll = isEvmSelected
+    ? networkConfigurationsToPoll.map((network) => ({
+        networkClientIds: [network.networkClientId],
+      }))
+    : [];
+
+  let providedNetworkClientIds;
+  if (networkClientIds) {
+    providedNetworkClientIds = networkClientIds.map((networkClientId) => ({
+      networkClientIds: [networkClientId],
+    }));
+  }
 
   const { AccountTrackerController } = Engine.context;
 
-  const input = isEvmSelected
-    ? chainIdsToPoll.map((chainId) => ({
-        networkClientIds: [chainId.networkClientId],
-      }))
-    : [];
+  const input = providedNetworkClientIds ?? chainIdsToPoll;
 
   usePolling({
     startPolling: AccountTrackerController.startPolling.bind(

@@ -1,6 +1,4 @@
 import Engine from '../Engine';
-
-import { safeToChecksumAddress } from '../../util/address';
 import { store } from '../../store';
 
 import { getPermittedAccounts } from '../Permissions';
@@ -14,7 +12,6 @@ import {
   selectNetworkClientId,
 } from '../../selectors/networkController';
 import { isValidAddress } from 'ethereumjs-util';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
 import { MESSAGE_TYPE } from '../createTracingMiddleware';
 
@@ -75,13 +72,11 @@ export const wallet_watchAsset = async ({
 
   const permittedAccounts = getPermittedAccounts(hostname);
   // This should return the current active account on the Dapp.
-  const selectedInternalAccountChecksummedAddress = toChecksumHexAddress(
-    Engine.context.AccountsController.getSelectedAccount().address,
-  );
-
+  const selectedInternalAccountAddress =
+    Engine.context.AccountsController.getSelectedAccount().address;
   // Fallback to wallet address if there is no connected account to Dapp.
   const interactingAddress =
-    permittedAccounts?.[0] || selectedInternalAccountChecksummedAddress;
+    permittedAccounts?.[0] || selectedInternalAccountAddress;
   // This variables are to override the value of decimals and symbol from the dapp
   // if they are wrong accordingly to the token address
   // *This is an hotfix this logic should live on whatchAsset method on TokensController*
@@ -107,7 +102,8 @@ export const wallet_watchAsset = async ({
       image,
     },
     type,
-    interactingAddress: safeToChecksumAddress(interactingAddress),
+    interactingAddress,
+    networkClientId,
   });
 
   res.result = true;

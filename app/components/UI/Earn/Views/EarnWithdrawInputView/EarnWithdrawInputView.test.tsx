@@ -13,10 +13,17 @@ import {
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
   MOCK_GET_VAULT_RESPONSE,
   MOCK_STAKED_ETH_MAINNET_ASSET,
+  MOCK_USDC_MAINNET_ASSET,
 } from '../../../Stake/__mocks__/stakeMockData';
 import EarnWithdrawInputView from './EarnWithdrawInputView';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
 import { flushPromises } from '../../../../../util/test/utils';
+import { getStakingNavbar } from '../../../Navbar';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+
+jest.mock('../../../Navbar', () => ({
+  getStakingNavbar: jest.fn().mockReturnValue({}),
+}));
 
 jest.mock('../../../../../selectors/multichain', () => ({
   selectAccountTokensAcrossChains: jest.fn(() => ({
@@ -140,10 +147,11 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(false),
 }));
 
-describe('UnstakeInputView', () => {
+describe('EarnWithdrawalInputView', () => {
   const selectConfirmationRedesignFlagsMock = jest.mocked(
     selectConfirmationRedesignFlags,
   );
+  const mockGetStakingNavbar = jest.mocked(getStakingNavbar);
 
   beforeEach(() => {
     jest.useFakeTimers();
@@ -262,6 +270,55 @@ describe('UnstakeInputView', () => {
           amountFiat: expect.any(String),
         }),
       });
+    });
+  });
+
+  describe('title bar', () => {
+    it('renders "Unstake" for pooled-staking withdrawals', () => {
+      render(EarnWithdrawInputView);
+
+      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
+        'Unstake ETH',
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('renders "Withdraw" for supported stablecoin lending assets', () => {
+      (
+        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+          typeof selectStablecoinLendingEnabledFlag
+        >
+      ).mockReturnValueOnce(true);
+
+      const usdcRouteParams: EarnWithdrawInputViewProps['route']['params'] = {
+        token: MOCK_USDC_MAINNET_ASSET,
+      };
+
+      renderScreen(
+        EarnWithdrawInputView,
+        {
+          name: Routes.STAKING.UNSTAKE,
+        },
+        {
+          state: {
+            engine: {
+              backgroundState,
+            },
+          },
+        },
+        usdcRouteParams,
+      );
+
+      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
+        'Withdraw',
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
     });
   });
 });

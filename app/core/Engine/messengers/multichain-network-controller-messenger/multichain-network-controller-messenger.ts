@@ -4,7 +4,7 @@ import { MultichainNetworkControllerMessenger } from '@metamask/multichain-netwo
 /**
  * Get the MultichainNetworkControllerMessenger for the MultichainNetworkController.
  *
- * @param baseControllerMessenger - The base controllyer messenger.
+ * @param baseControllerMessenger - The base controller messenger.
  * @returns The MultichainNetworkControllerMessenger.
  */
 export function getMultichainNetworkControllerMessenger(
@@ -15,6 +15,7 @@ export function getMultichainNetworkControllerMessenger(
     allowedActions: [
       'NetworkController:setActiveNetwork',
       'NetworkController:getState',
+      'AccountsController:listMultichainAccounts',
     ],
     allowedEvents: ['AccountsController:selectedAccountChange'],
   });

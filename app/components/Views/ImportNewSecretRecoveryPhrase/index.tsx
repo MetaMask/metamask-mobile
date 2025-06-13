@@ -53,6 +53,8 @@ import {
   validateMnemonic,
 } from './validation';
 import { AppThemeKey } from '../../../util/theme/models';
+import useMetrics from '../../hooks/useMetrics/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const defaultNumberOfWords = 12;
 
@@ -94,7 +96,7 @@ const ImportNewSecretRecoveryPhrase = () => {
     Array(numberOfWords).fill(false),
   );
   const hdKeyrings = useSelector(selectHDKeyrings);
-
+  const { trackEvent, createEventBuilder } = useMetrics();
   const copyToClipboard = useCopyClipboard();
 
   useEffect(() => {
@@ -235,6 +237,11 @@ const ImportNewSecretRecoveryPhrase = () => {
         iconName: IconName.Check,
         hasNoTimeout: false,
       });
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
+        ).build(),
+      );
       navigation.navigate('WalletView');
     } catch (e) {
       if (

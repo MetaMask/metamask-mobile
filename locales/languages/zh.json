@@ -24,6 +24,11 @@
     "inline_alert_label": "提醒",
     "review_alerts": "查看提醒",
     "review_alert": "查看提醒",
+    "upgrade_account": {
+      "title": "升级您的账户",
+      "message": "您正在将账户升级为智能账户。您的账户地址将保持不变，同时享有更迅捷的交易体验和更低的网络费用。",
+      "learn_more": "了解详情"
+    },
     "domain_mismatch": {
       "title": "可疑登录请求",
       "message": "发起请求的网站并非您要登录的网站。可能试图窃取您的登录凭据。"
@@ -32,6 +37,14 @@
       "title": "资金不足",
       "message": "您的账户中没有足够的 %{nativeCurrency} 来支付网络费用。",
       "buy_action": "买入 %{nativeCurrency}"
+    },
+    "signed_or_submitted": {
+      "message": "之前的交易仍在签署或提交中。"
+    },
+    "pending_transaction": {
+      "title": "Pending transaction",
+      "message": "This transaction won't go through until the previous transaction is complete.",
+      "learn_more": "Learn how to cancel or speed up a transaction."
     }
   },
   "blockaid_banner": {
@@ -396,7 +409,46 @@
     "network_missing_id": "缺少链 ID。"
   },
   "deposit": {
-    "title": "保证金"
+    "title": "保证金",
+    "enter_email": {
+      "title": "输入您的电子邮件地址",
+      "description": "我们会向您的电子邮件地址发送一个六位代码，用于确认您的身份。",
+      "input_label": "电子邮件地址",
+      "input_placeholder": "name@domain.com",
+      "submit_button": "发送电子邮件",
+      "loading": "正在发送电子邮件......",
+      "validation_error": "请输入有效的电子邮件地址"
+    },
+    "otp_code": {
+      "title": "输入六位代码",
+      "description": "输入我们发送给 {{email}} 的 6 位代码。如果您在收件箱中找不到此代码，请检查垃圾邮件文件夹。",
+      "submit_button": "提交",
+      "loading": "正在验证代码......",
+      "invalid_code_error": "无效代码",
+      "validation_error": "请输入有效代码"
+    },
+    "verify_identity": {
+      "title": "验证您的身份",
+      "description": "存款时我们需要验证您的身份。这既有助于保障账户安全，又能确保您的个人信息保密。",
+      "privacy_policy_link": "通过我们的隐私政策了解我们如何保护您的隐私。",
+      "button": "开始使用"
+    },
+    "basic_info": {
+      "title": "Enter your basic info",
+      "continue": "Continue",
+      "subtitle": "To begin verifying your identity, we need some basic information."
+    },
+    "enter_address": {
+      "title": "Enter your address",
+      "subtitle": "Please enter your most recent permanent address.",
+      "continue": "Continue",
+      "address_line_1": "Address line 1",
+      "address_line_2": "Address line 2 (optional)",
+      "state": "State/Region",
+      "city": "City",
+      "postal_code": "Postal/Zip Code",
+      "country": "Country"
+    }
   },
   "receive": {
     "title": "接收"
@@ -446,6 +498,14 @@
     "multisrp": {
       "title": "添加多个私钥助记词",
       "subtitle": "在 MetaMask 中导入并使用多个钱包"
+    },
+    "backupAndSync": {
+      "title": "备份与同步简介",
+      "subtitle": "备份您的账户与同步设置。"
+    },
+    "solana": {
+      "title": "Solana 现已获支持",
+      "subtitle": "创建 Solana 账户以开始使用"
     }
   },
   "wallet": {
@@ -453,6 +513,7 @@
     "tokens": "代币",
     "collectible": "收藏品",
     "collectibles": "收藏品",
+    "defi": "去中心化金融",
     "transactions": "交易",
     "no_collectibles": "您没有任何收藏品！",
     "no_available_tokens": "没有看到您的代币？",
@@ -483,6 +544,7 @@
     "sort_by": "排序方式",
     "filter_by": "筛选方式",
     "current_network": "当前网络",
+    "popular_networks": "热门网络",
     "all_networks": "所有网络",
     "declining_balance": "余额降序（{{currency}} 高-低）",
     "alphabetically": "按字母顺序（A-Z）",
@@ -534,7 +596,7 @@
     "logout_to_import_seed": "您需要先注销，然后才能导入私钥助记词。",
     "ready_to_explore": "准备开始探索区块链应用？",
     "unable_to_load": "无法载入余额",
-    "unable_to_find_conversion_rate": "无法找到兑换率",
+    "unable_to_find_conversion_rate": "无兑换率",
     "display_nft_media_desc": "要导入NFT，请在“设置>安全和隐私”中打开“显示NFT媒体”。",
     "display_nft_media_cta": "打开“显示NFT媒体”",
     "display_media_nft_warning": "显示NFT媒体和数据可能会导致您的IP地址被中心化服务器获悉。仅当您了解相关风险时才可导入NFT。",
@@ -616,6 +678,19 @@
       "custom_security_tips": "安全提示"
     }
   },
+  "defi_positions": {
+    "loading_positions": "正在加载去中心化金融持仓......",
+    "no_positions": "暂无持仓",
+    "error_cannot_load_page": "我们无法加载该页面。",
+    "error_visit_again": "请稍后再次尝试访问。",
+    "single_token": "仅限 {{symbol}}",
+    "two_tokens": "{{symbol}} +1 个其他项",
+    "multiple_tokens": "{{symbol}} +{{count}} 个其他项",
+    "supply": "已供应",
+    "stake": "已质押",
+    "borrow": "已借入",
+    "reward": "奖励"
+  },
   "terms_and_conditions": {
     "title": "条款和条件",
     "description": "继续即表示您同意这些",
@@ -696,7 +771,8 @@
     "circulating_supply": "循环供应",
     "all_time_high": "有史以来新高",
     "all_time_low": "有史以来新低",
-    "fully_diluted": "已充分稀释"
+    "fully_diluted": "已充分稀释",
+    "unknown": "Unknown"
   },
   "collectible": {
     "collectible_address": "地址",
@@ -730,6 +806,7 @@
     "receive": "接收"
   },
   "accounts": {
+    "srp_index": "SRP #{{index}}",
     "snap_account_tag": "Snap（测试版）",
     "create_new_account": "创建新账户",
     "import_account": "导入账户",
@@ -860,8 +937,6 @@
     "reset_notifications_description": "重设通知意味着您要删除通知存储密钥并重设所有通知历史记录。您确定要这样做吗？",
     "reset_notifications": "重设通知",
     "reset_notifications_success": "已删除/重新创建通知存储密钥，并重设通知历史记录。",
-    "enabling_profile_sync": "正在启用配置文件同步...",
-    "disabling_profile_sync": "正在禁用配置文件同步...",
     "notifications_dismiss_modal": "关闭",
     "select_rpc_url": "选择 RPC（远程过程调用）URL",
     "title": "设置",
@@ -1194,7 +1269,13 @@
           "endowment:caveat:transaction-origin": "查看建议交易的网站来源",
           "endowment:extend-runtime": "延长运行时间",
           "snap_dialog": "显示自定义对话",
-          "snap_manageAccounts": "添加并控制以太坊账户"
+          "snap_manageAccounts": "添加并控制以太坊账户",
+          "endowment:signature-insight": "显示签名洞察模态框",
+          "endowment:protocol": "为一条或多条链提供协议数据",
+          "snap_getPreferences": "查看您的首选语言和法币等信息",
+          "endowment:lifecycle-hooks": "使用生命周期钩子",
+          "endowment:name-lookup": "提供域名和地址查询",
+          "endowment:page-home": "显示自定义屏幕"
         }
       }
     },
@@ -1359,7 +1440,7 @@
     "token_marketplace": "代币市场",
     "sell_button": "卖出",
     "receive_button": "接收",
-    "portfolio_button": "投资组合",
+    "portfolio_button": "Portfolio",
     "earn_button": "赚取",
     "add_collectible_button": "添加",
     "info": "信息",
@@ -1729,7 +1810,13 @@
       "generic": "此网站已被禁止自动打开外部应用程序"
     },
     "ipfs_gateway_off_title": "IPFS网关关闭",
-    "ipfs_gateway_off_content": "要查看此网站，请在隐私和安全设置中开启IPFS网关。"
+    "ipfs_gateway_off_content": "要查看此网站，请在隐私和安全设置中开启IPFS网关。",
+    "toast": {
+      "solana_dapp_connection_coming_soon": {
+        "title": "Solana dapp（去中心化应用）连接功能即将上线",
+        "message": "您可通过扩展程序连接 Solana 去中心化应用，或在应用内交易 Solana 代币。"
+      }
+    }
   },
   "backup_alert": {
     "title": "保护您的钱包",
@@ -1829,8 +1916,44 @@
     "sign_description_2": "点击‘’获取签名‘’",
     "sign_get_signature": "获取签名",
     "transaction_id": "交易 ID",
+    "network": "网络",
+    "request_from": "请求来自",
     "network_fee": "网络费",
-    "network_fee_tooltip": "网络上处理交易所支付的金额。"
+    "network_fee_tooltip": "网络上处理交易所支付的金额。",
+    "smart_account_upgrade": "升级至智能账户",
+    "smart_account_downgrade": "切换到标准账户",
+    "batched_transactions": "批量交易",
+    "gas_modal": {
+      "edit_network_fee": "Edit network fee",
+      "advanced_gas_fee": "Advanced network fee",
+      "site_suggested": "Site suggested",
+      "advanced": "Advanced",
+      "low": "Low",
+      "medium": "Market",
+      "high": "Aggressive",
+      "network_suggested": "Network suggested",
+      "gas_limit": "Gas Limit",
+      "save": "Save",
+      "max_base_fee": "Max Base Fee",
+      "priority_fee": "Priority Fee",
+      "current_priority_fee": "Current: {{min}} - {{max}} GWEI",
+      "historical_priority_fee": "12 hr: {{min}} - {{max}} GWEI",
+      "estimated_base_fee": "Current: {{value}} GWEI",
+      "historical_base_fee": "12 hr: {{min}} - {{max}} GWEI",
+      "gas_price": "Gas price",
+      "field_required": "{{field}} is required",
+      "max_base_fee_required": "Max base fee is required",
+      "gas_price_required": "Gas price is required",
+      "priority_fee_required": "Priority fee is required",
+      "gas_limit_required": "Gas limit is required",
+      "only_numbers_allowed": "Only numbers are allowed",
+      "negative_values_not_allowed": "Negative values are not allowed",
+      "max_base_fee_must_be_greater_than_priority_fee": "Max base fee must be greater than priority fee",
+      "gas_limit_too_low": "Gas limit must be greater than 21000",
+      "priority_fee_too_high": "Priority fee must be less than max base fee",
+      "no_zero_value": "{{field}} must be greater than 0",
+      "speed": "Speed"
+    }
   },
   "smart_transactions": {
     "status_submitting_header": "正在提交您的交易",
@@ -1980,6 +2103,9 @@
     "edit_permissions": "编辑许可",
     "permitted_networks_info_sheet_description": "这是您以前在此网站上授予使用许可的网络列表。从列表中选择一个或编辑此网站的网络许可。",
     "connect_an_account": "连接账户"
+  },
+  "account_dapp_connections": {
+    "account_summary_header": "使用 MetaMask 连接此网站"
   },
   "select": {
     "cancel": "取消",
@@ -3294,15 +3420,6 @@
     "enable_remember_me": "打开“记住我”",
     "enable_remember_me_description": "在“记住我”功能打开时，任何有访问您手机权限的人都可以访问您的 MetaMask 账户。"
   },
-  "profile_sync": {
-    "title": "配置文件同步",
-    "disable_warning": "如果您关闭配置文件同步，您将无法收到通知。",
-    "enable_description": "创建配置文件，MetaMask 用以在您的不同设备之间同步某些设置。这是获取通知的必需条件。 ",
-    "enable_description2": " 以了解详情。",
-    "enable_privacy_link": "了解我们如何保护您的隐私",
-    "bottomSheetTurnOn": "开启配置文件同步",
-    "bottomSheetTurnOff": "关闭配置文件同步"
-  },
   "turn_off_remember_me": {
     "title": "输入密码以关闭“记住我”",
     "placeholder": "密码",
@@ -3327,10 +3444,9 @@
     "accept_helper_description": "请滚动以阅读所有章节"
   },
   "update_needed": {
-    "title": "需要更新",
-    "description": "我们增強了您钱包的安全！请花点时间保护自己，更新到最新版本。",
-    "primary_action": "更新到最新版本",
-    "secondary_action": "稍后提醒我"
+    "title": "获取最新功能",
+    "description": "我们让您的钱包更安全、更便捷，并添加了一些新功能。立即升级以享有相关保障并使用我们的最新改进功能。",
+    "primary_action": "更新到最新版本"
   },
   "enable_automatic_security_check_modal": {
     "title": "要自动检查安全更新吗？",
@@ -3505,6 +3621,7 @@
     "connect_hardware_wallet": "连接账户",
     "import_wallet_or_account": "导入钱包或账户",
     "add_account": "创建新账户",
+    "add_multichain_account": "创建新的 {{networkName}} 账户",
     "create_an_account": "创建新账户",
     "add_new_account": "以太坊账户",
     "import_srp": "私钥助记词",
@@ -3512,7 +3629,12 @@
     "import_account": "私钥",
     "add_bitcoin_account_testnet": "比特币测试网账户",
     "add_bitcoin_account_mainnet": "比特币账户",
-    "add_solana_account": "Solana 账户"
+    "add_solana_account": "Solana 账户",
+    "switch_to_smart_account": "切换到智能账户",
+    "headers": {
+      "bitcoin": "比特币",
+      "solana": "Solana"
+    }
   },
   "show_nft": {
     "show_nft_title": "显示NFT",
@@ -3535,13 +3657,14 @@
     "title": "MetaMask 上的 Solana",
     "create_solana_account": "创建 Solana 账户",
     "not_now": "暂时不",
-    "got_it": "知道了",
+    "view_solana_account": "查看 Solana 账户",
     "feature_1_title": "发送、接收和兑换代币",
     "feature_1_description": "使用 SOL、USDC 等代币进行转账和交易。",
     "feature_2_title": "导入 Solana 账户",
     "feature_2_description": "导入私钥助记词，从其他钱包迁移您的 Solana 账户。",
     "feature_3_title": "即将推出更多功能",
-    "feature_3_description": "即将推出 Solana 去中心化应用、NFT、硬件钱包支持等。"
+    "feature_3_description": "即将推出 Solana 去中心化应用、NFT、硬件钱包支持等。",
+    "learn_more": "了解有关 Solana 账户的更多详情"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS 网关",
@@ -3575,7 +3698,35 @@
       "body_prefix": "您可赚取高达",
       "body_suffix": "即通过借出您的 {{tokenSymbol}} 每年可赚取的金额。",
       "start_earning": "开始赚取"
-    }
+    },
+    "service_interruption_banner": {
+      "maintenance_message": "我们正在进行系统维护。即将恢复服务！"
+    },
+    "deposit": "保证金",
+    "approve": "批准",
+    "approval": "批准",
+    "confirm": "确认",
+    "cancel": "取消",
+    "transaction_submitted": "已提交交易",
+    "every_minute": "每分钟",
+    "immediate": "立即",
+    "apr": "年利率",
+    "protocol": "协议",
+    "receive_tooltip": "接收工具提示",
+    "button": "按钮",
+    "receive": "接收",
+    "tooltip_content": {
+      "apr": {
+        "part_one": "根据过去一周的奖励率，您的保证金价值预计每年都会增加。",
+        "part_two": "注意：年利率会随时间变化。"
+      },
+      "protocol": "借贷协议是一种智能合约，允许您通过出借代币获得奖励。它还允许用户通过抵押其他代币作为担保来借入代币，但需支付费用给贷方。",
+      "reward_frequency": "奖励结算频率。",
+      "withdrawal_time": "从协议中提取代币并转入钱包所需的时间",
+      "receive": "此代币用于追踪您的资产和奖励。请勿转账或交易这些代币，否则您将无法提取资产。"
+    },
+    "withdraw": "Withdraw",
+    "deposit_more": "Deposit more"
   },
   "stake": {
     "stake": "质押",
@@ -3709,12 +3860,17 @@
     "basic_functionality": "基本功能",
     "manage_networks": "选择您的网络",
     "manage_networks_body": "我们使用 Infura 作为我们的远程过程调用（RPC）提供商，以提供最可靠和最私密的以太坊数据访问。您可以选择自己的 RPC，但请谨记，任何 RPC 都可以接收您的 IP 地址和以太坊钱包以进行交易。请阅读我们的 ",
-    "manage_networks_body2": " 以进一步了解 Infura 如何处理数据。",
+    "manage_networks_body2": " 以进一步了解 Infura 如何针对 EVM 账户和 Solana 账户处理数据 ",
+    "manage_networks_body3": "点击此处。",
     "functionality_body": "MetaMask 通过互联网服务提供代币详情和燃料设置等基本功能。当您使用互联网服务时，您的 IP 地址会共享，在本例中与 MetaMask 共享。这就像您访问任何网站一样。MetaMask 暂时使用这些数据，并且绝不会出卖您的数据。您可以使用 VPN 或关闭这些服务，但这可能会影响您的 MetaMask 体验。阅读我们的 ",
     "functionality_body2": " 了解详情。",
     "sheet": {
       "title_off": "关闭基本功能",
       "description_off": "这意味着您不能充分优化您在 MetaMask 上的时间。您将无法使用基本功能（例如代币详情、最优燃料设置等）。",
+      "description_off2": "关闭此选项也会禁用其中的所有功能",
+      "description_off2_related_features1": "安全与隐私，备份与同步",
+      "description_off2_related_features1_and": "与",
+      "description_off2_related_features2": "通知。",
       "title_on": "开启基本功能",
       "description_on": "如需优化您在 MetaMask 上的时间，您将需要开启此功能。基本功能（例如代币详情、最优燃料设置、通知等）对于 Web3 体验至关重要。",
       "checkbox_label": "我理解并想继续",
@@ -3796,7 +3952,9 @@
       "primary_type": "主要类型",
       "request_from": "请求来自",
       "signing_in_with": "使用以下方式登录",
-      "spender": "支出者"
+      "spender": "支出者",
+      "now": "立即",
+      "switching_to": "切换至"
     },
     "title": {
       "signature": "签名请求",
@@ -3804,14 +3962,18 @@
       "permit_revoke": "去除许可",
       "permit_NFTs": "提取请求",
       "signature_siwe": "登录请求",
-      "contract_interaction": "交易请求"
+      "contract_interaction": "交易请求",
+      "transfer": "转账请求",
+      "switch_account_type": "账户更新"
     },
     "sub_title": {
       "permit": "该网站想获得花费您的代币的许可。",
       "permit_NFTs": "该网站想获得提取您的 NFT 的许可。",
       "signature": "在确认之前检查请求详情。",
       "signature_siwe": "一个网站需要您登录来证明您拥有此账户。",
-      "contract_interaction": "在确认之前检查请求详情。"
+      "contract_interaction": "在确认之前检查请求详情。",
+      "switch_to_smart_account": "您正在切换到智能账户。",
+      "switch_to_standard_account": "您正在切换回标准账户（EOA）。"
     },
     "request_from": "请求来自",
     "staking_from": "质押提供商",
@@ -3823,6 +3985,9 @@
     "qr_get_sign": "获取签名",
     "qr_scan_text": "使用您的硬件钱包扫描",
     "sign_with_ledger": "使用 Ledger 签名",
+    "smart_account": "智能账户",
+    "smart_contract": "智能合约",
+    "standard_account": "标准账户",
     "siwe_message": {
       "url": "URL",
       "network": "网络",
@@ -3835,8 +4000,12 @@
       "resources": "资源"
     },
     "simulation": {
+      "cancel": "Cancel",
       "decoded_tooltip_bid_nft": "当接受出价时，NFT 将反映在您的钱包中。",
       "decoded_tooltip_list_nft": "只有当有人购买您的 NFT 时才会发生变化。",
+      "edit_approval_limit_description": "Enter the amount that you feel comfortable being spent on your behalf.",
+      "edit_approval_limit_title": "Edit approval limit",
+      "edit_value_balance_info": "Account balance:",
       "info_permit": "您将授予支出者许可，才能从您的账户花费这些代币。",
       "info_revoke": "您正在删除某人从您的账户中花费代币的许可。",
       "label_change_type_bidding": "您出价",
@@ -3847,16 +4016,40 @@
       "label_change_type_receive": "您收到",
       "label_change_type_revoke": "撤销",
       "label_change_type_transfer": "您发送",
+      "label_change_type_approve": "您批准",
       "personal_sign_info": "您正在登录某个网站，并且您的账户没有预期变化。",
+      "save": "Save",
       "title": "预计变化",
       "tooltip": "预期变化是指您完成该交易可能发生的变化。这只是预测，而不是保证。",
       "unavailable": "不可用"
     },
+    "7702_functionality": {
+      "smartAccountLabel": "智能账户",
+      "standardAccountLabel": "标准账户",
+      "switch": "切换",
+      "splashpage": {
+        "accept": "是",
+        "betterTransaction": "更迅捷的交易体验，更低的费用",
+        "betterTransactionDescription": "批量处理交易以节省时间和金钱。",
+        "featuresDescription": "账户地址保持不变，您可以随时切换回旧账户。",
+        "payToken": "随时以任何代币支付",
+        "payTokenDescription": "用您现有的代币来支付网络费用。",
+        "reject": "否",
+        "requestFor": "请求",
+        "sameAccount": "账户不变，功能更加智能。",
+        "splashTitle": "要使用智能账户？",
+        "upgradeBannerDescription": "地址不变。功能更加智能。",
+        "upgradeBannerTitle": "切换到智能账户"
+      },
+      "includes_transaction": "包含 {{transactionCount}} 笔交易"
+    },
     "unlimited": "无限制",
+    "all": "所有",
     "none": "无",
     "advanced_details": "高级信息",
     "interacting_with": "正在与下述内容交互：",
-    "review": "Review"
+    "review": "查看",
+    "transferRequest": "转账请求"
   },
   "change_in_simulation_modal": {
     "title": "结果已发生变化",
@@ -3877,6 +4070,8 @@
   },
   "bridge": {
     "continue": "继续",
+    "confirm_bridge": "确认桥接",
+    "confirm_swap": "确认兑换",
     "terms_and_conditions": "条款和条件",
     "select_token": "选择代币",
     "select_network": "选择网络",
@@ -3905,12 +4100,14 @@
     "bridge_to": "桥接至",
     "title": "桥接",
     "submitting_transaction": "正在提交",
-    "fetching_quote": "正在获取报价"
+    "fetching_quote": "正在获取报价",
+    "fee_disclaimer": "包含0.875%的做市商手续费",
+    "hardware_wallet_not_supported": "Solana 目前暂不支持硬件钱包。请改用热钱包继续操作。"
   },
   "quote_expired_modal": {
-    "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
-    "get_new_quote": "Get new quote"
+    "title": "有新的报价",
+    "description": "价格每 {{refreshRate}} 秒更新一次，请在准备就绪后点击“获取新报价”。",
+    "get_new_quote": "获取新报价"
   },
   "bridge_transaction_details": {
     "status": "状态",
@@ -3926,5 +4123,100 @@
     "transaction_details": "交易详情",
     "bridge_to_chain": "桥接至 {{chainName}}",
     "recipient": "接收者"
+  },
+  "backupAndSync": {
+    "title": "备份与同步",
+    "description": "备份您的账户与同步设置。",
+    "enabling": "启用备份与同步",
+    "disabling": "禁用备份与同步",
+    "enable": {
+      "title": "开启备份与同步",
+      "confirmation": "当您开启备份与同步时，基本功能也将同时开启。是否继续？",
+      "description": "备份与同步功能使我们能够为您的自定义设置和功能存储加密数据。这将使您的 MetaMask 体验在不同设备上保持一致，并在需要重新安装 MetaMask 时恢复相关设置和功能。此操作不会备份您的私钥助记词。",
+      "updatePreferences": "您可以随时通过以下方式更新偏好设置：",
+      "settingsPath": "设置 > 备份与同步。"
+    },
+    "privacyLink": "了解我们如何保护您的隐私",
+    "features": {
+      "accounts": "账户"
+    },
+    "manageWhatYouSync": {
+      "title": "管理同步内容",
+      "description": "开启设备间的同步内容。"
+    }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "选择一项资产"
+    },
+    "hideSentitiveInfo": {
+      "message": "隐藏敏感信息"
+    },
+    "doNotShare": {
+      "message": "切勿与任何人分享"
+    },
+    "revealSensitiveContent": {
+      "message": "显示敏感内容"
+    },
+    "show_more": "展开",
+    "show_less": "收起"
+  },
+  "multichain_accounts": {
+    "account_details": {
+      "header_title": "Account Details",
+      "account_name": "Account Name",
+      "account_address": "Account Address",
+      "wallet": "Wallet",
+      "private_key": "Private key"
+    },
+    "smart_account": {
+      "title": "Enable Smart Account",
+      "description": "You can enable smart account features on supported networks. {{learnMore}}",
+      "learn_more": "Learn more"
+    },
+    "edit_account_name": {
+      "title": "Edit Account Name",
+      "name": "Name",
+      "save_button": "Save",
+      "error_duplicate_name": "This account name already exists"
+    },
+    "delete_account": {
+      "title": "Remove Account",
+      "warning_title": "This account will be removed from MetaMask.",
+      "warning_description": "Make sure you have the Secret Recovery Phrase or private key for this account before removing.",
+      "remove_button": "Remove",
+      "cancel_button": "Cancel",
+      "error": "Failed to delete account"
+    },
+    "share_address": {
+      "title": "Share Address",
+      "copy_address": "Copy address",
+      "view_on_explorer_button": "View on {{explorer}}",
+      "view_on_block_explorer": "View on Block Explorer"
+    },
+    "export_credentials": {
+      "export_private_key": "Private key",
+      "private_key_warning_title": "Never disclose this key.",
+      "private_key_warning_description": "Anyone with your private key can stead any assets held in your account.",
+      "credential_as_text": "Text",
+      "credential_as_qr": "QR code",
+      "export_mnemonic": "Export mnemonic",
+      "backup": "Backup"
+    },
+    "reveal_private_key": {
+      "title": "Show private key",
+      "banner_title": "Never disclose this key.",
+      "banner_description": "Anyone with your private key can stead any assets held in your account.",
+      "enter_password": "Enter your password",
+      "password_placeholder": "Password",
+      "next": "Next",
+      "copy": "Copy"
+    },
+    "reveal_srp": {
+      "header": "Security quiz",
+      "description": "To reveal your Secret Recovery Phrase, you need to correctly answer two questions",
+      "get_started": "Get started",
+      "learn_more": "Learn more"
+    }
   }
 }

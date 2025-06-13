@@ -118,6 +118,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
             >
               <TouchableOpacity
                 onPress={[Function]}
+                testID="import-from-seed-screen-back-button-id"
               >
                 <SvgMock
                   color="#121314"
@@ -177,6 +178,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
             >
               <TouchableOpacity
                 onPress={[Function]}
+                testID="import-from-seed-screen-qr-code-button-id"
               >
                 <SvgMock
                   color="#121314"
@@ -567,6 +569,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                           "paddingHorizontal": 0,
                                         }
                                       }
+                                      testID="import-from-seed-screen-seed-phrase-input-id"
                                       textAlignVertical="top"
                                       value=""
                                     />
@@ -696,6 +699,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       "paddingHorizontal": 16,
                                     }
                                   }
+                                  testID="import-from-seed-screen-continue-button-id"
                                 >
                                   <Text
                                     accessibilityRole="text"

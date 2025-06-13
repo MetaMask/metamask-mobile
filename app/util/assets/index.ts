@@ -11,6 +11,13 @@ export const formatWithThreshold = (
   if (amount === null) {
     return '';
   }
+
+  // Ensures that if we are using currency, we are using the narrow symbol to match existing currencies.
+  // E.g. instead of US$xx.yy we show $xx.yy
+  if (options.currency && !options.currencyDisplay) {
+    options.currencyDisplay = 'narrowSymbol';
+  }
+
   if (amount === 0) {
     return new Intl.NumberFormat(locale, options).format(0);
   }

@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 
-import { ConfirmationPageSectionsSelectorIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import Icon, {
   IconColor,
@@ -76,7 +76,7 @@ const SignatureMessageSection = ({
         </View>
       }
       expandedContentTitle={strings('confirm.message')}
-      testID={ConfirmationPageSectionsSelectorIDs.MESSAGE_SECTION}
+      testID={ConfirmationRowComponentIDs.MESSAGE}
     />
   );
 };

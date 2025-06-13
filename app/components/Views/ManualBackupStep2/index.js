@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   InteractionManager,
   Alert,
@@ -7,7 +7,6 @@ import {
   SafeAreaView,
   FlatList,
   Dimensions,
-  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import ActionView from '../../UI/ActionView';
@@ -32,8 +31,14 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import Routes from '../../../constants/navigation/Routes';
+import { saveOnboardingEvent } from '../../../actions/onboarding';
 
-const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
+const ManualBackupStep2 = ({
+  navigation,
+  seedphraseBackedUp,
+  route,
+  dispatchSaveOnboardingEvent,
+}) => {
   const words = route?.params?.words;
   const backupFlow = route?.params?.backupFlow;
   const settingsBackup = route?.params?.settingsBackup;
@@ -48,27 +53,35 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [sortedSlots, setSortedSlots] = useState([]);
 
+  const headerLeft = useCallback(
+    () => (
+      <TouchableOpacity
+        testID={ManualBackUpStepsSelectorsIDs.BACK_BUTTON}
+        onPress={() => navigation.goBack()}
+      >
+        <Icon
+          name={IconName.ArrowLeft}
+          size={IconSize.Lg}
+          color={colors.text.default}
+          style={styles.headerLeft}
+        />
+      </TouchableOpacity>
+    ),
+    [colors, navigation, styles.headerLeft],
+  );
+
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
       getOnboardingNavbarOptions(
         route,
         {
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Icon
-                name={IconName.ArrowLeft}
-                size={IconSize.Lg}
-                color={colors.text.default}
-                style={styles.headerLeft}
-              />
-            </TouchableOpacity>
-          ),
+          headerLeft,
         },
         colors,
         false,
       ),
     );
-  }, [colors, navigation, route, styles.headerLeft]);
+  }, [colors, navigation, route, headerLeft]);
 
   useEffect(() => {
     updateNavBar();
@@ -79,14 +92,12 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
     return compareMnemonics(validWords, gridWords);
   }, [route.params?.words, gridWords]);
 
-  const isAllWordsPlaced = useCallback(() => {
+  const areAllWordsPlaced = useMemo(() => {
     const validWords = route.params?.words ?? [];
     return gridWords.filter((word) => word !== '').length === validWords.length;
   }, [route.params?.words, gridWords]);
 
   const goNext = () => {
-    // eslint-disable-next-line no-console
-    console.log('goNext', validateWords());
     if (validateWords()) {
       seedphraseBackedUp();
       InteractionManager.runAfterInteractions(async () => {
@@ -95,20 +106,13 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
         } else if (settingsBackup) {
           navigation.navigate(Routes.ONBOARDING.SECURITY_SETTINGS);
         } else {
-          navigation.navigate('OptinMetrics', {
-            steps: route.params?.steps,
-            words,
-            onContinue: () => {
-              navigation.navigate('OnboardingSuccess', {
-                backedUpSRP: true,
-              });
-            },
-          });
+          navigation.navigate('OnboardingSuccess');
         }
         trackOnboarding(
           MetricsEventBuilder.createEventBuilder(
             MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
           ).build(),
+          dispatchSaveOnboardingEvent,
         );
       });
     } else {
@@ -123,8 +127,9 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
     if (showStatusBottomSheet) return;
 
     const rows = [0, 1, 2, 3];
-    const randomRows = rows.sort(() => 0.5 - Math.random()).slice(0, 3);
-    const indexesToEmpty = randomRows.map((row) => {
+    const sortGridRows = rows.sort(() => 0.5 - Math.random());
+    const selectRandomSlots = sortGridRows.slice(0, 3);
+    const emptySlotsIndexes = selectRandomSlots.map((row) => {
       const col = Math.floor(Math.random() * 3);
       return row * 3 + col;
     });
@@ -132,16 +137,16 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
     const tempGrid = [...words];
     const removed = [];
 
-    indexesToEmpty.forEach((i) => {
+    emptySlotsIndexes.forEach((i) => {
       removed.push(tempGrid[i]);
       tempGrid[i] = '';
     });
 
     setGridWords(tempGrid);
     setMissingWords(removed);
-    setEmptySlots(indexesToEmpty);
-    const sortedIndexes = indexesToEmpty.sort((a, b) => a - b);
-    setSortedSlots(indexesToEmpty.filter((_, i) => i !== 0));
+    setEmptySlots(emptySlotsIndexes);
+    const sortedIndexes = emptySlotsIndexes.sort((a, b) => a - b);
+    setSortedSlots(emptySlotsIndexes.filter((_, i) => i !== 0));
     setSelectedSlot(sortedIndexes[0]);
   }, [words, showStatusBottomSheet]);
 
@@ -149,8 +154,8 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
     (word) => {
       const updatedGrid = [...gridWords];
       if (sortedSlots.length === 0) {
-        const indexesToEmpty = [...emptySlots];
-        const sortedIndexes = indexesToEmpty.sort((a, b) => a - b);
+        const emptySlotsIndexes = [...emptySlots];
+        const sortedIndexes = emptySlotsIndexes.sort((a, b) => a - b);
         setSortedSlots(sortedIndexes);
       }
 
@@ -159,10 +164,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
       if (existingIndex !== -1) {
         updatedGrid[existingIndex] = '';
         setGridWords(updatedGrid);
-
-        // Clear selection completely if this was the last word
-        const remaining = updatedGrid.filter((w) => w !== '');
-        setSelectedSlot(remaining.length === 0 ? null : null); // ← always reset for top-down behavior
+        setSelectedSlot(null); // ← always reset for top-down behavior
         return;
       }
 
@@ -220,56 +222,63 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
 
   const innerWidth = Dimensions.get('window').width;
 
-  const renderGrid = useCallback(
-    () => (
+  const renderGridItemText = useCallback(
+    (item, index, isEmpty) => (
       <>
-        <View style={[styles.seedPhraseContainer]}>
-          <FlatList
-            data={gridWords}
-            numColumns={3}
-            keyExtractor={(_, index) => index.toString()}
-            renderItem={({ item, index }) => {
-              // eslint-disable-next-line no-console
-              const isEmpty = emptySlots.includes(index);
-              const isSelected = selectedSlot === index;
-
-              return (
-                <TouchableOpacity
-                  key={index}
-                  style={[
-                    styles.gridItem,
-                    isEmpty && styles.emptySlot,
-                    isSelected && styles.selectedSlotBox,
-                    {
-                      width: innerWidth / 3.85,
-                    },
-                  ]}
-                  onPress={() => handleSlotPress(index)}
-                >
-                  <Text style={styles.gridItemIndex}>{index + 1}.</Text>
-                  <Text style={styles.gridItemText}>
-                    {isEmpty ? item : '••••••'}
-                  </Text>
-                </TouchableOpacity>
-              );
-            }}
-          />
-        </View>
+        <Text style={styles.gridItemIndex}>{index + 1}.</Text>
+        <Text style={styles.gridItemText}>{isEmpty ? item : '••••••'}</Text>
       </>
     ),
+    [styles.gridItemIndex, styles.gridItemText],
+  );
+
+  const renderGridItem = useCallback(
+    ({ item, index }) => {
+      const isEmpty = emptySlots.includes(index);
+      const isSelected = selectedSlot === index;
+
+      return (
+        <TouchableOpacity
+          key={index}
+          testID={ManualBackUpStepsSelectorsIDs.GRID_ITEM}
+          style={[
+            styles.gridItem,
+            isEmpty && styles.emptySlot,
+            isSelected && styles.selectedSlotBox,
+            {
+              width: innerWidth / 3.85,
+            },
+          ]}
+          onPress={() => handleSlotPress(index)}
+        >
+          {renderGridItemText(item, index, isEmpty)}
+        </TouchableOpacity>
+      );
+    },
     [
-      styles.seedPhraseContainer,
-      styles.gridItem,
-      styles.emptySlot,
-      styles.selectedSlotBox,
-      gridWords,
       emptySlots,
-      selectedSlot,
-      innerWidth,
       handleSlotPress,
-      styles.gridItemIndex,
-      styles.gridItemText,
+      innerWidth,
+      renderGridItemText,
+      selectedSlot,
+      styles.emptySlot,
+      styles.gridItem,
+      styles.selectedSlotBox,
     ],
+  );
+
+  const renderGrid = useCallback(
+    () => (
+      <View style={[styles.seedPhraseContainer]}>
+        <FlatList
+          data={gridWords}
+          numColumns={3}
+          keyExtractor={(_, index) => index.toString()}
+          renderItem={renderGridItem}
+        />
+      </View>
+    ),
+    [styles.seedPhraseContainer, gridWords, renderGridItem],
   );
 
   const renderMissingWords = useCallback(
@@ -279,7 +288,8 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
           const isUsed = gridWords.includes(word);
           return (
             <TouchableOpacity
-              key={i}
+              key={word}
+              testID={`${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-${i}`}
               style={[
                 styles.missingWord,
                 isUsed && styles.selectedWord,
@@ -290,6 +300,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
               <Text
                 variant={TextVariant.BodyMDMedium}
                 color={isUsed ? TextColor.Default : TextColor.Primary}
+                testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-${i}`}
               >
                 {word}
               </Text>
@@ -310,24 +321,25 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   );
 
   const validateSeedPhrase = () => {
+    const isSuccess = validateWords();
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
       params: {
-        title: validateWords()
+        title: isSuccess
           ? strings('manual_backup_step_2.success-title')
           : strings('manual_backup_step_2.error-title'),
-        description: validateWords()
+        description: isSuccess
           ? strings('manual_backup_step_2.success-description')
           : strings('manual_backup_step_2.error-description'),
-        primaryButtonLabel: validateWords()
+        primaryButtonLabel: isSuccess
           ? strings('manual_backup_step_2.success-button')
           : strings('manual_backup_step_2.error-button'),
-        type: validateWords() ? 'success' : 'error',
+        type: isSuccess ? 'success' : 'error',
         onClose: () => setShowStatusBottomSheet((prev) => !prev),
-        onPrimaryButtonPress: validateWords()
+        onPrimaryButtonPress: isSuccess
           ? goNext
           : () => setShowStatusBottomSheet((prev) => !prev),
-        closeOnPrimaryButtonPress: !validateWords(),
+        closeOnPrimaryButtonPress: !isSuccess,
       },
     });
   };
@@ -336,13 +348,16 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
     <SafeAreaView style={styles.mainWrapper}>
       <View style={[styles.container]}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          Step 3 of 3
+          {strings('manual_backup_step_2.steps', {
+            currentStep: 3,
+            totalSteps: 3,
+          })}
         </Text>
         <ActionView
           confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
           confirmText={strings('manual_backup_step_2.continue')}
           onConfirmPress={validateSeedPhrase}
-          confirmDisabled={!isAllWordsPlaced()}
+          confirmDisabled={!areAllWordsPlaced}
           showCancelButton={false}
           confirmButtonMode={'confirm'}
           buttonContainerStyle={styles.buttonContainer}
@@ -388,10 +403,15 @@ ManualBackupStep2.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
+  /**
+   * Action to save onboarding event
+   */
+  dispatchSaveOnboardingEvent: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({
   seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
+  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
 });
 
 export default connect(null, mapDispatchToProps)(ManualBackupStep2);

@@ -4,7 +4,7 @@ import { CarouselSlide, SlideId } from './types';
 import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
-} from '../../UI/Ramp/routes/utils';
+} from '../Ramp/Aggregator/routes/utils';
 import Routes from '../../../constants/navigation/Routes';
 import cardImage from '../../../images/banners/banner_image_card.png';
 import fundImage from '../../../images/banners/banner_image_fund.png';
@@ -101,7 +101,7 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
   },
 ];
 
-export const BANNER_IMAGES: Record<SlideId, ImageSourcePropType> = {
+export const BANNER_IMAGES: Partial<Record<SlideId, ImageSourcePropType>> = {
   card: cardImage,
   fund: fundImage,
   cashout: cashoutImage,
@@ -112,3 +112,7 @@ export const BANNER_IMAGES: Record<SlideId, ImageSourcePropType> = {
   solana: solanaImage,
   ///: END:ONLY_INCLUDE_IF
 };
+
+export const SPACE_ID = () => process.env.FEATURES_ANNOUNCEMENTS_SPACE_ID;
+export const ACCESS_TOKEN = () =>
+  process.env.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN;

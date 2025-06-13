@@ -11,20 +11,20 @@ interface RefreshTokensProps {
     { chainId: Hex; nativeCurrency: string }
   >;
   nativeCurrencies: string[];
-  selectedAccount?: InternalAccount;
+  selectedAccountId?: InternalAccount['id'];
 }
 
 export const refreshTokens = async ({
   isEvmSelected,
   evmNetworkConfigurationsByChainId,
   nativeCurrencies,
-  selectedAccount,
+  selectedAccountId,
 }: RefreshTokensProps) => {
   if (!isEvmSelected) {
     const { MultichainBalancesController } = Engine.context;
-    if (selectedAccount) {
+    if (selectedAccountId) {
       try {
-        await MultichainBalancesController.updateBalance(selectedAccount.id);
+        await MultichainBalancesController.updateBalance(selectedAccountId);
       } catch (error) {
         Logger.error(error as Error, 'Error while refreshing NonEvm tokens');
       }

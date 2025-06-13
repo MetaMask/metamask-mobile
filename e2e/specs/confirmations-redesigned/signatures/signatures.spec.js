@@ -3,7 +3,6 @@ import Assertions from '../../../utils/Assertions.js';
 import Browser from '../../../pages/Browser/BrowserView.js';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions.js';
 import FixtureBuilder from '../../../fixtures/fixture-builder.js';
-import PageSections from '../../../pages/Browser/Confirmations/PageSections.js';
 import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes.js';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent.js';
 import TestDApp from '../../../pages/Browser/TestDApp.js';
@@ -16,6 +15,7 @@ import {
 import { SmokeConfirmationsRedesigned } from '../../../tags.js';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
 import { buildPermissions } from '../../../fixtures/utils.js';
+import RowComponents from '../../../pages/Browser/Confirmations/RowComponents.js';
 
 const SIGNATURE_LIST = [
   {
@@ -29,7 +29,7 @@ const SIGNATURE_LIST = [
     requestType: RequestTypes.PersonalSignRequest,
     additionAssertions: async () => {
       await Assertions.checkIfVisible(
-        PageSections.SiweSigningAccountInfoSection,
+        RowComponents.SiweSigningAccountInfo,
       );
     },
   },
@@ -52,7 +52,7 @@ const SIGNATURE_LIST = [
 
 describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
   const testSpecificMock = {
-    GET: [mockEvents.GET.remoteFeatureFlagsReDesignedConfirmations],
+    GET: [mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations],
   };
 
   beforeAll(async () => {
@@ -70,7 +70,9 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
           dapp: true,
           fixture: new FixtureBuilder()
             .withGanacheNetwork()
-            .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
+            .withPermissionControllerConnectedToTestDapp(
+              buildPermissions(['0x539']),
+            )
             .build(),
           restartDevice: true,
           ganacheOptions: defaultGanacheOptions,
@@ -92,9 +94,9 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
           await Assertions.checkIfVisible(requestType);
 
           // check different sections are visible
-          await Assertions.checkIfVisible(PageSections.AccountNetworkSection);
-          await Assertions.checkIfVisible(PageSections.OriginInfoSection);
-          await Assertions.checkIfVisible(PageSections.MessageSection);
+          await Assertions.checkIfVisible(RowComponents.AccountNetwork);
+          await Assertions.checkIfVisible(RowComponents.OriginInfo);
+          await Assertions.checkIfVisible(RowComponents.Message);
 
           // any signature specific additional assertions
           if (additionAssertions) {

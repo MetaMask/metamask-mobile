@@ -3,20 +3,20 @@ import { ChainId } from '@metamask/controller-utils';
 import TokenIcon from '../Swaps/components/TokenIcon';
 
 interface NetworkAssetLogoProps {
-  chainId: string;
-  ticker: string;
-  style: object;
   big: boolean;
   biggest: boolean;
-  testID: string;
+  chainId: string;
+  style: object;
+  ticker: string;
+  testID?: string;
 }
 
 function NetworkAssetLogo({
-  chainId,
-  ticker,
-  style,
   big,
   biggest,
+  chainId,
+  style,
+  ticker,
   testID,
 }: NetworkAssetLogoProps) {
   if (chainId === ChainId.mainnet) {
@@ -34,8 +34,8 @@ function NetworkAssetLogo({
     <TokenIcon
       big={big}
       biggest={biggest}
-      symbol={ticker}
       style={style}
+      symbol={ticker}
       testID={testID}
     />
   );

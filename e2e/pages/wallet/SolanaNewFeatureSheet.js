@@ -38,6 +38,10 @@ class SolanaNewFeatureSheet {
     await Gestures.waitAndTap(this.createAccountButton);
   }
 
+  async tapViewAccountButton() {
+    await Gestures.waitAndTap(this.createAccountButton);//Create account testID is used for both create and view account actions
+  }
+
   async tapAddAccountButton() {
     await Gestures.waitAndTap(this.addAccountButton);
   }

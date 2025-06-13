@@ -1,4 +1,7 @@
-import { normalizeTransactionParams } from '@metamask/transaction-controller';
+import {
+  normalizeTransactionParams,
+  TransactionMeta,
+} from '@metamask/transaction-controller';
 import * as SignatureRequestActions from '../../actions/signatureRequest'; // eslint-disable-line import/no-namespace
 import * as TransactionActions from '../../actions/transaction'; // eslint-disable-line import/no-namespace
 import * as NetworkControllerSelectors from '../../selectors/networkController'; // eslint-disable-line import/no-namespace
@@ -53,6 +56,11 @@ jest.mock('../../core/Engine', () => ({
         internalAccounts: { accounts: [] },
       },
       listAccounts: jest.fn().mockReturnValue([]),
+    },
+    TransactionController: {
+      state: {
+        transactions: [],
+      },
     },
   },
   backgroundState: {
@@ -112,6 +120,8 @@ const mockSignatureRequest = {
   toNative: true,
   origin: 'metamask.github.io',
 };
+
+jest.useFakeTimers();
 
 describe('PPOM Utils', () => {
   const validateWithSecurityAlertsAPIMock = jest.mocked(
@@ -250,7 +260,7 @@ describe('PPOM Utils', () => {
       expect(spyTransactionAction).toHaveBeenCalledTimes(0);
     });
 
-    it('should not validate transaction and update response as failed if method type is eth_sendTransaction and transactionid is not defined', async () => {
+    it('should not validate transaction and update response as failed if method type is eth_sendTransaction and transactionid, securityAlertId is not defined', async () => {
       const spyTransactionAction = jest.spyOn(
         TransactionActions,
         'setTransactionSecurityAlertResponse',
@@ -276,6 +286,48 @@ describe('PPOM Utils', () => {
       );
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
       expect(spy).toHaveBeenCalledTimes(2);
+    });
+
+    it('should update transaction with validation result if only securityAlertId is provided', async () => {
+      const mockSecurityAlertId = 'abc123';
+      Engine.context.TransactionController.state.transactions = [
+        {
+          securityAlertResponse: { securityAlertId: mockSecurityAlertId },
+          id: 'transactionId',
+        } as unknown as TransactionMeta,
+      ];
+      const spy = jest.spyOn(
+        TransactionActions,
+        'setTransactionSecurityAlertResponse',
+      );
+      await PPOMUtil.validateRequest(
+        mockRequest,
+        undefined,
+        mockSecurityAlertId,
+      );
+      jest.advanceTimersByTime(10000);
+      expect(spy).toHaveBeenCalledTimes(2);
+    });
+
+    it('should update transaction with validation result if transactionId is not found for securityAlertId provided', async () => {
+      const mockSecurityAlertId = 'abc123';
+      Engine.context.TransactionController.state.transactions = [
+        {
+          securityAlertResponse: { securityAlertId: '123' },
+          id: 'transactionId',
+        } as unknown as TransactionMeta,
+      ];
+      const spy = jest.spyOn(
+        TransactionActions,
+        'setTransactionSecurityAlertResponse',
+      );
+      await PPOMUtil.validateRequest(
+        mockRequest,
+        undefined,
+        mockSecurityAlertId,
+      );
+      jest.advanceTimersByTime(10000);
+      expect(spy).toHaveBeenCalledTimes(0);
     });
 
     it('should update signature requests with validation result', async () => {

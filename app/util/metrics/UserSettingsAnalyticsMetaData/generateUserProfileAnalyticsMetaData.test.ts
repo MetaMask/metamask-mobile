@@ -41,12 +41,10 @@ describe('generateUserProfileAnalyticsMetaData', () => {
             {
               type: ExtendedKeyringTypes.hd,
               accounts: ['0x1', '0x2'],
-            },
-          ],
-          keyringsMetadata: [
-            {
-              id: '01JPM6NFVGW8V8KKN34053JVFT',
-              name: '',
+              metadata: {
+                id: '01JPM6NFVGW8V8KKN34053JVFT',
+                name: '',
+              },
             },
           ],
         },
@@ -81,6 +79,10 @@ describe('generateUserProfileAnalyticsMetaData', () => {
                   {
                     type: ExtendedKeyringTypes.hd,
                     accounts: ['0x123'],
+                    metdata: {
+                      id: '01JPM7NFVHW8V9KKN34053JVFU',
+                      name: '',
+                    },
                   },
                 ],
               },
@@ -99,10 +101,18 @@ describe('generateUserProfileAnalyticsMetaData', () => {
                   {
                     type: ExtendedKeyringTypes.hd,
                     accounts: ['0x123'],
+                    metadata: {
+                      id: '01JPM7NFVHW8V9KKN34053JVFU',
+                      name: '',
+                    },
                   },
                   {
                     type: ExtendedKeyringTypes.hd,
                     accounts: ['0x456'],
+                    metadata: {
+                      id: '01JPM8NFVHW8V9KKN34055JVFV',
+                      name: '',
+                    },
                   },
                 ],
               },
@@ -121,18 +131,34 @@ describe('generateUserProfileAnalyticsMetaData', () => {
                   {
                     type: ExtendedKeyringTypes.hd,
                     accounts: ['0x123'],
+                    metadata: {
+                      id: '01JPM7NFVHW8V9KKN34053JVFU',
+                      name: '',
+                    },
                   },
                   {
                     type: ExtendedKeyringTypes.simple,
                     accounts: ['0x456'],
+                    metadata: {
+                      id: '01JPM8NFVHW8V9KKN34055JVFV',
+                      name: '',
+                    },
                   },
                   {
                     type: ExtendedKeyringTypes.qr,
                     accounts: ['0x789'],
+                    metadata: {
+                      id: '01JPM9NFVHW8V9KKN34056JVFW',
+                      name: '',
+                    },
                   },
                   {
                     type: ExtendedKeyringTypes.hd,
                     accounts: ['0xabc'],
+                    metadata: {
+                      id: '01JPM10NFVHW8V9KKN34057JVFX',
+                      name: '',
+                    },
                   },
                 ],
               },
@@ -197,7 +223,6 @@ describe('generateUserProfileAnalyticsMetaData', () => {
         backgroundState: {
           KeyringController: {
             keyrings: [],
-            keyringsMetadata: [],
           },
         },
       },

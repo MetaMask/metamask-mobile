@@ -9,7 +9,6 @@ import Icon, {
 import { createStyles } from './styles';
 import { useDeleteWallet } from '../../hooks/DeleteWallet';
 import { strings } from '../../../../locales/i18n';
-import { tlc } from '../../../util/general';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
@@ -27,10 +26,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
-import TextField, {
-  TextFieldSize,
-} from '../../../component-library/components/Form/TextField';
-import Label from '../../../component-library/components/Form/Label';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -39,22 +34,19 @@ import Button, {
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
 import { setCompletedOnboarding } from '../../../actions/onboarding';
 
-const ERASE_KEYWORD = 'erase';
-
 if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
 const DeleteWalletModal = () => {
   const navigation = useNavigation();
-  const { colors, themeAppearance } = useTheme();
+  const { colors } = useTheme();
   const { trackEvent, createEventBuilder, isEnabled } = useMetrics();
   const styles = createStyles(colors);
 
   const modalRef = useRef<BottomSheetRef>(null);
 
-  const [deleteText, setDeleteText] = useState<string>('');
-  const [disableButton, setDisableButton] = useState<boolean>(true);
+  const [isResetWallet, setIsResetWallet] = useState<boolean>(false);
 
   const [resetWalletState, deleteUser] = useDeleteWallet();
   const dispatch = useDispatch();
@@ -63,13 +55,6 @@ const DeleteWalletModal = () => {
   );
 
   const { signOut } = useSignOut();
-
-  const isTextErase = (text: string) => tlc(text) === ERASE_KEYWORD;
-
-  const checkErase = (text: string) => {
-    setDeleteText(text);
-    setDisableButton(!isTextErase(text));
-  };
 
   const dismissModal = (cb?: () => void): void =>
     modalRef?.current?.onCloseBottomSheet(cb);
@@ -119,84 +104,133 @@ const DeleteWalletModal = () => {
 
   return (
     <BottomSheet ref={modalRef}>
-      <View style={styles.container}>
-        <View
-          style={styles.areYouSure}
-          testID={DeleteWalletModalSelectorsIDs.CONTAINER}
-        >
-          {
-            <Icon
-              style={styles.warningIcon}
-              size={IconSize.Xl}
-              color={IconColor.Error}
-              name={IconName.Danger}
-            />
-          }
+      {!isResetWallet ? (
+        <View style={styles.forgotPasswordContainer}>
           <Text
             style={styles.heading}
             variant={TextVariant.HeadingMD}
             color={TextColor.Default}
           >
-            {strings('login.are_you_sure')}
+            {strings('login.forgot_password_desc')}
           </Text>
-          <View style={styles.warningTextContainer}>
+
+          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            {strings('login.forgot_password_desc_2')}
+          </Text>
+
+          <View style={styles.forgotPasswordPointsContainer}>
+            <View style={styles.forgotPasswordPoint}>
+              <Icon
+                name={IconName.FaceId}
+                size={IconSize.Md}
+                color={IconColor.Muted}
+              />
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Default}
+                style={styles.forgotPasswordPointText}
+              >
+                {strings('login.forgot_password_point_1')}{' '}
+                <Text
+                  variant={TextVariant.BodyMDBold}
+                  color={TextColor.Default}
+                >
+                  {strings('login.forgot_password_point_1_bold')}
+                </Text>{' '}
+                {strings('login.forgot_password_point_1_1')}
+              </Text>
+            </View>
+            <View style={styles.forgotPasswordPoint}>
+              <Icon
+                name={IconName.SecurityKey}
+                size={IconSize.Md}
+                color={IconColor.Muted}
+              />
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Default}
+                style={styles.forgotPasswordPointText}
+              >
+                {strings('login.forgot_password_point_2')}{' '}
+                <Text
+                  variant={TextVariant.BodyMDBold}
+                  color={TextColor.Default}
+                >
+                  {strings('login.forgot_password_point_2_bold')}{' '}
+                </Text>
+                {strings('login.forgot_password_point_2_1')}
+              </Text>
+            </View>
+          </View>
+
+          <Button
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            label={strings('login.reset_wallet')}
+            width={ButtonWidthTypes.Full}
+            isDanger
+            onPress={() => setIsResetWallet(true)}
+          />
+        </View>
+      ) : (
+        <View style={styles.container}>
+          <View
+            style={styles.areYouSure}
+            testID={DeleteWalletModalSelectorsIDs.CONTAINER}
+          >
+            {
+              <Icon
+                style={styles.warningIcon}
+                size={IconSize.Xl}
+                color={IconColor.Error}
+                name={IconName.Danger}
+              />
+            }
             <Text
-              style={styles.warningText}
-              variant={TextVariant.BodyMD}
+              style={styles.heading}
+              variant={TextVariant.HeadingMD}
               color={TextColor.Default}
             >
-              {strings('login.your_current_wallet')}{' '}
-              <Text
-                style={styles.warningText}
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Default}
-              >
-                {strings('login.removed_from')}
-              </Text>{' '}
+              {strings('login.are_you_sure')}
+            </Text>
+            <View style={styles.warningTextContainer}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {strings('login.this_action')}
+                {strings('login.reset_wallet_desc')}{' '}
+                <Text
+                  style={styles.warningText}
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Default}
+                >
+                  {strings('login.reset_wallet_desc_bold')}
+                </Text>{' '}
+                {strings('login.reset_wallet_desc_2')}
               </Text>
-            </Text>
-            <Text style={styles.warningText}>
-              {strings('login.you_can_only')}
-            </Text>
-          </View>
-          <View style={styles.inputContainer}>
-            <Label variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-              {strings('login.type_delete', {
-                [ERASE_KEYWORD]: ERASE_KEYWORD,
-              })}
-            </Label>
-            <TextField
-              size={TextFieldSize.Lg}
-              onChangeText={checkErase}
-              autoCapitalize="none"
-              value={deleteText}
-              keyboardAppearance={themeAppearance}
-            />
-          </View>
-          <View style={styles.buttonContainer}>
-            <Button
-              variant={ButtonVariants.Primary}
-              size={ButtonSize.Lg}
-              onPress={deleteWallet}
-              label={strings('login.erase_my')}
-              width={ButtonWidthTypes.Full}
-              isDanger
-              isDisabled={disableButton}
-              testID={DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON}
-            />
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Lg}
-              onPress={triggerClose}
-              label={strings('login.cancel')}
-              width={ButtonWidthTypes.Full}
-              testID={DeleteWalletModalSelectorsIDs.CANCEL_BUTTON}
-            />
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                {strings('login.reset_wallet_desc_srp')}
+              </Text>
+            </View>
+            <View style={styles.buttonContainer}>
+              <Button
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Lg}
+                onPress={deleteWallet}
+                label={strings('login.erase_my')}
+                width={ButtonWidthTypes.Full}
+                isDanger
+                testID={DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON}
+              />
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Lg}
+                onPress={triggerClose}
+                label={strings('login.cancel')}
+                width={ButtonWidthTypes.Full}
+                testID={DeleteWalletModalSelectorsIDs.CANCEL_BUTTON}
+              />
+            </View>
           </View>
         </View>
-      </View>
+      )}
     </BottomSheet>
   );
 };

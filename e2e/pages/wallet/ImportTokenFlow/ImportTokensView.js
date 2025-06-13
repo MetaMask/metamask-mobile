@@ -69,7 +69,7 @@ class ImportTokensView {
   }
 
   async tapOnToken() {
-    await Gestures.TapAtIndex(this.searchTokenResult, 0);
+    await Gestures.tapAtIndex(this.searchTokenResult, 0);
   }
 
   async tapOnNextButton() {
