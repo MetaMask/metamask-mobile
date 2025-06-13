@@ -69,7 +69,6 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
     });
   };
 
-  // TODO: Add tests
   const navigateToLendingHistoricApyChart = () => {
     navigate(Routes.EARN.MODALS.ROOT, {
       screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
