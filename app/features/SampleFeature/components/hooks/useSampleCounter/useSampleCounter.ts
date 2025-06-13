@@ -1,23 +1,32 @@
-import {useState} from 'react';
+import { useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectCount, increment, decrement, setCount } from '../../../redux/slices/sample-counter';
 
 /**
  * Sample useSampleCounter hook
  *
  * @sampleFeature do not use in production code
  */
-function useSampleCounter(initial = 0) {
+export function useSampleCounter(initial = 0) {
+    const dispatch = useDispatch();
+    const count = useSelector(selectCount);
 
-    // TODO - implement the redux counter logic here instead of useState
-    // use react toolkit see engine reducer /app/core/redux/slices/inpageProvider/index.ts
-    const [count, setCount] = useState(initial);
-    const increment = () => setCount(prev => prev + 1);
+    const incrementCount = useCallback(() => {
+        dispatch(increment());
+    }, [dispatch]);
+
+    const decrementCount = useCallback(() => {
+        dispatch(decrement());
+    }, [dispatch]);
+
+    const resetCount = useCallback(() => {
+        dispatch(setCount(initial));
+    }, [dispatch, initial]);
 
     return {
-        get value() {
-            return count;
-        },
-        increment,
+        count,
+        incrementCount,
+        decrementCount,
+        resetCount,
     };
 }
-
-export default useSampleCounter;

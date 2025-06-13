@@ -5624,6 +5624,14 @@
   resolved "https://registry.yarnpkg.com/@metamask/safe-event-emitter/-/safe-event-emitter-3.1.1.tgz#e89b840a7af8097a8ed4953d8dc8470d1302d3ef"
   integrity sha512-ihb3B0T/wJm1eUuArYP4lCTSEoZsClHhuWyfo/kMX3m/odpqNcPfsz5O2A3NT7dXCAgWPGDQGPqygCpgeniKMw==
 
+"@metamask/sample-controllers@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/sample-controllers/-/sample-controllers-0.1.0.tgz#ed13273fce4b333a235db57e87f5354cb58fb059"
+  integrity sha512-jycJh140ryEvD+R9tPVJYX0g/bwvrbtNuiR0HWw0mcm0OjttcrReWMphANSJTamPSy4vpTuf3kwffNtrroTV/Q==
+  dependencies:
+    "@metamask/base-controller" "^8.0.0"
+    "@metamask/utils" "^11.2.0"
+
 "@metamask/scure-bip39@^2.1.0", "@metamask/scure-bip39@^2.1.1":
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/scure-bip39/-/scure-bip39-2.1.1.tgz#071ddbaea7afe13886996c3bec22f472d79a4d34"

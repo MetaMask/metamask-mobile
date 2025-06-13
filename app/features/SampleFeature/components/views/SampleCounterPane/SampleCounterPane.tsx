@@ -2,7 +2,7 @@ import React from 'react';
 import Text, {TextVariant} from '../../../../../component-library/components/Texts/Text';
 import Button, {ButtonVariants} from '../../../../../component-library/components/Buttons/Button';
 import styleSheet from './SampleCounterPane.styles';
-import useSampleCounter from '../../hooks/useSampleCounter/useSampleCounter';
+import { useSampleCounter } from '../../hooks/useSampleCounter/useSampleCounter';
 import {strings} from '../../../../../../locales/i18n';
 import Card from '../../../../../component-library/components/Cards/Card';
 import {useStyles} from '../../../../../component-library/hooks';
@@ -27,14 +27,14 @@ export function SampleCounterPane() {
                 {strings('sample_feature.counter.title')}
             </Text>
             <Text testID="sample-counter-pane-value">
-                {strings('sample_feature.counter.value', {value: counter.value})}
+                {strings('sample_feature.counter.value', {value: counter.count})}
             </Text>
 
             <Button
                 variant={ButtonVariants.Primary}
                 style={styles.button}
                 onPress={() => {
-                    counter.increment();
+                    counter.incrementCount();
                 }}
                 testID="sample-counter-pane-increment-button"
                 label={strings('sample_feature.counter.increment')}
