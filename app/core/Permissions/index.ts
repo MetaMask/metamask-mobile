@@ -179,9 +179,17 @@ export const sortMultichainAccountsByLastSelected = (
   );
 };
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getCaipAccountIdsFromSubject(subject: any) {
+/**
+ * Generic function to extract data from a subject using a provided extractor.
+ *
+ * @param subject - The subject object containing permissions and caveats.
+ * @param extractor - A function that extracts data from a caveat.
+ * @returns An array of data extracted from the subject.
+ */
+function getDataFromSubject<T>(
+  subject: any,
+  extractor: (caveat: any) => T[],
+): T[] {
   const caveats = subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
   if (!caveats) {
     return [];
@@ -190,84 +198,83 @@ function getCaipAccountIdsFromSubject(subject: any) {
   const caveat = caveats.find(
     ({ type }: CaveatConstraint) => type === Caip25CaveatType,
   );
-  if (caveat) {
-    return getCaipAccountIdsFromCaip25CaveatValue(caveat.value);
-  }
+  return caveat ? extractor(caveat) : [];
+}
 
-  return [];
+/**
+ * Generic function to get permitted data for a given hostname using a provided extractor.
+ *
+ * @param state - The state object containing subjects.
+ * @param hostname - The hostname to get permitted data for.
+ * @param extractor - A function that extracts data from a subject.
+ * @returns An array of permitted data for the specified hostname.
+ */
+function getPermittedDataByHostname<T>(
+  state: any,
+  hostname: string,
+  extractor: (subject: any) => T[],
+): T[] {
+  const { subjects } = state;
+  const subject = subjects[hostname];
+  return subject ? extractor(subject) : [];
+}
+
+/**
+ * Helper function to extract CAIP account IDs from a subject.
+ *
+ * @param subject - The subject object containing permissions and caveats.
+ * @returns An array of CAIP account IDs.
+ */
+function getCaipAccountIdsFromSubject(subject: any): CaipAccountId[] {
+  return getDataFromSubject(subject, (caveat) =>
+    getCaipAccountIdsFromCaip25CaveatValue(caveat.value)
+  );
+}
+
+/**
+ * Helper function to extract EVM addresses from a subject.
+ *
+ * @param subject - The subject object containing permissions and caveats.
+ * @returns An array of EVM addresses.
+ */
+function getEvmAddessesFromSubject(subject: any): Hex[] {
+  return getDataFromSubject(subject, (caveat) => {
+    const ethAccounts = getEthAccounts(caveat.value);
+    return sortEvmAccountsByLastSelected(ethAccounts);
+  });
+}
+
+/**
+ * Helper function to extract permitted scopes from a subject.
+ *
+ * @param subject - The subject object containing permissions and caveats.
+ * @returns An array of permitted CAIP chain IDs.
+ */
+function getPermittedScopesFromSubject(subject: any): CaipChainId[] {
+  return getDataFromSubject(subject, (caveat) =>
+    getAllScopesFromCaip25CaveatValue(caveat.value)
+  );
 }
 
 export const getPermittedCaipAccountIdsByHostname = (
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: any,
   hostname: string,
 ): CaipAccountId[] => {
-  const { subjects } = state;
-  const subject = subjects[hostname];
-  return subject ? getCaipAccountIdsFromSubject(subject) : [];
+  return getPermittedDataByHostname(state, hostname, getCaipAccountIdsFromSubject);
 };
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getEvmAddessesFromSubject(subject: any) {
-  const caveats = subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
-  if (!caveats) {
-    return [];
-  }
-
-  const caveat = caveats.find(
-    ({ type }: CaveatConstraint) => type === Caip25CaveatType,
-  );
-  if (caveat) {
-    const ethAccounts = getEthAccounts(caveat.value);
-    return sortEvmAccountsByLastSelected(ethAccounts);
-  }
-
-  return [];
-}
-
 export const getPermittedEvmAddressesByHostname = (
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: any,
   hostname: string,
 ): Hex[] => {
-  const { subjects } = state;
-  const subject = subjects[hostname];
-  return subject ? getEvmAddessesFromSubject(subject) : [];
+  return getPermittedDataByHostname(state, hostname, getEvmAddessesFromSubject);
 };
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getPermittedScopesFromSubject(subject: any) {
-  const caveats = subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
-  if (!caveats) {
-    return [];
-  }
-
-  const caveat = caveats.find(
-    ({ type }: CaveatConstraint) => type === Caip25CaveatType,
-  );
-  if (caveat) {
-    return getAllScopesFromCaip25CaveatValue(caveat.value);
-  }
-
-  return [];
-}
-
 export const getPermittedCaipChainIdsByHostname = (
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: any,
   hostname: string,
 ): CaipChainId[] => {
-  const { subjects } = state;
-  const subject = subjects[hostname];
-  if (!subject) {
-    return [];
-  }
-  const permittedScopes = getPermittedScopesFromSubject(subject);
+  const permittedScopes = getPermittedDataByHostname(state, hostname, getPermittedScopesFromSubject);
   // our `endowment:caip25` permission can include a special class of `wallet` scopes,
   // see https://github.com/ChainAgnostic/namespaces/tree/main/wallet &
   // https://github.com/ChainAgnostic/namespaces/blob/main/wallet/caip2.md
