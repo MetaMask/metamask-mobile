@@ -15,6 +15,8 @@ import { createKycWebviewNavDetails } from '../KycWebview/KycWebview';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 import { View } from 'react-native';
 import DepositTextField from '../../components/DepositTextField';
+import { KycStatus } from '../../hooks/useUserDetailsPolling';
+import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
 
 const BuildQuote = () => {
   const navigation = useNavigation();
@@ -46,6 +48,11 @@ const BuildQuote = () => {
     onMount: false,
   });
 
+  const [, fetchUserDetails] = useDepositSdkMethod({
+    method: 'getUserDetails',
+    onMount: false,
+  });
+
   useEffect(() => {
     navigation.setOptions(
       getDepositNavbarOptions(navigation, { title: 'Build Quote' }, theme),
@@ -67,7 +74,13 @@ const BuildQuote = () => {
 
       if (isAuthenticated) {
         if (requiredForms?.length === 0) {
-          navigation.navigate(...createProviderWebviewNavDetails({ quote }));
+          const userDetails = await fetchUserDetails();
+
+          if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
+            navigation.navigate(...createProviderWebviewNavDetails({ quote }));
+          } else {
+            navigation.navigate(...createKycProcessingNavDetails({ quote }));
+          }
         } else {
           const personalDetailsKycForm = requiredForms?.find(
             (form) => form.id === 'personalDetails',
@@ -121,6 +134,7 @@ const BuildQuote = () => {
     network,
     paymentMethod,
     fetchKycFormData,
+    fetchUserDetails,
   ]);
 
   const handleAmountChange = (text: string) => {
