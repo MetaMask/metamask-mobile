@@ -126,6 +126,7 @@ import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalytics
 import CardAssetList from '../../UI/Card/CardAssetList/CardAssetList';
 import { isCardHolder } from '../../UI/Tokens/TokenList/PortfolioBalance/card.utils';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -744,8 +745,10 @@ const Wallet = ({
         );
 
         try {
+          trace({ name: TraceName.DetectNfts });
           showNftFetchingLoadingIndicator();
           await NftDetectionController.detectNfts(chainIdsToDetectNftsFor);
+          endTrace({ name: TraceName.DetectNfts });
         } finally {
           hideNftFetchingLoadingIndicator();
         }

@@ -14,6 +14,10 @@ import Assertions from '../../utils/Assertions';
 import TestHelpers from '../../helpers';
 import ImportSrpView from '../../pages/importSrp/ImportSrpView';
 import { goToImportSrp, inputSrp } from '../multisrp/utils';
+import { startMockServer } from '../../api-mocking/mock-server';
+import { mockIdentityServices } from '../identity/utils/mocks';
+import { UserStorageMockttpController } from '../identity/utils/user-storage/userStorageMockttpController';
+import { arrangeTestUtils } from '../identity/utils/helpers';
 
 const fixtureServer = new FixtureServer();
 
@@ -24,8 +28,23 @@ const valid24WordMnemonic =
   'verb middle giant soon wage common wide tool gentle garlic issue nut retreat until album recall expire bronze bundle live accident expect dry cook';
 
 describe(SmokeWalletPlatform('Import new srp to wallet'), () => {
+  const TEST_SPECIFIC_MOCK_SERVER_PORT = 8099;
+  let userStorageMockttpController: UserStorageMockttpController;
+
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
+
+    const mockServer = await startMockServer(
+      {},
+      TEST_SPECIFIC_MOCK_SERVER_PORT,
+    );
+    const { userStorageMockttpControllerInstance } = await mockIdentityServices(
+      mockServer,
+    );
+
+    userStorageMockttpController =
+      userStorageMockttpControllerInstance as UserStorageMockttpController;
+
     const fixture = new FixtureBuilder()
       .withImportedAccountKeyringController()
       .build();
@@ -34,7 +53,10 @@ describe(SmokeWalletPlatform('Import new srp to wallet'), () => {
     await TestHelpers.launchApp({
       delete: true,
       newInstance: true,
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+      launchArgs: {
+        fixtureServerPort: `${getFixturesServerPort()}`,
+        mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT),
+      },
     });
     await loginToApp();
   });
@@ -47,25 +69,35 @@ describe(SmokeWalletPlatform('Import new srp to wallet'), () => {
     await goToImportSrp();
     await inputSrp(valid12WordMnemonic);
     await ImportSrpView.tapImportButton();
-    await device.disableSynchronization();
+
+    const { waitUntilSyncedAccountsNumberEquals } = arrangeTestUtils(
+      userStorageMockttpController,
+    );
+
+    await waitUntilSyncedAccountsNumberEquals(2);
+
     await Assertions.checkIfVisible(WalletView.container);
     await Assertions.checkIfElementNotToHaveText(
       WalletView.accountName as Promise<Detox.IndexableNativeElement>,
       'Account 1',
     );
-    await device.enableSynchronization();
   });
 
   it('imports a new 24 word srp', async () => {
     await goToImportSrp();
     await inputSrp(valid24WordMnemonic);
     await ImportSrpView.tapImportButton();
-    await device.disableSynchronization();
+
+    const { waitUntilSyncedAccountsNumberEquals } = arrangeTestUtils(
+      userStorageMockttpController,
+    );
+
+    await waitUntilSyncedAccountsNumberEquals(3);
+
     await Assertions.checkIfVisible(WalletView.container);
     await Assertions.checkIfElementNotToHaveText(
       WalletView.accountName as Promise<Detox.IndexableNativeElement>,
       'Account 1',
     );
-    await device.enableSynchronization();
   });
 });
