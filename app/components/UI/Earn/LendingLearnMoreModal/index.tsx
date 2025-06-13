@@ -134,7 +134,6 @@ type EarnLendingLearnMoreModalRouteProp = RouteProp<
 
 const CHART_HEIGHT = 300; // Adjust to your chart's height
 
-// TODO: Add tests
 export const LendingLearnMoreModal = () => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -205,9 +204,11 @@ export const LendingLearnMoreModal = () => {
 
   const showChart = useMemo(
     () =>
-      Boolean(reversedMarketApys) &&
-      reversedMarketApys !== null &&
-      activeTimespanApyAverage,
+      Boolean(
+        Boolean(reversedMarketApys) &&
+          reversedMarketApys !== null &&
+          activeTimespanApyAverage,
+      ),
     [activeTimespanApyAverage, reversedMarketApys],
   );
 
