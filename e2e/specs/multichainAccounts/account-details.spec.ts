@@ -14,7 +14,6 @@ const checkAddress = async (expectedAddress: string) => {
   await AccountDetails.tapShareAddress();
   await Assertions.checkIfTextIsDisplayed(expectedAddress);
   await ShareAddress.tapCopyButton();
-  await AccountDetails.tapBackButton();
 };
 
 const editName = async (newName: string) => {
