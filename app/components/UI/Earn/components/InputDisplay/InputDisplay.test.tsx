@@ -5,6 +5,66 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/account
 import initialRootState from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: jest.fn(),
+    }),
+  };
+});
+
+jest.mock('../../hooks/useEarnTokens', () => () => ({
+  getEarnToken: jest.fn(() => ({
+    experience: { type: 'STABLECOIN_LENDING' },
+    chainId: '1',
+    symbol: 'ETH',
+    ticker: 'ETH',
+    name: 'Ethereum',
+    address: '0x123',
+    aggregators: [],
+    decimals: 18,
+    image: '',
+    balance: '100',
+    logo: undefined,
+    isETH: true,
+    isNative: true,
+  })),
+  getOutputToken: jest.fn(() => ({
+    symbol: 'ETH',
+    ticker: 'ETH',
+    name: 'Ethereum',
+    address: '0x123',
+    aggregators: [],
+    decimals: 18,
+    image: '',
+    balance: '100',
+    logo: undefined,
+    isETH: true,
+    isNative: true,
+  })),
+}));
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectStablecoinLendingEnabledFlag: jest.fn(() => false),
+}));
+
+const mockToken = {
+  address: '0x123',
+  aggregators: [],
+  decimals: 18,
+  image: '',
+  name: 'Ethereum',
+  symbol: 'ETH',
+  balance: '100',
+  logo: undefined,
+  isETH: true,
+  isNative: true,
+  ticker: 'ETH',
+  chainId: '1',
+};
+
 const defaultProps = {
   isOverMaximum: {
     isOverMaximumEth: false,
@@ -14,7 +74,7 @@ const defaultProps = {
   balanceValue: '100',
   isNonZeroAmount: true,
   isFiat: false,
-  ticker: 'ETH',
+  asset: mockToken,
   amountToken: '50',
   amountFiatNumber: '1000',
   currentCurrency: 'USD',
@@ -53,7 +113,12 @@ describe('InputDisplay', () => {
     const { getByText } = renderComponent({
       ...defaultProps,
       isOverMaximum: { isOverMaximumEth: false, isOverMaximumToken: true },
-      ticker: 'USDC',
+      asset: {
+        ...mockToken,
+        symbol: 'USDC',
+        ticker: 'USDC',
+        name: 'USD Coin',
+      },
     });
 
     getByText('Not enough USDC');
@@ -79,7 +144,12 @@ describe('InputDisplay', () => {
     const { getByText } = renderComponent({
       ...defaultProps,
       isFiat: false,
-      ticker: 'USDC',
+      asset: {
+        ...mockToken,
+        symbol: 'USDC',
+        ticker: 'USDC',
+        name: 'USD Coin',
+      },
     });
     expect(getByText('50')).toBeTruthy();
     expect(getByText('USDC')).toBeTruthy();
