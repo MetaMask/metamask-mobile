@@ -11,7 +11,6 @@ import AVAX from './avalanche.png';
 import LINEA_TESTNET from './linea-testnet-logo.png';
 import SEPOLIA from './sepolia-logo-dark.png';
 import LINEA_MAINNET from './linea-mainnet-logo.png';
-import APE_TOKEN from './ape-token.png';
 import SOLANA from './solana-logo.png';
 import GRAVITY from './gravity.png';
 import KAIA_MAINNET from './kaia.png';
@@ -31,6 +30,7 @@ import KATANA from './katana.png';
 import SOPHON from './sophon.png';
 import SOPHON_TESTNET from './sophon-testnet.png';
 import APECHAIN from './apechain.png';
+import APECHAIN_TOKEN from './apechain-token.png';
 import BERACHAIN from './berachain.png';
 import EDU from './edu.png';
 
@@ -49,7 +49,6 @@ export default {
   'LINEA-SEPOLIA': LINEA_TESTNET,
   SEPOLIA,
   'LINEA-MAINNET': LINEA_MAINNET,
-  APE: APE_TOKEN,
   G: GRAVITY,
   'KAIA-MAINNET': KAIA_MAINNET,
   'KAIA-KAIROS-TESTNET': KAIA_MAINNET,
@@ -70,6 +69,7 @@ export default {
   SOPHON,
   'SOPHON-TESTNET': SOPHON_TESTNET,
   APECHAIN,
+  APECHAIN_TOKEN,
   BERACHAIN,
   EDU,
 };
