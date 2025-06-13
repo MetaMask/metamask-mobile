@@ -70,8 +70,6 @@ export async function processDepositOrder(
       ...updatedFiatOrder,
       account: order.account,
       network: order.network,
-      // account: '0xC72d4Ebf1bEbe6c270eba5B088bBd7C2b615C334',
-      // state: FIAT_ORDER_STATES.PENDING,
       lastTimeFetched: Date.now(),
       errorCount: 0,
     };
