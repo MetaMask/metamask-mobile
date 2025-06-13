@@ -452,7 +452,6 @@ const EarnInputView = () => {
         isOverMaximum={isOverMaximum}
         balanceText={balanceText}
         balanceValue={balanceValue}
-        isNonZeroAmount={isNonZeroAmount}
         amountToken={amountToken}
         amountFiatNumber={amountFiatNumber}
         isFiat={isFiat}
