@@ -8,12 +8,10 @@ import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselVie
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import WalletView from '../../pages/wallet/WalletView';
-import EnableAutomaticSecurityChecksView from '../../pages/Onboarding/EnableAutomaticSecurityChecksView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import LoginView from '../../pages/wallet/LoginView';
 import SkipAccountSecurityModal from '../../pages/Onboarding/SkipAccountSecurityModal';
-import OnboardingWizardModal from '../../pages/Onboarding/OnboardingWizardModal';
 import ProtectYourWalletModal from '../../pages/Onboarding/ProtectYourWalletModal';
 import { acceptTermOfUse } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -31,12 +29,12 @@ describe(
       await TestHelpers.launchApp();
     });
 
-    it('should be able to opt-in of the onboarding-wizard', async () => {
+    it('should be able to accept the terms of use', async () => {
       await OnboardingCarouselView.tapOnGetStartedButton();
+      await acceptTermOfUse();
       await OnboardingView.tapCreateWallet();
       await Assertions.checkIfVisible(MetaMetricsOptIn.container);
       await MetaMetricsOptIn.tapAgreeButton();
-      await acceptTermOfUse();
       await Assertions.checkIfVisible(CreatePasswordView.container);
     });
 
@@ -52,13 +50,25 @@ describe(
       await Assertions.checkIfVisible(ProtectYourWalletView.container);
       await ProtectYourWalletView.tapOnRemindMeLaterButton();
       await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+      await TestHelpers.delay(1000);
       await SkipAccountSecurityModal.tapSkipButton();
+      await OnboardingSuccessView.tapDone();
+    });
+
+    it('should be able to opt-in of the onboarding-wizard', async () => {
+      await Assertions.checkIfVisible(MetaMetricsOptIn.container);
+      await MetaMetricsOptIn.tapAgreeButton();
+    });
+
+    it('should finish the onboarding', async () => {
       await OnboardingSuccessView.tapDone();
     });
 
     it('Should dismiss Automatic Security checks screen', async () => {
       await TestHelpers.delay(3500);
-      await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
+      await Assertions.checkIfVisible(
+        EnableAutomaticSecurityChecksView.container,
+      );
       await EnableAutomaticSecurityChecksView.tapNoThanks();
     });
 
@@ -80,7 +90,9 @@ describe(
       // dealing with flakiness on bitrise.
       await TestHelpers.delay(1000);
       try {
-        await Assertions.checkIfVisible(ExperienceEnhancerBottomSheet.container);
+        await Assertions.checkIfVisible(
+          ExperienceEnhancerBottomSheet.container,
+        );
         await ExperienceEnhancerBottomSheet.tapIAgree();
       } catch {
         /* eslint-disable no-console */
@@ -121,22 +133,6 @@ describe(
       await Assertions.checkIfVisible(LoginView.container);
       await LoginView.enterPassword(PASSWORD);
       await Assertions.checkIfVisible(WalletView.container);
-    });
-
-    it('should dismiss the onboarding wizard after logging in', async () => {
-      // dealing with flakiness on bitrise.
-      await TestHelpers.delay(1000);
-      try {
-        await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
-        await OnboardingWizardModal.tapNoThanksButton();
-        await Assertions.checkIfNotVisible(
-          OnboardingWizardModal.stepOneContainer,
-        );
-      } catch {
-        /* eslint-disable no-console */
-
-        console.log('The onboarding wizard is not visible');
-      }
     });
 
     it('should verify metametrics is turned off', async () => {

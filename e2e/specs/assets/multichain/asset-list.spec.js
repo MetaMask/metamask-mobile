@@ -46,10 +46,11 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
     const eth = WalletView.tokenInWallet(ETHEREUM_NAME);
-    const avax = WalletView.tokenInWallet(AVAX_NAME);
-    const bnb = WalletView.tokenInWallet(BNB_NAME);
     await Assertions.checkIfVisible(eth);
+    const avax = WalletView.tokenInWallet(AVAX_NAME);
     await Assertions.checkIfVisible(avax);
+    await WalletView.scrollDownOnTokensTab(BNB_NAME);
+    const bnb = WalletView.tokenInWallet(BNB_NAME);
     await Assertions.checkIfVisible(bnb);
   });
 
@@ -89,6 +90,8 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     const BNB_NAME = 'BNB Smart Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
+    await TestHelpers.delay(5000);
+    await WalletView.scrollDownOnTokensTab('AVAX');
     const bnb = WalletView.tokenInWallet('BNB');
     await Assertions.checkIfVisible(bnb);
     await WalletView.tapOnToken('BNB');

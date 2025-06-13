@@ -170,6 +170,7 @@ const DeleteWalletModal = () => {
             width={ButtonWidthTypes.Full}
             isDanger
             onPress={() => setIsResetWallet(true)}
+            testID={DeleteWalletModalSelectorsIDs.CONTINUE_BUTTON}
           />
         </View>
       ) : (
