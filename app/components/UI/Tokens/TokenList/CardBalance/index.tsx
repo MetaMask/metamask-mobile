@@ -1,3 +1,4 @@
+/* eslint-disable no-empty-function */
 /* eslint-disable arrow-body-style */
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
@@ -29,6 +30,7 @@ import {
   TokenConfig,
 } from '../PortfolioBalance/card.utils';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+import { TokenListItem } from '../TokenListItem';
 
 const CardBalance = () => {
   const { colors } = useTheme();
@@ -36,7 +38,7 @@ const CardBalance = () => {
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
-      padding: 24,
+      padding: 16,
       zIndex: 99999999999999,
     },
     title: {
@@ -87,6 +89,7 @@ const CardBalance = () => {
     },
   });
   const navigation = useNavigation();
+  const useTokenListItem = false;
   // const selectedAddress = '0xFe4F94B62C04627C2677bF46FB249321594d0d79';
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const { NetworkController } = Engine.context;
@@ -167,6 +170,23 @@ const CardBalance = () => {
     );
   };
 
+  const renderTokenListItem = (token: TokenConfig) => {
+    return (
+      <TokenListItem
+        assetKey={{
+          address: token.address,
+          chainId: NetworkController.getSelectedChainId(),
+          isStaked: false, // Assuming no staking for card balance
+        }}
+        showRemoveMenu={() => {}}
+        setShowScamWarningModal={() => {}}
+        privacyMode={privacyMode}
+        showPercentageChange={false}
+        key={token.address}
+      />
+    );
+  };
+
   if (isLoading) {
     return (
       <View style={styles.wrapper}>
@@ -201,7 +221,9 @@ const CardBalance = () => {
       </View>
 
       <View style={styles.tokenList}>
-        {supportedTokenBalances?.balanceList.map(renderTokenItem)}
+        {supportedTokenBalances?.balanceList.map(
+          useTokenListItem ? renderTokenListItem : renderTokenItem,
+        )}
       </View>
 
       <View style={styles.buttonContainer}>

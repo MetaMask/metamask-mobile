@@ -60,6 +60,8 @@ export interface TokenConfig {
   name: string;
   balance: string; // Display balance formatted for UI
   rawBalance: ethers.BigNumber | string;
+  globalAllowance: string;
+  usAllowance: string;
 }
 
 /** *
@@ -70,31 +72,45 @@ const assetList: Record<
   {
     address: string;
     decimals: number;
+    name: string;
+    symbol: string; // Some tokens may not have a symbol
   }
 > = {
   USDC: {
     address: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
     decimals: 6,
+    name: 'USD Coin',
+    symbol: 'USDC',
   },
   USDT: {
     address: '0xA219439258ca9da29E9Cc4cE5596924745e12B93',
     decimals: 6,
+    name: 'Tether USD',
+    symbol: 'USDT',
   },
   WETH: {
     address: '0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f',
     decimals: 18,
+    name: 'Wrapped Ether',
+    symbol: 'WETH',
   },
   EURe: {
     address: '0x3ff47c5Bf409C86533FE1f4907524d304062428D',
     decimals: 18,
+    name: 'EURe',
+    symbol: 'EURe',
   },
   GBPe: {
     address: '0x3Bce82cf1A2bc357F956dd494713Fe11DC54780f',
     decimals: 18,
+    name: 'GBPe',
+    symbol: 'GBPe',
   },
   aUSDC: {
     address: '0x374D7860c4f2f604De0191298dD393703Cce84f3',
     decimals: 6,
+    name: 'Aave USDC',
+    symbol: 'aUSDC',
   },
 };
 
@@ -253,18 +269,9 @@ const hasTransactedWithFoxConnect = async (
     }
 
     // Check token balances directly
-    // const usdcContract = new ethers.Contract(USDC_ADDRESS, erc20Abi, provider);
-    // const usdtContract = new ethers.Contract(USDT_ADDRESS, erc20Abi, provider);
-    // const wethContract = new ethers.Contract(WETH_ADDRESS, erc20Abi, provider);
-
     const contractsInstances = getContractsInstances(provider);
 
     // First check if the user has any tokens (a prerequisite for transferring them)
-    // const [usdcBalance, usdtBalance, wethBalance] = await Promise.all([
-    //   usdcContract.balanceOf(address).catch(() => ethers.BigNumber.from(0)),
-    //   usdtContract.balanceOf(address).catch(() => ethers.BigNumber.from(0)),
-    //   wethContract.balanceOf(address).catch(() => ethers.BigNumber.from(0)),
-    // ]);
     const balancesPromises = contractsInstances.map((contract) => {
       const balance = contract
         .balanceOf(address)
@@ -428,28 +435,64 @@ export const fetchSupportedTokensBalances = async (
 
     // Initialize token contracts
     const contractInstances = getContractsInstances(provider);
-    console.log('contractInstances', contractInstances);
+
+    // const usdcContract = contractInstances.filter(
+    //   (ct) => ct.address === assetList.USDC.address,
+    // )[0];
+
+    // usdcContract
+    //   .allowance(address, FOXCONNECT_GLOBAL_ADDRESS)
+    //   .then((allowance) => {
+    //     Logger.log(
+    //       `USDC allowance for ${address} on Global contract: ${allowance.toString()}`,
+    //     );
+    //   })
+    //   .catch((error) => {
+    //     Logger.log('Error checking USDC allowance:', error);
+    //   });
 
     const balanceListResult = await Promise.all(
       contractInstances.map((contract) =>
         Promise.all([
-          contract.symbol().catch(() => 'Unknown Symbol'),
-          contract.name().catch(() => 'Unknown Name'),
           contract.balanceOf(address).catch(() => ethers.BigNumber.from(0)),
-        ]).then(([symbol, name, raw]) => ({
+          contract
+            .allowance(address, FOXCONNECT_GLOBAL_ADDRESS)
+            .catch(() => ethers.BigNumber.from(0)),
+          contract
+            .allowance(address, FOXCONNECT_US_ADDRESS)
+            .catch(() => ethers.BigNumber.from(0)),
+        ]).then(([raw, globalAllowance, usAllowance]) => ({
           address: contract.address,
-          symbol,
-          name,
           raw,
           contract,
+          globalAllowance,
+          usAllowance,
         })),
       ),
     );
 
     const balanceList = balanceListResult.map(
-      ({ address: TokenAddress, symbol, name, raw, contract }) => {
-        const decimals =
-          assetList[(symbol as string).toUpperCase()]?.decimals || 18; // Default to 18 if not found
+      ({
+        address: TokenAddress,
+        raw,
+        contract,
+        globalAllowance,
+        usAllowance,
+      }) => {
+        const tokenInfo = Object.values(assetList).find(
+          (token) => token.address.toLowerCase() === TokenAddress.toLowerCase(),
+        );
+
+        if (!tokenInfo) {
+          console.warn(
+            `Token info not found for address: ${TokenAddress}. Skipping balance.`,
+          );
+          throw new Error(
+            `Token info not found for address: ${TokenAddress}. Skipping balance.`,
+          );
+        }
+
+        const { decimals, name, symbol } = tokenInfo;
 
         return {
           address: TokenAddress,
@@ -459,6 +502,12 @@ export const fetchSupportedTokensBalances = async (
           rawBalance: raw,
           decimals,
           contract,
+          globalAllowance: globalAllowance
+            ? renderFromTokenMinimalUnit(globalAllowance.toString(), decimals)
+            : '0',
+          usAllowance: usAllowance
+            ? renderFromTokenMinimalUnit(usAllowance.toString(), decimals)
+            : '0',
         };
       },
     );
