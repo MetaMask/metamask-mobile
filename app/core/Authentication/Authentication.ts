@@ -41,8 +41,12 @@ import {
 ///: END:ONLY_INCLUDE_IF
 import {
   assertMultichainAccountsFeatureFlagType,
-  isMultichainAccountsEnabledForState1,
+  isMultichainAccountsFeatureEnabled,
+  MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1,
+  MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
+  MultichainAccountsFeatureFlag,
 } from '../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import { Json } from '@metamask/utils';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -230,6 +234,17 @@ class AuthenticationService {
   };
 
   /**
+   * Checks if multichain accounts are enabled for state 1.
+   * @param remoteFeatureFlags - The remote feature flags object containing the multichain accounts feature flag.
+   * @returns True if the multichain accounts feature is enabled for state 1, false otherwise.
+   */
+  private isMultichainAccountsEnabledForState1 = (remoteFeatureFlags: Json & MultichainAccountsFeatureFlag) => (
+    [MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1, MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2].some((featureVersion) =>
+      isMultichainAccountsFeatureEnabled(remoteFeatureFlags, featureVersion)
+    )
+  );
+
+  /**
    * Initializes the account tree and updates the accounts if multichain accounts is enabled
    */
   private initializeAccountTree = async (): Promise<void> => {
@@ -238,7 +253,7 @@ class AuthenticationService {
     if(!assertMultichainAccountsFeatureFlagType(enableMultichainAccounts)) {
       return;
     }
-    const isMultichainAccountsEnabled = isMultichainAccountsEnabledForState1(enableMultichainAccounts);
+    const isMultichainAccountsEnabled = this.isMultichainAccountsEnabledForState1(enableMultichainAccounts);
 
     if (isMultichainAccountsEnabled) {
       AccountTreeController.init();
