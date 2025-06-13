@@ -24,6 +24,7 @@ import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
 import {
+  areAddressesEqual,
   formatAddress,
   getLabelTextByAddress,
   toFormattedAddress,
@@ -103,7 +104,7 @@ const EvmAccountSelectorList = ({
         const formattedAddress =
           getFormattedAddressFromInternalAccount(account);
         const accountObj = accounts.find(
-          (a) => a.address === formattedAddress,
+          (a) => areAddressesEqual(a.address, formattedAddress),
         );
         if (accountObj) {
           accountsById.set(account.id, accountObj);
@@ -306,15 +307,12 @@ const EvmAccountSelectorList = ({
       }
 
       if (sectionIndex !== -1 && itemIndex !== -1) {
-        // Add a small delay to ensure the list is rendered
-        setTimeout(() => {
-          accountListRef?.current?.scrollToLocation({
-            sectionIndex,
-            itemIndex,
-            animated: true,
-            viewPosition: 0.5, // Center the item in the view
-          });
-        }, 100);
+        accountListRef?.current?.scrollToLocation({
+          sectionIndex,
+          itemIndex,
+          animated: true,
+          viewPosition: 0.5, // Center the item in the view
+        });
       }
     }
   }, [accounts, selectedAddresses, isAutoScrollEnabled, accountSections]);
