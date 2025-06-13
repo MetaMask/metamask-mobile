@@ -43,7 +43,7 @@ import EarnDepositTokenListItem from '../EarnDepositTokenListItem';
 import EarnWithdrawalTokenListItem from '../EarnWithdrawalTokenListItem';
 import { EarnTokenDetails } from '../../types/lending.types';
 import BN4 from 'bnjs4';
-import { sortByHighestApr, sortByHighestRewards } from '../../utils';
+import { sortByHighestRewards } from '../../utils';
 
 const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
@@ -216,7 +216,6 @@ const EarnTokenList = () => {
   const tokensSortedByHighestYield = useMemo(() => {
     if (!tokens?.length) return [];
 
-    const tokensWithoutBalance: EarnTokenDetails[] = [];
     const tokensWithBalance: EarnTokenDetails[] = [];
 
     tokens?.forEach((token) => {
@@ -224,16 +223,10 @@ const EarnTokenList = () => {
 
       if (hasTokenBalance) {
         tokensWithBalance.push(token);
-        return;
       }
-
-      tokensWithoutBalance.push(token);
     });
 
-    return [
-      ...sortByHighestRewards(tokensWithBalance),
-      ...sortByHighestApr(tokensWithoutBalance),
-    ];
+    return [...sortByHighestRewards(tokensWithBalance)];
   }, [tokens]);
 
   return (
