@@ -452,6 +452,9 @@
   },
   "deposit": {
     "title": "Deposit",
+    "buildQuote": {
+      "payWith": "Pay with"
+    },
     "get_started": {
       "title": "Top up your wallet with USDC",
       "bullet_1_title": "Value-backed by the US dollar",
