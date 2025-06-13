@@ -33,6 +33,7 @@ import { RootState } from '../../../../UI/BasicFunctionality/BasicFunctionalityM
 import { useSelector } from 'react-redux';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { getInternalAccountsFromWallet } from '../utils/getInternalAccountsFromWallet';
+import Routes from '../../../../../constants/navigation/Routes';
 
 interface BaseWalletDetailsProps {
   wallet: AccountWallet;
@@ -65,9 +66,14 @@ export const BaseWalletDetails = ({
     // TODO: Implement edit wallet name
   }, []);
 
-  const handleEditAccount = useCallback(() => {
-    // TODO: Implement edit wallet name
-  }, []);
+  const handleGoToAccountDetails = useCallback(
+    (account: InternalAccount) => {
+      navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS, {
+        account,
+      });
+    },
+    [navigation],
+  );
 
   const renderAccountItem = (account: InternalAccount, index: number) => {
     const totalAccounts = accounts.length;
@@ -88,7 +94,7 @@ export const BaseWalletDetails = ({
     }
 
     return (
-      <TouchableOpacity onPress={handleEditAccount}>
+      <TouchableOpacity onPress={() => handleGoToAccountDetails(account)}>
         <Box
           style={boxStyles}
           flexDirection={FlexDirection.Row}
