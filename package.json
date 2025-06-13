@@ -638,10 +638,7 @@
       "appium-uiautomator2-driver>appium-android-driver>@appium/support>sharp": false,
       "appium-uiautomator2-driver>appium-android-driver>appium-chromedriver>@appium/support>sharp": false,
       "appium>@appium/base-plugin>@appium/support>sharp": false,
-      "appium>@appium/docutils>@appium/support>sharp": false,
-      "appium-chromedriver": false,
-      "portscanner": false,
-      "appium-uiautomator2-driver": false
+      "appium>@appium/docutils>@appium/support>sharp": false
     }
   },
   "packageManager": "yarn@1.22.22",
