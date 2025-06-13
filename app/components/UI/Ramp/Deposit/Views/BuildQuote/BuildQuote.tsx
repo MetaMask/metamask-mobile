@@ -29,7 +29,19 @@ import {
   DepositFiatCurrency,
 } from '../../constants';
 import AccountSelector from '../../components/AccountSelector';
-import { strings } from '../../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../../locales/i18n';
+import { useSelector } from 'react-redux';
+import { selectMultichainAssetsRates } from '../../../../../../selectors/multichain';
+import { selectContractExchangeRatesByChainId } from '../../../../../../selectors/tokenRatesController';
+import { getIntlNumberFormatter } from '../../../../../../util/intl';
+import { currency } from '@metamask/snaps-utils';
+
+function formatAmount(
+  amount: number,
+  options: Intl.NumberFormatOptions,
+): string {
+  return getIntlNumberFormatter(I18n.locale, options).format(amount);
+}
 
 const BuildQuote = () => {
   const navigation = useNavigation();
@@ -49,6 +61,8 @@ const BuildQuote = () => {
   const [network] = useState<string>('ethereum');
 
   const [amount, setAmount] = useState<string>('0');
+
+  const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
 
   const { isAuthenticated } = useDepositSDK();
 
@@ -112,17 +126,14 @@ const BuildQuote = () => {
   const handleKeypadChange = useCallback(
     ({
       value,
+      valueAsNumber,
     }: {
       value: string;
       valueAsNumber: number;
       pressedKey: string;
     }) => {
-      // limit chars to avoid overflow
-      if (parseFloat(value || '0') > 1000000) {
-        return;
-      }
-
       setAmount(value || '0');
+      setAmountAsNumber(valueAsNumber || 0);
     },
     [],
   );
@@ -143,11 +154,10 @@ const BuildQuote = () => {
   }, []);
 
   const usdcAmount = parseFloat(amount || '0').toFixed(2);
-
-  const formatCurrency = (value: string) => {
-    const numValue = parseFloat(value || '0');
-    return `$${numValue.toFixed(2)}`;
-  };
+  const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
+  const contractExchangeRates = useSelector((state: RootState) =>
+    selectContractExchangeRatesByChainId(state, '0x1' as Hex),
+  );
 
   return (
     <ScreenLayout>
@@ -166,8 +176,17 @@ const BuildQuote = () => {
           </View>
 
           <View style={styles.centerGroup}>
-            <Text variant={TextVariant.HeadingLG} style={styles.mainAmount}>
-              {formatCurrency(amount)}
+            <Text
+              variant={TextVariant.HeadingLG}
+              style={styles.mainAmount}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
+              {formatAmount(amountAsNumber, {
+                style: 'currency',
+                currency: 'eur',
+                currencyDisplay: 'narrowSymbol',
+              })}
             </Text>
 
             <Text
