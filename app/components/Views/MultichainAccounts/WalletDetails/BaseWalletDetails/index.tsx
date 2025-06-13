@@ -12,7 +12,6 @@ import Icon, {
   IconSize,
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
-import { AccountWallet } from '../WalletDetails';
 import { TouchableOpacity, View, FlatList } from 'react-native';
 import { WalletDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/WalletDetails';
 import { AlignItems, FlexDirection } from '../../../../UI/Box/box.types';
@@ -21,6 +20,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AccountId } from '@metamask/accounts-controller';
 import Engine from '../../../../../core/Engine';
+import { AccountWallet } from '@metamask/account-tree-controller';
 
 interface BaseWalletDetailsProps {
   wallet: AccountWallet;
