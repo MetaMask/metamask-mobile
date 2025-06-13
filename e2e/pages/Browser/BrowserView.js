@@ -10,7 +10,7 @@ import { AddBookmarkViewSelectorsIDs } from '../../selectors/Browser/AddBookmark
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 import { waitForTestDappToLoad } from '../../viewHelper';
-import { web, by } from 'detox';
+import { web, by, element, waitFor } from 'detox';
 import { TEST_DAPP_LOCAL_URL,getSecondTestDappLocalUrl } from '../../fixtures/utils';
 
 class Browser {
@@ -217,9 +217,47 @@ class Browser {
   }
 
   async getWebElementText(elementId) {
-    const browserWebView = web(by.id('browser-webview'));
-    const webElement = browserWebView.element(by.web.id(elementId));
-    return await webElement.getText();
+    console.log(`[DEBUG] Getting web element text for elementId: ${elementId}`);
+    console.log(`[DEBUG] Platform: ${device.getPlatform()}`);
+    
+    try {
+      // Use consistent ID-based approach for both platforms
+      const browserWebView = web(by.id('browser-webview'));
+      console.log(`[DEBUG] Created browserWebView with ID selector`);
+      
+      const webElement = browserWebView.element(by.web.id(elementId));
+      console.log(`[DEBUG] Created webElement for elementId: ${elementId}`);
+      
+      const text = await webElement.getText();
+      console.log(`[DEBUG] Successfully got text: ${text}`);
+      return text;
+    } catch (error) {
+      console.log(`[DEBUG] Error getting web element text:`, error.message);
+      console.log(`[DEBUG] Full error:`, error);
+      
+      // Try alternative approach for CI environments
+      if (device.getPlatform() === 'android') {
+        console.log(`[DEBUG] Trying alternative Android approach...`);
+        try {
+          // Wait for WebView to be ready
+          const nativeWebView = element(by.id('browser-webview'));
+          await waitFor(nativeWebView).toBeVisible().withTimeout(10000);
+          console.log(`[DEBUG] Native WebView is visible`);
+          
+          // Try with a delay to ensure WebView is fully loaded
+          await TestHelpers.delay(2000);
+          const browserWebView = web(by.id('browser-webview'));
+          const webElement = browserWebView.element(by.web.id(elementId));
+          const text = await webElement.getText();
+          console.log(`[DEBUG] Alternative approach succeeded: ${text}`);
+          return text;
+        } catch (altError) {
+          console.log(`[DEBUG] Alternative approach also failed:`, altError.message);
+          throw altError;
+        }
+      }
+      throw error;
+    }
   }
 
   async navigateToTestDApp() {
