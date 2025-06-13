@@ -48,7 +48,7 @@ Given(/^I have imported my wallet$/, async () => {
   const timeOut = 3000;
   await driver.pause(timeOut);
   await WelcomeScreen.clickGetStartedButton();
-  await driver.pause(500);
+  await driver.pause(2000);
   await TermOfUseScreen.isDisplayed();
   await TermOfUseScreen.tapAgreeCheckBox();
   await TermOfUseScreen.tapScrollEndButton();
