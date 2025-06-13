@@ -64,28 +64,6 @@ describe(
       await OnboardingSuccessView.tapDone();
     });
 
-    it('Should dismiss Automatic Security checks screen', async () => {
-      await TestHelpers.delay(3500);
-      await Assertions.checkIfVisible(
-        EnableAutomaticSecurityChecksView.container,
-      );
-      await EnableAutomaticSecurityChecksView.tapNoThanks();
-    });
-
-    it('should dismiss the onboarding wizard', async () => {
-      // dealing with flakiness on bitrise.
-      await TestHelpers.delay(1000);
-      try {
-        await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
-        await OnboardingWizardModal.tapNoThanksButton();
-        await Assertions.checkIfNotVisible(
-          OnboardingWizardModal.stepOneContainer,
-        );
-      } catch {
-        //
-      }
-    });
-
     it('should dismiss the marketing consent bottom sheet', async () => {
       // dealing with flakiness on bitrise.
       await TestHelpers.delay(1000);
