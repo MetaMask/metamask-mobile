@@ -1,5 +1,6 @@
 import React from 'react';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../../../UI/Box/Box';
@@ -18,7 +19,7 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import ButtonLink from '../../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import { ButtonSize } from '../../../../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
-import { FlatList } from 'react-native';
+import { FlatList, TouchableOpacity } from 'react-native';
 import AppConstants from '../../../../../../core/AppConstants';
 
 interface SmartAccountDetailsProps {
@@ -62,14 +63,12 @@ export const SmartAccountDetails = ({ account }: SmartAccountDetailsProps) => {
         flexDirection={FlexDirection.Row}
         alignItems={AlignItems.flexStart}
       >
-        <Text>{strings('multichain_accounts.smart_account.description')}</Text>
-        <ButtonLink
-          onPress={handleLearnMore}
-          label={strings('multichain_accounts.smart_account.learn_more')}
-          size={ButtonSize.Sm}
-        >
-          {strings('multichain_accounts.smart_account.learn_more')}
-        </ButtonLink>
+        <Text>
+          {strings('multichain_accounts.smart_account.description')}{' '}
+          <Text color={TextColor.Info} onPress={handleLearnMore}>
+            {strings('multichain_accounts.smart_account.learn_more')}
+          </Text>
+        </Text>
       </Box>
       <FlatList
         style={styles.networkList}

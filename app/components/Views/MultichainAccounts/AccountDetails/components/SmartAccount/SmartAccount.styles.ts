@@ -22,7 +22,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flexWrap: 'wrap',
     },
     networkList: {
-      gap: 8,
+      marginBottom: 8,
     },
   });
 };
