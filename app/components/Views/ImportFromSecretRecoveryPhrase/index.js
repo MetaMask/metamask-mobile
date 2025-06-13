@@ -92,7 +92,9 @@ import {
   PASSCODE_NOT_SET_ERROR,
   IOS_REJECTED_BIOMETRICS_ERROR,
 } from './constant';
+import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
+
 
 const checkValidSeedWord = (text) => wordlist.includes(text);
 
@@ -538,7 +540,14 @@ const ImportFromSecretRecoveryPhrase = ({
         fetchAccountsWithActivity();
         navigation.reset({
           index: 1,
-          routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
+          routes: [
+            {
+              name: Routes.ONBOARDING.SUCCESS_FLOW,
+              params: {
+                successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
+              },
+            },
+          ],
         });
       } catch (error) {
         // Should we force people to enable passcode / biometrics?
@@ -951,14 +960,18 @@ const ImportFromSecretRecoveryPhrase = ({
                   isChecked={learnMore}
                   style={styles.checkbox}
                   testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
+                />
+                <Button
+                  variant={ButtonVariants.Link}
+                  onPress={() => setLearnMore(!learnMore)}
+                  style={styles.learnMoreTextContainer}
+                  testID={ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID}
                   label={
-                    <View style={styles.learnMoreTextContainer}>
-                      <Text
-                        variant={TextVariant.BodySM}
-                        color={TextColor.Default}
-                      >
-                        {strings('import_from_seed.learn_more')}{' '}
-                      </Text>
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Default}
+                    >
+                      {strings('import_from_seed.learn_more')}
                       <Text
                         variant={TextVariant.BodySM}
                         color={TextColor.Primary}
@@ -967,7 +980,7 @@ const ImportFromSecretRecoveryPhrase = ({
                       >
                         {' ' + strings('reset_password.learn_more')}
                       </Text>
-                    </View>
+                    </Text>
                   }
                 />
               </View>

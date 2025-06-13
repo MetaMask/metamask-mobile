@@ -142,6 +142,8 @@ import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
 import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
 import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
+import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
+import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -158,34 +160,11 @@ const clearStackNavigatorOptions = {
 
 const Stack = createStackNavigator();
 
-const OnboardingSuccessComponent = () => {
-  const navigation = useNavigation();
-  return (
-    <OnboardingSuccess
-      onDone={() => navigation.reset({ routes: [{ name: 'HomeNav' }] })}
-    />
-  );
-};
-
-const OnboardingSuccessComponentNoSRP = () => {
-  const navigation = useNavigation();
-  return (
-    <OnboardingSuccess
-      noSRP
-      onDone={() =>
-        navigation.reset({
-          routes: [{ name: 'HomeNav' }],
-        })
-      }
-    />
-  );
-};
-
 const OnboardingSuccessFlow = () => (
   <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
     <Stack.Screen
       name={Routes.ONBOARDING.SUCCESS}
-      component={OnboardingSuccessComponent} // Used in SRP flow
+      component={OnboardingSuccess} // Used in SRP flow
     />
     <Stack.Screen
       name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
@@ -223,7 +202,7 @@ const OnboardingNav = () => (
     />
     <Stack.Screen
       name={Routes.ONBOARDING.SUCCESS}
-      component={OnboardingSuccessComponentNoSRP} // Used in SRP flow
+      component={OnboardingSuccess} // Used in SRP flow
     />
     <Stack.Screen
       name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
@@ -589,6 +568,16 @@ const MultichainAccountDetails = () => {
       <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT}
         component={DeleteAccount}
+        initialParams={route?.params}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL}
+        component={RevealPrivateKey}
+        initialParams={route?.params}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_SRP_CREDENTIAL}
+        component={RevealSRP}
         initialParams={route?.params}
       />
     </Stack.Navigator>
