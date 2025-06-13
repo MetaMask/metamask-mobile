@@ -733,7 +733,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('error message is shown when passcode is not set', async () => {
-      const { getByText, getByPlaceholderText } =
+      const { getByText, getByPlaceholderText, getByTestId } =
         await renderCreatePasswordUI();
 
       const passwordInput = getByPlaceholderText(
@@ -750,8 +750,8 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
 
       // Check learn more checkbox
-      const learnMoreCheckbox = getByText(
-        'MetaMask can’t reset this password if you forget it',
+      const learnMoreCheckbox = getByTestId(
+        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
       );
       fireEvent.press(learnMoreCheckbox);
 
