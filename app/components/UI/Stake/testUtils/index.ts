@@ -16,7 +16,7 @@ import {
   TOKENS_WITH_DEFAULT_OPTIONS,
 } from './testUtils.types';
 
-export const HOLESKY_CHAIN_ID = '0x4268';
+export const HOODI_CHAIN_ID = '0x88BB0'; // Chain id 560048
 
 export const createMockToken = (options: CreateMockTokenOptions) => {
   const {
@@ -33,11 +33,7 @@ export const createMockToken = (options: CreateMockTokenOptions) => {
 
   const isETH = symbol === 'ETH' || symbol === 'Ethereum';
 
-  const nativeChainIds = [
-    CHAIN_IDS.MAINNET,
-    CHAIN_IDS.SEPOLIA,
-    HOLESKY_CHAIN_ID,
-  ];
+  const nativeChainIds = [CHAIN_IDS.MAINNET, CHAIN_IDS.SEPOLIA, HOODI_CHAIN_ID];
   const isNative = nativeChainIds.includes(chainId) && isETH;
 
   return {
