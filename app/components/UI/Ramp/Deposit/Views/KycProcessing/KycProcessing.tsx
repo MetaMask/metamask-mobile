@@ -54,7 +54,7 @@ const KycProcessing = () => {
     userDetails,
     startPolling,
     stopPolling,
-  } = useUserDetailsPolling();
+  } = useUserDetailsPolling(10000, false, 0);
 
   useEffect(() => {
     navigation.setOptions(

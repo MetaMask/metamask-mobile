@@ -34,7 +34,11 @@ const KycWebview = () => {
   const { quote, kycUrl } = params;
   const { theme } = useStyles(styleSheet, {});
 
-  const { userDetails, error: pollingError } = useUserDetailsPolling();
+  const { userDetails, error: pollingError } = useUserDetailsPolling(
+    5000,
+    true,
+    0,
+  );
 
   useEffect(() => {
     navigation.setOptions(

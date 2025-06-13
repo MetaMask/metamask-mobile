@@ -266,4 +266,19 @@ describe('useUserDetailsPolling', () => {
       'User details polling reached maximum attempts',
     );
   });
+
+  it('should poll indefinitely when maxPollingAttempts is 0', () => {
+    const { result } = renderHook(() => useUserDetailsPolling(1000, true, 0));
+
+    expect(mockFetchUserDetails).toHaveBeenCalledTimes(1);
+
+    for (let i = 0; i < 50; i++) {
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+    }
+
+    expect(mockFetchUserDetails).toHaveBeenCalledTimes(51);
+    expect(result.current.error).toBeNull();
+  });
 });
