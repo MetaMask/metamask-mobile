@@ -94,6 +94,7 @@ import {
 } from './constant';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
+import { formatSeedPhraseToSingleLine } from '../../../util/string';
 
 
 const checkValidSeedWord = (text) => wordlist.includes(text);
@@ -171,48 +172,48 @@ const ImportFromSecretRecoveryPhrase = ({
   }, []);
 
   const handleSeedPhraseChange = useCallback(
-    (seedPhraseText, index) => {
-      const text = seedPhraseText
-        .split('\n')
-        .map((item) => item.trim())
-        .join(' ');
+    async (seedPhraseText, index) => {
+      try {
+        const text = formatSeedPhraseToSingleLine(seedPhraseText);
 
-      if (text.includes(SPACE_CHAR)) {
-        const isEndWithSpace = text.at(-1) === SPACE_CHAR;
-        // handle use pasting multiple words / whole seed phrase separated by spaces
-        const splitArray = text.trim().split(' ');
+        if (text.includes(SPACE_CHAR)) {
+          const isEndWithSpace = text.at(-1) === SPACE_CHAR;
+          // handle use pasting multiple words / whole seed phrase separated by spaces
+          const splitArray = text.trim().split(' ');
 
-        const currentErrorWordIndexes = { ...errorWordIndexes };
-        splitArray.reduce((acc, x, currentIndex) => {
-          if (checkValidSeedWord(x)) {
-            currentErrorWordIndexes[index + currentIndex] = false;
-          } else {
-            currentErrorWordIndexes[index + currentIndex] = true;
-          }
-          return acc;
-        }, []);
+          const currentErrorWordIndexes = { ...errorWordIndexes };
+          splitArray.forEach((x, currentIndex) => {
+            if (checkValidSeedWord(x)) {
+              currentErrorWordIndexes[index + currentIndex] = false;
+            } else {
+              currentErrorWordIndexes[index + currentIndex] = true;
+            }
+          });
 
-        setSeedPhrase((prev) => {
-          const endSlices = prev.slice(index + 1);
-          if (endSlices.length === 0 && isEndWithSpace) {
-            endSlices.push('');
-          } else if (isEndWithSpace) {
-            endSlices.unshift('');
-          }
+          setSeedPhrase((prev) => {
+            const endSlices = prev.slice(index + 1);
+            if (endSlices.length === 0 && isEndWithSpace) {
+              endSlices.push('');
+            } else if (isEndWithSpace) {
+              endSlices.unshift('');
+            }
 
-          return [...prev.slice(0, index), ...splitArray, ...endSlices];
-          // input the array into the correct index
-        });
+            // input the array into the correct index
+            return [...prev.slice(0, index), ...splitArray, ...endSlices];
+          });
 
-        setErrorWordIndexes(currentErrorWordIndexes);
-        setNextSeedPhraseInputFocusedIndex(index + splitArray.length);
-      } else {
-        setSeedPhrase((prev) => {
-          // update the word at the correct index
-          const newSeedPhrase = [...prev];
-          newSeedPhrase[index] = text.trim();
-          return newSeedPhrase;
-        });
+          setErrorWordIndexes(currentErrorWordIndexes);
+          setNextSeedPhraseInputFocusedIndex(index + splitArray.length);
+        } else {
+          setSeedPhrase((prev) => {
+            // update the word at the correct index
+            const newSeedPhrase = [...prev];
+            newSeedPhrase[index] = text.trim();
+            return newSeedPhrase;
+          });
+        }
+      } catch (error) {
+        Logger.error('Error handling seed phrase change:', error);
       }
     },
     [
@@ -401,7 +402,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
-  const handleKeyPress = (e, index, enterPressed = false) => {
+  const handleKeyPress = (e, index) => {
     const { key } = e.nativeEvent;
     if (key === 'Backspace') {
       if (seedPhrase[index] === '') {
@@ -693,11 +694,13 @@ const ImportFromSecretRecoveryPhrase = ({
                           autoFocus
                           onKeyPress={(e) => handleKeyPress(e, 0)}
                           autoComplete="off"
-                          blurOnSubmit={false}
+                          submitBehavior={'submit'}
                           autoCapitalize="none"
                           testID={
                             ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
                           }
+                          editable
+                          keyboardType="default"
                         />
                       ) : (
                         <View
@@ -753,7 +756,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                   }
                                   placeholderTextColor={colors.text.muted}
                                   onSubmitEditing={(e) => {
-                                    handleKeyPress(e, index, true);
+                                    handleKeyPress(e, index);
                                   }}
                                   onKeyPress={(e) => handleKeyPress(e, index)}
                                   size={TextFieldSize.Md}
