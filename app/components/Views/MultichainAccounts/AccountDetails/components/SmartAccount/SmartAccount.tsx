@@ -16,10 +16,8 @@ import { Hex } from '@metamask/utils';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import styleSheet from './SmartAccount.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
-import ButtonLink from '../../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import { ButtonSize } from '../../../../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
-import { FlatList, TouchableOpacity } from 'react-native';
+import { FlatList } from 'react-native';
 import AppConstants from '../../../../../../core/AppConstants';
 
 interface SmartAccountDetailsProps {
