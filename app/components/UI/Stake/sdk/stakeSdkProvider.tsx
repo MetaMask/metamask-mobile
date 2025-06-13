@@ -1,32 +1,35 @@
 import {
-  StakingType,
-  StakeSdk,
+  EarnApiService,
+  EarnSdk,
+  LendingProtocol,
+  LendingProvider,
   PooledStakingContract,
-  isSupportedChain,
-  StakingApiService,
+  StakingType,
 } from '@metamask/stake-sdk';
 import React, {
-  useState,
   createContext,
-  useMemo,
   PropsWithChildren,
+  useEffect,
+  useMemo,
+  useState,
 } from 'react';
-import { getProviderByChainId } from '../../../../util/notifications';
 import { useSelector } from 'react-redux';
 import {
   selectEvmChainId,
   selectNetworkClientId,
 } from '../../../../selectors/networkController';
 import { getDecimalChainId } from '../../../../util/networks';
+import { getProviderByChainId } from '../../../../util/notifications';
 
-export const SDK = StakeSdk.create({ stakingType: StakingType.POOLED });
-
-export const stakingApiService = new StakingApiService();
+export const earnApiService = new EarnApiService();
+export const stakingApiService = earnApiService.pooledStaking;
+export const lendingApiService = earnApiService.lending;
 
 export interface Stake {
-  stakingContract?: PooledStakingContract;
-  sdkType?: StakingType;
-  setSdkType: (stakeType: StakingType) => void;
+  stakingContract?: PooledStakingContract | null;
+  lendingContracts?: Partial<
+    Record<LendingProtocol, Record<string, LendingProvider>>
+  > | null;
   networkClientId?: string;
 }
 
@@ -38,46 +41,51 @@ export interface StakeProviderProps {
 export const StakeSDKProvider: React.FC<
   PropsWithChildren<StakeProviderProps>
 > = ({ children }) => {
-  const [sdkType, setSdkType] = useState(StakingType.POOLED);
   const chainId = useSelector(selectEvmChainId);
   const networkClientId = useSelector(selectNetworkClientId);
+  const [sdkService, setSdkService] = useState<EarnSdk | undefined>();
 
-  const sdkService = useMemo(() => {
-    if (!chainId || !isSupportedChain(getDecimalChainId(chainId))) {
-      console.error(
-        'Failed to initialize Staking SDK Service: chainId unsupported',
-      );
-      return;
-    }
+  useEffect(() => {
+    const initializeSdk = async () => {
+      if (!chainId) {
+        return;
+      }
 
-    const provider = getProviderByChainId(chainId);
+      const provider = getProviderByChainId(chainId);
 
-    if (!provider) {
-      console.error(
-        'Failed to initialize Staking SDK Service: provider not found',
-      );
-      return;
-    }
+      if (!provider) {
+        console.error(
+          'Failed to initialize Staking SDK Service: provider not found',
+        );
+        return;
+      }
 
-    const sdk = StakeSdk.create({
-      chainId: getDecimalChainId(chainId),
-      stakingType: sdkType,
-    });
+      try {
+        const sdk = await EarnSdk.create(provider, {
+          chainId: getDecimalChainId(chainId),
+        });
+        setSdkService(sdk);
+      } catch (error) {
+        console.error('Failed to initialize Earm SDK Service:', error);
+      }
+    };
 
-    sdk.pooledStakingContract.connectSignerOrProvider(provider);
-
-    return sdk;
-  }, [chainId, sdkType]);
+    initializeSdk();
+  }, [chainId]);
 
   const stakeContextValue = useMemo(
     (): Stake => ({
-      stakingContract: sdkService?.pooledStakingContract,
-      sdkType,
-      setSdkType,
+      stakingContract: sdkService?.contracts?.pooledStaking,
+      lendingContracts: sdkService?.contracts?.lending,
       networkClientId,
     }),
-    [sdkService?.pooledStakingContract, sdkType, networkClientId],
+    [
+      sdkService?.contracts?.pooledStaking,
+      sdkService?.contracts?.lending,
+      networkClientId,
+    ],
   );
+
   return (
     <StakeContext.Provider value={stakeContextValue}>
       {children}

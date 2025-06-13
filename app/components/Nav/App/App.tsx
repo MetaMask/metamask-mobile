@@ -141,6 +141,8 @@ import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
 import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
 import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
+import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
+import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -561,6 +563,16 @@ const MultichainAccountDetails = () => {
       <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT}
         component={DeleteAccount}
+        initialParams={route?.params}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL}
+        component={RevealPrivateKey}
+        initialParams={route?.params}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_SRP_CREDENTIAL}
+        component={RevealSRP}
         initialParams={route?.params}
       />
     </Stack.Navigator>
