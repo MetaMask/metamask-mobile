@@ -6,7 +6,7 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../../constants/on-ramp';
 import transakNetworkToChainId from '../utils/transakNetworkToChainId';
-import { DepositSDK } from '../sdk';
+import { DepositSDKOrders } from '../sdk';
 import Logger from '../../../../../util/Logger';
 
 const depositOrderStateToFiatOrderState = (
@@ -60,7 +60,10 @@ export async function processDepositOrder(
   _options?: ProcessorOptions,
 ): Promise<FiatOrder> {
   try {
-    const updatedOrder = await DepositSDK.getOrder(order.id, order.account);
+    const updatedOrder = await DepositSDKOrders.getOrder(
+      order.id,
+      order.account,
+    );
     if (!updatedOrder) {
       throw new Error('Deposit order not found');
     }
