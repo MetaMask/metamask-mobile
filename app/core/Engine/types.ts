@@ -281,6 +281,7 @@ import {
 ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import { EncryptionKey } from '../Encryptor/types';
 ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+import type { ErrorReportingServiceActions } from '@metamask/error-reporting-service';
 
 /**
  * Controllers that area always instantiated
@@ -366,7 +367,8 @@ type GlobalActions =
   | EarnControllerActions
   | AppMetadataControllerActions
   | MultichainRouterActions
-  | DeFiPositionsControllerActions;
+  | DeFiPositionsControllerActions
+  | ErrorReportingServiceActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>

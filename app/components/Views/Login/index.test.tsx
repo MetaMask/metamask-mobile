@@ -19,12 +19,12 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('Login', () => {
-  it('should render correctly', () => {
+  it('renders matching snapshot', () => {
     const { toJSON } = renderWithProvider(<Login />);
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render with different logo on password input', () => {
+  it('renders matching snapshot when password input is focused', () => {
     const { getByTestId, toJSON } = renderWithProvider(<Login />);
 
     fireEvent.changeText(

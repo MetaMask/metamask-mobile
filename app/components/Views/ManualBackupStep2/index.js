@@ -32,6 +32,9 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import Routes from '../../../constants/navigation/Routes';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
+import { useMetrics } from '../../hooks/useMetrics';
+import { CommonActions } from '@react-navigation/native';
+import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 
 const ManualBackupStep2 = ({
   navigation,
@@ -97,6 +100,7 @@ const ManualBackupStep2 = ({
     return gridWords.filter((word) => word !== '').length === validWords.length;
   }, [route.params?.words, gridWords]);
 
+  const { isEnabled: isMetricsEnabled } = useMetrics();
   const goNext = () => {
     if (validateWords()) {
       seedphraseBackedUp();
@@ -106,7 +110,29 @@ const ManualBackupStep2 = ({
         } else if (settingsBackup) {
           navigation.navigate(Routes.ONBOARDING.SECURITY_SETTINGS);
         } else {
-          navigation.navigate('OnboardingSuccess');
+          const resetAction = CommonActions.reset({
+            index: 1,
+            routes: [
+              {
+                name: Routes.ONBOARDING.SUCCESS_FLOW,
+                params: {
+                  screen: Routes.ONBOARDING.SUCCESS,
+                  params: {
+                    successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
+                  },
+                },
+              },
+            ],
+          });
+          if (isMetricsEnabled()) {
+            navigation.dispatch(resetAction);
+          } else {
+            navigation.navigate('OptinMetrics', {
+              onContinue: () => {
+                navigation.dispatch(resetAction);
+              },
+            });
+          }
         }
         trackOnboarding(
           MetricsEventBuilder.createEventBuilder(
@@ -411,7 +437,8 @@ ManualBackupStep2.propTypes = {
 
 const mapDispatchToProps = (dispatch) => ({
   seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
-  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
+  dispatchSaveOnboardingEvent: (...eventArgs) =>
+    dispatch(saveOnboardingEvent(eventArgs)),
 });
 
 export default connect(null, mapDispatchToProps)(ManualBackupStep2);

@@ -45,6 +45,8 @@ export default {
     },
   },
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
+  MM_IO_UNIVERSAL_LINK_HOST: 'link.metamask.io',
+  MM_IO_UNIVERSAL_LINK_TEST_HOST: 'link-test.metamask.io',
   MM_DEEP_ITMS_APP_LINK: 'https://metamask.app.link/skAH3BaF99',
   SAI_ADDRESS: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
   HOMEPAGE_URL: 'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile/',
@@ -247,4 +249,5 @@ export default {
   },
   TOKEN_DISCOVERY_BROWSER_ENABLED:
     process.env.TOKEN_DISCOVERY_BROWSER_ENABLED === 'true',
+  EIP_7702_PUBLIC_KEY: '0x3c7a1cCCe462e96D186B8ca9a1BCB2010C3dABa3',
 } as const;

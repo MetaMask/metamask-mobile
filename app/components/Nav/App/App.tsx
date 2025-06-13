@@ -80,6 +80,7 @@ import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
+import MultichainEditAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
 } from '../../../../app/core/WalletConnect/WalletConnectV2';
@@ -138,6 +139,11 @@ import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
 import AddNewAccountBottomSheet from '../../Views/AddNewAccount/AddNewAccountBottomSheet';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
+import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
+import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
+import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
+import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
+import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -534,6 +540,50 @@ const ConnectHardwareWalletFlow = () => (
   </Stack.Navigator>
 );
 
+const MultichainAccountDetails = () => {
+  const route = useRoute();
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animationEnabled: false,
+      }}
+    >
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
+        component={AccountDetails}
+        initialParams={route?.params}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME}
+        component={MultichainEditAccountName}
+        initialParams={route?.params}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS}
+        component={ShareAddress}
+        initialParams={route?.params}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT}
+        component={DeleteAccount}
+        initialParams={route?.params}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL}
+        component={RevealPrivateKey}
+        initialParams={route?.params}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_SRP_CREDENTIAL}
+        component={RevealSRP}
+        initialParams={route?.params}
+      />
+    </Stack.Navigator>
+  );
+};
+
 const FlatConfirmationRequest = () => (
   <Stack.Navigator>
     <Stack.Screen name={Routes.CONFIRMATION_REQUEST_FLAT} component={Confirm} />
@@ -644,6 +694,10 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.HW.CONNECT}
         component={ConnectHardwareWalletFlow}
+      />
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
+        component={MultichainAccountDetails}
       />
       <Stack.Screen
         options={{

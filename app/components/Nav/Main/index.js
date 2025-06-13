@@ -25,7 +25,7 @@ import I18n, { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
-import RampOrders from '../../UI/Ramp/Aggregator';
+import RampOrders from '../../UI/Ramp';
 import {
   showTransactionNotification,
   hideCurrentNotification,
@@ -36,7 +36,6 @@ import {
 
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
-import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import { query } from '@metamask/controller-utils';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
 
@@ -53,7 +52,6 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
-import { useEnableAutomaticSecurityChecks } from '../../hooks/EnableAutomaticSecurityChecks';
 import { useMinimumVersions } from '../../hooks/MinimumVersions';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import {
@@ -113,8 +111,6 @@ const createStyles = (colors) =>
 
 const Main = (props) => {
   const [forceReload, setForceReload] = useState(false);
-  const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
-  const [skipCheckbox, setSkipCheckbox] = useState(false);
   const [showDeprecatedAlert, setShowDeprecatedAlert] = useState(true);
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -127,7 +123,6 @@ const Main = (props) => {
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
   useNotificationHandler();
   useIdentityEffects();
-  useEnableAutomaticSecurityChecks();
   useMinimumVersions();
 
   const { chainId, networkClientId, showIncomingTransactionsNetworks } = props;
@@ -212,8 +207,8 @@ const Main = (props) => {
     </View>
   );
   const skipAccountModalSecureNow = () => {
-    props.navigation.navigate('SetPasswordFlow', {
-      screen: 'ManualBackupStep1',
+    props.navigation.navigate(Routes.SET_PASSWORD_FLOW.ROOT, {
+      screen: Routes.SET_PASSWORD_FLOW.MANUAL_BACKUP_STEP_1,
       params: { backupFlow: true },
     });
   };
@@ -224,7 +219,7 @@ const Main = (props) => {
     props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
       params: {
-        onConfirm: navigation.goBack,
+        onConfirm: () => navigation.goBack(),
         onCancel: skipAccountModalSecureNow,
       },
     });

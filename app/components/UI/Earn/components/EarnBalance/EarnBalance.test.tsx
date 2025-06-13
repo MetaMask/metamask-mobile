@@ -19,8 +19,44 @@ jest.mock('../EarnLendingBalance', () => ({
   default: jest.fn(),
 }));
 
-jest.mock('../../constants/tempLendingConstants', () => ({
-  USER_HAS_LENDING_POSITIONS: true,
+jest.mock('../../hooks/useEarnTokens', () => ({
+  __esModule: true,
+  default: () => ({
+    getEarnToken: (token: TokenI) => {
+      if (token.symbol === 'USDC' && token.chainId === '0x1') {
+        return {
+          ...token,
+          experience: 'STABLECOIN_LENDING',
+          balanceMinimalUnit: '100000000',
+        };
+      }
+      if (token.symbol === 'USDC' && token.chainId === '0x2105') {
+        return {
+          ...token,
+          experience: 'STABLECOIN_LENDING',
+          balanceMinimalUnit: '100000000',
+        };
+      }
+      return null;
+    },
+    getOutputToken: (token: TokenI) => {
+      if (token.symbol === 'AETHUSDC' && token.chainId === '0x1') {
+        return {
+          ...token,
+          experience: 'STABLECOIN_LENDING',
+          balanceMinimalUnit: '100000000',
+        };
+      }
+      if (token.symbol === 'aBasUSDC' && token.chainId === '0x2105') {
+        return {
+          ...token,
+          experience: 'STABLECOIN_LENDING',
+          balanceMinimalUnit: '100000000',
+        };
+      }
+      return null;
+    },
+  }),
 }));
 
 describe('EarnBalance', () => {
@@ -30,7 +66,7 @@ describe('EarnBalance', () => {
 
   describe('Ethereum Mainnet', () => {
     it('renders staking balance when asset is ETH', () => {
-      const mockEth = { isETH: true };
+      const mockEth = { isETH: true, isStaked: false };
 
       renderWithProvider(<EarnBalance asset={mockEth as unknown as TokenI} />);
 
@@ -68,6 +104,15 @@ describe('EarnBalance', () => {
       expect(StakingBalance).not.toHaveBeenCalled();
       expect(EarnLendingBalance).not.toHaveBeenCalled();
     });
+
+    it('renders nothinge if Staked ETH is passed', () => {
+      const mockEth = { isETH: true, isStaked: true };
+
+      renderWithProvider(<EarnBalance asset={mockEth as unknown as TokenI} />);
+
+      expect(StakingBalance).not.toHaveBeenCalled();
+      expect(EarnLendingBalance).not.toHaveBeenCalled();
+    });
   });
 
   describe('Base (L2)', () => {
@@ -93,6 +138,21 @@ describe('EarnBalance', () => {
       );
 
       expect(EarnLendingBalance).toHaveBeenCalled();
+    });
+
+    it('renders nothing if asset is not supported', () => {
+      const mockFakeToken = {
+        isETH: false,
+        symbol: 'fakeToken',
+        chainId: '0x2105',
+      };
+
+      renderWithProvider(
+        <EarnBalance asset={mockFakeToken as unknown as TokenI} />,
+      );
+
+      expect(StakingBalance).not.toHaveBeenCalled();
+      expect(EarnLendingBalance).not.toHaveBeenCalled();
     });
   });
 });

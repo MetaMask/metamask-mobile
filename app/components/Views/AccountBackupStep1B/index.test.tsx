@@ -6,6 +6,7 @@ import { strings } from '../../../../locales/i18n';
 import { fireEvent } from '@testing-library/react-native';
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
+import Routes from '../../../constants/navigation/Routes';
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -24,7 +25,10 @@ jest.mock('../../../util/device', () => ({
 }));
 
 describe('AccountBackupStep1B', () => {
-  beforeEach(() => jest.useFakeTimers());
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers({ legacyFakeTimers: true });
@@ -35,7 +39,7 @@ describe('AccountBackupStep1B', () => {
     const mockGoBack = jest.fn();
     const mockSetOptions = jest.fn();
 
-    (useNavigation as jest.Mock).mockReturnValue({
+    const mockNavigation = (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
       goBack: mockGoBack,
       setOptions: mockSetOptions,
@@ -61,49 +65,68 @@ describe('AccountBackupStep1B', () => {
       mockNavigate,
       mockGoBack,
       mockSetOptions,
+      mockNavigation,
     };
   };
 
-  it('should render correctly', () => {
-    const { wrapper } = setupTest();
+  it('render matches snapshot', () => {
+    const { wrapper, mockNavigation } = setupTest();
     expect(wrapper).toMatchSnapshot();
+    mockNavigation.mockRestore();
   });
 
-  it('should render title and explanation text', () => {
-    const { wrapper, mockNavigate } = setupTest();
+  it('render title and srp link', () => {
+    const { wrapper, mockNavigation } = setupTest();
+
     const title = wrapper.getByText(strings('account_backup_step_1B.title'));
-    expect(title).toBeTruthy();
+    expect(title).toBeOnTheScreen();
 
     const srpLink = wrapper.getByText(
       strings('account_backup_step_1B.subtitle_2'),
     );
-    expect(srpLink).toBeTruthy();
-    fireEvent.press(srpLink);
-    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
-      screen: 'SeedphraseModal',
-    });
+    expect(srpLink).toBeOnTheScreen();
+    mockNavigation.mockRestore();
   });
 
-  it('should render cta actions', () => {
-    const { wrapper, mockNavigate } = setupTest();
+  it('opens the seed phrase modal on srp link press', () => {
+    const { wrapper, mockNavigate, mockNavigation } = setupTest();
+
+    const srpLink = wrapper.getByText(
+      strings('account_backup_step_1B.subtitle_2'),
+    );
+    expect(srpLink).toBeOnTheScreen();
+
+    fireEvent.press(srpLink);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SEEDPHRASE_MODAL,
+    });
+    mockNavigation.mockRestore();
+  });
+
+  it('render start button and on press it should navigate to ManualBackupStep1', () => {
+    const { wrapper, mockNavigate, mockNavigation } = setupTest();
     const ctaButton = wrapper.getByText(
       strings('account_backup_step_1B.cta_text'),
     );
-    expect(ctaButton).toBeTruthy();
+    expect(ctaButton).toBeOnTheScreen();
     fireEvent.press(ctaButton);
-    expect(mockNavigate).toHaveBeenCalledWith('ManualBackupStep1', {
-      settingsBackup: true,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.ONBOARDING.MANUAL_BACKUP.STEP_1,
+      {
+        settingsBackup: true,
+      },
+    );
+    mockNavigation.mockRestore();
   });
 
-  it('should render AndroidBackHandler when on Android', () => {
-    (Device.isAndroid as jest.Mock).mockReturnValue(true);
+  it('render AndroidBackHandler when on Android and on back press function is called with null', () => {
+    const mockIsAndroid = (Device.isAndroid as jest.Mock).mockReturnValue(true);
 
-    const { wrapper } = setupTest();
+    const { wrapper, mockNavigation } = setupTest();
 
     // Verify AndroidBackHandler is rendered
     const androidBackHandler = wrapper.UNSAFE_getByType(AndroidBackHandler);
-    expect(androidBackHandler).toBeTruthy();
+    expect(androidBackHandler).toBeDefined();
 
     // Verify customBackPress prop is passed
     expect(androidBackHandler.props.customBackPress).toBeDefined();
@@ -111,10 +134,12 @@ describe('AccountBackupStep1B', () => {
     // Test that pressing back triggers the correct navigation
     androidBackHandler.props.customBackPress();
     expect(null).toBe(null);
+    mockIsAndroid.mockRestore();
+    mockNavigation.mockRestore();
   });
 
-  it('should render header left button and handle back navigation', () => {
-    const { mockSetOptions } = setupTest();
+  it('render header left button', () => {
+    const { mockSetOptions, mockNavigation } = setupTest();
 
     // Verify that setOptions was called with the correct configuration
     expect(mockSetOptions).toHaveBeenCalled();
@@ -123,7 +148,9 @@ describe('AccountBackupStep1B', () => {
     // Get the headerLeft function from the options
     const headerLeftComponent = setOptionsCall.headerLeft();
 
-    // Verify the headerLeft component renders correctly
-    expect(headerLeftComponent).toBeTruthy();
+    // Verify the headerLeft component exists and is a valid React element
+    expect(headerLeftComponent).toBeDefined();
+    expect(React.isValidElement(headerLeftComponent)).toBe(true);
+    mockNavigation.mockRestore();
   });
 });
