@@ -55,6 +55,23 @@ import { recreateVaultWithNewPassword } from '../../../core/Vault';
 import Logger from '../../../util/Logger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
+// import TextField, {
+//   TextFieldSize,
+// } from '../../../component-library/components/Form/TextField';
+// import Button, {
+//   ButtonVariants,
+//   ButtonSize,
+//   ButtonWidthTypes,
+// } from '../../../component-library/components/Buttons/Button';
+// import Label from '../../../component-library/components/Form/Label';
+// import Icon, {
+//   IconName,
+//   IconSize,
+// } from '../../../component-library/components/Icons/Icon';
+// import Routes from '../../../constants/navigation/Routes';
+// import { SecurityOptionToggle } from '../../UI/SecurityOptionToggle';
+// import NavigationService from '../../../core/NavigationService';
+// import { RecoveryError as SeedlessOnboardingRecoveryError } from '@metamask/seedless-onboarding-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -761,6 +778,8 @@ class ResetPassword extends PureComponent {
 
                 {!!error && <Text color={TextColor.Error}>{error}</Text>}
               </View>
+
+              {this.renderSwitch()}
 
               <View style={styles.ctaWrapper}>
                 <StyledButton
