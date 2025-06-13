@@ -49,7 +49,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await Assertions.checkIfVisible(eth);
     const avax = WalletView.tokenInWallet(AVAX_NAME);
     await Assertions.checkIfVisible(avax);
-    await WalletView.scrollDownOnTokensTab(BNB_NAME);
+    await WalletView.scrollDownOnTokensTab(AVAX_NAME);
     const bnb = WalletView.tokenInWallet(BNB_NAME);
     await Assertions.checkIfVisible(bnb);
   });
