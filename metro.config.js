@@ -8,6 +8,98 @@
 
 const { getDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('@react-native/metro-config');
+const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
+
+// eslint-disable-next-line import/no-nodejs-modules
+const { parseArgs } = require('node:util');
+
+// remove path/to/node
+// remove path/to/node_modules/.bin/<react-native|expo>
+const args = process.argv.slice(2);
+
+const options = {
+  // watchman and rncli
+  platform: {
+    type: 'string',
+  },
+  dev: {
+    type: 'boolean',
+  },
+  'entry-file': {
+    type: 'string',
+  },
+  'bundle-output': {
+    type: 'string',
+  },
+  'assets-dest': {
+    type: 'string',
+  },
+  'sourcemap-output': {
+    type: 'string',
+  },
+  minify: {
+    type: 'boolean',
+  },
+  verbose: {
+    type: 'boolean',
+  },
+  'reset-cache': {
+    type: 'boolean', // Default: false
+  },
+  // expo
+  port: {
+    type: 'string', // Default: 8081
+  },
+  'no-install': {
+    type: 'boolean',
+  },
+  'no-build-cache': {
+    type: 'boolean',
+  },
+  'no-bundler': {
+    type: 'boolean',
+  },
+  device: {
+    type: 'string',
+  },
+  binary: {
+    type: 'string',
+  },
+  // expo run:android
+  variant: {
+    type: 'string', // Default: debug
+  },
+  'app-id': {
+    type: 'string',
+  },
+  // expo run:ios
+  configuration: {
+    type: 'string', // Default: debug
+  },
+  scheme: {
+    type: 'string',
+  },
+};
+
+const parsedArgs = parseArgs({
+  args,
+  options,
+  allowPositionals: true,
+  strict: false, // Allow no value `--device` (expo uses first available device)
+});
+
+// Apply 'ses/hermes' on Android (Hermes)
+// Apply 'ses' on iOS (RN JSC) until on Hermes
+const hermesRuntime =
+  parsedArgs.values.platform === 'android' ||
+  parsedArgs.positionals[0].includes('android');
+
+const getPolyfills = () => [
+  // eslint-disable-next-line import/no-extraneous-dependencies
+  ...require('@react-native/js-polyfills')(),
+  require.resolve('reflect-metadata'),
+];
+
 // We should replace path for react-native-fs
 // eslint-disable-next-line import/no-nodejs-modules
 const path = require('path');
@@ -65,6 +157,14 @@ module.exports = function (baseConfig) {
           },
         }),
       },
+      // Note: 'expo start' not supported since we cannot detect android/ios
+      // Unfortunately it does not 'run:android' or 'run:ios' which would be detectable
+      serializer: lockdownSerializer(
+        { hermesRuntime },
+        {
+          getPolyfills
+        },
+      ),
       resetCache: true,
     }),
   );
