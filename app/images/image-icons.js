@@ -32,6 +32,7 @@ import SOPHON_TESTNET from './sophon-testnet.png';
 import APECHAIN from './apechain.png';
 import APECHAIN_TOKEN from './apechain-token.png';
 import BERACHAIN from './berachain.png';
+import BERACHAIN_TOKEN from './berachain-token.png';
 import EDU from './edu.png';
 
 export default {
@@ -71,5 +72,6 @@ export default {
   APECHAIN,
   APECHAIN_TOKEN,
   BERACHAIN,
+  BERACHAIN_TOKEN,
   EDU,
 };
