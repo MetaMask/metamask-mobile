@@ -48,6 +48,7 @@ Given(/^I have imported my wallet$/, async () => {
   const timeOut = 3000;
   await driver.pause(timeOut);
   await WelcomeScreen.clickGetStartedButton();
+  await driver.pause(500);
   await TermOfUseScreen.isDisplayed();
   await TermOfUseScreen.tapAgreeCheckBox();
   await TermOfUseScreen.tapScrollEndButton();
@@ -57,15 +58,18 @@ Given(/^I have imported my wallet$/, async () => {
   } else {
     await TermOfUseScreen.tapAcceptButton();
   }
+  await driver.pause(500);
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.clickImportWalletButton();
+  await driver.pause(500);
   await MetaMetricsScreen.isScreenTitleVisible();
   await MetaMetricsScreen.tapIAgreeButton();
+  await driver.pause(500);
   await ImportFromSeedScreen.isScreenTitleVisible();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(validAccount.seedPhrase);
   await ImportFromSeedScreen.tapImportScreenTitleToDismissKeyboard();
   await ImportFromSeedScreen.tapContinueButton();
-
+  await driver.pause(500);
   await CreatePasswordScreen.enterPassword(validAccount.password);
   await CreatePasswordScreen.reEnterPassword(validAccount.password);
   await CreatePasswordScreen.tapIUnderstandCheckBox();
