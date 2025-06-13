@@ -102,8 +102,8 @@ describe('TransactionsFooter', () => {
     });
   });
 
-  describe('Block Explorer Button', () => {
-    it('should render view more button for mainnet', () => {
+  describe('EVM Chain Block Explorer', () => {
+    it('renders Etherscan button for mainnet', () => {
       mockIsMainnetByChainId.mockReturnValue(true);
 
       const { getByText } = render(
@@ -117,7 +117,7 @@ describe('TransactionsFooter', () => {
       expect(getByText('View full history on Etherscan')).toBeTruthy();
     });
 
-    it('should render view more button for non-RPC networks', () => {
+    it('renders Etherscan button for non-RPC networks', () => {
       mockIsMainnetByChainId.mockReturnValue(false);
 
       const { getByText } = render(
@@ -131,7 +131,7 @@ describe('TransactionsFooter', () => {
       expect(getByText('View full history on Etherscan')).toBeTruthy();
     });
 
-    it('should render view more button for RPC networks with block explorer', () => {
+    it('renders custom explorer button for RPC networks with block explorer', () => {
       mockIsMainnetByChainId.mockReturnValue(false);
       mockGetBlockExplorerName.mockReturnValue('Custom Explorer');
 
@@ -147,7 +147,7 @@ describe('TransactionsFooter', () => {
       expect(getByText('View full history on Custom Explorer')).toBeTruthy();
     });
 
-    it('should not render view more button for RPC networks without block explorer', () => {
+    it('hides button for RPC networks without block explorer', () => {
       mockIsMainnetByChainId.mockReturnValue(false);
 
       const { queryByText } = render(
@@ -162,7 +162,7 @@ describe('TransactionsFooter', () => {
       expect(queryByText(/View full history/)).toBeNull();
     });
 
-    it('should not render view more button for RPC networks with undefined block explorer', () => {
+    it('hides button for RPC networks with undefined block explorer', () => {
       mockIsMainnetByChainId.mockReturnValue(false);
 
       const { queryByText } = render(
@@ -176,7 +176,7 @@ describe('TransactionsFooter', () => {
       expect(queryByText(/View full history/)).toBeNull();
     });
 
-    it('should call onViewBlockExplorer when button is pressed', () => {
+    it('calls onViewBlockExplorer when button is pressed', () => {
       mockIsMainnetByChainId.mockReturnValue(true);
 
       const { getByText } = render(
@@ -192,8 +192,8 @@ describe('TransactionsFooter', () => {
     });
   });
 
-  describe('Non-EVM Chains', () => {
-    it('should render view more button for non-EVM chains with block explorer', () => {
+  describe('Non-EVM Chain Block Explorer', () => {
+    it('renders custom explorer button for non-EVM chains with block explorer', () => {
       mockGetBlockExplorerName.mockReturnValue('Solscan');
 
       const { getByText } = render(
@@ -208,7 +208,7 @@ describe('TransactionsFooter', () => {
       expect(getByText('View full history on Solscan')).toBeTruthy();
     });
 
-    it('should not render view more button for non-EVM chains without block explorer', () => {
+    it('hides button for non-EVM chains without block explorer', () => {
       const { queryByText } = render(
         <TransactionsFooter
           chainId="solana:mainnet"
@@ -220,7 +220,7 @@ describe('TransactionsFooter', () => {
       expect(queryByText(/View full history/)).toBeNull();
     });
 
-    it('should not render view more button for non-EVM chains with NO_RPC_BLOCK_EXPLORER', () => {
+    it('hides button for non-EVM chains with NO_RPC_BLOCK_EXPLORER', () => {
       const { queryByText } = render(
         <TransactionsFooter
           chainId="solana:mainnet"
@@ -233,7 +233,7 @@ describe('TransactionsFooter', () => {
       expect(queryByText(/View full history/)).toBeNull();
     });
 
-    it('should call onViewBlockExplorer for non-EVM chains', () => {
+    it('calls onViewBlockExplorer for non-EVM chains', () => {
       mockGetBlockExplorerName.mockReturnValue('Solscan');
 
       const { getByText } = render(
@@ -250,8 +250,8 @@ describe('TransactionsFooter', () => {
     });
   });
 
-  describe('Disclaimer', () => {
-    it('should render disclaimer by default', () => {
+  describe('Disclaimer Text', () => {
+    it('renders disclaimer by default', () => {
       const { getByText } = render(
         <TransactionsFooter onViewBlockExplorer={mockOnViewBlockExplorer} />,
       );
@@ -259,7 +259,7 @@ describe('TransactionsFooter', () => {
       expect(getByText('This is a disclaimer text')).toBeTruthy();
     });
 
-    it('should render disclaimer when showDisclaimer is true', () => {
+    it('renders disclaimer when showDisclaimer is true', () => {
       const { getByText } = render(
         <TransactionsFooter
           onViewBlockExplorer={mockOnViewBlockExplorer}
@@ -270,7 +270,7 @@ describe('TransactionsFooter', () => {
       expect(getByText('This is a disclaimer text')).toBeTruthy();
     });
 
-    it('should not render disclaimer when showDisclaimer is false', () => {
+    it('hides disclaimer when showDisclaimer is false', () => {
       const { queryByText } = render(
         <TransactionsFooter
           onViewBlockExplorer={mockOnViewBlockExplorer}
@@ -283,7 +283,7 @@ describe('TransactionsFooter', () => {
   });
 
   describe('Edge Cases', () => {
-    it('should handle undefined chainId', () => {
+    it('handles undefined chainId', () => {
       mockIsMainnetByChainId.mockReturnValue(false);
 
       const { getByText } = render(
@@ -296,7 +296,7 @@ describe('TransactionsFooter', () => {
       expect(getByText('This is a disclaimer text')).toBeTruthy();
     });
 
-    it('should handle undefined providerType', () => {
+    it('handles undefined providerType', () => {
       mockIsMainnetByChainId.mockReturnValue(false);
 
       const { getByText } = render(
@@ -309,7 +309,7 @@ describe('TransactionsFooter', () => {
       expect(getByText('This is a disclaimer text')).toBeTruthy();
     });
 
-    it('should render both button and disclaimer when both conditions are met', () => {
+    it('renders both button and disclaimer when both conditions are met', () => {
       mockIsMainnetByChainId.mockReturnValue(true);
 
       const { getByText } = render(
@@ -325,7 +325,7 @@ describe('TransactionsFooter', () => {
       expect(getByText('This is a disclaimer text')).toBeTruthy();
     });
 
-    it('should render only disclaimer when no block explorer is available', () => {
+    it('renders only disclaimer when no block explorer is available', () => {
       mockIsMainnetByChainId.mockReturnValue(false);
 
       const { getByText, queryByText } = render(
@@ -343,8 +343,8 @@ describe('TransactionsFooter', () => {
     });
   });
 
-  describe('getBlockExplorerText Logic', () => {
-    it('should prioritize non-EVM chain logic over mainnet logic', () => {
+  describe('Block Explorer Text Logic', () => {
+    it('prioritizes non-EVM chain logic over mainnet logic', () => {
       mockIsMainnetByChainId.mockReturnValue(true);
       mockGetBlockExplorerName.mockReturnValue('Solscan');
 
@@ -364,7 +364,7 @@ describe('TransactionsFooter', () => {
       );
     });
 
-    it('should call getBlockExplorerName with correct parameters', () => {
+    it('calls getBlockExplorerName with correct parameters', () => {
       mockIsMainnetByChainId.mockReturnValue(false);
       mockGetBlockExplorerName.mockReturnValue('Custom Explorer');
 
@@ -382,7 +382,7 @@ describe('TransactionsFooter', () => {
       );
     });
 
-    it('should call isMainnetByChainId with correct parameters', () => {
+    it('calls isMainnetByChainId with correct parameters', () => {
       mockIsMainnetByChainId.mockReturnValue(true);
 
       render(
@@ -398,7 +398,7 @@ describe('TransactionsFooter', () => {
   });
 
   describe('Component Structure', () => {
-    it('should render with correct structure when both elements are present', () => {
+    it('renders with correct structure when both elements are present', () => {
       mockIsMainnetByChainId.mockReturnValue(true);
 
       const { getByText } = render(
@@ -414,7 +414,7 @@ describe('TransactionsFooter', () => {
       expect(getByText('This is a disclaimer text')).toBeTruthy();
     });
 
-    it('should render empty view when no elements are present', () => {
+    it('renders empty view when no elements are present', () => {
       mockIsMainnetByChainId.mockReturnValue(false);
 
       const { queryByText } = render(

@@ -67,34 +67,34 @@ interface MultichainTransactionsViewProps {
   onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 }
 
-const MultichainTransactionsView: React.FC<MultichainTransactionsViewProps> = ({
-  transactions: transactionsProp,
+const MultichainTransactionsView = ({
+  transactions,
   header,
-  navigation: navigationProp,
-  selectedAddress: selectedAddressProp,
-  chainId: chainIdProp,
+  navigation,
+  selectedAddress,
+  chainId,
   enableRefresh = false,
   emptyMessage,
   showDisclaimer = false,
   onScroll,
-}) => {
+}: MultichainTransactionsViewProps) => {
   const { colors } = useTheme();
   const style = styles(colors);
   const defaultNavigation = useNavigation();
-  const navigation = navigationProp ?? defaultNavigation;
+  const nav = navigation ?? defaultNavigation;
 
   const defaultSelectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const selectedAddress = selectedAddressProp ?? defaultSelectedAddress;
+  const address = selectedAddress ?? defaultSelectedAddress;
 
   const solanaAccountTransactions = useSelector(
     selectSolanaAccountTransactions,
   );
 
-  const transactions = useMemo(
-    () => transactionsProp ?? solanaAccountTransactions?.transactions,
-    [transactionsProp, solanaAccountTransactions],
+  const txList = useMemo(
+    () => transactions ?? solanaAccountTransactions?.transactions,
+    [transactions, solanaAccountTransactions],
   );
 
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
@@ -122,17 +122,17 @@ const MultichainTransactionsView: React.FC<MultichainTransactionsViewProps> = ({
     </View>
   );
 
-  const chainId =
-    chainIdProp ?? nonEvmNetworkChainIdByAccountAddress(selectedAddress ?? '');
-  const url = getAddressUrl(selectedAddress ?? '', chainId as CaipChainId);
+  const currentChainId =
+    chainId ?? nonEvmNetworkChainIdByAccountAddress(address ?? '');
+  const url = getAddressUrl(address ?? '', currentChainId as CaipChainId);
 
   const footer = (
     <MultichainTransactionsFooter
       url={url}
-      hasTransactions={(transactions?.length ?? 0) > 0}
+      hasTransactions={(txList?.length ?? 0) > 0}
       showDisclaimer={showDisclaimer}
       onViewMore={() => {
-        navigation.navigate('Webview', {
+        nav.navigate('Webview', {
           screen: 'SimpleWebview',
           params: { url },
         });
@@ -154,8 +154,8 @@ const MultichainTransactionsView: React.FC<MultichainTransactionsViewProps> = ({
       <MultichainTransactionListItem
         transaction={item}
         bridgeHistoryItem={bridgeHistoryItem}
-        selectedAddress={selectedAddress ?? ''}
-        navigation={navigation}
+        selectedAddress={address ?? ''}
+        navigation={nav}
         index={index}
       />
     );
@@ -167,7 +167,7 @@ const MultichainTransactionsView: React.FC<MultichainTransactionsViewProps> = ({
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <FlashList
-              data={transactions}
+              data={txList}
               renderItem={renderTransactionItem}
               keyExtractor={(item) => item.id}
               ListHeaderComponent={header}

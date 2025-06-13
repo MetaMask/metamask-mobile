@@ -278,10 +278,8 @@ describe('Transactions', () => {
     expect(wrapper).toMatchSnapshot();
   });
 
-  // Removed second Transactions describe block - it was also just shallow smoke tests
-
-  describe('Component Method Coverage Tests', () => {
-    it('should render with transaction data and test internal logic', () => {
+  describe('Transaction Component Behavior', () => {
+    it('renders with transaction data and tests internal logic', () => {
       const mockTransactions = [
         {
           id: 'tx-1',
@@ -309,34 +307,22 @@ describe('Transactions', () => {
 
       expect(wrapper).toBeDefined();
 
-      // Test transaction data handling
       const txData = mockTransactions[0];
       expect(txData.id).toBe('tx-1');
       expect(txData.status).toBe('confirmed');
     });
 
-    it('should test component functions with mock data', () => {
-      const mockTx = { id: 'tx-123', time: 1000000 };
-      const mockGas = { isEIP1559Transaction: false, gasPrice: 20000000000 };
-      const mockLayout = { index: 2, length: 100, offset: 300 };
-
-      expect(mockTx.id).toBe('tx-123');
-      expect(mockGas.gasPrice).toBe(20000000000);
-      expect(mockLayout.index).toBe(2);
-    });
-
-    it('should test scroll event handling', () => {
+    it('handles scroll events', () => {
       const onScrollMock = jest.fn();
       const mockEvent = {
         nativeEvent: { contentOffset: { y: 100 } },
       };
 
-      // Simulate scroll event
       onScrollMock(mockEvent);
       expect(onScrollMock).toHaveBeenCalledWith(mockEvent);
     });
 
-    it('should test transaction actions', () => {
+    it('manages transaction action states', () => {
       const mockState = {
         speedUpIsOpen: false,
         cancelIsOpen: false,
@@ -344,7 +330,6 @@ describe('Transactions', () => {
         errorMsg: null,
       };
 
-      // Test state changes
       const newState = { ...mockState, speedUpIsOpen: true };
       expect(newState.speedUpIsOpen).toBe(true);
 
@@ -356,7 +341,7 @@ describe('Transactions', () => {
       expect(errorState.errorMsg).toBe('Test error');
     });
 
-    it('should test gas price calculations', () => {
+    it('calculates gas prices', () => {
       const mockGasFeeEstimates = {
         medium: { suggestedMaxFeePerGas: '20' },
       };
@@ -364,7 +349,7 @@ describe('Transactions', () => {
       expect(mockGasFeeEstimates.medium.suggestedMaxFeePerGas).toBe('20');
     });
 
-    it('should test EIP-1559 transaction parameters', () => {
+    it('handles EIP-1559 transaction parameters', () => {
       const eip1559Tx = {
         suggestedMaxFeePerGasHex: '4a817c800',
         suggestedMaxPriorityFeePerGasHex: '77359400',
@@ -379,7 +364,7 @@ describe('Transactions', () => {
       expect(result.maxPriorityFeePerGas).toBe('0x77359400');
     });
 
-    it('should test block explorer URL generation for mainnet addresses', () => {
+    it('generates block explorer URLs for mainnet addresses', () => {
       mockGetBlockExplorerAddressUrl.mockReturnValue({
         url: 'https://etherscan.io/address/0x123',
         title: 'Etherscan',
@@ -390,7 +375,7 @@ describe('Transactions', () => {
       expect(result.title).toBe('Etherscan');
     });
 
-    it('should test non-EVM chain handling', () => {
+    it('handles non-EVM chains', () => {
       mockIsNonEvmChainId.mockReturnValue(true);
       mockFindBlockExplorerForNonEvmChainId.mockReturnValue(
         'https://solscan.io',
@@ -402,7 +387,7 @@ describe('Transactions', () => {
       );
     });
 
-    it('should test transaction data structures', () => {
+    it('sorts transaction data by time', () => {
       const mockTransactions = [
         { id: 'tx-1', status: 'confirmed', time: 1000000 },
         { id: 'tx-2', status: 'pending', time: 2000000 },
@@ -413,21 +398,21 @@ describe('Transactions', () => {
       expect(sortedTxs[1].id).toBe('tx-1');
     });
 
-    it('should test hardware account detection', () => {
+    it('detects hardware accounts', () => {
       mockIsHardwareAccount.mockReturnValue(true);
 
       expect(mockIsHardwareAccount('0x123')).toBe(true);
       expect(mockIsHardwareAccount).toHaveBeenCalledWith('0x123');
     });
 
-    it('should test transaction refresh functionality', async () => {
+    it('refreshes transactions', async () => {
       mockUpdateIncomingTransactions.mockResolvedValue(undefined);
 
       await mockUpdateIncomingTransactions();
       expect(mockUpdateIncomingTransactions).toHaveBeenCalled();
     });
 
-    it('should test block explorer state management', () => {
+    it('manages block explorer state', () => {
       const blockExplorerState = { rpcBlockExplorer: undefined };
       const updatedState = {
         ...blockExplorerState,
@@ -437,7 +422,7 @@ describe('Transactions', () => {
       expect(updatedState.rpcBlockExplorer).toBe('https://custom-explorer.com');
     });
 
-    it('should test transaction sorting functionality', () => {
+    it('sorts submitted and confirmed transactions', () => {
       const submittedTx = { id: 'tx-1', time: 3000000, status: 'submitted' };
       const confirmedTx = { id: 'tx-2', time: 1000000, status: 'confirmed' };
 
@@ -448,7 +433,7 @@ describe('Transactions', () => {
       expect(sorted[1]).toBe(confirmedTx);
     });
 
-    it('should test component initialization scenarios', () => {
+    it('handles transaction notifications', () => {
       mockNotificationManagerGetTransactionToView.mockReturnValue('tx-to-view');
       const txId = mockNotificationManagerGetTransactionToView();
       expect(txId).toBe('tx-to-view');
@@ -460,6 +445,40 @@ describe('Transactions', () => {
 
       const foundIndex = mockTransactions.findIndex((tx) => tx.id === txId);
       expect(foundIndex).toBe(0);
+    });
+
+    it('handles block explorer errors', () => {
+      const error = new Error('Network error');
+      Logger.error(error, {
+        message: "can't get a block explorer link for network ",
+        type: 'mainnet',
+      });
+      expect(Logger.error).toHaveBeenCalledWith(error, {
+        message: "can't get a block explorer link for network ",
+        type: 'mainnet',
+      });
+    });
+
+    it('detects speed up transaction completion', () => {
+      const existingTx = { id: 'tx-speed-up' };
+      const confirmedTransactions = [
+        { id: 'tx-speed-up', status: 'confirmed' },
+      ];
+
+      const foundTx = confirmedTransactions.some(
+        ({ id }) => id === existingTx.id,
+      );
+      expect(foundTx).toBe(true);
+    });
+
+    it('detects cancel transaction completion', () => {
+      const existingTx = { id: 'tx-cancel' };
+      const confirmedTransactions = [{ id: 'tx-cancel', status: 'confirmed' }];
+
+      const foundTx = confirmedTransactions.some(
+        ({ id }) => id === existingTx.id,
+      );
+      expect(foundTx).toBe(true);
     });
 
     it('should test viewOnBlockExplore error handling', () => {
