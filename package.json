@@ -288,7 +288,6 @@
     "@walletconnect/utils": "^2.19.2",
     "@xmldom/xmldom": "^0.8.10",
     "appium-adb": "^9.11.4",
-    "appium-uiautomator2-driver": "^4.2.3",
     "asyncstorage-down": "4.2.0",
     "axios": "^1.8.2",
     "base-64": "1.0.0",
@@ -633,10 +632,7 @@
       "viem>ws>bufferutil": false,
       "viem>ws>utf-8-validate": false,
       "detox>@wix-pilot/core>canvas": true,
-      "ts-node>@swc/core": false,
-      "appium-uiautomator2-driver>appium-adb>@appium/support>sharp": false,
-      "appium-uiautomator2-driver>appium-android-driver>@appium/support>sharp": false,
-      "appium-uiautomator2-driver>appium-android-driver>appium-chromedriver>@appium/support>sharp": false
+      "ts-node>@swc/core": false
     }
   },
   "packageManager": "yarn@1.22.22",
