@@ -37,11 +37,11 @@ describe('Migration 083', () => {
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('captures exception if the `CronjobController` state is invalid', () => {
+  it('captures exception if the `CronjobController` state is not an object', () => {
     const state = {
       engine: {
         backgroundState: {
-          // CronjobController is missing
+          CronjobController: false,
         },
       },
     };
@@ -53,7 +53,7 @@ describe('Migration 083', () => {
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
     expect(mockedCaptureException.mock.calls[0][0].message).toBe(
-      'Migration 83: `CronjobController` state not found or is not an object.',
+      'Migration 83: `CronjobController` state is not an object.',
     );
   });
 
@@ -323,6 +323,94 @@ describe('Migration 083', () => {
                 recurring: true,
                 date: '2023-09-30T23:59:00.000Z',
                 schedule: '*/30 * * * * *',
+                scheduledAt: '2023-10-01T00:00:00.000Z',
+                snapId: MOCK_SNAP_ID,
+                request: {
+                  method: 'foo',
+                  params: { bar: 'baz' },
+                },
+              },
+            },
+          },
+
+          PermissionController:
+            oldState.engine.backgroundState.PermissionController,
+        },
+      },
+    });
+  });
+
+  it('adds cronjobs to the `events` property and deletes the `jobs` property if the `CronjobController` state is `undefined`', async () => {
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const oldState = {
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+              [MOCK_SNAP_ID]: {
+                origin: MOCK_SNAP_ID,
+                permissions: {
+                  [SnapEndowments.Cronjob]: {
+                    caveats: [
+                      {
+                        type: SnapCaveatType.SnapCronjob,
+                        value: {
+                          jobs: [
+                            {
+                              expression: '*/30 * * * * *',
+                              request: {
+                                method: 'foo',
+                                params: { bar: 'baz' },
+                              },
+                            },
+                            {
+                              expression: '0 0 0 * 11 *',
+                              request: {
+                                method: 'foo',
+                                params: { bar: 'baz' },
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                    date: 1664187844588,
+                    id: 'izn0WGUO8cvq_jqvLQuQP',
+                    invoker: MOCK_ORIGIN,
+                    parentCapability: SnapEndowments.EthereumProvider,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const newState = await migrate(oldState);
+    expect(newState).toStrictEqual({
+      engine: {
+        backgroundState: {
+          CronjobController: {
+            events: {
+              [`cronjob-${MOCK_SNAP_ID}-0`]: {
+                id: `cronjob-${MOCK_SNAP_ID}-0`,
+                recurring: true,
+                date: '2023-09-30T23:59:00.000Z',
+                schedule: '*/30 * * * * *',
+                scheduledAt: '2023-10-01T00:00:00.000Z',
+                snapId: MOCK_SNAP_ID,
+                request: {
+                  method: 'foo',
+                  params: { bar: 'baz' },
+                },
+              },
+              [`cronjob-${MOCK_SNAP_ID}-1`]: {
+                id: `cronjob-${MOCK_SNAP_ID}-1`,
+                recurring: true,
+                date: '2022-11-29T05:00:00.000Z',
+                schedule: '0 0 0 * 11 *',
                 scheduledAt: '2023-10-01T00:00:00.000Z',
                 snapId: MOCK_SNAP_ID,
                 request: {

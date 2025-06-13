@@ -128,13 +128,19 @@ const migration = (state: unknown): unknown => {
     return state;
   }
 
-  if (
-    !hasProperty(state.engine.backgroundState, 'CronjobController') ||
-    !isObject(state.engine.backgroundState.CronjobController)
-  ) {
+  if (!hasProperty(state.engine.backgroundState, 'CronjobController')) {
+    // Because of a bug in the client pre-migration, the `CronjobController`
+    // state may not exist.
+    state.engine.backgroundState.CronjobController ??= {
+      events: {},
+      jobs: {},
+    };
+  }
+
+  if (!isObject(state.engine.backgroundState.CronjobController)) {
     captureException?.(
       new Error(
-        `Migration ${migrationVersion}: \`CronjobController\` state not found or is not an object.`,
+        `Migration ${migrationVersion}: \`CronjobController\` state is not an object.`,
       ),
     );
 
