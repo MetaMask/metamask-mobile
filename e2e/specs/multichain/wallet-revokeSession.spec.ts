@@ -12,34 +12,8 @@ import { DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS, withFixtures } from '../.
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import MultichainUtilities from '../../utils/MultichainUtilities';
-
-/**
- * Helper function to attempt invoking a method on a specific chain
- * This simulates what would happen when trying to use wallet_invokeMethod after revoke
- */
-async function attemptInvokeMethod(chainId: string): Promise<boolean> {
-    try {
-        const webview = MultichainTestDApp.getWebView();
-
-        // Try to find and click an invoke method button for the specific chain
-        const scopeId = `eip155:${chainId}`;
-        const invokeButtonId = `invoke-method-${scopeId}-btn`;
-
-        try {
-            const invokeButton = webview.element(by.web.id(invokeButtonId));
-            await invokeButton.scrollToView();
-            await invokeButton.runScript('(el) => { el.click(); }');
-
-            // Wait for processing
-            await TestHelpers.delay(1000);
-            return true;
-        } catch (error) {
-            return false;
-        }
-    } catch (error) {
-        return false;
-    }
-}
+import Assertions from '../../utils/Assertions';
+import { MULTICHAIN_TEST_TIMEOUTS } from '../../selectors/Browser/MultichainTestDapp.selectors';
 
 describe(SmokeNetworkExpansion('wallet_revokeSession'), () => {
     beforeEach(() => {
@@ -133,7 +107,7 @@ describe(SmokeNetworkExpansion('wallet_revokeSession'), () => {
 
                 // Test that invoke method works before revoke (if possible)
                 try {
-                    await attemptInvokeMethod(networksToTest[0]); // Try first network
+                    await MultichainTestDApp.attemptInvokeMethodWithButton(networksToTest[0]); // Try first network
                 } catch (error) {
                     // This is optional - not all test environments support invoke methods
                 }
@@ -154,7 +128,7 @@ describe(SmokeNetworkExpansion('wallet_revokeSession'), () => {
 
                 // Test that invoke method fails after revoke
                 try {
-                    const invokeSuccess = await attemptInvokeMethod(networksToTest[0]);
+                    const invokeSuccess = await MultichainTestDApp.attemptInvokeMethodWithButton(networksToTest[0]);
                     if (invokeSuccess) {
                         // Don't fail the test as this might depend on the test environment
                     }
@@ -165,7 +139,7 @@ describe(SmokeNetworkExpansion('wallet_revokeSession'), () => {
                 // Test invoke method for all previously available networks
                 for (const chainId of networksToTest) {
                     try {
-                        const invokeSuccess = await attemptInvokeMethod(chainId);
+                        const invokeSuccess = await MultichainTestDApp.attemptInvokeMethodWithButton(chainId);
                         if (invokeSuccess) {
                             // Expected behavior may vary
                         }

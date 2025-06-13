@@ -4,13 +4,12 @@
  * E2E tests for wallet_createSession API
  * Tests creating sessions with different scope combinations and verifying permissions
  */
-import { SmokeNetworkExpansion } from '../../tags';
-import TestHelpers from '../../helpers';
 import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures, DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS } from '../../fixtures/fixture-helper';
+import { DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS, withFixtures } from '../../fixtures/fixture-helper';
+import TestHelpers from '../../helpers';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
+import { SmokeNetworkExpansion } from '../../tags';
 import MultichainUtilities from '../../utils/MultichainUtilities';
-import SoftAssert from '../../utils/SoftAssert';
 
 describe(SmokeNetworkExpansion('wallet_createSession'), () => {
     beforeEach(() => {
@@ -42,33 +41,19 @@ describe(SmokeNetworkExpansion('wallet_createSession'), () => {
 
                 MultichainUtilities.logSessionDetails(sessionResult, 'Single Ethereum Test');
 
-                const softAssert = new SoftAssert();
-
-                await softAssert.checkAndCollect(async () => {
-                    if (!assertions.structureValid) {
-                        throw new Error('Invalid session structure');
-                    }
-                }, 'Session structure validation');
-
-                await softAssert.checkAndCollect(async () => {
-                    if (!assertions.success) {
-                        throw new Error('Session creation failed');
-                    }
-                }, 'Session creation');
-
-                await softAssert.checkAndCollect(async () => {
-                    if (!assertions.chainsValid) {
-                        throw new Error(`Chain validation failed. Missing chains: ${assertions.missingChains.join(', ')}`);
-                    }
-                }, 'Chain validation');
-
-                await softAssert.checkAndCollect(async () => {
-                    if (assertions.chainCount !== 1) {
-                        throw new Error(`Expected 1 chain, but found ${assertions.chainCount}`);
-                    }
-                }, 'Chain count validation');
-
-                softAssert.throwIfErrors();
+                // Validate all assertions - same logic as before
+                if (!assertions.structureValid) {
+                    throw new Error('Invalid session structure');
+                }
+                if (!assertions.success) {
+                    throw new Error('Session creation failed');
+                }
+                if (!assertions.chainsValid) {
+                    throw new Error(`Chain validation failed. Missing chains: ${assertions.missingChains.join(', ')}`);
+                }
+                if (assertions.chainCount !== 1) {
+                    throw new Error(`Expected 1 chain, but found ${assertions.chainCount}`);
+                }
 
 
             },
@@ -100,33 +85,19 @@ describe(SmokeNetworkExpansion('wallet_createSession'), () => {
 
                 MultichainUtilities.logSessionDetails(sessionResult, 'Multi-chain Test');
 
-                const softAssert = new SoftAssert();
-
-                await softAssert.checkAndCollect(async () => {
-                    if (!assertions.structureValid) {
-                        throw new Error('Invalid session structure');
-                    }
-                }, 'Session structure validation');
-
-                await softAssert.checkAndCollect(async () => {
-                    if (!assertions.success) {
-                        throw new Error('Session creation failed');
-                    }
-                }, 'Session creation');
-
-                await softAssert.checkAndCollect(async () => {
-                    if (!assertions.chainsValid) {
-                        throw new Error(`Chain validation failed. Missing chains: ${assertions.missingChains.join(', ')}`);
-                    }
-                }, 'Chain validation');
-
-                await softAssert.checkAndCollect(async () => {
-                    if (assertions.chainCount !== 2) {
-                        throw new Error(`Expected 2 chains, but found ${assertions.chainCount}`);
-                    }
-                }, 'Chain count validation');
-
-                softAssert.throwIfErrors();
+                // Validate all assertions - same logic as before
+                if (!assertions.structureValid) {
+                    throw new Error('Invalid session structure');
+                }
+                if (!assertions.success) {
+                    throw new Error('Session creation failed');
+                }
+                if (!assertions.chainsValid) {
+                    throw new Error(`Chain validation failed. Missing chains: ${assertions.missingChains.join(', ')}`);
+                }
+                if (assertions.chainCount !== 2) {
+                    throw new Error(`Expected 2 chains, but found ${assertions.chainCount}`);
+                }
 
             },
         );
@@ -157,33 +128,19 @@ describe(SmokeNetworkExpansion('wallet_createSession'), () => {
 
                 MultichainUtilities.logSessionDetails(sessionResult, 'All Networks Test');
 
-                const softAssert = new SoftAssert();
-
-                await softAssert.checkAndCollect(async () => {
-                    if (!assertions.structureValid) {
-                        throw new Error('Invalid session structure');
-                    }
-                }, 'Session structure validation');
-
-                await softAssert.checkAndCollect(async () => {
-                    if (!assertions.success) {
-                        throw new Error('Session creation failed');
-                    }
-                }, 'Session creation');
-
-                await softAssert.checkAndCollect(async () => {
-                    if (!assertions.foundChains.includes(MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET)) {
-                        throw new Error('Ethereum mainnet not found in session scopes');
-                    }
-                }, 'Ethereum mainnet presence');
-
-                await softAssert.checkAndCollect(async () => {
-                    if (assertions.chainCount <= 1) {
-                        throw new Error(`Expected multiple chains, but found ${assertions.chainCount}`);
-                    }
-                }, 'Multiple chains validation');
-
-                softAssert.throwIfErrors();
+                // Validate all assertions - same logic as before
+                if (!assertions.structureValid) {
+                    throw new Error('Invalid session structure');
+                }
+                if (!assertions.success) {
+                    throw new Error('Session creation failed');
+                }
+                if (!assertions.foundChains.includes(MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET)) {
+                    throw new Error('Ethereum mainnet not found in session scopes');
+                }
+                if (assertions.chainCount <= 1) {
+                    throw new Error(`Expected multiple chains, but found ${assertions.chainCount}`);
+                }
             },
         );
     });

@@ -10,6 +10,8 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS, withFixtures } from '../../fixtures/fixture-helper';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
 import MultichainUtilities from '../../utils/MultichainUtilities';
+import Assertions from '../../utils/Assertions';
+import { MULTICHAIN_TEST_TIMEOUTS } from '../../selectors/Browser/MultichainTestDapp.selectors';
 
 describe(SmokeNetworkExpansion('wallet_sessionChanged'), () => {
     beforeEach(() => {
@@ -33,9 +35,7 @@ describe(SmokeNetworkExpansion('wallet_sessionChanged'), () => {
                 ];
                 await MultichainTestDApp.createSessionWithNetworks(initialNetworks);
 
-                await TestHelpers.delay(3000);
-
-                const webview = MultichainTestDApp.getWebView();
+                await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.METHOD_INVOCATION);
 
                 // Add Base network to the session
                 const modifiedNetworks = [
@@ -45,25 +45,29 @@ describe(SmokeNetworkExpansion('wallet_sessionChanged'), () => {
 
                 await MultichainTestDApp.createSessionWithNetworks(modifiedNetworks);
 
-                await TestHelpers.delay(5000);
+                await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.ELEMENT_VISIBILITY);
 
                 // Check the most recent sessionChanged event at index 0
                 const baseScope = MultichainUtilities.getEIP155Scope(MultichainUtilities.CHAIN_IDS.BASE);
 
-                const eventResult = webview.element(by.web.id('wallet-session-changed-result-0'));
-                await eventResult.scrollToView();
-                const eventText = await eventResult.runScript((el) => el.textContent || '');
+                const eventText = await MultichainTestDApp.getSessionChangedEventData(0);
+
+                // Verify event text exists
+                await Assertions.checkIfValueIsPresent(eventText);
 
                 if (!eventText) {
-                    throw new Error('Could not read sessionChanged event content');
+                    throw new Error('Event text is null or empty');
                 }
 
                 const parsedEvent = JSON.parse(eventText);
                 const eventScopes = Object.keys(parsedEvent.params?.sessionScopes || {});
 
-                if (!eventScopes.includes(baseScope)) {
-                    throw new Error(`Base network (${baseScope}) not found in sessionChanged event. Found: ${eventScopes.join(', ')}`);
-                }
+                // Verify Base network is included in the event
+                const baseScopeIncluded = eventScopes.includes(baseScope);
+                await Assertions.checkIfTextMatches(
+                    baseScopeIncluded ? 'true' : 'false',
+                    'true'
+                );
 
                 console.log('✅ wallet_sessionChanged test passed - event triggered correctly');
             },

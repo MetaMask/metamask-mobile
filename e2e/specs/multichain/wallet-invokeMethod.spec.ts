@@ -28,6 +28,8 @@ import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import MultichainUtilities from '../../utils/MultichainUtilities';
 import Assertions from '../../utils/Assertions';
+import { MULTICHAIN_TEST_TIMEOUTS } from '../../selectors/Browser/MultichainTestDapp.selectors';
+import { waitFor } from 'detox';
 
 describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
     beforeEach(() => {
@@ -48,49 +50,23 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
                     const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
                     await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
-                    await TestHelpers.delay(3000);
+                    await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.METHOD_INVOCATION);
 
-                    const webview = MultichainTestDApp.getWebView();
                     const chainId = MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET;
-                    const scope = MultichainUtilities.getEIP155Scope(chainId);
                     const method = 'eth_chainId';
-                    const escapedScopeForButton = scope.replace(/:/g, '-');
-                    const directButtonId = `direct-invoke-${escapedScopeForButton}-${method}`;
 
-                    const directButton = webview.element(by.web.id(directButtonId));
+                    // Invoke the method
+                    const invoked = await MultichainTestDApp.invokeMethodOnChain(chainId, method);
+                    await Assertions.checkIfTextMatches(invoked ? 'true' : 'false', 'true');
 
-                    try {
-                        await Assertions.checkIfVisible(Promise.resolve(directButton));
-                    } catch (e) {
-                        await TestHelpers.delay(2000);
-                    }
+                    // Get the result
+                    const resultText = await MultichainTestDApp.getInvokeMethodResult(chainId, method, 0);
 
-                    await directButton.tap();
-
-                    try {
-                        const invokeContainerId = `invoke-container-${escapedScopeForButton}`;
-                        const invokeContainer = webview.element(by.web.id(invokeContainerId));
-                        await invokeContainer.scrollToView();
-                    } catch (e) {
-                        // Invoke container not found or not visible
-                    }
-
-                    await TestHelpers.delay(3000);
-
-                    const resultElementId = `invoke-method-${escapedScopeForButton}-${method}-result-0`;
-                    const itemId = `method-result-item-${escapedScopeForButton}-${method}-0`;
-                    const itemElement = webview.element(by.web.id(itemId));
-                    await itemElement.scrollToView();
-
-                    try {
-                        const resultElement = webview.element(by.web.id(resultElementId));
-                        const resultText = await resultElement.runScript((el) => el.textContent || '');
-                        console.log(`eth_chainId result (fallback): ${resultText}`);
-                        if (method === 'eth_chainId' && resultText.includes('"0x1"')) {
-                            console.log('✅ eth_chainId returned expected value: 0x1 (fallback)');
+                    if (resultText) {
+                        console.log(`eth_chainId result: ${resultText}`);
+                        if (resultText.includes('"0x1"')) {
+                            console.log('✅ eth_chainId returned expected value: 0x1');
                         }
-                    } catch (readError) {
-                        // Could not read result text (Detox limitation)
                     }
                 },
             );
@@ -109,38 +85,23 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
                     const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
                     await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
-                    await TestHelpers.delay(3000);
+                    await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.METHOD_INVOCATION);
 
-                    const webview = MultichainTestDApp.getWebView();
                     const chainId = MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET;
-                    const scope = MultichainUtilities.getEIP155Scope(chainId);
                     const method = 'eth_getBalance';
-                    const escapedScopeForButton = scope.replace(/:/g, '-');
-                    const directButtonId = `direct-invoke-${escapedScopeForButton}-${method}`;
 
-                    const directButton = webview.element(by.web.id(directButtonId));
-                    await directButton.tap();
+                    // Invoke the method
+                    const invoked = await MultichainTestDApp.invokeMethodOnChain(chainId, method);
+                    await Assertions.checkIfTextMatches(invoked ? 'true' : 'false', 'true');
 
-                    try {
-                        const invokeContainerId = `invoke-container-${escapedScopeForButton}`;
-                        const invokeContainer = webview.element(by.web.id(invokeContainerId));
-                        await invokeContainer.scrollToView();
-                    } catch (e) {
-                        // Invoke container not found or not visible
-                    }
+                    // Get the result
+                    const resultText = await MultichainTestDApp.getInvokeMethodResult(chainId, method, 0);
 
-                    await TestHelpers.delay(3000);
-
-                    const resultElementId = `invoke-method-${escapedScopeForButton}-${method}-result-0`;
-                    const itemId = `method-result-item-${escapedScopeForButton}-${method}-0`;
-                    const itemElement = webview.element(by.web.id(itemId));
-                    await itemElement.scrollToView();
-
-                    const resultElement = webview.element(by.web.id(resultElementId));
-                    const resultText = await resultElement.runScript((el) => el.textContent || '');
-                    console.log(`eth_getBalance result (fallback): ${resultText}`);
-                    if (method === 'eth_getBalance' && resultText.includes('"0x')) {
-                        console.log('✅ eth_getBalance returned a valid hex balance (fallback)');
+                    if (resultText) {
+                        console.log(`eth_getBalance result: ${resultText}`);
+                        if (resultText.includes('"0x')) {
+                            console.log('✅ eth_getBalance returned a valid hex balance');
+                        }
                     }
                 },
             );
@@ -159,37 +120,23 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
                     const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
                     await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
-                    await TestHelpers.delay(3000);
+                    await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.METHOD_INVOCATION);
 
-                    const webview = MultichainTestDApp.getWebView();
                     const chainId = MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET;
-                    const scope = MultichainUtilities.getEIP155Scope(chainId);
                     const method = 'eth_gasPrice';
-                    const escapedScopeForButton = scope.replace(/:/g, '-');
-                    const directButtonId = `direct-invoke-${escapedScopeForButton}-${method}`;
 
-                    const directButton = webview.element(by.web.id(directButtonId));
-                    await directButton.tap();
+                    // Invoke the method
+                    const invoked = await MultichainTestDApp.invokeMethodOnChain(chainId, method);
+                    await Assertions.checkIfTextMatches(invoked ? 'true' : 'false', 'true');
 
-                    try {
-                        const invokeContainerId = `invoke-container-${escapedScopeForButton}`;
-                        const invokeContainer = webview.element(by.web.id(invokeContainerId));
-                        await invokeContainer.scrollToView();
-                    } catch (e) {
-                        // Invoke container not found or not visible
-                    }
+                    // Get the result
+                    const resultText = await MultichainTestDApp.getInvokeMethodResult(chainId, method, 0);
 
-                    await TestHelpers.delay(3000);
-
-                    const resultElementId = `invoke-method-${escapedScopeForButton}-${method}-result-0`;
-                    const itemId = `method-result-item-${escapedScopeForButton}-${method}-0`;
-                    const itemElement = webview.element(by.web.id(itemId));
-                    await itemElement.scrollToView();
-                    const resultElement = webview.element(by.web.id(resultElementId));
-                    const resultText = await resultElement.runScript((el) => el.textContent || '');
-                    console.log(`eth_gasPrice result: ${resultText}`);
-                    if (method === 'eth_gasPrice' && resultText.includes('"0x')) {
-                        console.log('✅ eth_gasPrice returned a valid hex gas price');
+                    if (resultText) {
+                        console.log(`eth_gasPrice result: ${resultText}`);
+                        if (resultText.includes('"0x')) {
+                            console.log('✅ eth_gasPrice returned a valid hex gas price');
+                        }
                     }
                 }
             );
@@ -210,22 +157,20 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
                     const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
                     await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
-                    await TestHelpers.delay(3000);
+                    await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.METHOD_INVOCATION);
 
-                    const webview = MultichainTestDApp.getWebView();
                     const chainId = MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET;
-                    const scope = MultichainUtilities.getEIP155Scope(chainId);
                     const method = 'eth_sendTransaction';
-                    const escapedScopeForButton = scope.replace(/:/g, '-');
 
-                    const directButtonId = `direct-invoke-${escapedScopeForButton}-${method}`;
+                    // Invoke the method
+                    const invoked = await MultichainTestDApp.invokeMethodOnChain(chainId, method);
+                    await Assertions.checkIfTextMatches(invoked ? 'true' : 'false', 'true');
 
-                    const directButton = webview.element(by.web.id(directButtonId));
-                    await directButton.tap();
+                    // Wait for and cancel the confirmation dialog
                     const cancelButton = element(by.text('Cancel'));
-                    await waitFor(cancelButton).toBeVisible().withTimeout(10000);
+                    await waitFor(cancelButton).toBeVisible().withTimeout(MULTICHAIN_TEST_TIMEOUTS.NAVIGATION);
                     await cancelButton.tap();
-                    await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))).toBeVisible().withTimeout(5000);
+                    await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))).toBeVisible().withTimeout(MULTICHAIN_TEST_TIMEOUTS.ELEMENT_VISIBILITY);
                     console.log('✅ eth_sendTransaction confirmation dialog test passed');
                 },
             );
@@ -244,28 +189,23 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
                     const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
                     await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
-                    await TestHelpers.delay(3000);
+                    await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.METHOD_INVOCATION);
 
-                    const webview = MultichainTestDApp.getWebView();
                     const chainId = MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET;
-                    const scope = MultichainUtilities.getEIP155Scope(chainId);
-                    const escapedScopeForButton = scope.replace(/:/g, '-');
-
                     const writeOperations = ['eth_sendTransaction', 'personal_sign'];
 
                     for (const method of writeOperations) {
-                        const directButtonId = `direct-invoke-${escapedScopeForButton}-${method}`;
-
-                        const directButton = webview.element(by.web.id(directButtonId));
-                        await directButton.tap();
+                        // Invoke the method
+                        const invoked = await MultichainTestDApp.invokeMethodOnChain(chainId, method);
+                        await Assertions.checkIfTextMatches(invoked ? 'true' : 'false', 'true');
 
                         // Both eth_sendTransaction and personal_sign use Cancel button
                         const cancelButton = element(by.text('Cancel'));
-                        await waitFor(cancelButton).toBeVisible().withTimeout(10000);
+                        await waitFor(cancelButton).toBeVisible().withTimeout(MULTICHAIN_TEST_TIMEOUTS.NAVIGATION);
                         await cancelButton.tap();
                         console.log(`✅ ${method} confirmation screen test passed`);
 
-                        await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))).toBeVisible().withTimeout(5000);
+                        await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))).toBeVisible().withTimeout(MULTICHAIN_TEST_TIMEOUTS.ELEMENT_VISIBILITY);
                     }
 
                     console.log('✅ Transaction confirmation requirement test passed');
@@ -288,46 +228,24 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
                     const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
                     await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
-                    await TestHelpers.delay(3000);
+                    await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.METHOD_INVOCATION);
 
-                    const webview = MultichainTestDApp.getWebView();
                     const chainId = MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET;
-                    const scope = MultichainUtilities.getEIP155Scope(chainId);
-                    const escapedScopeForButton = scope.replace(/:/g, '-');
-
                     const methodsToTest = ['eth_chainId', 'eth_getBalance', 'eth_gasPrice'];
 
                     for (const method of methodsToTest) {
-                        const directButtonId = `direct-invoke-${escapedScopeForButton}-${method}`;
+                        // Invoke the method
+                        const invoked = await MultichainTestDApp.invokeMethodOnChain(chainId, method);
+                        await Assertions.checkIfTextMatches(invoked ? 'true' : 'false', 'true');
 
-                        const directButton = webview.element(by.web.id(directButtonId));
-                        await directButton.tap();
+                        // Get the result
+                        const resultText = await MultichainTestDApp.getInvokeMethodResult(chainId, method, 0);
 
-                        try {
-                            const invokeContainerId = `invoke-container-${escapedScopeForButton}`;
-                            const invokeContainer = webview.element(by.web.id(invokeContainerId));
-                            await invokeContainer.scrollToView();
-                        } catch (e) {
-                            // Invoke container not found or not visible
-                        }
-
-                        await TestHelpers.delay(3000);
-
-                        try {
-                            const detailsId = `method-result-details-${escapedScopeForButton}-${method}-0`;
-                            const detailsElement = webview.element(by.web.id(detailsId));
-                            await detailsElement.scrollToView();
-
-                            const resultElementId = `invoke-method-${escapedScopeForButton}-${method}-result-0`;
-                            const resultElement = webview.element(by.web.id(resultElementId));
-                            const resultText = await resultElement.runScript((el) => el.textContent || '');
+                        if (resultText) {
                             console.log(`${method} result: ${resultText}`);
-
-                        } catch (resultError) {
-                            // Result not immediately visible
                         }
 
-                        await TestHelpers.delay(1000);
+                        await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.DEFAULT_DELAY);
                     }
 
                     console.log('✅ Multiple method invocation test passed');
@@ -336,4 +254,3 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
         });
     });
 });
-

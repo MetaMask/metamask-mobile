@@ -36,6 +36,7 @@ import { withFixtures, DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS } from '../.
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
 import MultichainUtilities from '../../utils/MultichainUtilities';
 import Assertions from '../../utils/Assertions';
+import { MULTICHAIN_TEST_TIMEOUTS } from '../../selectors/Browser/MultichainTestDapp.selectors';
 
 describe(SmokeNetworkExpansion('wallet_notify'), () => {
     beforeEach(() => {
@@ -55,92 +56,41 @@ describe(SmokeNetworkExpansion('wallet_notify'), () => {
                 const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
                 await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
-                await TestHelpers.delay(3000);
+                await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.METHOD_INVOCATION);
 
-                const webview = MultichainTestDApp.getWebView();
                 const chainId = MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET;
-                const scope = MultichainUtilities.getEIP155Scope(chainId);
-                const escapedScope = scope.replace(/:/g, '-');
 
                 // Check initial notification state
-                let initiallyEmpty = false;
-                try {
-                    const notificationContainer = webview.element(by.web.id('wallet-notify-container'));
-                    await notificationContainer.scrollToView();
-
-                    try {
-                        const emptyMessage = webview.element(by.web.id('wallet-notify-empty'));
-                        await Assertions.checkIfVisible(Promise.resolve(emptyMessage));
-                        initiallyEmpty = true;
-                    } catch (e) {
-                        // Notifications might already exist from previous test
-                    }
-                } catch (e) {
-                    // Could not check initial notification state
-                }
+                const initiallyEmpty = await MultichainTestDApp.isNotificationContainerEmpty();
 
                 // Subscribe to events
-                const directButtonId = `direct-invoke-${escapedScope}-eth_subscribe`;
-                const directButton = webview.element(by.web.id(directButtonId));
-                await directButton.tap();
+                const subscribed = await MultichainTestDApp.subscribeToChainEvents(chainId);
+
+                // Verify subscription was successful
+                await Assertions.checkIfTextMatches(
+                    subscribed ? 'true' : 'false',
+                    'true'
+                );
+
                 console.log('✅ Successfully subscribed to events');
 
-                // Verify subscription was successful by checking invoke result
-                try {
-                    const invokeResultId = `invoke-method-${escapedScope}-eth_subscribe-result-0`;
-                    const invokeResultElement = webview.element(by.web.id(invokeResultId));
-                    await invokeResultElement.scrollToView();
-
-                    try {
-                        await invokeResultElement.tap();
-                    } catch (e) {
-                        // Subscription result found but not tappable (Detox limitation)
-                    }
-                } catch (e) {
-                    // Could not find subscription result - might be rendered differently
-                }
-
                 // Wait for notifications to arrive
-                await TestHelpers.delay(8000);
+                await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.NOTIFICATION_WAIT);
 
-                // Verify notifications arrived
-                const notificationContainer = webview.element(by.web.id('wallet-notify-container'));
-                await notificationContainer.scrollToView();
+                // Check if we have notifications now
+                const hasNotifications = await MultichainTestDApp.hasNotifications();
 
-                try {
-                    await notificationContainer.tap();
-                } catch (e) {
-                    // Notification container found but not tappable
+                // Verify notifications were delivered
+                await Assertions.checkIfTextMatches(
+                    hasNotifications ? 'true' : 'false',
+                    'true'
+                );
+
+                if (hasNotifications && initiallyEmpty) {
+                    console.log('✅ Confirmed state change: empty → has notifications');
                 }
 
-                // Check if container is empty or has notifications
-                let hasNotifications = false;
-
-                try {
-                    const emptyMessage = webview.element(by.web.id('wallet-notify-empty'));
-                    await Assertions.checkIfVisible(Promise.resolve(emptyMessage));
-                } catch (e) {
-                    // Empty message not found - good, means we have notifications
-                }
-
-                // Look for notification details elements
-                try {
-                    const firstNotification = webview.element(by.web.id('wallet-notify-details-0'));
-                    await firstNotification.scrollToView();
-                    hasNotifications = true;
-                    console.log('✅ Found wallet-notify-details-0 - notifications are being delivered!');
-                } catch (e) {
-                    // No notifications found
-                }
-
-                if (hasNotifications) {
-                    if (initiallyEmpty) {
-                        console.log('✅ Confirmed state change: empty → has notifications');
-                    }
-                    console.log('✅ wallet_notify test passed');
-                } else {
-                    throw new Error('No notifications were delivered after subscription');
-                }
+                console.log('✅ wallet_notify test passed');
             },
         );
     });

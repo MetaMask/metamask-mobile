@@ -3,7 +3,7 @@ import TestHelpers from '../../helpers';
 import { getLocalTestDappPort } from '../../fixtures/utils';
 import Matchers from '../../utils/Matchers';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
-import { MultichainTestDappSelectorsWebIDs } from '../../selectors/Browser/MultichainTestDapp.selectors';
+import { MultichainTestDappViewSelectorsIDs, MULTICHAIN_TEST_TIMEOUTS } from '../../selectors/Browser/MultichainTestDapp.selectors';
 import Browser from './BrowserView';
 import Gestures from '../../utils/Gestures';
 import { waitFor } from 'detox';
@@ -66,42 +66,42 @@ class MultichainTestDApp {
   get extensionIdInput() {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      MultichainTestDappSelectorsWebIDs.EXTENSION_ID_INPUT,
+      MultichainTestDappViewSelectorsIDs.EXTENSION_ID_INPUT,
     );
   }
 
   get connectButton() {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      MultichainTestDappSelectorsWebIDs.CONNECT_BUTTON,
+      MultichainTestDappViewSelectorsIDs.CONNECT_BUTTON,
     );
   }
 
   get createSessionButton() {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      MultichainTestDappSelectorsWebIDs.CREATE_SESSION_BUTTON,
+      MultichainTestDappViewSelectorsIDs.CREATE_SESSION_BUTTON,
     );
   }
 
   get getSessionButton() {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      MultichainTestDappSelectorsWebIDs.GET_SESSION_BUTTON,
+      MultichainTestDappViewSelectorsIDs.GET_SESSION_BUTTON,
     );
   }
 
   get revokeSessionButton() {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      MultichainTestDappSelectorsWebIDs.REVOKE_SESSION_BUTTON,
+      MultichainTestDappViewSelectorsIDs.REVOKE_SESSION_BUTTON,
     );
   }
 
   get clearExtensionButton() {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      MultichainTestDappSelectorsWebIDs.CLEAR_EXTENSION_BUTTON,
+      MultichainTestDappViewSelectorsIDs.CLEAR_EXTENSION_BUTTON,
     );
   }
 
@@ -140,6 +140,8 @@ class MultichainTestDApp {
 
   /**
    * Tap a button in the WebView
+   * @param {any} elementId - The element ID to tap
+   * @returns {Promise<void>}
    */
   // Detox ts scripts unclear here.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -150,6 +152,9 @@ class MultichainTestDApp {
 
   /**
    * Create a session with the specified scopes
+   * @param {string[]} _scopes - The scopes to create session with
+   * @param {string[]} _accounts - The accounts to use
+   * @returns {Promise<boolean>} Success status
    */
   async initCreateSessionScopes(
     _scopes: string[],
@@ -169,6 +174,7 @@ class MultichainTestDApp {
 
   /**
    * Clear extension ID
+   * @returns {Promise<boolean>} Success status
    */
   async clearExtension(): Promise<boolean> {
     // Get element first
@@ -183,10 +189,12 @@ class MultichainTestDApp {
   /**
    * Connect to the dapp using JavaScript injection (alternative method)
    * This can be used as a fallback if the regular connect method doesn't work
+   * @param {string} _extensionId - The extension ID to connect with
+   * @returns {Promise<boolean>} Success status
    */
   async connectViaJS(_extensionId = 'window.postMessage'): Promise<boolean> {
     // Make sure the webview exists and is visible
-    await expect(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))).toBeVisible();
+    await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))).toBeVisible().withTimeout(10000);
 
     // Tap the webview to ensure it has focus
     await element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)).tap();
@@ -203,8 +211,9 @@ class MultichainTestDApp {
 
   /**
    * Get the WebView object for interaction
+   * @private
    */
-  getWebView() {
+  private getWebView() {
     return web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)).atIndex(0);
   }
 
@@ -649,6 +658,172 @@ class MultichainTestDApp {
 
     // Wait for the connection to be established
     await TestHelpers.delay(2000);
+  }
+
+  /**
+   * Get session changed event data
+   * @param {number} index - The index of the event result to retrieve
+   * @returns {Promise<string|null>} The event text content or null if not found
+   */
+  async getSessionChangedEventData(index = 0): Promise<string | null> {
+    const webview = this.getWebView();
+    const elementId = `${MultichainTestDappViewSelectorsIDs.WALLET_SESSION_CHANGED_RESULT}${index}`;
+    const eventResult = webview.element(by.web.id(elementId));
+
+    try {
+      await eventResult.scrollToView();
+      const eventText = await eventResult.runScript((el) => el.textContent || '');
+      return eventText;
+    } catch (error) {
+      console.error(`Failed to get session changed event data at index ${index}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Subscribe to events on a specific chain
+   * @param {string} chainId - The chain ID to subscribe to
+   * @returns {Promise<boolean>} Success status
+   */
+  async subscribeToChainEvents(chainId: string): Promise<boolean> {
+    const webview = this.getWebView();
+    const scope = MultichainUtilities.getEIP155Scope(chainId);
+    const escapedScope = scope.replace(/:/g, '-');
+    const directButtonId = `${MultichainTestDappViewSelectorsIDs.DIRECT_INVOKE_PREFIX}${escapedScope}-eth_subscribe`;
+
+    try {
+      const directButton = webview.element(by.web.id(directButtonId));
+      await directButton.tap();
+      await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.DEFAULT_DELAY);
+      return true;
+    } catch (error) {
+      console.error(`Failed to subscribe to events for chain ${chainId}:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Check if notification container is empty
+   * @returns {Promise<boolean>} True if empty, false otherwise
+   */
+  async isNotificationContainerEmpty(): Promise<boolean> {
+    const webview = this.getWebView();
+
+    try {
+      const notificationContainer = webview.element(by.web.id(MultichainTestDappViewSelectorsIDs.WALLET_NOTIFY_CONTAINER));
+      await notificationContainer.scrollToView();
+
+      const emptyMessage = webview.element(by.web.id(MultichainTestDappViewSelectorsIDs.WALLET_NOTIFY_EMPTY));
+      await Assertions.checkIfVisible(Promise.resolve(emptyMessage));
+      return true;
+    } catch (error) {
+      // Empty message not found means we have notifications
+      return false;
+    }
+  }
+
+  /**
+   * Check if notifications are present
+   * @returns {Promise<boolean>} True if notifications exist, false otherwise
+   */
+  async hasNotifications(): Promise<boolean> {
+    const webview = this.getWebView();
+
+    try {
+      const firstNotification = webview.element(by.web.id(`${MultichainTestDappViewSelectorsIDs.WALLET_NOTIFY_DETAILS}0`));
+      await firstNotification.scrollToView();
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Invoke a method on a specific chain
+   * @param {string} chainId - The chain ID
+   * @param {string} method - The method name (e.g., 'eth_chainId', 'eth_getBalance')
+   * @returns {Promise<boolean>} Success status
+   */
+  async invokeMethodOnChain(chainId: string, method: string): Promise<boolean> {
+    const webview = this.getWebView();
+    const scope = MultichainUtilities.getEIP155Scope(chainId);
+    const escapedScope = scope.replace(/:/g, '-');
+    const directButtonId = `${MultichainTestDappViewSelectorsIDs.DIRECT_INVOKE_PREFIX}${escapedScope}-${method}`;
+
+    try {
+      const directButton = webview.element(by.web.id(directButtonId));
+      await Assertions.checkIfVisible(Promise.resolve(directButton));
+      await directButton.tap();
+      await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.DEFAULT_DELAY);
+      return true;
+    } catch (error) {
+      console.error(`Failed to invoke ${method} on chain ${chainId}:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Get the result of an invoked method
+   * @param {string} chainId - The chain ID
+   * @param {string} method - The method name
+   * @param {number} index - The result index
+   * @returns {Promise<string|null>} The result text or null if not found
+   */
+  async getInvokeMethodResult(chainId: string, method: string, index = 0): Promise<string | null> {
+    const webview = this.getWebView();
+    const scope = MultichainUtilities.getEIP155Scope(chainId);
+    const escapedScope = scope.replace(/:/g, '-');
+
+    try {
+      // First try to scroll to the invoke container
+      const invokeContainerId = `${MultichainTestDappViewSelectorsIDs.INVOKE_CONTAINER_PREFIX}${escapedScope}`;
+      const invokeContainer = webview.element(by.web.id(invokeContainerId));
+      await invokeContainer.scrollToView();
+    } catch (error) {
+      // Container might not exist or not be visible, continue anyway
+    }
+
+    await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.METHOD_INVOCATION);
+
+    try {
+      // Try to scroll to the result item
+      const itemId = `${MultichainTestDappViewSelectorsIDs.METHOD_RESULT_ITEM_PREFIX}${escapedScope}-${method}-${index}`;
+      const itemElement = webview.element(by.web.id(itemId));
+      await itemElement.scrollToView();
+
+      // Get the actual result content
+      const resultElementId = `${MultichainTestDappViewSelectorsIDs.INVOKE_METHOD_RESULT_PREFIX}${escapedScope}-${method}-result-${index}`;
+      const resultElement = webview.element(by.web.id(resultElementId));
+      const resultText = await resultElement.runScript((el) => el.textContent || '');
+
+      return resultText;
+    } catch (error) {
+      console.error(`Failed to get result for ${method} on chain ${chainId}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Attempt to invoke a method using the invoke button (used for testing after revoke)
+   * @param {string} chainId - The chain ID
+   * @returns {Promise<boolean>} True if button was clicked, false otherwise
+   */
+  async attemptInvokeMethodWithButton(chainId: string): Promise<boolean> {
+    try {
+      const webview = this.getWebView();
+      const scopeId = `eip155:${chainId}`;
+      const invokeButtonId = `invoke-method-${scopeId}-btn`;
+
+      const invokeButton = webview.element(by.web.id(invokeButtonId));
+      await invokeButton.scrollToView();
+      await invokeButton.runScript('(el) => { el.click(); }');
+
+      // Wait for processing
+      await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.DEFAULT_DELAY);
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 }
 
