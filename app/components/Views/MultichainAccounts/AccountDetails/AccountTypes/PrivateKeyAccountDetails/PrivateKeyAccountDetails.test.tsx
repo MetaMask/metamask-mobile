@@ -6,6 +6,8 @@ import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { MultichainDeleteAccountsSelectors } from '../../../../../../../e2e/specs/multichainAccounts/delete-account';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { ExportCredentialsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/ExportCredentials.selectors';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -31,6 +33,38 @@ const mockAccount = createMockInternalAccount(
 const mockInitialState = {
   settings: {
     useBlockieIcon: false,
+  },
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            [mockAccount.id]: mockAccount,
+          },
+        },
+      },
+      KeyringController: {
+        keyrings: [
+          {
+            accounts: [mockAccount.address],
+            type: KeyringTypes.simple,
+            metadata: {
+              id: 'mock-id',
+              name: 'mock-name',
+            },
+          },
+          {
+            accounts: [],
+            type: KeyringTypes.hd,
+            metadata: {
+              id: 'mock-id-hd',
+              name: 'mock-name-hd',
+            },
+          },
+        ],
+      },
+    },
   },
 };
 
@@ -72,5 +106,17 @@ describe('PrivateKeyAccountDetails', () => {
 
     expect(baseAccountDetails).toBeTruthy();
     expect(removeAccount).toBeTruthy();
+  });
+
+  it('only renders show private key', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <PrivateKeyAccountDetails account={mockAccount} />,
+      { state: mockInitialState },
+    );
+
+    expect(
+      getByTestId(ExportCredentialsIds.EXPORT_PRIVATE_KEY_BUTTON),
+    ).toBeTruthy();
+    expect(queryByTestId(ExportCredentialsIds.EXPORT_SRP_BUTTON)).toBeNull();
   });
 });
