@@ -4863,15 +4863,17 @@
   resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-7.0.0.tgz#3434c19fb52a0cba15242085867236c3ec1c2aea"
   integrity sha512-M92BTgygZ4zteKL0tlWnXMpeWUY2cyraP1g+f6xIH67litdSu5iUyp2nhzVIlzHwGR+ycQAaicSscKyKm3aUVQ==
 
-"@metamask/earn-controller@^0.13.0":
-  version "0.13.0"
-  resolved "https://registry.yarnpkg.com/@metamask/earn-controller/-/earn-controller-0.13.0.tgz#4fb05d563351ead7fe0dc153c7b6b6d453346fb7"
-  integrity sha512-Dn6+johhYnjb4DK6DG9RLyJJ0BRmQobZuJwYHbX3DgkC3Y1hVoPnXEqQYPfIEvHZQFHo1A8XhGl0HTjAQvvSGg==
+"@metamask/earn-controller@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-1.1.0.tgz#c2181aa5767c94e22ac5fe15019976818af3d5bb"
+  integrity sha512-3RSvyoiXMm3HtkBTTUQ0CmPzFMtoYzi9GofRUdvvEqH/RjYJHXtMytPoBVH6GKdYFkWKldIqdKCRkoy1JxnXjQ==
   dependencies:
+    "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.7.0"
-    "@metamask/stake-sdk" "^1.0.0"
+    "@metamask/controller-utils" "^11.10.0"
+    "@metamask/stake-sdk" "^3.2.0"
+    reselect "^5.1.1"
 
 "@metamask/eip1193-permission-middleware@^0.1.0":
   version "0.1.0"
@@ -5834,10 +5836,10 @@
     "@wallet-standard/wallet" "^1.1.0"
     bs58 "^6.0.0"
 
-"@metamask/stake-sdk@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.npmjs.org/@metamask/stake-sdk/-/stake-sdk-1.0.0.tgz#44f599a0b9a785a03c5c40a2dffd9f463045de0e"
-  integrity sha512-AjpQq2fstCpqcgMuIAW1VLaKdUmmdR5zQCJz1KgaXVkp9MFCa3GWfrgfZynN2S+h+39hst/2KNHHOeJrGWYGGw==
+"@metamask/stake-sdk@^3.2.0":
+  version "3.2.0"
+  resolved "https://registry.npmjs.org/@metamask/stake-sdk/-/stake-sdk-3.2.0.tgz#30b52ad6c190f4473d44ae2106b7346aaaa2e28f"
+  integrity sha512-llrtdY7k+P93Tu67N8bJxiQ4tXqZPPXOL+8ltZ854wf2P7vZOsdBXMO9dZOeLEjf3lCebNaIgZMddDbXP39tmQ==
 
 "@metamask/superstruct@^3.0.0", "@metamask/superstruct@^3.1.0", "@metamask/superstruct@^3.2.1":
   version "3.2.1"
