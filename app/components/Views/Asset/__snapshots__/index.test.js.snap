@@ -1616,7 +1616,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               "flex": 1,
                                               "flexDirection": "row",
                                               "paddingHorizontal": 15,
-                                              "paddingVertical": 10,
+                                              "paddingVertical": 14,
                                             }
                                           }
                                           testID="asset-SOL"
@@ -1792,9 +1792,9 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                   "alignSelf": "flex-start",
                                                   "color": "#121314",
                                                   "flex": 1,
-                                                  "fontFamily": "CentraNo1-Medium",
-                                                  "fontSize": 18,
-                                                  "fontWeight": "500",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
+                                                  "fontWeight": "400",
                                                   "justifyContent": "flex-start",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1810,10 +1810,10 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                   {
                                                     "color": "#ca3542",
                                                     "fontFamily": "CentraNo1-Medium",
-                                                    "fontSize": 16,
+                                                    "fontSize": 14,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
-                                                    "lineHeight": 24,
+                                                    "lineHeight": 22,
                                                   }
                                                 }
                                               />
@@ -1834,10 +1834,10 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                 {
                                                   "color": "#686e7d",
                                                   "fontFamily": "CentraNo1-Book",
-                                                  "fontSize": 16,
+                                                  "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                                  "lineHeight": 22,
                                                   "paddingHorizontal": 0,
                                                 }
                                               }
@@ -3646,7 +3646,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               "flex": 1,
                                               "flexDirection": "row",
                                               "paddingHorizontal": 15,
-                                              "paddingVertical": 10,
+                                              "paddingVertical": 14,
                                             }
                                           }
                                           testID="asset-SOL"
@@ -3822,9 +3822,9 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                   "alignSelf": "flex-start",
                                                   "color": "#121314",
                                                   "flex": 1,
-                                                  "fontFamily": "CentraNo1-Medium",
-                                                  "fontSize": 18,
-                                                  "fontWeight": "500",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
+                                                  "fontWeight": "400",
                                                   "justifyContent": "flex-start",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -3840,10 +3840,10 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                   {
                                                     "color": "#ca3542",
                                                     "fontFamily": "CentraNo1-Medium",
-                                                    "fontSize": 16,
+                                                    "fontSize": 14,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
-                                                    "lineHeight": 24,
+                                                    "lineHeight": 22,
                                                   }
                                                 }
                                               />
@@ -3864,10 +3864,10 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                 {
                                                   "color": "#686e7d",
                                                   "fontFamily": "CentraNo1-Book",
-                                                  "fontSize": 16,
+                                                  "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                                  "lineHeight": 22,
                                                   "paddingHorizontal": 0,
                                                 }
                                               }
@@ -5676,7 +5676,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               "flex": 1,
                                               "flexDirection": "row",
                                               "paddingHorizontal": 15,
-                                              "paddingVertical": 10,
+                                              "paddingVertical": 14,
                                             }
                                           }
                                           testID="asset-USDC"
@@ -5819,9 +5819,9 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                   "alignSelf": "flex-start",
                                                   "color": "#121314",
                                                   "flex": 1,
-                                                  "fontFamily": "CentraNo1-Medium",
-                                                  "fontSize": 18,
-                                                  "fontWeight": "500",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
+                                                  "fontWeight": "400",
                                                   "justifyContent": "flex-start",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -5837,10 +5837,10 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                   {
                                                     "color": "#ca3542",
                                                     "fontFamily": "CentraNo1-Medium",
-                                                    "fontSize": 16,
+                                                    "fontSize": 14,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
-                                                    "lineHeight": 24,
+                                                    "lineHeight": 22,
                                                   }
                                                 }
                                               />
@@ -5861,10 +5861,10 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                 {
                                                   "color": "#686e7d",
                                                   "fontFamily": "CentraNo1-Book",
-                                                  "fontSize": 16,
+                                                  "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                                  "lineHeight": 22,
                                                   "paddingHorizontal": 0,
                                                 }
                                               }
@@ -7747,7 +7747,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               "flex": 1,
                                               "flexDirection": "row",
                                               "paddingHorizontal": 15,
-                                              "paddingVertical": 10,
+                                              "paddingVertical": 14,
                                             }
                                           }
                                           testID="asset-SOL"
@@ -7923,9 +7923,9 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                   "alignSelf": "flex-start",
                                                   "color": "#121314",
                                                   "flex": 1,
-                                                  "fontFamily": "CentraNo1-Medium",
-                                                  "fontSize": 18,
-                                                  "fontWeight": "500",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
+                                                  "fontWeight": "400",
                                                   "justifyContent": "flex-start",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7941,10 +7941,10 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                   {
                                                     "color": "#ca3542",
                                                     "fontFamily": "CentraNo1-Medium",
-                                                    "fontSize": 16,
+                                                    "fontSize": 14,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
-                                                    "lineHeight": 24,
+                                                    "lineHeight": 22,
                                                   }
                                                 }
                                               />
@@ -7965,10 +7965,10 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                 {
                                                   "color": "#686e7d",
                                                   "fontFamily": "CentraNo1-Book",
-                                                  "fontSize": 16,
+                                                  "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                                  "lineHeight": 22,
                                                   "paddingHorizontal": 0,
                                                 }
                                               }
@@ -9777,7 +9777,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               "flex": 1,
                                               "flexDirection": "row",
                                               "paddingHorizontal": 15,
-                                              "paddingVertical": 10,
+                                              "paddingVertical": 14,
                                             }
                                           }
                                           testID="asset-SOL"
@@ -9953,9 +9953,9 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                   "alignSelf": "flex-start",
                                                   "color": "#121314",
                                                   "flex": 1,
-                                                  "fontFamily": "CentraNo1-Medium",
-                                                  "fontSize": 18,
-                                                  "fontWeight": "500",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
+                                                  "fontWeight": "400",
                                                   "justifyContent": "flex-start",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -9971,10 +9971,10 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                   {
                                                     "color": "#ca3542",
                                                     "fontFamily": "CentraNo1-Medium",
-                                                    "fontSize": 16,
+                                                    "fontSize": 14,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
-                                                    "lineHeight": 24,
+                                                    "lineHeight": 22,
                                                   }
                                                 }
                                               />
@@ -9995,10 +9995,10 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                 {
                                                   "color": "#686e7d",
                                                   "fontFamily": "CentraNo1-Book",
-                                                  "fontSize": 16,
+                                                  "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                                  "lineHeight": 22,
                                                   "paddingHorizontal": 0,
                                                 }
                                               }
@@ -11807,7 +11807,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               "flex": 1,
                                               "flexDirection": "row",
                                               "paddingHorizontal": 15,
-                                              "paddingVertical": 10,
+                                              "paddingVertical": 14,
                                             }
                                           }
                                           testID="asset-UNKNOWN"
@@ -11950,9 +11950,9 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                   "alignSelf": "flex-start",
                                                   "color": "#121314",
                                                   "flex": 1,
-                                                  "fontFamily": "CentraNo1-Medium",
-                                                  "fontSize": 18,
-                                                  "fontWeight": "500",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
+                                                  "fontWeight": "400",
                                                   "justifyContent": "flex-start",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -11968,10 +11968,10 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                   {
                                                     "color": "#ca3542",
                                                     "fontFamily": "CentraNo1-Medium",
-                                                    "fontSize": 16,
+                                                    "fontSize": 14,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
-                                                    "lineHeight": 24,
+                                                    "lineHeight": 22,
                                                   }
                                                 }
                                               />
@@ -11992,10 +11992,10 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                 {
                                                   "color": "#686e7d",
                                                   "fontFamily": "CentraNo1-Book",
-                                                  "fontSize": 16,
+                                                  "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                                  "lineHeight": 22,
                                                   "paddingHorizontal": 0,
                                                 }
                                               }
@@ -14309,7 +14309,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               "flex": 1,
                                               "flexDirection": "row",
                                               "paddingHorizontal": 15,
-                                              "paddingVertical": 10,
+                                              "paddingVertical": 14,
                                             }
                                           }
                                           testID="asset-SOL"
@@ -14485,9 +14485,9 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                   "alignSelf": "flex-start",
                                                   "color": "#121314",
                                                   "flex": 1,
-                                                  "fontFamily": "CentraNo1-Medium",
-                                                  "fontSize": 18,
-                                                  "fontWeight": "500",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
+                                                  "fontWeight": "400",
                                                   "justifyContent": "flex-start",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -14503,10 +14503,10 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                   {
                                                     "color": "#ca3542",
                                                     "fontFamily": "CentraNo1-Medium",
-                                                    "fontSize": 16,
+                                                    "fontSize": 14,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
-                                                    "lineHeight": 24,
+                                                    "lineHeight": 22,
                                                   }
                                                 }
                                               />
@@ -14527,10 +14527,10 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                 {
                                                   "color": "#686e7d",
                                                   "fontFamily": "CentraNo1-Book",
-                                                  "fontSize": 16,
+                                                  "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                                  "lineHeight": 22,
                                                   "paddingHorizontal": 0,
                                                 }
                                               }
@@ -16339,7 +16339,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               "flex": 1,
                                               "flexDirection": "row",
                                               "paddingHorizontal": 15,
-                                              "paddingVertical": 10,
+                                              "paddingVertical": 14,
                                             }
                                           }
                                           testID="asset-SOL"
@@ -16515,9 +16515,9 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                   "alignSelf": "flex-start",
                                                   "color": "#121314",
                                                   "flex": 1,
-                                                  "fontFamily": "CentraNo1-Medium",
-                                                  "fontSize": 18,
-                                                  "fontWeight": "500",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
+                                                  "fontWeight": "400",
                                                   "justifyContent": "flex-start",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -16533,10 +16533,10 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                   {
                                                     "color": "#ca3542",
                                                     "fontFamily": "CentraNo1-Medium",
-                                                    "fontSize": 16,
+                                                    "fontSize": 14,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
-                                                    "lineHeight": 24,
+                                                    "lineHeight": 22,
                                                   }
                                                 }
                                               />
@@ -16557,10 +16557,10 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                 {
                                                   "color": "#686e7d",
                                                   "fontFamily": "CentraNo1-Book",
-                                                  "fontSize": 16,
+                                                  "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                                  "lineHeight": 22,
                                                   "paddingHorizontal": 0,
                                                 }
                                               }

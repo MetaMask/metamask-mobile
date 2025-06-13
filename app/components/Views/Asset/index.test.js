@@ -7,7 +7,6 @@ import renderWithProvider, {
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Asset from './';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
-import { isPortfolioViewEnabled } from '../../../util/networks';
 import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 
 // Mock Solana transactions for testing
@@ -252,6 +251,51 @@ jest.mock('../../../core/Engine', () => {
     },
   };
 });
+
+jest.mock('../../../components/UI/Stake/sdk/stakeSdkProvider', () => ({
+  earnApiService: {
+    pooledStaking: {
+      getStakingBalance: jest.fn().mockResolvedValue('0'),
+      getStakingPositions: jest.fn().mockResolvedValue([]),
+    },
+    lending: {
+      getLendingBalance: jest.fn().mockResolvedValue('0'),
+      getLendingPositions: jest.fn().mockResolvedValue([]),
+    },
+  },
+  stakingApiService: {
+    getStakingBalance: jest.fn().mockResolvedValue('0'),
+    getStakingPositions: jest.fn().mockResolvedValue([]),
+  },
+  lendingApiService: {
+    getLendingBalance: jest.fn().mockResolvedValue('0'),
+    getLendingPositions: jest.fn().mockResolvedValue([]),
+  },
+}));
+
+jest.mock('../../../selectors/earnController/earn', () => ({
+  selectLendingMarketsByChainIdAndTokenAddress: jest.fn().mockReturnValue({}),
+  selectLendingMarketsByChainIdAndOutputTokenAddress: jest
+    .fn()
+    .mockReturnValue({}),
+  selectStakingMarketsByChainIdAndTokenAddress: jest.fn().mockReturnValue({}),
+  selectStakingMarketsByChainIdAndOutputTokenAddress: jest
+    .fn()
+    .mockReturnValue({}),
+  selectEarnState: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock('../../../components/UI/Earn/hooks/useEarnTokens', () => ({
+  __esModule: true,
+  default: () => ({
+    getEarnToken: jest.fn().mockReturnValue(undefined),
+    getOutputToken: jest.fn().mockReturnValue(undefined),
+    getPairedEarnTokens: jest.fn().mockReturnValue({
+      earnToken: undefined,
+      outputToken: undefined,
+    }),
+  }),
+}));
 
 describe('Asset', () => {
   it('should render correctly', () => {
