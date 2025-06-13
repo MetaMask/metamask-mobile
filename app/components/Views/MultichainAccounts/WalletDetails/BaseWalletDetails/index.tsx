@@ -14,50 +14,30 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { TouchableOpacity, View, ViewStyle } from 'react-native';
 import { WalletDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/WalletDetails';
-import { AlignItems, FlexDirection } from '../../../../UI/Box/box.types';
+import {
+  AlignItems,
+  FlexDirection,
+  JustifyContent,
+} from '../../../../UI/Box/box.types';
 import { Box } from '../../../../UI/Box/Box';
 import { strings } from '../../../../../../locales/i18n';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { AccountId } from '@metamask/accounts-controller';
-import Engine from '../../../../../core/Engine';
 import { AccountWallet } from '@metamask/account-tree-controller';
 import Avatar, {
   AvatarAccountType,
   AvatarSize,
   AvatarVariant,
 } from '../../../../../component-library/components/Avatars/Avatar';
-import { useSelector } from 'react-redux';
+import { useWalletBalances } from '../hooks/useWalletBalances';
 import { RootState } from '../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
+import { useSelector } from 'react-redux';
+import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
+import { getInternalAccountsFromWallet } from '../utils/getInternalAccountsFromWallet';
 
 interface BaseWalletDetailsProps {
   wallet: AccountWallet;
   children?: React.ReactNode;
 }
-
-/**
- * Fetches internal accounts from the AccountsController based on the wallet's account IDs
- * @param wallet - The wallet containing account IDs to fetch
- * @returns Array of internal accounts
- */
-const getInternalAccountsFromWallet = (
-  wallet: AccountWallet,
-): InternalAccount[] => {
-  const { AccountsController } = Engine.context;
-  const { accounts } = AccountsController.state.internalAccounts;
-
-  // Extract all account IDs from the wallet's groups
-  const accountIds: AccountId[] = [];
-  Object.values(wallet.groups).forEach((group) => {
-    accountIds.push(...group.accounts);
-  });
-
-  // Fetch internal accounts for each account ID
-  const internalAccounts = accountIds
-    .map((accountId) => accounts[accountId])
-    .filter((account): account is InternalAccount => account !== undefined);
-
-  return internalAccounts;
-};
 
 export const BaseWalletDetails = ({
   wallet,
@@ -73,19 +53,25 @@ export const BaseWalletDetails = ({
     ? AvatarAccountType.Blockies
     : AvatarAccountType.JazzIcon;
 
-  const handleEditWalletName = useCallback(() => {
-    // TODO: Implement edit wallet name
-  }, []);
-
-  // Get internal accounts from the wallet
   const accounts = useMemo(
     () => getInternalAccountsFromWallet(wallet),
     [wallet],
   );
 
+  const { formattedWalletTotalBalance, multichainBalancesForAllAccounts } =
+    useWalletBalances(accounts);
+
+  const handleEditWalletName = useCallback(() => {
+    // TODO: Implement edit wallet name
+  }, []);
+
   const renderAccountItem = (account: InternalAccount, index: number) => {
     const totalAccounts = accounts.length;
     const boxStyles: ViewStyle[] = [styles.accountBox];
+    const balanceData = multichainBalancesForAllAccounts[account.id];
+    const isAccountBalanceLoading =
+      !balanceData || balanceData.isLoadingAccount;
+    const accountBalance = balanceData?.displayBalance;
 
     if (totalAccounts > 1) {
       if (index === 0) {
@@ -102,15 +88,41 @@ export const BaseWalletDetails = ({
         style={boxStyles}
         flexDirection={FlexDirection.Row}
         alignItems={AlignItems.center}
-        gap={8}
+        justifyContent={JustifyContent.spaceBetween}
       >
-        <Avatar
-          variant={AvatarVariant.Account}
-          size={AvatarSize.Md}
-          accountAddress={account.address}
-          type={accountAvatarType}
-        />
-        <Text variant={TextVariant.BodyMDMedium}>{account.metadata.name}</Text>
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={8}
+        >
+          <Avatar
+            variant={AvatarVariant.Account}
+            size={AvatarSize.Md}
+            accountAddress={account.address}
+            type={accountAvatarType}
+          />
+          <Text variant={TextVariant.BodyMDMedium}>
+            {account.metadata.name}
+          </Text>
+        </Box>
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={8}
+        >
+          {isAccountBalanceLoading ? (
+            <AnimatedSpinner />
+          ) : (
+            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+              {accountBalance}
+            </Text>
+          )}
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Md}
+            color={colors.text.alternative}
+          />
+        </Box>
       </Box>
     );
   };
@@ -167,9 +179,13 @@ export const BaseWalletDetails = ({
             alignItems={AlignItems.center}
             gap={8}
           >
-            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-              $123.45
-            </Text>
+            {formattedWalletTotalBalance === undefined ? (
+              <AnimatedSpinner size={SpinnerSize.SM} />
+            ) : (
+              <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+                {formattedWalletTotalBalance}
+              </Text>
+            )}
           </Box>
         </View>
         <View style={styles.accountsList}>
