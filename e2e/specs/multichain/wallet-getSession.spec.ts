@@ -39,11 +39,8 @@ describe(SmokeNetworkExpansion('wallet_getSession'), () => {
                     throw new Error('Invalid session structure');
                 }
 
-                if (!assertions.success) {
-                    // Session retrieval returned empty scopes as expected
-                } else if (assertions.chainCount === 0) {
-                    // Session retrieval returned empty session scopes as expected
-                } else {
+                // When there's no existing session, we expect to receive an empty session (success=false or chainCount=0)
+                if (assertions.success && assertions.chainCount > 0) {
                     throw new Error(`Expected empty session scopes, but found ${assertions.chainCount} chains`);
                 }
 

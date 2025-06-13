@@ -47,25 +47,54 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
                 async () => {
                     await MultichainTestDApp.setupAndNavigateToTestDapp('?autoMode=true');
 
-                    const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
+                    // Test with multiple networks to verify different chain IDs
+                    const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.ETHEREUM_POLYGON;
+                    
                     await MultichainTestDApp.createSessionWithNetworks(networksToTest);
+
+                    // Verify session has both chains
+                    const sessionData = await MultichainTestDApp.getSessionData();
+                    const sessionAssertions = MultichainUtilities.generateSessionAssertions(sessionData, networksToTest);
+                    if (!sessionAssertions.success || sessionAssertions.chainCount !== networksToTest.length) {
+                        throw new Error(`Session validation failed. Expected ${networksToTest.length} chains, got ${sessionAssertions.chainCount}`);
+                    }
 
                     await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.METHOD_INVOCATION);
 
-                    const chainId = MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET;
                     const method = 'eth_chainId';
+                    
+                    // Expected chain IDs in hex format
+                    const expectedResults = {
+                        [MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET]: '"0x1"',  // Ethereum = 1
+                        [MultichainUtilities.CHAIN_IDS.POLYGON]: '"0x89"'           // Polygon = 137
+                    };
 
-                    // Invoke the method
-                    const invoked = await MultichainTestDApp.invokeMethodOnChain(chainId, method);
-                    await Assertions.checkIfTextMatches(invoked ? 'true' : 'false', 'true');
+                    // Test each connected chain
+                    for (const chainId of networksToTest) {
+                        // Invoke the method on this chain
+                        const invoked = await MultichainTestDApp.invokeMethodOnChain(chainId, method);
+                        
+                        if (!invoked) {
+                            throw new Error(`Failed to invoke ${method} on chain ${chainId}`);
+                        }
 
-                    // Get the result
-                    const resultText = await MultichainTestDApp.getInvokeMethodResult(chainId, method, 0);
-
-                    if (resultText) {
-                        console.log(`eth_chainId result: ${resultText}`);
-                        if (resultText.includes('"0x1"')) {
-                            console.log('✅ eth_chainId returned expected value: 0x1');
+                        // Get the result - use index 0 since we're only invoking once per chain
+                        // The index is for multiple invocations of the same method on the same chain
+                        const resultIndex = 0; // Always 0 for first invocation
+                        
+                        const resultText = await MultichainTestDApp.getInvokeMethodResult(chainId, method, resultIndex);
+                        
+                        if (!resultText) {
+                            console.log(`Looking for element ID: invoke-method-eip155-${chainId}-${method}-result-${resultIndex}`);
+                            throw new Error(`Failed to get result for ${method} on chain ${chainId}. Element not found.`);
+                        }
+                        
+                        const matches = resultText === expectedResults[chainId];
+                        
+                        if (!matches) {
+                            console.log(`Result text: ${resultText}`);
+                            console.log(`Expected: ${expectedResults[chainId]}`);
+                            throw new Error(`Chain ${chainId} returned incorrect result. Expected: ${expectedResults[chainId]}, Got: ${resultText}`);
                         }
                     }
                 },
@@ -92,16 +121,22 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
 
                     // Invoke the method
                     const invoked = await MultichainTestDApp.invokeMethodOnChain(chainId, method);
-                    await Assertions.checkIfTextMatches(invoked ? 'true' : 'false', 'true');
+
+                    if (!invoked) {
+                        throw new Error(`Failed to invoke ${method} on chain ${chainId}`);
+                    }
 
                     // Get the result
                     const resultText = await MultichainTestDApp.getInvokeMethodResult(chainId, method, 0);
 
-                    if (resultText) {
+                    if (!resultText) {
+                        throw new Error(`Failed to get result for ${method} on chain ${chainId}. Element not found.`);
+                    }
+                    
+                    // Verify it's a valid hex string (should start with "0x)
+                    if (!resultText.includes('"0x')) {
                         console.log(`eth_getBalance result: ${resultText}`);
-                        if (resultText.includes('"0x')) {
-                            console.log('✅ eth_getBalance returned a valid hex balance');
-                        }
+                        throw new Error(`eth_getBalance returned invalid result. Expected hex string, got: ${resultText}`);
                     }
                 },
             );
@@ -127,16 +162,22 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
 
                     // Invoke the method
                     const invoked = await MultichainTestDApp.invokeMethodOnChain(chainId, method);
-                    await Assertions.checkIfTextMatches(invoked ? 'true' : 'false', 'true');
+
+                    if (!invoked) {
+                        throw new Error(`Failed to invoke ${method} on chain ${chainId}`);
+                    }
 
                     // Get the result
                     const resultText = await MultichainTestDApp.getInvokeMethodResult(chainId, method, 0);
 
-                    if (resultText) {
+                    if (!resultText) {
+                        throw new Error(`Failed to get result for ${method} on chain ${chainId}. Element not found.`);
+                    }
+                    
+                    // Verify it's a valid hex string (should start with "0x)
+                    if (!resultText.includes('"0x')) {
                         console.log(`eth_gasPrice result: ${resultText}`);
-                        if (resultText.includes('"0x')) {
-                            console.log('✅ eth_gasPrice returned a valid hex gas price');
-                        }
+                        throw new Error(`eth_gasPrice returned invalid result. Expected hex string, got: ${resultText}`);
                     }
                 }
             );
@@ -171,7 +212,6 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
                     await waitFor(cancelButton).toBeVisible().withTimeout(MULTICHAIN_TEST_TIMEOUTS.NAVIGATION);
                     await cancelButton.tap();
                     await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))).toBeVisible().withTimeout(MULTICHAIN_TEST_TIMEOUTS.ELEMENT_VISIBILITY);
-                    console.log('✅ eth_sendTransaction confirmation dialog test passed');
                 },
             );
         });
@@ -203,12 +243,9 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
                         const cancelButton = element(by.text('Cancel'));
                         await waitFor(cancelButton).toBeVisible().withTimeout(MULTICHAIN_TEST_TIMEOUTS.NAVIGATION);
                         await cancelButton.tap();
-                        console.log(`✅ ${method} confirmation screen test passed`);
 
                         await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))).toBeVisible().withTimeout(MULTICHAIN_TEST_TIMEOUTS.ELEMENT_VISIBILITY);
                     }
-
-                    console.log('✅ Transaction confirmation requirement test passed');
                 },
             );
         });
@@ -236,19 +273,29 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
                     for (const method of methodsToTest) {
                         // Invoke the method
                         const invoked = await MultichainTestDApp.invokeMethodOnChain(chainId, method);
-                        await Assertions.checkIfTextMatches(invoked ? 'true' : 'false', 'true');
+
+                        if (!invoked) {
+                            throw new Error(`Failed to invoke ${method} on chain ${chainId}`);
+                        }
 
                         // Get the result
                         const resultText = await MultichainTestDApp.getInvokeMethodResult(chainId, method, 0);
 
-                        if (resultText) {
+                        if (!resultText) {
+                            throw new Error(`Failed to get result for ${method} on chain ${chainId}. Element not found.`);
+                        }
+                        
+                        // Verify the result based on method type
+                        if (method === 'eth_chainId' && resultText !== '"0x1"') {
                             console.log(`${method} result: ${resultText}`);
+                            throw new Error(`${method} returned incorrect result. Expected: "0x1", Got: ${resultText}`);
+                        } else if ((method === 'eth_getBalance' || method === 'eth_gasPrice') && !resultText.includes('"0x')) {
+                            console.log(`${method} result: ${resultText}`);
+                            throw new Error(`${method} returned invalid result. Expected hex string, got: ${resultText}`);
                         }
 
                         await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.DEFAULT_DELAY);
                     }
-
-                    console.log('✅ Multiple method invocation test passed');
                 },
             );
         });

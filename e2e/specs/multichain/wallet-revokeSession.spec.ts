@@ -90,7 +90,7 @@ describe(SmokeNetworkExpansion('wallet_revokeSession'), () => {
                 // Login and navigate to the test dapp
                 await MultichainTestDApp.setupAndNavigateToTestDapp();
 
-                // Create session - use single network for more reliable testing
+                // Create session with single network for reliable testing
                 const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
                 await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
@@ -105,17 +105,21 @@ describe(SmokeNetworkExpansion('wallet_revokeSession'), () => {
                     throw new Error('Session validation failed before revoke');
                 }
 
-                // Test that invoke method works before revoke (if possible)
-                try {
-                    await MultichainTestDApp.attemptInvokeMethodWithButton(networksToTest[0]); // Try first network
-                } catch (error) {
-                    // This is optional - not all test environments support invoke methods
-                }
+                // Test RPC method invocation BEFORE revoke
+                const testMethod = 'eth_chainId';
+                const chainId = networksToTest[0];
+                
+                const invokeBeforeRevoke = await MultichainTestDApp.invokeMethodOnChain(chainId, testMethod);
+                expect(invokeBeforeRevoke).toBe(true); // Should successfully invoke before revoke
+                
+                // Wait for result and verify
+                await TestHelpers.delay(2000);
+                const resultBeforeRevoke = await MultichainTestDApp.getInvokeMethodResult(chainId, testMethod, 0);
+                expect(resultBeforeRevoke).toBeTruthy();
+                expect(resultBeforeRevoke).toBe('"0x1"'); // Ethereum mainnet chain ID
 
                 // Revoke the session
                 await MultichainTestDApp.tapRevokeSessionButton();
-
-                // Wait for revoke to process
                 await TestHelpers.delay(2000);
 
                 // Verify session is empty after revoke
@@ -126,26 +130,15 @@ describe(SmokeNetworkExpansion('wallet_revokeSession'), () => {
                     throw new Error('Session should be empty after revoke');
                 }
 
-                // Test that invoke method fails after revoke
-                try {
-                    const invokeSuccess = await MultichainTestDApp.attemptInvokeMethodWithButton(networksToTest[0]);
-                    if (invokeSuccess) {
-                        // Don't fail the test as this might depend on the test environment
-                    }
-                } catch (error) {
-                    // This is expected - invoke method should fail after revoke
-                }
+                // Test RPC method invocation AFTER revoke
+                // Expected: invokeMethodOnChain returns false because the invoke buttons are removed from DOM
+                const invokeAfterRevoke = await MultichainTestDApp.invokeMethodOnChain(chainId, testMethod);
+                expect(invokeAfterRevoke).toBe(false); // Should fail to invoke after revoke
 
-                // Test invoke method for all previously available networks
-                for (const chainId of networksToTest) {
-                    try {
-                        const invokeSuccess = await MultichainTestDApp.attemptInvokeMethodWithButton(chainId);
-                        if (invokeSuccess) {
-                            // Expected behavior may vary
-                        }
-                    } catch (error) {
-                        // Expected behavior
-                    }
+                // Verify all networks fail after revoke
+                for (const testChainId of networksToTest) {
+                    const invokeResult = await MultichainTestDApp.invokeMethodOnChain(testChainId, testMethod);
+                    expect(invokeResult).toBe(false); // All invocations should fail
                 }
             },
         );

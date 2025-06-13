@@ -714,7 +714,8 @@ class MultichainTestDApp {
       await notificationContainer.scrollToView();
 
       const emptyMessage = webview.element(by.web.id(MultichainTestDappViewSelectorsIDs.WALLET_NOTIFY_EMPTY));
-      await Assertions.checkIfVisible(Promise.resolve(emptyMessage));
+      // For WebView elements, try to interact to check existence
+      await emptyMessage.scrollToView();
       return true;
     } catch (error) {
       // Empty message not found means we have notifications
@@ -752,7 +753,7 @@ class MultichainTestDApp {
 
     try {
       const directButton = webview.element(by.web.id(directButtonId));
-      await Assertions.checkIfVisible(Promise.resolve(directButton));
+      // WebView elements don't need visibility checks - tap will fail if element doesn't exist
       await directButton.tap();
       await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.DEFAULT_DELAY);
       return true;

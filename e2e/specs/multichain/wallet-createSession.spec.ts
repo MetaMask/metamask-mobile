@@ -170,10 +170,9 @@ describe(SmokeNetworkExpansion('wallet_createSession'), () => {
                     throw new Error('Invalid session result type');
                 }
 
-                if (assertions.success) {
-                    // Session created with some chains
-                } else {
-                    // Session creation failed as expected for no networks
+                // When no networks are selected, session creation should fail
+                if (assertions.success || assertions.chainCount > 0) {
+                    throw new Error('Expected session creation to fail with no networks selected, but it succeeded');
                 }
             },
         );
