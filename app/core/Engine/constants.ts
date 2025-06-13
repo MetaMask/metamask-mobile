@@ -71,6 +71,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'BridgeStatusController:stateChange',
   'EarnController:stateChange',
   'DeFiPositionsController:stateChange',
+  'SamplePetnamesController:stateChange',
 ] as const;
 
 export const swapsSupportedChainIds = [

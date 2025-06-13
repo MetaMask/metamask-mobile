@@ -225,6 +225,7 @@ import {
   MultichainRouterGetSupportedAccountsEvent,
   MultichainRouterIsSupportedScopeEvent,
 } from './controllers/multichain-router/constants';
+import { samplePetnamesControllerInit } from '../../features/SampleFeature/controllers/sample-petnames-controller-init';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1203,6 +1204,7 @@ export class Engine {
         MultichainBalancesController: multichainBalancesControllerInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
         ///: END:ONLY_INCLUDE_IF
+        SamplePetnamesController: samplePetnamesControllerInit,
       },
       persistedState: initialState as EngineState,
       existingControllersByName,
@@ -1561,6 +1563,7 @@ export class Engine {
       BridgeStatusController: bridgeStatusController,
       EarnController: earnController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
+      SamplePetnamesController: controllersByName.SamplePetnamesController,
     };
 
     const childControllers = Object.assign({}, this.context);

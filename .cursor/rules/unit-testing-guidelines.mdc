@@ -1,7 +1,7 @@
 ---
-description: Project Guidelines for Unit Testing
-globs: *.test.*
-alwaysApply: false
+description: 
+globs: 
+alwaysApply: true
 ---
 - Use (the unit testing guidelines)[https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/unit-testing.md]
 	
