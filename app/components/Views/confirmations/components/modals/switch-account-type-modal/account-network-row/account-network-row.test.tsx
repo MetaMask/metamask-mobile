@@ -225,6 +225,37 @@ describe('Account Network Row', () => {
         expect(mockNavigate).toHaveBeenCalledWith('ConfirmationRequestModal');
       });
     });
+
+    it('disables switch when there are pending requests', () => {
+      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
+      mockUseBatchAuthorizationRequests.mockReturnValueOnce({
+        hasPendingRequests: true,
+      });
+      const { getByTestId } = renderWithProvider(
+        <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
+        { state: MOCK_STATE },
+      );
+      const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
+      expect(switchComponent.props.disabled).toBe(true);
+    });
+
+    it('disables switch for standard account when upgradeContractAddress is missing', () => {
+      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
+      const networkWithoutUpgradeContract = {
+        ...MOCK_NETWORK,
+        isSupported: false,
+        upgradeContractAddress: undefined,
+      };
+      const { getByTestId } = renderWithProvider(
+        <AccountNetworkRow
+          address={MOCK_ADDRESS}
+          network={networkWithoutUpgradeContract}
+        />,
+        { state: MOCK_STATE },
+      );
+      const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
+      expect(switchComponent.props.disabled).toBe(true);
+    });
   });
 
   describe('Switch Button', () => {

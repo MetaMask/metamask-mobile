@@ -121,6 +121,10 @@ const AccountNetworkRow = ({
           }}
           thumbColor={theme.brandColors.white}
           ios_backgroundColor={colors.border.muted}
+          disabled={
+            hasPendingRequests ||
+            (!addressSupportSmartAccount && !upgradeContractAddress)
+          }
         />
       </Box>
     );
