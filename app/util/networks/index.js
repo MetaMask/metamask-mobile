@@ -632,8 +632,6 @@ export const getBlockExplorerTxUrl = (
 export const getIsNetworkOnboarded = (chainId, networkOnboardedState) =>
   networkOnboardedState[chainId];
 
-export const isChainPermissionsFeatureEnabled = true;
-
 export const isPermissionsSettingsV1Enabled =
   process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';
 
