@@ -38,6 +38,15 @@ jest.mock('../../../../hooks/7702/useEIP7702Accounts', () => ({
   }),
 }));
 
+const mockMultichainAccountsState1Enabled = jest.fn().mockReturnValue(false);
+jest.mock(
+  '../../../../../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState1Enabled: () =>
+      mockMultichainAccountsState1Enabled(),
+  }),
+);
+
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -59,16 +68,6 @@ const MOCK_STATE = {
     backgroundState: {
       TransactionController: { transactions: [mockTransaction] },
     },
-  },
-  settings: {
-    useMultichainAccountDesign: false,
-  },
-} as unknown as RootState;
-
-const MOCK_STATE_WITH_MULTICHAIN = {
-  ...MOCK_STATE,
-  settings: {
-    useMultichainAccountDesign: true,
   },
 } as unknown as RootState;
 
@@ -105,27 +104,30 @@ describe('Account Network Row', () => {
 
   describe('Multichain Account Design', () => {
     it('renders network name correctly', () => {
+      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
       const { getByText } = renderWithProvider(
         <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
-        { state: MOCK_STATE_WITH_MULTICHAIN },
+        { state: MOCK_STATE },
       );
 
       expect(getByText('Sepolia')).toBeTruthy();
     });
 
     it('renders switch component with correct testID', () => {
+      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
       const { getByTestId } = renderWithProvider(
         <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
-        { state: MOCK_STATE_WITH_MULTICHAIN },
+        { state: MOCK_STATE },
       );
 
       expect(getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH)).toBeTruthy();
     });
 
     it('renders switch in correct state for smart account (supported network)', () => {
+      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
       const { getByTestId } = renderWithProvider(
         <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
-        { state: MOCK_STATE_WITH_MULTICHAIN },
+        { state: MOCK_STATE },
       );
 
       const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
@@ -133,12 +135,13 @@ describe('Account Network Row', () => {
     });
 
     it('renders switch in correct state for standard account (unsupported network)', () => {
+      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
       const { getByTestId } = renderWithProvider(
         <AccountNetworkRow
           address={MOCK_ADDRESS}
           network={{ ...MOCK_NETWORK, isSupported: false }}
         />,
-        { state: MOCK_STATE_WITH_MULTICHAIN },
+        { state: MOCK_STATE },
       );
 
       const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
@@ -146,9 +149,10 @@ describe('Account Network Row', () => {
     });
 
     it('calls downgrade function when switch is toggled from smart to standard account', () => {
+      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
       const { getByTestId } = renderWithProvider(
         <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
-        { state: MOCK_STATE_WITH_MULTICHAIN },
+        { state: MOCK_STATE },
       );
 
       const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
@@ -159,12 +163,13 @@ describe('Account Network Row', () => {
     });
 
     it('calls upgrade function when switch is toggled from standard to smart account', () => {
+      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
       const { getByTestId } = renderWithProvider(
         <AccountNetworkRow
           address={MOCK_ADDRESS}
           network={{ ...MOCK_NETWORK, isSupported: false }}
         />,
-        { state: MOCK_STATE_WITH_MULTICHAIN },
+        { state: MOCK_STATE },
       );
 
       const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
@@ -178,6 +183,7 @@ describe('Account Network Row', () => {
     });
 
     it('does not call upgrade when upgradeContractAddress is missing', () => {
+      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
       const networkWithoutUpgradeContract = {
         ...MOCK_NETWORK,
         isSupported: false,
@@ -189,7 +195,7 @@ describe('Account Network Row', () => {
           address={MOCK_ADDRESS}
           network={networkWithoutUpgradeContract}
         />,
-        { state: MOCK_STATE_WITH_MULTICHAIN },
+        { state: MOCK_STATE },
       );
 
       const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
@@ -200,9 +206,10 @@ describe('Account Network Row', () => {
     });
 
     it('navigates correctly after switch action', async () => {
+      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
       const { getByTestId } = renderWithProvider(
         <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
-        { state: MOCK_STATE_WITH_MULTICHAIN },
+        { state: MOCK_STATE },
       );
 
       const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);

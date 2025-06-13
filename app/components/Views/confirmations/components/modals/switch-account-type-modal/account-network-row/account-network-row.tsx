@@ -25,7 +25,6 @@ import { useBatchAuthorizationRequests } from '../../../../hooks/7702/useBatchAu
 import { useEIP7702Accounts } from '../../../../hooks/7702/useEIP7702Accounts';
 import styleSheet from './account-network-row.styles';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../../../../../reducers';
 import {
   AlignItems,
   FlexDirection,
@@ -34,6 +33,7 @@ import {
 import { Box } from '../../../../../../UI/Box/Box';
 import { useTheme } from '../../../../../../../util/theme';
 import { SmartAccountIds } from '../../../../../../../../e2e/selectors/MultichainAccounts/SmartAccount.selectors';
+import { selectMultichainAccountsState1Enabled } from '../../../../../../../selectors/featureFlagController/multichainAccounts';
 
 const AccountNetworkRow = ({
   address,
@@ -43,7 +43,7 @@ const AccountNetworkRow = ({
   network: EIP7702NetworkConfiguration;
 }) => {
   const useMultichainAccountDesign = useSelector(
-    (state: RootState) => state.settings.useMultichainAccountDesign,
+    selectMultichainAccountsState1Enabled,
   );
   const navigation = useNavigation();
   const { downgradeAccount, upgradeAccount } = useEIP7702Accounts(
