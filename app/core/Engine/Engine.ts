@@ -371,7 +371,7 @@ export class Engine {
         getFailoverUrlsForInfuraNetwork('linea-mainnet');
       initialNetworkControllerState.networkConfigurationsByChainId[
         ChainId['base-mainnet']
-        ].rpcEndpoints[0].failoverUrls =
+      ].rpcEndpoints[0].failoverUrls =
         getFailoverUrlsForInfuraNetwork('base-mainnet');
     }
 
