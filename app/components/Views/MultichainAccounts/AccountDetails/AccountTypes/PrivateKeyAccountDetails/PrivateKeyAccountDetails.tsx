@@ -14,7 +14,7 @@ export const PrivateKeyAccountDetails = ({
 }: PrivateKeyAccountDetailsProps) => (
   <BaseAccountDetails account={account}>
     <ExportCredentials account={account} />
-    <RemoveAccount account={account} />
     <SmartAccount account={account} />
+    <RemoveAccount account={account} />
   </BaseAccountDetails>
 );
