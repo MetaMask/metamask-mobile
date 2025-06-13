@@ -12,7 +12,7 @@ import Icon, {
   IconSize,
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
-import { TouchableOpacity, View, FlatList } from 'react-native';
+import { TouchableOpacity, View, ViewStyle } from 'react-native';
 import { WalletDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/WalletDetails';
 import { AlignItems, FlexDirection } from '../../../../UI/Box/box.types';
 import { Box } from '../../../../UI/Box/Box';
@@ -70,15 +70,31 @@ export const BaseWalletDetails = ({
     [wallet],
   );
 
-  const renderAccountItem = ({ item: account }: { item: InternalAccount }) => (
-    <View style={styles.accountBox}>
-      <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center}>
+  const renderAccountItem = (account: InternalAccount, index: number) => {
+    const totalAccounts = accounts.length;
+    const boxStyles: ViewStyle[] = [styles.accountBox];
+
+    if (totalAccounts > 1) {
+      if (index === 0) {
+        boxStyles.push(styles.firstAccountBox);
+      } else if (index === totalAccounts - 1) {
+        boxStyles.push(styles.lastAccountBox);
+      } else {
+        boxStyles.push(styles.middleAccountBox as ViewStyle);
+      }
+    }
+
+    return (
+      <Box
+        style={boxStyles}
+        flexDirection={FlexDirection.Row}
+        alignItems={AlignItems.center}
+        gap={8}
+      >
         <Text variant={TextVariant.BodyMDMedium}>{account.metadata.name}</Text>
       </Box>
-    </View>
-  );
-
-  const keyExtractor = (item: InternalAccount) => item.id;
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -138,16 +154,7 @@ export const BaseWalletDetails = ({
           </Box>
         </View>
         <View style={styles.accountsList}>
-          <Text variant={TextVariant.BodyMDMedium} style={styles.accountsTitle}>
-            Accounts
-          </Text>
-          <FlatList
-            data={accounts}
-            keyExtractor={keyExtractor}
-            renderItem={renderAccountItem}
-            showsVerticalScrollIndicator={false}
-            scrollEnabled={false}
-          />
+          {accounts.map((account, index) => renderAccountItem(account, index))}
         </View>
         {children}
       </View>
