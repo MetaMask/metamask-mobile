@@ -211,7 +211,7 @@ const EarnTokenList = () => {
   /**
    * We want to sort the tokens by estimated fiat rewards in descending order.
    * Tokens where a user has a non-zero balance will be listed first by highest fiat rewards.
-   * Tokens where a user doesn't have a balance will be listed by highest apy
+   * Tokens where a user doesn't have a balance will not be listed for now to avoid dead end on deposit screen.
    */
   const tokensSortedByHighestYield = useMemo(() => {
     if (!tokens?.length) return [];
@@ -237,7 +237,7 @@ const EarnTokenList = () => {
         </Text>
       </BottomSheetHeader>
       <ScrollView style={styles.container}>
-        {earnTokens?.length ? (
+        {tokensSortedByHighestYield?.length ? (
           <>
             {params?.onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.DEPOSIT && (
               <UpsellBanner
