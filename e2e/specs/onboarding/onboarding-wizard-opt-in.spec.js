@@ -46,8 +46,6 @@ const EVENT_NAMES = {
   WALLET_SETUP_COMPLETED: 'Wallet Setup Completed',
   WALLET_SECURITY_SKIP_INITIATED: 'Wallet Security Skip Initiated',
   WALLET_SECURITY_SKIP_CONFIRMED: 'Wallet Security Skip Confirmed',
-  AUTOMATIC_SECURITY_CHECKS_PROMPT_VIEWED: 'Automatic Security Checks Prompt Viewed',
-  AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_PROMPT: 'Automatic Security Checks Disabled From Prompt',
   WALLET_SECURITY_REMINDER_DISMISSED: 'Wallet Security Reminder Dismissed',
 };
 
@@ -217,35 +215,39 @@ describe(
         async ({ mockServer }) => {
           // dealing with flakiness on bitrise.
           await TestHelpers.delay(1000);
-          let marketingConsentInteracted = false;
           
           try {
             await Assertions.checkIfVisible(
               ExperienceEnhancerBottomSheet.container,
             );
             await ExperienceEnhancerBottomSheet.tapIAgree();
-            marketingConsentInteracted = true;
+            
+            // Verify marketing consent analytics
+            const marketingEvents = await getEventsPayloads(mockServer, [
+              EVENT_NAMES.ANALYTICS_PREFERENCE_SELECTED,
+            ]);
+            const softAssert = new SoftAssert();
+            
+            softAssert.checkAndCollect(async () => {
+              const analyticsEvent = findEvent(marketingEvents, EVENT_NAMES.ANALYTICS_PREFERENCE_SELECTED);
+              await Assertions.checkIfValueIsPresent(analyticsEvent);
+              if (analyticsEvent) {
+                await Assertions.checkIfObjectContains(
+                  analyticsEvent.properties,
+                  { 
+                    has_marketing_consent: true,
+                    updated_after_onboarding: true,
+                    location: 'marketing_consent_modal'
+                  }
+                );
+              }
+            }, 'Analytics preference event should be tracked with marketing consent properties');
+            
+            softAssert.throwIfErrors();
           } catch {
             /* eslint-disable no-console */
             console.log('The marketing consent sheet is not visible');
           }
-
-          // Verify marketing consent analytics
-          const marketingEvents = await getEventsPayloads(mockServer, []);
-          console.log('Marketing consent events:', marketingEvents);
-          
-          if (marketingConsentInteracted) {
-            // If user interacted with marketing consent, expect some analytics
-            if (marketingEvents.length === 0) {
-              console.warn('Warning: Expected marketing consent analytics but none were captured. This may indicate missing event tracking.');
-            }
-          } else {
-            // If marketing consent sheet wasn't shown, expect no specific marketing events
-            console.log('Marketing consent sheet not shown - no specific marketing events expected');
-          }
-          
-          // Note: Marketing consent events may vary based on implementation
-          // This test validates the analytics infrastructure is working
         }
       );
     });
@@ -358,12 +360,10 @@ describe(
 
           // Capture any analytics events during login with disabled metametrics
           const loginEvents = await getEventsPayloads(mockServer, []);
-          console.log('Login events (should be minimal due to disabled metametrics):', loginEvents);
+          console.log('Login events (should be empty due to disabled metametrics):', loginEvents);
           
-          // Assert that login events are minimal when metametrics is disabled
-          if (loginEvents.length > 2) {
-            throw new Error(`Expected minimal login events due to disabled metametrics, but got ${loginEvents.length} events: ${JSON.stringify(loginEvents)}`);
-          }
+          // Assert that no events are tracked when metametrics is disabled
+          await Assertions.checkIfArrayHasLength(loginEvents, 0);
         }
       );
     });
@@ -392,9 +392,7 @@ describe(
           console.log('Navigation events (should be empty due to disabled metametrics):', navigationEvents);
           
           // Assert that no navigation events are tracked when metametrics is disabled
-          if (navigationEvents.length !== 0) {
-            throw new Error(`Expected no navigation events due to disabled metametrics, but got ${navigationEvents.length} events: ${JSON.stringify(navigationEvents)}`);
-          }
+          await Assertions.checkIfArrayHasLength(navigationEvents, 0);
         }
       );
     });
