@@ -1,10 +1,85 @@
+import { DepositOrder, OrderStatusEnum } from '@consensys/native-ramps-sdk';
 import { ProcessorOptions } from '../..';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
+import {
+  FIAT_ORDER_PROVIDERS,
+  FIAT_ORDER_STATES,
+} from '../../../../../constants/on-ramp';
+import transakNetworkToChainId from '../utils/transakNetworkToChainId';
+import { DepositSDK } from '../sdk';
+import Logger from '../../../../../util/Logger';
+
+const depositOrderStateToFiatOrderState = (
+  aggregatorOrderState: DepositOrder['status'],
+) => {
+  switch (aggregatorOrderState) {
+    case OrderStatusEnum.Completed: {
+      return FIAT_ORDER_STATES.COMPLETED;
+    }
+    case OrderStatusEnum.Failed: {
+      return FIAT_ORDER_STATES.FAILED;
+    }
+    case OrderStatusEnum.Cancelled: {
+      return FIAT_ORDER_STATES.CANCELLED;
+    }
+    case OrderStatusEnum.Created: {
+      return FIAT_ORDER_STATES.CREATED;
+    }
+    case OrderStatusEnum.Pending:
+    case OrderStatusEnum.Unknown:
+    default: {
+      return FIAT_ORDER_STATES.PENDING;
+    }
+  }
+};
+
+export const depositOrderToFiatOrder = (depositOrder: DepositOrder) => ({
+  id: depositOrder.id,
+  provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+  createdAt: depositOrder.createdAt,
+  amount: depositOrder.fiatAmount,
+  fee: depositOrder.totalFeesFiat,
+  cryptoAmount: depositOrder.cryptoAmount || 0,
+  cryptoFee: depositOrder.totalFeesFiat || 0,
+  currency: depositOrder.fiatCurrency,
+  currencySymbol: '',
+  cryptocurrency: depositOrder.cryptoCurrency,
+  network: transakNetworkToChainId(depositOrder.network),
+  state: depositOrderStateToFiatOrderState(depositOrder.status),
+  account: depositOrder.walletAddress,
+  txHash: depositOrder.txHash,
+  excludeFromPurchases: false,
+  orderType: depositOrder.orderType,
+  errorCount: 0,
+  lastTimeFetched: Date.now(),
+  data: depositOrder,
+});
 
 export async function processDepositOrder(
   order: FiatOrder,
   _options?: ProcessorOptions,
 ): Promise<FiatOrder> {
-  // TODO: Implement the logic for processing deposit orders.
-  return order;
+  try {
+    const updatedOrder = await DepositSDK.getOrder(order.id, order.account);
+    if (!updatedOrder) {
+      throw new Error('Deposit order not found');
+    }
+
+    const updatedFiatOrder = depositOrderToFiatOrder(updatedOrder);
+    return {
+      ...updatedFiatOrder,
+      account: order.account,
+      network: order.network,
+      // account: '0xC72d4Ebf1bEbe6c270eba5B088bBd7C2b615C334',
+      // state: FIAT_ORDER_STATES.PENDING,
+      lastTimeFetched: Date.now(),
+      errorCount: 0,
+    };
+  } catch (error) {
+    Logger.error(error as Error, {
+      message: 'DepositOrder::Processor error while processing order',
+      order,
+    });
+    return order;
+  }
 }

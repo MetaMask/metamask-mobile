@@ -1,4 +1,5 @@
 import { Order } from '@consensys/on-ramp-sdk';
+import { toHex } from '@metamask/controller-utils';
 import { createSelector } from 'reselect';
 import { Region } from '../../components/UI/Ramp/Aggregator/types';
 import { selectChainId } from '../../selectors/networkController';
@@ -16,7 +17,7 @@ import {
 } from './types';
 import type { RootState } from '../';
 import { getDecimalChainId, isTestNet } from '../../util/networks';
-import { toHex } from '@metamask/controller-utils';
+import networkChainIdEquals from '../../components/UI/Ramp/utils/networkChainIdEquals';
 
 export type { FiatOrder } from './types';
 
@@ -192,13 +193,17 @@ export const getOrders = createSelector(
   ordersSelector,
   selectedAddressSelector,
   chainIdSelector,
-  (orders, selectedAddress, chainId) =>
-    orders.filter(
+  (orders, selectedAddress, chainId) => {
+    console.log('getOrders called with chainId:', chainId);
+    console.log('getOrders orders', orders);
+    return orders.filter(
       (order) =>
         !order.excludeFromPurchases &&
         order.account === selectedAddress &&
-        (order.network === chainId || isTestNet(toHex(chainId))),
-    ),
+        (networkChainIdEquals(order.network, chainId) ||
+          isTestNet(toHex(chainId))),
+    );
+  },
 );
 
 export const getPendingOrders = createSelector(
@@ -209,7 +214,7 @@ export const getPendingOrders = createSelector(
     orders.filter(
       (order) =>
         order.account === selectedAddress &&
-        order.network === chainId &&
+        networkChainIdEquals(order.network, chainId) &&
         order.state === FIAT_ORDER_STATES.PENDING,
     ),
 );
