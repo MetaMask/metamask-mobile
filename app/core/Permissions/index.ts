@@ -261,7 +261,8 @@ function getPermittedScopesFromSubject(subject: any): CaipChainId[] {
 }
 
 export const getPermittedCaipAccountIdsByHostname = (
-  state: { subjects: Record<string, unknown> },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  state: any,
   hostname: string,
 ): CaipAccountId[] =>
   getPermittedDataByHostname(state, hostname, getCaipAccountIdsFromSubject);
