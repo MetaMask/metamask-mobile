@@ -173,12 +173,12 @@ export const recreateVaultWithNewPassword = async (
       'error while trying to get imported accounts on recreate vault',
     );
   }
-
   const firstPartySnapAccounts =
     AccountsController.listMultichainAccounts().filter(
-      (account) => account.options?.entropySource,
+      (account) =>
+        account.options?.entropySource &&
+        account.metadata.keyring.type === KeyringTypes.snap,
     );
-
   // Get props to restore vault
   const hdKeyringsAccountCount = hdKeyringsWithMetadata.map(
     (keyring) => keyring.accounts.length,
