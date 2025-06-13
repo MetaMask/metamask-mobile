@@ -148,11 +148,6 @@ const BasicInfo = (): JSX.Element => {
             />
           </View>
           <DepositPhoneField
-            // TODO: Add internationalization for phone number format
-            // TODO: Automatic formatting
-            countryCode={COUNTRY_CODE}
-            label="Phone Number"
-            placeholder="(234) 567-8910"
             value={formData.mobileNumber}
             onChangeText={handleFormDataChange('mobileNumber')}
             error={errors.mobileNumber}
