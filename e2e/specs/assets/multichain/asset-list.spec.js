@@ -49,7 +49,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await Assertions.checkIfVisible(eth);
     const avax = WalletView.tokenInWallet(AVAX_NAME);
     await Assertions.checkIfVisible(avax);
-    await WalletView.scrollDownOnTokensTab(AVAX_NAME);
+    await WalletView.scrollDownOnTokensTab();
     const bnb = WalletView.tokenInWallet(BNB_NAME);
     await Assertions.checkIfVisible(bnb);
   });
@@ -67,16 +67,16 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await Assertions.checkIfNotVisible(bnb);
   });
 
-  it.skip('should switch networks when clicking on swap if an asset on a different network is selected', async () => {
+  it('should switch networks when clicking on swap if an asset on a different network is selected', async () => {
     const BNB_NAME = 'BNB Smart Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
+    await WalletView.scrollDownOnTokensTab();
     const bnb = WalletView.tokenInWallet('BNB');
     await Assertions.checkIfVisible(bnb);
     await WalletView.tapOnToken('BNB');
     await TestHelpers.delay(5000);
     await TokenOverview.tapSwapButton();
-
     await Assertions.checkIfVisible(NetworkEducationModal.container);
     await Assertions.checkIfElementToHaveText(
       NetworkEducationModal.networkName,
@@ -87,24 +87,19 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
   });
 
   it('should switch networks when clicking on send if an asset on a different network is selected', async () => {
-    const BNB_NAME = 'BNB Smart Chain';
+    const AVAX_NETWORK_NAME = 'Avalanche C-Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    await TestHelpers.delay(5000);
-    await WalletView.scrollDownOnTokensTab('AVAX');
-    const bnb = WalletView.tokenInWallet('BNB');
-    await Assertions.checkIfVisible(bnb);
-    await WalletView.tapOnToken('BNB');
+    const avax = WalletView.tokenInWallet('AVAX');
+    await Assertions.checkIfVisible(avax);
+    await WalletView.tapOnToken('AVAX');
     await Assertions.checkIfVisible(TokenOverview.sendButton);
     await TokenOverview.tapSendButton();
-
     await Assertions.checkIfVisible(NetworkEducationModal.container);
     await Assertions.checkIfElementToHaveText(
       NetworkEducationModal.networkName,
-      BNB_NAME,
+      AVAX_NETWORK_NAME,
     );
-    await TestHelpers.delay(1500); // Nasty work. Only adding delay because app is slow on CI.
-    await NetworkEducationModal.tapNetworkName(); // to dismiss keyboard
     await NetworkEducationModal.tapGotItButton();
   });
 
