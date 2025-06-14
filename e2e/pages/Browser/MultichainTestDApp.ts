@@ -214,7 +214,9 @@ class MultichainTestDApp {
    * @private
    */
   private getWebView() {
-    return web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)).atIndex(0);
+    return device.getPlatform() === 'ios' 
+    ? web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)).atIndex(0) 
+    : web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID));
   }
 
   /**
