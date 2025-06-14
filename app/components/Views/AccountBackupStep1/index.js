@@ -116,7 +116,7 @@ const AccountBackupStep1 = (props) => {
     trackOnboarding(eventBuilder.build(), dispatchSaveOnboardingEvent);
   };
 
-  const { navigation } = useNavigation();
+  const navigation = useNavigation();
 
   const headerLeft = useCallback(
     () => (
