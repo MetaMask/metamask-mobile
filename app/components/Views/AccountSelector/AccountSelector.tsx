@@ -49,6 +49,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     checkBalanceError,
     disablePrivacyMode,
     navigateToAddAccountActions,
+    isEvmOnly,
   } = routeParams || {};
 
   const reloadAccounts = useSelector(
@@ -65,7 +66,15 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     }),
     [checkBalanceError, reloadAccounts],
   );
-  const { accounts, ensByAccountAddress } = useAccounts(accountsParams);
+
+  const {
+    accounts: allAccounts,
+    ensByAccountAddress,
+    evmAccounts,
+  } = useAccounts(accountsParams);
+
+  const accounts = isEvmOnly ? evmAccounts : allAccounts;
+
   const [screen, setScreen] = useState<AccountSelectorScreens>(
     () => navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
   );
@@ -102,6 +111,11 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   // Handler for adding accounts
   const handleAddAccount = useCallback(() => {
     setScreen(AccountSelectorScreens.AddAccountActions);
+  }, []);
+
+  // Handler for returning from add accounts screen
+  const handleBackToSelector = useCallback(() => {
+    setScreen(AccountSelectorScreens.AccountSelector);
   }, []);
 
   const onRemoveImportedAccount = useCallback(
@@ -150,12 +164,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
 
   const renderAddAccountActions = useCallback(
-    () => (
-      <AddAccountActions
-        onBack={() => setScreen(AccountSelectorScreens.AccountSelector)}
-      />
-    ),
-    [],
+    () => <AddAccountActions onBack={handleBackToSelector} />,
+    [handleBackToSelector],
   );
 
   const renderAccountScreens = useCallback(() => {

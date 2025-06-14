@@ -45,7 +45,7 @@ interface ScreenLayoutProps extends ViewProps {
 }
 
 interface HeaderProps extends ViewProps {
-  title?: string | (() => void);
+  title?: string | (() => React.ReactNode);
   description?: string;
   titleStyle?: TextStyle;
   descriptionStyle?: TextStyle;

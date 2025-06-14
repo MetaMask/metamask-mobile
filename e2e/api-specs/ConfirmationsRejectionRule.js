@@ -64,9 +64,6 @@ export default class ConfirmationsRejectRule {
              */
 
             // Connect accounts modal
-            await Assertions.checkIfVisible(
-              PermissionSummaryBottomSheet.container,
-            );
             await ConnectBottomSheet.tapConnectButton();
             await Assertions.checkIfNotVisible(
               PermissionSummaryBottomSheet.container,

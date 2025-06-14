@@ -100,7 +100,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
       NetworkEducationModal.networkName,
       BNB_NAME,
     );
-    await TestHelpers.delay(1500) // Nasty work. Only adding delay because app is slow on CI. 
+    await TestHelpers.delay(1500); // Nasty work. Only adding delay because app is slow on CI.
     await NetworkEducationModal.tapNetworkName(); // to dismiss keyboard
     await NetworkEducationModal.tapGotItButton();
   });

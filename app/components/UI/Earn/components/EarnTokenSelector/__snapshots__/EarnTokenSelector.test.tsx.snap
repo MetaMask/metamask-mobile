@@ -273,6 +273,7 @@ exports[`EarnTokenSelector renders correctly 1`] = `
   <View>
     <SvgMock
       color="#121314"
+      fill="currentColor"
       height={16}
       name="ArrowDown"
       style={

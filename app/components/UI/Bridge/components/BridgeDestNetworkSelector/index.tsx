@@ -15,7 +15,7 @@ import { BridgeNetworkSelectorBase } from '../BridgeNetworkSelectorBase';
 import { NetworkRow } from '../NetworkRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectChainId } from '../../../../../selectors/networkController';
-
+import { BridgeViewMode } from '../../types';
 export interface BridgeDestNetworkSelectorRouteParams {
   shouldGoToTokens?: boolean;
 }
@@ -42,7 +42,9 @@ export const BridgeDestNetworkSelector: React.FC = () => {
     if (route.params.shouldGoToTokens) {
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
-        params: {},
+        params: {
+          bridgeViewMode: BridgeViewMode.Bridge,
+        },
       });
     }
   }, [dispatch, navigation, route.params.shouldGoToTokens]);

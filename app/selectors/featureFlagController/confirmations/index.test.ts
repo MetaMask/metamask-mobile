@@ -31,6 +31,7 @@ const confirmationRedesignFlagsDefaultValues: ConfirmationRedesignRemoteFlags = 
   signatures: true,
   staking_confirmations: false,
   contract_interaction: false,
+  transfer: false,
 };
 
 // Define mocked remote values for tests
@@ -38,6 +39,7 @@ const mockedConfirmationRedesignFlags: ConfirmationRedesignRemoteFlags = {
   signatures: false,
   staking_confirmations: true,
   contract_interaction: true,
+  transfer: true,
 };
 
 // Update the mock state to include our feature flags
@@ -91,4 +93,4 @@ describe('confirmationRedesign Feature flag: selectConfirmationRedesignFlags sel
       confirmationRedesignFlagsDefaultValues
     );
   });
-}); 
+});

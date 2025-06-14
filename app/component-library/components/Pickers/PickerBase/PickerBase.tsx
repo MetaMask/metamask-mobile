@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React, { forwardRef } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
@@ -12,10 +12,7 @@ import Icon, { IconName, IconSize } from '../../Icons/Icon';
 import { PickerBaseProps } from './PickerBase.types';
 import styleSheet from './PickerBase.styles';
 
-const PickerBase: React.ForwardRefRenderFunction<
-  TouchableOpacity,
-  PickerBaseProps
-> = (
+const PickerBase: React.ForwardRefRenderFunction<View, PickerBaseProps> = (
   { iconSize = IconSize.Md, style, dropdownIconStyle, children, ...props },
   ref,
 ) => {

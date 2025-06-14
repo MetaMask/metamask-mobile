@@ -5,6 +5,10 @@ import { useAccounts } from '../../../hooks/useAccounts';
 import { RootState } from '../../../../reducers';
 import { useFetchAccountNotifications } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { getValidNotificationAccounts } from '../../../../selectors/notifications';
+import {
+  areAddressesEqual,
+  toFormattedAddress,
+} from '../../../../util/address';
 
 export function useNotificationAccountListProps(addresses: string[]) {
   const { update, initialLoading, accountsBeingUpdated, data } =
@@ -19,10 +23,14 @@ export function useNotificationAccountListProps(addresses: string[]) {
   }, [addresses, update]);
 
   const isAccountLoading = (address: string) =>
-    accountsBeingUpdated.includes(address.toLowerCase());
+    accountsBeingUpdated.some(
+      (addr) => toFormattedAddress(addr) === toFormattedAddress(address),
+    );
 
   const isAccountEnabled = (address: string) =>
-    data?.[address.toLowerCase()] ?? false;
+    data?.[toFormattedAddress(address)] ??
+    data?.[address.toLowerCase()] ?? // fallback to lowercase address lookup
+    false;
 
   return {
     isAnyAccountLoading,
@@ -45,8 +53,8 @@ export function useAccountProps() {
     () =>
       accountAddresses
         .map((addr) => {
-          const account = allAccounts.find(
-            (a) => a.address.toLowerCase() === addr.toLowerCase(),
+          const account = allAccounts.find((a) =>
+            areAddressesEqual(a.address, addr),
           );
           return account;
         })

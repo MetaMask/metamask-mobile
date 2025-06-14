@@ -74,10 +74,10 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
             </TouchableOpacity>
           </TokenDetailsListItem>
         )}
-        {tokenDetails.tokenDecimal && (
+        {Boolean(tokenDetails.tokenDecimal) && (
           <TokenDetailsListItem
             label={strings('token.token_decimal')}
-            value={tokenDetails.tokenDecimal}
+            value={tokenDetails.tokenDecimal ?? undefined}
             style={styles.listItem}
           />
         )}

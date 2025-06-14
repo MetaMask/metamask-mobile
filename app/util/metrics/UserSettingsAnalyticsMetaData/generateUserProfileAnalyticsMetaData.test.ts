@@ -1,13 +1,13 @@
 import generateUserProfileAnalyticsMetaData from './generateUserProfileAnalyticsMetaData';
 import { UserProfileProperty } from './UserProfileAnalyticsMetaData.types';
-import {Appearance} from 'react-native';
+import { Appearance } from 'react-native';
 
 const mockGetState = jest.fn();
 jest.mock('../../../store', () => ({
-    store: {
-      getState: jest.fn(() => mockGetState()),
-    },
-  }));
+  store: {
+    getState: jest.fn(() => mockGetState()),
+  },
+}));
 
 const mockIsMetricsEnabled = jest.fn();
 jest.mock('../../../core/Analytics', () => ({
@@ -55,10 +55,15 @@ describe('generateUserProfileAnalyticsMetaData', () => {
     [UserProfileProperty.ON, true],
     [UserProfileProperty.OFF, false],
   ])('returns marketing consent "%s"', (expected, stateConsentValue) => {
-    mockGetState.mockReturnValue({ ...mockState, security: { dataCollectionForMarketing: stateConsentValue } });
+    mockGetState.mockReturnValue({
+      ...mockState,
+      security: { dataCollectionForMarketing: stateConsentValue },
+    });
 
     const metadata = generateUserProfileAnalyticsMetaData();
-    expect(metadata[UserProfileProperty.HAS_MARKETING_CONSENT]).toEqual(expected);
+    expect(metadata[UserProfileProperty.HAS_MARKETING_CONSENT]).toEqual(
+      expected,
+    );
   });
 
   it('returns default metadata when missing preferences controller', () => {

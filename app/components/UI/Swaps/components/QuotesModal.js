@@ -247,7 +247,7 @@ function QuotesModal({
               hitSlop={{ top: 10, left: 20, right: 10, bottom: 10 }}
             >
               <IonicIcon
-                name="ios-arrow-back"
+                name="arrow-back"
                 style={styles.backIcon}
                 size={20}
               />
@@ -261,7 +261,7 @@ function QuotesModal({
             onPress={toggleModal}
             hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
           >
-            <IonicIcon name="ios-close" style={styles.closeIcon} size={30} />
+            <IonicIcon name="close" style={styles.closeIcon} size={30} />
           </TouchableOpacity>
         </View>
         {displayDetails ? (
@@ -378,7 +378,7 @@ function QuotesModal({
                     </Text>
                   </View>
                   <IonicIcon
-                    name="ios-arrow-forward"
+                    name="arrow-forward"
                     style={[styles.detailsIcon, styles.transparent]}
                     size={20}
                   />
@@ -452,7 +452,7 @@ function QuotesModal({
                             )}
                           </View>
                           <IonicIcon
-                            name="ios-arrow-forward"
+                            name="arrow-forward"
                             style={styles.detailsIcon}
                             size={20}
                           />

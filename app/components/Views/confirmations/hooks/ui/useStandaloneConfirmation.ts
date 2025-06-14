@@ -1,11 +1,10 @@
 import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-
-const STANDALONE_TRANSACTION_CONFIRMATIONS: TransactionType[] = [
-  TransactionType.stakingDeposit,
-  TransactionType.stakingUnstake,
-  TransactionType.stakingClaim,
-];
+import {
+  MMM_ORIGIN,
+  REDESIGNED_TRANSFER_TYPES,
+  STANDALONE_TRANSACTION_CONFIRMATIONS,
+} from '../../constants/confirmations';
 
 export const useStandaloneConfirmation = () => {
   const transactionMetadata = useTransactionMetadataRequest();
@@ -14,6 +13,15 @@ export const useStandaloneConfirmation = () => {
     STANDALONE_TRANSACTION_CONFIRMATIONS.includes(
       transactionMetadata?.type as TransactionType,
     );
+
+  if (
+    REDESIGNED_TRANSFER_TYPES.includes(
+      transactionMetadata?.type as TransactionType,
+    ) &&
+    transactionMetadata?.origin === MMM_ORIGIN
+  ) {
+    return { isStandaloneConfirmation: true };
+  }
 
   return { isStandaloneConfirmation };
 };

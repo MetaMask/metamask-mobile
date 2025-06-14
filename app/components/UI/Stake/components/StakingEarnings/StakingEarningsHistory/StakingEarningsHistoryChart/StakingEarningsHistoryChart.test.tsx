@@ -43,7 +43,13 @@ const renderChart = () => {
 
 describe('StakingEarningsHistoryChart', () => {
   let chartContainer: RenderResult;
-  let chart: RenderResult['root'];
+  let chart: {
+    data: {
+      value: number;
+      label: string;
+      svg: { fill: string; testID: string };
+    }[];
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();

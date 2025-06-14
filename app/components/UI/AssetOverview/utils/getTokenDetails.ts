@@ -1,18 +1,23 @@
 import { zeroAddress } from 'ethereumjs-util';
 import { TokenI } from '../../Tokens/types';
 import { TokenDetails } from '../TokenDetails/TokenDetails';
+import { parseCaipAssetType } from '@metamask/utils';
 
 export const getTokenDetails = (
   asset: TokenI,
-  isEvmNetworkSelected: boolean,
+  isNonEvmAsset: boolean,
   tokenContractAddress: string | undefined,
   tokenMetadata: Record<string, string | number | string[]>,
 ): TokenDetails => {
-  if (!isEvmNetworkSelected) {
+  if (isNonEvmAsset) {
+    const { assetNamespace, assetReference } = parseCaipAssetType(
+      asset.address as `${string}:${string}/${string}:${string}`,
+    );
+    const isNative = assetNamespace === 'slip44';
     return {
-      contractAddress: asset.address || null,
+      contractAddress: isNative ? null : assetReference || null,
       tokenDecimal: asset.decimals || null,
-      tokenList: asset.aggregators.join(', ') || null,
+      tokenList: asset?.aggregators?.join(', ') || null,
     };
   }
 
