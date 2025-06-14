@@ -81,13 +81,11 @@ const createStyles = (colors) =>
     },
     wrapper: {
       flex: 1,
-    },
-    scrollableWrapper: {
-      flex: 1,
       paddingHorizontal: 16,
     },
-    keyboardScrollableWrapper: {
-      flexGrow: 1,
+    container: {
+      flex: 1,
+      flexDirection: 'column',
     },
     loadingWrapper: {
       paddingHorizontal: 40,
@@ -120,9 +118,10 @@ const createStyles = (colors) =>
       gap: 8,
     },
     ctaWrapper: {
-      flex: 1,
-      marginTop: 20,
       width: '100%',
+      flexDirection: 'column',
+      rowGap: 18,
+      marginTop: 'auto',
     },
     // eslint-disable-next-line react-native/no-unused-styles
     strength_weak: {
@@ -149,8 +148,8 @@ const createStyles = (colors) =>
       alignItems: 'flex-start',
       justifyContent: 'flex-start',
       gap: 1,
-      width: '100%',
       flexWrap: 'wrap',
+      width: '95%',
     },
     headerLeft: {
       marginLeft: 16,
@@ -160,14 +159,18 @@ const createStyles = (colors) =>
     },
     passwordContainer: {
       flexDirection: 'column',
-      gap: 16,
-      marginVertical: 16,
+      rowGap: 16,
+      flexGrow: 1,
     },
     label: {
       marginBottom: -4,
     },
     checkbox: {
       alignItems: 'flex-start',
+    },
+    passwordContainerTitle: {
+      flexDirection: 'column',
+      rowGap: 4,
     },
   });
 
@@ -618,193 +621,201 @@ class ChoosePassword extends PureComponent {
             </Text>
           </View>
         ) : (
-          <View style={styles.wrapper}>
-            <KeyboardAwareScrollView
-              style={styles.scrollableWrapper}
-              contentContainerStyle={styles.keyboardScrollableWrapper}
-              resetScrollToCoords={{ x: 0, y: 0 }}
-            >
-              <View testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {strings('choose_password.steps', {
-                    currentStep: 1,
-                    totalSteps: 3,
-                  })}
-                </Text>
+          <KeyboardAwareScrollView
+            contentContainerStyle={styles.wrapper}
+            resetScrollToCoords={{ x: 0, y: 0 }}
+          >
+            <View style={styles.container}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings('choose_password.steps', {
+                  currentStep: 1,
+                  totalSteps: 3,
+                })}
+              </Text>
 
-                <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
-                  {strings('choose_password.title')}
-                </Text>
+              <View
+                style={styles.passwordContainer}
+                testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}
+              >
+                <View style={styles.passwordContainerTitle}>
+                  <Text
+                    variant={TextVariant.DisplayMD}
+                    color={TextColor.Default}
+                  >
+                    {strings('choose_password.title')}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Alternative}
+                  >
+                    {strings('choose_password.description')}
+                  </Text>
+                </View>
 
-                <View style={styles.passwordContainer}>
-                  <View style={styles.field}>
-                    <Label
-                      variant={TextVariant.BodyMDMedium}
-                      color={TextColor.Default}
-                      style={styles.label}
+                <View style={styles.field}>
+                  <Label
+                    variant={TextVariant.BodyMDMedium}
+                    color={TextColor.Default}
+                    style={styles.label}
+                  >
+                    {strings('choose_password.password')}
+                  </Label>
+                  <TextField
+                    placeholder={strings(
+                      'import_from_seed.enter_strong_password',
+                    )}
+                    secureTextEntry={this.state.showPasswordIndex.includes(0)}
+                    value={password}
+                    onChangeText={this.onPasswordChange}
+                    placeholderTextColor={colors.text.muted}
+                    testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
+                    onSubmitEditing={this.jumpToConfirmPassword}
+                    autoComplete="new-password"
+                    returnKeyType="next"
+                    autoCapitalize="none"
+                    keyboardAppearance={themeAppearance}
+                    size={TextFieldSize.Lg}
+                    endAccessory={
+                      <Icon
+                        name={
+                          this.state.showPasswordIndex.includes(0)
+                            ? IconName.Eye
+                            : IconName.EyeSlash
+                        }
+                        size={IconSize.Lg}
+                        color={colors.icon.alternative}
+                        onPress={() => this.toggleShowPassword(0)}
+                      />
+                    }
+                  />
+                  {password && password.length < MIN_PASSWORD_LENGTH && (
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Alternative}
                     >
-                      {strings('choose_password.password')}
-                    </Label>
-                    <TextField
-                      placeholder={strings(
-                        'import_from_seed.enter_strong_password',
-                      )}
-                      secureTextEntry={this.state.showPasswordIndex.includes(0)}
-                      value={password}
-                      onChangeText={this.onPasswordChange}
-                      placeholderTextColor={colors.text.muted}
-                      testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
-                      onSubmitEditing={this.jumpToConfirmPassword}
-                      autoComplete="new-password"
-                      returnKeyType="next"
-                      autoCapitalize="none"
-                      keyboardAppearance={themeAppearance}
-                      size={TextFieldSize.Lg}
-                      endAccessory={
-                        <Icon
-                          name={
-                            this.state.showPasswordIndex.includes(0)
-                              ? IconName.Eye
-                              : IconName.EyeSlash
-                          }
-                          size={IconSize.Lg}
-                          color={colors.icon.alternative}
-                          onPress={() => this.toggleShowPassword(0)}
-                        />
-                      }
-                    />
-                    {password === '' ? (
+                      {strings('choose_password.must_be_at_least', {
+                        number: MIN_PASSWORD_LENGTH,
+                      })}
+                    </Text>
+                  )}
+                  {password && password.length >= MIN_PASSWORD_LENGTH && (
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Alternative}
+                      testID={ChoosePasswordSelectorsIDs.PASSWORD_STRENGTH_ID}
+                    >
+                      {strings('choose_password.password_strength')}
                       <Text
                         variant={TextVariant.BodySM}
                         color={TextColor.Alternative}
+                        style={styles[`strength_${passwordStrengthWord}`]}
                       >
-                        {strings('choose_password.must_be_at_least', {
-                          number: MIN_PASSWORD_LENGTH,
-                        })}
+                        {' '}
+                        {strings(
+                          `choose_password.strength_${passwordStrengthWord}`,
+                        )}
                       </Text>
-                    ) : (
-                      <Text variant={TextVariant.BodySM}>
-                        {strings('choose_password.password_strength')}
-                        <Text
-                          variant={TextVariant.BodySM}
-                          style={styles[`strength_${passwordStrengthWord}`]}
-                        >
-                          {' '}
-                          {strings(
-                            `choose_password.strength_${passwordStrengthWord}`,
-                          )}
-                        </Text>
-                      </Text>
-                    )}
-                  </View>
+                    </Text>
+                  )}
+                </View>
 
-                  <View style={styles.field}>
-                    <Label
-                      variant={TextVariant.BodyMDMedium}
-                      color={TextColor.Default}
-                      style={styles.label}
-                    >
-                      {strings('choose_password.confirm_password')}
-                    </Label>
-                    <TextField
-                      placeholder={strings(
-                        'import_from_seed.re_enter_password',
-                      )}
-                      value={confirmPassword}
-                      onChangeText={this.setConfirmPassword}
-                      secureTextEntry={this.state.showPasswordIndex.includes(1)}
-                      placeholderTextColor={colors.text.muted}
-                      testID={
-                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
-                      }
-                      accessibilityLabel={
-                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
-                      }
-                      autoComplete="new-password"
-                      onSubmitEditing={this.onPressCreate}
-                      returnKeyType={'done'}
-                      autoCapitalize="none"
-                      keyboardAppearance={themeAppearance}
-                      size={TextFieldSize.Lg}
-                      endAccessory={
-                        <Icon
-                          name={
-                            this.state.showPasswordIndex.includes(1)
-                              ? IconName.Eye
-                              : IconName.EyeSlash
-                          }
-                          size={IconSize.Lg}
-                          color={colors.icon.alternative}
-                          onPress={() => this.toggleShowPassword(1)}
-                        />
-                      }
-                      isDisabled={password === ''}
-                    />
-                    {this.checkError() && (
-                      <Text
-                        variant={TextVariant.BodySM}
-                        color={TextColor.Error}
-                      >
-                        {strings('choose_password.password_error')}
-                      </Text>
-                    )}
-                  </View>
-
-                  {this.renderSwitch()}
+                <View style={styles.field}>
+                  <Label
+                    variant={TextVariant.BodyMDMedium}
+                    color={TextColor.Default}
+                    style={styles.label}
+                  >
+                    {strings('choose_password.confirm_password')}
+                  </Label>
+                  <TextField
+                    placeholder={strings('import_from_seed.re_enter_password')}
+                    value={confirmPassword}
+                    onChangeText={this.setConfirmPassword}
+                    secureTextEntry={this.state.showPasswordIndex.includes(1)}
+                    placeholderTextColor={colors.text.muted}
+                    testID={
+                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
+                    }
+                    accessibilityLabel={
+                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
+                    }
+                    autoComplete="new-password"
+                    onSubmitEditing={this.onPressCreate}
+                    returnKeyType={'done'}
+                    autoCapitalize="none"
+                    keyboardAppearance={themeAppearance}
+                    size={TextFieldSize.Lg}
+                    endAccessory={
+                      <Icon
+                        name={
+                          this.state.showPasswordIndex.includes(1)
+                            ? IconName.Eye
+                            : IconName.EyeSlash
+                        }
+                        size={IconSize.Lg}
+                        color={colors.icon.alternative}
+                        onPress={() => this.toggleShowPassword(1)}
+                      />
+                    }
+                    isDisabled={password === ''}
+                  />
+                  {this.checkError() && (
+                    <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                      {strings('choose_password.password_error')}
+                    </Text>
+                  )}
                 </View>
 
                 <View style={styles.learnMoreContainer}>
                   <Checkbox
                     onPress={this.setSelection}
                     isChecked={isSelected}
-                    testID={
-                      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
-                    }
+                    testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                     accessibilityLabel={
                       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
                     }
                     style={styles.checkbox}
+                  />
+                  <Button
+                    variant={ButtonVariants.Link}
+                    onPress={this.setSelection}
+                    style={styles.learnMoreTextContainer}
+                    testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
                     label={
-                      <View style={styles.learnMoreTextContainer}>
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Default}
+                      >
+                        {strings('import_from_seed.learn_more')}
                         <Text
-                          variant={TextVariant.BodySM}
-                          color={TextColor.Default}
-                          numberOfLines={2}
-                        >
-                          {strings('import_from_seed.learn_more')}{' '}
-                        </Text>
-                        <Text
-                          variant={TextVariant.BodySM}
+                          variant={TextVariant.BodyMD}
                           color={TextColor.Primary}
                           onPress={this.learnMore}
+                          testID={ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID}
                         >
                           {' ' + strings('reset_password.learn_more')}
                         </Text>
-                      </View>
+                      </Text>
                     }
                   />
                 </View>
 
-                {!!error && <Text color={TextColor.Error}>{error}</Text>}
+                <View style={styles.ctaWrapper}>
+                  {this.renderSwitch()}
+                  <Button
+                    variant={ButtonVariants.Primary}
+                    onPress={this.onPressCreate}
+                    label={strings('choose_password.create_password_cta')}
+                    disabled={!canSubmit}
+                    width={ButtonWidthTypes.Full}
+                    size={ButtonSize.Lg}
+                    isDisabled={!canSubmit}
+                    testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
+                  />
+                </View>
               </View>
-
-              <View style={styles.ctaWrapper}>
-                <Button
-                  variant={ButtonVariants.Primary}
-                  onPress={this.onPressCreate}
-                  label={strings('choose_password.confirm_cta')}
-                  disabled={!canSubmit}
-                  width={ButtonWidthTypes.Full}
-                  size={ButtonSize.Lg}
-                  isDisabled={!canSubmit}
-                  testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
-                />
-              </View>
-            </KeyboardAwareScrollView>
-          </View>
+            </View>
+          </KeyboardAwareScrollView>
         )}
       </SafeAreaView>
     );
