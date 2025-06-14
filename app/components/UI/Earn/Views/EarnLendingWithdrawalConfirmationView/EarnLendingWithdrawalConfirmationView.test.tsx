@@ -310,7 +310,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     });
 
     expect(Linking.openURL).toHaveBeenLastCalledWith(
-      AppConstants.URLS.STAKING_RISK_DISCLOSURE,
+      AppConstants.URLS.EARN_RISK_DISCLOSURE,
     );
   });
 });
