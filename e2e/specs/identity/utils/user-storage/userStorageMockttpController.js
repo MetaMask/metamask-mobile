@@ -2,6 +2,7 @@ import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sd
 import {
   determineIfFeatureEntryFromURL,
   getDecodedProxiedURL,
+  getSrpIdentifierFromHeaders,
 } from '../helpers';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
@@ -43,6 +44,7 @@ export class UserStorageMockttpController {
   eventEmitter = new EventEmitter();
 
   async onGet(path, request, statusCode = 200) {
+    const srpIdentifier = getSrpIdentifierFromHeaders(request.headers);
     const internalPathData = this.paths.get(path);
 
     if (!internalPathData) {
@@ -58,6 +60,8 @@ export class UserStorageMockttpController {
 
     const isFeatureEntry = determineIfFeatureEntryFromURL(request.url);
 
+    // If the request is for a single entry, we don't need to check the SRP identifier
+    // because the entry is already identified by the path
     if (isFeatureEntry) {
       const json =
         internalPathData.response?.find(
@@ -77,9 +81,16 @@ export class UserStorageMockttpController {
       };
     }
 
+    // If the request is for all entries, we need to check the SRP identifier
+    // in order to return only the entries that belong to the user
     const json = internalPathData?.response.length
       ? internalPathData.response
       : null;
+
+    const filteredJson = json?.filter(
+      (entry) => entry.SrpIdentifier === srpIdentifier,
+    );
+    const jsonToReturn = filteredJson?.length ? filteredJson : null;
 
     this.eventEmitter.emit(UserStorageMockttpControllerEvents.GET_ALL, {
       path,
@@ -88,11 +99,12 @@ export class UserStorageMockttpController {
 
     return {
       statusCode,
-      json,
+      json: jsonToReturn,
     };
   }
 
   async onPut(path, request, statusCode = 204) {
+    const srpIdentifier = getSrpIdentifierFromHeaders(request.headers);
     const isFeatureEntry = determineIfFeatureEntryFromURL(request.url);
 
     const data = await request.body.getJson();
@@ -136,11 +148,13 @@ export class UserStorageMockttpController {
               {
                 HashedKey: getDecodedProxiedURL(request.url).split('/').pop(),
                 Data: data?.data,
+                SrpIdentifier: srpIdentifier,
               },
             ]
           : Object.entries(data?.data).map(([key, value]) => ({
               HashedKey: key,
               Data: value,
+              SrpIdentifier: srpIdentifier,
             }));
 
       newOrUpdatedSingleOrBatchEntries.forEach((entry) => {

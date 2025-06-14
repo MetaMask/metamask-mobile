@@ -1920,6 +1920,8 @@
     "tx_review_staking_claim": "Staking Claim",
     "tx_review_staking_deposit": "Staking Deposit",
     "tx_review_staking_unstake": "Unstake",
+    "tx_review_lending_deposit": "Lending Deposit",
+    "tx_review_lending_withdraw": "Lending Withdrawal",
     "sent_ether": "Sent Ether",
     "self_sent_ether": "Sent Yourself Ether",
     "received_ether": "Received Ether",
@@ -3074,7 +3076,8 @@
       "sale_pending_title": "{{currency}} sale processing",
       "sale_pending_description": "Your order is now being processed.",
       "no_date": "Unknown"
-    }
+    },
+    "deposit_order_title": "{{currency}} Deposit"
   },
   "swaps": {
     "title": "Swap",
@@ -3786,9 +3789,10 @@
   "earn": {
     "empty_state_cta": {
       "heading": "Lend {{tokenSymbol}} and earn",
-      "body_prefix": "You could earn up to",
-      "body_suffix": "per year by lending your {{tokenSymbol}}.",
-      "start_earning": "Start earning"
+      "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
+      "annually": "annually.",
+      "learn_more": "Learn more.",
+      "earn": "Earn"
     },
     "service_interruption_banner": {
       "maintenance_message": "We're down for maintenance. We'll be back online soon!"
@@ -3814,10 +3818,30 @@
       "protocol": "A lending protocol is a smart contract that lets you lend tokens to earn rewards. It also lets users borrow tokens by putting up other tokens as collateral, against a fee which is paid to lenders.",
       "reward_frequency": "Frequency at which your rewards are accounted for.",
       "withdrawal_time": "The time it takes to withdraw your token from the protocol and get it back in your wallet",
-      "receive": "This token is used to track your assets and rewards. Do not transfer or trade them, or you won’t be able to withdraw your assets."
+      "receive": "This token is used to track your assets and rewards. Do not transfer or trade them, or you won’t be able to withdraw your assets.",
+      "health_factor": {
+        "your_health_factor_measures_liquidation_risk": "Your Health Factor measures liquidation risk",
+        "above_two_dot_zero": "Above 2.0",
+        "safe_position": "Safe position",
+        "between_one_dot_five_and_2_dot_zero": "Between 1.5-2.0",
+        "medium_liquidation_risk": "Medium Liquidation risk",
+        "below_one_dot_five": "Below 1.5",
+        "higher_liquidation_risk": "Higher liquidation risk",
+        "infinite": "Infinite",
+        "no_debt_maximum_security": "No debt, maximum safety"
+      }
     },
     "withdraw": "Withdraw",
-    "deposit_more": "Deposit more"
+    "deposit_more": "Deposit more",
+    "earning": "Earning",
+    "withdrawal_time": "Withdrawal time",
+    "withdrawing_to": "Withdrawing to",
+    "network": "Network",
+    "health_factor": "Health factor",
+    "liquidation_risk": "Liquidation risk",
+    "insufficient_pool_liquidity": "Insufficient Pool Liquidity",
+    "available_to_withdraw": "available to withdraw",
+    "unknown": "unknown"
   },
   "stake": {
     "stake": "Stake",
@@ -3918,7 +3942,7 @@
     "proceed_anyway": "Proceed anyway",
     "gas_cost_impact": "Gas cost impact",
     "select_a_token": "Select a token",
-    "you_could_earn": "You could earn",
+    "you_could_earn_up_to": "You could earn up to",
     "per_year_on_your_tokens": "per year on your tokens",
     "deposit": "Deposit",
     "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than {{percentOverDeposit}}% of your deposit.",

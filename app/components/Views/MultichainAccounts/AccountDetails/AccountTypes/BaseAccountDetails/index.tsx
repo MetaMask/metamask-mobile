@@ -70,7 +70,7 @@ export const BaseAccountDetails = ({
   }, []);
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={styles.safeArea}>
       <HeaderBase
         style={styles.header}
         startAccessory={
