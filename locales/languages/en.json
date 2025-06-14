@@ -1920,6 +1920,8 @@
     "tx_review_staking_claim": "Staking Claim",
     "tx_review_staking_deposit": "Staking Deposit",
     "tx_review_staking_unstake": "Unstake",
+    "tx_review_lending_deposit": "Lending Deposit",
+    "tx_review_lending_withdraw": "Lending Withdrawal",
     "sent_ether": "Sent Ether",
     "self_sent_ether": "Sent Yourself Ether",
     "received_ether": "Received Ether",
@@ -3074,7 +3076,8 @@
       "sale_pending_title": "{{currency}} sale processing",
       "sale_pending_description": "Your order is now being processed.",
       "no_date": "Unknown"
-    }
+    },
+    "deposit_order_title": "{{currency}} Deposit"
   },
   "swaps": {
     "title": "Swap",
@@ -3837,7 +3840,8 @@
     "health_factor": "Health factor",
     "liquidation_risk": "Liquidation risk",
     "insufficient_pool_liquidity": "Insufficient Pool Liquidity",
-    "available_to_withdraw": "available to withdraw"
+    "available_to_withdraw": "available to withdraw",
+    "unknown": "unknown"
   },
   "stake": {
     "stake": "Stake",
@@ -3938,7 +3942,7 @@
     "proceed_anyway": "Proceed anyway",
     "gas_cost_impact": "Gas cost impact",
     "select_a_token": "Select a token",
-    "you_could_earn": "You could earn",
+    "you_could_earn_up_to": "You could earn up to",
     "per_year_on_your_tokens": "per year on your tokens",
     "deposit": "Deposit",
     "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than {{percentOverDeposit}}% of your deposit.",
