@@ -146,7 +146,7 @@ const ImportFromSecretRecoveryPhrase = ({
     onTransactionComplete: false,
   });
 
-  const seedPhraseLength = seedPhrase.filter((item) => item !== '').length;
+  const seedPhraseLength = seedPhrase.length;
 
   const isSRPContinueButtonDisabled = useMemo(
     () => !SRP_LENGTHS.includes(seedPhraseLength),
