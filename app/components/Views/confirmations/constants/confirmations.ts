@@ -18,6 +18,13 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.tokenMethodTransferFrom,
   TransactionType.batch,
   TransactionType.revokeDelegation,
+  TransactionType.tokenMethodApprove,
+  TransactionType.tokenMethodSetApprovalForAll,
+];
+
+export const REDESIGNED_APPROVE_TYPES = [
+  TransactionType.tokenMethodApprove,
+  TransactionType.tokenMethodSetApprovalForAll,
 ];
 
 export const REDESIGNED_TRANSFER_TYPES = [

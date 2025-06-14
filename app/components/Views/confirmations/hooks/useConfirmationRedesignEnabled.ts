@@ -13,6 +13,7 @@ import {
 import { isHardwareAccount } from '../../../../util/address';
 import { isStakingConfirmation } from '../utils/confirm';
 import {
+  REDESIGNED_APPROVE_TYPES,
   REDESIGNED_SIGNATURE_TYPES,
   REDESIGNED_TRANSACTION_TYPES,
   REDESIGNED_TRANSFER_TYPES,
@@ -45,9 +46,9 @@ function isRedesignedTransaction({
   fromAddress: string;
   transactionMetadata?: TransactionMeta;
 }) {
-  const isTransactionTypeRedesigned = REDESIGNED_TRANSACTION_TYPES.includes(
-    transactionMetadata?.type as TransactionType,
-  );
+  const transactionType = transactionMetadata?.type as TransactionType;
+  const isTransactionTypeRedesigned =
+    REDESIGNED_TRANSACTION_TYPES.includes(transactionType);
 
   if (
     !isTransactionTypeRedesigned ||
@@ -58,27 +59,27 @@ function isRedesignedTransaction({
     return false;
   }
 
-  if (isStakingConfirmation(transactionMetadata?.type as string)) {
+  if (isStakingConfirmation(transactionType)) {
     return confirmationRedesignFlags?.staking_confirmations;
   }
 
-  if (transactionMetadata?.type === TransactionType.contractInteraction) {
+  if (transactionType === TransactionType.contractInteraction) {
     return confirmationRedesignFlags?.contract_interaction;
   }
 
   if (
-    transactionMetadata?.type === TransactionType.revokeDelegation ||
-    transactionMetadata?.type === TransactionType.batch
+    transactionType === TransactionType.revokeDelegation ||
+    transactionType === TransactionType.batch
   ) {
     return true;
   }
 
-  if (
-    REDESIGNED_TRANSFER_TYPES.includes(
-      transactionMetadata?.type as TransactionType,
-    )
-  ) {
+  if (REDESIGNED_TRANSFER_TYPES.includes(transactionType)) {
     return confirmationRedesignFlags?.transfer;
+  }
+
+  if (REDESIGNED_APPROVE_TYPES.includes(transactionType)) {
+    return confirmationRedesignFlags?.approve;
   }
 
   return false;

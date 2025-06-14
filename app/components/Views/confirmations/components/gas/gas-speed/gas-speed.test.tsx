@@ -9,7 +9,7 @@ import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { transferTransactionStateMock } from '../../../mock-data/transfer-transaction-mock';
-import { feeMarketEstimates } from '../../../mock-data/gas-fee-controller-mock';
+import { feeMarketEstimates } from '../../../mock-data/controllers/gas-fee-controller-mock';
 import { useGasFeeEstimates } from '../../../hooks/gas/useGasFeeEstimates';
 import { GasSpeed } from './gas-speed';
 
