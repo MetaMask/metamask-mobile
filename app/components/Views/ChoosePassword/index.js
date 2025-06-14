@@ -692,35 +692,37 @@ class ChoosePassword extends PureComponent {
                       />
                     }
                   />
-                  {password && password.length < MIN_PASSWORD_LENGTH && (
-                    <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Alternative}
-                    >
-                      {strings('choose_password.must_be_at_least', {
-                        number: MIN_PASSWORD_LENGTH,
-                      })}
-                    </Text>
-                  )}
-                  {password && password.length >= MIN_PASSWORD_LENGTH && (
-                    <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Alternative}
-                      testID={ChoosePasswordSelectorsIDs.PASSWORD_STRENGTH_ID}
-                    >
-                      {strings('choose_password.password_strength')}
+                  {Boolean(password) &&
+                    password.length < MIN_PASSWORD_LENGTH && (
                       <Text
                         variant={TextVariant.BodySM}
                         color={TextColor.Alternative}
-                        style={styles[`strength_${passwordStrengthWord}`]}
                       >
-                        {' '}
-                        {strings(
-                          `choose_password.strength_${passwordStrengthWord}`,
-                        )}
+                        {strings('choose_password.must_be_at_least', {
+                          number: MIN_PASSWORD_LENGTH,
+                        })}
                       </Text>
-                    </Text>
-                  )}
+                    )}
+                  {Boolean(password) &&
+                    password.length >= MIN_PASSWORD_LENGTH && (
+                      <Text
+                        variant={TextVariant.BodySM}
+                        color={TextColor.Alternative}
+                        testID={ChoosePasswordSelectorsIDs.PASSWORD_STRENGTH_ID}
+                      >
+                        {strings('choose_password.password_strength')}
+                        <Text
+                          variant={TextVariant.BodySM}
+                          color={TextColor.Alternative}
+                          style={styles[`strength_${passwordStrengthWord}`]}
+                        >
+                          {' '}
+                          {strings(
+                            `choose_password.strength_${passwordStrengthWord}`,
+                          )}
+                        </Text>
+                      </Text>
+                    )}
                 </View>
 
                 <View style={styles.field}>

@@ -498,7 +498,6 @@ const ImportFromSecretRecoveryPhrase = ({
     }
 
     if (error) {
-      // Alert.alert(strings('import_from_seed.error'), error);
       track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
         wallet_setup_type: 'import',
         error_type: error,
