@@ -459,8 +459,8 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const handleContinueImportFlow = () => {
-    setSpellcheckError(true);
     if (!validateSeedPhrase()) {
+      setSpellcheckError(true);
       return;
     }
     setCurrentStep(currentStep + 1);
