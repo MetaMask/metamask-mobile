@@ -24,12 +24,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// jest.mock('../../../../../../util/address', () => ({
-//   ...jest.requireActual('../../../../../../util/address'),
-//   isHDOrFirstPartySnapAccount: (account: InternalAccount) =>
-//     mockIsHDOrFirstPartySnapAccount(account),
-// }));
-
 const mockFirstPartySnapAccount = createMockInternalAccount(
   '0x1234567890123456789012345678901234567890',
   'First Party Snap Account',
