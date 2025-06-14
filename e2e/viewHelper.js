@@ -119,12 +119,6 @@ export const importWalletWithRecoveryPhrase = async ({
 
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
-  if (optInToMetrics) {
-    await MetaMetricsOptIn.tapAgreeButton();
-  } else {
-    await MetaMetricsOptIn.tapNoThanksButton();
-  }
-
   await TestHelpers.delay(3500);
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
@@ -139,6 +133,13 @@ export const importWalletWithRecoveryPhrase = async ({
   await CreatePasswordView.reEnterPassword(password ?? validAccount.password);
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
+
+  await TestHelpers.delay(3500);
+  if (optInToMetrics) {
+    await MetaMetricsOptIn.tapAgreeButton();
+  } else {
+    await MetaMetricsOptIn.tapNoThanksButton();
+  }
 
   //'Should dismiss Enable device Notifications checks alert'
   await TestHelpers.delay(3500);
@@ -181,11 +182,6 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await acceptTermOfUse();
   await OnboardingView.tapCreateWallet();
 
-  await Assertions.checkIfVisible(MetaMetricsOptIn.container);
-  optInToMetrics
-    ? await MetaMetricsOptIn.tapAgreeButton()
-    : await MetaMetricsOptIn.tapNoThanksButton();
-
   await Assertions.checkIfVisible(CreatePasswordView.container);
   await CreatePasswordView.enterPassword(validAccount.password);
   await CreatePasswordView.reEnterPassword(validAccount.password);
@@ -209,6 +205,11 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await ProtectYourWalletModal.tapRemindMeLaterButton();
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
   await SkipAccountSecurityModal.tapSkipButton();
+
+  await Assertions.checkIfVisible(MetaMetricsOptIn.container);
+  optInToMetrics
+    ? await MetaMetricsOptIn.tapAgreeButton()
+    : await MetaMetricsOptIn.tapNoThanksButton();
 
   // 'should dismiss the onboarding wizard'
   // dealing with flakiness on bitrise.

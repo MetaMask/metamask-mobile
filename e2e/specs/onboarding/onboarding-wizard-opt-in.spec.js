@@ -29,7 +29,7 @@ describe(
       await TestHelpers.launchApp();
     });
 
-    it('should be able to opt-in of the onboarding-wizard', async () => {
+    it('should be able to accept the terms of use', async () => {
       await OnboardingCarouselView.tapOnGetStartedButton();
       await acceptTermOfUse();
       await OnboardingView.tapCreateWallet();
@@ -50,7 +50,17 @@ describe(
       await Assertions.checkIfVisible(ProtectYourWalletView.container);
       await ProtectYourWalletView.tapOnRemindMeLaterButton();
       await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+      await TestHelpers.delay(1000);
       await SkipAccountSecurityModal.tapSkipButton();
+      await OnboardingSuccessView.tapDone();
+    });
+
+    it('should be able to opt-in of the onboarding-wizard', async () => {
+      await Assertions.checkIfVisible(MetaMetricsOptIn.container);
+      await MetaMetricsOptIn.tapAgreeButton();
+    });
+
+    it('should finish the onboarding', async () => {
       await OnboardingSuccessView.tapDone();
     });
 

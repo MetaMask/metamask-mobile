@@ -760,9 +760,7 @@ class ChoosePassword extends PureComponent {
                   <Checkbox
                     onPress={this.setSelection}
                     isChecked={isSelected}
-                    testID={
-                      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
-                    }
+                    testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                     accessibilityLabel={
                       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
                     }
@@ -818,7 +816,8 @@ const mapDispatchToProps = (dispatch) => ({
   passwordUnset: () => dispatch(passwordUnset()),
   setLockTime: (time) => dispatch(setLockTime(time)),
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
-  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
+  dispatchSaveOnboardingEvent: (...eventArgs) =>
+    dispatch(saveOnboardingEvent(eventArgs)),
 });
 
 const mapStateToProps = (state) => ({});
