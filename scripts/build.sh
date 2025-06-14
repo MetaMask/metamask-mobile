@@ -646,10 +646,10 @@ startWatcher() {
 		watchman watch-del-all
 		rm -rf $TMPDIR/metro-cache
 		#react-native start --port=$WATCHER_PORT -- --reset-cache
-		npx expo start --port $WATCHER_PORT --clear
+		npx expo start --port $WATCHER_PORT --clear --max-workers 3
 	else
 		#react-native start --port=$WATCHER_PORT
-		npx expo start --port $WATCHER_PORT
+		npx expo start --port $WATCHER_PORT --max-workers 3
 	fi
 }
 
