@@ -1,4 +1,10 @@
-import React, { useRef, useCallback, useEffect, useReducer } from 'react';
+import React, {
+  useRef,
+  useCallback,
+  useEffect,
+  useReducer,
+  useMemo,
+} from 'react';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -36,6 +42,8 @@ import { EARN_INPUT_VIEW_ACTIONS } from '../../Views/EarnInputView/EarnInputView
 import EarnDepositTokenListItem from '../EarnDepositTokenListItem';
 import EarnWithdrawalTokenListItem from '../EarnWithdrawalTokenListItem';
 import { EarnTokenDetails } from '../../types/lending.types';
+import BN4 from 'bnjs4';
+import { sortByHighestRewards } from '../../utils';
 
 const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
@@ -86,8 +94,7 @@ const EarnTokenList = () => {
 
   const { includeReceiptTokens } = params?.tokenFilter ?? {};
 
-  const { earnTokens, earnOutputTokens, earnableTotalFiatFormatted } =
-    useEarnTokens();
+  const { earnTokens, earnOutputTokens } = useEarnTokens();
 
   const tokens = includeReceiptTokens ? earnOutputTokens : earnTokens;
 
@@ -191,6 +198,37 @@ const EarnTokenList = () => {
     );
   };
 
+  const highestAvailableApr = useMemo(
+    () =>
+      earnTokens?.reduce((highestApr, token) => {
+        const parsedApr = parseFloat(token?.experience?.apr);
+
+        return parsedApr > highestApr ? parsedApr : highestApr;
+      }, 0),
+    [earnTokens],
+  );
+
+  /**
+   * We want to sort the tokens by estimated fiat rewards in descending order.
+   * Tokens where a user has a non-zero balance will be listed first by highest fiat rewards.
+   * Tokens where a user doesn't have a balance will not be listed for now to avoid dead end on deposit screen.
+   */
+  const tokensSortedByHighestYield = useMemo(() => {
+    if (!tokens?.length) return [];
+
+    const tokensWithBalance: EarnTokenDetails[] = [];
+
+    tokens?.forEach((token) => {
+      const hasTokenBalance = new BN4(token.balanceMinimalUnit).gt(new BN4(0));
+
+      if (hasTokenBalance) {
+        tokensWithBalance.push(token);
+      }
+    });
+
+    return [...sortByHighestRewards(tokensWithBalance)];
+  }, [tokens]);
+
   return (
     <BottomSheet ref={bottomSheetRef}>
       <BottomSheetHeader>
@@ -199,17 +237,17 @@ const EarnTokenList = () => {
         </Text>
       </BottomSheetHeader>
       <ScrollView style={styles.container}>
-        {earnTokens?.length ? (
+        {tokensSortedByHighestYield?.length ? (
           <>
             {params?.onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.DEPOSIT && (
               <UpsellBanner
-                primaryText={strings('stake.you_could_earn')}
-                secondaryText={earnableTotalFiatFormatted}
+                primaryText={strings('stake.you_could_earn_up_to')}
+                secondaryText={`${highestAvailableApr.toString()}%`}
                 tertiaryText={strings('stake.per_year_on_your_tokens')}
                 variant={UPSELL_BANNER_VARIANTS.HEADER}
               />
             )}
-            {tokens?.map(
+            {tokensSortedByHighestYield?.map(
               (token) =>
                 token?.chainId && (
                   <View
