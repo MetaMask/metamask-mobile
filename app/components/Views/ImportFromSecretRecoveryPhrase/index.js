@@ -706,6 +706,9 @@ const ImportFromSecretRecoveryPhrase = ({
                           }
                           editable
                           keyboardType="default"
+                          autoCorrect={false}
+                          textContentType="none"
+                          spellCheck={false}
                         />
                       ) : (
                         <View
@@ -774,6 +777,10 @@ const ImportFromSecretRecoveryPhrase = ({
                                   numberOfLines={1}
                                   autoFocus={index === seedPhrase.length - 1}
                                   testID={`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`}
+                                  keyboardType="default"
+                                  autoCorrect={false}
+                                  textContentType="none"
+                                  spellCheck={false}
                                 />
                               </View>
                             )}
