@@ -5,20 +5,28 @@ import { EARN_EXPERIENCES } from '../constants/experiences';
 import { EarnTokenDetails } from '../types/lending.types';
 
 export const useEarnMetadata = (earnToken: EarnTokenDetails) => {
+  if (!earnToken)
+    return {
+      annualRewardRate: '',
+      annualRewardRateDecimal: 0,
+      annualRewardRateValue: 0,
+      isLoadingEarnMetadata: false,
+    };
+
   const {
     annualRewardRate: annualRewardRateFromVault,
     annualRewardRateDecimal: annualRewardRateDecimalFromVault,
     isLoadingVaultMetadata: isLoadingVaultMetadataFromVault,
-  } = useVaultMetadata(getDecimalChainId(earnToken.chainId));
+  } = useVaultMetadata(getDecimalChainId(earnToken?.chainId));
 
   let annualRewardRate = '';
   let annualRewardRateDecimal = 0;
   let annualRewardRateValue = 0;
 
   if (earnToken.experience.type === EARN_EXPERIENCES.STABLECOIN_LENDING) {
-    annualRewardRate = earnToken.experience.apr + '%';
+    annualRewardRate = BigNumber(earnToken.experience.apr).toFixed(1) + '%';
     annualRewardRateDecimal = parseFloat(
-      BigNumber(earnToken.experience.apr).div(100).toFixed(1),
+      BigNumber(earnToken.experience.apr).div(100).toFixed(),
     );
     annualRewardRateValue = parseFloat(earnToken.experience.apr);
   } else if (earnToken.experience.type === EARN_EXPERIENCES.POOLED_STAKING) {

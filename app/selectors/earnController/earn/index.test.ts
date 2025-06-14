@@ -20,6 +20,8 @@ import {
 import { mockEarnControllerRootState } from '../../../components/UI/Stake/testUtils';
 import { RootState } from '../../../reducers';
 // eslint-disable-next-line import/no-namespace
+import { MOCK_ETH_MAINNET_ASSET } from '../../../components/UI/Stake/__mocks__/stakeMockData';
+import { TokenI } from '../../../components/UI/Tokens/types';
 import * as networks from '../../../util/networks';
 import {
   internalAccount2,
@@ -123,6 +125,7 @@ const mockState = {
                 name: 'USDT Token',
                 symbol: 'USDT',
                 decimals: 6,
+                chainId: CHAIN_IDS.MAINNET,
               },
               {
                 address: toChecksumHexAddress(
@@ -131,6 +134,7 @@ const mockState = {
                 name: 'USDC Token',
                 symbol: 'USDC',
                 decimals: 6,
+                chainId: CHAIN_IDS.MAINNET,
               },
               {
                 address: toChecksumHexAddress(
@@ -139,6 +143,7 @@ const mockState = {
                 name: 'WETH Token',
                 symbol: 'WETH',
                 decimals: 12,
+                chainId: CHAIN_IDS.MAINNET,
               },
               {
                 address: toChecksumHexAddress(
@@ -147,6 +152,7 @@ const mockState = {
                 name: 'aUSDT Token',
                 symbol: 'aUSDT',
                 decimals: 6,
+                chainId: CHAIN_IDS.MAINNET,
               },
               {
                 address: toChecksumHexAddress(
@@ -155,6 +161,7 @@ const mockState = {
                 name: 'aUSDC Token',
                 symbol: 'aUSDC',
                 decimals: 6,
+                chainId: CHAIN_IDS.MAINNET,
               },
               {
                 address: toChecksumHexAddress(
@@ -163,8 +170,9 @@ const mockState = {
                 name: 'aWETH Token',
                 symbol: 'aWETH',
                 decimals: 12,
+                chainId: CHAIN_IDS.MAINNET,
               },
-            ],
+            ] as TokenI[],
           },
         },
         allIgnoredTokens: {},
@@ -232,8 +240,8 @@ describe('Earn Controller Selectors', () => {
       >
     ).mockReturnValue(true);
     (
-      selectPooledStakingEnabledFlag as jest.MockedFunction<
-        typeof selectPooledStakingEnabledFlag
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
       >
     ).mockReturnValue(true);
 
@@ -378,6 +386,283 @@ describe('Earn Controller Selectors', () => {
       );
       expect(result.earnTokens.slice(nonZeroBalances.length)).toEqual(
         zeroBalances,
+      );
+    });
+  });
+
+  describe('selectEarnToken', () => {
+    it('returns undefined when asset is not provided', () => {
+      const result = earnSelectors.selectEarnToken(
+        mockState as unknown as RootState,
+        undefined as any,
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when asset chainId is not provided', () => {
+      const result = earnSelectors.selectEarnToken(
+        mockState as unknown as RootState,
+        { address: '0x123' } as any,
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when asset address is not provided', () => {
+      const result = earnSelectors.selectEarnToken(
+        mockState as unknown as RootState,
+        { chainId: '0x1' } as any,
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when ETH token staked status does not match', () => {
+      const result = earnSelectors.selectEarnToken(
+        mockState as unknown as RootState,
+        {
+          ...MOCK_ETH_MAINNET_ASSET,
+          address: '0x0000000000000000000000000000000000000000',
+          isStaked: true,
+        } as TokenI,
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it('returns earn token when valid asset is provided', () => {
+      // USDT underlying token (index 0)
+      const token =
+        mockState.engine.backgroundState.TokensController.allTokens['0x1'][
+          internalAccount2.address
+        ][0];
+      const earnTokens = earnSelectors.selectEarnTokens(
+        mockState as unknown as RootState,
+      );
+
+      const result = earnSelectors.selectEarnToken(
+        mockState as unknown as RootState,
+        token as TokenI,
+      );
+
+      expect(result).toBeDefined();
+      expect(result?.address.toLowerCase()).toBe(
+        MOCK_LENDING_MARKET_USDT.underlying.address.toLowerCase(),
+      );
+    });
+  });
+
+  describe('selectEarnOutputToken', () => {
+    it('returns undefined when asset is not provided', () => {
+      const result = earnSelectors.selectEarnOutputToken(
+        mockState as unknown as RootState,
+        undefined as any,
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when asset chainId is not provided', () => {
+      const result = earnSelectors.selectEarnOutputToken(
+        mockState as unknown as RootState,
+        { address: '0x123' } as any,
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when asset address is not provided', () => {
+      const result = earnSelectors.selectEarnOutputToken(
+        mockState as unknown as RootState,
+        { chainId: '0x1' } as any,
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when ETH token staked status does not match', () => {
+      const result = earnSelectors.selectEarnOutputToken(
+        mockState as unknown as RootState,
+        {
+          ...MOCK_ETH_MAINNET_ASSET,
+          address: '0x0000000000000000000000000000000000000000',
+          isStaked: false,
+        } as TokenI,
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it('returns earn output token when valid asset is provided', () => {
+      // aUSDT underlying token (index 3)
+      const token =
+        mockState.engine.backgroundState.TokensController.allTokens['0x1'][
+          internalAccount2.address
+        ][3];
+      const result = earnSelectors.selectEarnOutputToken(
+        mockState as unknown as RootState,
+        token as TokenI,
+      );
+      expect(result).toBeDefined();
+      expect(result?.address.toLowerCase()).toBe(
+        MOCK_LENDING_MARKET_USDT.outputToken.address.toLowerCase(),
+      );
+    });
+  });
+
+  describe('selectPairedEarnToken', () => {
+    it('returns undefined when asset is not provided', () => {
+      const result = earnSelectors.selectPairedEarnToken(
+        mockState as unknown as RootState,
+        undefined as any,
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when asset chainId is not provided', () => {
+      const result = earnSelectors.selectPairedEarnToken(
+        mockState as unknown as RootState,
+        { address: '0x123' } as any,
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when asset address is not provided', () => {
+      const result = earnSelectors.selectPairedEarnToken(
+        mockState as unknown as RootState,
+        { chainId: '0x1' } as any,
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when ETH token staked status matches', () => {
+      const result = earnSelectors.selectPairedEarnToken(
+        mockState as unknown as RootState,
+        {
+          ...MOCK_ETH_MAINNET_ASSET,
+          address: '0x0000000000000000000000000000000000000000',
+          isStaked: false,
+        } as TokenI,
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it('returns paired earn token when valid output token is provided', () => {
+      // USDT output token (index 3)
+      const outputToken =
+        mockState.engine.backgroundState.TokensController.allTokens['0x1'][
+          internalAccount2.address
+        ][3];
+      const result = earnSelectors.selectPairedEarnToken(
+        mockState as unknown as RootState,
+        outputToken as TokenI,
+      );
+      expect(result).toBeDefined();
+      expect(result?.address.toLowerCase()).toBe(
+        MOCK_LENDING_MARKET_USDT.underlying.address.toLowerCase(),
+      );
+    });
+  });
+
+  describe('selectPairedEarnOutputToken', () => {
+    it('returns undefined when asset is not provided', () => {
+      const result = earnSelectors.selectPairedEarnOutputToken(
+        mockState as unknown as RootState,
+        undefined as any,
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when asset chainId is not provided', () => {
+      const result = earnSelectors.selectPairedEarnOutputToken(
+        mockState as unknown as RootState,
+        { address: '0x123' } as any,
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when asset address is not provided', () => {
+      const result = earnSelectors.selectPairedEarnOutputToken(
+        mockState as unknown as RootState,
+        { chainId: '0x1' } as any,
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when ETH token staked status matches', () => {
+      const result = earnSelectors.selectPairedEarnOutputToken(
+        mockState as unknown as RootState,
+        {
+          ...MOCK_ETH_MAINNET_ASSET,
+          address: '0x0000000000000000000000000000000000000000',
+          isStaked: true,
+        } as TokenI,
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it('returns paired earn output token when valid token is provided', () => {
+      // USDT underlying token (index 0)
+      const token =
+        mockState.engine.backgroundState.TokensController.allTokens['0x1'][
+          internalAccount2.address
+        ][0];
+      const result = earnSelectors.selectPairedEarnOutputToken(
+        mockState as unknown as RootState,
+        token as TokenI,
+      );
+      expect(result).toBeDefined();
+      expect(result?.address.toLowerCase()).toBe(
+        MOCK_LENDING_MARKET_USDT.outputToken.address.toLowerCase(),
+      );
+    });
+  });
+
+  describe('selectEarnTokenPair', () => {
+    it('returns undefined earn token and output token when no valid tokens are provided', () => {
+      const result = earnSelectors.selectEarnTokenPair(
+        mockState as unknown as RootState,
+        {
+          chainId: '0x1',
+          address: '0x234245346536',
+          isETH: false,
+          isStaked: false,
+        } as any,
+      );
+      expect(result.earnToken).toBeUndefined();
+      expect(result.outputToken).toBeUndefined();
+    });
+
+    it('returns earn token and paired output token when valid earn token is provided', () => {
+      // USDT underlying token (index 0)
+      const token =
+        mockState.engine.backgroundState.TokensController.allTokens['0x1'][
+          internalAccount2.address
+        ][0];
+      const result = earnSelectors.selectEarnTokenPair(
+        mockState as unknown as RootState,
+        token as TokenI,
+      );
+      expect(result.earnToken).toBeDefined();
+      expect(result.outputToken).toBeDefined();
+      expect(result.earnToken?.address.toLowerCase()).toBe(
+        MOCK_LENDING_MARKET_USDT.underlying.address.toLowerCase(),
+      );
+      expect(result.outputToken?.address.toLowerCase()).toBe(
+        MOCK_LENDING_MARKET_USDT.outputToken.address.toLowerCase(),
+      );
+    });
+
+    it('returns paired earn token and output token when valid output token is provided', () => {
+      // USDT output token (index 3)
+      const outputToken =
+        mockState.engine.backgroundState.TokensController.allTokens['0x1'][
+          internalAccount2.address
+        ][3];
+      const result = earnSelectors.selectEarnTokenPair(
+        mockState as unknown as RootState,
+        outputToken as TokenI,
+      );
+      expect(result.earnToken).toBeDefined();
+      expect(result.outputToken).toBeDefined();
+      expect(result.earnToken?.address.toLowerCase()).toBe(
+        MOCK_LENDING_MARKET_USDT.underlying.address.toLowerCase(),
+      );
+      expect(result.outputToken?.address.toLowerCase()).toBe(
+        MOCK_LENDING_MARKET_USDT.outputToken.address.toLowerCase(),
       );
     });
   });

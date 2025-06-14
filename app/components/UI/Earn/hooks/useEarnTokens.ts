@@ -134,26 +134,4 @@ const useEarnTokens = () => {
   };
 };
 
-export const useHasSupportedStablecoin = (
-  tokenChainId: Hex,
-  tokenSymbol?: string,
-  isStaked?: boolean,
-) => {
-  const tokens = useSelector((state: RootState) =>
-    selectAccountTokensAcrossChains(state),
-  );
-
-  const hasSupportedStablecoin = useMemo(() => {
-    const tokensByChainId = tokens?.[tokenChainId] as TokenI[] | undefined;
-    return (
-      isStaked &&
-      tokensByChainId?.some(
-        (t) => t?.chainId === tokenChainId && t?.symbol === tokenSymbol,
-      )
-    );
-  }, [isStaked, tokenChainId, tokenSymbol, tokens]);
-
-  return Boolean(hasSupportedStablecoin);
-};
-
 export default useEarnTokens;

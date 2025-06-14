@@ -1,4 +1,3 @@
-import { Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { View } from 'react-native';
@@ -20,26 +19,23 @@ import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import EarnMaintenanceBanner from '../../../Earn/components/EarnMaintenanceBanner';
+import { EVENT_LOCATIONS } from '../../../Earn/constants/events';
 import useEarnings from '../../../Earn/hooks/useEarnings';
-import { selectPooledStakingServiceInterruptionBannerEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import { selectStablecoinLendingServiceInterruptionBannerEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import { getTooltipMetricProperties } from '../../../Stake/utils/metaMetrics/tooltipMetaMetricsUtils';
+import { withMetaMetrics } from '../../../Stake/utils/metaMetrics/withMetaMetrics';
 import { TokenI } from '../../../Tokens/types';
-import { EVENT_LOCATIONS } from '../../constants/events';
-import { useStakingChainByChainId } from '../../hooks/useStakingChain';
-import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
-import { getTooltipMetricProperties } from '../../utils/metaMetrics/tooltipMetaMetricsUtils';
-import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
-import styleSheet from './StakingEarnings.styles';
-import StakingEarningsHistoryButton from './StakingEarningsHistoryButton/StakingEarningsHistoryButton';
+import styleSheet from './Earnings.styles';
 
-export interface StakingEarningsProps {
+export interface EarningsProps {
   asset: TokenI;
 }
 
-const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
+const EarningsContent = ({ asset }: EarningsProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const isPooledStakingServiceInterruptionBannerEnabled = useSelector(
-    selectPooledStakingServiceInterruptionBannerEnabledFlag,
+  const isEarnLendingServiceInterruptionBannerEnabled = useSelector(
+    selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
   );
 
   const { navigate } = useNavigation();
@@ -51,12 +47,8 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
     estimatedAnnualEarnings,
     estimatedAnnualEarningsFiat,
     isLoadingEarningsData,
-    hasEarnPooledStakes,
+    hasEarnLendingPositions,
   } = useEarnings({ asset });
-
-  const { isStakingSupportedChain } = useStakingChainByChainId(
-    asset.chainId as Hex,
-  );
 
   const onDisplayAnnualRateTooltip = () =>
     navigate('StakeModals', {
@@ -64,15 +56,15 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
       params: { chainId: asset.chainId },
     });
 
-  if (!isStakingSupportedChain || !hasEarnPooledStakes) return <></>;
+  if (!hasEarnLendingPositions) return <></>;
 
   return (
-    <View style={styles.stakingEarningsContainer}>
+    <View style={styles.earningsContainer}>
       <Text variant={TextVariant.HeadingMD} style={styles.title}>
         {strings('stake.your_earnings')}
       </Text>
       <View>
-        {isPooledStakingServiceInterruptionBannerEnabled && (
+        {isEarnLendingServiceInterruptionBannerEnabled && (
           <EarnMaintenanceBanner />
         )}
         {/* Annual Rate */}
@@ -95,7 +87,7 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
               onPress={withMetaMetrics(onDisplayAnnualRateTooltip, {
                 event: MetaMetricsEvents.TOOLTIP_OPENED,
                 properties: getTooltipMetricProperties(
-                  EVENT_LOCATIONS.STAKING_EARNINGS,
+                  EVENT_LOCATIONS.LENDING_EARNINGS,
                   'Annual Rate',
                 ),
               })}
@@ -191,16 +183,15 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
             )}
           </View>
         </View>
-        <StakingEarningsHistoryButton asset={asset} />
       </View>
     </View>
   );
 };
 
-export const StakingEarnings = ({ asset }: StakingEarningsProps) => (
-  <StakeSDKProvider>
-    <StakingEarningsContent asset={asset} />
-  </StakeSDKProvider>
+export const Earnings = ({ asset }: EarningsProps) => (
+  <View>
+    <EarningsContent asset={asset} />
+  </View>
 );
 
-export default StakingEarnings;
+export default Earnings;
