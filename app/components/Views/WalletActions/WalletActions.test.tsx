@@ -149,23 +149,27 @@ jest.mock('../../UI/Ramp/Aggregator/hooks/useRampNetwork', () => ({
   default: jest.fn().mockReturnValue([true]),
 }));
 
-jest.mock('../../../core/AppConstants', () => ({
-  SWAPS: {
-    ACTIVE: true,
-  },
-  BUNDLE_IDS: {
-    ANDROID: 'io.metamask',
-    IOS: '1438144202',
-  },
-  MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
-  WALLET_CONNECT: {
-    PROJECT_ID: 'test-project-id',
-  },
-  BRIDGE: {
-    ACTIVE: true,
-    URL: 'https://bridge.metamask.io',
-  },
-}));
+jest.mock('../../../core/AppConstants', () => {
+  const actual = jest.requireActual('../../../core/AppConstants');
+  return {
+    ...actual.default,
+    SWAPS: {
+      ACTIVE: true,
+    },
+    BUNDLE_IDS: {
+      ANDROID: 'io.metamask',
+      IOS: '1438144202',
+    },
+    MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
+    WALLET_CONNECT: {
+      PROJECT_ID: 'test-project-id',
+    },
+    BRIDGE: {
+      ACTIVE: true,
+      URL: 'https://bridge.metamask.io',
+    },
+  };
+});
 
 const mockInitialState: DeepPartial<RootState> = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },

@@ -51,6 +51,7 @@ import { createMockControllerInitFunction } from './test-utils';
 import { getControllerOrThrow, initModularizedControllers } from './utils';
 import { AppMetadataController } from '@metamask/app-metadata-controller';
 import { appMetadataControllerInit } from '../controllers/app-metadata-controller';
+import { seedlessOnboardingControllerInit } from '../controllers/seedless-onboarding-controller';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/app-metadata-controller');
@@ -124,6 +125,9 @@ describe('initModularizedControllers', () => {
   const mockDeFiPositionsControllerInit = jest.mocked(
     defiPositionsControllerInit,
   );
+  const mockSeedlessOnboardingControllerInit = jest.mocked(
+    seedlessOnboardingControllerInit,
+  );
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
   ) {
@@ -154,6 +158,7 @@ describe('initModularizedControllers', () => {
           TransactionController: mockTransactionControllerInit,
           AppMetadataController: mockAppMetadataControllerInit,
           DeFiPositionsController: mockDeFiPositionsControllerInit,
+          SeedlessOnboardingController: mockSeedlessOnboardingControllerInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),

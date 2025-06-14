@@ -226,6 +226,10 @@ import {
 import { ErrorReportingService } from '@metamask/error-reporting-service';
 import { captureException } from '@sentry/react-native';
 
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
+///: END:ONLY_INCLUDE_IF
+
 const NON_EMPTY = 'NON_EMPTY';
 
 const encryptor = new Encryptor({
@@ -1217,6 +1221,9 @@ export class Engine {
         MultichainBalancesController: multichainBalancesControllerInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
         ///: END:ONLY_INCLUDE_IF
+        ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+        SeedlessOnboardingController: seedlessOnboardingControllerInit,
+        ///: END:ONLY_INCLUDE_IF
       },
       persistedState: initialState as EngineState,
       existingControllersByName,
@@ -1228,7 +1235,10 @@ export class Engine {
     const gasFeeController = controllersByName.GasFeeController;
     const signatureController = controllersByName.SignatureController;
     const transactionController = controllersByName.TransactionController;
-
+    ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+    const seedlessOnboardingController =
+      controllersByName.SeedlessOnboardingController;
+    ///: END:ONLY_INCLUDE_IF
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
     this.gasFeeController = gasFeeController;
@@ -1578,6 +1588,9 @@ export class Engine {
       BridgeStatusController: bridgeStatusController,
       EarnController: earnController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
+      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+      SeedlessOnboardingController: seedlessOnboardingController,
+      ///: END:ONLY_INCLUDE_IF
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -2295,6 +2308,9 @@ export default {
       BridgeStatusController,
       EarnController,
       DeFiPositionsController,
+      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+      SeedlessOnboardingController,
+      ///: END:ONLY_INCLUDE_IF
     } = instance.datamodel.state;
 
     return {
@@ -2346,6 +2362,9 @@ export default {
       BridgeStatusController,
       EarnController,
       DeFiPositionsController,
+      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+      SeedlessOnboardingController,
+      ///: END:ONLY_INCLUDE_IF
     };
   },
 

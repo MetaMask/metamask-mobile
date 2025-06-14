@@ -260,6 +260,15 @@ import {
   EarnControllerEvents,
   EarnControllerState,
 } from '@metamask/earn-controller';
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+import {
+  SeedlessOnboardingController,
+  SeedlessOnboardingControllerState,
+  SeedlessOnboardingControllerEvents,
+} from '@metamask/seedless-onboarding-controller';
+import { EncryptionKey } from '../Encryptor/types';
+///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+
 import { Hex } from '@metamask/utils';
 
 import { CONTROLLER_MESSENGERS } from './messengers';
@@ -409,6 +418,9 @@ type GlobalEvents =
   | BridgeStatusControllerEvents
   | EarnControllerEvents
   | AppMetadataControllerEvents
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  | SeedlessOnboardingControllerEvents
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   | DeFiPositionsControllerEvents;
 
 /**
@@ -484,6 +496,9 @@ export type Controllers = {
   BridgeController: BridgeController;
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 };
 
 /**
@@ -548,6 +563,9 @@ export type EngineState = {
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  SeedlessOnboardingController: SeedlessOnboardingControllerState;
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 };
 
 /** Controller names */
@@ -600,6 +618,9 @@ export type ControllersToInitialize =
   | 'TransactionController'
   | 'GasFeeController'
   | 'SignatureController'
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  | 'SeedlessOnboardingController'
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   | 'DeFiPositionsController';
 
 /**
