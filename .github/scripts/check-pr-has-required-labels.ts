@@ -51,7 +51,7 @@ async function main(): Promise<void> {
   ];
   let hasTeamLabel = false;
   let hasQALabel = false;
-
+  let hasSmokeE2ELabel = false;
   // Check pull request has at least required QA label and team label
   for (const label of pullRequestLabels) {
     if (label.startsWith('team-') || label === externalContributorLabel.name) {
@@ -62,13 +62,17 @@ async function main(): Promise<void> {
       console.log(`PR contains a QA label as expected: ${label}`);
       hasQALabel = true;
     }
+    if (label.includes('Run Smoke E2E') || label.includes('No E2E Smoke Needed')) {
+      console.log(`PR contains a Smoke E2E label as expected: ${label}`);
+      hasSmokeE2ELabel = true;
+    }
     if (preventMergeLabels.includes(label)) {
       core.setFailed(
         `PR cannot be merged because it still contains this label: ${label}`,
       );
       process.exit(1);
     }
-    if (hasTeamLabel && hasQALabel) {
+    if (hasTeamLabel && hasQALabel && hasSmokeE2ELabel) {
       return;
     }
   }
