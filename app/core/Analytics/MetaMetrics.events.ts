@@ -440,6 +440,8 @@ enum EVENT_NAME {
   // RPC Failover
   RPC_SERVICE_UNAVAILABLE = 'RPC Service Unavailable',
   RPC_SERVICE_DEGRADED = 'RPC Service Degraded',
+  // Sample feature
+  SETTINGS_SAMPLE_FEATURE = 'Settings Sample Feature',
 }
 
 enum ACTIONS {
@@ -1062,6 +1064,10 @@ const events = {
   SECRET_RECOVERY_PHRASE_PICKER_CLICKED: generateOpt(
     EVENT_NAME.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
   ),
+  /**
+   * @sampleFeature do not use in production code
+   */
+  SETTINGS_SAMPLE_FEATURE: generateOpt(EVENT_NAME.SETTINGS_SAMPLE_FEATURE),
 };
 
 /**
