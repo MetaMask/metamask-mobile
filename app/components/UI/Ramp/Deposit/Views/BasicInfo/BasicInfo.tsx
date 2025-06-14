@@ -21,6 +21,7 @@ import DepositProgressBar from '../../components/DepositProgressBar';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { DEPOSIT_REGIONS } from '../../constants';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
@@ -148,11 +149,12 @@ const BasicInfo = (): JSX.Element => {
             />
           </View>
           <DepositPhoneField
+            label="Phone Number"
             value={formData.mobileNumber}
             onChangeText={handleFormDataChange('mobileNumber')}
             error={errors.mobileNumber}
             testID="phone-number-input"
-            returnKeyType="next"
+            region={DEPOSIT_REGIONS[10]}
           />
 
           <DepositTextField
