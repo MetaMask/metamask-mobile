@@ -5204,10 +5204,10 @@
     "@metamask/utils" "^11.1.0"
     bitcoin-address-validation "^2.2.3"
 
-"@metamask/keyring-controller@^22.0.1":
-  version "22.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-22.0.1.tgz#a672c97a8640bf3dc96ec316fa315cc9a50b2e7b"
-  integrity sha512-LJqqrOPKZOWk3zDLrEDwFHB58qn1wGX1b56aduUpO2HVnpIwWt5b8W2sNbCqqfdL5vKqDhIB0QAMIMqiGu4DxQ==
+"@metamask/keyring-controller@npm:@metamask-previews/keyring-controller@22.0.2-preview-a272c5e1":
+  version "22.0.2-preview-a272c5e1"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/keyring-controller/-/keyring-controller-22.0.2-preview-a272c5e1.tgz#12494ec09a376f88270814f9694731108a623ec9"
+  integrity sha512-4m1N7jlXrl3NNBurWmDJMGOS42GFvveIytWnTXK/HfcAC3lDSo48WqnHXSe6gC9P3oFYeYuAc7/8h4o+zbZ0iw==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@keystonehq/metamask-airgapped-keyring" "^0.14.1"
