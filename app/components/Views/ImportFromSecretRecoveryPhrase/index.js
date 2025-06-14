@@ -374,6 +374,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
     setPassword(value);
     setPasswordStrength(passInfo.score);
+    setConfirmPassword('');
   };
 
   const onPasswordConfirmChange = (value) => {
@@ -463,7 +464,8 @@ const ImportFromSecretRecoveryPhrase = ({
       password === '' ||
       confirmPassword === '' ||
       password !== confirmPassword ||
-      !learnMore,
+      !learnMore ||
+      password.length < MIN_PASSWORD_LENGTH,
     [password, confirmPassword, learnMore],
   );
 
@@ -496,7 +498,7 @@ const ImportFromSecretRecoveryPhrase = ({
     }
 
     if (error) {
-      Alert.alert(strings('import_from_seed.error'), error);
+      // Alert.alert(strings('import_from_seed.error'), error);
       track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
         wallet_setup_type: 'import',
         error_type: error,

@@ -341,10 +341,16 @@ class ChoosePassword extends PureComponent {
     if (!canSubmit) return;
     if (loading) return;
     if (!passwordRequirementsMet(password)) {
-      Alert.alert('Error', strings('choose_password.password_length_error'));
+      this.track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+        wallet_setup_type: 'import',
+        error_type: strings('choose_password.password_length_error'),
+      });
       return;
     } else if (password !== confirmPassword) {
-      Alert.alert('Error', strings('choose_password.password_dont_match'));
+      this.track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+        wallet_setup_type: 'import',
+        error_type: strings('choose_password.password_dont_match'),
+      });
       return;
     }
     this.track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED);
@@ -538,8 +544,11 @@ class ChoosePassword extends PureComponent {
 
   onPasswordChange = (val) => {
     const passInfo = zxcvbn(val);
-
-    this.setState({ password: val, passwordStrength: passInfo.score });
+    this.setState({
+      password: val,
+      passwordStrength: passInfo.score,
+      confirmPassword: '',
+    });
   };
 
   learnMore = () => {
@@ -571,16 +580,11 @@ class ChoosePassword extends PureComponent {
   };
 
   render() {
-    const {
-      isSelected,
-      password,
-      passwordStrength,
-      confirmPassword,
-      error,
-      loading,
-    } = this.state;
+    const { isSelected, password, passwordStrength, confirmPassword, loading } =
+      this.state;
     const passwordsMatch = password !== '' && password === confirmPassword;
-    const canSubmit = passwordsMatch && isSelected;
+    const canSubmit =
+      passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
     const previousScreen = this.props.route.params?.[PREVIOUS_SCREEN];
     const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
     const colors = this.context.colors || mockTheme.colors;
