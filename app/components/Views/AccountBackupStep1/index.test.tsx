@@ -12,6 +12,7 @@ import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Routes from '../../../constants/navigation/Routes';
+import { InteractionManager } from 'react-native';
 
 // Use fake timers to resolve reanimated issues.
 jest.useFakeTimers();
@@ -64,6 +65,19 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
+  cb();
+  return {
+    then: (onfulfilled: () => void) => Promise.resolve(onfulfilled()),
+    done: (onfulfilled: () => void, onrejected: () => void) =>
+      Promise.resolve().then(onfulfilled, onrejected),
+    cancel: jest.fn(),
+  };
+});
+jest
+  .spyOn(InteractionManager, 'runAfterInteractions')
+  .mockImplementation(mockRunAfterInteractions);
 
 const mockResetActionOnboardingSuccessWizard = CommonActions.reset({
   index: 1,
