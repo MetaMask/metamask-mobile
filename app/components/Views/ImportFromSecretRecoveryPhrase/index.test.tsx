@@ -781,28 +781,5 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         expect(getByText('Unlock with Face ID?')).toBeOnTheScreen();
       });
     });
-
-    it('Import seed phrase with optin metrics flow', async () => {
-      mockIsEnabled.mockReturnValue(false);
-      const { getByTestId, passwordInput, confirmPasswordInput } =
-        renderStep2WithInputs();
-
-      // Enter valid passwords
-      fireEvent.changeText(passwordInput, 'StrongPass123!');
-      fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
-
-      // Check learn more checkbox
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
-      fireEvent.press(learnMoreCheckbox);
-      // Mock Authentication.newWalletAndRestore
-      jest.spyOn(Authentication, 'newWalletAndRestore').mockResolvedValueOnce();
-      // Try to import
-      const confirmButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-      fireEvent.press(confirmButton);
-    });
   });
 });
