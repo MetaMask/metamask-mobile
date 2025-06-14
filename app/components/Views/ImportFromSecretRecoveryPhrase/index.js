@@ -589,11 +589,8 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const canShowSeedPhraseWord = useCallback(
-    (index) =>
-      showAllSeedPhrase ||
-      errorWordIndexes[index] ||
-      index === seedPhraseInputFocusedIndex,
-    [showAllSeedPhrase, errorWordIndexes, seedPhraseInputFocusedIndex],
+    (index) => showAllSeedPhrase || index === seedPhraseInputFocusedIndex,
+    [showAllSeedPhrase, seedPhraseInputFocusedIndex],
   );
 
   const learnMoreLink = () => {
@@ -750,7 +747,9 @@ const ImportFromSecretRecoveryPhrase = ({
                                   }
                                   value={item}
                                   secureTextEntry={
-                                    !canShowSeedPhraseWord(index)
+                                    !(
+                                      spellcheckError && errorWordIndexes[index]
+                                    ) && !canShowSeedPhraseWord(index)
                                   }
                                   onFocus={(e) => {
                                     if (
