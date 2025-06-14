@@ -146,7 +146,8 @@ export function useSwitchNetworks({
       }
 
       setTokenNetworkFilter(chainId);
-      if (!(domainIsConnectedDapp && isPerDappSelectedNetworkEnabled())) dismissModal?.();
+      if (!(domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()))
+        dismissModal?.();
       endTrace({ name: TraceName.SwitchCustomNetwork });
       endTrace({ name: TraceName.NetworkSwitch });
       trackEvent(
@@ -189,7 +190,7 @@ export function useSwitchNetworks({
         SelectedNetworkController,
       } = Engine.context;
 
-      if (domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()) {
+      if (false) {
         SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
         isPerDappSelectedNetworkEnabled() && dismissModal?.();
       } else {
