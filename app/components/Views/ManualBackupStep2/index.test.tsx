@@ -394,8 +394,7 @@ describe('ManualBackupStep2', () => {
       mockMetricsIsEnabled.mockReturnValue(false);
 
       // setup test
-      const { wrapper, mockNavigate, mockNavigationDispatch, mockDispatch } =
-        setupTest();
+      const { wrapper, mockNavigate, mockDispatch } = setupTest();
 
       const { onPrimaryButtonPress } = setupSuccessFlow(wrapper, mockNavigate);
 
