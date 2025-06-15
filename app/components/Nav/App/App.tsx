@@ -144,6 +144,7 @@ import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
 import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
+import { DeepLinkModal } from '../../UI/DeepLinkModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -476,6 +477,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={ChangeInSimulationModal}
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
+    <Stack.Screen name={Routes.MODAL.DEEP_LINK_MODAL} component={DeepLinkModal} />
   </Stack.Navigator>
 );
 
