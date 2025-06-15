@@ -24,13 +24,12 @@ import BrowserUrlBar, {
   ConnectionType
 } from '../../UI/BrowserUrlBar';
 import UrlAutocomplete, {
-  AutocompleteSearchResult,
   UrlAutocompleteRef,
 } from '../../UI/UrlAutocomplete';
 import { TokenDiscovery } from '../TokenDiscovery';
 import { noop } from 'lodash';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
-import BrowserBottomBar from '../../UI/BrowserBottomBar';
+import { SearchDiscoveryResultItem } from '../../UI/SearchDiscoveryResult/types';
 
 /**
  * Tab component for the in-app browser
@@ -79,7 +78,7 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
    * Handle autocomplete selection
    */
   const onSelect = useCallback(
-    (item: AutocompleteSearchResult) => {
+    (item: SearchDiscoveryResultItem) => {
       if (item.category === 'tokens') {
         navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
           chainId: item.chainId,
@@ -117,23 +116,6 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
     autocompleteRef.current?.search(text);
   }, []);
 
-  const toggleUrlModal = useCallback(() => {
-    urlBarRef.current?.focus();
-  }, []);
-
-  /**
-   * Render the bottom (navigation/options) bar
-   */
-  const renderBottomBar = () =>
-    isTabActive && !isUrlBarFocused ? (
-      <BrowserBottomBar
-        canGoBack={false}
-        canGoForward={false}
-        showTabs={showTabs}
-        showUrlModal={toggleUrlModal}
-      />
-    ) : null;
-
   /**
    * Main render
    */
@@ -159,10 +141,12 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
             onBlur={noop}
             activeUrl=""
             connectedAccounts={[]}
+            discoveryMode
+            showTabs={showTabs}
           />
           <View style={styles.wrapper}>
             <View style={styles.webview}>
-              <TokenDiscovery />
+              <TokenDiscovery onSelect={onSelect} />
             </View>
             <UrlAutocomplete
               ref={autocompleteRef}
@@ -170,7 +154,6 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
               onDismiss={onDismissAutocomplete}
             />
           </View>
-          {renderBottomBar()}
         </View>
       </KeyboardAvoidingView>
     </ErrorBoundary>

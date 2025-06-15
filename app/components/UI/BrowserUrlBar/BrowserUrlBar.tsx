@@ -33,6 +33,7 @@ import URLParse from 'url-parse';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
+import TabCountIcon from '../Tabs/TabCountIcon';
 
 const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
   (
@@ -47,6 +48,8 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       activeUrl,
       setIsUrlBarFocused,
       isUrlBarFocused,
+      discoveryMode,
+      showTabs,
     },
     ref,
   ) => {
@@ -177,6 +180,22 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       onChangeText(clearedText);
     };
 
+    let rightButton: React.ReactNode;
+    if (discoveryMode) {
+      rightButton = (
+        <TouchableOpacity style={styles.newTabButton} onPress={showTabs}>
+          <TabCountIcon />
+        </TouchableOpacity>
+      );
+    } else {
+      rightButton = (
+        <AccountRightButton
+          selectedAddress={selectedAddress}
+          onPress={handleAccountRightButtonPress}
+        />
+      );
+    }
+
     return (
       <View style={styles.browserUrlBarWrapper}>
         <View style={styles.main} testID={BrowserViewSelectorsIDs.URL_INPUT}>
@@ -232,12 +251,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
                 {strings('browser.cancel')}
               </Text>
             </TouchableOpacity>
-          ) : (
-            <AccountRightButton
-              selectedAddress={selectedAddress}
-              onPress={handleAccountRightButtonPress}
-            />
-          )}
+          ) : rightButton}
         </View>
       </View>
     );
