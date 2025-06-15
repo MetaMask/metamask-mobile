@@ -62,6 +62,7 @@ const TabThumbnail = ({
     areAddressesEqual(account.address, activeAddress),
   );
   const { networkName, networkImageSource } = useNetworkInfo(tabTitle);
+
   const faviconSource = useFavicon(tab.url);
 
   return (

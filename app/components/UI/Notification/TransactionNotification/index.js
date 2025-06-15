@@ -38,6 +38,7 @@ import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { speedUpTransaction } from '../../../../util/transaction-controller';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { isPerDappSelectedNetworkEnabled } from '../../../../util/networks';
+import { selectCurrentTransactionMetadata } from '../../../../selectors/confirmTransaction';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';

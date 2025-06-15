@@ -14,7 +14,6 @@ import { selectEvmTicker, selectNetworkConfigurationByChainId, selectSelectedNet
 import { selectAccounts, selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { Asset } from './useAddressBalance.types';
-import { RootState } from '../../../reducers';
 import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import { safeToChecksumAddress, getTokenDetails } from '../../../util/address';
 import {
@@ -24,6 +23,7 @@ import {
 import { useAsyncResult } from '../useAsyncResult';
 
 export const ERC20_DEFAULT_DECIMALS = 18;
+import { RootState } from '../../../reducers';
 
 const useAddressBalance = (
   asset?: Asset,
@@ -142,7 +142,10 @@ const useAddressBalance = (
       } else {
         (async () => {
           try {
-            const { AssetsContractController } = Engine.context;
+            const { AssetsContractController, NetworkController } =
+              Engine.context;
+            const networkClientId =
+              NetworkController.findNetworkClientIdByChainId(chainId as Hex);
             fromAccBalance = await AssetsContractController.getERC20BalanceOf(
               contractAddress,
               address,

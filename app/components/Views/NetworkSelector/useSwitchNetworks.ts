@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { Dispatch, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 import {
@@ -39,6 +39,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { AccountSelectorScreens } from '../AccountSelector/AccountSelector.types';
 import { useNavigation } from '@react-navigation/native';
 ///: END:ONLY_INCLUDE_IF
+import { setTransactionSendFlowContextualChainId } from '../../../actions/transaction';
 
 interface UseSwitchNetworksProps {
   domainIsConnectedDapp?: boolean;
@@ -48,6 +49,10 @@ interface UseSwitchNetworksProps {
   dismissModal?: () => void;
   closeRpcModal?: () => void;
   parentSpan?: unknown;
+  source?: string;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  dispatch: Dispatch<any>;
 }
 
 interface UseSwitchNetworksReturn {
@@ -73,6 +78,8 @@ export function useSwitchNetworks({
   dismissModal,
   closeRpcModal,
   parentSpan,
+  source,
+  dispatch,
 }: UseSwitchNetworksProps): UseSwitchNetworksReturn {
   const isAllNetwork = useSelector(selectIsAllNetworks);
   const networkConfigurations = useSelector(
@@ -139,7 +146,11 @@ export function useSwitchNetworks({
         });
         const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
         try {
-          await MultichainNetworkController.setActiveNetwork(networkClientId);
+          if (source === 'SendFlow') {
+            dispatch(setTransactionSendFlowContextualChainId(chainId));
+          } else {
+            await MultichainNetworkController.setActiveNetwork(networkClientId);
+          }
         } catch (error) {
           Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
         }
@@ -201,8 +212,14 @@ export function useSwitchNetworks({
             networkConfiguration.defaultRpcEndpointIndex
           ].networkClientId ?? type;
 
-        setTokenNetworkFilter(networkConfiguration.chainId);
-        await MultichainNetworkController.setActiveNetwork(clientId);
+          if (source !== 'SendFlow') {
+            setTokenNetworkFilter(networkConfiguration.chainId);
+            await MultichainNetworkController.setActiveNetwork(clientId);
+          } else {
+            dispatch(
+              setTransactionSendFlowContextualChainId(networkConfiguration.chainId),
+            );
+          }
 
         closeRpcModal?.();
         AccountTrackerController.refresh([clientId]);
