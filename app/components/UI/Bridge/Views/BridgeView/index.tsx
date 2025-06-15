@@ -67,12 +67,12 @@ import type { BridgeDestTokenSelectorRouteParams } from '../../components/Bridge
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { isHardwareAccount } from '../../../../../util/address';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
-import { isHardwareAccount } from '../../../../../util/address';
 import AppConstants from '../../../../../core/AppConstants';
 
 export interface BridgeRouteParams {
@@ -114,12 +114,8 @@ const BridgeView = () => {
   } = useBridgeQuoteData();
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
   const { handleSwitchTokens } = useSwitchTokens();
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
-  const isHardwareAddress = selectedAddress
-    ? !!isHardwareAccount(selectedAddress)
-    : false;
+  const selectedAddress = useSelector(selectSelectedInternalAccountFormattedAddress);
+  const isHardwareAddress = selectedAddress ? !!isHardwareAccount(selectedAddress) : false;
 
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
@@ -276,6 +272,9 @@ const BridgeView = () => {
   const handleContinue = async () => {
     try {
       if (activeQuote) {
+        // Don't need to keep polling once the user has started tx submission
+        Engine.context.BridgeController.stopAllPolling();
+
         dispatch(setIsSubmittingTx(true));
         // TEMPORARY: If tx originates from Solana, navigate to transactions view BEFORE submitting the tx
         // Necessary because snaps prevents navigation after tx is submitted
@@ -289,6 +288,14 @@ const BridgeView = () => {
       }
     } catch (error) {
       console.error('Error submitting bridge tx', error);
+
+      // Restart polling if tx fails
+      if (Engine.context.BridgeController?.resetState) {
+        dispatch(setIsSubmittingTx(true));
+        Engine.context.BridgeController.resetState();
+        // Update quote params to fetch new quote
+        updateQuoteParams();
+      }
     } finally {
       dispatch(setIsSubmittingTx(false));
     }
@@ -322,6 +329,8 @@ const BridgeView = () => {
 
   const getButtonLabel = () => {
     if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
+    if (isSubmittingTx && selectedAddress && isHardwareAddress)
+      return strings('bridge.submitting_transaction_hardware_wallet');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
 
     // Solana uses the continue button since they have a snap confirmation modal
@@ -337,14 +346,14 @@ const BridgeView = () => {
   };
 
   useEffect(() => {
-    if (isExpired && !willRefresh) {
+    if (isExpired && !willRefresh && !isSubmittingTx) {
       setIsInputFocused(false);
       // open the quote tooltip modal
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
       });
     }
-  }, [isExpired, willRefresh, navigation]);
+  }, [isExpired, willRefresh, navigation, isSubmittingTx]);
 
   const renderBottomContent = () => {
     if (shouldDisplayKeypad && !isLoading) {
@@ -386,13 +395,11 @@ const BridgeView = () => {
       activeQuote &&
       quotesLastFetched && (
         <Box style={styles.buttonContainer}>
-          {isHardwareAddress && (
+          {isSolanaSourced && isHardwareAddress && (
             <BannerAlert
               severity={BannerAlertSeverity.Error}
               description={
-                isSolanaSourced
-                  ? strings('bridge.hardware_wallet_not_supported_solana')
-                  : strings('bridge.hardware_wallet_not_supported')
+                strings('bridge.hardware_wallet_not_supported_solana')
               }
             />
           )}
@@ -403,8 +410,7 @@ const BridgeView = () => {
             style={styles.button}
             isDisabled={
               hasInsufficientBalance ||
-              isSubmittingTx ||
-              isHardwareAddress
+              isSubmittingTx
             }
           />
           <Button
