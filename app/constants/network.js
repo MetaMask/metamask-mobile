@@ -43,7 +43,7 @@ export const NETWORKS_CHAIN_ID = {
   MUMBAI: toHex('80001'),
   OPBNB: toHex('204'),
   SCROLL: toHex('534352'),
-  BERACHAIN: toHex('80085'),
+  BERACHAIN: toHex('80094'),
   METACHAIN_ONE: toHex('112358'),
   MEGAETH_TESTNET: toHex('6342'),
   MONAD_TESTNET: toHex('10143'),
