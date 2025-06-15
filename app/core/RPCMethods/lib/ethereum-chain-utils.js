@@ -338,9 +338,7 @@ export async function switchToNetwork({
 
   rejectApprovalRequestsForOrigin?.();
 
-  const originHasAccountsPermission = getPermittedAccounts(origin).length > 0;
-
-  if (isPerDappSelectedNetworkEnabled() && originHasAccountsPermission) {
+  if (isPerDappSelectedNetworkEnabled()) {
     SelectedNetworkController.setNetworkClientIdForDomain(
       origin,
       networkConfigurationId || networkConfiguration.networkType,
