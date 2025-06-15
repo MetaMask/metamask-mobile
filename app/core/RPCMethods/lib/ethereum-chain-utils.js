@@ -4,7 +4,6 @@ import { ApprovalType, isSafeChainId } from '@metamask/controller-utils';
 import { jsonRpcRequest } from '../../../util/jsonRpcRequest';
 import {
   getDecimalChainId,
-  isChainPermissionsFeatureEnabled,
   isPrefixedFormattedHexString,
   isPerDappSelectedNetworkEnabled,
 } from '../../../util/networks';
@@ -245,12 +244,6 @@ export async function switchToNetwork({
 
   const [networkConfigurationId, networkConfiguration] = network;
 
-  // for some reason this extra step is necessary for accessing the env variable in test environment
-  const chainPermissionsFeatureEnabled =
-    { ...process.env }?.NODE_ENV === 'test'
-      ? { ...process.env }?.MM_CHAIN_PERMISSIONS === 'true'
-      : isChainPermissionsFeatureEnabled;
-
   const caip25Caveat = getCaveat({
     target: Caip25EndowmentPermissionName,
     caveatType: Caip25CaveatType,
@@ -268,15 +261,11 @@ export async function switchToNetwork({
     });
   }
 
-  const shouldGrantPermissions =
-    chainPermissionsFeatureEnabled &&
-    (!ethChainIds || !ethChainIds.includes(chainId));
+  const shouldGrantPermissions = !ethChainIds?.includes(chainId);
 
   const requestModalType = autoApprove ? 'new' : 'switch';
 
-  const shouldShowRequestModal =
-    (!autoApprove && shouldGrantPermissions) ||
-    !chainPermissionsFeatureEnabled;
+  const shouldShowRequestModal = !autoApprove && shouldGrantPermissions;
 
   const requestData = {
     rpcUrl:
@@ -319,7 +308,7 @@ export async function switchToNetwork({
     }
   }
 
-  if (!shouldShowRequestModal && !ethChainIds.includes(chainId)) {
+  if (!shouldShowRequestModal && !ethChainIds?.includes(chainId)) {
     await requestPermittedChainsPermissionIncrementalForOrigin({
       origin,
       chainId,
