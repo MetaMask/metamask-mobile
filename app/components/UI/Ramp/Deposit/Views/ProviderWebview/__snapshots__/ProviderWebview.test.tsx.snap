@@ -489,7 +489,7 @@ exports[`ProviderWebview Component render matches snapshot 1`] = `
                                 }
                               }
                             >
-                              Quote: 
+                              Quote:
                             </Text>
                           </View>
                         </View>

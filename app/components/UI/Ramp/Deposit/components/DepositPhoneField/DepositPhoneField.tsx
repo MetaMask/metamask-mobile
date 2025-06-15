@@ -1,11 +1,5 @@
-import React, { forwardRef, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  TextInput,
-  StyleProp,
-  ViewStyle,
-} from 'react-native';
+import React, { forwardRef, useMemo, useState } from 'react';
+import { View, StyleSheet, TextInput } from 'react-native';
 
 import Label from '../../../../../../component-library/components/Form/Label';
 import Text, {
@@ -17,16 +11,20 @@ import TextField, {
 import { TextFieldProps } from '../../../../../../component-library/components/Form/TextField/TextField.types';
 import { Theme } from '../../../../../../util/theme/models';
 import { useStyles } from '../../../../../../component-library/hooks';
-import { formatUSPhoneNumber } from '../../utils';
+import { E164Number } from 'libphonenumber-js';
+import PhoneInput from 'react-phone-number-input/react-native-input';
+import {
+  getCountryCallingCode,
+  parsePhoneNumber,
+} from 'react-phone-number-input';
+import { DepositRegion } from '../../constants';
 
 interface PhoneFieldProps
   extends Omit<TextFieldProps, 'size' | 'onChangeText'> {
   label: string;
   onChangeText: (text: string) => void;
   error?: string;
-  containerStyle?: StyleProp<ViewStyle>;
-  countryCode?: string;
-  countryFlag?: string;
+  region: DepositRegion;
 }
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -47,14 +45,6 @@ const styleSheet = (params: { theme: Theme }) => {
     countryPrefix: {
       flexDirection: 'row',
       alignItems: 'center',
-      height: 48,
-      paddingHorizontal: 12,
-      borderWidth: 1,
-      borderColor: theme.colors.border.default,
-      borderRightWidth: 0,
-      borderTopLeftRadius: 8,
-      borderBottomLeftRadius: 8,
-      backgroundColor: theme.colors.background.default,
     },
     countryFlag: {
       fontSize: 16,
@@ -65,8 +55,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     phoneInput: {
       flex: 1,
-      borderTopLeftRadius: 0,
-      borderBottomLeftRadius: 0,
     },
     error: {
       color: theme.colors.error.default,
@@ -76,60 +64,74 @@ const styleSheet = (params: { theme: Theme }) => {
   });
 };
 
-// TODO: Add more international phone number formatting logic - This is US only
-const formatPhoneNumber = formatUSPhoneNumber;
+const DepositPhoneField: React.FC<PhoneFieldProps> = ({
+  label,
+  onChangeText,
+  error,
+  region,
+  value,
+}) => {
+  const { styles, theme } = useStyles(styleSheet, {});
 
-const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
-  (
-    {
-      label,
-      onChangeText,
-      error,
-      countryCode = '1',
-      countryFlag = '🇺🇸',
-      ...textFieldProps
-    },
-    ref,
-  ) => {
-    const { styles, theme } = useStyles(styleSheet, {});
+  const handlePhoneNumberChange = (newValue: E164Number) => {
+    onChangeText(newValue);
+  };
 
-    const [formattedPhoneNumber, setFormattedPhoneNumber] = useState('');
+  const placeholder = useMemo(() => {
+    const countryCode = region?.code || 'US';
+    const callingCode = getCountryCallingCode(countryCode);
 
-    const handlePhoneNumberChange = (text: string) => {
-      const rawValue = text.replace(/\D/g, '');
-      const limitedRawValue = rawValue.slice(0, 10);
-      const formattedValue = formatPhoneNumber(rawValue);
+    if (countryCode === 'US') {
+      const exampleNumber = `+${callingCode}${'2'.repeat(
+        region?.phoneDigitCount || 10,
+      )}`;
+      const parsed = parsePhoneNumber(exampleNumber);
+      if (!parsed) return '';
+      return parsed.formatNational();
+    } else {
+      const exampleNumber = `+${callingCode}${'2'.repeat(
+        region?.phoneDigitCount || 9,
+      )}`;
+      const parsed = parsePhoneNumber(exampleNumber);
+      if (!parsed) return '';
+      const formatted = parsed.formatInternational();
+      return formatted.replace(`+${callingCode} `, '');
+    }
+  }, [region?.code, region?.phoneDigitCount]);
 
-      setFormattedPhoneNumber(formattedValue);
-      onChangeText(limitedRawValue);
-    };
-
-    return (
-      <View style={styles.field}>
-        <Label variant={TextVariant.HeadingSMRegular} style={styles.label}>
-          {label}
-        </Label>
-        <View style={styles.phoneInputWrapper}>
-          <View style={styles.countryPrefix}>
-            <Text style={styles.countryFlag}>{countryFlag}</Text>
-            <Text style={styles.countryCode}>+{countryCode}</Text>
-          </View>
-          <TextField
-            size={TextFieldSize.Lg}
-            placeholderTextColor={theme.colors.text.muted}
-            keyboardType="phone-pad"
-            keyboardAppearance={theme.themeAppearance}
-            ref={ref}
-            onChangeText={handlePhoneNumberChange}
-            style={styles.phoneInput}
-            {...textFieldProps}
-            value={formattedPhoneNumber}
-          />
-        </View>
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+  return (
+    <View style={styles.field}>
+      <Label variant={TextVariant.HeadingSMRegular} style={styles.label}>
+        {label}
+      </Label>
+      <View style={styles.phoneInputWrapper}>
+        <PhoneInput
+          country={region?.code}
+          international={region?.code !== 'US'}
+          value={value}
+          onChange={handlePhoneNumberChange}
+          inputComponent={(props: any) => (
+            <TextField
+              autoFocus
+              startAccessory={
+                <View style={styles.countryPrefix}>
+                  <Text style={styles.countryFlag}>{region?.flag}</Text>
+                </View>
+              }
+              size={TextFieldSize.Lg}
+              placeholderTextColor={theme.colors.text.muted}
+              keyboardAppearance={theme.themeAppearance}
+              placeholder={placeholder}
+              keyboardType="phone-pad"
+              style={styles.phoneInput}
+              {...props}
+            />
+          )}
+        />
       </View>
-    );
-  },
-);
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+    </View>
+  );
+};
 
 export default DepositPhoneField;
