@@ -26,6 +26,9 @@ const InfoNetworkModal = () => {
   const networkOnboardingState = useSelector(
     (state: RootState) => state.networkOnboarded.networkOnboardedState,
   );
+  const passwordResetInProgress = useSelector(
+    (state: RootState) => state.settings.passwordResetInProgress,
+  );
   const chainId = useSelector(selectChainId);
 
   const onClose = () => {
@@ -37,7 +40,7 @@ const InfoNetworkModal = () => {
   };
 
   useEffect(() => {
-    if (prevNetwork.current !== chainId && chainId) {
+    if (prevNetwork.current !== chainId && chainId && !passwordResetInProgress) {
       if (prevNetwork.current) {
         // Network switched has occured
         // Check if network has been onboarded.
@@ -53,7 +56,7 @@ const InfoNetworkModal = () => {
       }
       prevNetwork.current = chainId;
     }
-  }, [chainId, dispatch, networkOnboardingState]);
+  }, [chainId, dispatch, networkOnboardingState, passwordResetInProgress]);
 
   return (
     <Modal
