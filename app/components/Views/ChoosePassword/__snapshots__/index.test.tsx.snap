@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ChoosePassword should render correctly 1`] = `
+exports[`ChoosePassword render matches snapshot 1`] = `
 <RCTSafeAreaView
   style={
     {
