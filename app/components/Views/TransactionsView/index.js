@@ -31,6 +31,10 @@ import {
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectSortedTransactions } from '../../../selectors/transactionController';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { selectSolanaAccountTransactions } from '../../../selectors/multichain';
+import { isEvmAccountType } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -233,13 +237,30 @@ TransactionsView.propTypes = {
 
 const mapStateToProps = (state) => {
   const chainId = selectChainId(state);
+  const selectedInternalAccount = selectSelectedInternalAccount(state);
+  const evmTransactions = selectSortedTransactions(state);
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  let allTransactions = evmTransactions;
+  if (
+    selectedInternalAccount &&
+    !isEvmAccountType(selectedInternalAccount.type)
+  ) {
+    const solanaTransactionData = selectSolanaAccountTransactions(state);
+    const solanaTransactions = solanaTransactionData?.transactions || [];
+
+    allTransactions = [...evmTransactions, ...solanaTransactions].sort(
+      (a, b) => (b?.time ?? 0) - (a?.time ?? 0),
+    );
+  }
+  ///: END:ONLY_INCLUDE_IF
 
   return {
     conversionRate: selectConversionRate(state),
     currentCurrency: selectCurrentCurrency(state),
     tokens: selectTokens(state),
-    selectedInternalAccount: selectSelectedInternalAccount(state),
-    transactions: selectSortedTransactions(state),
+    selectedInternalAccount,
+    transactions: allTransactions,
     networkType: selectProviderType(state),
     chainId,
     tokenNetworkFilter: selectTokenNetworkFilter(state),
