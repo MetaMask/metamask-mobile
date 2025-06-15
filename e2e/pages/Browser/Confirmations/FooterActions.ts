@@ -4,15 +4,11 @@ import Gestures from '../../../utils/Gestures';
 
 class FooterActions {
   get confirmButton() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON)
-      : Matchers.getElementByID(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON);
+    return Matchers.getElementByID(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON);
   }
 
   get cancelButton() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(ConfirmationFooterSelectorIDs.CANCEL_BUTTON)
-      : Matchers.getElementByID(ConfirmationFooterSelectorIDs.CANCEL_BUTTON);
+    return Matchers.getElementByID(ConfirmationFooterSelectorIDs.CANCEL_BUTTON);
   }
 
   async tapConfirmButton() {
