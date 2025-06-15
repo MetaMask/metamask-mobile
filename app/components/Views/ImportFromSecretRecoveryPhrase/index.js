@@ -505,7 +505,6 @@ const ImportFromSecretRecoveryPhrase = ({
     }
 
     if (error) {
-      // Alert.alert(strings('import_from_seed.error'), error);
       track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
         wallet_setup_type: 'import',
         error_type: error,
@@ -910,7 +909,7 @@ const ImportFromSecretRecoveryPhrase = ({
                   }
                   testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                 />
-                {password && password.length < MIN_PASSWORD_LENGTH && (
+                {Boolean(password) && password.length < MIN_PASSWORD_LENGTH && (
                   <Text
                     variant={TextVariant.BodySM}
                     color={TextColor.Alternative}
@@ -920,25 +919,26 @@ const ImportFromSecretRecoveryPhrase = ({
                     })}
                   </Text>
                 )}
-                {password && password.length >= MIN_PASSWORD_LENGTH && (
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
-                    testID={ImportFromSeedSelectorsIDs.PASSWORD_STRENGTH_ID}
-                  >
-                    {strings('choose_password.password_strength')}
+                {Boolean(password) &&
+                  password.length >= MIN_PASSWORD_LENGTH && (
                     <Text
                       variant={TextVariant.BodySM}
                       color={TextColor.Alternative}
-                      style={styles[`strength_${passwordStrengthWord}`]}
+                      testID={ImportFromSeedSelectorsIDs.PASSWORD_STRENGTH_ID}
                     >
-                      {' '}
-                      {strings(
-                        `choose_password.strength_${passwordStrengthWord}`,
-                      )}
+                      {strings('choose_password.password_strength')}
+                      <Text
+                        variant={TextVariant.BodySM}
+                        color={TextColor.Alternative}
+                        style={styles[`strength_${passwordStrengthWord}`]}
+                      >
+                        {' '}
+                        {strings(
+                          `choose_password.strength_${passwordStrengthWord}`,
+                        )}
+                      </Text>
                     </Text>
-                  </Text>
-                )}
+                  )}
               </View>
 
               <View style={styles.field}>
