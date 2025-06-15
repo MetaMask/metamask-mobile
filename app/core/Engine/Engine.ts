@@ -189,6 +189,7 @@ import { getGlobalChainId } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
 import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
+import { accountTreeControllerInit } from '../../multichain-accounts/controllers/account-tree-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
 import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
@@ -1194,6 +1195,7 @@ export class Engine {
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
+        AccountTreeController: accountTreeControllerInit,
         AppMetadataController: appMetadataControllerInit,
         GasFeeController: GasFeeControllerInit,
         TransactionController: TransactionControllerInit,
@@ -1225,6 +1227,7 @@ export class Engine {
     });
 
     const accountsController = controllersByName.AccountsController;
+    const accountTreeController = controllersByName.AccountTreeController;
     const gasFeeController = controllersByName.GasFeeController;
     const signatureController = controllersByName.SignatureController;
     const transactionController = controllersByName.TransactionController;
@@ -1357,6 +1360,7 @@ export class Engine {
 
     this.context = {
       KeyringController: this.keyringController,
+      AccountTreeController: accountTreeController,
       AccountTrackerController: accountTrackerController,
       AddressBookController: new AddressBookController({
         messenger: this.controllerMessenger.getRestricted({
@@ -2282,6 +2286,7 @@ export default {
       ApprovalController,
       LoggingController,
       AccountsController,
+      AccountTreeController,
       SignatureController,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController,
@@ -2334,6 +2339,7 @@ export default {
       ApprovalController,
       LoggingController,
       AccountsController,
+      AccountTreeController,
       SignatureController,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController,

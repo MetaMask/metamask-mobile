@@ -10,7 +10,6 @@ import {
 } from './AccountSelector.types';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
-  expectedUuid2,
 } from '../../../util/test/accountsControllerTestUtils';
 
 const mockAccounts = [
@@ -31,8 +30,6 @@ const mockAccounts = [
   },
 ];
 
-const mockEvmAccounts = [mockAccounts[0], mockAccounts[2]];
-
 const mockEnsByAccountAddress = {
   '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756': 'test.eth',
 };
@@ -51,19 +48,10 @@ const mockInitialState = {
           },
         ],
       },
-      AccountsController: {
-        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-        internalAccounts: {
-          ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
-          accounts: {
-            ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
-            [expectedUuid2]: {
-              ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
-                expectedUuid2
-              ],
-              methods: [],
-            },
-          },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      AccountTreeController: {
+        accountTree: {
+          wallets: {},
         },
       },
       PreferencesController: {
@@ -89,31 +77,42 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../hooks/useAccounts', () => ({
-  useAccounts: () => ({
+  useAccounts: jest.fn(() => ({
     accounts: mockAccounts,
-    evmAccounts: mockEvmAccounts,
+    evmAccounts: [mockAccounts[0], mockAccounts[2]],
     ensByAccountAddress: mockEnsByAccountAddress,
-    isLoading: false,
-  }),
+  })),
 }));
 
-jest.mock('../../../core/Engine', () => ({
-  setSelectedAddress: jest.fn(),
-  context: {
-    AccountsController: {
-      state: {
-        internalAccounts: {
-          accounts: {},
+jest.mock('../../../core/Engine', () => {
+  const {
+    MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState,
+  } = jest.requireActual('../../../util/test/accountsControllerTestUtils');
+  return {
+    context: {
+      KeyringController: {
+        state: {
+          keyrings: [
+            {
+              type: 'HD Key Tree',
+              accounts: [
+                '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
+                '0x2B5634C42055806a59e9107ED44D43c426E58258',
+              ],
+            },
+          ],
+        },
+        importAccountWithStrategy: jest.fn(),
+      },
+      AccountsController: {
+        state: {
+          internalAccounts: AccountsControllerState.internalAccounts,
         },
       },
     },
-    KeyringController: {
-      state: {
-        keyrings: [{}],
-      },
-    },
-  },
-}));
+    setSelectedAddress: jest.fn(),
+  };
+});
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../components/hooks/useMetrics', () => ({
