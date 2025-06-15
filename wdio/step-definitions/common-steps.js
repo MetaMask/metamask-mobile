@@ -48,10 +48,7 @@ Given(/^I have imported my wallet$/, async () => {
   const timeOut = 3000;
   await driver.pause(timeOut);
   await WelcomeScreen.clickGetStartedButton();
-  await OnboardingScreen.isScreenTitleVisible();
-  await OnboardingScreen.clickImportWalletButton();
-  await MetaMetricsScreen.isScreenTitleVisible();
-  await MetaMetricsScreen.tapIAgreeButton();
+  await driver.pause(2000);
   await TermOfUseScreen.isDisplayed();
   await TermOfUseScreen.tapAgreeCheckBox();
   await TermOfUseScreen.tapScrollEndButton();
@@ -61,13 +58,24 @@ Given(/^I have imported my wallet$/, async () => {
   } else {
     await TermOfUseScreen.tapAcceptButton();
   }
+  await driver.pause(500);
+  await OnboardingScreen.isScreenTitleVisible();
+  await OnboardingScreen.clickImportWalletButton();
+  await driver.pause(500);
+  await MetaMetricsScreen.isScreenTitleVisible();
+  await MetaMetricsScreen.tapIAgreeButton();
+  await driver.pause(500);
   await ImportFromSeedScreen.isScreenTitleVisible();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(validAccount.seedPhrase);
-  await ImportFromSeedScreen.typeNewPassword(validAccount.password);
   await ImportFromSeedScreen.tapImportScreenTitleToDismissKeyboard();
-  await ImportFromSeedScreen.typeConfirmPassword(validAccount.password);
-  await ImportFromSeedScreen.tapConfirmPasswordTextToDismissKeyboard();
-  await ImportFromSeedScreen.clickImportButton();
+  await ImportFromSeedScreen.tapContinueButton();
+  await driver.pause(500);
+  await CreatePasswordScreen.enterPassword(validAccount.password);
+  await CreatePasswordScreen.reEnterPassword(validAccount.password);
+  await CreatePasswordScreen.tapIUnderstandCheckBox();
+  await CreatePasswordScreen.tapCreatePasswordButton();
+
+  await driver.pause(timeOut);
   await OnboardingSucessScreen.tapDone()
 });
 
@@ -76,15 +84,15 @@ Given(/^I create a new wallet$/, async () => {
 
   await WelcomeScreen.waitForScreenToDisplay();
   await WelcomeScreen.clickGetStartedButton();
-  await OnboardingScreen.isScreenTitleVisible();
-  await OnboardingScreen.tapCreateNewWalletButton();
-  await MetaMetricsScreen.isScreenTitleVisible();
-  await MetaMetricsScreen.tapNoThanksButton();
   await TermOfUseScreen.isDisplayed();
   await TermOfUseScreen.tapAgreeCheckBox();
   await TermOfUseScreen.tapScrollEndButton();
   await driver.pause();
   await TermOfUseScreen.tapAcceptButton();
+  await OnboardingScreen.isScreenTitleVisible();
+  await OnboardingScreen.tapCreateNewWalletButton();
+  await MetaMetricsScreen.isScreenTitleVisible();
+  await MetaMetricsScreen.tapNoThanksButton();
   await CreateNewWalletScreen.isNewAccountScreenFieldsVisible();
   await CreateNewWalletScreen.inputPasswordInFirstField(validAccount.password);
   await CreateNewWalletScreen.inputConfirmPasswordField(validAccount.password); // Had to seperate steps due to onboarding video on physical device
