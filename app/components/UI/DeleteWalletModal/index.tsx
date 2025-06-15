@@ -33,6 +33,9 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
 import { setCompletedOnboarding } from '../../../actions/onboarding';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../component-library/components/Buttons/ButtonIcon';
 
 if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -179,14 +182,22 @@ const DeleteWalletModal = () => {
             style={styles.areYouSure}
             testID={DeleteWalletModalSelectorsIDs.CONTAINER}
           >
-            {
+            <View style={styles.iconContainer}>
+              <ButtonIcon
+                iconName={IconName.ArrowLeft}
+                size={ButtonIconSizes.Md}
+                iconColor={IconColor.Default}
+                onPress={() => setIsResetWallet(false)}
+              />
               <Icon
                 style={styles.warningIcon}
                 size={IconSize.Xl}
                 color={IconColor.Error}
                 name={IconName.Danger}
               />
-            }
+              <View style={styles.iconEmptyContainer} />
+            </View>
+
             <Text
               style={styles.heading}
               variant={TextVariant.HeadingMD}

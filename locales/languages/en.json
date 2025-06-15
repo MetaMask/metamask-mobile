@@ -423,7 +423,7 @@
     "pass_flow": "Continue with Flow",
     "steps": "Step {{currentStep}} of {{totalSteps}}",
     "password_error": "Passwords don’t match. Try again.",
-    "spellcheck_error": "Not quite right. Double-check your Secret Recovery Phrase and try again.",
+    "spellcheck_error": "Use only lowercase letters, check your spelling, and put the words in the original order.",
     "enter_strong_password": "Enter a strong password"
   },
   "bottom_tab_bar": {
