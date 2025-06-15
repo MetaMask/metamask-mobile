@@ -21,6 +21,7 @@ const disabledFeatureFlags = {
   staking_confirmations: false,
   contract_interaction: false,
   transfer: false,
+  approve: false,
 };
 
 jest.mock('../../../../util/address', () => ({

@@ -5,7 +5,7 @@ import { noop } from 'lodash';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { transferTransactionStateMock } from '../../../mock-data/transfer-transaction-mock';
-import { feeMarketEstimates } from '../../../mock-data/gas-fee-controller-mock';
+import { feeMarketEstimates } from '../../../mock-data/controllers/gas-fee-controller-mock';
 import { useGasFeeEstimates } from '../../../hooks/gas/useGasFeeEstimates';
 import { validateMaxBaseFee } from '../../../utils/gas-validations';
 import { MaxBaseFeeInput } from './max-base-fee-input';

@@ -21,7 +21,10 @@ import {
   isSIWESignatureRequest,
   parseAndNormalizeSignTypedDataFromSignatureRequest,
 } from '../../utils/signature';
-import { REDESIGNED_TRANSFER_TYPES } from '../../constants/confirmations';
+import {
+  REDESIGNED_APPROVE_TYPES,
+  REDESIGNED_TRANSFER_TYPES,
+} from '../../constants/confirmations';
 import { use7702TransactionType } from '../../hooks/7702/use7702TransactionType';
 import { BatchedTransactionTag } from '../batched-transactions-tag';
 import styleSheet from './title.styles';
@@ -35,6 +38,7 @@ const getTitleAndSubTitle = (
   isUpgradeOnly: boolean = false,
 ) => {
   const type = approvalRequest?.type;
+  const transactionType = transactionMetadata?.type as TransactionType;
 
   switch (type) {
     case ApprovalType.PersonalSign: {
@@ -100,7 +104,7 @@ const getTitleAndSubTitle = (
         };
       }
       if (
-        transactionMetadata?.type === TransactionType.contractInteraction ||
+        transactionType === TransactionType.contractInteraction ||
         isBatched
       ) {
         return {
@@ -110,13 +114,14 @@ const getTitleAndSubTitle = (
             : strings('confirm.sub_title.contract_interaction'),
         };
       }
-      if (
-        REDESIGNED_TRANSFER_TYPES.includes(
-          transactionMetadata?.type as TransactionType,
-        )
-      ) {
+      if (REDESIGNED_TRANSFER_TYPES.includes(transactionType)) {
         return {
           title: strings('confirm.title.transfer'),
+        };
+      }
+      if (REDESIGNED_APPROVE_TYPES.includes(transactionType)) {
+        return {
+          title: strings('confirm.title.approve'),
         };
       }
       return {};
