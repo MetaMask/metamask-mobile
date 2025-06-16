@@ -17,6 +17,7 @@ import {
   isENS,
   isValidHexAddress,
   validateAddressOrENS,
+  areAddressesEqual,
 } from '../../../../../../util/address';
 import { getEther, getTicker } from '../../../../../../util/transactions';
 import {
@@ -53,15 +54,14 @@ import {
   selectSelectedInternalAccountFormattedAddress,
 } from '../../../../../../selectors/accountsController';
 import AddToAddressBookWrapper from '../../../../../UI/AddToAddressBookWrapper';
-import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/utils';
-import { createBuyNavigationDetails } from '../../../../../UI/Ramp/routes/utils';
+import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
+import { createBuyNavigationDetails } from '../../../../../UI/Ramp/Aggregator/routes/utils';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
 import SendFlowAddressFrom from '../AddressFrom';
 import SendFlowAddressTo from '../AddressTo';
 import { includes } from 'lodash';
 import { SendViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/SendView.selectors';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
-import { toLowerCaseEquals } from '../../../../../../util/general';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
 
 const dummy = () => true;
@@ -228,7 +228,7 @@ class SendFlow extends PureComponent {
     return !!(
       networkAddressBook[checksummedAddress] ||
       internalAccounts.find((account) =>
-        toLowerCaseEquals(account.address, checksummedAddress),
+        areAddressesEqual(account.address, checksummedAddress),
       )
     );
   };
@@ -383,7 +383,7 @@ class SendFlow extends PureComponent {
 
     const checksummedAddress = this.safeChecksumAddress(toAccount);
     const matchingAccount = internalAccounts.find((account) =>
-      toLowerCaseEquals(account.address, checksummedAddress),
+      areAddressesEqual(account.address, checksummedAddress),
     );
 
     return networkAddressBook[checksummedAddress]

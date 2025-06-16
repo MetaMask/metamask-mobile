@@ -142,7 +142,7 @@ export const INFURA_TESTNET_CHAIN_IDS = {
   GOERLI: '0x5',
   LINEA_GOERLI: '0xe704',
   SEPOLIA: '0xaa36a7',
-  HOLESKY: '0x4268',
+  HOODI: '0x88bb0',
   LINEA_SEPOLIA: '0xe705',
   AMOY: '0x13882',
   BASE_SEPOLIA: '0x14a34',
@@ -163,7 +163,7 @@ export const infuraChainIdsTestNets: string[] = [
   INFURA_TESTNET_CHAIN_IDS.GOERLI,
   INFURA_TESTNET_CHAIN_IDS.LINEA_GOERLI,
   INFURA_TESTNET_CHAIN_IDS.SEPOLIA,
-  INFURA_TESTNET_CHAIN_IDS.HOLESKY,
+  INFURA_TESTNET_CHAIN_IDS.HOODI,
   INFURA_TESTNET_CHAIN_IDS.LINEA_SEPOLIA,
   INFURA_TESTNET_CHAIN_IDS.AMOY,
   INFURA_TESTNET_CHAIN_IDS.BASE_SEPOLIA,
@@ -261,7 +261,10 @@ export const NETWORK_CHAIN_ID: {
   readonly FLOW_MAINNET: '0x2eb';
   readonly LENS: '0xe8';
   readonly PLUME: '0x18232';
-
+  readonly GENESYS: '0x407b';
+  readonly KATANA: '0xb67d2';
+  readonly SOPHON: '0xc3b8';
+  readonly SOPHON_TESTNET: '0x1fa72e78';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -278,6 +281,10 @@ export const NETWORK_CHAIN_ID: {
   FLOW_MAINNET: '0x2eb',
   LENS: '0xe8',
   PLUME: '0x18232',
+  GENESYS: '0x407b',
+  KATANA: '0xb67d2',
+  SOPHON: '0xc3b8',
+  SOPHON_TESTNET: '0x1fa72e78',
   ...CHAIN_IDS,
 };
 
@@ -299,4 +306,8 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.FLOW_MAINNET]: require('../../images/flow.png'),
   [NETWORK_CHAIN_ID.LENS]: require('../../images/lens.png'),
   [NETWORK_CHAIN_ID.PLUME]: require('../../images/plume.png'),
+  [NETWORK_CHAIN_ID.GENESYS]: require('../../images/genesys.png'),
+  [NETWORK_CHAIN_ID.KATANA]: require('../../images/katana.png'),
+  [NETWORK_CHAIN_ID.SOPHON]: require('../../images/sophon.png'),
+  [NETWORK_CHAIN_ID.SOPHON_TESTNET]: require('../../images/sophon-testnet.png'),
 };

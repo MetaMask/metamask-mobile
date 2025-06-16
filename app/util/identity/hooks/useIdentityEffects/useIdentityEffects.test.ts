@@ -18,6 +18,7 @@ describe('useIdentityEffects', () => {
     mockUseAutoSignIn.mockReturnValue({
       autoSignIn: jest.fn(),
       shouldAutoSignIn: false,
+      setHasNewKeyrings: jest.fn(),
     });
 
     mockUseAutoSignOut.mockReturnValue({
@@ -42,6 +43,7 @@ describe('useIdentityEffects', () => {
     mockUseAutoSignIn.mockReturnValue({
       autoSignIn,
       shouldAutoSignIn,
+      setHasNewKeyrings: jest.fn(),
     });
 
     renderHookWithProvider(() => useIdentityEffects());
@@ -55,6 +57,7 @@ describe('useIdentityEffects', () => {
     mockUseAutoSignIn.mockReturnValue({
       autoSignIn,
       shouldAutoSignIn,
+      setHasNewKeyrings: jest.fn(),
     });
 
     renderHookWithProvider(() => useIdentityEffects());
