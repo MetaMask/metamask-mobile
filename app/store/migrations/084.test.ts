@@ -41,7 +41,7 @@ describe(`Migration ${migrationVersion}: Remove Automatic Security Checks state`
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
     expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      'Migration 083: Invalid engine state structure',
+      `Migration ${migrationVersion}: Invalid engine state structure`,
     );
   });
 

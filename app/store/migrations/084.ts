@@ -77,7 +77,7 @@ const migration = (state: unknown): unknown => {
   } catch (error) {
     captureException(
       new Error(
-        `Migration 0${migrationVersion}: cleaning security state failed with error: ${error}`,
+        `Migration ${migrationVersion}: cleaning security state failed with error: ${error}`,
       ),
     );
     return state;
