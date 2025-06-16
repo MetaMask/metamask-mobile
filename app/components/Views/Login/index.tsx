@@ -23,9 +23,14 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
+import {
+  OnboardingActionTypes,
+  saveOnboardingEvent as SaveEvent,
+} from '../../../actions/onboarding';
 import setOnboardingWizardStepUtil from '../../../actions/wizard';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { useDispatch } from 'react-redux';
+import { connect, useDispatch } from 'react-redux';
+import { Dispatch } from 'redux';
 import {
   passcodeType,
   updateAuthTypeStorageFlags,
@@ -51,7 +56,6 @@ import { getVaultFromBackup } from '../../../core/BackupVault';
 import { containsErrorMessage } from '../../../util/errorHandling';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
-import { useMetrics } from '../../../components/hooks/useMetrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { downloadStateLogs } from '../../../util/logs';
 import {
@@ -61,6 +65,7 @@ import {
   TraceName,
   TraceOperation,
   TraceContext,
+  endTrace,
 } from '../../../util/trace';
 import TextField, {
   TextFieldSize,
@@ -94,6 +99,16 @@ import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import ConcealingFox from '../../../animations/Concealing_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import {
+  IMetaMetricsEvent,
+  ITrackingEvent,
+} from '../../../core/Analytics/MetaMetrics.types';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+
+interface LoginProps {
+  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
+}
 
 interface LoginRouteParams {
   locked: boolean;
@@ -104,7 +119,7 @@ interface LoginRouteParams {
 /**
  * View where returning users can authenticate
  */
-const Login: React.FC = () => {
+const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const fieldRef = useRef<TextInput>(null);
 
   const [password, setPassword] = useState('');
@@ -118,19 +133,31 @@ const Login: React.FC = () => {
   const [biometryPreviouslyDisabled, setBiometryPreviouslyDisabled] =
     useState(false);
   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
+  const [rehydrationFailedAttempts, setRehydrationFailedAttempts] = useState(0);
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
   const {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(stylesheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics();
   const dispatch = useDispatch();
   const setOnboardingWizardStep = (step: number) =>
     dispatch(setOnboardingWizardStepUtil(step));
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
+
+  const track = (
+    event: IMetaMetricsEvent,
+    properties: Record<string, string | boolean | number>,
+  ) => {
+    trackOnboarding(
+      MetricsEventBuilder.createEventBuilder(event)
+        .addProperties(properties)
+        .build(),
+      saveOnboardingEvent,
+    );
+  };
 
   const handleBackPress = () => {
     Authentication.lockApp();
@@ -152,9 +179,7 @@ const Login: React.FC = () => {
       });
     }
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.LOGIN_SCREEN_VIEWED).build(),
-    );
+    track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
 
     BackHandler.addEventListener('hardwareBackPress', handleBackPress);
 
@@ -252,6 +277,8 @@ const Login: React.FC = () => {
   };
 
   const onLogin = async () => {
+    endTrace({ name: TraceName.LoginUserInteraction });
+
     try {
       const locked = !passwordRequirementsMet(password);
       if (locked) {
@@ -294,12 +321,22 @@ const Login: React.FC = () => {
     } catch (loginErr: unknown) {
       const loginError = loginErr as Error;
       const loginErrorMessage = loginError.toString();
+
+      const newFailedAttempts = rehydrationFailedAttempts + 1;
+      setRehydrationFailedAttempts(newFailedAttempts);
+
       if (
         toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
         toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID) ||
         toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID_2) ||
         loginErrorMessage.includes(PASSWORD_REQUIREMENTS_NOT_MET)
       ) {
+        // Track failed rehydration attempt only for social login flows
+        track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+          account_type: 'social',
+          failed_attempts: newFailedAttempts,
+        });
+
         setLoading(false);
         setError(strings('login.invalid_password'));
         trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
@@ -377,6 +414,11 @@ const Login: React.FC = () => {
   };
 
   const toggleWarningModal = () => {
+    // Track reset wallet clicked event
+    track(MetaMetricsEvents.RESET_WALLET_CLICKED, {
+      account_type: 'metamask',
+    });
+
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.DELETE_WALLET,
     });
@@ -403,9 +445,7 @@ const Login: React.FC = () => {
   const handleDownloadStateLogs = () => {
     const fullState = ReduxService.store.getState();
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.LOGIN_DOWNLOAD_LOGS).build(),
-    );
+    track(MetaMetricsEvents.LOGIN_DOWNLOAD_LOGS, {});
     downloadStateLogs(fullState, false);
   };
 
@@ -538,4 +578,9 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login;
+const mapDispatchToProps = (dispatch: Dispatch<OnboardingActionTypes>) => ({
+  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) =>
+    dispatch(SaveEvent(eventArgs)),
+});
+
+export default connect(null, mapDispatchToProps)(Login);

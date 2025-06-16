@@ -18,6 +18,10 @@ import scaling from '../../../util/scaling';
 import Engine from '../../../core/Engine';
 import { ONBOARDING_WIZARD } from '../../../constants/storage';
 import { connect } from 'react-redux';
+import {
+  saveOnboardingEvent as SaveEvent,
+  saveOnboardingEvent,
+} from '../../../actions/onboarding';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -40,7 +44,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useMetrics } from '../../hooks/useMetrics';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
@@ -115,7 +118,7 @@ const AccountBackupStep1 = (props) => {
   const track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
-    trackOnboarding(eventBuilder.build(), dispatchSaveOnboardingEvent);
+    trackOnboarding(eventBuilder.build(), props.saveOnboardingEvent);
   };
 
   const navigation = useNavigation();
@@ -224,6 +227,9 @@ const AccountBackupStep1 = (props) => {
   };
 
   const showWhatIsSeedphrase = () => {
+    track(MetaMetricsEvents.SRP_DEFINITION_CLICKED, {
+      location: 'account_backup_step_1',
+    });
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SEEDPHRASE_MODAL,
     });
@@ -316,13 +322,12 @@ AccountBackupStep1.propTypes = {
   /**
    * Action to save onboarding event
    */
-  dispatchSaveOnboardingEvent: PropTypes.func,
+  saveOnboardingEvent: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
-  dispatchSaveOnboardingEvent: (...eventArgs) =>
-    dispatch(saveOnboardingEvent(eventArgs)),
+  saveOnboardingEvent: (...eventArgs) => dispatch(SaveEvent(eventArgs)),
 });
 
 export default connect(null, mapDispatchToProps)(AccountBackupStep1);

@@ -36,6 +36,7 @@ import {
 } from '../../../util/password';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
+import { saveOnboardingEvent as SaveEvent } from '../../../actions/onboarding';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import { setLockTime } from '../../../actions/settings';
@@ -84,7 +85,6 @@ import Text, {
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { CommonActions, useRoute } from '@react-navigation/native';
 import {
   SRP_LENGTHS,
@@ -116,6 +116,7 @@ const ImportFromSecretRecoveryPhrase = ({
   passwordSet,
   setLockTime,
   seedphraseBackedUp,
+  saveOnboardingEvent,
   setOnboardingWizardStep,
   dispatchSaveOnboardingEvent,
 }) => {
@@ -168,7 +169,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
-    trackOnboarding(eventBuilder.build(), dispatchSaveOnboardingEvent);
+    trackOnboarding(eventBuilder.build(), saveOnboardingEvent);
   };
 
   const [errorWordIndexes, setErrorWordIndexes] = useState({});
@@ -562,6 +563,7 @@ const ImportFromSecretRecoveryPhrase = ({
         track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
           wallet_setup_type: 'import',
           new_wallet: false,
+          account_type: 'imported',
         });
         !onboardingWizard && setOnboardingWizardStep(1);
         fetchAccountsWithActivity();
@@ -624,6 +626,9 @@ const ImportFromSecretRecoveryPhrase = ({
     password !== '' && confirmPassword !== '' && password !== confirmPassword;
 
   const showWhatIsSeedPhrase = () => {
+    track(MetaMetricsEvents.SRP_DEFINITION_CLICKED, {
+      location: 'import_from_seed',
+    });
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SEEDPHRASE_MODAL,
     });
@@ -1093,6 +1098,10 @@ ImportFromSecretRecoveryPhrase.propTypes = {
    */
   seedphraseBackedUp: PropTypes.func,
   /**
+   * Action to save onboarding event
+   */
+  saveOnboardingEvent: PropTypes.func,
+  /**
    * Action to set onboarding wizard step
    */
   setOnboardingWizardStep: PropTypes.func,
@@ -1107,8 +1116,7 @@ const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
   passwordSet: () => dispatch(passwordSet()),
   seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
-  dispatchSaveOnboardingEvent: (...eventArgs) =>
-    dispatch(saveOnboardingEvent(eventArgs)),
+  saveOnboardingEvent: (...eventArgs) => dispatch(SaveEvent(eventArgs)),
 });
 
 export default connect(

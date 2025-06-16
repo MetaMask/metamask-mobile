@@ -36,6 +36,7 @@ const SRPListItem = ({
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
   const [showAccounts, setShowAccounts] = useState(false);
+  const { trackEvent, createEventBuilder } = useMetrics();
   const accountsToBeShown = useMemo(
     () =>
       keyring.accounts.map((accountAddress) =>
@@ -49,9 +50,35 @@ const SRPListItem = ({
       : AvatarAccountType.JazzIcon,
   );
 
+  const handleSRPSelection = () => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
+      )
+        .addProperties({
+          button_type: 'srp_select',
+        })
+        .build(),
+    );
+    onActionComplete(keyring.metadata.id);
+  };
+
+  const handleDetailsToggle = () => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
+      )
+        .addProperties({
+          button_type: 'details',
+        })
+        .build(),
+    );
+    setShowAccounts(!showAccounts);
+  };
+
   return (
     <TouchableWithoutFeedback
-      onPress={() => onActionComplete(keyring.metadata.id)}
+      onPress={handleSRPSelection}
       testID={
         testID ??
         `${SRPListItemSelectorsIDs.SRP_LIST_ITEM}-${keyring.metadata.id}`

@@ -56,6 +56,12 @@ import Logger from '../../../util/Logger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 
+import {
+  MetaMetricsEvents,
+  MetaMetrics,
+  MetricsEventBuilder,
+} from '../../../core/Analytics';
+
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
@@ -396,6 +402,17 @@ class ResetPassword extends PureComponent {
 
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
       this.props.passwordSet();
+
+      // Track password changed event
+      const { biometryChoice } = this.state;
+      const eventBuilder = MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PASSWORD_CHANGED,
+      ).addProperties({
+        biometry_type: this.state.biometryType,
+        biometrics_enabled: Boolean(biometryChoice),
+      });
+      MetaMetrics.getInstance().trackEvent(eventBuilder.build());
+
       this.setState({ loading: false });
       InteractionManager.runAfterInteractions(() => {
         this.props.navigation.navigate('SecuritySettings');
@@ -736,9 +753,7 @@ class ResetPassword extends PureComponent {
                       false: colors.border.default,
                     }}
                     boxType="square"
-                    testID={
-                      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
-                    }
+                    testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                   />
                   <Text
                     variant={TextVariant.BodyMD}

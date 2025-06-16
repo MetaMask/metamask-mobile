@@ -27,6 +27,7 @@ import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
+import { saveOnboardingEvent as SaveEvent } from '../../../actions/onboarding';
 import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../reducers/legalNotices';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
@@ -55,7 +56,6 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 
 import fox from '../../../animations/Searching_Fox.json';
-import { saveOnboardingEvent } from '../../../actions/onboarding';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -222,6 +222,10 @@ class Onboarding extends PureComponent {
      */
     unsetLoading: PropTypes.func,
     /**
+     * Action to save onboarding event
+     */
+    saveOnboardingEvent: PropTypes.func,
+    /**
      * loadings msg
      */
     loadingMsg: PropTypes.string,
@@ -229,10 +233,6 @@ class Onboarding extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
-    /**
-     * Function to save onboarding event prior to metrics being enabled
-     */
-    dispatchSaveOnboardingEvent: PropTypes.func,
   };
   notificationAnimated = new Animated.Value(100);
   detailsYAnimated = new Animated.Value(0);
@@ -372,7 +372,9 @@ class Onboarding extends PureComponent {
         [PREVIOUS_SCREEN]: ONBOARDING,
         onboardingTraceCtx: this.onboardingTraceCtx,
       });
-      this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
+      this.track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
+        account_type: 'metamask',
+      });
     };
 
     this.handleExistingUser(action);
@@ -393,15 +395,19 @@ class Onboarding extends PureComponent {
           onboardingTraceCtx: this.onboardingTraceCtx,
         },
       );
-      this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
+      this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
+        account_type: 'imported',
+      });
     };
     this.handleExistingUser(action);
   };
 
-  track = (event) => {
+  track = (event, properties) => {
     trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(event).build(),
-      this.props.dispatchSaveOnboardingEvent,
+      MetricsEventBuilder.createEventBuilder(event)
+        .addProperties(properties)
+        .build(),
+      this.props.saveOnboardingEvent,
     );
   };
 
@@ -581,8 +587,7 @@ const mapDispatchToProps = (dispatch) => ({
   unsetLoading: () => dispatch(loadingUnset()),
   disableNewPrivacyPolicyToast: () =>
     dispatch(storePrivacyPolicyClickedOrClosedAction()),
-  dispatchSaveOnboardingEvent: (...eventArgs) =>
-    dispatch(saveOnboardingEvent(eventArgs)),
+  saveOnboardingEvent: (...eventArgs) => dispatch(SaveEvent(eventArgs)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Onboarding);
