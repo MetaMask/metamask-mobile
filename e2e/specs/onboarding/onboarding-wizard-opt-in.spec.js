@@ -33,12 +33,10 @@ describe(
       await OnboardingCarouselView.tapOnGetStartedButton();
       await acceptTermOfUse();
       await OnboardingView.tapCreateWallet();
-      await Assertions.checkIfVisible(MetaMetricsOptIn.container);
-      await MetaMetricsOptIn.tapAgreeButton();
-      await Assertions.checkIfVisible(CreatePasswordView.container);
     });
 
     it('should be able to create a new wallet', async () => {
+      await Assertions.checkIfVisible(CreatePasswordView.container);
       await CreatePasswordView.enterPassword(PASSWORD);
       await CreatePasswordView.reEnterPassword(PASSWORD);
       await CreatePasswordView.tapIUnderstandCheckBox();
@@ -51,7 +49,6 @@ describe(
       await ProtectYourWalletView.tapOnRemindMeLaterButton();
       await SkipAccountSecurityModal.tapIUnderstandCheckBox();
       await SkipAccountSecurityModal.tapSkipButton();
-      await OnboardingSuccessView.tapDone();
     });
 
     it('should be able to opt-in of the onboarding-wizard', async () => {
