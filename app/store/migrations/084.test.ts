@@ -2,7 +2,7 @@ import { captureException } from '@sentry/react-native';
 import { cloneDeep } from 'lodash';
 
 import { ensureValidState } from './util';
-import migrate from './083';
+import migrate from './084';
 
 const migrationVersion = 83;
 
