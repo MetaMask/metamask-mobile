@@ -444,6 +444,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             style={
               {
                 "flexDirection": "column",
+                "marginBottom": 0,
                 "marginTop": "auto",
                 "rowGap": 18,
                 "width": "100%",
