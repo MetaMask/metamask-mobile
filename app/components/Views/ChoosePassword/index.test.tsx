@@ -18,6 +18,7 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '../../../core';
+import { InteractionManager } from 'react-native';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -61,6 +62,19 @@ jest.mock('../../../util/device', () => ({
   isIos: jest.fn(),
   isAndroid: jest.fn(),
 }));
+
+const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
+  cb();
+  return {
+    then: (onfulfilled: () => void) => Promise.resolve(onfulfilled()),
+    done: (onfulfilled: () => void, onrejected: () => void) =>
+      Promise.resolve().then(onfulfilled, onrejected),
+    cancel: jest.fn(),
+  };
+});
+jest
+  .spyOn(InteractionManager, 'runAfterInteractions')
+  .mockImplementation(mockRunAfterInteractions);
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -170,7 +184,7 @@ describe('ChoosePassword', () => {
     });
 
     const submitButton = component.getByRole('button', {
-      name: strings('choose_password.confirm_cta'),
+      name: strings('choose_password.create_password_cta'),
     });
 
     // Button should still be disabled (checkbox not checked)
