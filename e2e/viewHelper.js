@@ -135,6 +135,9 @@ export const importWalletWithRecoveryPhrase = async ({
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
 
+  // Add delay for 1 second to avoid flakiness on ios
+  if (device.getPlatform() === 'ios') TestHelpers.delay(1000);
+
   await Assertions.checkIfVisible(MetaMetricsOptIn.container);
   if (optInToMetrics) {
     await MetaMetricsOptIn.tapAgreeButton();
