@@ -28,7 +28,6 @@ import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
 import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
-import Utilities from './utils/Utilities';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
@@ -114,14 +113,13 @@ export const importWalletWithRecoveryPhrase = async ({
   solanaSheetAction = 'dismiss',
 } = {}) => {
   // tap on import seed phrase button
-  await Utilities.waitForElementToBeVisible(OnboardingCarouselView.container);
+  await Assertions.checkIfVisible(OnboardingCarouselView.container);
   await OnboardingCarouselView.tapOnGetStartedButton();
   await acceptTermOfUse();
 
-  await Utilities.waitForElementToBeVisible(OnboardingView.container);
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
-  await Utilities.waitForElementToBeVisible(ImportWalletView.container);
+  await TestHelpers.delay(3500);
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
   await ImportWalletView.enterSecretRecoveryPhrase(
@@ -129,14 +127,13 @@ export const importWalletWithRecoveryPhrase = async ({
   );
   await ImportWalletView.tapTitle();
   await ImportWalletView.tapContinueButton();
-  await Utilities.waitForElementToBeVisible(CreatePasswordView.container);
+  await TestHelpers.delay(3500);
 
   await CreatePasswordView.enterPassword(password ?? validAccount.password);
   await CreatePasswordView.reEnterPassword(password ?? validAccount.password);
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
 
-  await Utilities.waitForElementToBeVisible(MetaMetricsOptIn.container);
   if (optInToMetrics) {
     await MetaMetricsOptIn.tapAgreeButton();
   } else {
@@ -144,7 +141,7 @@ export const importWalletWithRecoveryPhrase = async ({
   }
 
   //'Should dismiss Enable device Notifications checks alert'
-  await Utilities.waitForElementToBeVisible(OnboardingSuccessView.container);
+  await TestHelpers.delay(3500);
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
   await skipNotificationsDeviceSettings();
@@ -182,37 +179,33 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   // tap on import seed phrase button
   await OnboardingCarouselView.tapOnGetStartedButton();
   await acceptTermOfUse();
-  await Utilities.waitForElementToBeVisible(OnboardingView.container);
   await OnboardingView.tapCreateWallet();
 
-  await Utilities.waitForElementToBeVisible(CreatePasswordView.container);
+  await Assertions.checkIfVisible(CreatePasswordView.container);
   await CreatePasswordView.enterPassword(validAccount.password);
   await CreatePasswordView.reEnterPassword(validAccount.password);
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
 
   // Check that we are on the Secure your wallet screen
-  await Utilities.waitForElementToBeVisible(ProtectYourWalletView.container);
+  await Assertions.checkIfVisible(ProtectYourWalletView.container);
   await ProtectYourWalletView.tapOnRemindMeLaterButton();
   await device.disableSynchronization();
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
   await SkipAccountSecurityModal.tapSkipButton();
   await device.enableSynchronization();
-
-  await Utilities.waitForElementToBeVisible(OnboardingSuccessView.container);
+  await TestHelpers.delay(3500);
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
   await this.skipNotificationsDeviceSettings();
 
   // Dismissing to protect your wallet modal
-  await Utilities.waitForElementToBeVisible(
-    ProtectYourWalletModal.collapseWalletModal,
-  );
+  await Assertions.checkIfVisible(ProtectYourWalletModal.collapseWalletModal);
   await ProtectYourWalletModal.tapRemindMeLaterButton();
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
   await SkipAccountSecurityModal.tapSkipButton();
 
-  await Utilities.waitForElementToBeVisible(MetaMetricsOptIn.container);
+  await Assertions.checkIfVisible(MetaMetricsOptIn.container);
   optInToMetrics
     ? await MetaMetricsOptIn.tapAgreeButton()
     : await MetaMetricsOptIn.tapNoThanksButton();
