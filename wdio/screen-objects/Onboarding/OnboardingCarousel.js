@@ -114,11 +114,9 @@ class WelcomeScreen {
     const element = await this.screen;
     let screenExist = await element.isExisting();
 
-    while (screenExist) {
-      await Gestures.waitAndTap(this.getStartedButton);
-      await driver.pause(7000);
-      screenExist = await element.isExisting();
-    }
+    await Gestures.waitAndTap(this.getStartedButton);
+    await driver.pause(7000);
+    screenExist = await element.isExisting();
   }
 
   async waitForScreenToDisplay() {

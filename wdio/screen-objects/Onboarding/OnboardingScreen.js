@@ -20,13 +20,13 @@ class OnBoardingScreen {
   }
 
   get createNewWalletButton() {
-    return Selectors.getXpathElementByText(
+    return Selectors.getXpathElementByResourceId(
       OnboardingSelectorIDs.NEW_WALLET_BUTTON,
     );
   }
 
   get importWalletButton() {
-    return Selectors.getXpathElementByText(
+    return Selectors.getXpathElementByResourceId(
       OnboardingSelectorIDs.IMPORT_SEED_BUTTON,
     );
   }

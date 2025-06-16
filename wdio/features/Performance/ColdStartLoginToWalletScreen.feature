@@ -6,8 +6,7 @@ Feature: Measure Wallet Screen Cold Start
 
   Scenario: Cold Start after importing a wallet
     Given I have imported my wallet
-    And I tap No Thanks on the Enable security check screen
-    And I close all the onboarding modals
+    And I dismiss the Solana New Feature Sheet
     And I am on the wallet screen
     When I kill the app
     And I relaunch the app

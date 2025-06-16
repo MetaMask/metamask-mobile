@@ -1,5 +1,4 @@
 import { Given, Then, When } from '@wdio/cucumber-framework';
-
 import Accounts from '../helpers/Accounts';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen';
@@ -16,8 +15,9 @@ import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
 import Gestures from '../helpers/Gestures';
 import OnboardingSucessScreen from '../screen-objects/OnboardingSucessScreen.js';
-import ExperienceEnhancerModal from '../screen-objects/Modals/ExperienceEnhancerModal';
 import SettingsScreen from '../screen-objects/SettingsScreen';
+import CreatePasswordScreen from '../screen-objects/Onboarding/CreatePasswordScreen';
+import SolanaNewFeatureSheet from '../screen-objects/Modals/SolanaFeatureSheet';
 
 Then(/^the Welcome screen is displayed$/, async () => {
   await WelcomeScreen.isScreenDisplayed();
@@ -49,19 +49,11 @@ Given(/^I have imported my wallet$/, async () => {
   await driver.pause(timeOut);
   await WelcomeScreen.clickGetStartedButton();
   await driver.pause(2000);
-  await TermOfUseScreen.isDisplayed();
-  await TermOfUseScreen.tapAgreeCheckBox();
+  // await TermOfUseScreen.isDisplayed();
   await TermOfUseScreen.tapScrollEndButton();
-  if (!(await TermOfUseScreen.isCheckBoxChecked())) {
-    await TermOfUseScreen.tapAgreeCheckBox();
+  await TermOfUseScreen.tapAgreeCheckBox();
     await TermOfUseScreen.tapAcceptButton();
-  } else {
-    await TermOfUseScreen.tapAcceptButton();
-  }
-  await driver.pause(500);
-  await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.clickImportWalletButton();
-  await driver.pause(500);
   await MetaMetricsScreen.isScreenTitleVisible();
   await MetaMetricsScreen.tapIAgreeButton();
   await driver.pause(500);
@@ -189,13 +181,8 @@ When(/^I log into my wallet$/, async () => {
 
 When(/^I kill the app$/, async () => {
   const platform = await driver.getPlatform();
-  if (platform === 'iOS') {
-    await driver.terminateApp('io.metamask.MetaMask-QA');
-  }
 
-  if (platform === 'Android') {
-    await driver.closeApp();
-  }
+  await driver.terminateApp(platform === 'ios' ? 'io.metamask.MetaMask-QA' : 'io.metamask.qa');
 });
 
 When(/^I relaunch the app$/, async () => {
@@ -214,6 +201,7 @@ When(/^I fill my password in the Login screen$/, async () => {
 
   await LoginScreen.waitForScreenToDisplay();
   await LoginScreen.typePassword(validAccount.password);
+  await LoginScreen.tapTitle();
   await LoginScreen.tapTitle();
 });
 When(/^I unlock wallet with (.*)$/, async (password) => {
@@ -315,37 +303,12 @@ Then(/^tokens (.*) in account should be displayed$/, async (token) => {
   await CommonScreen.isTextDisplayed(token)
 });
 
-Given(/^I close all the onboarding modals$/, async () => {
-  // Handle Onboarding wizard
-  try {
-    await OnboardingWizardModal.isVisible();
-    await OnboardingWizardModal.tapNoThanksButton();
-    await OnboardingWizardModal.isNotVisible();
-  } catch {
-    /* eslint-disable no-console */
-
-    console.log('The onboarding modal is not visible');
-  }
-
-  try {
-    // Handle Marketing consent modal
-
-    await ExperienceEnhancerModal.waitForDisplay();
-    await ExperienceEnhancerModal.tapNoThanks();
-    await ExperienceEnhancerModal.waitForDisappear();
-  } catch {
-    console.log('The marketing consent modal is not visible');
-  }
-  try {
-    await OnboardingWizardModal.isVisible();
-    await OnboardingWizardModal.tapNoThanksButton();
-    await OnboardingWizardModal.isNotVisible();
-  } catch {
-    /* eslint-disable no-console */
-
-    console.log('The onboarding modal is not visible');
-  }
-});
 Then(/^I use the back button on Android$/, async () => {
   await driver.back();
+});
+
+Given(/^I dismiss the Solana New Feature Sheet$/, async () => {
+  await SolanaNewFeatureSheet.isVisible();
+  await SolanaNewFeatureSheet.tapNotNowButton();
+  await OnboardingWizardModal.isNotVisible();
 });
