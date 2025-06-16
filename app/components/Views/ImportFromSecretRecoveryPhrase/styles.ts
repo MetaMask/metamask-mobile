@@ -206,6 +206,11 @@ const createStyles = (colors: any) =>
       flexDirection: 'column',
       rowGap: 18,
       marginTop: 'auto',
+      marginBottom: Platform.select({
+        ios: 0,
+        android: 16,
+        default: 16,
+      }),
     },
   });
 
