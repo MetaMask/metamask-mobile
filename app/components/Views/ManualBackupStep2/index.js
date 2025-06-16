@@ -106,12 +106,16 @@ const ManualBackupStep2 = ({
       seedphraseBackedUp();
       InteractionManager.runAfterInteractions(async () => {
         if (backupFlow) {
-          navigation.reset({ routes: [{ name: 'HomeNav' }] });
+          const resetToHomeNavAction = CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'HomeNav' }],
+          });
+          navigation.dispatch(resetToHomeNavAction);
         } else if (settingsBackup) {
           navigation.navigate(Routes.ONBOARDING.SECURITY_SETTINGS);
         } else {
           const resetAction = CommonActions.reset({
-            index: 1,
+            index: 0,
             routes: [
               {
                 name: Routes.ONBOARDING.SUCCESS_FLOW,

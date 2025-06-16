@@ -46,7 +46,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "CronjobController": {
         "events": {},
-        "jobs": {},
       },
       "CurrencyRateController": {
         "currencyRates": {
