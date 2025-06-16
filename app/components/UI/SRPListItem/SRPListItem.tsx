@@ -36,7 +36,6 @@ const SRPListItem = ({
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
   const [showAccounts, setShowAccounts] = useState(false);
-  const { trackEvent, createEventBuilder } = useMetrics();
   const accountsToBeShown = useMemo(
     () =>
       keyring.accounts.map((accountAddress) =>
