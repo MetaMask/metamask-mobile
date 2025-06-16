@@ -128,7 +128,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const [biometryChoice, setBiometryChoice] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [spellErrorMessage, setSpellErrorMessage] = useState('');
+  const [spellCheckError, setSpellCheckError] = useState('');
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
   const [seedPhrase, setSeedPhrase] = useState([]);
   const [seedPhraseInputFocusedIndex, setSeedPhraseInputFocusedIndex] =
@@ -140,17 +140,15 @@ const ImportFromSecretRecoveryPhrase = ({
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [containerWidth, setContainerWidth] = useState(0);
-  const [spellcheckError, setSpellcheckError] = useState(false);
+
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
     onTransactionComplete: false,
   });
 
-  const seedPhraseLength = seedPhrase.length;
-
   const isSRPContinueButtonDisabled = useMemo(
-    () => !SRP_LENGTHS.includes(seedPhraseLength),
-    [seedPhraseLength],
+    () => !SRP_LENGTHS.includes(seedPhrase.length),
+    [seedPhrase],
   );
 
   const handleLayout = (event) => {
@@ -170,14 +168,14 @@ const ImportFromSecretRecoveryPhrase = ({
     setErrorWordIndexes({});
     setShowAllSeedPhrase(false);
     setError('');
-    setSpellcheckError(false);
-    setSpellErrorMessage('');
+    setSpellCheckError('');
   }, []);
 
   const handleSeedPhraseChange = useCallback(
     async (seedPhraseText, index) => {
       try {
-        setSpellcheckError(false);
+        setSpellCheckError('');
+        setError('');
         const text = formatSeedPhraseToSingleLine(seedPhraseText);
 
         if (text.includes(SPACE_CHAR)) {
@@ -185,28 +183,19 @@ const ImportFromSecretRecoveryPhrase = ({
           // handle use pasting multiple words / whole seed phrase separated by spaces
           const splitArray = text.trim().split(' ');
 
-          const currentErrorWordIndexes = { ...errorWordIndexes };
-          splitArray.forEach((x, currentIndex) => {
-            if (checkValidSeedWord(x)) {
-              currentErrorWordIndexes[index + currentIndex] = false;
-            } else {
-              currentErrorWordIndexes[index + currentIndex] = true;
-            }
-          });
+          // Build the new seed phrase array
+          const newSeedPhrase = [
+            ...seedPhrase.slice(0, index),
+            ...splitArray,
+            ...seedPhrase.slice(index + 1),
+          ];
 
-          setSeedPhrase((prev) => {
-            const endSlices = prev.slice(index + 1);
-            if (endSlices.length === 0 && isEndWithSpace) {
-              endSlices.push('');
-            } else if (isEndWithSpace) {
-              endSlices.unshift('');
-            }
+          // If the last character is a space, add an empty string for the next input
+          if (isEndWithSpace) {
+            newSeedPhrase.push('');
+          }
 
-            // input the array into the correct index
-            return [...prev.slice(0, index), ...splitArray, ...endSlices];
-          });
-
-          setErrorWordIndexes(currentErrorWordIndexes);
+          setSeedPhrase(newSeedPhrase);
           setNextSeedPhraseInputFocusedIndex(index + splitArray.length);
         } else {
           setSeedPhrase((prev) => {
@@ -220,12 +209,7 @@ const ImportFromSecretRecoveryPhrase = ({
         Logger.error('Error handling seed phrase change:', error);
       }
     },
-    [
-      setSeedPhrase,
-      setNextSeedPhraseInputFocusedIndex,
-      setErrorWordIndexes,
-      errorWordIndexes,
-    ],
+    [setSeedPhrase, setNextSeedPhraseInputFocusedIndex, seedPhrase],
   );
 
   const onQrCodePress = useCallback(() => {
@@ -408,7 +392,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
   const handleKeyPress = (e, index) => {
-    setSpellcheckError(false);
     const { key } = e.nativeEvent;
     if (key === 'Backspace') {
       if (seedPhrase[index] === '') {
@@ -435,6 +418,9 @@ const ImportFromSecretRecoveryPhrase = ({
     setShowAllSeedPhrase((prev) => !prev);
   };
 
+  const hasSeedPhraseErrors = (seedPhraseArr) =>
+    seedPhraseArr.some((word) => word !== '' && !checkValidSeedWord(word));
+
   const validateSeedPhrase = () => {
     const phrase = seedPhrase.filter((item) => item !== '').join(' ');
     const seedPhraseLength = seedPhrase.length;
@@ -451,16 +437,21 @@ const ImportFromSecretRecoveryPhrase = ({
       return false;
     }
 
+    if (hasSeedPhraseErrors(seedPhrase)) {
+      setSpellCheckError(strings('import_from_seed.spellcheck_error'));
+      return false;
+    }
+
     if (!isValidMnemonic(phrase)) {
       setError(strings('import_from_seed.invalid_seed_phrase'));
       return false;
     }
+
     return true;
   };
 
   const handleContinueImportFlow = () => {
     if (!validateSeedPhrase()) {
-      setSpellcheckError(true);
       return;
     }
     setCurrentStep(currentStep + 1);
@@ -603,14 +594,6 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   useEffect(() => {
-    if (Object.values(errorWordIndexes).some((value) => value)) {
-      setSpellErrorMessage(strings('import_from_seed.spellcheck_error'));
-    } else {
-      setSpellErrorMessage('');
-    }
-  }, [errorWordIndexes]);
-
-  useEffect(() => {
     seedPhraseInputRefs.current[nextSeedPhraseInputFocusedIndex]?.focus();
   }, [nextSeedPhraseInputFocusedIndex]);
 
@@ -747,7 +730,8 @@ const ImportFromSecretRecoveryPhrase = ({
                                   value={item}
                                   secureTextEntry={
                                     !(
-                                      spellcheckError && errorWordIndexes[index]
+                                      Boolean(spellCheckError) &&
+                                      errorWordIndexes[index]
                                     ) && !canShowSeedPhraseWord(index)
                                   }
                                   onFocus={(e) => {
@@ -778,7 +762,8 @@ const ImportFromSecretRecoveryPhrase = ({
                                   textAlignVertical="center"
                                   showSoftInputOnFocus
                                   isError={
-                                    spellcheckError && errorWordIndexes[index]
+                                    Boolean(spellCheckError) &&
+                                    errorWordIndexes[index]
                                   }
                                   autoCapitalize="none"
                                   numberOfLines={1}
@@ -826,15 +811,14 @@ const ImportFromSecretRecoveryPhrase = ({
                       />
                     </View>
                   </View>
-                  {spellcheckError &&
-                    (error !== '' || spellErrorMessage !== '') && (
-                      <Text
-                        variant={TextVariant.BodySMMedium}
-                        color={TextColor.Error}
-                      >
-                        {spellErrorMessage || error}
-                      </Text>
-                    )}
+                  {(Boolean(spellCheckError) || Boolean(error)) && (
+                    <Text
+                      variant={TextVariant.BodySMMedium}
+                      color={TextColor.Error}
+                    >
+                      {spellCheckError || error}
+                    </Text>
+                  )}
                 </View>
                 <View style={styles.seedPhraseCtaContainer}>
                   <Button
