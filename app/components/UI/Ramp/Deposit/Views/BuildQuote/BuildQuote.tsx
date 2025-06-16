@@ -23,18 +23,18 @@ import Icon, {
 import {
   DEBIT_CREDIT_PAYMENT_METHOD,
   USDC_TOKEN,
+  USDT_TOKEN,
+  SUPPORTED_DEPOSIT_TOKENS,
   DepositCryptoCurrency,
   DepositPaymentMethod,
   USD_CURRENCY,
   DepositFiatCurrency,
+  EUR_CURRENCY,
 } from '../../constants';
 import AccountSelector from '../../components/AccountSelector';
 import I18n, { strings } from '../../../../../../../locales/i18n';
-import { useSelector } from 'react-redux';
-import { selectMultichainAssetsRates } from '../../../../../../selectors/multichain';
-import { selectContractExchangeRatesByChainId } from '../../../../../../selectors/tokenRatesController';
+import useDepsositTokenExchange from '../../hooks/useTokenExchange';
 import { getIntlNumberFormatter } from '../../../../../../util/intl';
-import { currency } from '@metamask/snaps-utils';
 
 function formatAmount(
   amount: number,
@@ -45,31 +45,23 @@ function formatAmount(
 
 const BuildQuote = () => {
   const navigation = useNavigation();
-
   const { styles, theme } = useStyles(styleSheet, {});
 
-  const [paymentMethod, setPaymentMethod] = useState<DepositPaymentMethod>(
+  const [paymentMethod] = useState<DepositPaymentMethod>(
     DEBIT_CREDIT_PAYMENT_METHOD,
   );
-
   const [cryptoCurrency, setCryptoCurrency] =
     useState<DepositCryptoCurrency>(USDC_TOKEN);
-
   const [fiatCurrency, setFiatCurrency] =
     useState<DepositFiatCurrency>(USD_CURRENCY);
-
-  const [network] = useState<string>('ethereum');
-
   const [amount, setAmount] = useState<string>('0');
-
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
-
   const { isAuthenticated } = useDepositSDK();
 
   const [, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false },
     fiatCurrency.id,
-    cryptoCurrency.id,
+    cryptoCurrency.assetId,
     cryptoCurrency.chainId,
     paymentMethod.id,
     amount,
@@ -78,6 +70,13 @@ const BuildQuote = () => {
   const [, fetchKycForms] = useDepositSdkMethod({
     method: 'getKYCForms',
     onMount: false,
+  });
+
+  const { tokenAmount } = useDepsositTokenExchange({
+    fiatCurrency,
+    fiatAmount: amount,
+    token: cryptoCurrency,
+    tokens: SUPPORTED_DEPOSIT_TOKENS,
   });
 
   useEffect(() => {
@@ -89,7 +88,7 @@ const BuildQuote = () => {
   const handleOnPressContinue = useCallback(async () => {
     const quote = await getQuote(
       fiatCurrency.id,
-      cryptoCurrency.id,
+      cryptoCurrency.assetId,
       cryptoCurrency.chainId,
       paymentMethod.id,
       amount,
@@ -107,9 +106,6 @@ const BuildQuote = () => {
       } else {
         navigation.navigate(...createEnterEmailNavDetails({ quote }));
       }
-    } else {
-      // TODO: Handle error case where quote can not be generated
-      console.error('Failed to fetch quote');
     }
   }, [
     amount,
@@ -119,7 +115,6 @@ const BuildQuote = () => {
     getQuote,
     isAuthenticated,
     navigation,
-    network,
     paymentMethod,
   ]);
 
@@ -140,24 +135,23 @@ const BuildQuote = () => {
 
   const handlePaymentMethodPress = useCallback(() => {
     // TODO: Implement payment method selection logic
-    console.log('Payment method selection pressed');
   }, []);
 
   const handleFiatPress = useCallback(() => {
     // TODO: Implement fiat selection logic
-    console.log('Fiat selection pressed');
+    // this is a temp UX to switch between USD and EUR
+    setFiatCurrency((current) =>
+      current.id === 'USD' ? EUR_CURRENCY : USD_CURRENCY,
+    );
   }, []);
 
   const handleCryptoPress = useCallback(() => {
     // TODO: Implement crypto selection logic
-    console.log('Crypto selection pressed');
+    // this is a temp UX to switch between USDC and USDT
+    setCryptoCurrency((current) =>
+      current.symbol === 'USDC' ? USDT_TOKEN : USDC_TOKEN,
+    );
   }, []);
-
-  const usdcAmount = parseFloat(amount || '0').toFixed(2);
-  const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
-  const contractExchangeRates = useSelector((state: RootState) =>
-    selectContractExchangeRatesByChainId(state, '0x1' as Hex),
-  );
 
   return (
     <ScreenLayout>
@@ -184,7 +178,7 @@ const BuildQuote = () => {
             >
               {formatAmount(amountAsNumber, {
                 style: 'currency',
-                currency: 'eur',
+                currency: fiatCurrency.id,
                 currencyDisplay: 'narrowSymbol',
               })}
             </Text>
@@ -194,17 +188,17 @@ const BuildQuote = () => {
               color={TextColor.Alternative}
               style={styles.convertedAmount}
             >
-              {usdcAmount} {cryptoCurrency.symbol}
+              {tokenAmount} {cryptoCurrency.symbol}
             </Text>
 
             <TouchableOpacity onPress={handleCryptoPress}>
               <View style={styles.cryptoPill}>
                 <Image
-                  source={{ uri: USDC_TOKEN.logo }}
+                  source={{ uri: cryptoCurrency.logo }}
                   style={styles.tokenLogo}
                 />
                 <Text variant={TextVariant.HeadingLG} style={styles.cryptoText}>
-                  {USDC_TOKEN.symbol}
+                  {cryptoCurrency.symbol}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -240,7 +234,7 @@ const BuildQuote = () => {
             value={amount}
             onChange={handleKeypadChange}
             currency={fiatCurrency.symbol}
-            decimals={2}
+            decimals={0}
             deleteIcon={<Icon name={IconName.Arrow2Left} size={IconSize.Lg} />}
           />
         </ScreenLayout.Content>
