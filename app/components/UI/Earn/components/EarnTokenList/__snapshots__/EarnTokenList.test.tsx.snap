@@ -225,7 +225,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                   }
                 }
               >
-                You could earn
+                You could earn up to
               </Text>
               <Text
                 accessibilityRole="text"
@@ -240,7 +240,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                   }
                 }
               >
-                $100.00
+                4%
               </Text>
               <Text
                 accessibilityRole="text"
