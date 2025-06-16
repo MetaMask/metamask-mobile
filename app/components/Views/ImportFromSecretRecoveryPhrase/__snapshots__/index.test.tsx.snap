@@ -548,6 +548,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                     <TextInput
                                       autoCapitalize="none"
                                       autoComplete="off"
+                                      autoCorrect={false}
                                       autoFocus={true}
                                       editable={true}
                                       keyboardType="default"
@@ -564,6 +565,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                         }
                                       }
                                       placeholderTextColor="#686e7d"
+                                      spellCheck={false}
                                       style={
                                         {
                                           "backgroundColor": "#f3f5f9",
@@ -579,6 +581,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                       submitBehavior="submit"
                                       testID="import-from-seed-screen-seed-phrase-input-id"
                                       textAlignVertical="top"
+                                      textContentType="none"
                                       value=""
                                     />
                                   </View>
