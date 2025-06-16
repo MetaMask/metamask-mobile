@@ -217,51 +217,23 @@ class Browser {
   }
 
   async getWebElementText(elementId) {
-    console.log(`[DEBUG] Getting web element text for elementId: ${elementId}`);
-    console.log(`[DEBUG] Platform: ${device.getPlatform()}`);
-    
-    // For Android, wait longer for WebView to be fully ready with JavaScript enabled
-    if (device.getPlatform() === 'android') {
-      console.log(`[DEBUG] Android detected - waiting for WebView to be fully ready...`);
-      
-      // Wait for the native WebView element to be visible first
-      const nativeWebView = element(by.id('browser-webview'));
-      await waitFor(nativeWebView).toBeVisible().withTimeout(15000);
-      console.log(`[DEBUG] Native WebView is visible`);
-      
-      // Add extra delay for JavaScript to be enabled and WebView to be fully initialized
-      await TestHelpers.delay(5000);
-      console.log(`[DEBUG] Waited for WebView initialization`);
-      
-      // Try multiple times with increasing delays
-      for (let attempt = 1; attempt <= 3; attempt++) {
-        try {
-          console.log(`[DEBUG] Attempt ${attempt} to get web element text`);
-          const browserWebView = web(by.id('browser-webview'));
-          const webElement = browserWebView.element(by.web.id(elementId));
-          const text = await webElement.getText();
-          console.log(`[DEBUG] Successfully got text on attempt ${attempt}: ${text}`);
-          return text;
-        } catch (error) {
-          console.log(`[DEBUG] Attempt ${attempt} failed:`, error.message);
-          if (attempt < 3) {
-            console.log(`[DEBUG] Waiting ${attempt * 2000}ms before retry...`);
-            await TestHelpers.delay(attempt * 2000);
-          } else {
-            console.log(`[DEBUG] All attempts failed, throwing error`);
-            throw error;
-          }
+    const browserWebView = web(by.id('browser-webview'));
+    await waitFor(element(by.id('browser-webview'))).toBeVisible().withTimeout(15000);
+    await TestHelpers.delay(2000);
+
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const webElement = browserWebView.element(by.web.id(elementId));
+        return await webElement.runScript(el => el.textContent || el.innerText || el.value || '');
+      } catch (error) {
+        if (attempt < 3) {
+          await TestHelpers.delay(attempt * 2000);
+          continue;
         }
+        throw error;
       }
-    } else {
-      // iOS approach - simpler since it typically works more reliably
-      console.log(`[DEBUG] iOS detected - using standard approach`);
-      const browserWebView = web(by.id('browser-webview'));
-      const webElement = browserWebView.element(by.web.id(elementId));
-      const text = await webElement.getText();
-      console.log(`[DEBUG] Successfully got text: ${text}`);
-      return text;
     }
+    throw new Error('Failed to get web element text after 3 attempts');
   }
 
   async navigateToTestDApp() {
