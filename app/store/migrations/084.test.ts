@@ -1,4 +1,4 @@
-import migrate from './083';
+import migrate from './084';
 import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
 
@@ -13,7 +13,9 @@ jest.mock('./util', () => ({
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 
-describe('Migration 083: Remove Automatic Security Checks state', () => {
+const migrationVersion = '084';
+
+describe(`Migration ${migrationVersion}: Remove Automatic Security Checks state`, () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
@@ -59,7 +61,7 @@ describe('Migration 083: Remove Automatic Security Checks state', () => {
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
     expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      'Migration 083: Invalid security state',
+      `Migration ${migrationVersion}: Invalid security state`,
     );
   });
 

@@ -8,9 +8,9 @@ import { captureException } from '@sentry/react-native';
  * This migration removes the automatic security checks state from the security state.
  */
 const migration = (state: unknown): unknown => {
-  const migrationVersion = 83;
+  const migrationVersion = '084';
 
-  if (!ensureValidState(state, migrationVersion)) {
+  if (!ensureValidState(state, Number(migrationVersion))) {
     return state;
   }
 
@@ -22,7 +22,9 @@ const migration = (state: unknown): unknown => {
       !isObject(state.engine.backgroundState)
     ) {
       captureException(
-        new Error(`Migration 083: Invalid engine state structure`),
+        new Error(
+          `Migration ${migrationVersion}: Invalid engine state structure`,
+        ),
       );
       return state;
     }
@@ -33,7 +35,7 @@ const migration = (state: unknown): unknown => {
     ) {
       captureException(
         new Error(
-          `Migration 083: Invalid security state: '${JSON.stringify(
+          `Migration ${migrationVersion}: Invalid security state: '${JSON.stringify(
             state.engine.backgroundState.security,
           )}'`,
         ),
@@ -75,7 +77,7 @@ const migration = (state: unknown): unknown => {
   } catch (error) {
     captureException(
       new Error(
-        `Migration 083: cleaning security state failed with error: ${error}`,
+        `Migration 0${migrationVersion}: cleaning security state failed with error: ${error}`,
       ),
     );
     return state;
