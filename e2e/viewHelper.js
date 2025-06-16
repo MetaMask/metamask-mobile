@@ -117,9 +117,10 @@ export const importWalletWithRecoveryPhrase = async ({
   await OnboardingCarouselView.tapOnGetStartedButton();
   await acceptTermOfUse();
 
+  await Assertions.checkIfVisible(OnboardingView.container);
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
-  await TestHelpers.delay(3500);
+  await Assertions.checkIfVisible(ImportWalletView.container);
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
   await ImportWalletView.enterSecretRecoveryPhrase(
@@ -127,13 +128,14 @@ export const importWalletWithRecoveryPhrase = async ({
   );
   await ImportWalletView.tapTitle();
   await ImportWalletView.tapContinueButton();
-  await TestHelpers.delay(3500);
 
+  await Assertions.checkIfVisible(CreatePasswordView.container);
   await CreatePasswordView.enterPassword(password ?? validAccount.password);
   await CreatePasswordView.reEnterPassword(password ?? validAccount.password);
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
 
+  await Assertions.checkIfVisible(MetaMetricsOptIn.container);
   if (optInToMetrics) {
     await MetaMetricsOptIn.tapAgreeButton();
   } else {
@@ -141,7 +143,7 @@ export const importWalletWithRecoveryPhrase = async ({
   }
 
   //'Should dismiss Enable device Notifications checks alert'
-  await TestHelpers.delay(3500);
+  await Assertions.checkIfVisible(OnboardingSuccessView.container);
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
   await skipNotificationsDeviceSettings();
@@ -194,7 +196,13 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
   await SkipAccountSecurityModal.tapSkipButton();
   await device.enableSynchronization();
-  await TestHelpers.delay(3500);
+
+  await Assertions.checkIfVisible(MetaMetricsOptIn.container);
+  optInToMetrics
+    ? await MetaMetricsOptIn.tapAgreeButton()
+    : await MetaMetricsOptIn.tapNoThanksButton();
+
+  await Assertions.checkIfVisible(OnboardingSuccessView.container);
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
   await this.skipNotificationsDeviceSettings();
@@ -204,11 +212,6 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await ProtectYourWalletModal.tapRemindMeLaterButton();
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
   await SkipAccountSecurityModal.tapSkipButton();
-
-  await Assertions.checkIfVisible(MetaMetricsOptIn.container);
-  optInToMetrics
-    ? await MetaMetricsOptIn.tapAgreeButton()
-    : await MetaMetricsOptIn.tapNoThanksButton();
 
   // 'should dismiss the onboarding wizard'
   // dealing with flakiness on bitrise.
