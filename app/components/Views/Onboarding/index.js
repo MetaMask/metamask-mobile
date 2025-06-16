@@ -39,6 +39,14 @@ import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import LottieView from 'lottie-react-native';
+import {
+  bufferedTrace,
+  TraceName,
+  TraceOperation,
+  bufferedEndTrace,
+} from '../../../util/trace';
+import { getTraceTags } from '../../../util/sentry/tags';
+import { store } from '../../../store';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Button, {
   ButtonVariants,
@@ -231,6 +239,9 @@ class Onboarding extends PureComponent {
   actionXAnimated = new Animated.Value(0);
   detailsAnimated = new Animated.Value(0);
 
+  onboardingTraceCtx = null;
+  socialLoginTraceCtx = null;
+
   animatedTimingStart = (animatedRef, toValue) => {
     Animated.timing(animatedRef, {
       toValue,
@@ -289,6 +300,12 @@ class Onboarding extends PureComponent {
   };
 
   componentDidMount() {
+    this.onboardingTraceCtx = bufferedTrace({
+      name: TraceName.OnboardingJourneyOverall,
+      op: TraceOperation.OnboardingUserJourney,
+      tags: getTraceTags(store.getState()),
+    });
+
     this.props.unsetLoading();
     this.updateNavBar();
     this.mounted = true;
@@ -345,8 +362,15 @@ class Onboarding extends PureComponent {
 
   onPressCreate = () => {
     const action = () => {
+      bufferedTrace({
+        name: TraceName.OnboardingNewSrpCreateWallet,
+        op: TraceOperation.OnboardingUserJourney,
+        tags: getTraceTags(store.getState()),
+        parentContext: this.onboardingTraceCtx,
+      });
       this.props.navigation.navigate('ChoosePassword', {
         [PREVIOUS_SCREEN]: ONBOARDING,
+        onboardingTraceCtx: this.onboardingTraceCtx,
       });
       this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
     };
@@ -356,10 +380,17 @@ class Onboarding extends PureComponent {
 
   onPressImport = () => {
     const action = async () => {
+      bufferedTrace({
+        name: TraceName.OnboardingExistingSrpImport,
+        op: TraceOperation.OnboardingUserJourney,
+        tags: getTraceTags(store.getState()),
+        parentContext: this.onboardingTraceCtx,
+      });
       this.props.navigation.navigate(
         Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
         {
           [PREVIOUS_SCREEN]: ONBOARDING,
+          onboardingTraceCtx: this.onboardingTraceCtx,
         },
       );
       this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);

@@ -30,7 +30,7 @@ import {
 import StorageWrapper from '../../store/storage-wrapper';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
+import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import ReduxService from '../redux';
 import { retryWithExponentialDelay } from '../../util/exponential-retry';
 ///: BEGIN:ONLY_INCLUDE_IF(solana)
@@ -95,12 +95,15 @@ class AuthenticationService {
     await KeyringController.createNewVaultAndRestore(password, parsedSeed);
     ///: BEGIN:ONLY_INCLUDE_IF(solana)
     this.attemptSolanaAccountDiscovery().catch((error) => {
-      console.warn('Solana account discovery failed during wallet creation:', error);
+      console.warn(
+        'Solana account discovery failed during wallet creation:',
+        error,
+      );
       // Store flag to retry on next unlock
       StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, TRUE);
     });
     ///: END:ONLY_INCLUDE_IF
-    
+
     password = this.wipeSensitiveData();
     parsedSeed = this.wipeSensitiveData();
   };
@@ -117,19 +120,22 @@ class AuthenticationService {
         },
       );
       await client.addDiscoveredAccounts(primaryHdKeyringId);
-      
+
       await StorageWrapper.removeItem(SOLANA_DISCOVERY_PENDING);
     };
 
     try {
       await retryWithExponentialDelay(
         performSolanaAccountDiscovery,
-        3, // maxRetries 
+        3, // maxRetries
         1000, // baseDelay
         10000, // maxDelay
       );
     } catch (error) {
-      console.error('Solana account discovery failed after all retries:', error);
+      console.error(
+        'Solana account discovery failed after all retries:',
+        error,
+      );
     }
   };
 
@@ -160,7 +166,10 @@ class AuthenticationService {
 
     ///: BEGIN:ONLY_INCLUDE_IF(solana)
     this.attemptSolanaAccountDiscovery().catch((error) => {
-      console.warn('Solana account discovery failed during wallet creation:', error);
+      console.warn(
+        'Solana account discovery failed during wallet creation:',
+        error,
+      );
       StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
     });
     ///: END:ONLY_INCLUDE_IF
@@ -441,12 +450,12 @@ class AuthenticationService {
       this.dispatchLogin();
       this.authData = authData;
       this.dispatchPasswordSet();
-      
+
       // Try to complete any pending Solana account discovery
       ///: BEGIN:ONLY_INCLUDE_IF(solana)
       this.retrySolanaDiscoveryIfPending();
       ///: END:ONLY_INCLUDE_IF
-      
+
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
@@ -495,12 +504,12 @@ class AuthenticationService {
       this.dispatchLogin();
       ReduxService.store.dispatch(authSuccess(bioStateMachineId));
       this.dispatchPasswordSet();
-      
+
       // Try to complete any pending Solana account discovery
       ///: BEGIN:ONLY_INCLUDE_IF(solana)
       this.retrySolanaDiscoveryIfPending();
       ///: END:ONLY_INCLUDE_IF
-      
+
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {

@@ -44,6 +44,7 @@ import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useMetrics } from '../../hooks/useMetrics';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import { TraceName, bufferedEndTrace } from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -109,6 +110,7 @@ const AccountBackupStep1 = (props) => {
   const [hasFunds, setHasFunds] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const { isEnabled: isMetricsEnabled } = useMetrics();
 
   const track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
@@ -170,12 +172,14 @@ const AccountBackupStep1 = (props) => {
     track(MetaMetricsEvents.WALLET_SECURITY_STARTED);
   };
 
-  const { isEnabled: isMetricsEnabled } = useMetrics();
   const skip = async () => {
     track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
     // Get onboarding wizard state
     const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     !onboardingWizard && props.setOnboardingWizardStep(1);
+
+    bufferedEndTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
+    bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
 
     const resetAction = CommonActions.reset({
       index: 1,
