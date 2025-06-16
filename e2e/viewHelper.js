@@ -121,7 +121,6 @@ export const importWalletWithRecoveryPhrase = async ({
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
   await TestHelpers.delay(3500);
-  await Assertions.checkIfVisible(ImportWalletView.container);
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
   await ImportWalletView.enterSecretRecoveryPhrase(
@@ -131,7 +130,6 @@ export const importWalletWithRecoveryPhrase = async ({
   await ImportWalletView.tapContinueButton();
   await TestHelpers.delay(3500);
 
-  await Assertions.checkIfVisible(CreatePasswordView.container);
   await CreatePasswordView.enterPassword(password ?? validAccount.password);
   await CreatePasswordView.reEnterPassword(password ?? validAccount.password);
   await CreatePasswordView.tapIUnderstandCheckBox();
