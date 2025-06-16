@@ -184,7 +184,7 @@ describe('ChoosePassword', () => {
     });
 
     const submitButton = component.getByRole('button', {
-      name: strings('choose_password.confirm_cta'),
+      name: strings('choose_password.create_password_cta'),
     });
 
     // Button should still be disabled (checkbox not checked)
