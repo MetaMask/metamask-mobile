@@ -1,8 +1,8 @@
 import { captureException } from '@sentry/react-native';
-import { cloneDeep } from 'lodash';
-
 import { ensureValidState } from './util';
 import migrate from './083';
+import { Duration, inMilliseconds } from '@metamask/utils';
+import { SnapCaveatType, SnapEndowments } from '@metamask/snaps-rpc-methods';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -12,21 +12,16 @@ jest.mock('./util', () => ({
   ensureValidState: jest.fn(),
 }));
 
+jest.useFakeTimers();
+jest.setSystemTime(new Date('2023-10-01T00:00:00Z').getTime());
+
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 
-const createTestState = () => ({
-  engine: {
-    backgroundState: {
-      UserStorageController: {
-        isBackupAndSyncEnabled: false,
-        isAccountSyncingEnabled: false,
-      },
-    },
-  },
-});
+const MOCK_SNAP_ID = 'npm:example-snap';
+const MOCK_ORIGIN = 'http://example.com';
 
-describe('Migration 83: set isBackupAndSyncEnabled and isAccountSyncingEnabled to true for all users', () => {
+describe('Migration 083', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
@@ -37,67 +32,497 @@ describe('Migration 83: set isBackupAndSyncEnabled and isAccountSyncingEnabled t
 
     const migratedState = migrate(state);
 
-    expect(migratedState).toStrictEqual({ some: 'state' });
+    expect(migratedState).toBe(state);
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('sets isBackupAndSyncEnabled and isAccountSyncingEnabled to true for all users', () => {
-    const oldState = createTestState();
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const expectedData = {
+  it('captures exception if the `CronjobController` state is not an object', () => {
+    const state = {
       engine: {
         backgroundState: {
-          UserStorageController: {
-            ...oldState.engine.backgroundState.UserStorageController,
-            isBackupAndSyncEnabled: true,
-            isAccountSyncingEnabled: true,
+          CronjobController: false,
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    expect(migratedState).toEqual(state);
+    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      'Migration 83: `CronjobController` state is not an object.',
+    );
+  });
+
+  it('captures exception if the `PermissionController` state is invalid', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          CronjobController: {
+            events: {},
+            jobs: {},
+          },
+
+          // PermissionController is missing
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    expect(migratedState).toEqual(state);
+    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      'Migration 83: `PermissionController` state not found or is not an object.',
+    );
+  });
+
+  it("works if the state doesn't have an `events` property", async () => {
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const oldState = {
+      engine: {
+        backgroundState: {
+          CronjobController: {
+            jobs: {
+              [`${MOCK_SNAP_ID}-0`]: {
+                lastRun: Date.now() - inMilliseconds(1, Duration.Day),
+              },
+              [`${MOCK_SNAP_ID}-1`]: {
+                lastRun: Date.now() - inMilliseconds(1, Duration.Day),
+              },
+            },
+          },
+
+          PermissionController: {
+            subjects: {
+              [MOCK_SNAP_ID]: {
+                origin: MOCK_SNAP_ID,
+                permissions: {
+                  [SnapEndowments.Cronjob]: {
+                    caveats: [
+                      {
+                        type: SnapCaveatType.SnapCronjob,
+                        value: {
+                          jobs: [
+                            {
+                              expression: '*/30 * * * * *',
+                              request: {
+                                method: 'foo',
+                                params: { bar: 'baz' },
+                              },
+                            },
+                            {
+                              expression: '0 0 0 * 11 *',
+                              request: {
+                                method: 'foo',
+                                params: { bar: 'baz' },
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                    date: 1664187844588,
+                    id: 'izn0WGUO8cvq_jqvLQuQP',
+                    invoker: MOCK_ORIGIN,
+                    parentCapability: SnapEndowments.EthereumProvider,
+                  },
+                },
+              },
+            },
           },
         },
       },
     };
 
-    const migratedState = migrate(oldState);
+    const newState = await migrate(oldState);
+    expect(newState).toStrictEqual({
+      engine: {
+        backgroundState: {
+          CronjobController: {
+            events: {
+              [`cronjob-${MOCK_SNAP_ID}-0`]: {
+                id: `cronjob-${MOCK_SNAP_ID}-0`,
+                recurring: true,
+                date: '2023-09-30T23:59:00.000Z',
+                schedule: '*/30 * * * * *',
+                scheduledAt: '2023-10-01T00:00:00.000Z',
+                snapId: MOCK_SNAP_ID,
+                request: {
+                  method: 'foo',
+                  params: { bar: 'baz' },
+                },
+              },
+              [`cronjob-${MOCK_SNAP_ID}-1`]: {
+                id: `cronjob-${MOCK_SNAP_ID}-1`,
+                recurring: true,
+                date: '2023-11-01T00:00:00.000Z',
+                schedule: '0 0 0 * 11 *',
+                scheduledAt: '2023-10-01T00:00:00.000Z',
+                snapId: MOCK_SNAP_ID,
+                request: {
+                  method: 'foo',
+                  params: { bar: 'baz' },
+                },
+              },
+            },
+          },
 
-    expect(migratedState).toStrictEqual(expectedData);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it.each([
-    {
-      state: {
-        engine: {},
-      },
-      test: 'empty engine state',
-    },
-    {
-      state: {
-        engine: {
-          backgroundState: {},
+          PermissionController:
+            oldState.engine.backgroundState.PermissionController,
         },
       },
-      test: 'empty backgroundState',
-    },
-    {
-      state: {
-        engine: {
-          backgroundState: {
-            UserStorageController: 'invalid',
+    });
+  });
+
+  it('adds cronjobs to the `events` property and deletes the `jobs` property', async () => {
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const oldState = {
+      engine: {
+        backgroundState: {
+          CronjobController: {
+            jobs: {
+              [`${MOCK_SNAP_ID}-0`]: {
+                lastRun: Date.now() - inMilliseconds(1, Duration.Day),
+              },
+              [`${MOCK_SNAP_ID}-1`]: {
+                lastRun: Date.now() - inMilliseconds(1, Duration.Day),
+              },
+            },
+            events: {},
+          },
+
+          PermissionController: {
+            subjects: {
+              [MOCK_SNAP_ID]: {
+                origin: MOCK_SNAP_ID,
+                permissions: {
+                  [SnapEndowments.Cronjob]: {
+                    caveats: [
+                      {
+                        type: SnapCaveatType.SnapCronjob,
+                        value: {
+                          jobs: [
+                            {
+                              expression: '*/30 * * * * *',
+                              request: {
+                                method: 'foo',
+                                params: { bar: 'baz' },
+                              },
+                            },
+                            {
+                              expression: '0 0 0 * 11 *',
+                              request: {
+                                method: 'foo',
+                                params: { bar: 'baz' },
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                    date: 1664187844588,
+                    id: 'izn0WGUO8cvq_jqvLQuQP',
+                    invoker: MOCK_ORIGIN,
+                    parentCapability: SnapEndowments.EthereumProvider,
+                  },
+                },
+              },
+            },
           },
         },
       },
-      test: 'invalid UserStorageController state',
-    },
-  ])('does not modify state if the state is invalid - $test', ({ state }) => {
-    const orgState = cloneDeep(state);
+    };
+
+    const newState = await migrate(oldState);
+    expect(newState).toStrictEqual({
+      engine: {
+        backgroundState: {
+          CronjobController: {
+            events: {
+              [`cronjob-${MOCK_SNAP_ID}-0`]: {
+                id: `cronjob-${MOCK_SNAP_ID}-0`,
+                recurring: true,
+                date: '2023-09-30T23:59:00.000Z',
+                schedule: '*/30 * * * * *',
+                scheduledAt: '2023-10-01T00:00:00.000Z',
+                snapId: MOCK_SNAP_ID,
+                request: {
+                  method: 'foo',
+                  params: { bar: 'baz' },
+                },
+              },
+              [`cronjob-${MOCK_SNAP_ID}-1`]: {
+                id: `cronjob-${MOCK_SNAP_ID}-1`,
+                recurring: true,
+                date: '2023-11-01T00:00:00.000Z',
+                schedule: '0 0 0 * 11 *',
+                scheduledAt: '2023-10-01T00:00:00.000Z',
+                snapId: MOCK_SNAP_ID,
+                request: {
+                  method: 'foo',
+                  params: { bar: 'baz' },
+                },
+              },
+            },
+          },
+
+          PermissionController:
+            oldState.engine.backgroundState.PermissionController,
+        },
+      },
+    });
+  });
+
+  it('updates legacy events in the `events` property', async () => {
     mockedEnsureValidState.mockReturnValue(true);
 
-    const migratedState = migrate(state);
+    const oldState = {
+      engine: {
+        backgroundState: {
+          CronjobController: {
+            jobs: {},
+            events: {
+              foo: {
+                id: 'foo',
+                snapId: MOCK_SNAP_ID,
+                date: '2023-09-30T23:59:00.000Z',
+                scheduledAt: '2023-10-01T00:00:00.000Z',
+                request: {
+                  method: 'foo',
+                  params: { bar: 'baz' },
+                },
+              },
+            },
+          },
 
-    // State should be unchanged
-    expect(migratedState).toStrictEqual(orgState);
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error('Migration 83: UserStorageController not found in state'),
-    );
+          PermissionController: {
+            subjects: {},
+          },
+        },
+      },
+    };
+
+    const newState = await migrate(oldState);
+    expect(newState).toStrictEqual({
+      engine: {
+        backgroundState: {
+          CronjobController: {
+            events: {
+              foo: {
+                id: 'foo',
+                snapId: MOCK_SNAP_ID,
+                date: '2023-09-30T23:59:00.000Z',
+                scheduledAt: '2023-10-01T00:00:00.000Z',
+                request: {
+                  method: 'foo',
+                  params: { bar: 'baz' },
+                },
+                recurring: false,
+                schedule: '2023-09-30T23:59:00.000Z',
+              },
+            },
+          },
+
+          PermissionController:
+            oldState.engine.backgroundState.PermissionController,
+        },
+      },
+    });
+  });
+
+  it('combines legacy jobs and events into the `events` property', async () => {
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const oldState = {
+      engine: {
+        backgroundState: {
+          CronjobController: {
+            jobs: {
+              [`${MOCK_SNAP_ID}-0`]: {
+                lastRun: Date.now() - inMilliseconds(1, Duration.Day),
+              },
+            },
+            events: {
+              foo: {
+                id: 'foo',
+                snapId: MOCK_SNAP_ID,
+                date: '2023-09-30T23:59:00.000Z',
+                scheduledAt: '2023-10-01T00:00:00.000Z',
+                request: {
+                  method: 'foo',
+                  params: { bar: 'baz' },
+                },
+              },
+            },
+          },
+
+          PermissionController: {
+            subjects: {
+              [MOCK_SNAP_ID]: {
+                origin: MOCK_SNAP_ID,
+                permissions: {
+                  [SnapEndowments.Cronjob]: {
+                    caveats: [
+                      {
+                        type: SnapCaveatType.SnapCronjob,
+                        value: {
+                          jobs: [
+                            {
+                              expression: '*/30 * * * * *',
+                              request: {
+                                method: 'foo',
+                                params: { bar: 'baz' },
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                    date: 1664187844588,
+                    id: 'izn0WGUO8cvq_jqvLQuQP',
+                    invoker: MOCK_ORIGIN,
+                    parentCapability: SnapEndowments.EthereumProvider,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const newState = await migrate(oldState);
+    expect(newState).toStrictEqual({
+      engine: {
+        backgroundState: {
+          CronjobController: {
+            events: {
+              foo: {
+                id: 'foo',
+                snapId: MOCK_SNAP_ID,
+                date: '2023-09-30T23:59:00.000Z',
+                scheduledAt: '2023-10-01T00:00:00.000Z',
+                request: {
+                  method: 'foo',
+                  params: { bar: 'baz' },
+                },
+                recurring: false,
+                schedule: '2023-09-30T23:59:00.000Z',
+              },
+              [`cronjob-${MOCK_SNAP_ID}-0`]: {
+                id: `cronjob-${MOCK_SNAP_ID}-0`,
+                recurring: true,
+                date: '2023-09-30T23:59:00.000Z',
+                schedule: '*/30 * * * * *',
+                scheduledAt: '2023-10-01T00:00:00.000Z',
+                snapId: MOCK_SNAP_ID,
+                request: {
+                  method: 'foo',
+                  params: { bar: 'baz' },
+                },
+              },
+            },
+          },
+
+          PermissionController:
+            oldState.engine.backgroundState.PermissionController,
+        },
+      },
+    });
+  });
+
+  it('adds cronjobs to the `events` property and deletes the `jobs` property if the `CronjobController` state is `undefined`', async () => {
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const oldState = {
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+              [MOCK_SNAP_ID]: {
+                origin: MOCK_SNAP_ID,
+                permissions: {
+                  [SnapEndowments.Cronjob]: {
+                    caveats: [
+                      {
+                        type: SnapCaveatType.SnapCronjob,
+                        value: {
+                          jobs: [
+                            {
+                              expression: '*/30 * * * * *',
+                              request: {
+                                method: 'foo',
+                                params: { bar: 'baz' },
+                              },
+                            },
+                            {
+                              expression: '0 0 0 * 11 *',
+                              request: {
+                                method: 'foo',
+                                params: { bar: 'baz' },
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                    date: 1664187844588,
+                    id: 'izn0WGUO8cvq_jqvLQuQP',
+                    invoker: MOCK_ORIGIN,
+                    parentCapability: SnapEndowments.EthereumProvider,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const newState = await migrate(oldState);
+    expect(newState).toStrictEqual({
+      engine: {
+        backgroundState: {
+          CronjobController: {
+            events: {
+              [`cronjob-${MOCK_SNAP_ID}-0`]: {
+                id: `cronjob-${MOCK_SNAP_ID}-0`,
+                recurring: true,
+                date: '2023-09-30T23:59:00.000Z',
+                schedule: '*/30 * * * * *',
+                scheduledAt: '2023-10-01T00:00:00.000Z',
+                snapId: MOCK_SNAP_ID,
+                request: {
+                  method: 'foo',
+                  params: { bar: 'baz' },
+                },
+              },
+              [`cronjob-${MOCK_SNAP_ID}-1`]: {
+                id: `cronjob-${MOCK_SNAP_ID}-1`,
+                recurring: true,
+                date: '2022-11-29T05:00:00.000Z',
+                schedule: '0 0 0 * 11 *',
+                scheduledAt: '2023-10-01T00:00:00.000Z',
+                snapId: MOCK_SNAP_ID,
+                request: {
+                  method: 'foo',
+                  params: { bar: 'baz' },
+                },
+              },
+            },
+          },
+
+          PermissionController:
+            oldState.engine.backgroundState.PermissionController,
+        },
+      },
+    });
   });
 });
