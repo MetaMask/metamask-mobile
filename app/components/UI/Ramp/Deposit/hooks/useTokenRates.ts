@@ -2,19 +2,19 @@ import { useState, useEffect } from 'react';
 import { handleFetch } from '@metamask/controller-utils';
 import { DepositCryptoCurrency, DepositFiatCurrency } from '../constants';
 
-interface UseTokenRatesMultiResult {
+interface UseFetchTokenRatesMultiResult {
   rates: Record<string, number | null>;
   isLoading: boolean;
   error: Error | null;
 }
 
-export const useTokenRatesMulti = ({
+export const useFetchTokenRatesMulti = ({
   tokens,
   fiatCurrency,
 }: {
   tokens: DepositCryptoCurrency[];
   fiatCurrency: DepositFiatCurrency;
-}): UseTokenRatesMultiResult => {
+}): UseFetchTokenRatesMultiResult => {
   const [rates, setRates] = useState<Record<string, number | null>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -23,29 +23,29 @@ export const useTokenRatesMulti = ({
     const fetchTokenRates = async () => {
       setIsLoading(true);
       try {
-        const assetIds = tokens
-          .map(
-            (token) =>
-              `eip155:${
-                token.chainId.split(':')[1]
-              }/erc20:${token.address.toLowerCase()}`,
-          )
-          .join(',');
+        const assetIds = tokens.map((token) => token.assetId).join(',');
+        const baseUrl = 'https://price.api.cx.metamask.io/v3/spot-prices';
+        const url = new URL(baseUrl);
+        const params = new URLSearchParams({
+          assetIds,
+          vsCurrency: fiatCurrency.id,
+        });
+        url.search = params.toString();
 
-        const priceUrl = `https://price.api.cx.metamask.io/v3/spot-prices?assetIds=${assetIds}&vsCurrency=${fiatCurrency.id}`;
-
-        const response = (await handleFetch(priceUrl)) as Record<
+        const response = (await handleFetch(url.toString())) as Record<
           string,
           { [key: string]: number }
         >;
 
         const newRates: Record<string, number | null> = {};
+
         tokens.forEach((token) => {
-          const assetId = `eip155:${
-            token.chainId.split(':')[1]
-          }/erc20:${token.address.toLowerCase()}`;
-          newRates[token.symbol] =
-            response[assetId]?.[fiatCurrency.id.toLowerCase()] ?? null;
+          const responseKey = Object.keys(response).find(
+            (key) => key.toLowerCase() === token.assetId.toLowerCase(),
+          );
+          newRates[token.symbol] = responseKey
+            ? response[responseKey][fiatCurrency.id.toLowerCase()]
+            : null;
         });
 
         setRates(newRates);
@@ -64,4 +64,4 @@ export const useTokenRatesMulti = ({
   return { rates, isLoading, error };
 };
 
-export default useTokenRatesMulti;
+export default useFetchTokenRatesMulti;

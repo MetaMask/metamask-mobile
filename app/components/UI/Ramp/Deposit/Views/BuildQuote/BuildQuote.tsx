@@ -33,7 +33,7 @@ import {
 } from '../../constants';
 import AccountSelector from '../../components/AccountSelector';
 import I18n, { strings } from '../../../../../../../locales/i18n';
-import useDepsositTokenExchange from '../../hooks/useTokenExchange';
+import useDepositTokenExchange from '../../hooks/useDepositTokenExchange';
 import { getIntlNumberFormatter } from '../../../../../../util/intl';
 
 function formatAmount(
@@ -72,7 +72,7 @@ const BuildQuote = () => {
     onMount: false,
   });
 
-  const { tokenAmount } = useDepsositTokenExchange({
+  const { tokenAmount } = useDepositTokenExchange({
     fiatCurrency,
     fiatAmount: amount,
     token: cryptoCurrency,
@@ -106,6 +106,9 @@ const BuildQuote = () => {
       } else {
         navigation.navigate(...createEnterEmailNavDetails({ quote }));
       }
+    } else {
+      // TODO: Handle error case where quote can not be generated
+      console.error('Failed to fetch quote');
     }
   }, [
     amount,
@@ -188,7 +191,10 @@ const BuildQuote = () => {
               color={TextColor.Alternative}
               style={styles.convertedAmount}
             >
-              {tokenAmount} {cryptoCurrency.symbol}
+              {Number(tokenAmount) === 0
+                ? Number(tokenAmount).toFixed(2)
+                : tokenAmount}{' '}
+              {cryptoCurrency.symbol}
             </Text>
 
             <TouchableOpacity onPress={handleCryptoPress}>

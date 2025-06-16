@@ -1,4 +1,4 @@
-import { useTokenRatesMulti } from './useTokenRates';
+import { useFetchTokenRatesMulti } from './useTokenRates';
 import { DepositCryptoCurrency, DepositFiatCurrency } from '../constants';
 
 interface UseTokenExchangeParams {
@@ -21,20 +21,19 @@ const useDepsositTokenExchange = ({
   token,
   tokens,
 }: UseTokenExchangeParams): UseTokenExchangeResult => {
-  const { rates, isLoading, error } = useTokenRatesMulti({
+  const { rates, isLoading, error } = useFetchTokenRatesMulti({
     tokens,
     fiatCurrency,
   });
 
-  const currentToken = tokens.find(
-    (_token) => _token.assetId === token.assetId,
-  );
+  const currentToken = tokens.find(({ assetId }) => assetId === token.assetId);
 
   const rate = currentToken ? rates[currentToken.symbol] ?? null : null;
 
+  
   const tokenAmount = rate
-    ? (parseFloat(fiatAmount || '0') * rate).toFixed(token.decimals)
-    : '0'.padEnd(token.decimals + 2, '0');
+  ? (parseFloat(fiatAmount || '0') * rate).toFixed(token.decimals)
+  : '0';
 
   return {
     tokenAmount,
