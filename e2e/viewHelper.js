@@ -197,6 +197,9 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await SkipAccountSecurityModal.tapSkipButton();
   await device.enableSynchronization();
 
+  // delay for 1 second to avoid flakiness on ios
+  if (device.getPlatform() === 'ios') TestHelpers.delay(1000);
+
   await Assertions.checkIfVisible(MetaMetricsOptIn.container);
   optInToMetrics
     ? await MetaMetricsOptIn.tapAgreeButton()
