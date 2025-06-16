@@ -50,7 +50,6 @@ describe(
       await Assertions.checkIfVisible(ProtectYourWalletView.container);
       await ProtectYourWalletView.tapOnRemindMeLaterButton();
       await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-      await TestHelpers.delay(1000);
       await SkipAccountSecurityModal.tapSkipButton();
       await OnboardingSuccessView.tapDone();
     });

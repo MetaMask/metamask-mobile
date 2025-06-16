@@ -134,7 +134,6 @@ export const importWalletWithRecoveryPhrase = async ({
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
 
-  await TestHelpers.delay(3500);
   if (optInToMetrics) {
     await MetaMetricsOptIn.tapAgreeButton();
   } else {
