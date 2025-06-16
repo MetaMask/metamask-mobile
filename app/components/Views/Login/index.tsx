@@ -141,7 +141,6 @@ const Login: React.FC = () => {
     trace({
       name: TraceName.LoginUserInteraction,
       op: TraceOperation.Login,
-      parentContext: parentSpanRef.current,
     });
 
     const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;

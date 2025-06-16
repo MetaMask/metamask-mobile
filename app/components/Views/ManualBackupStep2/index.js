@@ -103,7 +103,6 @@ const ManualBackupStep2 = ({
     return gridWords.filter((word) => word !== '').length === validWords.length;
   }, [route.params?.words, gridWords]);
 
-  const { isEnabled: isMetricsEnabled } = useMetrics();
   const goNext = () => {
     if (validateWords()) {
       seedphraseBackedUp();
