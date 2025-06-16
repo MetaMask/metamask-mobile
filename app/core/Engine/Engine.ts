@@ -2270,6 +2270,7 @@ export default {
       TokensController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
+      CronjobController,
       SubjectMetadataController,
       AuthenticationController,
       UserStorageController,
@@ -2321,6 +2322,7 @@ export default {
       GasFeeController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
+      CronjobController,
       SubjectMetadataController,
       AuthenticationController,
       UserStorageController,
