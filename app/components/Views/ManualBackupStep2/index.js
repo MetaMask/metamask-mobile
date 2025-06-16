@@ -31,12 +31,10 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import Routes from '../../../constants/navigation/Routes';
-import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { useMetrics } from '../../hooks/useMetrics';
 import { CommonActions } from '@react-navigation/native';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { TraceName, bufferedEndTrace } from '../../../util/trace';
-import { useMetrics } from '../../hooks/useMetrics';
 
 const ManualBackupStep2 = ({
   navigation,
