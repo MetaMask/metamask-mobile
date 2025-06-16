@@ -178,7 +178,10 @@ const AccountBackupStep1 = (props) => {
     const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     !onboardingWizard && props.setOnboardingWizardStep(1);
 
-    bufferedEndTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
+    bufferedEndTrace({
+      name: TraceName.OnboardingNewSrpCreateWallet,
+      data: { skipBackup: true },
+    });
     bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
 
     const resetAction = CommonActions.reset({

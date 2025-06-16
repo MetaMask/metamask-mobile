@@ -85,7 +85,7 @@ import { TextFieldSize } from '../../../component-library/components/Form/TextFi
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
-import { CommonActions } from '@react-navigation/native';
+import { CommonActions, useRoute } from '@react-navigation/native';
 import {
   SRP_LENGTHS,
   NUM_COLUMNS,
@@ -117,9 +117,9 @@ const ImportFromSecretRecoveryPhrase = ({
   setLockTime,
   seedphraseBackedUp,
   setOnboardingWizardStep,
-  route,
   dispatchSaveOnboardingEvent,
 }) => {
+  const route = useRoute();
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
@@ -351,15 +351,12 @@ const ImportFromSecretRecoveryPhrase = ({
     termsOfUse();
   }, [termsOfUse]);
 
-  useEffect(
-    () => () => {
-      if (passwordSetupAttemptTraceCtxRef.current) {
-        bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
-        passwordSetupAttemptTraceCtxRef.current = null;
-      }
-    },
-    [],
-  );
+  useEffect(() => {
+    if (passwordSetupAttemptTraceCtxRef.current) {
+      bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
+      passwordSetupAttemptTraceCtxRef.current = null;
+    }
+  }, []);
 
   const updateBiometryChoice = async (biometryChoice) => {
     await updateAuthTypeStorageFlags(biometryChoice);
@@ -1099,10 +1096,6 @@ ImportFromSecretRecoveryPhrase.propTypes = {
    * Action to set onboarding wizard step
    */
   setOnboardingWizardStep: PropTypes.func,
-  /**
-   * Object that represents the current route info like params passed to it
-   */
-  route: PropTypes.object,
   /**
    * Action to save onboarding event
    */
