@@ -28,6 +28,7 @@ describe('Migration 083', () => {
 
   it('returns state unchanged if ensureValidState fails', () => {
     const state = { some: 'state' };
+
     mockedEnsureValidState.mockReturnValue(false);
 
     const migratedState = migrate(state);
@@ -81,7 +82,7 @@ describe('Migration 083', () => {
     );
   });
 
-  it("works if the state doesn't have an `events` property", async () => {
+  it('works if the state doesn\'t have an `events` property', async () => {
     mockedEnsureValidState.mockReturnValue(true);
 
     const oldState = {
@@ -174,7 +175,7 @@ describe('Migration 083', () => {
           },
 
           PermissionController:
-            oldState.engine.backgroundState.PermissionController,
+          oldState.engine.backgroundState.PermissionController,
         },
       },
     });
@@ -274,7 +275,7 @@ describe('Migration 083', () => {
           },
 
           PermissionController:
-            oldState.engine.backgroundState.PermissionController,
+          oldState.engine.backgroundState.PermissionController,
         },
       },
     });
