@@ -32,13 +32,6 @@ export default class Utilities {
     return this.formatForExactMatchGroup(blacklistURLs);
   }
 
-  /**
-   * Waits for an element to be enabled.
-   *
-   * @param {Element} element - The element to wait for.
-   * @param {number} timeout - The timeout in milliseconds.
-   * @param {number} interval - The interval in milliseconds.
-   */
   static async waitForElementToBeEnabled(element, timeout = 3500, interval = 100) {
     const startTime = Date.now();
     let isEnabled = false;
@@ -54,35 +47,4 @@ export default class Utilities {
     }
   }
 
-  /**
-   * Waits for an element to be visible.
-   *
-   * @param {Element} element - The element to wait for.
-   * @param {number} timeout - The timeout in milliseconds.
-   * @param {number} interval - The interval in milliseconds.
-   */
-  static async waitForElementToBeVisible(element, timeout = 3500, interval = 100) {
-    const startTime = Date.now();
-    let isVisible = false;
-    while (Date.now() - startTime < timeout) {
-      try {
-        expect(await element).toBeVisible();
-        // if the element is visible, expect returns true, then we set isVisible to true
-        isVisible = true;
-      } catch (e) {
-        // if the element is not visible, expect throws an error, then we set isVisible to false
-        isVisible = false;
-      }
-      // if the element is visible, we break the loop
-      if (isVisible) {
-        break;
-      }
-      // wait for the next interval
-      await new Promise((resolve) => setTimeout(resolve, interval));
-    }
-    // if the element is not visible, throw an error after the timeout
-    if (!isVisible) {
-      throw new Error('Element is not visible');
-    }
-  }
 }
