@@ -5,7 +5,10 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './OtpCode.styles';
 import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
@@ -20,8 +23,14 @@ import DepositProgressBar from '../../components/DepositProgressBar';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createVerifyIdentityNavDetails } from '../VerifyIdentity/VerifyIdentity';
 import { useDepositSDK } from '../../sdk';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 
-export const createOtpCodeNavDetails = createNavigationDetails(
+export interface OtpCodeParams {
+  quote: BuyQuote;
+  email: string;
+}
+
+export const createOtpCodeNavDetails = createNavigationDetails<OtpCodeParams>(
   Routes.DEPOSIT.OTP_CODE,
 );
 
@@ -30,7 +39,8 @@ const CELL_COUNT = 6;
 const OtpCode = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { email, setAuthToken } = useDepositSDK();
+  const { setAuthToken } = useDepositSDK();
+  const { quote, email } = useParams<OtpCodeParams>();
 
   useEffect(() => {
     navigation.setOptions(
@@ -66,7 +76,7 @@ const OtpCode = () => {
       if (response) {
         try {
           await setAuthToken(response);
-          navigation.navigate(...createVerifyIdentityNavDetails());
+          navigation.navigate(...createVerifyIdentityNavDetails({ quote }));
         } catch (e) {
           console.error('Failed to store auth token:', e);
         }
@@ -74,7 +84,7 @@ const OtpCode = () => {
     };
 
     saveTokenAndNavigate();
-  }, [response, setAuthToken, navigation]);
+  }, [response, setAuthToken, navigation, quote]);
 
   const handleSubmit = useCallback(async () => {
     if (!loading && value.length === CELL_COUNT) {

@@ -142,12 +142,12 @@ describe('ChoosePassword', () => {
     });
 
     const checkbox = component.getByTestId(
-      ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID,
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
     fireEvent.press(checkbox);
 
     const submitButton = component.getByRole('button', {
-      name: strings('choose_password.confirm_cta'),
+      name: strings('choose_password.create_password_cta'),
     });
 
     // Button should still be disabled (checkbox not checked)
@@ -182,7 +182,7 @@ describe('ChoosePassword', () => {
       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
     );
     const checkbox = component.getByTestId(
-      ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID,
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
     const submitButton = component.getByTestId(
       ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,

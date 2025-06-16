@@ -143,6 +143,21 @@
             "failoverUrls": []
           }
         ]
+      },
+      "0x2105": {
+        "blockExplorerUrls": [],
+        "chainId": "0x2105",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Base Mainnet",
+        "nativeCurrency": "ETH",
+        "rpcEndpoints": [
+          {
+            "failoverUrls": [],
+            "networkClientId": "base-mainnet",
+            "type": "infura",
+            "url": "https://base-mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
       }
     }
   },
@@ -445,6 +460,7 @@
   },
   "BridgeController": {
     "assetExchangeRates": {},
+    "minimumBalanceForRentExemptionInLamports": "0",
     "quoteFetchError": null,
     "quoteRequest": {
       "srcTokenAddress": "0x0000000000000000000000000000000000000000"
@@ -463,53 +479,58 @@
     "historicalPrices": {}
   },
   "CronjobController": {
-    "events": {},
-    "jobs": {}
+    "events": {}
   },
   "EarnController": {
     "lastUpdated": 0,
     "pooled_staking": {
-      "exchangeRate": "1",
-      "isEligible": false,
-      "pooledStakes": {
-        "account": "",
-        "assets": "0",
-        "exitRequests": [],
-        "lifetimeRewards": "0"
-      },
-      "vaultMetadata": {
-        "apy": "0",
-        "capacity": "0",
-        "feePercent": 0,
-        "totalAssets": "0",
-        "vaultAddress": "0x0000000000000000000000000000000000000000"
-      },
-      "vaultDailyApys": [],
-      "vaultApyAverages": {
-        "oneDay": "0",
-        "oneWeek": "0",
-        "oneMonth": "0",
-        "threeMonths": "0",
-        "sixMonths": "0",
-        "oneYear": "0"
-      }
+      "isEligible": false
     },
-    "stablecoin_lending": {
-      "vaults": [
+    "lending": {
+      "markets": [
         {
-          "symbol": "",
-          "name": "",
+          "id": "",
           "chainId": 0,
-          "tokenAddress": "",
-          "vaultAddress": "",
-          "currentAPY": "0",
-          "supply": "0",
-          "liquidity": "0"
+          "protocol": "",
+          "name": "",
+          "address": "",
+          "tvlUnderlying": "0",
+          "netSupplyRate": 0,
+          "totalSupplyRate": 0,
+          "underlying": {
+            "address": "",
+            "chainId": 0
+          },
+          "outputToken": {
+            "address": "",
+            "chainId": 0
+          },
+          "rewards": [
+            {
+              "token": {
+                "address": "",
+                "chainId": 0
+              },
+              "rate": 0
+            }
+          ]
         }
-      ]
+      ],
+      "positions": [
+        {
+          "id": "",
+          "chainId": 0,
+          "assets": "0",
+          "marketId": "",
+          "marketAddress": "",
+          "protocol": ""
+        }
+      ],
+      "isEligible": false
     }
   },
   "DeFiPositionsController": {
-    "allDeFiPositions": {}
+    "allDeFiPositions": {},
+    "allDeFiPositionsCount": {}
   }
 }

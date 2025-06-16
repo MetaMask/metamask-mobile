@@ -38,7 +38,6 @@ import NotificationsService from '../../../util/notifications/services/Notificat
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
@@ -102,6 +101,7 @@ import { useAccountName } from '../../hooks/useAccountName';
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
+import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import {
   selectTokenNetworkFilter,
   selectUseTokenDetection,
@@ -121,6 +121,9 @@ import { prepareNftDetectionEvents } from '../../../util/assets';
 import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
 import { toFormattedAddress } from '../../../util/address';
+import { selectHDKeyrings } from '../../../selectors/keyringController';
+import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -260,7 +263,7 @@ const Wallet = ({
   const walletRef = useRef(null);
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
 
@@ -279,12 +282,6 @@ const Wallet = ({
    */
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
-  /**
-   * Current onboarding wizard step
-   */
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const wizardStep = useSelector((state: any) => state.wizard.step);
   /**
    * Provider configuration for the current selected network
    */
@@ -318,7 +315,10 @@ const Wallet = ({
 
   const currentToast = toastRef?.current;
 
+  const hdKeyrings = useSelector(selectHDKeyrings);
+
   const accountName = useAccountName();
+  useAccountsWithNetworkActivitySync();
 
   const accountAvatarType = useSelector((state: RootState) =>
     state.settings.useBlockieIcon
@@ -341,6 +341,12 @@ const Wallet = ({
     isParticipatingInMetaMetrics,
     navigate,
   ]);
+
+  useEffect(() => {
+    addTraitsToUser({
+      [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: hdKeyrings.length,
+    });
+  }, [addTraitsToUser, hdKeyrings.length]);
 
   useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;
@@ -485,12 +491,11 @@ const Wallet = ({
       networkOnboardingState,
     );
 
-    if (wizardStep > 0 || (!networkOnboarded && prevChainId !== chainId)) {
-      // Do not check since it will conflict with the onboarding wizard and/or network onboarding
+    if (!networkOnboarded && prevChainId !== chainId) {
+      // Do not check since it will conflict with the onboarding and/or network onboarding
       return;
     }
   }, [
-    wizardStep,
     navigation,
     chainId,
     // TODO: Is this providerConfig.rpcUrl needed in this useEffect dependencies?
@@ -671,6 +676,10 @@ const Wallet = ({
     async (obj: ChangeTabProperties) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
         trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
+      } else if (obj.ref.props.tabLabel === strings('wallet.defi')) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.DEFI_TAB_SELECTED).build(),
+        );
       } else {
         // Return early if no address selected
         if (!selectedAddress) return;
@@ -687,8 +696,10 @@ const Wallet = ({
         );
 
         try {
+          trace({ name: TraceName.DetectNfts });
           showNftFetchingLoadingIndicator();
           await NftDetectionController.detectNfts(chainIdsToDetectNftsFor);
+          endTrace({ name: TraceName.DetectNfts });
         } finally {
           hideNftFetchingLoadingIndicator();
         }
@@ -794,26 +805,10 @@ const Wallet = ({
     [styles],
   );
 
-  /**
-   * Return current step of onboarding wizard if not step 5 nor 0
-   */
-  const renderOnboardingWizard = useCallback(
-    () =>
-      [1, 2, 3, 4, 5, 6, 7].includes(wizardStep) && (
-        <OnboardingWizard
-          navigation={navigation}
-          coachmarkRef={walletRef.current}
-        />
-      ),
-    [navigation, wizardStep],
-  );
-
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
       <View style={baseStyles.flexGrow}>
         {selectedInternalAccount ? renderContent() : renderLoader()}
-
-        {renderOnboardingWizard()}
       </View>
     </ErrorBoundary>
   );
