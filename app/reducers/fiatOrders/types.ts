@@ -3,6 +3,7 @@ import {
   AggregatorNetwork,
   OrderOrderTypeEnum,
 } from '@consensys/on-ramp-sdk/dist/API';
+import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
 import {
   addAuthenticationUrl,
   addFiatCustomIdData,
@@ -53,10 +54,10 @@ export interface FiatOrder {
   txHash?: string; // Transaction hash
   sellTxHash?: string; // Sell transaction hash the user has sent
   excludeFromPurchases: boolean; // Exclude from purchases
-  orderType: OrderOrderTypeEnum; // Order type
+  orderType: OrderOrderTypeEnum | DepositOrderType; // Order type
   errorCount?: number; // Number of errors
   lastTimeFetched?: number; // Last time fetched
-  data: Order | WyreOrder; // Original provider data
+  data: Order | WyreOrder | DepositOrder; // Original provider data
 }
 
 export interface CustomIdData {

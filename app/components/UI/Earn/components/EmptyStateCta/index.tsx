@@ -24,6 +24,8 @@ import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { capitalize } from '../../../../../util/general';
 import { parseFloatSafe } from '../../utils/number';
+import { Linking } from 'react-native';
+import { EARN_URLS } from '../../constants/urls';
 
 interface EarnEmptyStateCta {
   token: TokenI;
@@ -69,6 +71,10 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
     });
   };
 
+  const navigateToLendingFaq = () => {
+    Linking.openURL(EARN_URLS.LENDING_FAQ);
+  };
+
   if (!token || _.isEmpty(token) || !isStablecoinLendingEnabled) return <></>;
 
   return (
@@ -85,9 +91,11 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
           {apr}%
         </Text>{' '}
         {strings('earn.empty_state_cta.annually')}{' '}
-        <Text color={TextColor.Primary}>
-          {strings('earn.empty_state_cta.learn_more')}
-        </Text>
+        <Button
+          variant={ButtonVariants.Link}
+          label={strings('earn.empty_state_cta.learn_more')}
+          onPress={navigateToLendingFaq}
+        />
       </Text>
       <Button
         variant={ButtonVariants.Secondary}
