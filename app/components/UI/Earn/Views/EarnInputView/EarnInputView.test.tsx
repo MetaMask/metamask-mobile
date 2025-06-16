@@ -60,6 +60,14 @@ import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags
 import EarnInputView from './EarnInputView';
 import { EarnInputViewProps } from './EarnInputView.types';
 
+jest.mock('lodash', () => {
+  const actual = jest.requireActual('lodash');
+  return {
+    ...actual,
+    debounce: jest.fn((fn) => fn),
+  };
+});
+
 jest.mock('../../hooks/useEarnMetadata', () => ({
   useEarnMetadata: jest.fn(() => ({
     annualRewardRate: '50%',
@@ -468,6 +476,7 @@ describe('EarnInputView', () => {
           },
         })),
       });
+
       const { getByText, getAllByText } = render(EarnInputView, {
         params: {
           ...baseProps.route.params,
@@ -808,19 +817,7 @@ describe('EarnInputView', () => {
   });
 
   describe('title bar', () => {
-    it('displays "stake" title when asset is not support by lending', () => {
-      render(EarnInputView);
-
-      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Stake',
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-      );
-    });
-
-    it('displays "deposit" when asset is supported lending token', () => {
+    it('displays "deposit" for all assets', () => {
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
 
       render(EarnInputView, {
