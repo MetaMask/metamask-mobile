@@ -2,22 +2,31 @@ import enContent from '../../../locales/languages/en.json';
 import Browser from './BrowserView';
 import Matchers from '../../utils/Matchers';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
-import { 
-  TestSnapViewSelectorWebIDS, 
-  TestSnapInputSelectorWebIDS, 
-  TestSnapResultSelectorWebIDS, 
-  TestSnapDropdownSelectorWebIDS 
+import {
+  TestSnapViewSelectorWebIDS,
+  TestSnapInputSelectorWebIDS,
+  TestSnapResultSelectorWebIDS,
 } from '../../selectors/Browser/TestSnap.selectors';
 import Gestures from '../../utils/Gestures';
-import { SNAP_INSTALL_CANCEL, SNAP_INSTALL_CONNECT, SNAP_INSTALL_CONNECTION_REQUEST } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
-import { SNAP_INSTALL_PERMISSIONS_REQUEST, SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
+import {
+  SNAP_INSTALL_CANCEL,
+  SNAP_INSTALL_CONNECT,
+} from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
+import {
+  SNAP_INSTALL_PERMISSIONS_REQUEST,
+  SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE,
+} from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
 import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
 import TestHelpers from '../../helpers';
 
-export const TEST_SNAPS_URL = 'https://metamask.github.io/snaps/test-snaps/2.23.1/';
-
+export const TEST_SNAPS_URL =
+  'https://metamask.github.io/snaps/test-snaps/2.23.1/';
 
 class TestSnaps {
+  get container() {
+    return Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID);
+  }
+
   // Connection button getters
   get getConnectBip32Button() {
     return Matchers.getElementByWebID(
@@ -660,45 +669,31 @@ class TestSnaps {
   }
 
   get getConnectSnapButton() {
-    return Matchers.getElementByID(
-      SNAP_INSTALL_CONNECT
-    );
+    return Matchers.getElementByID(SNAP_INSTALL_CONNECT);
   }
 
   get getCancelSnapConnectionRequestButton() {
-    return Matchers.getElementByID(
-      SNAP_INSTALL_CANCEL
-    );
+    return Matchers.getElementByID(SNAP_INSTALL_CANCEL);
   }
 
   get getConnectSnapPermissionsRequestButton() {
-    return Matchers.getElementByID(
-      SNAP_INSTALL_PERMISSIONS_REQUEST
-    );
+    return Matchers.getElementByID(SNAP_INSTALL_PERMISSIONS_REQUEST);
   }
 
   get getApproveSnapPermissionsRequestButton() {
-    return Matchers.getElementByID(
-      SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE
-    );
+    return Matchers.getElementByID(SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE);
   }
 
   get getCancelSnapPermissionsRequestButton() {
-    return Matchers.getElementByID(
-      SNAP_INSTALL_CANCEL
-    );
+    return Matchers.getElementByID(SNAP_INSTALL_CANCEL);
   }
 
   get getConnectSnapInstallOkButton() {
-    return Matchers.getElementByID(
-      SNAP_INSTALL_OK
-    );
+    return Matchers.getElementByID(SNAP_INSTALL_OK);
   }
 
   get getApproveSignRequestButton() {
-    return Matchers.getElementByID(
-      'bottomsheetfooter-button-subsequent'
-    );
+    return Matchers.getElementByID('bottomsheetfooter-button-subsequent');
   }
 
   get getSignBip44MessageResultSpan() {
@@ -708,29 +703,27 @@ class TestSnaps {
     );
   }
 
-  // Method to get text from BIP44 result span
-  async getBip44ResultText() {
-    return await Browser.getWebElementText(
-      TestSnapResultSelectorWebIDS.BIP44_RESULT_SPAN_ID,
-    );
-  }
-
-  async getSignBip44MessageResultText() {
-    return await Browser.getWebElementText(
-      TestSnapResultSelectorWebIDS.BIP44_SIGN_RESULT_SPAN_ID,
-    );
-  }
-
-  async getBip32PublicKeyResultText() {
-    return await Browser.getWebElementText(
+  get getBip32PublicKeyResultSpan() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapResultSelectorWebIDS.BIP32_PUBLIC_KEY_RESULT_SPAN_ID,
     );
   }
 
-  async getSignBip32MessageSecp256k1ResultText() {
-    return await Browser.getWebElementText(
-      TestSnapResultSelectorWebIDS.BIP32_MESSAGE_RESULT_ED25519_BIP32_SPAN_ID,
-    );
+  // Method to get text from BIP44 result span
+  async getBip44ResultText() {
+    const element = await this.getBip44ResultSpan;
+    return await element.getText();
+  }
+
+  async getSignBip44MessageResultText() {
+    const element = await this.getSignBip44MessageResultSpan;
+    return await element.getText();
+  }
+
+  async getBip32PublicKeyResultText() {
+    const element = await this.getBip32PublicKeyResultSpan;
+    return await element.getText();
   }
 
   async typeSignMessage(message) {
@@ -749,23 +742,42 @@ class TestSnaps {
   }
 
   async connectToSnap() {
-    await Gestures.waitAndTap(this.getConnectSnapButton, { skipVisibilityCheck: true, delayBeforeTap: 2500 });
+    await Gestures.waitAndTap(this.getConnectSnapButton, {
+      skipVisibilityCheck: true,
+      delayBeforeTap: 2500,
+    });
   }
 
   async connectToSnapPermissionsRequest() {
-    await Gestures.waitAndTap(this.getConnectSnapPermissionsRequestButton, { skipVisibilityCheck: true, delayBeforeTap: 2500 });
+    await Gestures.waitAndTap(this.getConnectSnapPermissionsRequestButton, {
+      skipVisibilityCheck: true,
+      delayBeforeTap: 2500,
+    });
   }
 
   async approveSnapPermissionsRequest() {
-    await Gestures.waitAndTap(this.getApproveSnapPermissionsRequestButton, { skipVisibilityCheck: true, delayBeforeTap: 2500 });
+    await Gestures.waitAndTap(this.getApproveSnapPermissionsRequestButton, {
+      skipVisibilityCheck: true,
+      delayBeforeTap: 2500,
+    });
   }
 
   async cancelSnapPermissionsRequest() {
-    await Gestures.waitAndTap(this.getCancelSnapPermissionsRequestButton, { skipVisibilityCheck: true, delayBeforeTap: 2500 });
+    await Gestures.waitAndTap(this.getCancelSnapPermissionsRequestButton, {
+      skipVisibilityCheck: true,
+      delayBeforeTap: 2500,
+    });
   }
 
   async connectToSnapInstallOk() {
-    await Gestures.waitAndTap(this.getConnectSnapInstallOkButton, { skipVisibilityCheck: true, delayBeforeTap: 2500 });
+    await Gestures.waitAndTap(this.getConnectSnapInstallOkButton, {
+      skipVisibilityCheck: true,
+      delayBeforeTap: 2500,
+    });
+  }
+
+  async swipeUpSmall() {
+    await Gestures.swipe(this.container, 'up', 'slow', 0.2);
   }
 
   async tapPublicKeyBip44Button() {
