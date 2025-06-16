@@ -217,15 +217,21 @@ class Browser {
   }
 
   async getWebElementText(elementId) {
+    console.log(`[DEBUG] Getting web element text for elementId: ${elementId}`);
     const browserWebView = web(by.id('browser-webview'));
-    await waitFor(element(by.id('browser-webview'))).toBeVisible().withTimeout(15000);
     await TestHelpers.delay(2000);
 
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
+        console.log(`[DEBUG] Attempt ${attempt} using runScript on element`);
         const webElement = browserWebView.element(by.web.id(elementId));
-        return await webElement.runScript(el => el.textContent || el.innerText || el.value || '');
+        const result = await webElement.runScript(el => el.textContent || el.innerText || el.value || '');
+        console.log(`[DEBUG] runScript result on attempt ${attempt}:`, result);
+        if (result) {
+          return result;
+        }
       } catch (error) {
+        console.log(`[DEBUG] Attempt ${attempt} failed:`, error.message);
         if (attempt < 3) {
           await TestHelpers.delay(attempt * 2000);
           continue;

@@ -714,9 +714,8 @@ class TestSnaps {
 
   // Method to get text from BIP44 result span
   async getBip44ResultText() {
-    const text = await Browser.getWebElementText(
-      TestSnapResultSelectorWebIDS.BIP44_RESULT_SPAN_ID,
-    );
+    const element = await this.getBip44ResultSpan;
+    const text = await element.getText();
     if (!text) {
       throw new Error('Failed to get BIP44 result text - element text is undefined');
     }
@@ -724,13 +723,20 @@ class TestSnaps {
   }
 
   async getSignBip44MessageResultText() {
-    const text = await Browser.getWebElementText(
-      TestSnapResultSelectorWebIDS.BIP44_SIGN_RESULT_SPAN_ID,
-    );
-    if (!text) {
-      throw new Error('Failed to get BIP44 sign result text - element text is undefined');
+    try {
+      const element = await this.getSignBip44MessageResultSpan;
+      console.log('TEXT RETURNED', await element.getText());
+      return await element.getText();
+    } catch (error) {
+      console.log('Element getText failed, trying runScript:', error.message);
+      const text = await Browser.getWebElementText(
+        TestSnapResultSelectorWebIDS.BIP44_SIGN_RESULT_SPAN_ID,
+      );
+      if (!text) {
+        throw new Error('Failed to get BIP44 sign result text - both approaches failed');
+      }
+      return text;
     }
-    return text;
   }
 
   async getBip32PublicKeyResultText() {
