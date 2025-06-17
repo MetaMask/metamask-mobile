@@ -65,19 +65,27 @@ export const container: UIComponentFactory<BoxElement> = ({
     },
   };
 
+  const scrollView =  {
+    element: 'ScrollView',
+    key: 'default-scrollview',
+    children: {
+      element: 'TouchableHighlight',
+      children: {
+        element: 'TouchableWithoutFeedback',
+        children: styledContent,
+      }
+    },
+    props: {
+      style: {
+        marginBottom: useFooter && footer ? 80 : 0,
+      },
+    },
+  };
+
   return {
     element: 'Box',
     children: [
-      {
-        element: 'ScrollView',
-        key: 'default-scrollview',
-        children: styledContent,
-        props: {
-          style: {
-            marginBottom: useFooter && footer ? 80 : 0,
-          },
-        },
-      },
+      scrollView,
       ...(footer ? [footer] : []),
     ],
     props: {

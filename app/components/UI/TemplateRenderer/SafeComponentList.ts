@@ -4,7 +4,7 @@ import Text from '../../../component-library/components/Texts/Text';
 import Icon from '../../../component-library/components/Icons/Icon';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import SmartTransactionStatus from '../../Views/transactions/SmartTransactionStatus/SmartTransactionStatus';
-import { View, Text as RNText, ScrollView } from 'react-native';
+import { View, Text as RNText, ScrollView, TouchableWithoutFeedback, TouchableHighlight } from 'react-native';
 import Checkbox from '../../../component-library/components/Checkbox/Checkbox';
 import { SnapUIImage } from '../../Snaps/SnapUIImage/SnapUIImage';
 import { SnapAvatar } from '../../Snaps/SnapAvatar/SnapAvatar';
@@ -66,6 +66,8 @@ export const safeComponentList = {
   SnapUITooltip,
   Skeleton,
   SnapUICopyable,
+  TouchableHighlight,
+  TouchableWithoutFeedback,
 };
 
 export type SafeComponentListValues = typeof safeComponentList;
