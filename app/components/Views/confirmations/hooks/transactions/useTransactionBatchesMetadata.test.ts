@@ -13,7 +13,7 @@ describe('useTransactionBatchesMetadata', () => {
 
     expect(result.current).toEqual(
       generateStablecoinLendingDepositConfirmationState.engine.backgroundState
-        .TransactionController.transactions[0],
+        .TransactionController.transactionBatches[0],
     );
   });
 

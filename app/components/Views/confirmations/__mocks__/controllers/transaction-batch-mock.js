@@ -14,8 +14,8 @@ export const generateStablecoinLendingDepositConfirmationState = {
         approvalFlows: [],
       },
       TransactionController: {
-        transactions: [{ ...mockTransaction, origin: 'metamask' }],
-        transactionBatches: [{ ...mockTransaction, origin: 'metamask' }],
+        transactions: [],
+        transactionBatches: [{ ...mockTransaction, origin: 'metamask', from: mockTransaction.txParams.from }],
       },
     },
   },
