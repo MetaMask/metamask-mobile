@@ -14,6 +14,5 @@ export const HardwareAccountDetails = ({
   <BaseAccountDetails account={account}>
     <SmartAccount account={account} />
     <RemoveAccount account={account} />
-    <SmartAccount account={account} />
   </BaseAccountDetails>
 );
