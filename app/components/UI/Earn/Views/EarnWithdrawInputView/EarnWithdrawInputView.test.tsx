@@ -494,7 +494,7 @@ describe('EarnWithdrawInputView', () => {
 
       expect(mockAttemptUnstakeTransaction).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_WITHDRAWAL,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         params: expect.objectContaining({
           amountWei: expect.any(String),
           amountFiat: expect.any(String),
