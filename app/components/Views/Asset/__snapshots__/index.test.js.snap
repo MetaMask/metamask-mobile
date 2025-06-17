@@ -315,6 +315,9 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={6}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2345,6 +2348,9 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={5}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -4375,6 +4381,9 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={4}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -6446,6 +6455,9 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={3}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -8476,6 +8488,9 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={10}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -10506,6 +10521,9 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={7}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -12577,6 +12595,9 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -12680,6 +12701,7 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
                           />
                         </View>
                       </View>
+                      <View />
                     </View>
                   </View>
                 </View>
@@ -13008,6 +13030,9 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={2}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -15038,6 +15063,9 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={8}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -17068,6 +17096,9 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={9}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -17171,6 +17202,7 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
                           />
                         </View>
                       </View>
+                      <View />
                     </View>
                   </View>
                 </View>

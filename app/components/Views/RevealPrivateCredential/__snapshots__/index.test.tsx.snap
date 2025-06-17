@@ -1127,12 +1127,25 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
               >
                 <RNGestureHandlerButton
                   collapsable={false}
-                  onGestureEvent={[Function]}
+                  delayLongPress={600}
+                  enabled={true}
+                  exclusive={true}
+                  handlerTag={1}
+                  handlerType="NativeViewGestureHandler"
+                  innerRef={null}
                   onGestureHandlerEvent={[Function]}
                   onGestureHandlerStateChange={[Function]}
-                  onHandlerStateChange={[Function]}
-                  rippleColor={0}
+                  rippleColor="transparent"
+                  style={
+                    [
+                      undefined,
+                      {
+                        "cursor": undefined,
+                      },
+                    ]
+                  }
                   testID="wallet-account-copy-button"
+                  touchSoundDisabled={false}
                 >
                   <View
                     accessible={true}
@@ -1688,12 +1701,25 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
               >
                 <RNGestureHandlerButton
                   collapsable={false}
-                  onGestureEvent={[Function]}
+                  delayLongPress={600}
+                  enabled={true}
+                  exclusive={true}
+                  handlerTag={2}
+                  handlerType="NativeViewGestureHandler"
+                  innerRef={null}
                   onGestureHandlerEvent={[Function]}
                   onGestureHandlerStateChange={[Function]}
-                  onHandlerStateChange={[Function]}
-                  rippleColor={0}
+                  rippleColor="transparent"
+                  style={
+                    [
+                      undefined,
+                      {
+                        "cursor": undefined,
+                      },
+                    ]
+                  }
                   testID="wallet-account-copy-button"
+                  touchSoundDisabled={false}
                 >
                   <View
                     accessible={true}
