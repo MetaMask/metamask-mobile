@@ -1160,7 +1160,7 @@ exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
       <View>
         <RNSVGSvgView
           bbHeight={10}
-          bbWidth="auto"
+          bbWidth="100%"
           focusable={false}
           height={10}
           style={
@@ -1172,11 +1172,11 @@ exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
               {
                 "flex": 0,
                 "height": 10,
-                "width": "auto",
+                "width": "100%",
               },
             ]
           }
-          width="auto"
+          width="100%"
         >
           <RNSVGGroup
             fill={

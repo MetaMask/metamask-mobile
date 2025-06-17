@@ -19,8 +19,8 @@ import {
   UpdateInterface,
   ResolveInterface,
   UpdateInterfaceState,
-  CancelBackgroundEvent,
-  GetBackgroundEvents,
+  Cancel,
+  Get,
 } from '@metamask/snaps-controllers';
 
 // SnapController Events
@@ -87,8 +87,7 @@ export const SnapInterfaceControllerUpdateInterfaceStateAction: UpdateInterfaceS
   'SnapInterfaceController:updateInterfaceState';
 
 // CronjobController Actions
-export const CronjobControllerCancelBackgroundEventAction: CancelBackgroundEvent['type'] =
-  'CronjobController:cancelBackgroundEvent';
+export const CronjobControllerCancelAction: Cancel['type'] =
+  'CronjobController:cancel';
 
-export const CronjobControllerGetBackgroundEventsAction: GetBackgroundEvents['type'] =
-  'CronjobController:getBackgroundEvents';
+export const CronjobControllerGetAction: Get['type'] = 'CronjobController:get';

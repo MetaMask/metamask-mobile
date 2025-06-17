@@ -462,7 +462,7 @@ describe('OrderDetails', () => {
         providerOrderLink: 'https://example.com',
       },
     };
-    render(OrderDetails, [testOrder]);
+    render(OrderDetails, [testOrder as FiatOrder]);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
@@ -485,7 +485,7 @@ describe('OrderDetails', () => {
       },
     };
 
-    render(OrderDetails, [testOrder]);
+    render(OrderDetails, [testOrder as FiatOrder]);
 
     fireEvent.press(screen.getByText('Contact Support'));
     expect(mockTrackEvent).toHaveBeenCalledWith(
