@@ -28,6 +28,7 @@ import io.branch.rnbranch.RNBranchModule
 import com.airbnb.android.react.lottie.LottiePackage
 import io.metamask.nativeModules.PreventScreenshotPackage
 import io.metamask.nativeModules.RCTMinimizerPackage
+import io.metamask.nativeModules.FpsDebugPackage
 import io.metamask.nativesdk.NativeSDKPackage
 import io.metamask.nativeModules.RNTar.RNTarPackage
 
@@ -44,6 +45,7 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
                 packages.add(LottiePackage())
                 packages.add(PreventScreenshotPackage())
                 packages.add(RCTMinimizerPackage())
+                packages.add(FpsDebugPackage())
                 packages.add(NativeSDKPackage())
                 packages.add(RNTarPackage())
                 return packages
