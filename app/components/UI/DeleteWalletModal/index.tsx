@@ -94,7 +94,7 @@ const DeleteWalletModal = () => {
     await deleteUser();
     trackEvent(
       createEventBuilder(
-        MetaMetricsEvents.DELETE_WALLET_MODAL_WALLET_DELETED,
+        MetaMetricsEvents.WALLET_RESTORED,
       ).build(),
     );
     InteractionManager.runAfterInteractions(() => {
