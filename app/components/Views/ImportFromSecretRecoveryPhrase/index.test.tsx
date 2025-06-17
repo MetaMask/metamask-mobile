@@ -8,6 +8,8 @@ import { Authentication } from '../../../core';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { MIN_PASSWORD_LENGTH } from '../../../util/password';
+import { BIOMETRY_TYPE } from 'react-native-keychain';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
 // Mock the clipboard
 jest.mock('@react-native-clipboard/clipboard', () => ({
@@ -20,6 +22,19 @@ const initialState = {
     seedphraseBackedUp: false,
   },
 };
+
+const mockIsEnabled = jest.fn().mockReturnValue(true);
+
+jest.mock('../../hooks/useMetrics', () => {
+  const actualUseMetrics = jest.requireActual('../../hooks/useMetrics');
+  return {
+    ...actualUseMetrics,
+    useMetrics: jest.fn().mockReturnValue({
+      ...actualUseMetrics.useMetrics,
+      isEnabled: () => mockIsEnabled(),
+    }),
+  };
+});
 
 describe('ImportFromSecretRecoveryPhrase', () => {
   beforeEach(() => {
@@ -419,7 +434,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         const errorMessage = queryByText(
-          strings('import_from_seed.invalid_seed_phrase'),
+          strings('import_from_seed.spellcheck_error'),
         );
         expect(errorMessage).toBeOnTheScreen();
       });
@@ -781,6 +796,42 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       await waitFor(() => {
         expect(getByText('Unlock with Face ID?')).toBeOnTheScreen();
       });
+    });
+
+    it('Import seed phrase with optin metrics flow', async () => {
+      mockIsEnabled.mockReturnValue(false);
+      const { getByTestId, getByPlaceholderText } =
+        await renderCreatePasswordUI();
+
+      const passwordInput = getByPlaceholderText(
+        strings('import_from_seed.enter_strong_password'),
+      );
+      const confirmPasswordInput = getByPlaceholderText(
+        strings('import_from_seed.re_enter_password'),
+      );
+      // Enter valid passwords
+      fireEvent.changeText(passwordInput, 'StrongPass123!');
+      fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
+
+      // Check learn more checkbox
+      const learnMoreCheckbox = getByTestId(
+        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
+      );
+      fireEvent.press(learnMoreCheckbox);
+      jest
+        .spyOn(Authentication, 'componentAuthenticationType')
+        .mockResolvedValueOnce({
+          currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+          availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+        });
+
+      // Mock Authentication.newWalletAndRestore
+      jest.spyOn(Authentication, 'newWalletAndRestore').mockResolvedValueOnce();
+      // Try to import
+      const confirmButton = getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+      fireEvent.press(confirmButton);
     });
   });
 });
