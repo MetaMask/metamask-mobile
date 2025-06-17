@@ -1317,7 +1317,8 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                node -v
+                echo "SENTRY_DISABLE_AUTO_UPLOAD Setting: $SENTRY_DISABLE_AUTO_UPLOAD"
+                node -v                
                 if [ -n "$YARN_COMMAND" ]; then
                     GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
                 elif [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
@@ -1902,6 +1903,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                echo 'SENTRY_DISABLE_AUTO_UPLOAD Setting: $SENTRY_DISABLE_AUTO_UPLOAD'
                 echo 'This is the current build type: $METAMASK_BUILD_TYPE'
                 if [ -n "$YARN_COMMAND" ]; then
                     GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
