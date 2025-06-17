@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor, act } from '@testing-library/react-native';
 import OtpCode from './OtpCode';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { DepositSdkMethodResult } from '../../hooks/useDepositSdkMethod';
@@ -218,6 +218,76 @@ describe('OtpCode Component', () => {
     const resendButton = screen.getByText('Resend it');
     fireEvent.press(resendButton);
     expect(mockResendFn).toHaveBeenCalled();
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders cooldown timer snapshot after resending OTP', async () => {
+    const mockResendFn = jest.fn().mockResolvedValue('success');
+    mockUseDepositSdkMethodValues = [
+      { ...mockUseDepositSdkMethodInitialState },
+      mockResendFn,
+    ];
+
+    render(OtpCode);
+    const resendButton = screen.getByText('Resend it');
+    fireEvent.press(resendButton);
+
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  async function waitForResendButton() {
+    // Advance timers in 1s increments until the button reappears
+    for (let i = 0; i < 31; i++) {
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+      // Wait for React to process updates
+      await act(async () => {});
+      try {
+        screen.getByText('Resend it');
+        return;
+      } catch {
+        // Button not found yet, continue
+      }
+    }
+    throw new Error('Resend it button did not reappear');
+  }
+
+  it('renders contact support snapshot after max reset attempts', async () => {
+    jest.useFakeTimers();
+    const mockResendFn = jest.fn().mockResolvedValue('success');
+    mockUseDepositSdkMethodValues = [
+      { ...mockUseDepositSdkMethodInitialState },
+      mockResendFn,
+    ];
+
+    render(OtpCode);
+
+    fireEvent.press(screen.getByText('Resend it'));
+    await waitForResendButton();
+
+    fireEvent.press(screen.getByText('Resend it'));
+    await waitForResendButton();
+
+    fireEvent.press(screen.getByText('Resend it'));
+    await waitForResendButton();
+
+    fireEvent.press(screen.getByText('Resend it'));
+    expect(screen.toJSON()).toMatchSnapshot();
+    jest.useRealTimers();
+  });
+
+  it('renders resend error snapshot when resend fails', async () => {
+    const mockResendFn = jest
+      .fn()
+      .mockRejectedValue(new Error('Failed to resend'));
+    mockUseDepositSdkMethodValues = [
+      { ...mockUseDepositSdkMethodInitialState },
+      mockResendFn,
+    ];
+    render(OtpCode);
+    const resendButton = screen.getByText('Resend it');
+    fireEvent.press(resendButton);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 });
