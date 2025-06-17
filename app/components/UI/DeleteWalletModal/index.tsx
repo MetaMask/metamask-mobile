@@ -13,9 +13,12 @@ import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
 import { DeleteWalletModalSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/DeleteWalletModal.selectors';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { useDispatch, useSelector } from 'react-redux';
+import { IMetaMetricsEvent, MetaMetricsEvents } from '../../../core/Analytics';
+import {
+  OnboardingActionTypes,
+  saveOnboardingEvent as SaveEvent,
+} from '../../../actions/onboarding';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import { clearHistory } from '../../../actions/browser';
 import CookieManager from '@react-native-cookies/cookies';
 import { RootState } from '../../../reducers';
@@ -33,15 +36,26 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
 import { setCompletedOnboarding } from '../../../actions/onboarding';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { Dispatch } from 'redux';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
+import { useMetrics } from '../../hooks/useMetrics';
 
 if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const DeleteWalletModal = () => {
+interface DeleteWalletModalProps {
+  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
+}
+
+const DeleteWalletModal: React.FC<DeleteWalletModalProps> = ({
+  saveOnboardingEvent,
+}) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder, isEnabled } = useMetrics();
+  const { isEnabled } = useMetrics();
   const styles = createStyles(colors);
 
   const modalRef = useRef<BottomSheetRef>(null);
@@ -82,6 +96,18 @@ const DeleteWalletModal = () => {
     });
   };
 
+  const track = (
+    event: IMetaMetricsEvent,
+    properties: Record<string, string | boolean | number>,
+  ) => {
+    trackOnboarding(
+      MetricsEventBuilder.createEventBuilder(event)
+        .addProperties(properties)
+        .build(),
+      saveOnboardingEvent,
+    );
+  };
+
   const deleteWallet = async () => {
     await dispatch(
       clearHistory(isEnabled(), isDataCollectionForMarketingEnabled),
@@ -92,11 +118,7 @@ const DeleteWalletModal = () => {
     triggerClose();
     await resetWalletState();
     await deleteUser();
-    trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.WALLET_RESTORED,
-      ).build(),
-    );
+    track(MetaMetricsEvents.WALLET_RESTORED, {});
     InteractionManager.runAfterInteractions(() => {
       navigateOnboardingRoot();
     });
@@ -169,7 +191,10 @@ const DeleteWalletModal = () => {
             label={strings('login.reset_wallet')}
             width={ButtonWidthTypes.Full}
             isDanger
-            onPress={() => setIsResetWallet(true)}
+            onPress={() => {
+              setIsResetWallet(true);
+              track(MetaMetricsEvents.RESET_WALLET, {});
+            }}
             testID={DeleteWalletModalSelectorsIDs.CONTINUE_BUTTON}
           />
         </View>
@@ -236,4 +261,9 @@ const DeleteWalletModal = () => {
   );
 };
 
-export default React.memo(DeleteWalletModal);
+const mapDispatchToProps = (dispatch: Dispatch<OnboardingActionTypes>) => ({
+  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) =>
+    dispatch(SaveEvent(eventArgs)),
+});
+
+export default connect(null, mapDispatchToProps)(DeleteWalletModal);

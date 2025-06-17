@@ -404,10 +404,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const toggleWarningModal = () => {
-    // Track reset wallet clicked event
-    track(MetaMetricsEvents.RESET_WALLET_CLICKED, {
-      account_type: 'metamask',
-    });
+    track(MetaMetricsEvents.FORGOT_PASSWORD, {});
 
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.DELETE_WALLET,
