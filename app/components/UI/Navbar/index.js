@@ -1808,7 +1808,10 @@ export function getBridgeNavbar(navigation, route, themeColors) {
   let title = `${strings('swaps.title')}/${strings('bridge.title')}`;
   if (route.params?.bridgeViewMode === BridgeViewMode.Bridge) {
     title = strings('bridge.title');
-  } else if (route.params?.bridgeViewMode === BridgeViewMode.Swap) {
+  } else if (
+    route.params?.bridgeViewMode === BridgeViewMode.Swap ||
+    route.params?.bridgeViewMode === BridgeViewMode.Unified
+  ) {
     title = strings('swaps.title');
   }
 
