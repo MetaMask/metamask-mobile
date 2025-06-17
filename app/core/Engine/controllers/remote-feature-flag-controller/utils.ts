@@ -32,6 +32,9 @@ const getFeatureFlagAppDistribution = () => {
   const env = process.env.METAMASK_ENVIRONMENT;
   switch (dist) {
     case 'main':
+      if (env === 'exp') {
+        return DistributionType.Experimental;
+      }
       return env === 'beta' ? DistributionType.Beta : DistributionType.Main;
     case 'flask':
       return DistributionType.Flask;
@@ -42,7 +45,8 @@ const getFeatureFlagAppDistribution = () => {
   }
 };
 
-export const isRemoteFeatureFlagOverrideActivated = process.env.OVERRIDE_REMOTE_FEATURE_FLAGS === 'true';
+export const isRemoteFeatureFlagOverrideActivated =
+  process.env.OVERRIDE_REMOTE_FEATURE_FLAGS === 'true';
 
 export const createRemoteFeatureFlagController = ({
   state,
