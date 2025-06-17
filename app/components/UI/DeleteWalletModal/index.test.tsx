@@ -1,9 +1,14 @@
 import React from 'react';
 import DeleteWalletModal from './';
-import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import { fireEvent } from '@testing-library/react-native';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
+import { createStackNavigator } from '@react-navigation/stack';
+import { RootState } from '../../../reducers';
+import { strings } from '../../../../locales/i18n';
 import { DeleteWalletModalSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/DeleteWalletModal.selectors';
-import { fireEvent, waitFor } from '@testing-library/react-native';
 import { SET_COMPLETED_ONBOARDING } from '../../../actions/onboarding';
 
 const mockInitialState = {
@@ -54,41 +59,80 @@ jest.mock('../../hooks/DeleteWallet', () => ({
   ],
 }));
 
-describe('DeleteWalletModal', () => {
-  it('should render correctly', () => {
-    const wrapper = renderWithProvider(<DeleteWalletModal />, {
-      state: mockInitialState,
-    });
+const Stack = createStackNavigator();
 
-    expect(wrapper).toMatchSnapshot();
+const renderComponent = (state: DeepPartial<RootState> = {}) =>
+  renderWithProvider(
+    <Stack.Navigator>
+      <Stack.Screen name="DeleteWalletModal" options={{}}>
+        {() => <DeleteWalletModal />}
+      </Stack.Screen>
+    </Stack.Navigator>,
+    { state },
+  );
+
+describe('DeleteWalletModal', () => {
+  describe('bottom sheet', () => {
+    it('renders matching snapshot', () => {
+      const wrapper = renderComponent(mockInitialState);
+
+      expect(wrapper).toMatchSnapshot();
+    });
   });
 
-  it('signs the user out when deleting the wallet', async () => {
-    const { getByTestId } = renderWithProvider(<DeleteWalletModal />, {
-      state: mockInitialState,
-    });
+  describe('forgot password flow', () => {
+    it('renders matching snapshot for forgot password', async () => {
+      const wrapper = renderComponent(mockInitialState);
 
-    fireEvent.press(getByTestId(DeleteWalletModalSelectorsIDs.CONTINUE_BUTTON));
-    fireEvent.press(
-      getByTestId(DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON),
-    );
+      const title = wrapper.getByText(strings('login.forgot_password_desc'));
+      expect(title).toBeOnTheScreen();
 
-    waitFor(() => {
+      const button = wrapper.getByRole('button', {
+        name: strings('login.reset_wallet'),
+      });
+      expect(button).toBeOnTheScreen();
+
+      fireEvent.press(button);
+
+      const title2 = wrapper.getByText(strings('login.are_you_sure'));
+      expect(title2).toBeOnTheScreen();
+
+      const button2 = wrapper.getByRole('button', {
+        name: strings('login.erase_my'),
+      });
+      expect(button2).toBeOnTheScreen();
+
+      fireEvent.press(button2);
+
+      // Wait for all promises to resolve
+      await Promise.resolve();
+
       expect(mockSignOut).toHaveBeenCalled();
     });
-  });
 
-  it('sets completedOnboarding to false when deleting the wallet', async () => {
-    const { getByTestId } = renderWithProvider(<DeleteWalletModal />, {
-      state: mockInitialState,
+    it('signs the user out when deleting the wallet', async () => {
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      fireEvent.press(
+        getByTestId(DeleteWalletModalSelectorsIDs.CONTINUE_BUTTON),
+      );
+      fireEvent.press(
+        getByTestId(DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON),
+      );
+
+      expect(mockSignOut).toHaveBeenCalled();
     });
 
-    fireEvent.press(getByTestId(DeleteWalletModalSelectorsIDs.CONTINUE_BUTTON));
-    fireEvent.press(
-      getByTestId(DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON),
-    );
+    it('sets completedOnboarding to false when deleting the wallet', async () => {
+      const { getByTestId } = renderComponent(mockInitialState);
 
-    waitFor(() => {
+      fireEvent.press(
+        getByTestId(DeleteWalletModalSelectorsIDs.CONTINUE_BUTTON),
+      );
+      fireEvent.press(
+        getByTestId(DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON),
+      );
+
       expect(mockUseDispatch).toHaveBeenCalledWith(
         expect.objectContaining({
           type: SET_COMPLETED_ONBOARDING,

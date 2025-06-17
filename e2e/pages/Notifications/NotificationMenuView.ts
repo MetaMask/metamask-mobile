@@ -1,4 +1,3 @@
-import type { IndexableNativeElement } from 'detox/detox';
 import {
   NotificationMenuViewSelectorsIDs,
   NotificationMenuViewSelectorsText,

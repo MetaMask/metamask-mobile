@@ -304,9 +304,8 @@ class SendFlow extends PureComponent {
   };
 
   onTransactionDirectionSet = async () => {
-    const { setRecipient, navigation, providerType } = this.props;
+    const { setRecipient, navigation, providerType, selectedAddress } = this.props;
     const {
-      fromSelectedAddress,
       toAccount,
       toEnsName,
       toSelectedAddressName,
@@ -319,7 +318,7 @@ class SendFlow extends PureComponent {
 
     const toAddress = toEnsAddressResolved || toAccount;
     setRecipient(
-      fromSelectedAddress,
+      selectedAddress,
       toAddress,
       toEnsName,
       toSelectedAddressName,
