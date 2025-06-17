@@ -73,7 +73,8 @@ export const BridgeSourceTokenSelector: React.FC = () => {
   });
 
   let balanceChainIds;
-  if (bridgeViewMode === BridgeViewMode.Bridge) {
+  const isBridgeOrUnified = bridgeViewMode === BridgeViewMode.Bridge || bridgeViewMode === BridgeViewMode.Unified;
+  if (isBridgeOrUnified) {
     balanceChainIds = selectedSourceChainIds;
   } else {
     // Really only for Solana Swap
@@ -153,7 +154,7 @@ export const BridgeSourceTokenSelector: React.FC = () => {
   return (
     <BridgeTokenSelectorBase
       networksBar={
-        bridgeViewMode === BridgeViewMode.Bridge ? (
+        isBridgeOrUnified ? (
           <BridgeSourceNetworksBar
             networksToShow={networksToShow}
             networkConfigurations={allNetworkConfigurations}
