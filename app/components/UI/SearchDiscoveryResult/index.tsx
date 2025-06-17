@@ -21,8 +21,9 @@ import { addCurrencySymbol } from '../../../util/number';
 import PercentageChange from '../../../component-library/components-temp/Price/PercentageChange';
 import { SwapBridgeNavigationLocation, useSwapBridgeNavigation } from '../Bridge/hooks/useSwapBridgeNavigation';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
+import { useTokenSearchDiscoveryMetrics } from '../../hooks/TokenSearchDiscovery/useTokenSearchDiscoveryMetrics';
 
-export const SearchDiscoveryResult: React.FC<SearchDiscoveryResultProps> = memo(({ result, onSelect }) => {
+export const SearchDiscoveryResult: React.FC<SearchDiscoveryResultProps> = memo(({ result, onSelect, searchTerm }) => {
     const theme = useTheme();
     const styles = stylesheet({theme});
 
@@ -44,11 +45,24 @@ export const SearchDiscoveryResult: React.FC<SearchDiscoveryResultProps> = memo(
         token: result.category === SearchDiscoveryCategory.Tokens ? result : undefined,
       });
 
+    const { trackItemOpened, trackSwapOpened } = useTokenSearchDiscoveryMetrics();
+    const onPress = useCallback(() => {
+      trackItemOpened(result, searchTerm);
+      onSelect(result);
+    }, [onSelect, result, searchTerm, trackItemOpened]);
+
+    const onPressSwap = useCallback(() => {
+      if (result.category === SearchDiscoveryCategory.Tokens) {
+        trackSwapOpened(result, searchTerm);
+        goToSwaps();
+      }
+    }, [goToSwaps, result, searchTerm, trackSwapOpened]);
+
     return (
       <>
         <TouchableOpacity
           style={styles.item}
-          onPress={() => onSelect(result)}
+          onPress={onPress}
         >
           <View style={styles.itemWrapper}>
             {result.category === SearchDiscoveryCategory.Tokens ? (
@@ -113,7 +127,7 @@ export const SearchDiscoveryResult: React.FC<SearchDiscoveryResultProps> = memo(
                   }}
                   size={ButtonIconSizes.Md}
                   iconName={IconName.SwapHorizontal}
-                  onPress={() => goToSwaps()}
+                  onPress={onPressSwap}
                   disabled={!swapsEnabled}
                   testID="autocomplete-result-swap-button"
                 />
