@@ -351,12 +351,15 @@ const ImportFromSecretRecoveryPhrase = ({
     termsOfUse();
   }, [termsOfUse]);
 
-  useEffect(() => {
-    if (passwordSetupAttemptTraceCtxRef.current) {
-      bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
-      passwordSetupAttemptTraceCtxRef.current = null;
-    }
-  }, []);
+  useEffect(
+    () => () => {
+      if (passwordSetupAttemptTraceCtxRef.current) {
+        bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
+        passwordSetupAttemptTraceCtxRef.current = null;
+      }
+    },
+    [],
+  );
 
   const updateBiometryChoice = async (biometryChoice) => {
     await updateAuthTypeStorageFlags(biometryChoice);
