@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { waitFor, expect } from 'detox';
+import Utilities from './Utilities';
 
 /**
  * Class for handling user actions (Gestures)
@@ -54,21 +55,22 @@ class Gestures {
    * @param {boolean} [options.skipVisibilityCheck=false] - When true, skips the initial visibility check before tapping. Useful for elements that may be technically present but not passing Detox's visibility threshold.
    * @param {boolean} [options.experimentalWaitForStability=false] - EXPERIMENTAL: When true, waits for element stability before tapping.
    */
-  static async waitAndTap(element, options = {}) {
+  static async waitAndTap(elementToTap, options = {}) {
     const {
       timeout = 15000,
       delayBeforeTap = 0,
       skipVisibilityCheck = false
     } = options;
     if (!skipVisibilityCheck) {
-      await waitFor(await element)
+      await waitFor(await elementToTap)
         .toBeVisible()
         .withTimeout(timeout);
     }
     if (delayBeforeTap > 0) {
       await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.
     }
-    await (await element).tap();
+    await Utilities.waitForElementToBeEnabled(elementToTap);
+    await elementToTap.tap();
   }
 
   /**
@@ -96,9 +98,9 @@ class Gestures {
           typeof attributes.frame.y === 'number'
         ) {
           return { x: attributes.frame.x, y: attributes.frame.y };
-        } else {
-          return null;
         }
+          return null;
+
       } catch {
         return null;
       }

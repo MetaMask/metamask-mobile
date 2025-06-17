@@ -53,6 +53,10 @@ export enum TraceName {
   RampQuoteLoading = 'Ramp Quote Loading',
   LoadRampExperience = 'Load Ramp Experience',
   FetchHistoricalPrices = 'Fetch Historical Prices',
+  TransactionConfirmed = 'Transaction Confirmed',
+  LoadCollectibles = 'Load Collectibles',
+  DetectNfts = 'Detect Nfts',
+  CollectibleContractsComponent = 'Collectible Contracts Component',
 }
 
 export enum TraceOperation {

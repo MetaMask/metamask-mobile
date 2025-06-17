@@ -16,6 +16,7 @@ exports[`AccountCard render matches snapshot 1`] = `
         "padding": 16,
       }
     }
+    testID="account-card"
   >
     <View
       style={

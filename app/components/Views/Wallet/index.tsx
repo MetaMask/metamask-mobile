@@ -123,6 +123,7 @@ import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlag
 import { toFormattedAddress } from '../../../util/address';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -675,6 +676,10 @@ const Wallet = ({
     async (obj: ChangeTabProperties) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
         trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
+      } else if (obj.ref.props.tabLabel === strings('wallet.defi')) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.DEFI_TAB_SELECTED).build(),
+        );
       } else {
         // Return early if no address selected
         if (!selectedAddress) return;
@@ -691,8 +696,10 @@ const Wallet = ({
         );
 
         try {
+          trace({ name: TraceName.DetectNfts });
           showNftFetchingLoadingIndicator();
           await NftDetectionController.detectNfts(chainIdsToDetectNftsFor);
+          endTrace({ name: TraceName.DetectNfts });
         } finally {
           hideNftFetchingLoadingIndicator();
         }

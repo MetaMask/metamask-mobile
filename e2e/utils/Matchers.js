@@ -7,7 +7,7 @@ class Matchers {
   /**
    * Get element by ID.
    *
-   * @param {string} elementId - Match elements with the specified testID
+   * @param {string | RegExp } elementId - Match elements with the specified testID
    * @param {number} [index] - Index of the element (default: 0)
    * @return {Promise<Detox.IndexableNativeElement | Detox.NativeElement | Detox.IndexableSystemElement>} - Resolves to the located element
    */
@@ -156,7 +156,6 @@ class Matchers {
   static async getIdentifier(selectorString) {
     return by.id(selectorString);
   }
-
 
   /**
    * Get system dialogs in the system-level (e.g. permissions, alerts, etc.), by text.
