@@ -1,5 +1,5 @@
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
-import { LendingProtocol } from '@metamask/stake-sdk';
+import { LendingProtocol } from '../types/lending.types';
 import {
   TransactionType,
   WalletDevice,
