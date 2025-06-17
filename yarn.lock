@@ -5881,12 +5881,7 @@
     "@wallet-standard/wallet" "^1.1.0"
     bs58 "^6.0.0"
 
-"@metamask/stake-sdk@^3.2.0":
-  version "3.2.0"
-  resolved "https://registry.npmjs.org/@metamask/stake-sdk/-/stake-sdk-3.2.0.tgz#30b52ad6c190f4473d44ae2106b7346aaaa2e28f"
-  integrity sha512-llrtdY7k+P93Tu67N8bJxiQ4tXqZPPXOL+8ltZ854wf2P7vZOsdBXMO9dZOeLEjf3lCebNaIgZMddDbXP39tmQ==
-
-"@metamask/stake-sdk@^3.2.1":
+"@metamask/stake-sdk@^3.2.0", "@metamask/stake-sdk@^3.2.1":
   version "3.3.0"
   resolved "https://registry.npmjs.org/@metamask/stake-sdk/-/stake-sdk-3.3.0.tgz#4dbe867d1bc89d011c5b5243d4e16d96039bf49f"
   integrity sha512-q1KvkajyPcc0KHjEHIDYEnAPckaKghN8SQzqYmlqmW93ziEeyRTivno7HLCptoeU4kqATQqB8HWYf4eeJ56LGg==
