@@ -17,7 +17,7 @@ const selectKeyringControllerState = (state: RootState) =>
 export const selectKeyrings = createDeepEqualSelector(
   selectKeyringControllerState,
   (keyringControllerState: KeyringControllerState) =>
-    keyringControllerState?.keyrings || [],
+    keyringControllerState.keyrings,
 );
 
 /**
