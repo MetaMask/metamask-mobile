@@ -21,11 +21,8 @@ import {
 } from '../../../../component-library/components/Buttons/Button/Button.types';
 import { EARN_URLS } from '../constants/urls';
 import InteractiveTimespanChart from '../../Stake/components/PoolStakingLearnMoreModal/InteractiveTimespanChart';
-import { EarnTokenDetails } from '../types/lending.types';
-import {
-  HistoricLendingMarketApyAverages,
-  LendingProtocol,
-} from '@metamask/stake-sdk';
+import { EarnTokenDetails, LendingProtocol } from '../types/lending.types';
+import { HistoricLendingMarketApyAverages } from '@metamask/stake-sdk';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
 import {
