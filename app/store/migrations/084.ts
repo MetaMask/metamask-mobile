@@ -18,8 +18,6 @@ const migration = (state: unknown): unknown => {
 
   try {
     if (
-      hasProperty(state, 'engine') &&
-      hasProperty(state.engine, 'backgroundState') &&
       hasProperty(state.engine.backgroundState, 'UserStorageController') &&
       isObject(state.engine.backgroundState.UserStorageController)
     ) {
