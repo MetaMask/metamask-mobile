@@ -190,7 +190,7 @@ export function useSwitchNetworks({
         SelectedNetworkController,
       } = Engine.context;
 
-      if (false) {
+      if (domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()) {
         SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
         isPerDappSelectedNetworkEnabled() && dismissModal?.();
       } else {
