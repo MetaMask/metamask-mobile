@@ -344,44 +344,62 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {},
                               ]
                             }
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
-                                  "fontSize": 16,
-                                  "fontWeight": "400",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                  "marginTop": 40,
-                                  "textAlign": "center",
-                                }
-                              }
-                            >
-                              Build Quote Page Placeholder
-                            </Text>
                             <View
                               style={{}}
                             >
-                              <DepositTextField
-                                label="Enter amount"
-                                onChangeText={[Function]}
-                                value="100"
-                              />
+                              <AccountSelector />
+                              <TouchableOpacity
+                                onPress={[Function]}
+                                style={{}}
+                              >
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    USD
+                                  </Text>
+                                </View>
+                              </TouchableOpacity>
                             </View>
                             <View
                               style={{}}
                             >
                               <Text
                                 accessibilityRole="text"
+                                adjustsFontSizeToFit={true}
+                                numberOfLines={1}
                                 style={
                                   {
                                     "color": "#121314",
+                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontSize": 24,
+                                    "fontWeight": "700",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 32,
+                                  }
+                                }
+                              >
+                                $0.00
+                              </Text>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#686e7d",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
                                     "fontWeight": "400",
@@ -390,143 +408,873 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                   }
                                 }
                               >
-                                Quote Details
+                                0.00
+                                 
+                                USDC
                               </Text>
+                              <TouchableOpacity
+                                onPress={[Function]}
+                              >
+                                <View
+                                  style={{}}
+                                >
+                                  <Image
+                                    source={
+                                      {
+                                        "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                                      }
+                                    }
+                                    style={{}}
+                                  />
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontSize": 24,
+                                        "fontWeight": "700",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 32,
+                                      }
+                                    }
+                                  >
+                                    USDC
+                                  </Text>
+                                </View>
+                              </TouchableOpacity>
+                            </View>
+                            <TouchableOpacity
+                              onPress={[Function]}
+                              style={{}}
+                            >
                               <View
                                 style={{}}
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Pay with
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
+                                    }
+                                  >
+                                    Debit or Credit
+                                  </Text>
+                                </View>
+                                <SvgMock
+                                  color="#000"
+                                  fill="currentColor"
+                                  height={20}
+                                  name="ArrowRight"
                                   style={
                                     {
-                                      "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 16,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "height": 20,
+                                      "width": 20,
                                     }
                                   }
-                                >
-                                  Payment Method:
-                                </Text>
-                                <Text
-                                  accessibilityRole="text"
+                                  width={20}
+                                />
+                              </View>
+                            </TouchableOpacity>
+                            <View
+                              style={
+                                [
+                                  {
+                                    "paddingHorizontal": 25,
+                                  },
+                                  {},
+                                ]
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "flexDirection": "row",
+                                    "justifyContent": "space-around",
+                                  }
+                                }
+                              >
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  onPress={[Function]}
                                   style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 16,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "flex": 1,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 20,
+                                        "paddingVertical": 12,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  CREDIT DEBIT_CARD
-                                </Text>
+                                  <Text
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 30,
+                                          "fontWeight": "400",
+                                          "marginVertical": 2,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontSize": 30,
+                                            "textAlign": "center",
+                                          },
+                                          undefined,
+                                        ],
+                                      ]
+                                    }
+                                  >
+                                    1
+                                  </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  onPress={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "flex": 1,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 20,
+                                        "paddingVertical": 12,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  <Text
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 30,
+                                          "fontWeight": "400",
+                                          "marginVertical": 2,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontSize": 30,
+                                            "textAlign": "center",
+                                          },
+                                          undefined,
+                                        ],
+                                      ]
+                                    }
+                                  >
+                                    2
+                                  </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  onPress={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "flex": 1,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 20,
+                                        "paddingVertical": 12,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  <Text
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 30,
+                                          "fontWeight": "400",
+                                          "marginVertical": 2,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontSize": 30,
+                                            "textAlign": "center",
+                                          },
+                                          undefined,
+                                        ],
+                                      ]
+                                    }
+                                  >
+                                    3
+                                  </Text>
+                                </TouchableOpacity>
                               </View>
                               <View
-                                style={{}}
+                                style={
+                                  {
+                                    "flexDirection": "row",
+                                    "justifyContent": "space-around",
+                                  }
+                                }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  onPress={[Function]}
                                   style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 16,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "flex": 1,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 20,
+                                        "paddingVertical": 12,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  Crypto Currency:
-                                </Text>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 16,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                  <Text
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 30,
+                                          "fontWeight": "400",
+                                          "marginVertical": 2,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontSize": 30,
+                                            "textAlign": "center",
+                                          },
+                                          undefined,
+                                        ],
+                                      ]
                                     }
+                                  >
+                                    4
+                                  </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  onPress={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "flex": 1,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 20,
+                                        "paddingVertical": 12,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  USDC
-                                </Text>
+                                  <Text
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 30,
+                                          "fontWeight": "400",
+                                          "marginVertical": 2,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontSize": 30,
+                                            "textAlign": "center",
+                                          },
+                                          undefined,
+                                        ],
+                                      ]
+                                    }
+                                  >
+                                    5
+                                  </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  onPress={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "flex": 1,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 20,
+                                        "paddingVertical": 12,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  <Text
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 30,
+                                          "fontWeight": "400",
+                                          "marginVertical": 2,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontSize": 30,
+                                            "textAlign": "center",
+                                          },
+                                          undefined,
+                                        ],
+                                      ]
+                                    }
+                                  >
+                                    6
+                                  </Text>
+                                </TouchableOpacity>
                               </View>
                               <View
-                                style={{}}
+                                style={
+                                  {
+                                    "flexDirection": "row",
+                                    "justifyContent": "space-around",
+                                  }
+                                }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  onPress={[Function]}
                                   style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 16,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "flex": 1,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 20,
+                                        "paddingVertical": 12,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  Fiat Currency:
-                                </Text>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 16,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                  <Text
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 30,
+                                          "fontWeight": "400",
+                                          "marginVertical": 2,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontSize": 30,
+                                            "textAlign": "center",
+                                          },
+                                          undefined,
+                                        ],
+                                      ]
                                     }
+                                  >
+                                    7
+                                  </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  onPress={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "flex": 1,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 20,
+                                        "paddingVertical": 12,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  USD
-                                </Text>
+                                  <Text
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 30,
+                                          "fontWeight": "400",
+                                          "marginVertical": 2,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontSize": 30,
+                                            "textAlign": "center",
+                                          },
+                                          undefined,
+                                        ],
+                                      ]
+                                    }
+                                  >
+                                    8
+                                  </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  onPress={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "flex": 1,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 20,
+                                        "paddingVertical": 12,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  <Text
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 30,
+                                          "fontWeight": "400",
+                                          "marginVertical": 2,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontSize": 30,
+                                            "textAlign": "center",
+                                          },
+                                          undefined,
+                                        ],
+                                      ]
+                                    }
+                                  >
+                                    9
+                                  </Text>
+                                </TouchableOpacity>
                               </View>
                               <View
-                                style={{}}
+                                style={
+                                  {
+                                    "flexDirection": "row",
+                                    "justifyContent": "space-around",
+                                  }
+                                }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <TouchableOpacity
+                                  onPress={[Function]}
                                   style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 16,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "flex": 1,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 20,
+                                        "paddingVertical": 12,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  Network:
-                                </Text>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 16,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                  <Text
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 30,
+                                          "fontWeight": "400",
+                                          "marginVertical": 2,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontSize": 30,
+                                            "textAlign": "center",
+                                          },
+                                          undefined,
+                                        ],
+                                      ]
                                     }
+                                  />
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  onPress={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "flex": 1,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 20,
+                                        "paddingVertical": 12,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  Ethereum
-                                </Text>
+                                  <Text
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 30,
+                                          "fontWeight": "400",
+                                          "marginVertical": 2,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontSize": 30,
+                                            "textAlign": "center",
+                                          },
+                                          undefined,
+                                        ],
+                                      ]
+                                    }
+                                  >
+                                    0
+                                  </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  delayLongPress={500}
+                                  onLongPress={[Function]}
+                                  onPress={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "flex": 1,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 20,
+                                        "paddingVertical": 12,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                  testID="keypad-delete-button"
+                                >
+                                  <SvgMock
+                                    color="#121314"
+                                    fill="currentColor"
+                                    height={24}
+                                    name="Arrow2Left"
+                                    style={
+                                      {
+                                        "height": 24,
+                                        "width": 24,
+                                      }
+                                    }
+                                    width={24}
+                                  />
+                                </TouchableOpacity>
                               </View>
                             </View>
                           </View>
@@ -543,34 +1291,48 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                               ]
                             }
                           >
-                            <View
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              activeOpacity={0.2}
+                              onPress={[Function]}
                               style={
                                 [
-                                  {
-                                    "marginVertical": 8,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
+                                  [
+                                    {
+                                      "borderRadius": 12,
+                                      "justifyContent": "center",
+                                      "padding": 15,
+                                    },
+                                    {
+                                      "backgroundColor": "#4459ff",
+                                      "minHeight": 50,
+                                    },
+                                    undefined,
+                                  ],
+                                  null,
                                 ]
                               }
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                activeOpacity={0.2}
-                                onPress={[Function]}
+                              <Text
                                 style={
                                   [
+                                    {
+                                      "color": "#007aff",
+                                      "fontSize": 17,
+                                      "fontWeight": "500",
+                                      "textAlign": "center",
+                                    },
+                                    null,
                                     [
                                       {
-                                        "borderRadius": 12,
-                                        "justifyContent": "center",
-                                        "padding": 15,
+                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontSize": 14,
+                                        "fontWeight": "600",
+                                        "textAlign": "center",
                                       },
                                       {
-                                        "backgroundColor": "#4459ff",
-                                        "minHeight": 50,
+                                        "color": "#ffffff",
                                       },
                                       undefined,
                                     ],
@@ -578,36 +1340,9 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                   ]
                                 }
                               >
-                                <Text
-                                  style={
-                                    [
-                                      {
-                                        "color": "#007aff",
-                                        "fontSize": 17,
-                                        "fontWeight": "500",
-                                        "textAlign": "center",
-                                      },
-                                      null,
-                                      [
-                                        {
-                                          "fontFamily": "CentraNo1-Bold",
-                                          "fontSize": 14,
-                                          "fontWeight": "600",
-                                          "textAlign": "center",
-                                        },
-                                        {
-                                          "color": "#ffffff",
-                                        },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
-                                  }
-                                >
-                                  Continue
-                                </Text>
-                              </TouchableOpacity>
-                            </View>
+                                Continue
+                              </Text>
+                            </TouchableOpacity>
                           </View>
                         </View>
                       </View>

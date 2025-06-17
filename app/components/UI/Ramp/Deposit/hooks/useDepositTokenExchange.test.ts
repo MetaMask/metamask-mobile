@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react-hooks';
 import useDepsositTokenExchange from './useDepositTokenExchange';
 import { DepositCryptoCurrency, USD_CURRENCY } from '../constants';
+import { useFetchTokenRatesMulti } from './useTokenRates';
 
 jest.mock('./useTokenRates', () => ({
   useFetchTokenRatesMulti: jest.fn(),
@@ -25,7 +26,7 @@ describe('useDepsositTokenExchange', () => {
       USDC: 0.99978,
     };
 
-    require('./useTokenRates').useFetchTokenRatesMulti.mockReturnValue({
+    (useFetchTokenRatesMulti as jest.Mock).mockReturnValue({
       rates: mockRates,
       isLoading: false,
       error: null,
@@ -47,7 +48,7 @@ describe('useDepsositTokenExchange', () => {
   });
 
   it('should return zero token amount when rate is not available', () => {
-    require('./useTokenRates').useFetchTokenRatesMulti.mockReturnValue({
+    (useFetchTokenRatesMulti as jest.Mock).mockReturnValue({
       rates: {},
       isLoading: false,
       error: null,
@@ -69,7 +70,7 @@ describe('useDepsositTokenExchange', () => {
   });
 
   it('should handle loading state', () => {
-    require('./useTokenRates').useFetchTokenRatesMulti.mockReturnValue({
+    (useFetchTokenRatesMulti as jest.Mock).mockReturnValue({
       rates: {},
       isLoading: true,
       error: null,
@@ -90,7 +91,7 @@ describe('useDepsositTokenExchange', () => {
 
   it('should handle error state', () => {
     const mockError = new Error('Failed to fetch rates');
-    require('./useTokenRates').useFetchTokenRatesMulti.mockReturnValue({
+    (useFetchTokenRatesMulti as jest.Mock).mockReturnValue({
       rates: {},
       isLoading: false,
       error: mockError,

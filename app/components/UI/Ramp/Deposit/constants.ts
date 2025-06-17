@@ -1,6 +1,6 @@
 export const FIAT_CURRENCIES = ['USD', 'EUR'];
 
-export type DepositCryptoCurrency = {
+export interface DepositCryptoCurrency {
   assetId: string;
   logo: string;
   name: string;
@@ -9,20 +9,20 @@ export type DepositCryptoCurrency = {
   decimals: number;
   iconUrl: string;
   symbol: string;
-};
+}
 
-export type DepositPaymentMethod = {
+export interface DepositPaymentMethod {
   id: string;
   name: string;
   duration: string;
-};
+}
 
-export type DepositFiatCurrency = {
+export interface DepositFiatCurrency {
   id: string;
   name: string;
   symbol: string;
   emoji: string;
-};
+}
 
 export const USDC_TOKEN: DepositCryptoCurrency = {
   assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -30,7 +30,8 @@ export const USDC_TOKEN: DepositCryptoCurrency = {
   name: 'USD Coin',
   symbol: 'USDC',
   decimals: 6,
-  iconUrl: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
+  iconUrl:
+    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
   address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
   logo: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
 };
@@ -41,12 +42,16 @@ export const USDT_TOKEN: DepositCryptoCurrency = {
   name: 'Tether USD',
   symbol: 'USDT',
   decimals: 6,
-  iconUrl: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7.png',
+  iconUrl:
+    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7.png',
   address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
   logo: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7.png',
 };
 
-export const SUPPORTED_DEPOSIT_TOKENS: DepositCryptoCurrency[] = [USDC_TOKEN, USDT_TOKEN];
+export const SUPPORTED_DEPOSIT_TOKENS: DepositCryptoCurrency[] = [
+  USDC_TOKEN,
+  USDT_TOKEN,
+];
 
 export const DEBIT_CREDIT_PAYMENT_METHOD: DepositPaymentMethod = {
   id: 'credit_debit_card',

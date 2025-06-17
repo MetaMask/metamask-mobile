@@ -10,6 +10,7 @@ const mockSetNavigationOptions = jest.fn();
 const mockGetQuote = jest.fn();
 const mockFetchKycForms = jest.fn();
 const mockUseDepositSDK = jest.fn();
+const mockUseDepositTokenExchange = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -48,6 +49,11 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
   }),
 }));
 
+jest.mock('../../hooks/useDepositTokenExchange', () => ({
+  __esModule: true,
+  default: () => mockUseDepositTokenExchange(),
+}));
+
 jest.mock('../../../../../hooks/useStyles', () => ({
   useStyles: () => ({
     styles: {
@@ -55,8 +61,26 @@ jest.mock('../../../../../hooks/useStyles', () => ({
       detailsContainer: {},
       sectionTitle: {},
       detailRow: {},
+      content: {},
+      selectionRow: {},
+      fiatSelector: {},
+      centerGroup: {},
+      mainAmount: {},
+      convertedAmount: {},
+      cryptoPill: {},
+      tokenLogo: {},
+      cryptoText: {},
+      paymentMethodBox: {},
+      paymentMethodContent: {},
+      keypad: {},
     },
-    theme: {},
+    theme: {
+      colors: {
+        icon: {
+          alternative: '#000',
+        },
+      },
+    },
   }),
 }));
 
@@ -75,6 +99,7 @@ jest.mock('../EnterEmail/EnterEmail', () => ({
 }));
 
 jest.mock('../../components/DepositTextField', () => 'DepositTextField');
+jest.mock('../../components/AccountSelector', () => 'AccountSelector');
 
 function render(Component: React.ComponentType) {
   return renderDepositTestComponent(Component, Routes.DEPOSIT.BUILD_QUOTE);
@@ -86,11 +111,61 @@ describe('BuildQuote Component', () => {
     mockUseDepositSDK.mockReturnValue({
       isAuthenticated: false,
     });
+    mockUseDepositTokenExchange.mockReturnValue({
+      tokenAmount: '0.00',
+    });
   });
 
   it('render matches snapshot', () => {
     render(BuildQuote);
     expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  describe('Currency Selection', () => {
+    it('switches between USD and EUR when fiat currency is pressed', () => {
+      render(BuildQuote);
+
+      const fiatSelector = screen.getByText('USD');
+      fireEvent.press(fiatSelector);
+
+      expect(screen.getByText('EUR')).toBeTruthy();
+
+      fireEvent.press(screen.getByText('EUR'));
+      expect(screen.getByText('USD')).toBeTruthy();
+    });
+
+    it('switches between USDC and USDT when crypto currency is pressed', () => {
+      render(BuildQuote);
+
+      const cryptoSelector = screen.getByText('USDC');
+      fireEvent.press(cryptoSelector);
+
+      expect(screen.getByText('USDT')).toBeTruthy();
+
+      fireEvent.press(screen.getByText('USDT'));
+      expect(screen.getByText('USDC')).toBeTruthy();
+    });
+  });
+
+  describe('Keypad Functionality', () => {
+    it('updates amount when keypad is used', () => {
+      render(BuildQuote);
+
+      const oneButton = screen.getByText('1');
+      fireEvent.press(oneButton);
+
+      expect(screen.getByText('$1.00')).toBeTruthy();
+    });
+
+    it('displays converted token amount', () => {
+      mockUseDepositTokenExchange.mockReturnValue({
+        tokenAmount: '1.5',
+      });
+
+      render(BuildQuote);
+
+      expect(screen.getByText('1.5 USDC')).toBeTruthy();
+    });
   });
 
   describe('Continue button functionality', () => {
@@ -110,10 +185,10 @@ describe('BuildQuote Component', () => {
       await waitFor(() => {
         expect(mockGetQuote).toHaveBeenCalledWith(
           'USD',
-          'USDC',
-          'ethereum',
+          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          'eip155:1',
           'credit_debit_card',
-          '100',
+          '0',
         );
       });
     });
@@ -136,25 +211,7 @@ describe('BuildQuote Component', () => {
       });
     });
 
-    it('navigates when user is not authenticated', async () => {
-      const mockQuote = { id: 'test-quote' };
-      const mockForms = { forms: [] };
-
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: false });
-      mockGetQuote.mockResolvedValue(mockQuote);
-      mockFetchKycForms.mockResolvedValue(mockForms);
-
-      render(BuildQuote);
-
-      const continueButton = screen.getByText('Continue');
-      fireEvent.press(continueButton);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalled();
-      });
-    });
-
-    it('navigates when user is authenticated', async () => {
+    it('navigates to provider webview when user is authenticated and no forms required', async () => {
       const mockQuote = { id: 'test-quote' };
       const mockForms = { forms: [] };
 
@@ -168,7 +225,49 @@ describe('BuildQuote Component', () => {
       fireEvent.press(continueButton);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith('PROVIDER_WEBVIEW', {
+          quote: mockQuote,
+        });
+      });
+    });
+
+    it('navigates to basic info when user is authenticated and forms required', async () => {
+      const mockQuote = { id: 'test-quote' };
+      const mockForms = { forms: ['form1'] };
+
+      mockUseDepositSDK.mockReturnValue({ isAuthenticated: true });
+      mockGetQuote.mockResolvedValue(mockQuote);
+      mockFetchKycForms.mockResolvedValue(mockForms);
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('BASIC_INFO', {
+          quote: mockQuote,
+        });
+      });
+    });
+
+    it('navigates to enter email when user is not authenticated', async () => {
+      const mockQuote = { id: 'test-quote' };
+      const mockForms = { forms: [] };
+
+      mockUseDepositSDK.mockReturnValue({ isAuthenticated: false });
+      mockGetQuote.mockResolvedValue(mockQuote);
+      mockFetchKycForms.mockResolvedValue(mockForms);
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('ENTER_EMAIL', {
+          quote: mockQuote,
+        });
       });
     });
 
