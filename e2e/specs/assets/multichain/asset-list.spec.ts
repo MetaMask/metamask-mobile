@@ -39,7 +39,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await stopFixtureServer(fixtureServer);
   });
 
-  it('should display tokens across networks when all networks filter is toggled on', async (): Promise<void> => {
+  it('should display tokens across networks when all networks filter is toggled on', async () => {
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
     const eth = WalletView.tokenInWallet(ETHEREUM_NAME);
@@ -51,7 +51,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await Assertions.checkIfVisible(bnb);
   });
 
-  it('should display tokens of current network when current networks filter is toggled on', async (): Promise<void> => {
+  it('should display tokens of current network when current networks filter is toggled on', async () => {
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
     await WalletView.tapTokenNetworkFilter();
@@ -64,7 +64,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await Assertions.checkIfNotVisible(bnb);
   });
 
-  it('should switch networks when clicking on swap if an asset on a different network is selected', async (): Promise<void> => {
+  it('should switch networks when clicking on swap if an asset on a different network is selected', async () => {
     const BNB_NETWORK_NAME = 'BNB Smart Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
@@ -83,7 +83,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await QuoteView.tapOnCancelButton();
   });
 
-  it('should switch networks when clicking on send if an asset on a different network is selected', async (): Promise<void> => {
+  it('should switch networks when clicking on send if an asset on a different network is selected', async () => {
     const AVAX_NETWORK_NAME = 'Avalanche C-Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
@@ -100,7 +100,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await NetworkEducationModal.tapGotItButton();
   });
 
-  it('should allows clicking into the asset details page of native token on another network', async (): Promise<void> => {
+  it('should allows clicking into the asset details page of native token on another network', async () => {
     await SendView.tapCancelButton();
     await TabBarComponent.tapWallet();
     await WalletView.tapTokenNetworkFilter();
