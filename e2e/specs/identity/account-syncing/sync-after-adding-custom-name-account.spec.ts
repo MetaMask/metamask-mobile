@@ -20,7 +20,11 @@ import { mockIdentityServices } from '../utils/mocks';
 import { SmokeWalletPlatform } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { arrangeTestUtils } from '../utils/helpers';
-import { UserStorageMockttpControllerEvents } from '../utils/user-storage/userStorageMockttpController';
+import {
+  UserStorageMockttpController,
+  UserStorageMockttpControllerEvents,
+} from '../utils/user-storage/userStorageMockttpController';
+import { Mockttp } from 'mockttp';
 
 describe(
   SmokeWalletPlatform(
@@ -29,9 +33,9 @@ describe(
   () => {
     const NEW_ACCOUNT_NAME = 'My third account';
     const TEST_SPECIFIC_MOCK_SERVER_PORT = 8000;
-    let decryptedAccountNames = '';
-    let mockServer;
-    let userStorageMockttpController;
+    let decryptedAccountNames = [] as string[];
+    let mockServer: Mockttp;
+    let userStorageMockttpController: UserStorageMockttpController;
 
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();

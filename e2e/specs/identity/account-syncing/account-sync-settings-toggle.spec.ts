@@ -15,7 +15,6 @@ import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../utils/Assertions';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
-import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
 import { mockIdentityServices } from '../utils/mocks';
 import { SmokeWalletPlatform } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
@@ -23,14 +22,15 @@ import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import SettingsView from '../../../pages/Settings/SettingsView';
 import BackupAndSyncView from '../../../pages/Settings/BackupAndSyncView';
 import CommonView from '../../../pages/CommonView';
+import { Mockttp } from 'mockttp';
 
 describe(
   SmokeWalletPlatform('Sync and Backup settings - Account Sync toggle'),
   () => {
     const ADDED_ACCOUNT = 'Account 3';
     const TEST_SPECIFIC_MOCK_SERVER_PORT = 8004;
-    let decryptedAccountNames = '';
-    let mockServer;
+    let decryptedAccountNames = [] as string[];
+    let mockServer: Mockttp;
 
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
