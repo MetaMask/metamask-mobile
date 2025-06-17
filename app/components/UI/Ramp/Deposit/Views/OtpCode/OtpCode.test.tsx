@@ -236,12 +236,11 @@ describe('OtpCode Component', () => {
   });
 
   async function waitForResendButton() {
-    // Advance timers in 1s increments until the button reappears
     for (let i = 0; i < 31; i++) {
       act(() => {
         jest.advanceTimersByTime(1000);
       });
-      // Wait for React to process updates
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
       await act(async () => {});
       try {
         screen.getByText('Resend it');
