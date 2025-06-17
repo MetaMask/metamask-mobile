@@ -13,6 +13,7 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectEnabledDestChains,
+  selectIsUnifiedSwapsEnabled,
   selectSelectedDestChainId,
   setSelectedDestChainId,
 } from '../../../../core/redux/slices/bridge';
@@ -94,17 +95,23 @@ export const BridgeDestNetworksBar = () => {
   const selectedDestChainId = useSelector(selectSelectedDestChainId);
   const currentChainId = useSelector(selectChainId);
   const { styles } = useStyles(createStyles, { selectedDestChainId });
+  const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
 
   const sortedDestChains = useMemo(
     () =>
       [...enabledDestChains]
-        .filter((chain) => chain.chainId !== currentChainId)
+        .filter((chain) => {
+          if (isUnifiedSwapsEnabled) {
+            return true;
+          }
+          return chain.chainId !== currentChainId;
+        })
         .sort((a, b) => {
           const aPopularity = ChainPopularity[a.chainId] ?? Infinity;
           const bPopularity = ChainPopularity[b.chainId] ?? Infinity;
           return aPopularity - bPopularity;
         }),
-    [enabledDestChains, currentChainId],
+    [enabledDestChains, currentChainId, isUnifiedSwapsEnabled],
   );
 
   const navigateToNetworkSelector = () => {
