@@ -106,7 +106,7 @@ const ManualBackupStep2 = ({
       InteractionManager.runAfterInteractions(async () => {
         if (backupFlow || settingsBackup) {
           const resetAction = CommonActions.reset({
-            index: 1,
+            index: 0,
             routes: [
               {
                 name: Routes.ONBOARDING.SUCCESS_FLOW,

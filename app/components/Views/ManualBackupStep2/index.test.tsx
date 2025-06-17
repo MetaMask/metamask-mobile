@@ -356,7 +356,9 @@ describe('ManualBackupStep2', () => {
             name: Routes.ONBOARDING.SUCCESS_FLOW,
             params: {
               screen: Routes.ONBOARDING.SUCCESS,
-              successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
+              params: {
+                successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
+              },
             },
           },
         ],
@@ -415,7 +417,7 @@ describe('ManualBackupStep2', () => {
       });
     });
 
-    it('navigate to Onboarding Success flow for onboarding flow', async () => {
+    it('navigate to Onboarding Success flow for onboarding backup flow', async () => {
       // configure onboarding scenario
       mockRoute.mockReturnValue({
         params: {
@@ -447,7 +449,9 @@ describe('ManualBackupStep2', () => {
             name: Routes.ONBOARDING.SUCCESS_FLOW,
             params: {
               screen: Routes.ONBOARDING.SUCCESS,
-              successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
+              params: {
+                successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
+              },
             },
           },
         ],
@@ -488,7 +492,9 @@ describe('ManualBackupStep2', () => {
             name: Routes.ONBOARDING.SUCCESS_FLOW,
             params: {
               screen: Routes.ONBOARDING.SUCCESS,
-              successFlow: ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP,
+              params: {
+                successFlow: ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP,
+              },
             },
           },
         ],
@@ -498,7 +504,7 @@ describe('ManualBackupStep2', () => {
       });
     });
 
-    it('navigate to Settings for settings backup flow', async () => {
+    it('navigate to Onboarding Success with settings backup flow', async () => {
       mockRoute.mockReturnValue({
         params: {
           words: mockWords,
@@ -528,7 +534,9 @@ describe('ManualBackupStep2', () => {
             name: Routes.ONBOARDING.SUCCESS_FLOW,
             params: {
               screen: Routes.ONBOARDING.SUCCESS,
-              successFlow: ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP,
+              params: {
+                successFlow: ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP,
+              },
             },
           },
         ],
