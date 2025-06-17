@@ -21,6 +21,7 @@ const availableFeatures = new Set([
   'multi-srp',
   'bitcoin',
   'solana',
+  'experimental',
 ]);
 
 const mainFeatureSet = new Set([
@@ -45,6 +46,7 @@ const flaskFeatureSet = new Set([
   'bitcoin',
   'solana',
 ]);
+const experimentalFeatureSet = new Set(['experimental']);
 
 /**
  * Gets the features for the current build type, used to determine which code
@@ -57,6 +59,11 @@ function getBuildTypeFeatures() {
   const envType = process.env.METAMASK_ENVIRONMENT ?? 'prod';
   switch (buildType) {
     case 'main':
+      // TODO: Refactor this once we've abstracted environment away from build type
+      if (envType === 'experimental') {
+        // Only include experimental features in experimental environment
+        return experimentalFeatureSet;
+      }
       return envType === 'prod' ? mainFeatureSet : betaFeatureSet;
     case 'beta':
       return betaFeatureSet;
