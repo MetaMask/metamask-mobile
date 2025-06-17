@@ -23,6 +23,12 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { Box } from '../../../components/UI/Box/Box';
 import { setDeepLinkModalDisabled } from '../../../actions/settings';
 import BottomSheet, { BottomSheetRef } from '../../../component-library/components/BottomSheets/BottomSheet';
+import {
+    IconColor,
+    IconName,
+} from '../../../component-library/components/Icons/Icon';
+import ButtonIcon, {
+} from '../../../component-library/components/Buttons/ButtonIcon';
 
 import { pageNotFound, foxLogo, ModalImageProps, DeepLinkModalProps } from './constant';
 
@@ -43,7 +49,7 @@ const ModalImage = memo(({ linkType, styles }: ModalImageProps) => {
 });
 const DeepLinkModal = () => {
     const params = useParams<DeepLinkModalProps>();
-    const { linkType, onContinue } = params;
+    const { linkType, onContinue, onBack } = params;
     const pageTitle = params.linkType !== 'invalid' ? params.pageTitle : undefined;
     const { styles } = useStyles(styleSheet, {});
     const { trackEvent, createEventBuilder } = useMetrics();
@@ -57,21 +63,21 @@ const DeepLinkModal = () => {
         checkboxLabel?: string;
         event: IMetaMetricsEvent;
         eventContinue: IMetaMetricsEvent;
-        eventGoBack?: IMetaMetricsEvent;
+        eventDismiss: IMetaMetricsEvent;
     }> => ({
         public: {
             title: strings('deep_link_modal.public_link.title'),
             description: strings('deep_link_modal.public_link.description', { pageTitle }),
             event: MetaMetricsEvents.DEEP_LINK_PUBLIC_MODAL_VIEWED,
             eventContinue: MetaMetricsEvents.DEEP_LINK_PUBLIC_MODAL_CONTINUE_CLICKED,
-            eventGoBack: MetaMetricsEvents.DEEP_LINK_PUBLIC_MODAL_GO_BACK_CLICKED,
+            eventDismiss: MetaMetricsEvents.DEEP_LINK_PUBLIC_MODAL_DISMISSED,
         },
         private: {
             title: strings('deep_link_modal.private_link.title'),
             description: strings('deep_link_modal.private_link.description', { pageTitle }),
             event: MetaMetricsEvents.DEEP_LINK_PRIVATE_MODAL_VIEWED,
             eventContinue: MetaMetricsEvents.DEEP_LINK_PRIVATE_MODAL_CONTINUE_CLICKED,
-            eventGoBack: MetaMetricsEvents.DEEP_LINK_PRIVATE_MODAL_GO_BACK_CLICKED,
+            eventDismiss: MetaMetricsEvents.DEEP_LINK_PRIVATE_MODAL_DISMISSED,
         },
         invalid:
         {
@@ -79,6 +85,7 @@ const DeepLinkModal = () => {
             description: strings('deep_link_modal.invalid.description'),
             event: MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_VIEWED,
             eventContinue: MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_CONTINUE_CLICKED,
+            eventDismiss: MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_DISMISSED,
         },
     }), [pageTitle]);
 
@@ -95,20 +102,19 @@ const DeepLinkModal = () => {
     const dismissModal = (cb?: () => void): void =>
         bottomSheetRef?.current?.onCloseBottomSheet(cb);
 
-    const onBackPressed = useCallback(() => {
+    const onDimiss = useCallback(() => {
         dismissModal(() => {
-            const event = LINK_TYPE_MAP[linkType].eventGoBack;
-            if (event) {
-                trackEvent(
-                    createEventBuilder(event)
-                        .addProperties({
-                            ...generateDeviceAnalyticsMetaData(),
-                        })
-                        .build(),
-                );
-            }
+            const event = LINK_TYPE_MAP[linkType].eventDismiss;
+            trackEvent(
+                createEventBuilder(event)
+                    .addProperties({
+                        ...generateDeviceAnalyticsMetaData(),
+                    })
+                    .build(),
+            );
+            onBack?.();
         });
-    }, [trackEvent, createEventBuilder, linkType, LINK_TYPE_MAP]);
+    }, [trackEvent, createEventBuilder, linkType, LINK_TYPE_MAP, onBack]);
 
     const onContinuePressed = useCallback(() => {
         dismissModal(() => {
@@ -139,10 +145,17 @@ const DeepLinkModal = () => {
 
     const shouldShowCheckbox = linkType === 'private';
     const primaryButtonLabel = linkType === 'invalid' ? strings('deep_link_modal.open_metamask_anyway') : strings('deep_link_modal.continue_button');
-    const shouldRenderSecondaryButton = linkType !== 'invalid';
 
     return (
-        <BottomSheet isFullscreen style={styles.screen} ref={bottomSheetRef}>
+        <BottomSheet isFullscreen style={styles.screen} ref={bottomSheetRef} isInteractable={false}>
+            <Box style={styles.box}>
+                <ButtonIcon
+                    onPress={onDimiss}
+                    iconName={IconName.Close}
+                    iconColor={IconColor.Default}
+                    testID="deep-link-modal-close-button"
+                />
+            </Box>
             <ScrollView contentContainerStyle={styles.content}>
                 <ModalImage linkType={linkType} styles={styles} />
                 <Text variant={TextVariant.HeadingLG} style={styles.title}>
@@ -167,13 +180,6 @@ const DeepLinkModal = () => {
                 onPress={onContinuePressed}
                 style={styles.actionButtonMargin}
             />
-            {shouldRenderSecondaryButton && <Button
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                label={strings('deep_link_modal.back_button')}
-                onPress={onBackPressed}
-            />}
         </BottomSheet >
     );
 };

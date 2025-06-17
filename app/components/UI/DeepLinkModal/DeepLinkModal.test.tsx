@@ -41,7 +41,8 @@ jest.mock('react-redux', () => ({
 
 describe('DeepLinkModal', () => {
     const mockOnContinue = jest.fn();
-    const baseParams = { pageTitle: 'MetaMask', onContinue: mockOnContinue };
+    const mockOnBack = jest.fn();
+    const baseParams = { pageTitle: 'MetaMask', onContinue: mockOnContinue, onBack: mockOnBack };
     beforeEach(() => {
         jest.clearAllMocks();
         (useParams as jest.Mock).mockReturnValue({ ...baseParams, linkType: 'public' });
@@ -98,7 +99,7 @@ describe('DeepLinkModal', () => {
         (useParams as jest.Mock).mockReturnValue({ ...baseParams, linkType: 'invalid' });
         const { getByText, queryByText } = renderScreen(DeepLinkModal, { name: 'DeepLinkModal' }, { state: {} });
         const title = getByText(/This page doesn't exist/i);
-        const description = getByText('The page you’re searching for is no longer available.');
+        const description = getByText(/We can't find the page you're looking for./i);
         const checkbox = queryByText(/Don't remind me again/i);
         expect(title).toBeDefined();
         expect(description).toBeDefined();
@@ -158,15 +159,16 @@ describe('DeepLinkModal', () => {
 
     it.each`
     linkType        |eventGoBack
-    ${'public'}     | ${MetaMetricsEvents.DEEP_LINK_PUBLIC_MODAL_GO_BACK_CLICKED}  
-    ${'private'}    | ${MetaMetricsEvents.DEEP_LINK_PRIVATE_MODAL_GO_BACK_CLICKED}  
+    ${'public'}     | ${MetaMetricsEvents.DEEP_LINK_PUBLIC_MODAL_DISMISSED}  
+    ${'private'}    | ${MetaMetricsEvents.DEEP_LINK_PRIVATE_MODAL_DISMISSED}  
+    ${'invalid'}    | ${MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_DISMISSED}  
   `('should track correct action event on back button pressed when linkType is $linkType',
         async ({ linkType, eventGoBack }) => {
             (useParams as jest.Mock).mockReturnValue({ ...baseParams, linkType });
-            const { getByText } = renderScreen(DeepLinkModal, { name: 'DeepLinkModal' }, { state: {} });
-            const backButton = getByText('Back');
+            const { getByTestId } = renderScreen(DeepLinkModal, { name: 'DeepLinkModal' }, { state: {} });
+            const dismissButton = getByTestId('deep-link-modal-close-button');
             act(() => {
-                fireEvent.press(backButton);
+                fireEvent.press(dismissButton);
             });
             const expectedEvent = MetricsEventBuilder.createEventBuilder(eventGoBack)
                 .addProperties({ 'deviceProp': 'Device value' }).build();

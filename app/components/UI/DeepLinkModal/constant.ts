@@ -12,10 +12,12 @@ export const createDeepLinkModalNavDetails = createNavigationDetails(
 export type DeepLinkModalProps = {
     linkType: 'public' | 'private';
     onContinue: () => void;
+    onBack?: () => void;
     pageTitle: string;
 } | {
     linkType: 'invalid';
     onContinue?: () => void;
+    onBack?: () => void;
 }
 export interface ModalImageProps {
     linkType: DeepLinkModalProps['linkType'];

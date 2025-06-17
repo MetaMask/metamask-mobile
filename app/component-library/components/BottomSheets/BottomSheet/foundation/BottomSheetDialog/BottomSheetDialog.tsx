@@ -68,7 +68,12 @@ const BottomSheetDialog = forwardRef<
       useSafeAreaInsets();
     const { y: frameY } = useSafeAreaFrame();
     const { height: screenHeight } = useWindowDimensions();
-    const maxSheetHeight = screenHeight - screenTopPadding;
+    // on Android, the status bar height is already included in screenHeight so we don't need to subtract it
+    const statusBarHeight = Platform.select({
+      ios: screenTopPadding,
+      android: 0,
+    }) || 0;
+    const maxSheetHeight = screenHeight - statusBarHeight;
     const { styles } = useStyles(styleSheet, {
       maxSheetHeight,
       screenBottomPadding,
@@ -134,7 +139,7 @@ const BottomSheetDialog = forwardRef<
         const hasReachedDismissOffset =
           latestOffset >
           bottomOfDialogYValue.value *
-            DEFAULT_BOTTOMSHEETDIALOG_DISMISSTHRESHOLD;
+          DEFAULT_BOTTOMSHEETDIALOG_DISMISSTHRESHOLD;
         // Check if the gesture's vertical speed has reached the threshold to determine a swipe action
         const hasReachedSwipeThreshold =
           Math.abs(velocityY) >

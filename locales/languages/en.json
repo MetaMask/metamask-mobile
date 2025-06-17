@@ -319,7 +319,6 @@
     "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
     "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
     "reset_wallet_desc_srp": "To restore your wallet, you can use your Secret Recovery Phrase. MetaMask doesn’t have this information."
-   
   },
   "connect_hardware": {
     "title_select_hardware": "Connect a hardware wallet",
@@ -4390,7 +4389,7 @@
     },
     "invalid": {
       "title": "This page doesn't exist",
-      "description": "The page you’re searching for is no longer available."
+      "description": "We can't find the page you're looking for."
     },
     "open_metamask_anyway": "Open MetaMask anyway",
     "back_button": "Back",
