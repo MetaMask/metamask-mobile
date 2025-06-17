@@ -249,17 +249,18 @@ describe('useEarnLendingPositions', () => {
       },
     );
 
-    // Wait for the effect to complete
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
 
     expect(result.current).toEqual({
       earnLendingPositions: mockLendingOutputToken.experience.market?.position,
       exchangeRate: 1,
       isLoadingEarnLendingPositions: true,
       error: null,
-      hasEarnLendingPositions: false,
+      hasEarnLendingPositions: true,
       refreshEarnLendingPositions: expect.any(Function),
-      lifetimeRewards: '0',
+      lifetimeRewards: '1000000',
     });
   });
 
@@ -276,14 +277,15 @@ describe('useEarnLendingPositions', () => {
       },
     );
 
-    // Wait for the effect to complete
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
 
     expect(result.current).toEqual({
       earnLendingPositions: mockLendingOutputToken.experience.market?.position,
       exchangeRate: 1,
-      isLoadingEarnLendingPositions: true,
-      error: null,
+      isLoadingEarnLendingPositions: false,
+      error: 'Failed to fetch lending position history',
       hasEarnLendingPositions: false,
       refreshEarnLendingPositions: expect.any(Function),
       lifetimeRewards: '0',
@@ -356,7 +358,6 @@ describe('useEarnLendingPositions', () => {
     );
 
     await act(async () => {
-      // Wait for the initial effect to complete
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 

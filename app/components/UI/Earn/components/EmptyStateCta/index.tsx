@@ -1,7 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import _ from 'lodash';
 import React from 'react';
-import { Linking } from 'react-native';
 import { View } from 'react-native-animatable';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -18,14 +17,13 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { RootState } from '../../../../../reducers';
 import { earnSelectors } from '../../../../../selectors/earnController';
 import { capitalize } from '../../../../../util/general';
-import { parseFloatSafe } from '../../utils/number';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import { TokenI } from '../../../Tokens/types';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
-import { EARN_URLS } from '../../constants/urls';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import { parseFloatSafe } from '../../utils/number';
 import styleSheet from './EmptyStateCta.styles';
 
 interface EarnEmptyStateCta {
