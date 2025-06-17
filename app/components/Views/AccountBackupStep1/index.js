@@ -220,7 +220,10 @@ const AccountBackupStep1 = (props) => {
       screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
       params: {
         onConfirm: skip,
-        onCancel: goNext,
+        onCancel: () => {
+          track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CANCELED);
+          goNext();
+        },
       },
     });
     track(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
