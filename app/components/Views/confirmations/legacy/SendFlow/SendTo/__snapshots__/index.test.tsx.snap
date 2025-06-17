@@ -433,7 +433,6 @@ exports[`SendTo Component render matches snapshot 1`] = `
               finalRenderAheadOffset={250}
               forceNonDeterministicRendering={true}
               horizontal={false}
-              initialNumToRender={0}
               initialOffset={0}
               initialRenderIndex={0}
               isHorizontal={false}
@@ -512,16 +511,9 @@ exports[`SendTo Component render matches snapshot 1`] = `
                   "props": {
                     "data": [],
                     "estimatedItemSize": 80,
-                    "initialNumToRender": 0,
                     "keyExtractor": [Function],
-                    "maxToRenderPerBatch": 0,
-                    "nestedScrollEnabled": true,
                     "numColumns": 1,
-                    "overrideItemLayout": [Function],
-                    "removeClippedSubviews": true,
                     "renderItem": [Function],
-                    "showsVerticalScrollIndicator": false,
-                    "windowSize": 5,
                   },
                   "renderWindowInsets": {
                     "height": 0,
@@ -531,8 +523,6 @@ exports[`SendTo Component render matches snapshot 1`] = `
                 }
               }
               maxRenderAhead={750}
-              maxToRenderPerBatch={0}
-              nestedScrollEnabled={true}
               numColumns={1}
               onEndReached={[Function]}
               onEndReachedThreshold={0}
@@ -543,7 +533,6 @@ exports[`SendTo Component render matches snapshot 1`] = `
               onScrollBeginDrag={[Function]}
               onSizeChanged={[Function]}
               onVisibleIndicesChanged={[Function]}
-              overrideItemLayout={[Function]}
               removeClippedSubviews={false}
               renderAheadOffset={0}
               renderAheadStep={250}
@@ -571,7 +560,6 @@ exports[`SendTo Component render matches snapshot 1`] = `
                   },
                 }
               }
-              showsVerticalScrollIndicator={false}
               style={
                 {
                   "minHeight": 1,
@@ -590,7 +578,6 @@ exports[`SendTo Component render matches snapshot 1`] = `
                   },
                 }
               }
-              windowSize={5}
             >
               <View>
                 <View
