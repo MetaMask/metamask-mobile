@@ -40,7 +40,7 @@ import {
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import {
   AcceptOptions,
-  ApprovalController,
+  AddApprovalOptions,
 } from '@metamask/approval-controller';
 import { HdKeyring } from '@metamask/eth-hd-keyring';
 import { SelectedNetworkController } from '@metamask/selected-network-controller';
@@ -190,6 +190,7 @@ import { logEngineCreation } from './utils/logger';
 import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
 import { accountTreeControllerInit } from '../../multichain-accounts/controllers/account-tree-controller';
+import { ApprovalControllerInit } from './controllers/approval-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
 import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
@@ -292,19 +293,6 @@ export class Engine {
 
     const isBasicFunctionalityToggleEnabled = () =>
       selectBasicFunctionalityEnabled(store.getState());
-
-    const approvalController = new ApprovalController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'ApprovalController',
-        allowedEvents: [],
-        allowedActions: [],
-      }),
-      showApprovalRequest: () => undefined,
-      typesExcludedFromRateLimiting: [
-        ApprovalType.Transaction,
-        ApprovalType.WatchAsset,
-      ],
-    });
 
     const preferencesController = new PreferencesController({
       messenger: this.controllerMessenger.getRestricted({
@@ -776,11 +764,15 @@ export class Engine {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         placeholder?: any,
       ) =>
-        approvalController.addAndShowApprovalRequest({
-          origin,
-          type,
-          requestData: { content, placeholder },
-        }),
+        this.controllerMessenger.call<'ApprovalController:addRequest'>(
+          'ApprovalController:addRequest',
+          {
+            origin,
+            type,
+            requestData: { content, placeholder },
+          },
+          true,
+        ),
       showInAppNotification: (origin: string, args: NotificationArgs) => {
         Logger.log(
           'Snaps/ showInAppNotification called with args: ',
@@ -801,8 +793,12 @@ export class Engine {
         this.controllerMessenger,
         'SnapInterfaceController:updateInterface',
       ),
-      requestUserApproval:
-        approvalController.addAndShowApprovalRequest.bind(approvalController),
+      requestUserApproval: (opts: AddApprovalOptions) =>
+        this.controllerMessenger.call<'ApprovalController:addRequest'>(
+          'ApprovalController:addRequest',
+          opts,
+          true,
+        ),
       hasPermission: (origin: string, target: string) =>
         this.controllerMessenger.call<'PermissionController:hasPermission'>(
           'PermissionController:hasPermission',
@@ -890,10 +886,10 @@ export class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'PermissionController',
         allowedActions: [
-          `${approvalController.name}:addRequest`,
-          `${approvalController.name}:hasRequest`,
-          `${approvalController.name}:acceptRequest`,
-          `${approvalController.name}:rejectRequest`,
+          `ApprovalController:addRequest`,
+          `ApprovalController:hasRequest`,
+          `ApprovalController:acceptRequest`,
+          `ApprovalController:rejectRequest`,
           ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
           `SnapController:getPermitted`,
           `SnapController:install`,
@@ -956,7 +952,7 @@ export class Engine {
     this.subjectMetadataController = new SubjectMetadataController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'SubjectMetadataController',
-        allowedActions: [`${permissionController.name}:hasPermissions`],
+        allowedActions: [`PermissionController:hasPermissions`],
         allowedEvents: [],
       }),
       state: initialState.SubjectMetadataController || {},
@@ -1223,7 +1219,6 @@ export class Engine {
     });
 
     const existingControllersByName = {
-      ApprovalController: approvalController,
       KeyringController: this.keyringController,
       NetworkController: networkController,
       PreferencesController: preferencesController,
@@ -1240,6 +1235,7 @@ export class Engine {
         AccountsController: accountsControllerInit,
         AccountTreeController: accountTreeControllerInit,
         AppMetadataController: appMetadataControllerInit,
+        ApprovalController: ApprovalControllerInit,
         GasFeeController: GasFeeControllerInit,
         TransactionController: TransactionControllerInit,
         SignatureController: SignatureControllerInit,
@@ -1272,6 +1268,7 @@ export class Engine {
 
     const accountsController = controllersByName.AccountsController;
     const accountTreeController = controllersByName.AccountTreeController;
+    const approvalController = controllersByName.ApprovalController;
     const gasFeeController = controllersByName.GasFeeController;
     const signatureController = controllersByName.SignatureController;
     const transactionController = controllersByName.TransactionController;
@@ -1706,15 +1703,17 @@ export class Engine {
     this.controllerMessenger.subscribe(
       `${snapController.name}:snapTerminated`,
       (truncatedSnap) => {
-        const approvals = Object.values(
-          approvalController.state.pendingApprovals,
-        ).filter(
+        const pendingApprovals = this.controllerMessenger.call(
+          'ApprovalController:getState',
+        ).pendingApprovals;
+        const approvals = Object.values(pendingApprovals).filter(
           (approval) =>
             approval.origin === truncatedSnap.id &&
             approval.type.startsWith(RestrictedMethods.snap_dialog),
         );
         for (const approval of approvals) {
-          approvalController.reject(
+          this.controllerMessenger.call<'ApprovalController:rejectRequest'>(
+            'ApprovalController:rejectRequest',
             approval.id,
             new Error('Snap was terminated.'),
           );
