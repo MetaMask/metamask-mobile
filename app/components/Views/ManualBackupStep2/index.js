@@ -54,7 +54,6 @@ const ManualBackupStep2 = ({
   const [emptySlots, setEmptySlots] = useState([]);
   const [missingWords, setMissingWords] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
-  const [sortedSlots, setSortedSlots] = useState([]);
 
   const headerLeft = useCallback(
     () => (
@@ -176,7 +175,6 @@ const ManualBackupStep2 = ({
     setMissingWords(removed);
     setEmptySlots(emptySlotsIndexes);
     const sortedIndexes = emptySlotsIndexes.sort((a, b) => a - b);
-    setSortedSlots(emptySlotsIndexes.filter((_, i) => i !== 0));
     setSelectedSlot(sortedIndexes[0]);
   }, [words, showStatusBottomSheet]);
 
@@ -235,9 +233,6 @@ const ManualBackupStep2 = ({
         emptySlotsUpdated.find((slot) => slot > targetIndex) ||
         emptySlotsUpdated[0];
       setSelectedSlot(nextEmptySlot);
-      setSortedSlots(
-        emptySlotsUpdated.filter((slot) => slot !== nextEmptySlot),
-      );
     },
     [gridWords, missingWords, selectedSlot, emptySlots],
   );

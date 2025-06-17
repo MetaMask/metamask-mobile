@@ -241,6 +241,59 @@ describe('ManualBackupStep2', () => {
       mockNavigation.mockRestore();
     });
 
+    it('on deselect word, the slot should be empty again and focused', () => {
+      const { wrapper } = setupTest();
+
+      // Get missing words and grid items
+      const missingWords = wrapper.getAllByTestId(
+        `${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-0`,
+      );
+      const gridItems = wrapper.getAllByTestId(
+        ManualBackUpStepsSelectorsIDs.GRID_ITEM,
+      );
+
+      // First, select a word
+      fireEvent.press(missingWords[0]);
+
+      // Now press the same word again to deselect it
+      fireEvent.press(missingWords[0]);
+
+      // Find the empty slot by checking each grid item's style prop
+      const emptySlot = gridItems.find((item) =>
+        item.props.style.some(
+          (style: { backgroundColor?: string }) => style?.backgroundColor,
+        ),
+      );
+
+      expect(emptySlot).toBeTruthy();
+    });
+
+    it('maintains correct focus order when deselecting words', () => {
+      const { wrapper } = setupTest();
+
+      // Get all missing words
+      const missingWords = [0, 1, 2].map(
+        (i) =>
+          wrapper.getAllByTestId(
+            `${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-${i}`,
+          )[0],
+      );
+
+      // Select all three words
+      missingWords.forEach((word) => {
+        fireEvent.press(word);
+      });
+
+      // Deselect the second word
+      fireEvent.press(missingWords[1]);
+
+      // The second slot should now be focused
+      const gridItems = wrapper.getAllByTestId(
+        ManualBackUpStepsSelectorsIDs.GRID_ITEM,
+      );
+      expect(gridItems[1]).toHaveStyle({ backgroundColor: expect.any(String) }); // Check for focus style
+    });
+
     it('render SuccessErrorSheet with type error when seed phrase is invalid', () => {
       const { wrapper, mockNavigate, mockNavigation } = setupTest();
 
