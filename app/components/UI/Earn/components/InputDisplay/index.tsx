@@ -1,15 +1,27 @@
-import React, { useEffect, useRef } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
+import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow';
+import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import type { Colors } from '../../../../../util/theme/models';
-import CurrencyToggle from '../CurrencySwitch';
-import { useSelector } from 'react-redux';
+import { TokenI } from '../../../Tokens/types';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import useEarnTokens from '../../hooks/useEarnTokens';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import CurrencyToggle from '../CurrencySwitch';
+import FadeInView from '../FadeInView';
 
 export interface InputDisplayProps {
   isOverMaximum: {
@@ -18,21 +30,25 @@ export interface InputDisplayProps {
   };
   balanceText: string;
   balanceValue: string;
-  isNonZeroAmount: boolean;
+  asset: TokenI;
   isFiat: boolean;
-  ticker: string;
   amountToken: string;
   amountFiatNumber: string;
   currentCurrency: string;
   handleCurrencySwitch: () => void;
   currencyToggleValue: string;
+  maxWithdrawalAmount?: string;
+  error?: string;
 }
 
 const { View: AnimatedView } = Animated;
 
 const createStyles = (
   colors: Colors,
-  params: { isStablecoinLendingEnabled: boolean },
+  params: {
+    isStablecoinLendingEnabled: boolean;
+    shouldShowLendingMaxSafeWithdrawalMessage: boolean;
+  },
 ) =>
   StyleSheet.create({
     inputContainer: {
@@ -65,6 +81,20 @@ const createStyles = (
       opacity: 1,
       backgroundColor: colors.border.default,
     },
+    maxWithdrawalContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      // Using opacity instead of conditional rendering prevents UI shifting
+      opacity: params?.shouldShowLendingMaxSafeWithdrawalMessage ? 1 : 0,
+      // When using opacity, the elements is still interactive even if it's invisible.
+      // We want to prevent clicking when it's invisible
+      pointerEvents: params?.shouldShowLendingMaxSafeWithdrawalMessage
+        ? 'auto'
+        : 'none',
+    },
+    warningAndErrorMessagesContainer: {
+      alignItems: 'center',
+    },
   });
 
 const InputDisplay = ({
@@ -72,19 +102,53 @@ const InputDisplay = ({
   balanceText,
   balanceValue,
   isFiat,
-  ticker,
+  asset,
   amountToken,
   amountFiatNumber,
   currentCurrency,
   handleCurrencySwitch,
   currencyToggleValue,
+  maxWithdrawalAmount,
+  error,
 }: InputDisplayProps) => {
   const { colors } = useTheme();
+  const navigation = useNavigation();
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
-  const styles = createStyles(colors, { isStablecoinLendingEnabled });
+
+  const { getEarnToken, getOutputToken } = useEarnTokens();
+  const outputToken = getOutputToken(asset);
+  const earnToken = getEarnToken(asset);
+
+  const shouldShowLendingMaxSafeWithdrawalMessage = useMemo(() => {
+    if (earnToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING) {
+      return false;
+    }
+
+    if (!earnToken?.chainId) return false;
+
+    if (!outputToken) {
+      return false;
+    }
+
+    if (!maxWithdrawalAmount) return false;
+
+    return true;
+  }, [
+    earnToken?.chainId,
+    earnToken?.experience?.type,
+    maxWithdrawalAmount,
+    outputToken,
+  ]);
+
+  const styles = createStyles(colors, {
+    isStablecoinLendingEnabled,
+    shouldShowLendingMaxSafeWithdrawalMessage,
+  });
   const cursorOpacity = useRef(new Animated.Value(0.6)).current;
+
+  const ticker = asset.ticker ?? asset.symbol;
 
   useEffect(() => {
     const blinkAnimation = Animated.loop(
@@ -107,26 +171,62 @@ const InputDisplay = ({
     blinkAnimation.start();
   }, [cursorOpacity]);
 
-  const getBalanceText = () => {
+  const balanceInfo = useMemo(() => {
+    if (error) return error;
+
     if (isOverMaximum.isOverMaximumToken) {
       return strings('stake.not_enough_token', { ticker });
     }
     if (isOverMaximum.isOverMaximumEth) {
       return strings('stake.not_enough_eth');
     }
+
     if (isStablecoinLendingEnabled) return '\u00A0';
     return `${balanceText}: ${balanceValue}`;
-  };
+  }, [
+    balanceText,
+    balanceValue,
+    error,
+    isOverMaximum.isOverMaximumEth,
+    isOverMaximum.isOverMaximumToken,
+    isStablecoinLendingEnabled,
+    ticker,
+  ]);
 
-  const balanceInfo = getBalanceText();
+  const onNavigateToLendingMaxWithdrawModal = () => {
+    navigation.navigate(Routes.EARN.MODALS.ROOT, {
+      screen: Routes.EARN.MODALS.LENDING_MAX_WITHDRAWAL,
+    });
+  };
 
   return (
     <View style={styles.inputContainer}>
-      <View>
+      <View style={styles.warningAndErrorMessagesContainer}>
+        <FadeInView key={maxWithdrawalAmount}>
+          <View style={styles.maxWithdrawalContainer}>
+            <Text
+              variant={TextVariant.BodySMMedium}
+              color={TextColor.Alternative}
+            >
+              {`${maxWithdrawalAmount || 0} ${ticker} ${strings(
+                'earn.available_to_withdraw',
+              )}`}
+            </Text>
+            <ButtonIcon
+              size={TooltipSizes.Md}
+              iconColor={IconColor.Alternative}
+              iconName={IconName.Question}
+              onPress={onNavigateToLendingMaxWithdrawModal}
+            />
+          </View>
+        </FadeInView>
+
         <Text
           variant={TextVariant.BodySM}
           color={
-            isOverMaximum.isOverMaximumToken || isOverMaximum.isOverMaximumEth
+            isOverMaximum.isOverMaximumToken ||
+            isOverMaximum.isOverMaximumEth ||
+            error
               ? TextColor.Error
               : undefined
           }

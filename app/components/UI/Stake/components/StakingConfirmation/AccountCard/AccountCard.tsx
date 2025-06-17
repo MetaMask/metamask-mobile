@@ -24,6 +24,7 @@ const AccountCard = ({
   contractName,
   primaryLabel,
   secondaryLabel,
+  chainId,
 }: AccountCardProps) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -35,11 +36,11 @@ const AccountCard = ({
     (state: RootState) => state.settings.useBlockieIcon,
   );
 
-  const { vaultMetadata } = useVaultMetadata();
+  const { vaultMetadata } = useVaultMetadata(chainId);
 
   return (
     <View>
-      <Card style={styles.cardGroupTop} disabled>
+      <Card testID="account-card" style={styles.cardGroupTop} disabled>
         {account && (
           <KeyValueRow
             field={{ label: { text: primaryLabel } }}

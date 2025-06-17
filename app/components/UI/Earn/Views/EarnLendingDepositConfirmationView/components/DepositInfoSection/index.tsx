@@ -14,8 +14,8 @@ import ContractTag from '../../../../../Stake/components/StakingConfirmation/Con
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../../../reducers';
 import { TokenI } from '../../../../../Tokens/types';
-import { useEarnTokenDetails } from '../../../../hooks/useEarnTokenDetails';
 import { strings } from '../../../../../../../../locales/i18n';
+import useEarnTokens from '../../../../hooks/useEarnTokens';
 
 export const DEPOSIT_DETAILS_SECTION_TEST_ID = 'depositDetailsSection';
 
@@ -23,22 +23,16 @@ export interface DepositInfoSectionProps {
   token: TokenI;
   lendingContractAddress: string;
   lendingProtocol: string;
+  amountTokenMinimalUnit: string;
+  amountFiatNumber: number;
 }
-
-// TODO: Replace mock data with actual values before launch
-export const MOCK_DATA_TO_REPLACE = {
-  EST_ANNUAL_REWARD: {
-    FIAT: '$5.00',
-    TOKEN: '5 DAI',
-  },
-  REWARD_FREQUENCY: strings('earn.every_minute'),
-  WITHDRAWAL_TIME: strings('earn.immediate'),
-};
 
 const DepositInfoSection = ({
   token,
   lendingContractAddress,
   lendingProtocol,
+  amountTokenMinimalUnit,
+  amountFiatNumber,
 }: DepositInfoSectionProps) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -46,8 +40,16 @@ const DepositInfoSection = ({
     (state: RootState) => state.settings.useBlockieIcon,
   );
 
-  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
-  const earnToken = getTokenWithBalanceAndApr(token);
+  const { getEarnToken, getEstimatedAnnualRewardsForAmount } = useEarnTokens();
+  const earnToken = getEarnToken(token);
+
+  if (!earnToken) return null;
+
+  const estimatedAnnualRewardsForAmount = getEstimatedAnnualRewardsForAmount(
+    earnToken,
+    amountTokenMinimalUnit,
+    amountFiatNumber,
+  );
 
   return (
     <InfoSection testID={DEPOSIT_DETAILS_SECTION_TEST_ID}>
@@ -71,7 +73,7 @@ const DepositInfoSection = ({
           }}
           value={{
             label: {
-              text: `${earnToken.apr}%`,
+              text: `${earnToken?.experience?.apr}%`,
               variant: TextVariant.BodyMD,
               color: TextColor.Success,
             },
@@ -86,9 +88,15 @@ const DepositInfoSection = ({
           value={{
             label: (
               <View style={styles.estAnnualReward}>
-                <Text>{MOCK_DATA_TO_REPLACE.EST_ANNUAL_REWARD.FIAT}</Text>
+                <Text>
+                  {
+                    estimatedAnnualRewardsForAmount?.estimatedAnnualRewardsFormatted
+                  }
+                </Text>
                 <Text color={TextColor.Alternative}>
-                  {MOCK_DATA_TO_REPLACE.EST_ANNUAL_REWARD.TOKEN}
+                  {
+                    estimatedAnnualRewardsForAmount?.estimatedAnnualRewardsTokenFormatted
+                  }
                 </Text>
               </View>
             ),
@@ -107,7 +115,7 @@ const DepositInfoSection = ({
           }}
           value={{
             label: {
-              text: MOCK_DATA_TO_REPLACE.REWARD_FREQUENCY,
+              text: strings('earn.every_minute'),
               variant: TextVariant.BodyMD,
             },
           }}
@@ -125,7 +133,7 @@ const DepositInfoSection = ({
           }}
           value={{
             label: {
-              text: MOCK_DATA_TO_REPLACE.WITHDRAWAL_TIME,
+              text: strings('earn.immediate'),
               variant: TextVariant.BodyMD,
             },
           }}
