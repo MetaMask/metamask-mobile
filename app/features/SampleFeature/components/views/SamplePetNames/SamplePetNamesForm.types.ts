@@ -12,7 +12,7 @@ import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
  * @sampleFeature do not use in production code
  */
 export interface SamplePetNamesFormContentProps {
-  chainId: SupportedCaipChainId | Hex;
-  initialAddress: string;
-  initialName: string;
+  readonly chainId: SupportedCaipChainId | Hex;
+  readonly initialAddress: string;
+  readonly initialName: string;
 }

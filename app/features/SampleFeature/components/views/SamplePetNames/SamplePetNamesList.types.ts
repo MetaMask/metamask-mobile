@@ -11,6 +11,6 @@ import { Hex } from '@metamask/utils';
  * @sampleFeature do not use in production code
  */
 export interface SamplePetNamesListProps {
-  chainId: SupportedCaipChainId | Hex;
-  onAccountPress: (params: { address: string; name: string }) => void;
+  readonly chainId: SupportedCaipChainId | Hex;
+  readonly onAccountPress: (params: { address: string; name: string }) => void;
 }

@@ -14,8 +14,8 @@ import styleSheet from './SampleNetworkDisplay.styles';
  * @sampleFeature do not use in production code
  */
 interface SampleNetworkDisplayProps {
-  name: string;
-  imageSource: ImageSourcePropType;
+  readonly name: string;
+  readonly imageSource: ImageSourcePropType;
 }
 
 /**
@@ -50,7 +50,7 @@ interface SampleNetworkDisplayProps {
 export function SampleNetworkDisplay({
   name,
   imageSource,
-}: SampleNetworkDisplayProps) {
+}: Readonly<SampleNetworkDisplayProps>) {
   const { styles } = useStyles(styleSheet, {});
   return (
     <View style={styles.container}>
