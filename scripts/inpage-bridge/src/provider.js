@@ -10,7 +10,11 @@ const CONTENT_SCRIPT = 'metamask-contentscript';
 const PROVIDER = 'metamask-provider';
 const MULTICHAIN_PROVIDER = 'metamask-multichain-provider';
 
-let METAMASK_CONNECT_SENT;
+// Flag that tracks if the inpage provider has been notified that
+// the wallet background ready to receive requests and that the
+// inpage provider should retry and pending requests it has not
+// yet received a response for.
+let metamaskConnectSent;
 
 // Setup stream for content script communication
 const metamaskStream = new ReactNativePostMessageStream({
@@ -126,16 +130,15 @@ function logStreamDisconnectWarning(remoteLabel, err) {
  */
 function backgroundBridgeStreamMessageListener(msg) {
   if (
-    !METAMASK_CONNECT_SENT &&
+    !metamaskConnectSent &&
     msg.data.method === 'metamask_chainChanged'
   ) {
-    METAMASK_CONNECT_SENT = true;
+    metamaskConnectSent = true;
     window.postMessage(
       {
-        target: INPAGE, // the post-message-stream "target"
+        target: INPAGE,
         data: {
-          // this object gets passed to object-multiplex
-          name: PROVIDER, // the object-multiplex channel name
+          name: PROVIDER,
           data: {
             jsonrpc: '2.0',
             method: 'METAMASK_EXTENSION_CONNECT_CAN_RETRY',
