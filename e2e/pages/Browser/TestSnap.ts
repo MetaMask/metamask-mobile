@@ -1,4 +1,4 @@
-import enContent from '../../../locales/languages/en.json';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Browser from './BrowserView';
 import Matchers from '../../utils/Matchers';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
@@ -712,22 +712,19 @@ class TestSnaps {
 
   // Method to get text from BIP44 result span
   async getBip44ResultText() {
-    const element = await this.getBip44ResultSpan;
-    return await element.getText();
+    const webElement = await this.getBip44ResultSpan;
+    return await (webElement as any).getText();
   }
 
   async getSignBip44MessageResultText() {
-    const element = await this.getSignBip44MessageResultSpan;
-    return await element.getText();
+    const webElement = await this.getSignBip44MessageResultSpan;
+    return await (webElement as any).getText();
   }
 
-  async getBip32PublicKeyResultText() {
-    const element = await this.getBip32PublicKeyResultSpan;
-    return await element.getText();
-  }
+  
 
-  async typeSignMessage(message) {
-    await Gestures.typeInWebElement(this.getMessageBip44Input, message);
+  async typeSignMessage(message: any) {
+    await Gestures.typeInWebElement(this.getMessageBip44Input as any, message);
   }
 
   // Methods
@@ -735,7 +732,7 @@ class TestSnaps {
     await Browser.navigateToURL(TEST_SNAPS_URL);
   }
 
-  async tapButton(elementId) {
+  async tapButton(elementId: any) {
     await Gestures.scrollToWebViewPort(elementId);
     await TestHelpers.delay(1000);
     await Gestures.tapWebElement(elementId);
