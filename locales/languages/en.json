@@ -4312,7 +4312,7 @@
     },
     "smart_account": {
       "title": "Enable Smart Account",
-      "description": "You can enable smart account features on supported networks. {{learnMore}}",
+      "description": "You can enable smart account features on supported networks.",
       "learn_more": "Learn more"
     },
     "edit_account_name": {
