@@ -393,7 +393,7 @@ class Onboarding extends PureComponent {
           onboardingTraceCtx: this.onboardingTraceCtx,
         },
       );
-      this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
+      this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
     };
     this.handleExistingUser(action);
   };
