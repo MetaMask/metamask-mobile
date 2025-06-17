@@ -45,7 +45,7 @@ async function main(): Promise<void> {
   const removeAndApplyInstructions = `Remove and re-apply the "${e2eLabel}" label to trigger a E2E smoke test on Bitrise.`;
   const mergeFromMainCommitMessagePrefix = `Merge branch 'main' into`;
   const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${pullRequestNumber}`;
-  const statusCheckName = 'Bitrise E2E Status';
+  const statusCheckName = process.env.STATUS_CHECK_NAME || 'Bitrise E2E Status';
   const statusCheckTitle = 'Bitrise E2E Smoke Test Run';
 
   // Define Bitrise comment tags
