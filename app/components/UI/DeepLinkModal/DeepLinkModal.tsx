@@ -120,8 +120,8 @@ const DeepLinkModal = () => {
                     })
                     .build(),
             );
+            onContinue?.();
         });
-        onContinue?.();
     }, [trackEvent, createEventBuilder, linkType, onContinue, pageTitle, LINK_TYPE_MAP]);
 
     const onDontRemindMeAgainPressed = useCallback(() => {
