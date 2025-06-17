@@ -52,3 +52,43 @@ export const uint8ArrayToMnemonic = (
 
   return recoveredIndices.map((i) => wordlist[i]).join(' ');
 };
+
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
+
+/**
+ * Checks if a word is a valid BIP-39 English seed word.
+ * @param word - The word to check.
+ * @returns True if valid, false otherwise.
+ */
+export const checkValidSeedWord = (word: string): boolean =>
+  wordlist.includes(word);
+
+/**
+ * Generate an array of unique random numbers within a range.
+ * @param min - Minimum value (inclusive).
+ * @param max - Maximum value (inclusive).
+ * @param count - Number of unique random numbers to generate.
+ * @returns Array of unique random numbers.
+ */
+export const generateRandomNumbers = (
+  min: number,
+  max: number,
+  count: number,
+): number[] => {
+  const numbers: number[] = [];
+  const availableNumbers = Array.from(
+    { length: max - min + 1 },
+    (_, i) => i + min,
+  );
+  for (let i = 0; i < count; i++) {
+    const randomIndex = Math.floor(Math.random() * availableNumbers.length);
+    numbers.push(availableNumbers[randomIndex]);
+    availableNumbers.splice(randomIndex, 1); // Remove to avoid duplicates
+  }
+  return numbers;
+};
+
+/**
+ * Type for mapping seed phrase word indexes to error states.
+ */
+export type SeedPhraseErrorIndexes = Record<number, boolean>;

@@ -4,30 +4,11 @@ import { View } from 'react-native';
 import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
+import { generateRandomNumbers } from '../../../util/mnemonic';
 
 interface SeedPhraseRevealProps {
   seedPhrase: string[];
 }
-
-const generateRandomNumbers = (
-  min: number,
-  max: number,
-  count: number,
-): number[] => {
-  const numbers: number[] = [];
-  const availableNumbers = Array.from(
-    { length: max - min + 1 },
-    (_, i) => i + min,
-  );
-
-  for (let i = 0; i < count; i++) {
-    const randomIndex = Math.floor(Math.random() * availableNumbers.length);
-    numbers.push(availableNumbers[randomIndex]);
-    availableNumbers.splice(randomIndex, 1); // Remove to avoid duplicates
-  }
-
-  return numbers;
-};
 
 export const SeedPhraseRecall = ({ seedPhrase }: SeedPhraseRevealProps) => {
   const [randomWordIndexes] = useState(

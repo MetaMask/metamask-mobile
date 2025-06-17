@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import createStyles from './SeedPhraseGrid.style';
 import { useTheme } from '../../../util/theme';
-import { FlatList, View } from 'react-native';
+import { FlatList, View, TextInput } from 'react-native';
 import {
   NUM_COLUMNS,
   SPACE_CHAR,
@@ -14,40 +14,48 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
+import {
+  checkValidSeedWord,
+  SeedPhraseErrorIndexes,
+} from '../../../util/mnemonic';
 
 interface SeedPhraseGridProps {
   seedPhrase: string[];
   setSeedPhrase: (seedPhrase: string[]) => void;
   isEditable: boolean;
   canShowSeedPhraseWord: (index: number) => boolean;
-  hideSeedPhraseInput: boolean;
-  showAllSeedPhrase: boolean;
+  onErrorChange?: (
+    hasErrors: boolean,
+    errorIndexes: SeedPhraseErrorIndexes,
+  ) => void;
+  onFocusChange?: (focusedIndex: number) => void;
 }
-
-const checkValidSeedWord = (text: string) => wordlist.includes(text);
 
 export const SeedPhraseGrid = ({
   seedPhrase,
   setSeedPhrase,
   isEditable,
   canShowSeedPhraseWord,
-  hideSeedPhraseInput,
-  showAllSeedPhrase,
+  onErrorChange,
+  onFocusChange,
 }: SeedPhraseGridProps) => {
-  const seedPhraseInputRefs = useRef([]);
-  const { colors, themeAppearance } = useTheme();
+  const seedPhraseInputRefs = useRef<React.RefObject<TextInput>[]>(
+    Array(seedPhrase.length)
+      .fill(null)
+      .map(() => React.createRef<TextInput>()),
+  );
+  const { colors } = useTheme();
   const styles = createStyles(colors);
-  const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
-  const [containerWidth, setContainerWidth] = useState(0);
+  const [containerWidth, setContainerWidth] = useState<number>(0);
   const [seedPhraseInputFocusedIndex, setSeedPhraseInputFocusedIndex] =
-    useState(0);
+    useState<number>(0);
   const [nextSeedPhraseInputFocusedIndex, setNextSeedPhraseInputFocusedIndex] =
-    useState(0);
-  const [errorWordIndexes, setErrorWordIndexes] = useState({});
+    useState<number>(0);
+  const [errorWordIndexes, setErrorWordIndexes] =
+    useState<SeedPhraseErrorIndexes>({});
 
   const handleLayout = (event: {
-    nativeEvent: { layout: { width: React.SetStateAction<number> } };
+    nativeEvent: { layout: { width: number } };
   }) => {
     setContainerWidth(event.nativeEvent.layout.width);
   };
@@ -66,48 +74,40 @@ export const SeedPhraseGrid = ({
         }));
       }
       setSeedPhraseInputFocusedIndex(index);
+      if (onFocusChange) {
+        onFocusChange(index);
+      }
     },
-    [setSeedPhraseInputFocusedIndex, seedPhrase, seedPhraseInputFocusedIndex],
+    [seedPhrase, seedPhraseInputFocusedIndex, onFocusChange],
   );
 
   const handleSeedPhraseChange = useCallback(
     (text: string, index: number) => {
       if (text.includes(SPACE_CHAR)) {
         const isEndWithSpace = text.at(-1) === SPACE_CHAR;
-        // handle use pasting multiple words / whole seed phrase separated by spaces
         const splitArray = text.trim().split(' ');
-
-        const currentErrorWordIndexes = { ...errorWordIndexes };
-        splitArray.reduce((acc, x, currentIndex) => {
-          if (checkValidSeedWord(x)) {
-            currentErrorWordIndexes[index + currentIndex] = false;
-          } else {
-            currentErrorWordIndexes[index + currentIndex] = true;
-          }
-          return acc;
-        }, []);
-
-        setSeedPhrase((prev) => {
-          const endSlices = prev.slice(index + 1);
-          if (endSlices.length === 0 && isEndWithSpace) {
-            endSlices.push('');
-          } else if (isEndWithSpace) {
-            endSlices.unshift('');
-          }
-
-          return [...prev.slice(0, index), ...splitArray, ...endSlices];
-          // input the array into the correct index
+        const currentErrorWordIndexes: SeedPhraseErrorIndexes = {
+          ...errorWordIndexes,
+        };
+        splitArray.forEach((x, currentIndex) => {
+          currentErrorWordIndexes[index + currentIndex] =
+            !checkValidSeedWord(x);
         });
-
+        const prev = seedPhrase;
+        const endSlices = prev.slice(index + 1);
+        if (endSlices.length === 0 && isEndWithSpace) {
+          endSlices.push('');
+        } else if (isEndWithSpace) {
+          endSlices.unshift('');
+        }
+        setSeedPhrase([...prev.slice(0, index), ...splitArray, ...endSlices]);
         setErrorWordIndexes(currentErrorWordIndexes);
         setNextSeedPhraseInputFocusedIndex(index + splitArray.length);
       } else {
-        setSeedPhrase((prev) => {
-          // update the word at the correct index
-          const newSeedPhrase = [...prev];
-          newSeedPhrase[index] = text.trim();
-          return newSeedPhrase;
-        });
+        const prev = seedPhrase;
+        const newSeedPhrase = [...prev];
+        newSeedPhrase[index] = text.trim();
+        setSeedPhrase(newSeedPhrase);
       }
     },
     [
@@ -115,17 +115,26 @@ export const SeedPhraseGrid = ({
       setNextSeedPhraseInputFocusedIndex,
       setErrorWordIndexes,
       errorWordIndexes,
+      seedPhrase,
     ],
   );
 
   useEffect(() => {
-    seedPhraseInputRefs.current[nextSeedPhraseInputFocusedIndex]?.focus();
+    seedPhraseInputRefs.current[
+      nextSeedPhraseInputFocusedIndex
+    ]?.current?.focus();
   }, [nextSeedPhraseInputFocusedIndex]);
+
+  useEffect(() => {
+    if (onErrorChange) {
+      const hasErrors = Object.values(errorWordIndexes).some((value) => value);
+      onErrorChange(hasErrors, errorWordIndexes);
+    }
+  }, [errorWordIndexes, onErrorChange]);
 
   const handleKeyPress = (
     e: { nativeEvent: { key: string } },
     index: number,
-    enterPressed = false,
   ) => {
     const { key } = e.nativeEvent;
     if (key === 'Backspace') {
@@ -155,9 +164,7 @@ export const SeedPhraseGrid = ({
             ]}
           >
             <TextField
-              ref={(ref) => {
-                seedPhraseInputRefs.current[index] = ref;
-              }}
+              ref={seedPhraseInputRefs.current[index]}
               startAccessory={
                 <Text
                   variant={TextVariant.BodyMD}
@@ -170,29 +177,18 @@ export const SeedPhraseGrid = ({
               isReadonly={!isEditable}
               value={item}
               secureTextEntry={!canShowSeedPhraseWord(index)}
-              onFocus={(e) => {
-                if (e?.target && e?.currentTarget?.setNativeProps) {
-                  e?.currentTarget?.setNativeProps({
-                    selection: {
-                      start: e?.target?.value?.length ?? 0,
-                      end: e?.target?.value?.length ?? 0,
-                    },
-                  });
-                }
-                handleOnFocus(index);
-              }}
-              onChangeText={(text) => handleSeedPhraseChange(text, index)}
+              onFocus={() => handleOnFocus(index)}
+              onChangeText={(text: string) =>
+                handleSeedPhraseChange(text, index)
+              }
               placeholderTextColor={colors.text.muted}
-              onSubmitEditing={(e) => {
-                handleKeyPress(e, index, true);
-              }}
               onKeyPress={(e) => handleKeyPress(e, index)}
               size={TextFieldSize.Md}
               style={[styles.input]}
               autoComplete="off"
               textAlignVertical="center"
               showSoftInputOnFocus
-              isError={errorWordIndexes[index]}
+              isError={!!errorWordIndexes[index]}
               autoCapitalize="none"
               numberOfLines={1}
               autoFocus={index === seedPhrase.length - 1}

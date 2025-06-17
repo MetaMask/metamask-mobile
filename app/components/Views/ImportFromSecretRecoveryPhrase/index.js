@@ -12,7 +12,6 @@ import {
   View,
   TextInput,
   SafeAreaView,
-  FlatList,
   TouchableOpacity,
 } from 'react-native';
 import { connect } from 'react-redux';
@@ -82,19 +81,17 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
-import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import {
   SRP_LENGTHS,
-  NUM_COLUMNS,
-  SPACE_CHAR,
   PASSCODE_NOT_SET_ERROR,
   IOS_REJECTED_BIOMETRICS_ERROR,
 } from './constant';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
-
-const checkValidSeedWord = (text) => wordlist.includes(text);
+import { SeedPhraseGrid } from '../SeedPhraseGrid/SeedPhraseGrid';
+import { SeedPhraseReveal } from '../SeedPhraseGrid/SeedPhraseReveal';
+import { SeedPhraseRecall } from '../SeedPhraseGrid/SeedPhraseRecall';
 
 /**
  * View where users can set restore their account
@@ -113,7 +110,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
-  const seedPhraseInputRefs = useRef([]);
   const confirmPasswordInput = useRef();
 
   const { toastRef } = useContext(ToastContext);
@@ -128,15 +124,12 @@ const ImportFromSecretRecoveryPhrase = ({
   const [error, setError] = useState('');
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
   const [seedPhrase, setSeedPhrase] = useState([]);
-  const [seedPhraseInputFocusedIndex, setSeedPhraseInputFocusedIndex] =
-    useState(0);
-  const [nextSeedPhraseInputFocusedIndex, setNextSeedPhraseInputFocusedIndex] =
-    useState(0);
   const [showAllSeedPhrase, setShowAllSeedPhrase] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
-  const [containerWidth, setContainerWidth] = useState(0);
+  const [seedPhraseInputFocusedIndex, setSeedPhraseInputFocusedIndex] =
+    useState(0);
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
     onTransactionComplete: false,
@@ -149,42 +142,23 @@ const ImportFromSecretRecoveryPhrase = ({
     [seedPhraseLength],
   );
 
-  const handleLayout = (event) => {
-    setContainerWidth(event.nativeEvent.layout.width);
-  };
-
   const track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
     trackOnboarding(eventBuilder.build(), dispatchSaveOnboardingEvent);
   };
 
-  const [errorWordIndexes, setErrorWordIndexes] = useState({});
-
   const handleClear = useCallback(() => {
     setSeedPhrase([]);
-    setErrorWordIndexes({});
     setShowAllSeedPhrase(false);
     setError('');
   }, []);
 
   const handleSeedPhraseChange = useCallback(
     (text, index) => {
-      if (text.includes(SPACE_CHAR)) {
-        const isEndWithSpace = text.at(-1) === SPACE_CHAR;
-        // handle use pasting multiple words / whole seed phrase separated by spaces
+      if (text.includes(' ')) {
+        const isEndWithSpace = text.at(-1) === ' ';
         const splitArray = text.trim().split(' ');
-
-        const currentErrorWordIndexes = { ...errorWordIndexes };
-        splitArray.reduce((acc, x, currentIndex) => {
-          if (checkValidSeedWord(x)) {
-            currentErrorWordIndexes[index + currentIndex] = false;
-          } else {
-            currentErrorWordIndexes[index + currentIndex] = true;
-          }
-          return acc;
-        }, []);
-
         setSeedPhrase((prev) => {
           const endSlices = prev.slice(index + 1);
           if (endSlices.length === 0 && isEndWithSpace) {
@@ -192,28 +166,17 @@ const ImportFromSecretRecoveryPhrase = ({
           } else if (isEndWithSpace) {
             endSlices.unshift('');
           }
-
           return [...prev.slice(0, index), ...splitArray, ...endSlices];
-          // input the array into the correct index
         });
-
-        setErrorWordIndexes(currentErrorWordIndexes);
-        setNextSeedPhraseInputFocusedIndex(index + splitArray.length);
       } else {
         setSeedPhrase((prev) => {
-          // update the word at the correct index
           const newSeedPhrase = [...prev];
           newSeedPhrase[index] = text.trim();
           return newSeedPhrase;
         });
       }
     },
-    [
-      setSeedPhrase,
-      setNextSeedPhraseInputFocusedIndex,
-      setErrorWordIndexes,
-      errorWordIndexes,
-    ],
+    [setSeedPhrase],
   );
 
   const onQrCodePress = useCallback(() => {
@@ -244,47 +207,53 @@ const ImportFromSecretRecoveryPhrase = ({
     });
   }, [hideSeedPhraseInput, navigation, handleClear, handleSeedPhraseChange]);
 
-  const onBackPress = () => {
+  const onBackPress = useCallback(() => {
     if (currentStep === 0) {
       navigation.goBack();
     } else {
       setCurrentStep(currentStep - 1);
     }
-  };
+  }, [currentStep, navigation]);
 
-  const headerLeft = () => (
-    <TouchableOpacity
-      onPress={onBackPress}
-      testID={ImportFromSeedSelectorsIDs.BACK_BUTTON_ID}
-    >
-      <Icon
-        name={IconName.ArrowLeft}
-        size={24}
-        color={colors.text.default}
-        style={styles.headerLeft}
-      />
-    </TouchableOpacity>
-  );
-
-  const headerRight = () =>
-    currentStep === 0 ? (
+  const headerLeft = useCallback(
+    () => (
       <TouchableOpacity
-        onPress={onQrCodePress}
-        testID={ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID}
+        onPress={onBackPress}
+        testID={ImportFromSeedSelectorsIDs.BACK_BUTTON_ID}
       >
         <Icon
-          name={IconName.Scan}
+          name={IconName.ArrowLeft}
           size={24}
           color={colors.text.default}
-          onPress={onQrCodePress}
-          style={styles.headerRight}
+          style={styles.headerLeft}
         />
       </TouchableOpacity>
-    ) : (
-      <View />
-    );
+    ),
+    [onBackPress, colors.text.default, styles.headerLeft],
+  );
 
-  const updateNavBar = () => {
+  const headerRight = useCallback(
+    () =>
+      currentStep === 0 ? (
+        <TouchableOpacity
+          onPress={onQrCodePress}
+          testID={ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID}
+        >
+          <Icon
+            name={IconName.Scan}
+            size={24}
+            color={colors.text.default}
+            onPress={onQrCodePress}
+            style={styles.headerRight}
+          />
+        </TouchableOpacity>
+      ) : (
+        <View />
+      ),
+    [currentStep, onQrCodePress, colors.text.default, styles.headerRight],
+  );
+
+  const updateNavBar = useCallback(() => {
     navigation.setOptions(
       getOnboardingNavbarOptions(
         route,
@@ -296,7 +265,7 @@ const ImportFromSecretRecoveryPhrase = ({
         false,
       ),
     );
-  };
+  }, [navigation, route, colors, headerLeft, headerRight]);
 
   useEffect(() => {
     updateNavBar();
@@ -320,9 +289,7 @@ const ImportFromSecretRecoveryPhrase = ({
     };
 
     setBiometricsOption();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStep]);
+  }, [currentStep, updateNavBar]);
 
   const termsOfUse = useCallback(async () => {
     if (navigation) {
@@ -339,10 +306,6 @@ const ImportFromSecretRecoveryPhrase = ({
     setBiometryChoice(biometryChoice);
   };
 
-  /**
-   * This function handles the case when the user rejects the OS prompt for allowing use of biometrics.
-   * If this occurs we will create the wallet automatically with password as the login method
-   */
   const handleRejectedOsBiometricPrompt = async (parsedSeed) => {
     const newAuthData = await Authentication.componentAuthenticationType(
       false,
@@ -394,22 +357,9 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
-  const handleKeyPress = (e, index, enterPressed = false) => {
-    const { key } = e.nativeEvent;
-    if (key === 'Backspace') {
-      if (seedPhrase[index] === '') {
-        if (index > 0) {
-          setNextSeedPhraseInputFocusedIndex(index - 1);
-        }
-        const newData = seedPhrase.filter((_, idx) => idx !== index);
-        setSeedPhrase(newData);
-      }
-    }
-  };
-
   const handlePaste = useCallback(
     async (focusedIndex) => {
-      const text = await Clipboard.getString(); // Get copied text
+      const text = await Clipboard.getString();
       if (text.trim() !== '') {
         handleSeedPhraseChange(text, focusedIndex);
       }
@@ -510,11 +460,9 @@ const ImportFromSecretRecoveryPhrase = ({
             true,
           );
         } catch (err) {
-          // retry faceID if the user cancels the
           if (Device.isIos && err.toString() === IOS_REJECTED_BIOMETRICS_ERROR)
             await handleRejectedOsBiometricPrompt(parsedSeed);
         }
-        // Get onboarding wizard state
         const onboardingWizard = await StorageWrapper.getItem(
           ONBOARDING_WIZARD,
         );
@@ -536,7 +484,6 @@ const ImportFromSecretRecoveryPhrase = ({
           routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
         });
       } catch (error) {
-        // Should we force people to enable passcode / biometrics?
         if (error.toString() === PASSCODE_NOT_SET_ERROR) {
           Alert.alert(
             'Security Alert',
@@ -565,12 +512,21 @@ const ImportFromSecretRecoveryPhrase = ({
     });
   };
 
+  const handleSeedPhraseError = useCallback((hasErrors, errorIndexes) => {
+    if (hasErrors) {
+      setError(strings('import_from_seed.spellcheck_error'));
+    } else {
+      setError('');
+    }
+  }, []);
+
+  const handleSeedPhraseFocus = useCallback((focusedIndex) => {
+    setSeedPhraseInputFocusedIndex(focusedIndex);
+  }, []);
+
   const canShowSeedPhraseWord = useCallback(
-    (index) =>
-      showAllSeedPhrase ||
-      errorWordIndexes[index] ||
-      index === seedPhraseInputFocusedIndex,
-    [showAllSeedPhrase, errorWordIndexes, seedPhraseInputFocusedIndex],
+    (index) => showAllSeedPhrase || index === seedPhraseInputFocusedIndex,
+    [showAllSeedPhrase, seedPhraseInputFocusedIndex],
   );
 
   const learnMoreLink = () => {
@@ -582,36 +538,6 @@ const ImportFromSecretRecoveryPhrase = ({
       },
     });
   };
-
-  useEffect(() => {
-    if (Object.values(errorWordIndexes).some((value) => value)) {
-      setError(strings('import_from_seed.spellcheck_error'));
-    } else {
-      setError('');
-    }
-  }, [errorWordIndexes]);
-
-  useEffect(() => {
-    seedPhraseInputRefs.current[nextSeedPhraseInputFocusedIndex]?.focus();
-  }, [nextSeedPhraseInputFocusedIndex]);
-
-  const handleOnFocus = useCallback(
-    (index) => {
-      if (!checkValidSeedWord(seedPhrase[seedPhraseInputFocusedIndex])) {
-        setErrorWordIndexes((prev) => ({
-          ...prev,
-          [seedPhraseInputFocusedIndex]: true,
-        }));
-      } else {
-        setErrorWordIndexes((prev) => ({
-          ...prev,
-          [seedPhraseInputFocusedIndex]: false,
-        }));
-      }
-      setSeedPhraseInputFocusedIndex(index);
-    },
-    [setSeedPhraseInputFocusedIndex, seedPhrase, seedPhraseInputFocusedIndex],
-  );
 
   return (
     <SafeAreaView style={styles.root}>
@@ -658,9 +584,6 @@ const ImportFromSecretRecoveryPhrase = ({
                     <View style={styles.seedPhraseInnerContainer}>
                       {seedPhrase.length <= 1 ? (
                         <TextInput
-                          ref={(ref) => {
-                            seedPhraseInputRefs.current[0] = ref;
-                          }}
                           textAlignVertical="top"
                           label={strings('import_from_seed.srp')}
                           placeholder={strings(
@@ -677,7 +600,6 @@ const ImportFromSecretRecoveryPhrase = ({
                           }
                           multiline
                           autoFocus
-                          onKeyPress={(e) => handleKeyPress(e, 0)}
                           autoComplete="off"
                           blurOnSubmit={false}
                           autoCapitalize="none"
@@ -686,77 +608,14 @@ const ImportFromSecretRecoveryPhrase = ({
                           }
                         />
                       ) : (
-                        <View
-                          style={[styles.seedPhraseInputContainer]}
-                          onLayout={handleLayout}
-                        >
-                          <FlatList
-                            data={seedPhrase}
-                            numColumns={NUM_COLUMNS}
-                            keyExtractor={(_, index) => index.toString()}
-                            renderItem={({ item, index }) => (
-                              <View
-                                style={[
-                                  {
-                                    width: containerWidth / NUM_COLUMNS,
-                                  },
-                                  styles.inputPadding,
-                                ]}
-                              >
-                                <TextField
-                                  ref={(ref) => {
-                                    seedPhraseInputRefs.current[index] = ref;
-                                  }}
-                                  startAccessory={
-                                    <Text
-                                      variant={TextVariant.BodyMD}
-                                      color={TextColor.Alternative}
-                                      style={styles.inputIndex}
-                                    >
-                                      {index + 1}.
-                                    </Text>
-                                  }
-                                  value={item}
-                                  secureTextEntry={
-                                    !canShowSeedPhraseWord(index)
-                                  }
-                                  onFocus={(e) => {
-                                    if (
-                                      e?.target &&
-                                      e?.currentTarget?.setNativeProps
-                                    ) {
-                                      e?.currentTarget?.setNativeProps({
-                                        selection: {
-                                          start: e?.target?.value?.length ?? 0,
-                                          end: e?.target?.value?.length ?? 0,
-                                        },
-                                      });
-                                    }
-                                    handleOnFocus(index);
-                                  }}
-                                  onChangeText={(text) =>
-                                    handleSeedPhraseChange(text, index)
-                                  }
-                                  placeholderTextColor={colors.text.muted}
-                                  onSubmitEditing={(e) => {
-                                    handleKeyPress(e, index, true);
-                                  }}
-                                  onKeyPress={(e) => handleKeyPress(e, index)}
-                                  size={TextFieldSize.Md}
-                                  style={[styles.input]}
-                                  autoComplete="off"
-                                  textAlignVertical="center"
-                                  showSoftInputOnFocus
-                                  isError={errorWordIndexes[index]}
-                                  autoCapitalize="none"
-                                  numberOfLines={1}
-                                  autoFocus={index === seedPhrase.length - 1}
-                                  testID={`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`}
-                                />
-                              </View>
-                            )}
-                          />
-                        </View>
+                        <SeedPhraseGrid
+                          seedPhrase={seedPhrase}
+                          setSeedPhrase={setSeedPhrase}
+                          isEditable
+                          canShowSeedPhraseWord={canShowSeedPhraseWord}
+                          onErrorChange={handleSeedPhraseError}
+                          onFocusChange={handleSeedPhraseFocus}
+                        />
                       )}
                     </View>
                     <View style={styles.seedPhraseContainerCta}>
@@ -783,12 +642,20 @@ const ImportFromSecretRecoveryPhrase = ({
                           if (seedPhrase.length > 1) {
                             handleClear();
                           } else {
-                            handlePaste(seedPhraseInputFocusedIndex);
+                            handlePaste(0);
                           }
                         }}
                         width={ButtonWidthTypes.Full}
                       />
                     </View>
+                    <SeedPhraseReveal
+                      seedPhrase={seedPhrase}
+                      setSeedPhrase={setSeedPhrase}
+                    />
+                    <SeedPhraseRecall
+                      seedPhrase={seedPhrase}
+                      setSeedPhrase={setSeedPhrase}
+                    />
                   </View>
                   {error !== '' && (
                     <Text
