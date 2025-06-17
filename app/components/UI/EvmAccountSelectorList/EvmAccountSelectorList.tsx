@@ -1,23 +1,14 @@
 // Third party dependencies.
 import React, { useCallback, useRef, useMemo } from 'react';
-import {
-  Alert,
-  InteractionManager,
-  ListRenderItem,
-  View,
-  ViewStyle,
-} from 'react-native';
+import { Alert, InteractionManager, ScrollViewProps, View } from 'react-native';
 import { CaipChainId } from '@metamask/utils';
-import { FlatList } from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native-gesture-handler';
 import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { KeyringTypes } from '@metamask/keyring-controller';
-import { isAddress as isSolanaAddress } from '@solana/addresses';
+import { deepEqual } from 'fast-equals';
+import { FlashList } from '@shopify/flash-list';
 
 // External dependencies.
-import Cell, {
-  CellVariant,
-} from '../../../component-library/components/Cells/Cell';
 import { useStyles } from '../../../component-library/hooks';
 import SensitiveText, {
   SensitiveTextLength,
@@ -29,9 +20,7 @@ import {
   toFormattedAddress,
 } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
-import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { Account, Assets } from '../../hooks/useAccounts';
 import Engine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
@@ -41,13 +30,25 @@ import Routes from '../../../constants/navigation/Routes';
 import { EvmAccountSelectorListProps } from './EvmAccountSelectorList.types';
 import styleSheet from './EvmAccountSelectorList.styles';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
 import AccountNetworkIndicator from '../AccountNetworkIndicator';
 import { Skeleton } from '../../../component-library/components/Skeleton';
 import { selectMultichainAccountsState1Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
+import { useSheetStyleStyleVars } from '../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetDialog/BottomSheetDialog';
+import EvmAccountSelectorListItem from './EvmAccountSelectorListItem';
+
+const useStableReference = <T,>(value: T) => {
+  const ref = useRef<T>(value);
+  return useMemo(() => {
+    if (deepEqual(ref.current, value)) {
+      return ref.current;
+    }
+    ref.current = value;
+    return value;
+  }, [value]);
+};
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
@@ -71,7 +72,7 @@ const EvmAccountSelectorList = ({
   isRemoveAccountEnabled = false,
   isAutoScrollEnabled = true,
   privacyMode = false,
-  ...props
+  testID,
 }: EvmAccountSelectorListProps) => {
   const { navigate } = useNavigation();
   // TODO: Replace "any" with type
@@ -222,121 +223,49 @@ const EvmAccountSelectorList = ({
     [navigate],
   );
 
-  const renderAccountItem: ListRenderItem<Account> = useCallback(
-    ({
-      item: {
-        name,
-        address,
-        assets,
-        type,
-        isSelected,
-        balanceError,
-        scopes,
-        isLoadingAccount,
-      },
-      index,
-    }) => {
-      const partialAccount = {
-        address,
-        scopes,
-      };
-      const shortAddress = formatAddress(address, 'short');
-      const tagLabel = getLabelTextByAddress(address);
-      const ensName = ensByAccountAddress[address];
-      const accountName =
-        isDefaultAccountName(name) && ensName ? ensName : name;
-      const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
-      let cellVariant = CellVariant.SelectWithMenu;
+  const addresses = useStableReference(accounts.map((a) => a.address));
 
-      if (isMultiSelect) {
-        cellVariant = CellVariant.MultiSelect;
-      }
-      if (isSelectWithoutMenu) {
-        cellVariant = CellVariant.Select;
-      }
-      let isSelectedAccount = isSelected;
-      if (selectedAddressesLookup) {
-        isSelectedAccount = selectedAddressesLookup.has(
-          toFormattedAddress(address),
-        );
-      }
+  const shortAddressMap = useMemo(() => {
+    const map = new Map<string, string>();
+    addresses.forEach((address) => {
+      map.set(address, formatAddress(address, 'short'));
+    });
+    return map;
+  }, [addresses]);
 
-      const cellStyle: ViewStyle = {
-        opacity: isLoading ? 0.5 : 1,
-      };
-      if (!isMultiSelect) {
-        cellStyle.alignItems = 'center';
-      }
+  const tagLabelMap = useMemo(() => {
+    const map = new Map<string, string>();
+    addresses.forEach((address) => {
+      map.set(address, getLabelTextByAddress(address) ?? '');
+    });
+    return map;
+  }, [addresses]);
 
-      const handleLongPress = () => {
-        onLongPress({
-          address,
-          isAccountRemoveable:
-            type === KeyringTypes.simple ||
-            (type === KeyringTypes.snap && !isSolanaAddress(address)),
-          isSelected: isSelectedAccount,
-          index,
-        });
-      };
-
-      const handlePress = () => {
-        onSelectAccount?.(address, isSelectedAccount);
-      };
-
-      const handleButtonClick = () => {
-        if (useMultichainAccountDesign) {
-          const account =
-            Engine.context.AccountsController.getAccountByAddress(address);
-
-          if (!account) return;
-
-          navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS, {
-            account,
-          });
-          return;
-        }
-
-        onNavigateToAccountActions(address);
-      };
-
-      const buttonProps = {
-        onButtonClick: handleButtonClick,
-        buttonTestId: `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${index}`,
-      };
-
-      const avatarProps = {
-        variant: AvatarVariant.Account as const,
-        type: accountAvatarType,
-        accountAddress: address,
-      };
-
-      return (
-        <Cell
-          key={address}
-          onLongPress={handleLongPress}
-          variant={cellVariant}
-          isSelected={isSelectedAccount}
-          title={accountName}
-          titleProps={{
-            style: styles.titleText,
-          }}
-          secondaryText={shortAddress}
-          showSecondaryTextIcon={false}
-          tertiaryText={balanceError}
-          onPress={handlePress}
-          avatarProps={avatarProps}
-          tagLabel={tagLabel}
-          disabled={isDisabled}
-          style={cellStyle}
-          buttonProps={buttonProps}
-        >
-          {renderRightAccessory?.(address, accountName) ||
-            (assets &&
-              renderAccountBalances(assets, partialAccount, isLoadingAccount))}
-        </Cell>
-      );
-    },
+  const renderAccountItem = useCallback(
+    ({ item, index }: { item: Account; index: number }) => (
+      <EvmAccountSelectorListItem
+        account={item}
+        index={index}
+        shortAddress={shortAddressMap.get(item.address) || ''}
+        tagLabel={tagLabelMap.get(item.address) || ''}
+        ensName={ensByAccountAddress[item.address]}
+        isLoading={isLoading}
+        isSelectionDisabled={isSelectionDisabled}
+        isMultiSelect={isMultiSelect}
+        isSelectWithoutMenu={isSelectWithoutMenu}
+        selectedAddressesLookup={selectedAddressesLookup}
+        accountAvatarType={accountAvatarType}
+        renderRightAccessory={renderRightAccessory}
+        renderAccountBalances={renderAccountBalances}
+        onLongPress={onLongPress}
+        onSelectAccount={onSelectAccount}
+        useMultichainAccountDesign={useMultichainAccountDesign}
+        onNavigateToAccountActions={onNavigateToAccountActions}
+      />
+    ),
     [
+      shortAddressMap,
+      tagLabelMap,
       ensByAccountAddress,
       isLoading,
       isSelectionDisabled,
@@ -350,8 +279,6 @@ const EvmAccountSelectorList = ({
       onSelectAccount,
       useMultichainAccountDesign,
       onNavigateToAccountActions,
-      navigate,
-      styles.titleText,
     ],
   );
 
@@ -381,18 +308,39 @@ const EvmAccountSelectorList = ({
     }
   }, [accounts, selectedAddresses, isAutoScrollEnabled]);
 
+  const { maxSheetHeight, screenWidth } = useSheetStyleStyleVars();
+  const listItemHeight = 80;
+  const addAccountBuffer = 200;
+  // Clamp between 300 to maxSheetSize, and subtract the add account button area
+  const listHeight =
+    Math.max(300, Math.min(maxSheetHeight, listItemHeight * accounts.length)) -
+    addAccountBuffer;
+
   return (
-    <FlatList
-      ref={accountListRef}
-      onContentSizeChange={onContentSizeChanged}
-      data={accounts}
-      keyExtractor={getKeyExtractor}
-      renderItem={renderAccountItem}
-      // Increasing number of items at initial render fixes scroll issue.
-      initialNumToRender={999}
-      testID={ACCOUNT_SELECTOR_LIST_TESTID}
-      {...props}
-    />
+    <View style={{ height: listHeight }}>
+      <FlashList
+        ref={accountListRef}
+        onContentSizeChange={onContentSizeChanged}
+        data={accounts}
+        keyExtractor={getKeyExtractor}
+        renderItem={renderAccountItem}
+        estimatedItemSize={listItemHeight}
+        testID={testID ?? ACCOUNT_SELECTOR_LIST_TESTID}
+        renderScrollComponent={
+          ScrollView as React.ComponentType<ScrollViewProps>
+        }
+        // Additional optmisations
+        estimatedListSize={{ height: listHeight, width: screenWidth }}
+        removeClippedSubviews
+        viewabilityConfig={{
+          waitForInteraction: true,
+          itemVisiblePercentThreshold: 50,
+          minimumViewTime: 1000,
+        }}
+        decelerationRate={0}
+        disableAutoLayout
+      />
+    </View>
   );
 };
 

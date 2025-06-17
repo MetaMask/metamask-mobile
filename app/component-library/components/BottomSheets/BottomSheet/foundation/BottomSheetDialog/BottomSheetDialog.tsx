@@ -48,6 +48,20 @@ import {
   BottomSheetDialogProps,
 } from './BottomSheetDialog.types';
 
+export const useSheetStyleStyleVars = () => {
+  const { top: screenTopPadding, bottom: screenBottomPadding } =
+    useSafeAreaInsets();
+  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
+  const maxSheetHeight = screenHeight - screenTopPadding;
+  return {
+    maxSheetHeight,
+    screenHeight,
+    screenWidth,
+    screenTopPadding,
+    screenBottomPadding,
+  };
+};
+
 const BottomSheetDialog = forwardRef<
   BottomSheetDialogRef,
   BottomSheetDialogProps
@@ -64,11 +78,9 @@ const BottomSheetDialog = forwardRef<
     },
     ref,
   ) => {
-    const { top: screenTopPadding, bottom: screenBottomPadding } =
-      useSafeAreaInsets();
+    const { maxSheetHeight, screenHeight, screenBottomPadding } =
+      useSheetStyleStyleVars();
     const { y: frameY } = useSafeAreaFrame();
-    const { height: screenHeight } = useWindowDimensions();
-    const maxSheetHeight = screenHeight - screenTopPadding;
     const { styles } = useStyles(styleSheet, {
       maxSheetHeight,
       screenBottomPadding,

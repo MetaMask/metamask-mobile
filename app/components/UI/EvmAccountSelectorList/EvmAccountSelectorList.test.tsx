@@ -1050,7 +1050,7 @@ describe('EvmAccountSelectorList', () => {
       },
       {
         name: 'Account 2',
-        address: MOCK_ADDRESS_1,
+        address: MOCK_ADDRESS_2,
         assets: {
           fiatBalance: '$6400.00\n2 ETH',
           tokens: [],
@@ -1059,7 +1059,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 78,
         isSelected: false,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`,
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_2}`,
       },
     ];
 
@@ -1074,7 +1074,7 @@ describe('EvmAccountSelectorList', () => {
     fireEvent.press(cells[1]);
 
     // Verify the onSelectAccount was called with the correct address
-    expect(onSelectAccount).toHaveBeenCalledWith(MOCK_ADDRESS_1, false);
+    expect(onSelectAccount).toHaveBeenCalledWith(MOCK_ADDRESS_2, false);
   });
 
   it('navigates to account details when a balance error is tapped', () => {

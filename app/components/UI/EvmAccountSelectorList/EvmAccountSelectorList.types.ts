@@ -1,16 +1,16 @@
 // Third party dependencies.
 import React from 'react';
-import { FlatListProps } from 'react-native';
 
 // External dependencies.
-import { Account, UseAccounts } from '../../hooks/useAccounts';
+import { UseAccounts } from '../../hooks/useAccounts';
 
 /**
  * EvmAccountSelectorList props.
  */
 export interface EvmAccountSelectorListProps
-  extends Partial<FlatListProps<Account>>,
-    Omit<UseAccounts, 'evmAccounts'> {
+  extends Omit<UseAccounts, 'evmAccounts'> {
+  testID?: string;
+
   /**
    * Optional callback to trigger when account is selected.
    */

@@ -36,21 +36,38 @@ import {
   MOCK_SOLANA_ACCOUNT,
 } from '../test/accountsControllerTestUtils';
 
-jest.mock('../../store', () => ({
-  store: {
-    getState: jest.fn().mockReturnValue({
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            provider: {
-              chainId: '0x1',
+jest.mock('../../store', () => {
+  const { MOCK_KEYRING_CONTROLLER_STATE } = jest.requireActual(
+    '../test/keyringControllerTestUtils',
+  );
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES } =
+    jest.requireActual('../test/accountsControllerTestUtils');
+  return {
+    store: {
+      getState: jest.fn().mockReturnValue({
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              provider: {
+                chainId: '0x1',
+              },
+            },
+            KeyringController: {
+              ...MOCK_KEYRING_CONTROLLER_STATE,
+              state: {
+                keyrings: [...MOCK_KEYRING_CONTROLLER_STATE.keyrings],
+              },
+            },
+            AccountsController: {
+              ...MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES,
+              state: MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES,
             },
           },
         },
-      },
-    }),
-  },
-}));
+      }),
+    },
+  };
+});
 
 jest.mock('../../core/Engine', () => {
   const { MOCK_KEYRING_CONTROLLER_STATE } = jest.requireActual(
