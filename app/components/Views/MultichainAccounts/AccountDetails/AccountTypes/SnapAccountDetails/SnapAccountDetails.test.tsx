@@ -1,6 +1,6 @@
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import SnapAccountDetails from './';
+import { SnapAccountDetails } from './SnapAccountDetails';
 import { createMockInternalAccount } from '../../../../../../util/test/accountsControllerTestUtils';
 import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -8,8 +8,9 @@ import { AccountDetailsIds } from '../../../../../../../e2e/selectors/Multichain
 import { MultichainDeleteAccountsSelectors } from '../../../../../../../e2e/specs/multichainAccounts/delete-account';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { ExportCredentialsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/ExportCredentials.selectors';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
-const mockIsHDOrFirstPartySnapAccount = jest.fn().mockReturnValue(true);
+const mockIsHDOrFirstPartySnapAccount = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
@@ -24,6 +25,17 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../../../../../util/address', () => ({
+  ...jest.requireActual('../../../../../../util/address'),
+  isHDOrFirstPartySnapAccount: (account: InternalAccount) =>
+    mockIsHDOrFirstPartySnapAccount(account),
+}));
+
+const mockHdKeyringsWithSnapAccounts = jest.fn();
+jest.mock('../../../../../hooks/useHdKeyringsWithSnapAccounts', () => ({
+  useHdKeyringsWithSnapAccounts: () => mockHdKeyringsWithSnapAccounts(),
+}));
+
 const mockFirstPartySnapAccount = createMockInternalAccount(
   '0x1234567890123456789012345678901234567890',
   'First Party Snap Account',
@@ -37,7 +49,7 @@ const mockThirdPartySnapAccount = createMockInternalAccount(
   KeyringTypes.snap,
   EthAccountType.Eoa,
 );
-
+const mockKeyringId = 'keyring-1';
 const mockInitialState = {
   settings: {
     useBlockieIcon: false,
@@ -71,7 +83,13 @@ const mockInitialState = {
 
 describe('SnapAccountDetails', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
+    mockHdKeyringsWithSnapAccounts.mockReturnValue([
+      {
+        accounts: [mockFirstPartySnapAccount.address],
+        metadata: { id: mockKeyringId },
+      },
+    ]);
   });
 
   it('renders BaseAccountDetails wrapper', () => {
@@ -87,64 +105,41 @@ describe('SnapAccountDetails', () => {
     ).toBeTruthy();
   });
 
-  it.each([
-    {
-      description: 'first party snap account',
-      account: mockFirstPartySnapAccount,
-      isFirstParty: true,
-      shouldShowExportCredentials: true,
-      shouldShowRemoveAccount: false,
-    },
-    {
-      description: 'third party snap account',
-      account: mockThirdPartySnapAccount,
-      isFirstParty: false,
-      shouldShowExportCredentials: false,
-      shouldShowRemoveAccount: true,
-    },
-  ])(
-    'handles $description correctly',
-    ({
-      account,
-      isFirstParty,
-      shouldShowExportCredentials,
-      shouldShowRemoveAccount,
-    }) => {
-      mockIsHDOrFirstPartySnapAccount.mockReturnValue(isFirstParty);
+  it('renders ExportCredentials for first party snap account', () => {
+    mockIsHDOrFirstPartySnapAccount.mockReturnValue(true);
 
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <SnapAccountDetails account={account} />,
-        { state: mockInitialState },
-      );
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <SnapAccountDetails account={mockFirstPartySnapAccount} />,
+      { state: mockInitialState },
+    );
 
-      // Always expect BaseAccountDetails to be present
-      expect(
-        getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
-      ).toBeTruthy();
+    expect(
+      getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
+    ).toBeTruthy();
+    expect(getByTestId(ExportCredentialsIds.EXPORT_SRP_BUTTON)).toBeTruthy();
+    expect(
+      queryByTestId(
+        MultichainDeleteAccountsSelectors.deleteAccountRemoveButton,
+      ),
+    ).toBeNull();
+  });
 
-      // Check ExportCredentials visibility
-      if (shouldShowExportCredentials) {
-        expect(getByTestId(ExportCredentialsIds.CONTAINER)).toBeTruthy();
-      } else {
-        expect(queryByTestId(ExportCredentialsIds.CONTAINER)).toBeNull();
-      }
+  it('renders RemoveAccount for third party snap account', () => {
+    mockIsHDOrFirstPartySnapAccount.mockReturnValue(false);
 
-      // Check RemoveAccount visibility
-      if (shouldShowRemoveAccount) {
-        expect(
-          getByTestId(
-            MultichainDeleteAccountsSelectors.deleteAccountRemoveButton,
-          ),
-        ).toBeTruthy();
-      } else {
-        expect(
-          queryByTestId(
-            MultichainDeleteAccountsSelectors.deleteAccountRemoveButton,
-          ),
-        ).toBeNull();
-      }
-    },
-  );
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <SnapAccountDetails account={mockThirdPartySnapAccount} />,
+      { state: mockInitialState },
+    );
+
+    expect(
+      getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
+    ).toBeTruthy();
+    expect(queryByTestId(ExportCredentialsIds.EXPORT_SRP_BUTTON)).toBeNull();
+    expect(
+      getByTestId(MultichainDeleteAccountsSelectors.deleteAccountRemoveButton),
+    ).toBeTruthy();
+  });
 
   it('calls isHDOrFirstPartySnapAccount with correct account', () => {
     mockIsHDOrFirstPartySnapAccount.mockReturnValue(true);
