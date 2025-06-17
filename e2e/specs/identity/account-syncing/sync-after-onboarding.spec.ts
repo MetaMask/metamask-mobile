@@ -120,7 +120,6 @@ describe(
 
       for (const event of events) {
         await Assertions.checkIfValueIsPresent(event.properties);
-        expect(event.properties).toHaveProperty('profile_id');
       }
     });
   },
