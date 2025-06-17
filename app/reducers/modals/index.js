@@ -4,6 +4,7 @@ const initialState = {
   collectibleContractModalVisible: false,
   dappTransactionModalVisible: false,
   signMessageModalVisible: true,
+  showDeepLinkModal: false,
 };
 
 const modalsReducer = (state = initialState, action) => {
@@ -54,6 +55,11 @@ const modalsReducer = (state = initialState, action) => {
       return {
         ...state,
         signMessageModalVisible: !state.signMessageModalVisible,
+      };
+    case 'SET_SHOW_DEEP_LINK_MODAL':
+      return {
+        ...state,
+        showDeepLinkModal: action.showDeepLinkModal,
       };
     default:
       return state;

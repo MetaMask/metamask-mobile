@@ -18,6 +18,9 @@ import {
   INVALID,
   MISSING,
 } from './utils/verifySignature';
+import NavigationService from '../../../core/NavigationService';
+import Routes from '../../../constants/navigation/Routes';
+import { setShowDeepLinkModal } from '../../../actions/modals';
 
 async function parseDeeplink({
   deeplinkManager: instance,
@@ -32,22 +35,25 @@ async function parseDeeplink({
   browserCallBack?: (url: string) => void;
   onHandled?: () => void;
 }) {
+  console.log('XXXXXX - parseDeeplink', url, origin);
   try {
+    console.log('XXXXXX - parseDeeplink try');
     // Validate URL format before creating URL object
     if (!url || !url.includes('://') || url.split('://')[1].length === 0) {
       throw new Error('Invalid URL format');
     }
 
     const validatedUrl = new URL(url);
+    console.log('XXXXXX - validatedUrl', validatedUrl);
 
     // Additional validation for hostname
-    if (
-      !validatedUrl.hostname ||
-      validatedUrl.hostname.includes('?') ||
-      validatedUrl.hostname.includes('&')
-    ) {
-      throw new Error('Invalid hostname');
-    }
+    // if (
+    //   !validatedUrl.hostname ||
+    //   validatedUrl.hostname.includes('?') ||
+    //   validatedUrl.hostname.includes('&')
+    // ) {
+    //   throw new Error('Invalid hostname');
+    // }
 
     let isPrivateLink = false;
     if (hasSignature(validatedUrl)) {
@@ -72,17 +78,32 @@ async function parseDeeplink({
           isPrivateLink = false;
           break;
       }
-      return isPrivateLink;
     }
-    // if (isPrivateLink) {
-    // TODO: handle valid signature on interstitial
-    // return true;
-    // } else if (!isPrivateLink) {
-    // TODO: handle invalid/missing signature on interstitial
-    // return false;
-    // }
 
     const { urlObj, params } = extractURLParams(url);
+
+    console.log('XXXXXX - urlObj', urlObj);
+
+    // Show the modal and wait for user interaction
+    const shouldProceed = await new Promise<boolean>((resolve) => {
+      const handleUserChoice = (proceed: boolean) => {
+        resolve(proceed);
+      };
+
+      instance.dispatch(setShowDeepLinkModal(true));
+
+      // Subscribe to the modal's user choice
+      const unsubscribe = instance.onUserChoice(handleUserChoice);
+
+      // Cleanup subscription when promise resolves
+      return () => {
+        unsubscribe();
+      };
+    });
+    console.log('XXXXXX - shouldProceed', shouldProceed);
+    if (!shouldProceed) {
+      return false;
+    }
 
     const sdkConnect = SDKConnect.getInstance();
 
@@ -99,6 +120,16 @@ async function parseDeeplink({
     switch (urlObj.protocol.replace(':', '')) {
       case PROTOCOLS.HTTP:
       case PROTOCOLS.HTTPS:
+        console.log('XXXXXX - handleUniversalLink', {
+          instance,
+          handled,
+          urlObj,
+          params,
+          browserCallBack,
+          origin,
+          wcURL,
+          url,
+        });
         handleUniversalLink({
           instance,
           handled,
@@ -109,7 +140,6 @@ async function parseDeeplink({
           wcURL,
           url,
         });
-
         break;
       case PROTOCOLS.WC:
         connectWithWC({ handled, wcURL, origin, params });

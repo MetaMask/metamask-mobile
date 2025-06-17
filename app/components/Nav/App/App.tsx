@@ -145,6 +145,8 @@ import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
+import { setShowDeepLinkModal } from '../../../actions/modals';
+import { selectShowDeepLinkModal } from '../../../selectors/modals';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -477,7 +479,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={ChangeInSimulationModal}
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
-    <Stack.Screen name={Routes.MODAL.DEEP_LINK_MODAL} component={DeepLinkModal} />
   </Stack.Navigator>
 );
 
@@ -768,6 +769,7 @@ const AppFlow = () => {
 
 const App: React.FC = () => {
   const userLoggedIn = useSelector(selectUserLoggedIn);
+  const showDeepLinkModal = useSelector(selectShowDeepLinkModal);
   const [onboarded, setOnboarded] = useState(false);
   const navigation = useNavigation();
   const queueOfHandleDeeplinkFunctions = useRef<(() => void)[]>([]);
@@ -1032,11 +1034,27 @@ const App: React.FC = () => {
     });
   }, []);
 
+  useEffect(() => {
+    console.log('showDeepLinkModal', Boolean(showDeepLinkModal));
+    // if (!showDeepLinkModal) {
+    //   dispatch(setShowDeepLinkModal(true));
+    // }
+  }, [showDeepLinkModal]);
+
   return (
     <>
       <PPOMView />
       <AppFlow />
       <Toast ref={toastRef} />
+      <DeepLinkModal
+        visible={showDeepLinkModal}
+        linkType="public"
+        pageTitle="Test"
+        onContinue={() => {
+          console.log('onContinue');
+          dispatch(setShowDeepLinkModal(false));
+        }}
+      />
     </>
   );
 };

@@ -58,10 +58,16 @@ function handleUniversalLink({
     }
 
     if (action === ACTIONS.CONNECT) {
-      if (params.redirect && origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
-        SDKConnect.getInstance().state.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-        });
+      if (
+        params.redirect &&
+        origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
+      ) {
+        SDKConnect.getInstance().state.navigation?.navigate(
+          Routes.MODAL.ROOT_MODAL_FLOW,
+          {
+            screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+          },
+        );
       } else if (params.channelId) {
         const protocolVersion = parseInt(params.v ?? '1', 10);
 
@@ -150,7 +156,11 @@ function handleUniversalLink({
       // Normal links (same as dapp)
       instance._handleBrowserUrl(urlObj.href, browserCallBack);
     }
-  } else if (urlObj.hostname === MM_IO_UNIVERSAL_LINK_HOST || urlObj.hostname === MM_IO_UNIVERSAL_LINK_TEST_HOST) {
+  } else if (
+    urlObj.hostname === MM_IO_UNIVERSAL_LINK_HOST ||
+    urlObj.hostname === MM_IO_UNIVERSAL_LINK_TEST_HOST
+  ) {
+    console.log('XXXXXX - CORRECT URL');
     // TODO: handle private links with signature verification https://github.com/MetaMask/metamask-mobile/issues/16040
     // TODO: add interstitial modal for public links https://github.com/MetaMask/metamask-mobile/issues/15491
     switch (action) {
@@ -159,6 +169,7 @@ function handleUniversalLink({
         return;
       case ACTIONS.SWAP: {
         // TODO: perhaps update this when the new bridging UI is implemented
+        console.log('XXXXXX - SWAP');
         // Expecting to only be a navigation change
         const swapPath = urlObj.href.replace(
           `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.SWAP}`,
@@ -169,6 +180,7 @@ function handleUniversalLink({
       }
       case ACTIONS.BUY:
       case ACTIONS.BUY_CRYPTO: {
+        console.log('XXXXXX - BUY_CRYPTO');
         const rampPath = urlObj.href
           .replace(
             `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.BUY_CRYPTO}`,

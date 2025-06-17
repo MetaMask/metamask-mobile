@@ -19,6 +19,7 @@ class DeeplinkManager {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public dispatch: Dispatch<any>;
+  private userChoiceCallbacks: ((proceed: boolean) => void)[] = [];
 
   constructor({
     navigation,
@@ -33,6 +34,20 @@ class DeeplinkManager {
     this.pendingDeeplink = null;
     this.dispatch = dispatch;
   }
+
+  onUserChoice = (callback: (proceed: boolean) => void) => {
+    this.userChoiceCallbacks.push(callback);
+    return () => {
+      this.userChoiceCallbacks = this.userChoiceCallbacks.filter(
+        (cb) => cb !== callback,
+      );
+    };
+  };
+
+  handleUserChoice = (proceed: boolean) => {
+    this.userChoiceCallbacks.forEach((callback) => callback(proceed));
+    this.userChoiceCallbacks = [];
+  };
 
   setDeeplink = (url: string) => (this.pendingDeeplink = url);
 
@@ -92,11 +107,13 @@ class DeeplinkManager {
 
   // NOTE: open the home screen for new subdomain
   _handleOpenHome() {
+    console.log('XXXXXX - _handleOpenHome');
     this.navigation.navigate(Routes.WALLET.HOME);
   }
 
   // NOTE: this will be used for new deeplink subdomain
   _handleSwap(swapPath: string) {
+    console.log('XXXXXX - _handleSwap', swapPath);
     handleSwapUrl({
       swapPath,
       navigation: this.navigation,
@@ -119,6 +136,7 @@ class DeeplinkManager {
       onHandled?: () => void;
     },
   ) {
+    console.log('XXXXXX - parse', url, origin);
     return await parseDeeplink({
       deeplinkManager: this,
       url,

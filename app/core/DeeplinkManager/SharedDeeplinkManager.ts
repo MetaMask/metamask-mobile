@@ -36,6 +36,7 @@ const SharedDeeplinkManager = {
   setDeeplink: (url: string) => instance.setDeeplink(url),
   getPendingDeeplink: () => instance.getPendingDeeplink(),
   expireDeeplink: () => instance.expireDeeplink(),
+  handleUserChoice: (proceed: boolean) => instance.handleUserChoice(proceed),
 };
 
 export default SharedDeeplinkManager;

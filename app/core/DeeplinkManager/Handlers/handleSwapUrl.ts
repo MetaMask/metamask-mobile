@@ -5,9 +5,20 @@ import {
   parseCaipAssetType,
 } from '@metamask/utils';
 
+interface SwapNavigationParams {
+  screen: string;
+  params?: {
+    sourceToken?: string;
+    destinationToken?: string;
+    amount?: string;
+  };
+}
+
 interface HandleSwapUrlParams {
   swapPath: string;
-  navigation: NavigationProp<ParamListBase>;
+  navigation: NavigationProp<ParamListBase> & {
+    replace: (screen: string, params?: SwapNavigationParams) => void;
+  };
 }
 
 /**
@@ -33,6 +44,7 @@ export const handleSwapUrl = ({
   swapPath,
   navigation,
 }: HandleSwapUrlParams) => {
+  console.log('XXXXXX - handleSwapUrl', swapPath);
   try {
     const cleanPath = swapPath.startsWith('?') ? swapPath.slice(1) : swapPath;
     const urlParams = new URLSearchParams(cleanPath);
@@ -42,6 +54,7 @@ export const handleSwapUrl = ({
     const amount = urlParams.get('value');
 
     if (!isCaipAssetType(fromCaip) || !isCaipAssetType(toCaip)) {
+      console.log('XXXXXX - INVALID FROM/TO');
       navigation.navigate('Swaps', {
         screen: 'SwapsAmountView',
       });
@@ -49,6 +62,7 @@ export const handleSwapUrl = ({
     }
 
     if (!fromCaip || !toCaip) {
+      console.log('XXXXXX - INVALID FROM/TO');
       navigation.navigate('Swaps', {
         screen: 'SwapsAmountView',
       });
@@ -60,12 +74,16 @@ export const handleSwapUrl = ({
     const toAddress = parseCaipAssetType(toCaip).assetReference;
 
     if (!fromAddress || !toAddress) {
+      console.log('XXXXXX - INVALID FROM/TO');
       navigation.navigate('Swaps', {
         screen: 'SwapsAmountView',
       });
       return;
     }
-
+    console.log('XXXXXX - NAVIGATING TO SWAPS');
+    // FRANK: we're using replace here now, and cancel doesn't work
+    // The action 'POP' with payload {"count":1} was not handled by any navigator.
+    // Is there any screen to go back to? TODO: fix this9
     navigation.navigate('Swaps', {
       screen: 'SwapsAmountView',
       params: {
@@ -74,7 +92,8 @@ export const handleSwapUrl = ({
         amount: amount && isHexString(amount) ? amount : '0',
       },
     });
-  } catch (_) {
+  } catch (e) {
+    console.log('XXXXXX - ERROR NAVIGATING TO SWAPS', e);
     navigation.navigate('Swaps', {
       screen: 'SwapsAmountView',
     });
