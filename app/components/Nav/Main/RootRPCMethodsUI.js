@@ -70,6 +70,7 @@ import { getSmartTransactionMetricsProperties } from '../../../util/smart-transa
 import { cloneDeep, isEqual } from 'lodash';
 import { selectSwapsTransactions } from '../../../selectors/transactionController';
 import { updateSwapsTransaction } from '../../../util/swaps/swaps-transactions';
+import { getIsBridgeApprovalOrBridgeTransaction } from '../../../util/transactions/bridge';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
@@ -389,7 +390,8 @@ const RootRPCMethodsUI = (props) => {
           transactionMeta.origin,
           to,
           props.chainId,
-        )
+        ) ||
+        getIsBridgeApprovalOrBridgeTransaction(transactionMeta)
       ) {
         autoSign(transactionMeta);
       } else {
