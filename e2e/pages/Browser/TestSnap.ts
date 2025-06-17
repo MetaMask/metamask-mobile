@@ -9,7 +9,6 @@ import {
 } from '../../selectors/Browser/TestSnap.selectors';
 import Gestures from '../../utils/Gestures';
 import {
-  SNAP_INSTALL_CANCEL,
   SNAP_INSTALL_CONNECT,
 } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
 import {
