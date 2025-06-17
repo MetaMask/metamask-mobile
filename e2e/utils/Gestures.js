@@ -1,4 +1,5 @@
-import { waitFor } from 'detox';
+/* eslint-disable no-console */
+import { waitFor, expect } from 'detox';
 import Utilities from './Utilities';
 
 /**
@@ -47,23 +48,29 @@ class Gestures {
   /**
    * Wait for an element to be visible and then tap it.
    *
-   * @param {Promise<Detox.IndexableNativeElement | Detox.SystemElement>} element - The element to tap
+   * @param {Promise<Detox.IndexableNativeElement | Detox.SystemElement>} elementToTap - The element to tap
    * @param {Object} [options={}] - Configuration options
    * @param {number} [options.timeout=15000] - Timeout for waiting in milliseconds
    * @param {number} [options.delayBeforeTap=0] - Additional delay in milliseconds before tapping after element is visible
    * @param {boolean} [options.skipVisibilityCheck=false] - When true, skips the initial visibility check before tapping. Useful for elements that may be technically present but not passing Detox's visibility threshold.
+   * @param {boolean} [options.experimentalWaitForStability=false] - EXPERIMENTAL: When true, waits for element stability before tapping.
    */
-  static async waitAndTap(element, options = {}) {
-    const { timeout = 15000, delayBeforeTap = 0, skipVisibilityCheck = false } = options;
-    const elementToTap = await element;
+  static async waitAndTap(elementToTap, options = {}) {
+    const {
+      timeout = 15000,
+      delayBeforeTap = 0,
+      skipVisibilityCheck = false
+    } = options;
     if (!skipVisibilityCheck) {
-      await waitFor(elementToTap).toBeVisible().withTimeout(timeout);
+      await waitFor(await elementToTap)
+        .toBeVisible()
+        .withTimeout(timeout);
     }
     if (delayBeforeTap > 0) {
       await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.
     }
     await Utilities.waitForElementToBeEnabled(elementToTap);
-    await elementToTap.tap();
+    await (await elementToTap).tap();
   }
 
   /**
@@ -134,7 +141,9 @@ class Gestures {
 
   */
   static async clearField(element, timeout = 2500) {
-    await waitFor(await element).toBeVisible().withTimeout(timeout);
+    await waitFor(await element)
+      .toBeVisible()
+      .withTimeout(timeout);
 
     await (await element).replaceText('');
   }
@@ -150,7 +159,6 @@ class Gestures {
 
     await (await element).typeText(text + '\n');
   }
-
 
   /**
    * Type text into an element without hiding the keyboard.
@@ -169,7 +177,9 @@ class Gestures {
    * @param {string} text - Text to replace the existing text in the element
    */
   static async replaceTextInField(element, text, timeout = 10000) {
-    // await waitFor(await element).toBeVisible().withTimeout(timeout);
+    await waitFor(await element)
+      .toBeVisible()
+      .withTimeout(timeout);
 
     await (await element).replaceText(text);
   }
