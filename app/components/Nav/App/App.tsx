@@ -584,12 +584,6 @@ const MultichainAccountDetails = () => {
   );
 };
 
-const FlatConfirmationRequest = () => (
-  <Stack.Navigator>
-    <Stack.Screen name={Routes.CONFIRMATION_REQUEST_FLAT} component={Confirm} />
-  </Stack.Navigator>
-);
-
 const ModalConfirmationRequest = () => (
   <Stack.Navigator
     screenOptions={{
@@ -747,10 +741,6 @@ const AppFlow = () => {
         name={Routes.LOCK_SCREEN}
         component={LockScreen}
         options={{ gestureEnabled: false }}
-      />
-      <Stack.Screen
-        name={Routes.CONFIRMATION_REQUEST_FLAT}
-        component={FlatConfirmationRequest}
       />
       <Stack.Screen
         name={Routes.CONFIRMATION_REQUEST_MODAL}
