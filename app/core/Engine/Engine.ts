@@ -127,7 +127,6 @@ import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
 import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
 import {
-  ApprovalType,
   ChainId,
   handleFetch,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
