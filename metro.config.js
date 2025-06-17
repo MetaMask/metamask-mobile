@@ -13,79 +13,14 @@ const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
 // eslint-disable-next-line import/no-nodejs-modules
 const { parseArgs } = require('node:util');
 
-// remove path/to/node
-// remove path/to/node_modules/.bin/<react-native|expo>
-const args = process.argv.slice(2);
-
-const options = {
-  // watchman and rncli
-  platform: {
-    type: 'string',
-  },
-  dev: {
-    type: 'boolean',
-  },
-  'entry-file': {
-    type: 'string',
-  },
-  'bundle-output': {
-    type: 'string',
-  },
-  'assets-dest': {
-    type: 'string',
-  },
-  'sourcemap-output': {
-    type: 'string',
-  },
-  minify: {
-    type: 'boolean',
-  },
-  verbose: {
-    type: 'boolean',
-  },
-  'reset-cache': {
-    type: 'boolean', // Default: false
-  },
-  // expo
-  port: {
-    type: 'string', // Default: 8081
-  },
-  'no-install': {
-    type: 'boolean',
-  },
-  'no-build-cache': {
-    type: 'boolean',
-  },
-  'no-bundler': {
-    type: 'boolean',
-  },
-  device: {
-    type: 'string',
-  },
-  binary: {
-    type: 'string',
-  },
-  // expo run:android
-  variant: {
-    type: 'string', // Default: debug
-  },
-  'app-id': {
-    type: 'string',
-  },
-  // expo run:ios
-  configuration: {
-    type: 'string', // Default: debug
-  },
-  scheme: {
-    type: 'string',
-  },
-};
-
 const parsedArgs = parseArgs({
-  args,
-  options,
+  options: {
+    platform: {
+      type: 'string',
+    },
+  },
   allowPositionals: true,
-  strict: false, // Allow no value `--device` (expo uses first available device)
+  strict: false,
 });
 
 // Apply 'ses/hermes' on Android (Hermes)
