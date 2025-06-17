@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import {
   Alert,
   ActivityIndicator,
@@ -415,6 +415,11 @@ const Login: React.FC = () => {
     hasBiometricCredentials
   );
 
+  const lottieSrc = useMemo(
+    () => (password.length > 0 ? ConcealingFox : SearchingFox),
+    [password.length],
+  );
+
   return (
     <ErrorBoundary navigation={navigation} view="Login">
       <SafeAreaView style={styles.mainWrapper}>
@@ -440,7 +445,7 @@ const Login: React.FC = () => {
                 style={styles.image}
                 autoPlay
                 loop
-                source={password.length > 0 ? ConcealingFox : SearchingFox}
+                source={lottieSrc}
                 resizeMode="contain"
               />
             </TouchableOpacity>
