@@ -63,6 +63,7 @@ import {
   EarnInputViewProps,
 } from './EarnInputView.types';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -183,14 +184,13 @@ const EarnInputView = () => {
           _earnToken?.address,
           _earnToken.chainId as string,
         );
-  
       if (!approveTxParams) return;
   
       const approveTx = {
         params: {
           to: approveTxParams.txParams.to ? toHex(approveTxParams.txParams.to) : undefined,
           from: approveTxParams.txParams.from,
-          data: approveTxParams.txParams.data ? toHex(approveTxParams.txParams.data) : undefined,
+          data: approveTxParams.txParams.data as Hex || undefined,
           value: approveTxParams.txParams.value ? toHex(approveTxParams.txParams.value) : undefined,
         },
         type: TransactionType.tokenMethodApprove,
@@ -209,7 +209,7 @@ const EarnInputView = () => {
         params: {
           to: lendingDepositTxParams.txParams.to ? toHex(lendingDepositTxParams.txParams.to) : undefined,
           from: lendingDepositTxParams.txParams.from,
-          data: lendingDepositTxParams.txParams.data ? toHex(lendingDepositTxParams.txParams.data) : undefined,
+          data: lendingDepositTxParams.txParams.data as Hex || undefined,
           value: lendingDepositTxParams.txParams.value ? toHex(lendingDepositTxParams.txParams.value) : undefined,
         },
         // TODO: Substitute by transaction type from transaction controller once
@@ -254,7 +254,7 @@ const EarnInputView = () => {
       });
     };
 
-    const isRedesignedStablecoinLendingScreenEnabled = process.env.MM_STABLECOIN_LENDING_UI_ENABLED_REDESIGNED;
+    const isRedesignedStablecoinLendingScreenEnabled = getIsRedesignedStablecoinLendingScreenEnabled();
     if (isRedesignedStablecoinLendingScreenEnabled) {
       createRedesignedLendingDepositConfirmation(earnToken, activeAccount);
     } else {

@@ -1,4 +1,4 @@
-import { contractInteractionBaseState, mockApprovalRequest, mockTransaction, mockTxId } from '../../../../util/test/confirm-data-helpers';
+import { contractInteractionBaseState, mockApprovalRequest, mockTransaction, mockTxId } from '../../../../../util/test/confirm-data-helpers';
 
 export const generateStablecoinLendingDepositConfirmationState = {
   ...contractInteractionBaseState,
