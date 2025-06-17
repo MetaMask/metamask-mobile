@@ -22,6 +22,8 @@ const getFeatureFlagAppEnvironment = () => {
     case 'production':
     case 'beta':
       return EnvironmentType.Production;
+    case 'exp':
+      return EnvironmentType.Experimental;
     default:
       return EnvironmentType.Development;
   }
@@ -32,9 +34,6 @@ const getFeatureFlagAppDistribution = () => {
   const env = process.env.METAMASK_ENVIRONMENT;
   switch (dist) {
     case 'main':
-      if (env === 'exp') {
-        return DistributionType.Experimental;
-      }
       return env === 'beta' ? DistributionType.Beta : DistributionType.Main;
     case 'flask':
       return DistributionType.Flask;
