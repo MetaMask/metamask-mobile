@@ -3867,7 +3867,14 @@
     "liquidation_risk": "Liquidation risk",
     "insufficient_pool_liquidity": "Insufficient Pool Liquidity",
     "available_to_withdraw": "available to withdraw",
-    "unknown": "unknown"
+    "unknown": "unknown",
+    "how_it_works": "How it works",
+    "market_historic_apr_modal": {
+      "earn_rewards_on_your_token": "Earn rewards on your {{tokenSymbol}}",
+      "lend_and_earn_daily_rewards": "Lend your {{tokenSymbol}} with {{protocol}} and earn daily rewards. Rewards grow over time and APR varies.",
+      "withdraw_whenever_you_want": "Withdraw whenever you want",
+      "get_asset_back_in_your_wallet_instantly": "Get {{tokenSymbol}} back in your wallet instantly."
+    }
   },
   "stake": {
     "stake": "Stake",
@@ -4193,7 +4200,8 @@
     "data": "Data",
     "review": "Review",
     "transferRequest": "Transfer request",
-    "nested_transaction_heading": "Transaction {{index}}"
+    "nested_transaction_heading": "Transaction {{index}}",
+    "transaction": "Transaction"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
