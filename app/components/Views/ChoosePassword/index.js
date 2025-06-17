@@ -123,11 +123,7 @@ const createStyles = (colors) =>
       flexDirection: 'column',
       rowGap: 18,
       marginTop: 'auto',
-      marginBottom: Platform.select({
-        ios: 0,
-        android: 16,
-        default: 16,
-      }),
+      marginBottom: 16,
     },
     // eslint-disable-next-line react-native/no-unused-styles
     strength_weak: {
