@@ -298,7 +298,7 @@ const EarnWithdrawInputView = () => {
       );
 
       navigation.navigate('StakeScreens', {
-        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_WITHDRAWAL,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         params: {
           amountWei: amountTokenMinimalUnit.toString(),
           amountFiat: amountFiatNumber,
@@ -405,7 +405,6 @@ const EarnWithdrawInputView = () => {
         isOverMaximum={isOverMaximum}
         balanceText={stakedBalanceText}
         balanceValue={earnBalanceValue}
-        isNonZeroAmount={isNonZeroAmount}
         amountToken={amountToken}
         amountFiatNumber={amountFiatNumber}
         isFiat={isFiat}
