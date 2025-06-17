@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   StyleSheet,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Text, {
@@ -122,6 +123,11 @@ const createStyles = (colors) =>
       flexDirection: 'column',
       rowGap: 18,
       marginTop: 'auto',
+      marginBottom: Platform.select({
+        ios: 0,
+        android: 16,
+        default: 16,
+      }),
     },
     // eslint-disable-next-line react-native/no-unused-styles
     strength_weak: {
@@ -835,7 +841,8 @@ const mapDispatchToProps = (dispatch) => ({
   passwordUnset: () => dispatch(passwordUnset()),
   setLockTime: (time) => dispatch(setLockTime(time)),
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
-  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
+  dispatchSaveOnboardingEvent: (...eventArgs) =>
+    dispatch(saveOnboardingEvent(eventArgs)),
 });
 
 const mapStateToProps = (state) => ({});

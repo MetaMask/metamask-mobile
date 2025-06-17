@@ -21,6 +21,14 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../../../confirmations/hooks/7702/useEIP7702Networks', () => ({
+  useEIP7702Networks: jest.fn().mockReturnValue({
+    network7702List: [],
+    networkSupporting7702Present: false,
+    pending: false,
+  }),
+}));
+
 const mockInitialState = {
   settings: {
     useBlockieIcon: false,
