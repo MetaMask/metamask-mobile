@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Hex,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -18,6 +18,7 @@ import {
   setSourceToken,
   selectSourceToken,
   selectDestToken,
+  selectBridgeViewMode,
 } from '../../../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { TokenSelectorItem } from '../TokenSelectorItem';
@@ -32,18 +33,10 @@ import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
 import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
 
-export interface BridgeSourceTokenSelectorRouteParams {
-  bridgeViewMode: BridgeViewMode;
-}
-
 export const BridgeSourceTokenSelector: React.FC = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const route =
-    useRoute<
-      RouteProp<{ params: BridgeSourceTokenSelectorRouteParams }, 'params'>
-    >();
-  const bridgeViewMode = route.params.bridgeViewMode;
+  const bridgeViewMode = useSelector(selectBridgeViewMode);
 
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,

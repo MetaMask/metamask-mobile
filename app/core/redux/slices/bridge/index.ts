@@ -14,7 +14,7 @@ import {
   selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
   DEFAULT_FEATURE_FLAG_CONFIG,
 } from '@metamask/bridge-controller';
-import { BridgeToken } from '../../../../components/UI/Bridge/types';
+import { BridgeToken, BridgeViewMode } from '../../../../components/UI/Bridge/types';
 import { PopularList } from '../../../../util/networks/customNetworks';
 import { selectGasFeeControllerEstimates } from '../../../../selectors/gasFeeController';
 import { MetaMetrics } from '../../../Analytics';
@@ -37,9 +37,11 @@ export interface BridgeState {
   selectedDestChainId: Hex | CaipChainId | undefined;
   slippage: string | undefined;
   isSubmittingTx: boolean;
+  bridgeViewMode: BridgeViewMode | undefined;
 }
 
 export const initialState: BridgeState = {
+  bridgeViewMode: undefined,
   sourceAmount: undefined,
   destAmount: undefined,
   sourceToken: undefined,
@@ -67,6 +69,9 @@ const slice = createSlice({
   name,
   initialState,
   reducers: {
+    setBridgeViewMode: (state, action: PayloadAction<BridgeViewMode>) => {
+      state.bridgeViewMode = action.payload;
+    },
     setSourceAmount: (state, action: PayloadAction<string | undefined>) => {
       state.sourceAmount = action.payload;
     },
@@ -152,6 +157,11 @@ export const selectSourceAmount = createSelector(
 export const selectDestAmount = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destAmount,
+);
+
+export const selectBridgeViewMode = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.bridgeViewMode,
 );
 
 /**
@@ -411,4 +421,5 @@ export const {
   setSlippage,
   setDestAddress,
   setIsSubmittingTx,
+  setBridgeViewMode,
 } = actions;
