@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { RootState } from '../../../../../reducers';
+import { RootState } from '../../../../reducers';
 
 /**
  * Interface representing the state shape for the sample counter feature

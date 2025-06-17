@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../../../../app/reducers';
-import { increment, selectCount } from '../../../redux/slices/sample-counter';
+import { increment, selectCount } from '../../../reducers/sample-counter';
 
 /**
  * Sample useSampleCounter hook

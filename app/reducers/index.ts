@@ -35,7 +35,7 @@ import bridgeReducer from '../core/redux/slices/bridge';
 import performanceReducer, {
   PerformanceState,
 } from '../core/redux/slices/performance';
-import sampleCounterReducer from '../features/SampleFeature/redux/slices/sample-counter';
+import sampleCounterReducer from '../features/SampleFeature/reducers/sample-counter';
 import { isTest } from '../util/test/utils';
 
 /**

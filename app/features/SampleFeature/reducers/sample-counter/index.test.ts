@@ -1,6 +1,6 @@
 import { increment, setCount, selectCount, initialState, default as reducer } from './index';
-import { RootState } from '../../../../../reducers';
-import initialRootState from '../../../../../util/test/initial-root-state';
+import { RootState } from '../../../../reducers';
+import initialRootState from '../../../../util/test/initial-root-state';
 
 // Create a minimal mock state for testing
 const createMockState = (count: number): RootState => ({

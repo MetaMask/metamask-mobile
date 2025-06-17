@@ -264,6 +264,7 @@ import { Hex } from '@metamask/utils';
 import {
   SamplePetnamesController,
   SamplePetnamesControllerState,
+  SamplePetnamesControllerMessenger,
 } from '@metamask/sample-controllers';
 
 import { CONTROLLER_MESSENGERS } from './messengers';
@@ -413,7 +414,8 @@ type GlobalEvents =
   | BridgeStatusControllerEvents
   | EarnControllerEvents
   | AppMetadataControllerEvents
-  | DeFiPositionsControllerEvents;
+  | DeFiPositionsControllerEvents
+  | SamplePetnamesControllerEvents;
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -721,4 +723,10 @@ export type InitModularizedControllersFunction = (request: {
   persistedState: ControllerPersistedState;
 }) => {
   controllersByName: ControllerByName;
+};
+
+// Add event type for SamplePetnamesController
+export type SamplePetnamesControllerEvents = {
+  type: 'SamplePetnamesController:stateChange';
+  payload: [SamplePetnamesControllerState];
 };

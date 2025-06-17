@@ -154,6 +154,7 @@ describe('initModularizedControllers', () => {
           TransactionController: mockTransactionControllerInit,
           AppMetadataController: mockAppMetadataControllerInit,
           DeFiPositionsController: mockDeFiPositionsControllerInit,
+          SamplePetnamesController: jest.fn(),
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
@@ -270,6 +271,7 @@ describe('initModularizedControllers', () => {
           AccountsController,
           AccountsControllerMessenger
         >('NetworkController'),
+        SamplePetnamesController: jest.fn(),
       },
     });
     expect(() => initModularizedControllers(request)).toThrow(
