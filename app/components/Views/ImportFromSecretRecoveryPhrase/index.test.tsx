@@ -445,7 +445,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         const errorMessage = queryByText(
-          strings('import_from_seed.invalid_seed_phrase'),
+          strings('import_from_seed.spellcheck_error'),
         );
         expect(errorMessage).toBeOnTheScreen();
       });

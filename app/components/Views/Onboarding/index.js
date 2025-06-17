@@ -45,6 +45,8 @@ import {
   TraceName,
   TraceOperation,
   bufferedEndTrace,
+  endTrace,
+  trace,
 } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
@@ -361,6 +363,7 @@ class Onboarding extends PureComponent {
   };
 
   onPressCreate = () => {
+    trace({ name: TraceName.OnboardingCreateWallet });
     const action = () => {
       bufferedTrace({
         name: TraceName.OnboardingNewSrpCreateWallet,
@@ -378,6 +381,7 @@ class Onboarding extends PureComponent {
     };
 
     this.handleExistingUser(action);
+    endTrace({ name: TraceName.OnboardingCreateWallet });
   };
 
   onPressImport = () => {

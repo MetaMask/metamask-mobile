@@ -134,6 +134,10 @@ export const importWalletWithRecoveryPhrase = async ({
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
 
+  // Add delay for 1 second to avoid flakiness on ios
+  if (device.getPlatform() === 'ios') TestHelpers.delay(1000);
+
+  await Assertions.checkIfVisible(MetaMetricsOptIn.container);
   if (optInToMetrics) {
     await MetaMetricsOptIn.tapAgreeButton();
   } else {
@@ -142,6 +146,7 @@ export const importWalletWithRecoveryPhrase = async ({
 
   //'Should dismiss Enable device Notifications checks alert'
   await TestHelpers.delay(3500);
+  await Assertions.checkIfVisible(OnboardingSuccessView.container);
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
   await skipNotificationsDeviceSettings();
@@ -195,6 +200,13 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await SkipAccountSecurityModal.tapSkipButton();
   await device.enableSynchronization();
   await TestHelpers.delay(3500);
+
+  await Assertions.checkIfVisible(MetaMetricsOptIn.container);
+  optInToMetrics
+    ? await MetaMetricsOptIn.tapAgreeButton()
+    : await MetaMetricsOptIn.tapNoThanksButton();
+
+  await Assertions.checkIfVisible(OnboardingSuccessView.container);
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
   await this.skipNotificationsDeviceSettings();

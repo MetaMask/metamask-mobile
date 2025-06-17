@@ -17,6 +17,7 @@ import { IMetaMetricsEvent, MetaMetricsEvents } from '../../../core/Analytics';
 import {
   OnboardingActionTypes,
   saveOnboardingEvent as SaveEvent,
+  setCompletedOnboarding,
 } from '../../../actions/onboarding';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { clearHistory } from '../../../actions/browser';
@@ -35,12 +36,14 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
-import { setCompletedOnboarding } from '../../../actions/onboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { Dispatch } from 'redux';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { useMetrics } from '../../hooks/useMetrics';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../component-library/components/Buttons/ButtonIcon';
 
 if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -204,14 +207,22 @@ const DeleteWalletModal: React.FC<DeleteWalletModalProps> = ({
             style={styles.areYouSure}
             testID={DeleteWalletModalSelectorsIDs.CONTAINER}
           >
-            {
+            <View style={styles.iconContainer}>
+              <ButtonIcon
+                iconName={IconName.ArrowLeft}
+                size={ButtonIconSizes.Md}
+                iconColor={IconColor.Default}
+                onPress={() => setIsResetWallet(false)}
+              />
               <Icon
                 style={styles.warningIcon}
                 size={IconSize.Xl}
                 color={IconColor.Error}
                 name={IconName.Danger}
               />
-            }
+              <View style={styles.iconEmptyContainer} />
+            </View>
+
             <Text
               style={styles.heading}
               variant={TextVariant.HeadingMD}

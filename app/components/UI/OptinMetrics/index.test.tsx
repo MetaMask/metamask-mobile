@@ -4,6 +4,7 @@ import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../locales/i18n';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import storageWrapper from '../../../store/storage-wrapper';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -62,6 +63,7 @@ describe('OptinMetrics', () => {
           name: strings('privacy_policy.cta_i_agree'),
         }),
       );
+
       await waitFor(() => {
         expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
           1,
@@ -85,6 +87,9 @@ describe('OptinMetrics', () => {
     });
 
     it('with marketing consent', async () => {
+      // mock StorageWrapper getItem to return 'agreed' for marketing consent
+      jest.spyOn(storageWrapper, 'getItem').mockResolvedValue('agreed');
+
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
       fireEvent.press(screen.getByText(strings('privacy_policy.checkbox')));
       fireEvent.press(
@@ -116,12 +121,16 @@ describe('OptinMetrics', () => {
   });
 
   it('does not call metrics on cancel', async () => {
+    jest.useFakeTimers();
     renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
     fireEvent.press(
       screen.getByRole('button', {
         name: strings('privacy_policy.cta_no_thanks'),
       }),
     );
+
+    jest.advanceTimersByTime(1000);
+
     await waitFor(() => {
       expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
       expect(mockMetrics.addTraitsToUser).not.toHaveBeenCalled();
