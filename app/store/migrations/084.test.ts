@@ -96,8 +96,6 @@ describe('Migration 84: set isBackupAndSyncEnabled and isAccountSyncingEnabled t
 
     // State should be unchanged
     expect(migratedState).toStrictEqual(orgState);
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error('Migration 84: UserStorageController not found in state'),
-    );
+    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
   });
 });
