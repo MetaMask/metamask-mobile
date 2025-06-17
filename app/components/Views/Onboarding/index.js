@@ -48,7 +48,7 @@ import Button, {
 
 import fox from '../../../animations/Searching_Fox.json';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
-import { trace, TraceName } from '../../../util/trace';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
