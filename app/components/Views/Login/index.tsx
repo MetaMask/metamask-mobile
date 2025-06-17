@@ -133,7 +133,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const [biometryPreviouslyDisabled, setBiometryPreviouslyDisabled] =
     useState(false);
   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
-  const [rehydrationFailedAttempts, setRehydrationFailedAttempts] = useState(0);
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
   const {
@@ -322,21 +321,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       const loginError = loginErr as Error;
       const loginErrorMessage = loginError.toString();
 
-      const newFailedAttempts = rehydrationFailedAttempts + 1;
-      setRehydrationFailedAttempts(newFailedAttempts);
-
       if (
         toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
         toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID) ||
         toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID_2) ||
         loginErrorMessage.includes(PASSWORD_REQUIREMENTS_NOT_MET)
       ) {
-        // Track failed rehydration attempt only for social login flows
-        track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-          account_type: 'social',
-          failed_attempts: newFailedAttempts,
-        });
-
         setLoading(false);
         setError(strings('login.invalid_password'));
         trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
