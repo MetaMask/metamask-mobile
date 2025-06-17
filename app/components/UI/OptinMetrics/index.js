@@ -105,6 +105,9 @@ const createStyles = ({ colors }) =>
       height: 1,
       backgroundColor: colors.border.muted,
     },
+    title: {
+      fontWeight: '700',
+    },
   });
 
 /**
@@ -577,21 +580,20 @@ class OptinMetrics extends PureComponent {
     const styles = this.getStyles();
 
     return (
-      <SafeAreaView
-        style={styles.root}
-        testID={MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID}
-      >
+      <SafeAreaView style={styles.root}>
         <ScrollView
           style={styles.root}
           scrollEventThrottle={150}
           onContentSizeChange={this.onContentSizeChange}
           onLayout={this.onLayout}
           onScroll={this.onScroll}
+          testID={MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID}
         >
           <View style={styles.wrapper}>
             <Text
               variant={TextVariant.DisplayMD}
               color={TextColor.Default}
+              style={styles.title}
               testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID}
             >
               {strings('privacy_policy.description_title')}
