@@ -69,6 +69,11 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
     [receiptToken?.balanceMinimalUnit],
   );
 
+  const userHasUnderlyingTokensAvailableToLend = useMemo(
+    () => new BigNumber(earnToken?.balanceMinimalUnit ?? '0').gt(0),
+    [earnToken?.balanceMinimalUnit],
+  );
+
   const handleNavigateToWithdrawalInputScreen = () => {
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
@@ -141,7 +146,6 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
         </View>
       )}
       {/* Buttons */}
-      {/* {userHasLendingPositions && ( */}
       <View style={styles.container}>
         {userHasLendingPositions && receiptToken && (
           <Button
@@ -153,7 +157,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
             testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
           />
         )}
-        {userHasLendingPositions && earnToken && (
+        {userHasUnderlyingTokensAvailableToLend && !isAssetReceiptToken && (
           <Button
             variant={ButtonVariants.Secondary}
             style={styles.button}
