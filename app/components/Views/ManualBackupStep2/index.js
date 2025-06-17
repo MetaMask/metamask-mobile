@@ -106,15 +106,17 @@ const ManualBackupStep2 = ({
       InteractionManager.runAfterInteractions(async () => {
         if (backupFlow || settingsBackup) {
           const resetAction = CommonActions.reset({
-            index: 0,
+            index: 1,
             routes: [
               {
                 name: Routes.ONBOARDING.SUCCESS_FLOW,
                 params: {
                   screen: Routes.ONBOARDING.SUCCESS,
-                  successFlow: backupFlow
-                    ? ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP
-                    : ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP,
+                  params: {
+                    successFlow: backupFlow
+                      ? ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP
+                      : ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP,
+                  },
                 },
               },
             ],
@@ -128,7 +130,9 @@ const ManualBackupStep2 = ({
                 name: Routes.ONBOARDING.SUCCESS_FLOW,
                 params: {
                   screen: Routes.ONBOARDING.SUCCESS,
-                  successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
+                  params: {
+                    successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
+                  },
                 },
               },
             ],

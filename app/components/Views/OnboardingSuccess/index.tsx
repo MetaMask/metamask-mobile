@@ -84,8 +84,8 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 
   const renderContent = () => {
     switch (successFlow) {
-      case ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP ||
-        ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP:
+      case ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP:
+      case ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP:
         return (
           <>
             <Text variant={TextVariant.DisplayMD}>
@@ -242,14 +242,8 @@ export const OnboardingSuccess = () => {
 
   const successFlow = params?.successFlow;
 
-  let nextScreen = ResetNavigationToHome;
+  const nextScreen = ResetNavigationToHome;
 
-  if (successFlow === ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP) {
-    nextScreen = CommonActions.reset({
-      index: 0,
-      routes: [{ name: Routes.ONBOARDING.SECURITY_SETTINGS }],
-    });
-  }
   return (
     <OnboardingSuccessComponent
       successFlow={successFlow}
