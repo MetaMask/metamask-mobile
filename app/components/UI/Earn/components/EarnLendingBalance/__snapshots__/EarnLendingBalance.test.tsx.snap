@@ -232,7 +232,6 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
         "flexDirection": "row",
         "gap": 16,
         "justifyContent": "space-between",
-        "paddingBottom": 6,
         "paddingHorizontal": 16,
         "paddingTop": 14,
       }

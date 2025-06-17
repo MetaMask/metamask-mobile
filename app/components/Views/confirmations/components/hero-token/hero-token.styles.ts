@@ -3,10 +3,10 @@ import { Theme } from '../../../../../util/theme/models';
 
 const styleSheet = (params: {
   theme: Theme;
-  vars: { isFlatConfirmation: boolean };
+  vars: { isFullScreenConfirmation: boolean };
 }) => {
   const { theme, vars } = params;
-  const { isFlatConfirmation } = vars;
+  const { isFullScreenConfirmation } = vars;
 
   return StyleSheet.create({
     assetAmountContainer: {
@@ -24,7 +24,7 @@ const styleSheet = (params: {
     },
     container: {
       paddingBottom: 16,
-      paddingTop: isFlatConfirmation ? 16 : 0,
+      paddingTop: isFullScreenConfirmation ? 16 : 0,
     },
   });
 };
