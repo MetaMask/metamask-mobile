@@ -116,6 +116,7 @@ import { selectNetworkConfigurationByChainId } from '../../../../../../selectors
 import { selectAllTokens } from '../../../../../../selectors/tokensController';
 import { selectAccountsByChainId } from '../../../../../../selectors/accountTrackerController';
 import { selectAllTokenBalances } from '../../../../../../selectors/tokenBalancesController';
+import { BigNumber } from 'bignumber.js';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
