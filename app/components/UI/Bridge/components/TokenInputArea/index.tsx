@@ -16,7 +16,7 @@ import { renderNumber } from '../../../../../util/number';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { ethers } from 'ethers';
-import { BridgeToken, BridgeViewMode } from '../../types';
+import { BridgeToken } from '../../types';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Button, {
   ButtonVariants,
@@ -26,7 +26,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { BridgeDestNetworkSelectorRouteParams } from '../BridgeDestNetworkSelector';
 import {
-  selectIsUnifiedSwapsEnabled,
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
 } from '../../../../../core/redux/slices/bridge';
@@ -137,8 +136,6 @@ export const TokenInputArea = forwardRef<
     },
     ref,
   ) => {
-    const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
-
     const currentCurrency = useSelector(selectCurrentCurrency);
     // Need to fetch the exchange rate for the token if we don't have it already
     useBridgeExchangeRates({
@@ -164,15 +161,10 @@ export const TokenInputArea = forwardRef<
     const navigation = useNavigation();
 
     const navigateToDestNetworkSelector = () => {
-      const extraParams = isUnifiedSwapsEnabled ? {
-        bridgeViewMode: BridgeViewMode.Unified,
-      } : {};
-
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
         params: {
           shouldGoToTokens: true,
-          ...extraParams,
         } as BridgeDestNetworkSelectorRouteParams,
       });
     };
