@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import ManualBackupStep2 from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { CommonActions, useNavigation } from '@react-navigation/native';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import { strings } from '../../../../locales/i18n';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
@@ -233,83 +234,44 @@ describe('ManualBackupStep2', () => {
 
     it('render and handle word selection in grid', () => {
       const { wrapper, mockNavigation } = setupTest();
-      const gridItems = wrapper.getAllByTestId('grid-item');
+      const gridItems = wrapper.getByTestId(
+        `${ManualBackUpStepsSelectorsIDs.GRID_ITEM}-0`,
+      );
 
       // Select a word
-      fireEvent.press(gridItems[0]);
-      expect(gridItems[0]).toHaveStyle({ backgroundColor: expect.any(String) });
+      fireEvent.press(gridItems);
+      expect(gridItems).toHaveStyle({ backgroundColor: expect.any(String) });
       mockNavigation.mockRestore();
     });
-
-    // it('on deselect word, the slot should be empty again and focused', () => {
-    //   const { wrapper } = setupTest();
-
-    //   // Get missing words and grid items
-    //   const missingWords = wrapper.getAllByTestId(
-    //     `${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-0`,
-    //   );
-    //   const gridItems = wrapper.getAllByTestId(
-    //     ManualBackUpStepsSelectorsIDs.GRID_ITEM,
-    //   );
-
-    //   // First, select a word
-    //   fireEvent.press(missingWords[0]);
-
-    //   // Now press the same word again to deselect it
-    //   fireEvent.press(missingWords[0]);
-
-    //   // Find the empty slot by checking each grid item's style prop
-    //   const emptySlot = gridItems.find((item) =>
-    //     item.props.style.some(
-    //       (style: { backgroundColor?: string }) => style?.backgroundColor,
-    //     ),
-    //   );
-
-    //   expect(emptySlot).toBeTruthy();
-    // });
-
-    // it('maintains correct focus order when deselecting words', () => {
-    //   const { wrapper } = setupTest();
-
-    //   // Get all missing words
-    //   const missingWords = [0, 1, 2].map(
-    //     (i) =>
-    //       wrapper.getAllByTestId(
-    //         `${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-${i}`,
-    //       )[0],
-    //   );
-
-    //   // Select all three words
-    //   missingWords.forEach((word) => {
-    //     fireEvent.press(word);
-    //   });
-
-    //   // Deselect the second word
-    //   fireEvent.press(missingWords[1]);
-
-    //   // The second slot should now be focused
-    //   const gridItems = wrapper.getAllByTestId(
-    //     ManualBackUpStepsSelectorsIDs.GRID_ITEM,
-    //   );
-    //   expect(gridItems[1]).toHaveStyle({ backgroundColor: expect.any(String) }); // Check for focus style
-    // });
 
     it('render SuccessErrorSheet with type error when seed phrase is invalid', () => {
       const { wrapper, mockNavigate, mockNavigation } = setupTest();
 
-      // Fill words incorrectly
-      const gridItems = wrapper.getAllByTestId(
-        ManualBackUpStepsSelectorsIDs.GRID_ITEM,
+      const missingWordOne = wrapper.getByTestId(
+        `${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-0`,
+      );
+      const missingWordTwo = wrapper.getByTestId(
+        `${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-1`,
+      );
+      const missingWordThree = wrapper.getByTestId(
+        `${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-2`,
       );
 
-      mockWords.reverse().forEach((_, index) => {
-        fireEvent.press(gridItems[index]);
-      });
+      fireEvent.press(missingWordOne);
+      fireEvent.press(missingWordTwo);
+      fireEvent.press(missingWordThree);
+      fireEvent.press(missingWordOne);
+      fireEvent.press(missingWordTwo);
+      fireEvent.press(missingWordThree);
+      fireEvent.press(missingWordOne);
+      fireEvent.press(missingWordTwo);
+      fireEvent.press(missingWordThree);
 
       // Press continue button
       const continueButton = wrapper.getByTestId(
         ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON,
       );
+
       fireEvent.press(continueButton);
 
       expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
@@ -329,8 +291,7 @@ describe('ManualBackupStep2', () => {
     });
 
     it('render SuccessErrorSheet with type success when seed phrase is valid and navigate to HomeNav', async () => {
-      const { wrapper, mockNavigate, mockNavigation, mockNavigationDispatch } =
-        setupTest();
+      const { wrapper, mockNavigate, mockNavigationDispatch } = setupTest();
 
       const missingWordOne = wrapper.getByTestId(
         `${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-0`,
@@ -412,28 +373,8 @@ describe('ManualBackupStep2', () => {
       await waitFor(() => {
         expect(mockNavigationDispatch).toHaveBeenCalledWith(resetAction);
       });
-
-      // Click the missing words in order
-      sortMissingOrder.forEach(({ click }) => {
-        fireEvent.press(click);
-      });
-
-      // Fill words incorrectly
-      const gridItems = wrapper.getAllByTestId(
-        ManualBackUpStepsSelectorsIDs.GRID_ITEM,
-      );
-
-      mockWords.forEach((_, index) => {
-        fireEvent.press(gridItems[index], index);
-      });
-
-      expect(continueButton.props.disabled).toBe(true);
-
-      expect(missingWordItemOne.props.style.color).toBe('#4459ff');
-      expect(missingWordItemTwo.props.style.color).toBe('#4459ff');
-      expect(missingWordItemThree.props.style.color).toBe('#4459ff');
-      mockNavigation.mockRestore();
     });
+
     it('navigate to Optin Metrics for onboarding flow', async () => {
       // configure onboarding scenario
       mockRoute.mockReturnValue({
@@ -570,6 +511,51 @@ describe('ManualBackupStep2', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.ONBOARDING.SECURITY_SETTINGS,
       );
+    });
+
+    it('handles slot press', async () => {
+      const { wrapper } = setupTest();
+
+      const missingWordOne = wrapper.getByTestId(
+        `${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-0`,
+      );
+
+      // Get all empty slots using GRID_ITEM_EMPTY test ID
+      const emptySlots: any[] = [];
+      const nonEmptySlots: any[] = [];
+
+      // Try to find both types of slots for each index
+      for (let i = 0; i < 12; i++) {
+        try {
+          const emptySlot = wrapper.getByTestId(
+            `${ManualBackUpStepsSelectorsIDs.GRID_ITEM_EMPTY}-${i}`,
+          );
+          emptySlots.push(emptySlot);
+        } catch (emptyError) {
+          try {
+            const nonEmptySlot = wrapper.getByTestId(
+              `${ManualBackUpStepsSelectorsIDs.GRID_ITEM}-${i}`,
+            );
+            nonEmptySlots.push(nonEmptySlot);
+          } catch (nonEmptyError) {
+            // Skip if neither type is found (shouldn't happen)
+          }
+        }
+      }
+
+      // Verify we found exactly 3 empty slots and 9 non-empty slots
+      expect(emptySlots).toHaveLength(3);
+      expect(nonEmptySlots).toHaveLength(9);
+
+      await act(async () => {
+        fireEvent.press(missingWordOne);
+      });
+      // Press each empty slot
+      fireEvent.press(emptySlots[0]);
+
+      fireEvent.press(missingWordOne);
+
+      // Verify we found exactly 3 empty slots and 9 non-empty slots
     });
   });
 

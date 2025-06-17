@@ -279,7 +279,11 @@ const ManualBackupStep2 = ({
       return (
         <TouchableOpacity
           key={index}
-          testID={ManualBackUpStepsSelectorsIDs.GRID_ITEM}
+          testID={
+            isEmpty
+              ? `${ManualBackUpStepsSelectorsIDs.GRID_ITEM_EMPTY}-${index}`
+              : `${ManualBackUpStepsSelectorsIDs.GRID_ITEM}-${index}`
+          }
           style={[
             styles.gridItem,
             isEmpty && styles.emptySlot,
