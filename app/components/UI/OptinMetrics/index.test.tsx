@@ -4,6 +4,7 @@ import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../locales/i18n';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import storageWrapper from '../../../store/storage-wrapper';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -85,6 +86,9 @@ describe('OptinMetrics', () => {
     });
 
     it('with marketing consent', async () => {
+      // mock StorageWrapper getItem to return 'agreed' for marketing consent
+      jest.spyOn(storageWrapper, 'getItem').mockResolvedValue('agreed');
+
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
       fireEvent.press(screen.getByText(strings('privacy_policy.checkbox')));
       fireEvent.press(
