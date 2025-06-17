@@ -48,6 +48,7 @@ import Button, {
 
 import fox from '../../../animations/Searching_Fox.json';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -344,6 +345,7 @@ class Onboarding extends PureComponent {
   };
 
   onPressCreate = () => {
+    trace({ name: TraceName.OnboardingCreateWallet });
     const action = () => {
       this.props.navigation.navigate('ChoosePassword', {
         [PREVIOUS_SCREEN]: ONBOARDING,
@@ -352,6 +354,7 @@ class Onboarding extends PureComponent {
     };
 
     this.handleExistingUser(action);
+    endTrace({ name: TraceName.OnboardingCreateWallet });
   };
 
   onPressImport = () => {
