@@ -130,6 +130,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const [biometryChoice, setBiometryChoice] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [spellCheckError, setSpellCheckError] = useState('');
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
   const [seedPhrase, setSeedPhrase] = useState([]);
   const [seedPhraseInputFocusedIndex, setSeedPhraseInputFocusedIndex] =
@@ -141,16 +142,15 @@ const ImportFromSecretRecoveryPhrase = ({
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [containerWidth, setContainerWidth] = useState(0);
+
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
     onTransactionComplete: false,
   });
 
-  const seedPhraseLength = seedPhrase.filter((item) => item !== '').length;
-
   const isSRPContinueButtonDisabled = useMemo(
-    () => !SRP_LENGTHS.includes(seedPhraseLength),
-    [seedPhraseLength],
+    () => !SRP_LENGTHS.includes(seedPhrase.length),
+    [seedPhrase],
   );
 
   const { isEnabled: isMetricsEnabled } = useMetrics();
@@ -171,11 +171,14 @@ const ImportFromSecretRecoveryPhrase = ({
     setErrorWordIndexes({});
     setShowAllSeedPhrase(false);
     setError('');
+    setSpellCheckError('');
   }, []);
 
   const handleSeedPhraseChange = useCallback(
     async (seedPhraseText, index) => {
       try {
+        setSpellCheckError('');
+        setError('');
         const text = formatSeedPhraseToSingleLine(seedPhraseText);
 
         if (text.includes(SPACE_CHAR)) {
@@ -183,28 +186,19 @@ const ImportFromSecretRecoveryPhrase = ({
           // handle use pasting multiple words / whole seed phrase separated by spaces
           const splitArray = text.trim().split(' ');
 
-          const currentErrorWordIndexes = { ...errorWordIndexes };
-          splitArray.forEach((x, currentIndex) => {
-            if (checkValidSeedWord(x)) {
-              currentErrorWordIndexes[index + currentIndex] = false;
-            } else {
-              currentErrorWordIndexes[index + currentIndex] = true;
-            }
-          });
+          // Build the new seed phrase array
+          const newSeedPhrase = [
+            ...seedPhrase.slice(0, index),
+            ...splitArray,
+            ...seedPhrase.slice(index + 1),
+          ];
 
-          setSeedPhrase((prev) => {
-            const endSlices = prev.slice(index + 1);
-            if (endSlices.length === 0 && isEndWithSpace) {
-              endSlices.push('');
-            } else if (isEndWithSpace) {
-              endSlices.unshift('');
-            }
+          // If the last character is a space, add an empty string for the next input
+          if (isEndWithSpace) {
+            newSeedPhrase.push('');
+          }
 
-            // input the array into the correct index
-            return [...prev.slice(0, index), ...splitArray, ...endSlices];
-          });
-
-          setErrorWordIndexes(currentErrorWordIndexes);
+          setSeedPhrase(newSeedPhrase);
           setNextSeedPhraseInputFocusedIndex(index + splitArray.length);
         } else {
           setSeedPhrase((prev) => {
@@ -218,12 +212,7 @@ const ImportFromSecretRecoveryPhrase = ({
         Logger.error('Error handling seed phrase change:', error);
       }
     },
-    [
-      setSeedPhrase,
-      setNextSeedPhraseInputFocusedIndex,
-      setErrorWordIndexes,
-      errorWordIndexes,
-    ],
+    [setSeedPhrase, setNextSeedPhraseInputFocusedIndex, seedPhrase],
   );
 
   const onQrCodePress = useCallback(() => {
@@ -432,6 +421,9 @@ const ImportFromSecretRecoveryPhrase = ({
     setShowAllSeedPhrase((prev) => !prev);
   };
 
+  const hasSeedPhraseErrors = (seedPhraseArr) =>
+    seedPhraseArr.some((word) => word !== '' && !checkValidSeedWord(word));
+
   const validateSeedPhrase = () => {
     const phrase = seedPhrase.filter((item) => item !== '').join(' ');
     const seedPhraseLength = seedPhrase.length;
@@ -448,10 +440,16 @@ const ImportFromSecretRecoveryPhrase = ({
       return false;
     }
 
+    if (hasSeedPhraseErrors(seedPhrase)) {
+      setSpellCheckError(strings('import_from_seed.spellcheck_error'));
+      return false;
+    }
+
     if (!isValidMnemonic(phrase)) {
       setError(strings('import_from_seed.invalid_seed_phrase'));
       return false;
     }
+
     return true;
   };
 
@@ -594,11 +592,8 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const canShowSeedPhraseWord = useCallback(
-    (index) =>
-      showAllSeedPhrase ||
-      errorWordIndexes[index] ||
-      index === seedPhraseInputFocusedIndex,
-    [showAllSeedPhrase, errorWordIndexes, seedPhraseInputFocusedIndex],
+    (index) => showAllSeedPhrase || index === seedPhraseInputFocusedIndex,
+    [showAllSeedPhrase, seedPhraseInputFocusedIndex],
   );
 
   const learnMoreLink = () => {
@@ -610,14 +605,6 @@ const ImportFromSecretRecoveryPhrase = ({
       },
     });
   };
-
-  useEffect(() => {
-    if (Object.values(errorWordIndexes).some((value) => value)) {
-      setError(strings('import_from_seed.spellcheck_error'));
-    } else {
-      setError('');
-    }
-  }, [errorWordIndexes]);
 
   useEffect(() => {
     seedPhraseInputRefs.current[nextSeedPhraseInputFocusedIndex]?.focus();
@@ -718,6 +705,9 @@ const ImportFromSecretRecoveryPhrase = ({
                           }
                           editable
                           keyboardType="default"
+                          autoCorrect={false}
+                          textContentType="none"
+                          spellCheck={false}
                         />
                       ) : (
                         <View
@@ -752,7 +742,10 @@ const ImportFromSecretRecoveryPhrase = ({
                                   }
                                   value={item}
                                   secureTextEntry={
-                                    !canShowSeedPhraseWord(index)
+                                    !(
+                                      Boolean(spellCheckError) &&
+                                      errorWordIndexes[index]
+                                    ) && !canShowSeedPhraseWord(index)
                                   }
                                   onFocus={(e) => {
                                     if (
@@ -781,11 +774,18 @@ const ImportFromSecretRecoveryPhrase = ({
                                   autoComplete="off"
                                   textAlignVertical="center"
                                   showSoftInputOnFocus
-                                  isError={errorWordIndexes[index]}
+                                  isError={
+                                    Boolean(spellCheckError) &&
+                                    errorWordIndexes[index]
+                                  }
                                   autoCapitalize="none"
                                   numberOfLines={1}
                                   autoFocus={index === seedPhrase.length - 1}
                                   testID={`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`}
+                                  keyboardType="default"
+                                  autoCorrect={false}
+                                  textContentType="none"
+                                  spellCheck={false}
                                 />
                               </View>
                             )}
@@ -824,12 +824,12 @@ const ImportFromSecretRecoveryPhrase = ({
                       />
                     </View>
                   </View>
-                  {error !== '' && (
+                  {(Boolean(spellCheckError) || Boolean(error)) && (
                     <Text
                       variant={TextVariant.BodySMMedium}
                       color={TextColor.Error}
                     >
-                      {error}
+                      {spellCheckError || error}
                     </Text>
                   )}
                 </View>
@@ -840,7 +840,7 @@ const ImportFromSecretRecoveryPhrase = ({
                     onPress={handleContinueImportFlow}
                     width={ButtonWidthTypes.Full}
                     size={ButtonSize.Lg}
-                    isDisabled={isSRPContinueButtonDisabled || Boolean(error)}
+                    isDisabled={isSRPContinueButtonDisabled}
                     testID={ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID}
                   />
                 </View>
@@ -906,7 +906,7 @@ const ImportFromSecretRecoveryPhrase = ({
                   }
                   testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                 />
-                {password && password.length < MIN_PASSWORD_LENGTH && (
+                {Boolean(password) && password.length < MIN_PASSWORD_LENGTH && (
                   <Text
                     variant={TextVariant.BodySM}
                     color={TextColor.Alternative}
@@ -916,25 +916,26 @@ const ImportFromSecretRecoveryPhrase = ({
                     })}
                   </Text>
                 )}
-                {password && password.length >= MIN_PASSWORD_LENGTH && (
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
-                    testID={ImportFromSeedSelectorsIDs.PASSWORD_STRENGTH_ID}
-                  >
-                    {strings('choose_password.password_strength')}
+                {Boolean(password) &&
+                  password.length >= MIN_PASSWORD_LENGTH && (
                     <Text
                       variant={TextVariant.BodySM}
                       color={TextColor.Alternative}
-                      style={styles[`strength_${passwordStrengthWord}`]}
+                      testID={ImportFromSeedSelectorsIDs.PASSWORD_STRENGTH_ID}
                     >
-                      {' '}
-                      {strings(
-                        `choose_password.strength_${passwordStrengthWord}`,
-                      )}
+                      {strings('choose_password.password_strength')}
+                      <Text
+                        variant={TextVariant.BodySM}
+                        color={TextColor.Alternative}
+                        style={styles[`strength_${passwordStrengthWord}`]}
+                      >
+                        {' '}
+                        {strings(
+                          `choose_password.strength_${passwordStrengthWord}`,
+                        )}
+                      </Text>
                     </Text>
-                  </Text>
-                )}
+                  )}
               </View>
 
               <View style={styles.field}>
