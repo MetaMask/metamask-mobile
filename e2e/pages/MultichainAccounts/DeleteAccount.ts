@@ -5,13 +5,13 @@ import { MultichainDeleteAccountSelectors } from '../../selectors/MultichainAcco
 class DeleteAccount {
   get container() {
     return Matchers.getElementByID(
-      MultichainDeleteAccountSelectors.deleteAccountContainer,
+      MultichainDeleteAccountSelectors.DELETE_ACCOUNT_CONTAINER,
     );
   }
 
   get deleteAccountButton() {
     return Matchers.getElementByID(
-      MultichainDeleteAccountSelectors.deleteAccountRemoveButton,
+      MultichainDeleteAccountSelectors.DELETE_ACCOUNT_REMOVE_BUTTON,
     );
   }
 

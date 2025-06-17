@@ -27,7 +27,7 @@ class AccountDetails {
 
   get deleteAccountLink() {
     return Matchers.getElementByID(
-      MultichainDeleteAccountSelectors.deleteAccountRemoveButton,
+      MultichainDeleteAccountSelectors.DELETE_ACCOUNT_REMOVE_BUTTON,
     );
   }
 
