@@ -17,7 +17,7 @@ module.exports = {
       },
     },
   },
-  
+
   testRunner: {
     args: {
       $0: 'jest',
@@ -37,6 +37,17 @@ module.exports = {
           "$0": "node e2e/api-specs/run-api-spec-tests.js",
         },
       },
+      artifacts: {
+        rootDir: "./artifacts",
+        plugins: {
+          screenshot: {
+            shouldTakeAutomaticSnapshots: true,
+          },
+          video: {
+            enabled: true,  // Enable video recording
+          },
+        },
+      }
     },
     'ios.sim.debug': {
       device: 'ios.simulator',
