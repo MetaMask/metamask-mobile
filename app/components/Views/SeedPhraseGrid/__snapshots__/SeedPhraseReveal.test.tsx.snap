@@ -1,0 +1,1417 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SeedPhraseReveal Component Structure should render container with correct styles 1`] = `
+<View
+  style={
+    {
+      "position": "relative",
+    }
+  }
+>
+  <View
+    onLayout={[Function]}
+    style={
+      [
+        {
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+          "justifyContent": "center",
+          "width": "100%",
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      data={
+        [
+          "abandon",
+          "ability",
+          "able",
+          "about",
+          "above",
+          "absent",
+          "absorb",
+          "abstract",
+          "absurd",
+          "abuse",
+          "access",
+          "accident",
+        ]
+      }
+      getItem={[Function]}
+      getItemCount={[Function]}
+      keyExtractor={[Function]}
+      onContentSizeChange={[Function]}
+      onLayout={[Function]}
+      onMomentumScrollBegin={[Function]}
+      onMomentumScrollEnd={[Function]}
+      onScroll={[Function]}
+      onScrollBeginDrag={[Function]}
+      onScrollEndDrag={[Function]}
+      removeClippedSubviews={false}
+      renderItem={[Function]}
+      scrollEventThrottle={0.0001}
+      stickyHeaderIndices={[]}
+      viewabilityConfigCallbackPairs={[]}
+    >
+      <View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={null}
+        >
+          <View
+            style={
+              {
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "width": 0,
+                  },
+                  {
+                    "padding": 4,
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "color": "#121314",
+                    "flex": 1,
+                    "flexDirection": "row",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "height": 40,
+                    "justifyContent": "flex-start",
+                    "opacity": 1,
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 4,
+                    "textAlignVertical": "center",
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "marginRight": 8,
+                    }
+                  }
+                  testID="textfield-startacccessory"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                        "marginRight": -4,
+                      }
+                    }
+                  >
+                    1
+                    .
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TextInput
+                    autoCapitalize="none"
+                    autoComplete="off"
+                    autoFocus={false}
+                    editable={false}
+                    numberOfLines={1}
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
+                    onKeyPress={[Function]}
+                    placeholderTextColor="#9ca1af"
+                    secureTextEntry={false}
+                    showSoftInputOnFocus={true}
+                    style={
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "height": 24,
+                        "letterSpacing": 0,
+                        "opacity": 1,
+                        "paddingVertical": 0,
+                      }
+                    }
+                    testID="import-from-seed-screen-seed-phrase-input-id_0"
+                    textAlignVertical="center"
+                    value="abandon"
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "width": 0,
+                  },
+                  {
+                    "padding": 4,
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "color": "#121314",
+                    "flex": 1,
+                    "flexDirection": "row",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "height": 40,
+                    "justifyContent": "flex-start",
+                    "opacity": 1,
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 4,
+                    "textAlignVertical": "center",
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "marginRight": 8,
+                    }
+                  }
+                  testID="textfield-startacccessory"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                        "marginRight": -4,
+                      }
+                    }
+                  >
+                    2
+                    .
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TextInput
+                    autoCapitalize="none"
+                    autoComplete="off"
+                    autoFocus={false}
+                    editable={false}
+                    numberOfLines={1}
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
+                    onKeyPress={[Function]}
+                    placeholderTextColor="#9ca1af"
+                    secureTextEntry={false}
+                    showSoftInputOnFocus={true}
+                    style={
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "height": 24,
+                        "letterSpacing": 0,
+                        "opacity": 1,
+                        "paddingVertical": 0,
+                      }
+                    }
+                    testID="import-from-seed-screen-seed-phrase-input-id_1"
+                    textAlignVertical="center"
+                    value="ability"
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "width": 0,
+                  },
+                  {
+                    "padding": 4,
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "color": "#121314",
+                    "flex": 1,
+                    "flexDirection": "row",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "height": 40,
+                    "justifyContent": "flex-start",
+                    "opacity": 1,
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 4,
+                    "textAlignVertical": "center",
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "marginRight": 8,
+                    }
+                  }
+                  testID="textfield-startacccessory"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                        "marginRight": -4,
+                      }
+                    }
+                  >
+                    3
+                    .
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TextInput
+                    autoCapitalize="none"
+                    autoComplete="off"
+                    autoFocus={false}
+                    editable={false}
+                    numberOfLines={1}
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
+                    onKeyPress={[Function]}
+                    placeholderTextColor="#9ca1af"
+                    secureTextEntry={false}
+                    showSoftInputOnFocus={true}
+                    style={
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "height": 24,
+                        "letterSpacing": 0,
+                        "opacity": 1,
+                        "paddingVertical": 0,
+                      }
+                    }
+                    testID="import-from-seed-screen-seed-phrase-input-id_2"
+                    textAlignVertical="center"
+                    value="able"
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={null}
+        >
+          <View
+            style={
+              {
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "width": 0,
+                  },
+                  {
+                    "padding": 4,
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "color": "#121314",
+                    "flex": 1,
+                    "flexDirection": "row",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "height": 40,
+                    "justifyContent": "flex-start",
+                    "opacity": 1,
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 4,
+                    "textAlignVertical": "center",
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "marginRight": 8,
+                    }
+                  }
+                  testID="textfield-startacccessory"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                        "marginRight": -4,
+                      }
+                    }
+                  >
+                    4
+                    .
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TextInput
+                    autoCapitalize="none"
+                    autoComplete="off"
+                    autoFocus={false}
+                    editable={false}
+                    numberOfLines={1}
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
+                    onKeyPress={[Function]}
+                    placeholderTextColor="#9ca1af"
+                    secureTextEntry={false}
+                    showSoftInputOnFocus={true}
+                    style={
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "height": 24,
+                        "letterSpacing": 0,
+                        "opacity": 1,
+                        "paddingVertical": 0,
+                      }
+                    }
+                    testID="import-from-seed-screen-seed-phrase-input-id_3"
+                    textAlignVertical="center"
+                    value="about"
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "width": 0,
+                  },
+                  {
+                    "padding": 4,
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "color": "#121314",
+                    "flex": 1,
+                    "flexDirection": "row",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "height": 40,
+                    "justifyContent": "flex-start",
+                    "opacity": 1,
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 4,
+                    "textAlignVertical": "center",
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "marginRight": 8,
+                    }
+                  }
+                  testID="textfield-startacccessory"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                        "marginRight": -4,
+                      }
+                    }
+                  >
+                    5
+                    .
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TextInput
+                    autoCapitalize="none"
+                    autoComplete="off"
+                    autoFocus={false}
+                    editable={false}
+                    numberOfLines={1}
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
+                    onKeyPress={[Function]}
+                    placeholderTextColor="#9ca1af"
+                    secureTextEntry={false}
+                    showSoftInputOnFocus={true}
+                    style={
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "height": 24,
+                        "letterSpacing": 0,
+                        "opacity": 1,
+                        "paddingVertical": 0,
+                      }
+                    }
+                    testID="import-from-seed-screen-seed-phrase-input-id_4"
+                    textAlignVertical="center"
+                    value="above"
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "width": 0,
+                  },
+                  {
+                    "padding": 4,
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "color": "#121314",
+                    "flex": 1,
+                    "flexDirection": "row",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "height": 40,
+                    "justifyContent": "flex-start",
+                    "opacity": 1,
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 4,
+                    "textAlignVertical": "center",
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "marginRight": 8,
+                    }
+                  }
+                  testID="textfield-startacccessory"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                        "marginRight": -4,
+                      }
+                    }
+                  >
+                    6
+                    .
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TextInput
+                    autoCapitalize="none"
+                    autoComplete="off"
+                    autoFocus={false}
+                    editable={false}
+                    numberOfLines={1}
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
+                    onKeyPress={[Function]}
+                    placeholderTextColor="#9ca1af"
+                    secureTextEntry={false}
+                    showSoftInputOnFocus={true}
+                    style={
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "height": 24,
+                        "letterSpacing": 0,
+                        "opacity": 1,
+                        "paddingVertical": 0,
+                      }
+                    }
+                    testID="import-from-seed-screen-seed-phrase-input-id_5"
+                    textAlignVertical="center"
+                    value="absent"
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={null}
+        >
+          <View
+            style={
+              {
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "width": 0,
+                  },
+                  {
+                    "padding": 4,
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "color": "#121314",
+                    "flex": 1,
+                    "flexDirection": "row",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "height": 40,
+                    "justifyContent": "flex-start",
+                    "opacity": 1,
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 4,
+                    "textAlignVertical": "center",
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "marginRight": 8,
+                    }
+                  }
+                  testID="textfield-startacccessory"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                        "marginRight": -4,
+                      }
+                    }
+                  >
+                    7
+                    .
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TextInput
+                    autoCapitalize="none"
+                    autoComplete="off"
+                    autoFocus={false}
+                    editable={false}
+                    numberOfLines={1}
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
+                    onKeyPress={[Function]}
+                    placeholderTextColor="#9ca1af"
+                    secureTextEntry={false}
+                    showSoftInputOnFocus={true}
+                    style={
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "height": 24,
+                        "letterSpacing": 0,
+                        "opacity": 1,
+                        "paddingVertical": 0,
+                      }
+                    }
+                    testID="import-from-seed-screen-seed-phrase-input-id_6"
+                    textAlignVertical="center"
+                    value="absorb"
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "width": 0,
+                  },
+                  {
+                    "padding": 4,
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "color": "#121314",
+                    "flex": 1,
+                    "flexDirection": "row",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "height": 40,
+                    "justifyContent": "flex-start",
+                    "opacity": 1,
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 4,
+                    "textAlignVertical": "center",
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "marginRight": 8,
+                    }
+                  }
+                  testID="textfield-startacccessory"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                        "marginRight": -4,
+                      }
+                    }
+                  >
+                    8
+                    .
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TextInput
+                    autoCapitalize="none"
+                    autoComplete="off"
+                    autoFocus={false}
+                    editable={false}
+                    numberOfLines={1}
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
+                    onKeyPress={[Function]}
+                    placeholderTextColor="#9ca1af"
+                    secureTextEntry={false}
+                    showSoftInputOnFocus={true}
+                    style={
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "height": 24,
+                        "letterSpacing": 0,
+                        "opacity": 1,
+                        "paddingVertical": 0,
+                      }
+                    }
+                    testID="import-from-seed-screen-seed-phrase-input-id_7"
+                    textAlignVertical="center"
+                    value="abstract"
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "width": 0,
+                  },
+                  {
+                    "padding": 4,
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "color": "#121314",
+                    "flex": 1,
+                    "flexDirection": "row",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "height": 40,
+                    "justifyContent": "flex-start",
+                    "opacity": 1,
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 4,
+                    "textAlignVertical": "center",
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "marginRight": 8,
+                    }
+                  }
+                  testID="textfield-startacccessory"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                        "marginRight": -4,
+                      }
+                    }
+                  >
+                    9
+                    .
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TextInput
+                    autoCapitalize="none"
+                    autoComplete="off"
+                    autoFocus={false}
+                    editable={false}
+                    numberOfLines={1}
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
+                    onKeyPress={[Function]}
+                    placeholderTextColor="#9ca1af"
+                    secureTextEntry={false}
+                    showSoftInputOnFocus={true}
+                    style={
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "height": 24,
+                        "letterSpacing": 0,
+                        "opacity": 1,
+                        "paddingVertical": 0,
+                      }
+                    }
+                    testID="import-from-seed-screen-seed-phrase-input-id_8"
+                    textAlignVertical="center"
+                    value="absurd"
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={null}
+        >
+          <View
+            style={
+              {
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "width": 0,
+                  },
+                  {
+                    "padding": 4,
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "color": "#121314",
+                    "flex": 1,
+                    "flexDirection": "row",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "height": 40,
+                    "justifyContent": "flex-start",
+                    "opacity": 1,
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 4,
+                    "textAlignVertical": "center",
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "marginRight": 8,
+                    }
+                  }
+                  testID="textfield-startacccessory"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                        "marginRight": -4,
+                      }
+                    }
+                  >
+                    10
+                    .
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TextInput
+                    autoCapitalize="none"
+                    autoComplete="off"
+                    autoFocus={false}
+                    editable={false}
+                    numberOfLines={1}
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
+                    onKeyPress={[Function]}
+                    placeholderTextColor="#9ca1af"
+                    secureTextEntry={false}
+                    showSoftInputOnFocus={true}
+                    style={
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "height": 24,
+                        "letterSpacing": 0,
+                        "opacity": 1,
+                        "paddingVertical": 0,
+                      }
+                    }
+                    testID="import-from-seed-screen-seed-phrase-input-id_9"
+                    textAlignVertical="center"
+                    value="abuse"
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "width": 0,
+                  },
+                  {
+                    "padding": 4,
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "color": "#121314",
+                    "flex": 1,
+                    "flexDirection": "row",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "height": 40,
+                    "justifyContent": "flex-start",
+                    "opacity": 1,
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 4,
+                    "textAlignVertical": "center",
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "marginRight": 8,
+                    }
+                  }
+                  testID="textfield-startacccessory"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                        "marginRight": -4,
+                      }
+                    }
+                  >
+                    11
+                    .
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TextInput
+                    autoCapitalize="none"
+                    autoComplete="off"
+                    autoFocus={false}
+                    editable={false}
+                    numberOfLines={1}
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
+                    onKeyPress={[Function]}
+                    placeholderTextColor="#9ca1af"
+                    secureTextEntry={false}
+                    showSoftInputOnFocus={true}
+                    style={
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "height": 24,
+                        "letterSpacing": 0,
+                        "opacity": 1,
+                        "paddingVertical": 0,
+                      }
+                    }
+                    testID="import-from-seed-screen-seed-phrase-input-id_10"
+                    textAlignVertical="center"
+                    value="access"
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "width": 0,
+                  },
+                  {
+                    "padding": 4,
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#4459ff",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "color": "#121314",
+                    "flex": 1,
+                    "flexDirection": "row",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "height": 40,
+                    "justifyContent": "flex-start",
+                    "opacity": 1,
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 4,
+                    "textAlignVertical": "center",
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "marginRight": 8,
+                    }
+                  }
+                  testID="textfield-startacccessory"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                        "marginRight": -4,
+                      }
+                    }
+                  >
+                    12
+                    .
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TextInput
+                    autoCapitalize="none"
+                    autoComplete="off"
+                    autoFocus={true}
+                    editable={false}
+                    numberOfLines={1}
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
+                    onKeyPress={[Function]}
+                    placeholderTextColor="#9ca1af"
+                    secureTextEntry={false}
+                    showSoftInputOnFocus={true}
+                    style={
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "height": 24,
+                        "letterSpacing": 0,
+                        "opacity": 1,
+                        "paddingVertical": 0,
+                      }
+                    }
+                    testID="import-from-seed-screen-seed-phrase-input-id_11"
+                    textAlignVertical="center"
+                    value="accident"
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+  <TouchableOpacity
+    activeOpacity={0.8}
+    onPress={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "rgba(0, 0, 0, 0.8)",
+        "borderRadius": 8,
+        "bottom": 0,
+        "justifyContent": "center",
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "paddingHorizontal": 20,
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "#FFFFFF",
+            "fontSize": 16,
+            "fontWeight": "600",
+            "marginBottom": 8,
+            "textAlign": "center",
+          }
+        }
+      >
+        Tap to reveal your Secret Recovery Phrase
+      </Text>
+      <Text
+        style={
+          {
+            "color": "#CCCCCC",
+            "fontSize": 14,
+            "textAlign": "center",
+          }
+        }
+      >
+        Make sure no one is looking at your screen
+      </Text>
+    </View>
+  </TouchableOpacity>
+</View>
+`;
