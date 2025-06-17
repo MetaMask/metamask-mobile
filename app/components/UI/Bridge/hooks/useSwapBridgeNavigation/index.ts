@@ -19,7 +19,7 @@ import { isAssetFromSearch } from '../../../../../selectors/tokenSearchDiscovery
 import { PopularList } from '../../../../../util/networks/customNetworks';
 import { useAddNetwork } from '../../../../hooks/useAddNetwork';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { selectIsBridgeEnabledSource } from '../../../../../core/redux/slices/bridge';
+import { selectIsBridgeEnabledSource, selectIsUnifiedSwapsEnabled } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
 
 export enum SwapBridgeNavigationLocation {
@@ -50,6 +50,7 @@ export const useSwapBridgeNavigation = ({
   const isBridgeEnabledSource = useSelector((state: RootState) =>
     selectIsBridgeEnabledSource(state, selectedChainId),
   );
+  const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
 
   // Bridge
   const goToNativeBridge = useCallback(
@@ -209,6 +210,11 @@ export const useSwapBridgeNavigation = ({
 
   const goToSwaps = useCallback(
     async (currentToken?: BridgeToken) => {
+      if (isUnifiedSwapsEnabled) {
+        goToBridge(BridgeViewMode.Unified);
+        return;
+      }
+
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       if (
         tokenBase?.chainId === SolScope.Mainnet ||
@@ -228,6 +234,7 @@ export const useSwapBridgeNavigation = ({
       goToBridge,
       ///: END:ONLY_INCLUDE_IF
       handleSwapsNavigation,
+      isUnifiedSwapsEnabled,
     ],
   );
 

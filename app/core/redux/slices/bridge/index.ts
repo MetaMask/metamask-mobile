@@ -388,6 +388,17 @@ export const selectIsSubmittingTx = createSelector(
   (bridgeState) => bridgeState.isSubmittingTx,
 );
 
+export const selectIsUnifiedSwapsEnabled = createSelector(
+  selectBridgeFeatureFlags,
+  (_bridgeFeatureFlags) => {
+    // TODO consume feature flags too
+    if (process.env.MM_UNIFIED_SWAPS_ENABLED === 'true') {
+      return true;
+    }
+    return false;
+  },
+);
+
 // Actions
 export const {
   setSourceAmount,
