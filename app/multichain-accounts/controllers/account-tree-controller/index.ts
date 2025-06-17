@@ -1,9 +1,6 @@
 import { AccountTreeController, AccountTreeControllerMessenger } from '@metamask/account-tree-controller';
 import type { ControllerInitFunction } from '../../../core/Engine/types';
 
-// Export constants
-export * from './constants';
-
 /**
  * Initialize the AccountTreeController.
  *

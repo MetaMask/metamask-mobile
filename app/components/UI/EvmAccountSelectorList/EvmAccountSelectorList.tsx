@@ -40,7 +40,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { selectAccountSections } from '../../../multichain-accounts/selectors/accountTreeController';
 
 // Internal dependencies.
-import { EvmAccountSelectorListProps } from './EvmAccountSelectorList.types';
+import { AccountSection, EvmAccountSelectorListProps } from './EvmAccountSelectorList.types';
 import styleSheet from './EvmAccountSelectorList.styles';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
@@ -51,11 +51,6 @@ import AccountNetworkIndicator from '../AccountNetworkIndicator';
 import { Skeleton } from '../../../component-library/components/Skeleton';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
-
-interface AccountSection {
-  title: string;
-  data: Account[];
-}
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.

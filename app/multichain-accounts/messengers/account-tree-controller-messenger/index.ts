@@ -12,17 +12,13 @@ export function getAccountTreeControllerMessenger(
   return baseControllerMessenger.getRestricted({
     name: 'AccountTreeController',
     allowedEvents: [
-      'AccountsController:stateChange',
       'AccountsController:accountAdded',
       'AccountsController:accountRemoved',
-      'KeyringController:stateChange',
     ],
     allowedActions: [
       'AccountsController:listMultichainAccounts',
-      'AccountsController:listAccounts',
       'SnapController:get',
       'KeyringController:getState',
-      'KeyringController:getAccounts',
     ],
   });
 }

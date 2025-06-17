@@ -65,3 +65,8 @@ export interface EvmAccountSelectorListProps
    */
   privacyMode?: boolean;
 }
+
+export interface AccountSection {
+  title: string;
+  data: Account[];
+}

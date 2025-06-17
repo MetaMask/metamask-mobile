@@ -57,22 +57,6 @@ jest.mock('../Engine', () => ({
         keyrings: [{ metadata: { id: 'test-keyring-id' } }],
       },
     },
-    AccountTreeController: {
-      init: jest.fn(),
-    },
-    AccountsController: {
-      updateAccounts: jest.fn(),
-    },
-    RemoteFeatureFlagController: {
-      state: {
-        remoteFeatureFlags: {
-          enableMultichainAccounts: {
-            version: '1',
-            enabled: true,
-          },
-        },
-      },
-    },
   },
 }));
 
