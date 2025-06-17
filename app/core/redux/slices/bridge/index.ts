@@ -2,7 +2,10 @@ import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
 import { Hex, CaipChainId } from '@metamask/utils';
 import { createSelector } from 'reselect';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../../../selectors/networkController';
 import { uniqBy } from 'lodash';
 import {
   ALLOWED_BRIDGE_CHAIN_IDS,
@@ -14,7 +17,10 @@ import {
   selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
   DEFAULT_FEATURE_FLAG_CONFIG,
 } from '@metamask/bridge-controller';
-import { BridgeToken, BridgeViewMode } from '../../../../components/UI/Bridge/types';
+import {
+  BridgeToken,
+  BridgeViewMode,
+} from '../../../../components/UI/Bridge/types';
 import { PopularList } from '../../../../util/networks/customNetworks';
 import { selectGasFeeControllerEstimates } from '../../../../selectors/gasFeeController';
 import { MetaMetrics } from '../../../Analytics';
@@ -352,9 +358,7 @@ export const selectBridgeQuotes = createSelector(
 
 export const selectIsSolanaSourced = createSelector(
   selectSourceToken,
-  (sourceToken) =>
-    sourceToken?.chainId &&
-    isSolanaChainId(sourceToken.chainId),
+  (sourceToken) => sourceToken?.chainId && isSolanaChainId(sourceToken.chainId),
 );
 
 export const selectIsEvmToSolana = createSelector(
@@ -400,9 +404,12 @@ export const selectIsSubmittingTx = createSelector(
 
 export const selectIsUnifiedSwapsEnabled = createSelector(
   selectBridgeFeatureFlags,
-  (_bridgeFeatureFlags) => {
-    // TODO consume feature flags too
-    if (process.env.MM_UNIFIED_SWAPS_ENABLED === 'true') {
+  selectChainId,
+  (bridgeFeatureFlags, chainId) => {
+    if (
+      process.env.MM_UNIFIED_SWAPS_ENABLED === 'true' &&
+      bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]?.isUnifiedUIEnabled
+    ) {
       return true;
     }
     return false;
