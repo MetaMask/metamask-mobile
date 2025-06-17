@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import { loginToApp } from '../../viewHelper.js';
-import QuoteView from '../../pages/swaps/QuoteView.js';
+import QuoteView from '../../pages/swaps/QuoteView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
 import WalletView from '../../pages/wallet/WalletView.js';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
@@ -106,7 +106,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
     await QuoteView.tapOnSelectDestToken();
     await QuoteView.tapSearchToken();
     await QuoteView.typeSearchToken('DAI');
-    await TestHelpers.delay(3000); 
+    await TestHelpers.delay(3000);
     await QuoteView.selectToken('DAI');
     await QuoteView.enterSwapAmount('0.01');
     await QuoteView.tapOnGetQuotes();
