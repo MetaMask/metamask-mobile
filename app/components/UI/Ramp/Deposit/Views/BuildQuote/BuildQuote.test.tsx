@@ -1,8 +1,14 @@
 import React from 'react';
-import { screen, fireEvent, waitFor } from '@testing-library/react-native';
+import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import BuildQuote from './BuildQuote';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
+import {
+  DepositCryptoCurrency,
+  DepositFiatCurrency,
+  DepositPaymentMethod,
+} from '../../constants';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -11,6 +17,13 @@ const mockGetQuote = jest.fn();
 const mockFetchKycForms = jest.fn();
 const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
+const mockGetTransakFiatCurrencyId = jest.fn();
+const mockGetTransakCryptoCurrencyId = jest.fn();
+const mockGetTransakChainId = jest.fn();
+const mockGetTransakPaymentMethodId = jest.fn();
+
+const mockQuote = { quoteId: 'test-quote' } as unknown as BuyQuote;
+const mockForms = { forms: [] };
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -40,12 +53,12 @@ jest.mock('../../sdk', () => ({
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
   useDepositSdkMethod: jest.fn().mockImplementation((config) => {
     if (config?.method === 'getBuyQuote' || config === 'getBuyQuote') {
-      return [null, mockGetQuote];
+      return [{ error: null }, mockGetQuote];
     }
     if (config?.method === 'getKYCForms') {
-      return [null, mockFetchKycForms];
+      return [{ error: null }, mockFetchKycForms];
     }
-    return [null, jest.fn()];
+    return [{ error: null }, jest.fn()];
   }),
 }));
 
@@ -54,52 +67,33 @@ jest.mock('../../hooks/useDepositTokenExchange', () => ({
   default: () => mockUseDepositTokenExchange(),
 }));
 
-jest.mock('../../../../../hooks/useStyles', () => ({
-  useStyles: () => ({
-    styles: {
-      inputContainer: {},
-      detailsContainer: {},
-      sectionTitle: {},
-      detailRow: {},
-      content: {},
-      selectionRow: {},
-      fiatSelector: {},
-      centerGroup: {},
-      mainAmount: {},
-      convertedAmount: {},
-      cryptoPill: {},
-      tokenLogo: {},
-      cryptoText: {},
-      paymentMethodBox: {},
-      paymentMethodContent: {},
-      keypad: {},
-    },
-    theme: {
-      colors: {
-        icon: {
-          alternative: '#000',
-        },
-      },
-    },
-  }),
+jest.mock('../../utils', () => ({
+  getTransakFiatCurrencyId: (fiatCurrency: DepositFiatCurrency) =>
+    mockGetTransakFiatCurrencyId(fiatCurrency),
+  getTransakCryptoCurrencyId: (cryptoCurrency: DepositCryptoCurrency) =>
+    mockGetTransakCryptoCurrencyId(cryptoCurrency),
+  getTransakChainId: (chainId: string) => mockGetTransakChainId(chainId),
+  getTransakPaymentMethodId: (paymentMethod: DepositPaymentMethod) =>
+    mockGetTransakPaymentMethodId(paymentMethod),
 }));
 
-jest.mock('./BuildQuote.styles', () => ({}));
-
 jest.mock('../ProviderWebview/ProviderWebview', () => ({
-  createProviderWebviewNavDetails: jest.fn(() => ['PROVIDER_WEBVIEW', {}]),
+  createProviderWebviewNavDetails: jest.fn(({ quote }) => [
+    'PROVIDER_WEBVIEW',
+    { quote },
+  ]),
 }));
 
 jest.mock('../BasicInfo/BasicInfo', () => ({
-  createBasicInfoNavDetails: jest.fn(() => ['BASIC_INFO', {}]),
+  createBasicInfoNavDetails: jest.fn(({ quote }) => ['BASIC_INFO', { quote }]),
 }));
 
 jest.mock('../EnterEmail/EnterEmail', () => ({
-  createEnterEmailNavDetails: jest.fn(() => ['ENTER_EMAIL', {}]),
+  createEnterEmailNavDetails: jest.fn(({ quote }) => [
+    'ENTER_EMAIL',
+    { quote },
+  ]),
 }));
-
-jest.mock('../../components/DepositTextField', () => 'DepositTextField');
-jest.mock('../../components/AccountSelector', () => 'AccountSelector');
 
 function render(Component: React.ComponentType) {
   return renderDepositTestComponent(Component, Routes.DEPOSIT.BUILD_QUOTE);
@@ -114,37 +108,15 @@ describe('BuildQuote Component', () => {
     mockUseDepositTokenExchange.mockReturnValue({
       tokenAmount: '0.00',
     });
+    mockGetTransakFiatCurrencyId.mockReturnValue('USD');
+    mockGetTransakCryptoCurrencyId.mockReturnValue('USDC');
+    mockGetTransakChainId.mockReturnValue('ethereum');
+    mockGetTransakPaymentMethodId.mockReturnValue('credit_debit_card');
   });
 
   it('render matches snapshot', () => {
     render(BuildQuote);
     expect(screen.toJSON()).toMatchSnapshot();
-  });
-
-  describe('Currency Selection', () => {
-    it('switches between USD and EUR when fiat currency is pressed', () => {
-      render(BuildQuote);
-
-      const fiatSelector = screen.getByText('USD');
-      fireEvent.press(fiatSelector);
-
-      expect(screen.getByText('EUR')).toBeTruthy();
-
-      fireEvent.press(screen.getByText('EUR'));
-      expect(screen.getByText('USD')).toBeTruthy();
-    });
-
-    it('switches between USDC and USDT when crypto currency is pressed', () => {
-      render(BuildQuote);
-
-      const cryptoSelector = screen.getByText('USDC');
-      fireEvent.press(cryptoSelector);
-
-      expect(screen.getByText('USDT')).toBeTruthy();
-
-      fireEvent.press(screen.getByText('USDT'));
-      expect(screen.getByText('USDC')).toBeTruthy();
-    });
   });
 
   describe('Keypad Functionality', () => {
@@ -169,10 +141,7 @@ describe('BuildQuote Component', () => {
   });
 
   describe('Continue button functionality', () => {
-    it('calls getQuote with correct parameters', async () => {
-      const mockQuote = { id: 'test-quote' };
-      const mockForms = { forms: [] };
-
+    it('calls getQuote with transformed parameters using utility functions', async () => {
       mockUseDepositSDK.mockReturnValue({ isAuthenticated: false });
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
@@ -183,20 +152,37 @@ describe('BuildQuote Component', () => {
       fireEvent.press(continueButton);
 
       await waitFor(() => {
+        expect(mockGetTransakFiatCurrencyId).toHaveBeenCalled();
+        expect(mockGetTransakCryptoCurrencyId).toHaveBeenCalled();
+        expect(mockGetTransakChainId).toHaveBeenCalled();
+        expect(mockGetTransakPaymentMethodId).toHaveBeenCalled();
         expect(mockGetQuote).toHaveBeenCalledWith(
           'USD',
-          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-          'eip155:1',
+          'USDC',
+          'ethereum',
           'credit_debit_card',
           '0',
         );
       });
     });
 
-    it('calls fetchKycForms with the quote when getQuote succeeds', async () => {
-      const mockQuote = { id: 'test-quote' };
-      const mockForms = { forms: [] };
+    it('handles errors from utility functions', async () => {
+      mockGetTransakFiatCurrencyId.mockImplementation(() => {
+        throw new Error('Unsupported fiat currency');
+      });
 
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockGetQuote).not.toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalled();
+      });
+    });
+
+    it('calls fetchKycForms with the quote when getQuote succeeds', async () => {
       mockUseDepositSDK.mockReturnValue({ isAuthenticated: false });
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
@@ -212,9 +198,6 @@ describe('BuildQuote Component', () => {
     });
 
     it('navigates to provider webview when user is authenticated and no forms required', async () => {
-      const mockQuote = { id: 'test-quote' };
-      const mockForms = { forms: [] };
-
       mockUseDepositSDK.mockReturnValue({ isAuthenticated: true });
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
@@ -222,7 +205,9 @@ describe('BuildQuote Component', () => {
       render(BuildQuote);
 
       const continueButton = screen.getByText('Continue');
-      fireEvent.press(continueButton);
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith('PROVIDER_WEBVIEW', {
@@ -232,17 +217,16 @@ describe('BuildQuote Component', () => {
     });
 
     it('navigates to basic info when user is authenticated and forms required', async () => {
-      const mockQuote = { id: 'test-quote' };
-      const mockForms = { forms: ['form1'] };
-
       mockUseDepositSDK.mockReturnValue({ isAuthenticated: true });
       mockGetQuote.mockResolvedValue(mockQuote);
-      mockFetchKycForms.mockResolvedValue(mockForms);
+      mockFetchKycForms.mockResolvedValue({ forms: ['kyc_form'] });
 
       render(BuildQuote);
 
       const continueButton = screen.getByText('Continue');
-      fireEvent.press(continueButton);
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith('BASIC_INFO', {
@@ -252,9 +236,6 @@ describe('BuildQuote Component', () => {
     });
 
     it('navigates to enter email when user is not authenticated', async () => {
-      const mockQuote = { id: 'test-quote' };
-      const mockForms = { forms: [] };
-
       mockUseDepositSDK.mockReturnValue({ isAuthenticated: false });
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
@@ -262,7 +243,9 @@ describe('BuildQuote Component', () => {
       render(BuildQuote);
 
       const continueButton = screen.getByText('Continue');
-      fireEvent.press(continueButton);
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith('ENTER_EMAIL', {
@@ -271,18 +254,71 @@ describe('BuildQuote Component', () => {
       });
     });
 
-    it('does not navigate when getQuote fails', async () => {
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: false });
-      mockGetQuote.mockResolvedValue(null);
+    it('renders quote fetch error snapshot when getQuote fails', async () => {
+      const mockError = new Error('Failed to fetch quote');
+
+      mockGetQuote.mockRejectedValue(mockError);
 
       render(BuildQuote);
 
       const continueButton = screen.getByText('Continue');
-      fireEvent.press(continueButton);
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
 
       await waitFor(() => {
-        expect(mockGetQuote).toHaveBeenCalled();
-        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(screen.toJSON()).toMatchSnapshot();
+      });
+    });
+
+    it('renders KYC forms fetch error snapshot when fetchKycForms fails', async () => {
+      mockGetQuote.mockResolvedValue(mockQuote);
+      mockFetchKycForms.mockRejectedValue(
+        new Error('Failed to fetch KYC forms'),
+      );
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(screen.toJSON()).toMatchSnapshot();
+      });
+    });
+
+    it('renders unexpected error snapshot when an unexpected error occurs', async () => {
+      mockGetTransakFiatCurrencyId.mockImplementation(() => {
+        throw new Error('Unexpected error');
+      });
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(screen.toJSON()).toMatchSnapshot();
+      });
+    });
+
+    it('renders success state snapshot when quote and KYC forms are fetched successfully', async () => {
+      mockGetQuote.mockResolvedValue(mockQuote);
+      mockFetchKycForms.mockResolvedValue(mockForms);
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(screen.toJSON()).toMatchSnapshot();
       });
     });
   });

@@ -35,6 +35,12 @@ import AccountSelector from '../../components/AccountSelector';
 import I18n, { strings } from '../../../../../../../locales/i18n';
 import useDepositTokenExchange from '../../hooks/useDepositTokenExchange';
 import { getIntlNumberFormatter } from '../../../../../../util/intl';
+import {
+  getTransakCryptoCurrencyId,
+  getTransakFiatCurrencyId,
+  getTransakChainId,
+  getTransakPaymentMethodId,
+} from '../../utils';
 
 function formatAmount(
   amount: number,
@@ -57,8 +63,9 @@ const BuildQuote = () => {
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
   const { isAuthenticated } = useDepositSDK();
+  const [error, setError] = useState<string | null>();
 
-  const [, getQuote] = useDepositSdkMethod(
+  const [{ error: quoteFetchError }, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false },
     fiatCurrency.id,
     cryptoCurrency.assetId,
@@ -67,7 +74,7 @@ const BuildQuote = () => {
     amount,
   );
 
-  const [, fetchKycForms] = useDepositSdkMethod({
+  const [{ error: kycFormsFetchError }, fetchKycForms] = useDepositSdkMethod({
     method: 'getKYCForms',
     onMount: false,
   });
@@ -86,29 +93,46 @@ const BuildQuote = () => {
   }, [navigation, theme]);
 
   const handleOnPressContinue = useCallback(async () => {
-    const quote = await getQuote(
-      fiatCurrency.id,
-      cryptoCurrency.assetId,
-      cryptoCurrency.chainId,
-      paymentMethod.id,
-      amount,
-    );
+    try {
+      console.log('handleOnPressContinue', {
+        fiatCurrency: fiatCurrency.id,
+        cryptoCurrency: cryptoCurrency.symbol,
+        paymentMethod: paymentMethod.name,
+        amount: amountAsNumber,
+      });
 
-    if (quote) {
-      const forms = await fetchKycForms(quote);
-      const { forms: requiredForms } = forms || {};
-      if (isAuthenticated) {
-        if (requiredForms?.length === 0) {
-          navigation.navigate(...createProviderWebviewNavDetails({ quote }));
+      const quote = await getQuote(
+        getTransakFiatCurrencyId(fiatCurrency),
+        getTransakCryptoCurrencyId(cryptoCurrency),
+        getTransakChainId(cryptoCurrency.chainId),
+        getTransakPaymentMethodId(paymentMethod),
+        amount,
+      );
+
+      if (quote) {
+        const forms = await fetchKycForms(quote);
+        if (kycFormsFetchError) {
+          setError(strings('deposit.buildQuote.kycFormsFetchError'));
         } else {
-          navigation.navigate(...createBasicInfoNavDetails({ quote }));
+          const { forms: requiredForms } = forms || {};
+          if (isAuthenticated) {
+            if (requiredForms?.length === 0) {
+              navigation.navigate(
+                ...createProviderWebviewNavDetails({ quote }),
+              );
+            } else {
+              navigation.navigate(...createBasicInfoNavDetails({ quote }));
+            }
+          } else {
+            navigation.navigate(...createEnterEmailNavDetails({ quote }));
+          }
         }
-      } else {
-        navigation.navigate(...createEnterEmailNavDetails({ quote }));
+      } else if (quoteFetchError) {
+        // TODO: Display quote fetch error to the user?
+        setError(strings('deposit.buildQuote.quoteFetchError'));
       }
-    } else {
-      // TODO: Handle error case where quote can not be generated
-      console.error('Failed to fetch quote');
+    } catch (_) {
+      setError(strings('deposit.buildQuote.unexpectedError'));
     }
   }, [
     amount,
@@ -119,6 +143,8 @@ const BuildQuote = () => {
     isAuthenticated,
     navigation,
     paymentMethod,
+    quoteFetchError,
+    kycFormsFetchError,
   ]);
 
   const handleKeypadChange = useCallback(
@@ -208,6 +234,13 @@ const BuildQuote = () => {
                 </Text>
               </View>
             </TouchableOpacity>
+            {error && (
+              <View style={styles.errorContainer}>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
+                  {error}
+                </Text>
+              </View>
+            )}
           </View>
 
           <TouchableOpacity

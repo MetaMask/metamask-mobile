@@ -86,6 +86,10 @@ const styleSheet = (params: { theme: Theme }) => {
     keypad: {
       paddingHorizontal: 0,
     },
+    errorContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
   });
 };
 

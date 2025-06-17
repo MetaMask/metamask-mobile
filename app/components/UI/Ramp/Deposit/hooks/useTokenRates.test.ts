@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react-hooks';
 import { handleFetch } from '@metamask/controller-utils';
 import useFetchTokenRatesMulti from './useTokenRates';
 import { USDC_TOKEN, USDT_TOKEN, USD_CURRENCY } from '../constants';

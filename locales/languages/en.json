@@ -472,7 +472,10 @@
   "deposit": {
     "title": "Deposit",
     "buildQuote": {
-      "payWith": "Pay with"
+      "payWith": "Pay with",
+      "unexpectedError": "An unexpected error occurred.",
+      "quoteFetchError": "Failed to fetch quote.",
+      "kycFormsFetchError": "Failed to fetch KYC forms."
     },
     "get_started": {
       "title": "Top up your wallet with USDC",
