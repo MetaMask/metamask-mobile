@@ -432,12 +432,9 @@ class ResetPassword extends PureComponent {
     try {
       this.setState({ loading: true });
 
-      console.log('onPressCreate ========>');
       await this.recreateVault();
-      console.log('recreateVault ========>');
       // Set biometrics for new password
       await Authentication.resetPassword();
-      console.log('Authentication.resetPassword ========>');
       try {
         // compute and store the new authentication method
         const authData = await Authentication.componentAuthenticationType(
