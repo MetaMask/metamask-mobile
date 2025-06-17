@@ -56,11 +56,8 @@ import Logger from '../../../util/Logger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 
-import {
-  MetaMetricsEvents,
-  MetaMetrics,
-  MetricsEventBuilder,
-} from '../../../core/Analytics';
+import { MetaMetricsEvents, MetaMetrics } from '../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const createStyles = (colors) =>
   StyleSheet.create({
