@@ -92,6 +92,7 @@ export const BaseWalletDetails = ({
     return (
       <TouchableOpacity
         key={account.id}
+        testID={`${WalletDetailsIds.ACCOUNT_ITEM}_${account.id}`}
         onPress={() => handleGoToAccountDetails(account)}
       >
         <Box
@@ -190,7 +191,10 @@ export const BaseWalletDetails = ({
             )}
           </Box>
         </View>
-        <View style={styles.accountsList}>
+        <View
+          style={styles.accountsList}
+          testID={WalletDetailsIds.ACCOUNTS_LIST}
+        >
           {accounts.map((account, index) => renderAccountItem(account, index))}
         </View>
         {children}

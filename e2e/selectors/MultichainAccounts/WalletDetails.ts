@@ -3,4 +3,6 @@ export const WalletDetailsIds = {
   BACK_BUTTON: 'wallet-details-back-button',
   WALLET_NAME: 'wallet-details-wallet-name',
   WALLET_BALANCE: 'wallet-details-balance',
+  ACCOUNTS_LIST: 'wallet-details-accounts-list',
+  ACCOUNT_ITEM: 'wallet-details-account-item',
 };
