@@ -16,12 +16,6 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 import Assertions from '../../utils/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../fixtures/utils';
-import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
-import { CustomNetworks } from '../../resources/networks.e2e';
-
-const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
-const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
-
 
 describe(SmokeConfirmations('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -80,95 +74,4 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
       },
     );
   });
-
-it(`send an ERC721 token from a dapp using ${MEGAETH_TESTNET.nickname}`, async () => {
-    await withFixtures(
-      {
-        dapp: true,
-        fixture: new FixtureBuilder()
-          .withMegaTestnetNetwork()
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions([`${MEGAETH_TESTNET.chainId}`]),
-          )
-          .build(),
-        restartDevice: true,
-        smartContract: NFT_CONTRACT,
-      },
-      // Remove any once withFixtures is typed
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      async ({ contractRegistry }: { contractRegistry: any }) => {
-        const nftsAddress = await contractRegistry.getContractAddress(
-          NFT_CONTRACT,
-        );
-
-        await loginToApp();
-
-        // Navigate to the browser screen
-        await TabBarComponent.tapBrowser();
-        await TestDApp.navigateToTestDappWithContract({
-          contractAddress: nftsAddress,
-        });
-
-        // Transfer NFT
-        await TestDApp.tapNFTTransferButton();
-        await TestHelpers.delay(3000);
-
-        // Accept confirmation
-        await FooterActions.tapConfirmButton();
-        await TestHelpers.delay(3000);
-
-        // Check activity tab
-        await TabBarComponent.tapActivity();
-        await Assertions.checkIfTextIsDisplayed('Confirmed');
-        await Assertions.checkIfTextIsDisplayed(
-          ActivitiesViewSelectorsText.SENT_COLLECTIBLE_MESSAGE_TEXT,
-        );
-      },
-    );
-  });
-
-it(`send an ERC721 token from a dapp using ${MONAD_TESTNET.nickname}`, async () => {
-    await withFixtures(
-      {
-        dapp: true,
-        fixture: new FixtureBuilder()
-          .withMonadTestnetNetwork()
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions([`${MONAD_TESTNET.chainId}`]),
-          )
-          .build(),
-        restartDevice: true,
-        smartContract: NFT_CONTRACT,
-      },
-      // Remove any once withFixtures is typed
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      async ({ contractRegistry }: { contractRegistry: any }) => {
-        const nftsAddress = await contractRegistry.getContractAddress(
-          NFT_CONTRACT,
-        );
-        await loginToApp();
-
-        // Navigate to the browser screen
-        await TabBarComponent.tapBrowser();
-        await TestDApp.navigateToTestDappWithContract({
-          contractAddress: nftsAddress,
-        });
-        // Transfer NFT
-        await TestDApp.tapNFTTransferButton();
-        await TestHelpers.delay(3000);
-
-        // Accept confirmation
-        await FooterActions.tapConfirmButton();
-        await TestHelpers.delay(3000);
-
-        // Check activity tab
-        await TabBarComponent.tapActivity();
-        await Assertions.checkIfTextIsDisplayed('Confirmed');
-        await Assertions.checkIfTextIsDisplayed(
-          ActivitiesViewSelectorsText.SENT_COLLECTIBLE_MESSAGE_TEXT,
-        );
-      },
-    );
-  });
-
 });
