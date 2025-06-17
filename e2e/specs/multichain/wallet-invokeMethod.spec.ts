@@ -21,7 +21,7 @@
  * 3. Results appear in the expected format (truncated vs non-truncated)
  */
 import TestHelpers from '../../helpers';
-import { SmokeNetworkExpansion } from '../../tags';
+import { SmokeMultiChainAPI } from '../../tags';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures, DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS } from '../../fixtures/fixture-helper';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
@@ -31,7 +31,7 @@ import Assertions from '../../utils/Assertions';
 import { MULTICHAIN_TEST_TIMEOUTS } from '../../selectors/Browser/MultichainTestDapp.selectors';
 import { waitFor } from 'detox';
 
-describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
+describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
     beforeEach(() => {
         jest.setTimeout(150000); // 2.5 minute timeout for stability
     });
