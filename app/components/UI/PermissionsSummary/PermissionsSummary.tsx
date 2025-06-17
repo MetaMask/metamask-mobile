@@ -81,6 +81,7 @@ import {
   selectNonEvmNetworkConfigurationsByChainId,
   selectSelectedNonEvmNetworkChainId,
 } from '../../../selectors/multichainNetworkController';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -304,6 +305,7 @@ const PermissionsSummary = ({
   }, [hostname, navigate]);
 
   const toggleRevokeAllPermissionsModal = useCallback(() => {
+    trace({ name: TraceName.DisconnectAllAccountPermissions });
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
       params: {
@@ -315,6 +317,7 @@ const PermissionsSummary = ({
         onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
       },
     });
+    endTrace({ name: TraceName.DisconnectAllAccountPermissions });
   }, [isRenderedAsBottomSheet, onRevokeAllHandler, hostname, navigate]);
 
   const getAccountLabel = useCallback(() => {
