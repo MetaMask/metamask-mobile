@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
+exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapshot 1`] = `
 <View
   style={
     {
@@ -392,6 +392,12 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                     >
                       <RCTScrollView
                         automaticallyAdjustContentInsets={false}
+                        contentContainerStyle={
+                          {
+                            "flex": 1,
+                            "paddingHorizontal": 16,
+                          }
+                        }
                         contentInset={
                           {
                             "bottom": 0,
@@ -422,17 +428,17 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                         scrollToFocusedInput={[Function]}
                         scrollToPosition={[Function]}
                         showsVerticalScrollIndicator={true}
-                        style={
-                          {
-                            "flex": 1,
-                            "paddingHorizontal": 16,
-                          }
-                        }
                         update={[Function]}
                         viewIsInsideTabBar={false}
                       >
                         <View>
                           <View
+                            style={
+                              {
+                                "flex": 1,
+                                "flexDirection": "column",
+                              }
+                            }
                             testID="import-from-seed-screen"
                           >
                             <Text
@@ -545,8 +551,10 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                     <TextInput
                                       autoCapitalize="none"
                                       autoComplete="off"
+                                      autoCorrect={false}
                                       autoFocus={true}
-                                      blurOnSubmit={false}
+                                      editable={true}
+                                      keyboardType="default"
                                       label="Secret Recovery Phrase"
                                       multiline={true}
                                       onChangeText={[Function]}
@@ -560,6 +568,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                         }
                                       }
                                       placeholderTextColor="#686e7d"
+                                      spellCheck={false}
                                       style={
                                         {
                                           "backgroundColor": "#f3f5f9",
@@ -572,8 +581,10 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                           "paddingHorizontal": 0,
                                         }
                                       }
+                                      submitBehavior="submit"
                                       testID="import-from-seed-screen-seed-phrase-input-id"
                                       textAlignVertical="top"
+                                      textContentType="none"
                                       value=""
                                     />
                                   </View>

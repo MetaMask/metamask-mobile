@@ -320,7 +320,6 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                           "paddingTop": 24,
                         }
                       }
-                      testID="meta-metrics-container"
                     >
                       <RCTScrollView
                         onContentSizeChange={[Function]}
@@ -334,6 +333,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                             "paddingTop": 24,
                           }
                         }
+                        testID="meta-metrics-container"
                       >
                         <View>
                           <View

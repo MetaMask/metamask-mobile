@@ -113,16 +113,20 @@ describe(
         RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_SRP_TITLE_TEXT,
       );
       await Assertions.checkIfTextIsDisplayed(defaultGanacheOptions.mnemonic);
+      await RevealSecretRecoveryPhrase.scrollToCopyToClipboardButton();
       // Android devices running OS version < 11 (API level 29) will not see the copy to clipboard button presented
       // This will cause the following step to fail if e2e were being run on an older android OS prior to our minimum API level 29
       // See details here: https://github.com/MetaMask/metamask-mobile/pull/4170
       await RevealSecretRecoveryPhrase.tapToCopyCredentialToClipboard();
-      await TestHelpers.delay(2000);
       await RevealSecretRecoveryPhrase.tapToRevealPrivateCredentialQRCode();
+      await RevealSecretRecoveryPhrase.scrollToQR();
       await Assertions.checkIfVisible(
         RevealSecretRecoveryPhrase.revealCredentialQRCodeImage,
       );
-      await RevealSecretRecoveryPhrase.scrollToDone();
+      const isDoneVisible = await RevealSecretRecoveryPhrase.doneButton;
+      if (!isDoneVisible) {
+        await RevealSecretRecoveryPhrase.scrollToDone();
+      }
       await RevealSecretRecoveryPhrase.tapDoneButton();
       await Assertions.checkIfVisible(
         SecurityAndPrivacy.securityAndPrivacyHeading,

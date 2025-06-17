@@ -315,7 +315,7 @@ exports[`AccountBackupStep1B render matches snapshot 1`] = `
                   ]
                 }
               >
-                Create password
+                MetaMask password
               </Text>
             </View>
             <View
