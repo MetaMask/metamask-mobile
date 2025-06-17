@@ -486,5 +486,6 @@ export const initialState = {
     selectedSourceChainIds: undefined,
     selectedDestChainId: undefined,
     slippage: '0.5',
+    bridgeViewMode: undefined,
   },
 };
