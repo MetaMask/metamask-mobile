@@ -579,7 +579,6 @@ class OptinMetrics extends PureComponent {
     return (
       <SafeAreaView
         style={styles.root}
-        testID={MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID}
       >
         <ScrollView
           style={styles.root}
@@ -587,6 +586,7 @@ class OptinMetrics extends PureComponent {
           onContentSizeChange={this.onContentSizeChange}
           onLayout={this.onLayout}
           onScroll={this.onScroll}
+          testID={MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID}
         >
           <View style={styles.wrapper}>
             <Text
