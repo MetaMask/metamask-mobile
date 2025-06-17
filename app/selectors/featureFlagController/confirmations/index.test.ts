@@ -22,6 +22,7 @@ afterEach(() => {
 });
 
 const confirmationRedesignFlagsDefaultValues: ConfirmationRedesignRemoteFlags = {
+  approve: true,
   signatures: true,
   staking_confirmations: true,
   contract_interaction: true,
@@ -29,6 +30,7 @@ const confirmationRedesignFlagsDefaultValues: ConfirmationRedesignRemoteFlags = 
 };
 
 const mockedConfirmationRedesignFlags: ConfirmationRedesignRemoteFlags = {
+  approve: false,
   signatures: false,
   staking_confirmations: true,
   contract_interaction: true,
@@ -109,6 +111,7 @@ describe('Confirmation Redesign Feature Flags', () => {
 
   it('returns mix of remote and default values when only some flags are set', () => {
     const expected: ConfirmationRedesignRemoteFlags = {
+      approve: false, // undefined, defaults to false
       signatures: false, // explicitly set to false
       staking_confirmations: true, // undefined, defaults to true
       contract_interaction: true, // undefined, defaults to true
@@ -145,6 +148,7 @@ describe('Confirmation Redesign Feature Flags', () => {
       staking_confirmations: false,
       contract_interaction: false,
       transfer: false,
+      approve: false,
     };
 
     testFlagValues(

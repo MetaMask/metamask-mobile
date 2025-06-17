@@ -91,7 +91,7 @@ describe('SecuritySettings', () => {
         state: initialState,
       },
     );
-    expect(getByText('Protect your wallet')).toBeTruthy();
+    expect(getByText('Wallet recovery')).toBeTruthy();
     expect(
       getByTestId(SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER),
     ).toBeTruthy();
