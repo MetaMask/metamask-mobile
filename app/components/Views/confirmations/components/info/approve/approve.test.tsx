@@ -1,13 +1,13 @@
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { approveERC20TransactionStateMock } from '../../../mock-data/approve-transaction-mock';
+import { approveERC20TransactionStateMock } from '../../../__mocks__/approve-transaction-mock';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import Approve from './approve';
 
 jest.mock('../../../../../../core/Engine', () => {
   const { otherControllersMock } = jest.requireActual(
-    '../../../mock-data/controllers/other-controllers-mock',
+    '../../../__mocks__/controllers/other-controllers-mock',
   );
   return {
     getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),

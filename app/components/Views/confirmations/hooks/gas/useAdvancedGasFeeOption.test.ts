@@ -6,7 +6,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { merge } from 'lodash';
 
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { simpleSendTransaction } from '../../mock-data/controllers/transaction-controller-mock';
+import { simpleSendTransaction } from '../../__mocks__/controllers/transaction-controller-mock';
 import { EMPTY_VALUE_STRING } from '../../constants/gas';
 import { useFeeCalculations } from './useFeeCalculations';
 import { useAdvancedGasFeeOption } from './useAdvancedGasFeeOption';
