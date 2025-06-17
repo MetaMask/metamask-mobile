@@ -54,8 +54,6 @@ Given(/^I have imported my wallet$/, async () => {
   await TermOfUseScreen.tapAgreeCheckBox();
     await TermOfUseScreen.tapAcceptButton();
   await OnboardingScreen.clickImportWalletButton();
-  await MetaMetricsScreen.isScreenTitleVisible();
-  await MetaMetricsScreen.tapIAgreeButton();
   await driver.pause(500);
   await ImportFromSeedScreen.isScreenTitleVisible();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(validAccount.seedPhrase);
@@ -66,7 +64,9 @@ Given(/^I have imported my wallet$/, async () => {
   await CreatePasswordScreen.reEnterPassword(validAccount.password);
   await CreatePasswordScreen.tapIUnderstandCheckBox();
   await CreatePasswordScreen.tapCreatePasswordButton();
-
+  await driver.pause(timeOut);
+  await MetaMetricsScreen.isScreenTitleVisible();
+  await MetaMetricsScreen.tapIAgreeButton();
   await driver.pause(timeOut);
   await OnboardingSucessScreen.tapDone()
 });
@@ -83,11 +83,13 @@ Given(/^I create a new wallet$/, async () => {
   await TermOfUseScreen.tapAcceptButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.tapCreateNewWalletButton();
-  await MetaMetricsScreen.isScreenTitleVisible();
-  await MetaMetricsScreen.tapNoThanksButton();
   await CreateNewWalletScreen.isNewAccountScreenFieldsVisible();
   await CreateNewWalletScreen.inputPasswordInFirstField(validAccount.password);
   await CreateNewWalletScreen.inputConfirmPasswordField(validAccount.password); // Had to seperate steps due to onboarding video on physical device
+  await MetaMetricsScreen.isScreenTitleVisible();
+  await MetaMetricsScreen.tapIAgreeButton();
+  await driver.pause(timeOut);
+  await OnboardingSucessScreen.tapDone()
 });
 
 Given(
