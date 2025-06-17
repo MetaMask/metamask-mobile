@@ -111,7 +111,7 @@ describe('Confirmation Redesign Feature Flags', () => {
 
   it('returns mix of remote and default values when only some flags are set', () => {
     const expected: ConfirmationRedesignRemoteFlags = {
-      approve: false, // undefined, defaults to true
+      approve: false, // undefined, defaults to false
       signatures: false, // explicitly set to false
       staking_confirmations: true, // undefined, defaults to true
       contract_interaction: true, // undefined, defaults to true
