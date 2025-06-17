@@ -44,6 +44,8 @@ import {
   TraceName,
   TraceOperation,
   bufferedEndTrace,
+  endTrace,
+  trace,
 } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
@@ -56,7 +58,6 @@ import Button, {
 
 import fox from '../../../animations/Searching_Fox.json';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
-import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
