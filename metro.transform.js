@@ -60,7 +60,7 @@ function getBuildTypeFeatures() {
   switch (buildType) {
     case 'main':
       // TODO: Refactor this once we've abstracted environment away from build type
-      if (envType === 'experimental') {
+      if (envType === 'exp') {
         // Only include experimental features in experimental environment
         return experimentalFeatureSet;
       }
