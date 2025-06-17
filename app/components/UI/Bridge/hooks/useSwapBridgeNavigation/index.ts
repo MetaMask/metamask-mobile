@@ -94,7 +94,9 @@ export const useSwapBridgeNavigation = ({
           bridgeViewMode,
         } as BridgeRouteParams,
       });
+
       dispatch(setBridgeViewMode(bridgeViewMode));
+
       trackEvent(
         createEventBuilder(
           bridgeViewMode === BridgeViewMode.Bridge
