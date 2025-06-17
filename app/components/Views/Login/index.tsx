@@ -548,7 +548,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   const toggleWarningModal = () => {
     // Track reset wallet clicked event
-    track(MetaMetricsEvents.RESET_WALLET_CLICKED, {
+    track(MetaMetricsEvents.RESET_WALLET, {
       account_type: oauthLoginSuccess ? 'social' : 'metamask',
     });
 
