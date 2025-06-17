@@ -74,7 +74,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          Protect your wallet
+          Wallet recovery
         </Text>
         <Text
           accessibilityRole="text"
@@ -276,10 +276,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "stretch",
-              "backgroundColor": "transparent",
-              "borderColor": "#4459ff",
+              "backgroundColor": "#4459ff",
               "borderRadius": 12,
-              "borderWidth": 1,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
@@ -293,7 +291,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#4459ff",
+                "color": "#ffffff",
                 "fontFamily": "CentraNo1-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",

@@ -12,8 +12,7 @@ import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventB
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
-import { EarnTokenDetails } from '../../types/lending.types';
-import { LendingProtocol } from '@metamask/stake-sdk';
+import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import useEarnTokens from '../../hooks/useEarnTokens';
 
 jest.mock('../../../../hooks/useMetrics');
@@ -191,14 +190,33 @@ describe('EmptyStateCta', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('navigates to deposit screen when "start earning" button is clicked', async () => {
+  it('navigates to lending historic apy modal when "learn more" is clicked', async () => {
+    const { findByText } = renderComponent(mockEarnToken);
+
+    const learnMoreButton = await findByText(
+      strings('earn.empty_state_cta.learn_more'),
+    );
+
+    await act(async () => {
+      fireEvent.press(learnMoreButton);
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith('EarnModals', {
+      params: {
+        asset: mockEarnToken,
+      },
+      screen: 'EarnLendingLearnMoreModal',
+    });
+  });
+
+  it('navigates to deposit screen when "earn" button is clicked', async () => {
     const { findByText } = renderComponent(mockEarnToken);
 
     const startEarningButton = await findByText(
       strings('earn.empty_state_cta.earn'),
     );
 
-    await act(() => {
+    await act(async () => {
       fireEvent.press(startEarningButton);
     });
 
@@ -217,7 +235,7 @@ describe('EmptyStateCta', () => {
       strings('earn.empty_state_cta.earn'),
     );
 
-    await act(() => {
+    await act(async () => {
       fireEvent.press(startEarningButton);
     });
 

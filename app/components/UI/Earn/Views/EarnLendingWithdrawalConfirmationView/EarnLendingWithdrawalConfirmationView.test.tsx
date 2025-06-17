@@ -1,5 +1,4 @@
 import { LendingMarketWithPosition } from '@metamask/earn-controller';
-import { LendingProtocol } from '@metamask/stake-sdk';
 import { useRoute } from '@react-navigation/native';
 import React from 'react';
 import EarnLendingWithdrawalConfirmationView, {
@@ -10,7 +9,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
-import { EarnTokenDetails } from '../../types/lending.types';
+import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import { AAVE_WITHDRAWAL_RISKS } from '../../utils/tempLending';
 // eslint-disable-next-line import/no-namespace
 import * as NavbarUtils from '../../../Navbar';
