@@ -107,16 +107,18 @@ const CustomNetworks = {
       providerConfig: {
         type: 'rpc',
         chainId: toHex('1'),
-        rpcUrl: 'https://virtual.mainnet.rpc.tenderly.co/3472e4b3-594b-488a-a8b1-93593194615f',
+        rpcUrl:
+          'https://virtual.mainnet.rpc.tenderly.co/3472e4b3-594b-488a-a8b1-93593194615f',
         nickname: 'Tenderly - Mainnet',
         ticker: 'ETH',
-     },
+      },
     },
     Polygon: {
       providerConfig: {
         type: 'rpc',
         chainId: toHex('137'),
-        rpcUrl: 'https://virtual.polygon.rpc.tenderly.co/e834a81e-69ba-49e9-a6a5-be5b6eea3cdc',
+        rpcUrl:
+          'https://virtual.polygon.rpc.tenderly.co/e834a81e-69ba-49e9-a6a5-be5b6eea3cdc',
         nickname: 'Polygon',
         ticker: 'POL',
       },
@@ -125,7 +127,8 @@ const CustomNetworks = {
       providerConfig: {
         type: 'rpc',
         chainId: toHex('59144'),
-        rpcUrl: 'https://virtual.linea.rpc.tenderly.co/2c429ceb-43db-45bc-9d84-21a40d21e0d2',
+        rpcUrl:
+          'https://virtual.linea.rpc.tenderly.co/2c429ceb-43db-45bc-9d84-21a40d21e0d2',
         nickname: 'Linea',
         ticker: 'ETH',
       },
@@ -134,11 +137,12 @@ const CustomNetworks = {
       providerConfig: {
         type: 'rpc',
         chainId: toHex('10'),
-        rpcUrl: 'https://virtual.optimism.rpc.tenderly.co/3170a58e-fa67-4ccc-9697-b13aff0f5c1a',
+        rpcUrl:
+          'https://virtual.optimism.rpc.tenderly.co/3170a58e-fa67-4ccc-9697-b13aff0f5c1a',
         nickname: 'Optimism',
         ticker: 'ETH',
       },
-    }
+    },
   },
   Gnosis: {
     providerConfig: {
@@ -150,16 +154,36 @@ const CustomNetworks = {
       BlockExplorerUrl: 'https://gnosisscan.io',
     },
   },
-  Holesky: {
+  Hoodi: {
     providerConfig: {
       type: 'rpc',
-      chainId: toHex(17000),
-      rpcUrl: 'https://ethereum-holesky.publicnode.com',
-      nickname: 'Holesky',
+      chainId: toHex(560048),
+      rpcUrl: 'https://rpc.hoodi.ethpandaops.io',
+      nickname: 'Ethereum Hoodi',
       ticker: 'ETH',
       walletName: 'Ethereum',
-      BlockExplorerUrl: 'https://holesky.etherscan.io/',
+      BlockExplorerUrl: 'https://hoodi.etherscan.io/',
     },
   },
+  MegaTestnet: {
+      providerConfig: {
+        type: 'rpc',
+        chainId: '0x18c6',
+        rpcUrl: 'https://carrot.megaeth.com/rpc',
+        nickname: 'Mega Testnet',
+        ticker: 'MegaETH',
+        BlockExplorerUrl: 'https://megaexplorer.xyz/',
+      },
+    },
+    MonadTestnet: {
+      providerConfig: {
+        type: 'rpc',
+        chainId: '0x279f',
+        rpcUrl: 'https://testnet-rpc.monad.xyz/',
+        nickname: 'Monad Testnet',
+        ticker: 'MON',
+        BlockExplorerUrl: 'https://testnet.monadexplorer.com',
+      },
+    },
 };
 export { CustomNetworks, PopularNetworksList };
