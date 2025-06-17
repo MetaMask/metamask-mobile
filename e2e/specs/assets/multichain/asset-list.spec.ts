@@ -24,7 +24,7 @@ const AVAX_NAME = 'AVAX';
 const BNB_NAME = 'BNB';
 
 describe(SmokeNetworkAbstractions('Import Tokens'), () => {
-  beforeAll(async (): Promise<void> => {
+  beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().withPopularNetworks().build();
     await startFixtureServer(fixtureServer);
@@ -35,7 +35,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await loginToApp();
   });
 
-  afterAll(async (): Promise<void> => {
+  afterAll(async () => {
     await stopFixtureServer(fixtureServer);
   });
 
