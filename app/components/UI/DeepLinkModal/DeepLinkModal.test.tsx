@@ -41,12 +41,8 @@ jest.mock('react-redux', () => ({
 
 describe('DeepLinkModal', () => {
     const mockOnContinue = jest.fn();
-<<<<<<< HEAD
     const mockOnBack = jest.fn();
     const baseParams = { pageTitle: 'MetaMask', onContinue: mockOnContinue, onBack: mockOnBack };
-=======
-    const baseParams = { pageTitle: 'MetaMask', onContinue: mockOnContinue };
->>>>>>> 8da4f85961 (feat: deeplink modal UI)
     beforeEach(() => {
         jest.clearAllMocks();
         (useParams as jest.Mock).mockReturnValue({ ...baseParams, linkType: 'public' });
@@ -163,7 +159,6 @@ describe('DeepLinkModal', () => {
 
     it.each`
     linkType        |eventGoBack
-<<<<<<< HEAD
     ${'public'}     | ${MetaMetricsEvents.DEEP_LINK_PUBLIC_MODAL_DISMISSED}  
     ${'private'}    | ${MetaMetricsEvents.DEEP_LINK_PRIVATE_MODAL_DISMISSED}  
     ${'invalid'}    | ${MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_DISMISSED}  
@@ -174,17 +169,6 @@ describe('DeepLinkModal', () => {
             const dismissButton = getByTestId('deep-link-modal-close-button');
             act(() => {
                 fireEvent.press(dismissButton);
-=======
-    ${'public'}     | ${MetaMetricsEvents.DEEP_LINK_PUBLIC_MODAL_GO_BACK_CLICKED}  
-    ${'private'}    | ${MetaMetricsEvents.DEEP_LINK_PRIVATE_MODAL_GO_BACK_CLICKED}  
-  `('should track correct action event on back button pressed when linkType is $linkType',
-        async ({ linkType, eventGoBack }) => {
-            (useParams as jest.Mock).mockReturnValue({ ...baseParams, linkType });
-            const { getByText } = renderScreen(DeepLinkModal, { name: 'DeepLinkModal' }, { state: {} });
-            const backButton = getByText('Back');
-            act(() => {
-                fireEvent.press(backButton);
->>>>>>> 8da4f85961 (feat: deeplink modal UI)
             });
             const expectedEvent = MetricsEventBuilder.createEventBuilder(eventGoBack)
                 .addProperties({ 'deviceProp': 'Device value' }).build();

@@ -139,7 +139,7 @@ const BottomSheetDialog = forwardRef<
         const hasReachedDismissOffset =
           latestOffset >
           bottomOfDialogYValue.value *
-            DEFAULT_BOTTOMSHEETDIALOG_DISMISSTHRESHOLD;
+          DEFAULT_BOTTOMSHEETDIALOG_DISMISSTHRESHOLD;
         // Check if the gesture's vertical speed has reached the threshold to determine a swipe action
         const hasReachedSwipeThreshold =
           Math.abs(velocityY) >
