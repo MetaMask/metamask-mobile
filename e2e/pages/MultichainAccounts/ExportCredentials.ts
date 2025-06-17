@@ -43,7 +43,7 @@ class ExportCredentials {
     await Gestures.waitAndTap(this.exportPrivateKeyButton);
   }
 
-  async tapExportSRPButton() {
+  async tapExportSrpButton() {
     await Gestures.waitAndTap(this.exportSrpButton);
   }
 
