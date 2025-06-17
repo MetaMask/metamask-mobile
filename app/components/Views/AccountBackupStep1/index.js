@@ -172,7 +172,6 @@ const AccountBackupStep1 = (props) => {
     track(MetaMetricsEvents.WALLET_SECURITY_STARTED);
   };
 
-  const { isEnabled: isMetricsEnabled } = useMetrics();
   const skip = async () => {
     track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
     // Get onboarding wizard state
