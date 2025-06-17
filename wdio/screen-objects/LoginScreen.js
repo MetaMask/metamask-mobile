@@ -16,7 +16,8 @@ class LoginScreen {
   }
 
   get unlockButton() {
-    return Selectors.getXpathElementByResourceId(LoginViewSelectors.LOGIN_BUTTON_ID);
+    // TODO: update the component to have a testID property and use that instead of text
+    return Selectors.getXpathElementByText('Unlock');
   }
 
   get title() {
@@ -46,7 +47,8 @@ class LoginScreen {
   }
 
   async tapUnlockButton() {
-    await Gestures.waitAndTap(this.unlockButton);
+    const element = await this.unlockButton;
+    await element.click();
   }
 
   async tapTitle() {
