@@ -104,14 +104,22 @@ const ManualBackupStep2 = ({
     if (validateWords()) {
       seedphraseBackedUp();
       InteractionManager.runAfterInteractions(async () => {
-        if (backupFlow) {
-          const resetToHomeNavAction = CommonActions.reset({
+        if (backupFlow || settingsBackup) {
+          const resetAction = CommonActions.reset({
             index: 0,
-            routes: [{ name: 'HomeNav' }],
+            routes: [
+              {
+                name: Routes.ONBOARDING.SUCCESS_FLOW,
+                params: {
+                  screen: Routes.ONBOARDING.SUCCESS,
+                  successFlow: backupFlow
+                    ? ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP
+                    : ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP,
+                },
+              },
+            ],
           });
-          navigation.dispatch(resetToHomeNavAction);
-        } else if (settingsBackup) {
-          navigation.navigate(Routes.ONBOARDING.SECURITY_SETTINGS);
+          navigation.dispatch(resetAction);
         } else {
           const resetAction = CommonActions.reset({
             index: 0,
@@ -120,6 +128,7 @@ const ManualBackupStep2 = ({
                 name: Routes.ONBOARDING.SUCCESS_FLOW,
                 params: {
                   screen: Routes.ONBOARDING.SUCCESS,
+                  successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
                 },
               },
             ],
@@ -358,7 +367,8 @@ const ManualBackupStep2 = ({
           description: strings('manual_backup_step_2.success-description'),
           primaryButtonLabel: strings('manual_backup_step_2.success-button'),
           type: 'success',
-          onPrimaryButtonPress: goNext,
+          onClose: () => goNext(),
+          onPrimaryButtonPress: () => goNext(),
         },
       });
     } else {

@@ -7,9 +7,9 @@ import { CommonActions, useNavigation } from '@react-navigation/native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import { strings } from '../../../../locales/i18n';
-import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Routes from '../../../constants/navigation/Routes';
 import { InteractionManager } from 'react-native';
+import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -112,8 +112,8 @@ describe('ManualBackupStep2', () => {
     const mockRoute = jest.fn().mockReturnValue({
       params: {
         words: mockWords,
-        backupFlow: true,
-        settingsBackup: true,
+        backupFlow: false,
+        settingsBackup: false,
         steps: ['one', 'two', 'three'],
       },
     });
@@ -351,7 +351,15 @@ describe('ManualBackupStep2', () => {
 
       const resetAction = CommonActions.reset({
         index: 0,
-        routes: [{ name: 'HomeNav' }],
+        routes: [
+          {
+            name: Routes.ONBOARDING.SUCCESS_FLOW,
+            params: {
+              screen: Routes.ONBOARDING.SUCCESS,
+              successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
+            },
+          },
+        ],
       });
       await waitFor(() => {
         expect(mockNavigationDispatch).toHaveBeenCalledWith(resetAction);
@@ -439,9 +447,7 @@ describe('ManualBackupStep2', () => {
             name: Routes.ONBOARDING.SUCCESS_FLOW,
             params: {
               screen: Routes.ONBOARDING.SUCCESS,
-              params: {
-                successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
-              },
+              successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
             },
           },
         ],
@@ -479,7 +485,11 @@ describe('ManualBackupStep2', () => {
         index: 0,
         routes: [
           {
-            name: 'HomeNav',
+            name: Routes.ONBOARDING.SUCCESS_FLOW,
+            params: {
+              screen: Routes.ONBOARDING.SUCCESS,
+              successFlow: ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP,
+            },
           },
         ],
       });
@@ -500,7 +510,8 @@ describe('ManualBackupStep2', () => {
       mockMetricsIsEnabled.mockReturnValue(true);
 
       // setup test
-      const { wrapper, mockNavigate, mockDispatch } = setupTest();
+      const { wrapper, mockNavigate, mockDispatch, mockNavigationDispatch } =
+        setupTest();
 
       const { onPrimaryButtonPress } = setupSuccessFlow(wrapper, mockNavigate);
 
@@ -510,10 +521,19 @@ describe('ManualBackupStep2', () => {
       onPrimaryButtonPress();
 
       expect(mockDispatch).toHaveBeenCalled();
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.SECURITY_SETTINGS,
-      );
+      const resetAction = CommonActions.reset({
+        index: 0,
+        routes: [
+          {
+            name: Routes.ONBOARDING.SUCCESS_FLOW,
+            params: {
+              screen: Routes.ONBOARDING.SUCCESS,
+              successFlow: ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP,
+            },
+          },
+        ],
+      });
+      expect(mockNavigationDispatch).toHaveBeenCalledWith(resetAction);
     });
   });
 
