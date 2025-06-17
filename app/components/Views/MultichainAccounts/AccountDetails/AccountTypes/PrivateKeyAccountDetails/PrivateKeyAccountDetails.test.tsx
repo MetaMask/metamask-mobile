@@ -23,6 +23,14 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../../../confirmations/hooks/7702/useEIP7702Networks', () => ({
+  useEIP7702Networks: jest.fn().mockReturnValue({
+    network7702List: [],
+    networkSupporting7702Present: false,
+    pending: false,
+  }),
+}));
+
 const mockAccount = createMockInternalAccount(
   '0x1234567890123456789012345678901234567890',
   'Private Key Account',

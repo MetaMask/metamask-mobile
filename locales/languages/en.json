@@ -4099,7 +4099,8 @@
       "signature_siwe": "Sign-in request",
       "contract_interaction": "Transaction request",
       "transfer": "Transfer request",
-      "switch_account_type": "Account update"
+      "switch_account_type": "Account update",
+      "approve": "Approve request"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -4309,7 +4310,7 @@
     },
     "smart_account": {
       "title": "Enable Smart Account",
-      "description": "You can enable smart account features on supported networks. {{learnMore}}",
+      "description": "You can enable smart account features on supported networks.",
       "learn_more": "Learn more"
     },
     "edit_account_name": {
