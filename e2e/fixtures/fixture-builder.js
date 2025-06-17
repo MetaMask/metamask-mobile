@@ -80,7 +80,7 @@ class FixtureBuilder {
       '@MetaMask:onboardingWizard': 'explored',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
       '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
-      '@MetaMask:solanaFeatureModalShown': 'false'
+      '@MetaMask:solanaFeatureModalShown': 'false',
     };
     return this;
   }
@@ -269,6 +269,34 @@ class FixtureBuilder {
                       networkClientId: 'linea-mainnet',
                       type: 'infura',
                       url: 'https://linea-mainnet.infura.io/v3/{infuraProjectId}',
+                    },
+                  ],
+                },
+                '0x18c6': {
+                  blockExplorerUrls: [],
+                  chainId: '0x18c6',
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Mega Testnet',
+                  nativeCurrency: 'MegaETH',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'megaeth-testnet',
+                      type: 'custom',
+                      url: 'https://carrot.megaeth.com/rpc',
+                    },
+                  ],
+                },
+                '0x279f': {
+                  blockExplorerUrls: [],
+                  chainId: '0x279f',
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Monad Testnet',
+                  nativeCurrency: 'MON',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'monad-testnet',
+                      type: 'custom',
+                      url: 'https://testnet-rpc.monad.xyz',
                     },
                   ],
                 },
@@ -469,11 +497,6 @@ class FixtureBuilder {
             {
               url: 'https://google.com',
               id: 1692550481062,
-            },
-            {
-              url: getSecondTestDappLocalUrl(),
-              id: 1749234797566,
-              isArchived: false,
             },
           ],
           activeTab: 1692550481062,
@@ -760,7 +783,10 @@ class FixtureBuilder {
    * @param {Object} additionalPermissions - Additional permissions to merge with permission
    * @returns {Object} Permission controller configuration object
    */
-  createPermissionControllerConfig(additionalPermissions = {}, dappUrl = DAPP_URL) {
+  createPermissionControllerConfig(
+    additionalPermissions = {},
+    dappUrl = DAPP_URL,
+  ) {
     const caip25CaveatValue = additionalPermissions?.[
       Caip25EndowmentPermissionName
     ]?.caveats?.find((caveat) => caveat.type === Caip25CaveatType)?.value ?? {
@@ -802,17 +828,22 @@ class FixtureBuilder {
    * @param {Object} additionalPermissions - Additional permissions to merge.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
-  withPermissionControllerConnectedToTestDapp(additionalPermissions = {}, connectSecondDapp = false) {
-    const testDappPermissions = this.createPermissionControllerConfig(additionalPermissions);
+  withPermissionControllerConnectedToTestDapp(
+    additionalPermissions = {},
+    connectSecondDapp = false,
+  ) {
+    const testDappPermissions = this.createPermissionControllerConfig(
+      additionalPermissions,
+    );
     let secondDappPermissions = {};
     if (connectSecondDapp) {
       secondDappPermissions = this.createPermissionControllerConfig(
         additionalPermissions,
-         device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1'
+        device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1',
       );
     }
     this.withPermissionController(
-      merge(testDappPermissions, secondDappPermissions)
+      merge(testDappPermissions, secondDappPermissions),
     );
 
     // Ensure Solana feature modal is suppressed
@@ -862,8 +893,14 @@ class FixtureBuilder {
       isMultichainOrigin: false,
     };
 
-    const caip25CaveatValueWithChains = setPermittedEthChainIds(defaultCaip25CaveatValue, chainIds);
-    const caip25CaveatValueWithDefaultAccount = setEthAccounts(caip25CaveatValueWithChains, [DEFAULT_FIXTURE_ACCOUNT]);
+    const caip25CaveatValueWithChains = setPermittedEthChainIds(
+      defaultCaip25CaveatValue,
+      chainIds,
+    );
+    const caip25CaveatValueWithDefaultAccount = setEthAccounts(
+      caip25CaveatValueWithChains,
+      [DEFAULT_FIXTURE_ACCOUNT],
+    );
     const chainPermission = {
       [Caip25EndowmentPermissionName]: {
         id: 'Lde5rzDG2bUF6HbXl4xxT',
@@ -967,6 +1004,88 @@ class FixtureBuilder {
     fixtures.NetworkController.networkConfigurationsByChainId[
       sepoliaConfig.chainId
     ] = sepoliaNetworkConfig;
+
+    // Update selectedNetworkClientId to the new network client ID
+    fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
+
+    // Ensure Solana feature modal is suppressed
+    return this.ensureSolanaModalSuppressed();
+  }
+
+  withMegaTestnetNetwork() {
+    const fixtures = this.fixture.state.engine.backgroundState;
+
+    // Extract MegaETH Testnet network configuration from CustomNetworks
+    const megaConfig = CustomNetworks.MegaTestnet.providerConfig;
+
+    // Generate a unique key for the new network client ID
+    const newNetworkClientId = `networkClientId${
+      Object.keys(fixtures.NetworkController.networkConfigurationsByChainId)
+        .length + 1
+    }`;
+
+    // Define the MegaETH Testnet network configuration
+    const megaNetworkConfig = {
+      chainId: megaConfig.chainId,
+      rpcEndpoints: [
+        {
+          networkClientId: newNetworkClientId,
+          url: megaConfig.rpcUrl,
+          type: 'custom',
+          name: megaConfig.nickname,
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+      blockExplorerUrls: [],
+      name: megaConfig.nickname,
+      nativeCurrency: megaConfig.ticker,
+    };
+
+    // Add the new MegaETH Testnet network configuration
+    fixtures.NetworkController.networkConfigurationsByChainId[
+      megaConfig.chainId
+    ] = megaNetworkConfig;
+
+    // Update selectedNetworkClientId to the new network client ID
+    fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
+
+    // Ensure Solana feature modal is suppressed
+    return this.ensureSolanaModalSuppressed();
+  }
+
+  withMonadTestnetNetwork() {
+    const fixtures = this.fixture.state.engine.backgroundState;
+
+    // Extract Monad Testnet network configuration from CustomNetworks
+    const monadConfig = CustomNetworks.MonadTestnet.providerConfig;
+
+    // Generate a unique key for the new network client ID
+    const newNetworkClientId = `networkClientId${
+      Object.keys(fixtures.NetworkController.networkConfigurationsByChainId)
+        .length + 1
+    }`;
+
+    // Define the Monad Testnet network configuration
+    const monadNetworkConfig = {
+      chainId: monadConfig.chainId,
+      rpcEndpoints: [
+        {
+          networkClientId: newNetworkClientId,
+          url: monadConfig.rpcUrl,
+          type: 'custom',
+          name: monadConfig.nickname,
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+      blockExplorerUrls: [],
+      name: monadConfig.nickname,
+      nativeCurrency: monadConfig.ticker,
+    };
+
+    // Add the new Monad Testnet network configuration
+    fixtures.NetworkController.networkConfigurationsByChainId[
+      monadConfig.chainId
+    ] = monadNetworkConfig;
 
     // Update selectedNetworkClientId to the new network client ID
     fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
@@ -1178,7 +1297,7 @@ class FixtureBuilder {
     return this;
   }
 
-/**
+  /**
    * Sets up a minimal Solana fixture with mainnet configuration
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
    */
@@ -1192,11 +1311,29 @@ class FixtureBuilder {
           chainId: SolScope.Mainnet,
           name: 'Solana Mainnet',
           nativeCurrency: `${SolScope.Mainnet}/${SOLANA_TOKEN}`,
-          isEvm: false
-        }
+          isEvm: false,
+        },
       },
-      isEvmSelected: false
+      isEvmSelected: false,
     };
+
+    return this;
+  }
+
+  /**
+   * Adds a second test dapp tab to the browser state.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withSecondTestDappTab() {
+    if (!this.fixture.state.browser.tabs) {
+      this.fixture.state.browser.tabs = [];
+    }
+
+    this.fixture.state.browser.tabs.push({
+      url: getSecondTestDappLocalUrl(),
+      id: 1749234797566,
+      isArchived: false,
+    });
 
     return this;
   }
