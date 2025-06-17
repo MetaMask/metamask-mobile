@@ -111,7 +111,7 @@ export const ConfirmationFooter = ({
             variant={TextVariant.BodySM}
             style={styles.linkText}
             onPress={() =>
-              Linking.openURL(AppConstants.URLS.STAKING_RISK_DISCLOSURE)
+              Linking.openURL(AppConstants.URLS.EARN_RISK_DISCLOSURE)
             }
             testID={CONFIRMATION_FOOTER_LINK_TEST_IDS.RISK_DISCLOSURE_BUTTON}
           >

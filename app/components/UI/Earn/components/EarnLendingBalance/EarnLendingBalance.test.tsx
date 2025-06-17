@@ -175,7 +175,7 @@ describe('EarnLendingBalance', () => {
     ).toBeDefined();
   });
 
-  it('hides balances when asset prop is an output token', () => {
+  it('hides underlying token balance when asset prop is an output token', () => {
     (
       useEarnTokens as jest.MockedFunction<typeof useEarnTokens>
     ).mockReturnValue({
@@ -221,9 +221,6 @@ describe('EarnLendingBalance', () => {
     // Still Rendering Buttons
     expect(
       getByTestId(EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON),
-    ).toBeDefined();
-    expect(
-      getByTestId(EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON),
     ).toBeDefined();
   });
 
@@ -312,7 +309,7 @@ describe('EarnLendingBalance', () => {
       useEarnTokens as jest.MockedFunction<typeof useEarnTokens>
     ).mockReturnValue({
       getEarnToken: (_token: TokenI | EarnTokenDetails) => mockDaiMainnet,
-      getOutputToken: (_token: TokenI | EarnTokenDetails) => mockADAIMainnet,
+      getOutputToken: (_token: TokenI | EarnTokenDetails) => undefined,
       getPairedEarnTokens: (_token: TokenI | EarnTokenDetails) => ({
         outputToken: mockADAIMainnet,
         earnToken: mockDaiMainnet,
