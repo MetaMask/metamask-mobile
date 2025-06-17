@@ -12,8 +12,7 @@ import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventB
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
-import { EarnTokenDetails } from '../../types/lending.types';
-import { LendingProtocol } from '@metamask/stake-sdk';
+import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import useEarnTokens from '../../hooks/useEarnTokens';
 
 jest.mock('../../../../hooks/useMetrics');

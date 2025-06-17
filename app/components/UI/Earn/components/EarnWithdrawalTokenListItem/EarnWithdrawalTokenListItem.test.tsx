@@ -8,7 +8,7 @@ import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { getMockUseEarnTokens } from '../../__mocks__/earnMockData';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { EarnTokenDetails } from '../../types/lending.types';
-import { LendingProtocol } from '@metamask/stake-sdk';
+import type { LendingProtocol } from '../../constants/tempLendingConstants';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),

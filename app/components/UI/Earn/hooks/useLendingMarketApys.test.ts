@@ -1,12 +1,9 @@
 import useLendingMarketApys from './useLendingMarketApys';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { EarnTokenDetails } from '../types/lending.types';
+import { EarnTokenDetails, LendingProtocol } from '../types/lending.types';
 import { MOCK_USDC_MAINNET_ASSET } from '../../Stake/__mocks__/stakeMockData';
-import {
-  HistoricLendingMarketApys,
-  LendingProtocol,
-} from '@metamask/stake-sdk';
+import { HistoricLendingMarketApys } from '@metamask/stake-sdk';
 import Engine from '../../../../core/Engine';
 import { waitFor } from '@testing-library/react-native';
 

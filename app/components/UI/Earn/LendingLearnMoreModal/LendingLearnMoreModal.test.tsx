@@ -1,12 +1,9 @@
 import React from 'react';
-import {
-  LendingProtocol,
-  HistoricLendingMarketApys,
-} from '@metamask/stake-sdk';
+import { HistoricLendingMarketApys } from '@metamask/stake-sdk';
 import Engine from '../../../../core/Engine';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { MOCK_USDC_MAINNET_ASSET } from '../../Stake/__mocks__/stakeMockData';
-import { EarnTokenDetails } from '../types/lending.types';
+import { EarnTokenDetails, LendingProtocol } from '../types/lending.types';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import LendingLearnMoreModal from '.';
