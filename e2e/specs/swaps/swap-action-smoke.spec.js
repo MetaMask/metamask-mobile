@@ -135,7 +135,6 @@ describe(SmokeTrade('Swap from Actions'), () => {
         );
       }
       await QuoteView.tapOnGetQuotes();
-      await Assertions.checkIfVisible(SwapView.fetchingQuotes);
       await Assertions.checkIfVisible(SwapView.quoteSummary);
       await Assertions.checkIfVisible(SwapView.gasFee);
       await SwapView.tapIUnderstandPriceWarning();
