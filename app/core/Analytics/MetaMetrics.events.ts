@@ -147,8 +147,8 @@ enum EVENT_NAME {
   REHYDRATION_PASSWORD_FAILED = 'Rehydration Password Failed',
   PASSWORD_CHANGED = 'Password Changed',
   // TODO: Add this event once we have a forgot password flow
-  // FORGOT_PASSWORD_CLICKED = 'Forgot Password Clicked',
-  RESET_WALLET = 'Reset Wallet Clicked',
+  // FORGOT_PASSWORD = 'Forgot Password',
+  RESET_WALLET = 'Reset Wallet',
 
   // Account
   SWITCHED_ACCOUNT = 'Switched Account',
