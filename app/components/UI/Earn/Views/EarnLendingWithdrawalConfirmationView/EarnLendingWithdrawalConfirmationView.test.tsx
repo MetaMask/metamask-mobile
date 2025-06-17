@@ -192,6 +192,29 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('displays advanced details section when user has detected borrow positions', () => {
+    (useRoute as jest.MockedFunction<typeof useRoute>).mockReturnValue({
+      ...defaultRouteParams,
+      params: {
+        ...defaultRouteParams.params,
+        healthFactorSimulation: {
+          after: '14.2',
+          before: '15.1',
+          risk: AAVE_WITHDRAWAL_RISKS.LOW,
+        },
+      },
+    });
+
+    const { getByText } = renderWithProvider(
+      <EarnLendingWithdrawalConfirmationView />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(getByText(strings('stake.advanced_details'))).toBeTruthy();
+  });
+
   it('navigates back when cancel button is pressed', async () => {
     const { getByTestId } = renderWithProvider(
       <EarnLendingWithdrawalConfirmationView />,
