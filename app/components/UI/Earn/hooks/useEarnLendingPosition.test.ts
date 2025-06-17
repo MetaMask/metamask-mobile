@@ -16,6 +16,7 @@ import { TokenI } from '../../Tokens/types';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { EarnTokenDetails } from '../types/lending.types';
 import useEarnLendingPositions from './useEarnLendingPosition';
+import { act } from 'react';
 
 // Mock dependencies
 jest.mock('../../../../core/Engine', () => ({
@@ -354,14 +355,16 @@ describe('useEarnLendingPositions', () => {
       },
     );
 
-    // Wait for the initial effect to complete
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await act(async () => {
+      // Wait for the initial effect to complete
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
 
     expect(result.current.lifetimeRewards).toBe('1000000');
 
-    await result.current.refreshEarnLendingPositions();
-    // Wait for the refresh effect to complete
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await act(async () => {
+      await result.current.refreshEarnLendingPositions();
+    });
 
     expect(result.current.lifetimeRewards).toBe('2000000');
   });
