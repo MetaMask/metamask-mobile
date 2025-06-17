@@ -34,7 +34,7 @@ const EarningsHistoryButton = ({ asset }: EarningsHistoryButtonProps) => {
   return (
     <View>
       <Button
-        testID={WalletViewSelectorsIDs.STAKE_EARNINGS_HISTORY_BUTTON}
+        testID={WalletViewSelectorsIDs.EARN_EARNINGS_HISTORY_BUTTON}
         width={ButtonWidthTypes.Full}
         variant={ButtonVariants.Secondary}
         label={

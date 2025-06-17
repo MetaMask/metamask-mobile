@@ -1,10 +1,11 @@
-import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
+import React from 'react';
 import { WalletViewSelectorsIDs } from '../../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import StakingEarningsHistoryButton from './EarningsHistoryButton';
 import { MOCK_STAKED_ETH_MAINNET_ASSET } from '../../../../Stake/__mocks__/stakeMockData';
+import { EarnTokenDetails } from '../../../types/lending.types';
+import EarningsHistoryButton from './EarningsHistoryButton';
 
 const mockNavigate = jest.fn();
 
@@ -18,12 +19,24 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../../../../../selectors/earnController', () => ({
+  earnSelectors: {
+    selectEarnTokenPair: jest.fn().mockReturnValue({
+      outputToken: {
+        ticker: 'ETH',
+        symbol: 'ETH',
+        chainId: '0x1',
+      } as EarnTokenDetails,
+    }),
+  },
+}));
+
 const renderComponent = () =>
   renderWithProvider(
-    <StakingEarningsHistoryButton asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
+    <EarningsHistoryButton asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
   );
 
-describe('StakingEarningsHistoryButton', () => {
+describe('EarningsHistoryButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -31,7 +44,7 @@ describe('StakingEarningsHistoryButton', () => {
   it('renders correctly', () => {
     const { getByTestId } = renderComponent();
     expect(
-      getByTestId(WalletViewSelectorsIDs.STAKE_EARNINGS_HISTORY_BUTTON),
+      getByTestId(WalletViewSelectorsIDs.EARN_EARNINGS_HISTORY_BUTTON),
     ).toBeDefined();
   });
 
@@ -39,7 +52,7 @@ describe('StakingEarningsHistoryButton', () => {
     const { getByTestId } = renderComponent();
 
     fireEvent.press(
-      getByTestId(WalletViewSelectorsIDs.STAKE_EARNINGS_HISTORY_BUTTON),
+      getByTestId(WalletViewSelectorsIDs.EARN_EARNINGS_HISTORY_BUTTON),
     );
 
     await waitFor(() => {

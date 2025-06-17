@@ -21,7 +21,10 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import EarnMaintenanceBanner from '../../../Earn/components/EarnMaintenanceBanner';
 import { EVENT_LOCATIONS } from '../../../Earn/constants/events';
 import useEarnings from '../../../Earn/hooks/useEarnings';
-import { selectStablecoinLendingServiceInterruptionBannerEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import {
+  selectPooledStakingServiceInterruptionBannerEnabledFlag,
+  selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
 import { getTooltipMetricProperties } from '../../../Stake/utils/metaMetrics/tooltipMetaMetricsUtils';
 import { withMetaMetrics } from '../../../Stake/utils/metaMetrics/withMetaMetrics';
 import { TokenI } from '../../../Tokens/types';
@@ -39,6 +42,10 @@ const EarningsContent = ({ asset }: EarningsProps) => {
     selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
   );
 
+  const isPooledStakingServiceInterruptionBannerEnabled = useSelector(
+    selectPooledStakingServiceInterruptionBannerEnabledFlag,
+  );
+
   const { navigate } = useNavigation();
 
   const {
@@ -48,7 +55,7 @@ const EarningsContent = ({ asset }: EarningsProps) => {
     estimatedAnnualEarnings,
     estimatedAnnualEarningsFiat,
     isLoadingEarningsData,
-    hasEarnLendingPositions,
+    hasEarnings,
   } = useEarnings({ asset });
 
   const onDisplayAnnualRateTooltip = () =>
@@ -57,7 +64,7 @@ const EarningsContent = ({ asset }: EarningsProps) => {
       params: { chainId: asset.chainId },
     });
 
-  if (!hasEarnLendingPositions) return <></>;
+  if (!hasEarnings) return <></>;
 
   return (
     <View style={styles.earningsContainer}>
@@ -65,7 +72,8 @@ const EarningsContent = ({ asset }: EarningsProps) => {
         {strings('stake.your_earnings')}
       </Text>
       <View>
-        {isEarnLendingServiceInterruptionBannerEnabled && (
+        {(isEarnLendingServiceInterruptionBannerEnabled ||
+          isPooledStakingServiceInterruptionBannerEnabled) && (
           <EarnMaintenanceBanner />
         )}
         {/* Annual Rate */}

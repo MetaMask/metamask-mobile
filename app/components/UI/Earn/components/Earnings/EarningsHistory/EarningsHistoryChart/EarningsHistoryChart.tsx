@@ -47,7 +47,7 @@ const HorizontalLines = ({
   return <>{renderBarTopLines()}</>;
 };
 
-export function StakingEarningsHistoryChart({
+export function EarningsHistoryChart({
   earnings,
   ticker,
   earningsTotal,
@@ -57,7 +57,6 @@ export function StakingEarningsHistoryChart({
   //hooks
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
-  console.log('ticker from chart', ticker);
   // constants
   const animate = false;
   const barGradientId = 'bar-gradient';

@@ -1,14 +1,11 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { earnSelectors } from '../../../../selectors/earnController/earn';
 import { getDecimalChainId } from '../../../../util/networks';
-import { Hex } from '@metamask/utils';
 import { TokenI } from '../../Tokens/types';
 import { EarnTokenDetails } from '../types/lending.types';
 import { getEstimatedAnnualRewards } from '../utils/token';
-import { RootState } from '../../../../reducers';
-import { selectAccountTokensAcrossChains } from '../../../../selectors/multichain';
 
 const useEarnTokens = () => {
   const earnTokensData = useSelector(earnSelectors.selectEarnTokens);

@@ -10,9 +10,9 @@ import { createMockToken } from '../../../Stake/testUtils';
 import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
-import useEarnTokens from '../../hooks/useEarnTokens';
 import {
   selectPooledStakingEnabledFlag,
+  selectPooledStakingServiceInterruptionBannerEnabledFlag,
   selectStablecoinLendingEnabledFlag,
   selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
 } from '../../selectors/featureFlags';
@@ -114,6 +114,7 @@ jest.mock('../../hooks/useEarnings', () => ({
     estimatedAnnualEarningsFiat: '$10.34',
     isLoadingEarningsData: false,
     hasEarnLendingPositions: true,
+    hasEarnings: true,
   }),
 }));
 
@@ -124,6 +125,7 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(),
   selectStablecoinLendingEnabledFlag: jest.fn(),
   selectStablecoinLendingServiceInterruptionBannerEnabledFlag: jest.fn(),
+  selectPooledStakingServiceInterruptionBannerEnabledFlag: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/earnController', () => ({
@@ -132,9 +134,9 @@ jest.mock('../../../../../selectors/earnController', () => ({
       .earnSelectors,
     selectEarnToken: jest
       .fn()
-      .mockImplementation((token: TokenI) => mockDaiMainnet),
+      .mockImplementation((_token: TokenI) => mockDaiMainnet),
     selectEarnOutputToken: jest.fn().mockReturnValue(undefined),
-    selectEarnTokenPair: jest.fn().mockImplementation((token: TokenI) => ({
+    selectEarnTokenPair: jest.fn().mockImplementation((_token: TokenI) => ({
       outputToken: mockADAIMainnet,
       earnToken: mockDaiMainnet,
     })),
@@ -142,72 +144,6 @@ jest.mock('../../../../../selectors/earnController', () => ({
 }));
 
 describe('EarnLendingBalance', () => {
-  const mockDaiMainnet: EarnTokenDetails = {
-    ...createMockToken({
-      symbol: 'DAI',
-      address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-      chainId: '0x1',
-      name: 'DAI',
-      balance: '76.04796 DAI',
-      balanceFiat: '$76.00',
-    }),
-    balanceFormatted: '76.04796 DAI',
-    balanceMinimalUnit: '76047960000000000000',
-    balanceFiatNumber: 76.0,
-    tokenUsdExchangeRate: 1,
-    experience: {
-      type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-      apr: '5.2',
-      estimatedAnnualRewardsFormatted: '3.95 DAI',
-      estimatedAnnualRewardsFiatNumber: 3.95,
-      estimatedAnnualRewardsTokenMinimalUnit: '3950000000000000000',
-      estimatedAnnualRewardsTokenFormatted: '3.95 DAI',
-    },
-    experiences: [
-      {
-        type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-        apr: '5.2',
-        estimatedAnnualRewardsFormatted: '3.95 DAI',
-        estimatedAnnualRewardsFiatNumber: 3.95,
-        estimatedAnnualRewardsTokenMinimalUnit: '3950000000000000000',
-        estimatedAnnualRewardsTokenFormatted: '3.95 DAI',
-      },
-    ],
-  };
-
-  const mockADAIMainnet: EarnTokenDetails = {
-    ...createMockToken({
-      symbol: 'ADAI',
-      address: '0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c',
-      chainId: '0x1',
-      name: 'ADAI',
-      balance: '76.04796 ADAI',
-      balanceFiat: '$76.00',
-    }),
-    balanceFormatted: '32.05 ADAI',
-    balanceMinimalUnit: '32050000000000000000',
-    balanceFiatNumber: 32.05,
-    tokenUsdExchangeRate: 1,
-    experience: {
-      type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-      apr: '5.2',
-      estimatedAnnualRewardsFormatted: '1.67 ADAI',
-      estimatedAnnualRewardsFiatNumber: 1.67,
-      estimatedAnnualRewardsTokenMinimalUnit: '1670000000000000000',
-      estimatedAnnualRewardsTokenFormatted: '1.67 ADAI',
-    },
-    experiences: [
-      {
-        type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-        apr: '5.2',
-        estimatedAnnualRewardsFormatted: '1.67 ADAI',
-        estimatedAnnualRewardsFiatNumber: 1.67,
-        estimatedAnnualRewardsTokenMinimalUnit: '1670000000000000000',
-        estimatedAnnualRewardsTokenFormatted: '1.67 ADAI',
-      },
-    ],
-  };
-
   const mockInitialState = {
     engine: {
       backgroundState,
@@ -225,6 +161,12 @@ describe('EarnLendingBalance', () => {
     (
       selectStablecoinLendingServiceInterruptionBannerEnabledFlag as jest.MockedFunction<
         typeof selectStablecoinLendingServiceInterruptionBannerEnabledFlag
+      >
+    ).mockReturnValue(false);
+
+    (
+      selectPooledStakingServiceInterruptionBannerEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingServiceInterruptionBannerEnabledFlag
       >
     ).mockReturnValue(false);
 

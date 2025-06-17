@@ -24,14 +24,17 @@ const useEarningsHistory = ({
   asset: EarnTokenDetails;
   limitDays: number;
 }) => {
-  const numericChainId = hexToNumber(asset?.chainId as Hex);
-  const [earningsHistory, setEarningsHistory] = useState<any[] | null>(null);
+  const [earningsHistory, setEarningsHistory] = useState<
+    EarningHistory[] | null
+  >(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const selectedAddress =
     useSelector(selectSelectedInternalAccountFormattedAddress) || '';
   const fetchEarningsHistory = useCallback(async () => {
+    const numericChainId = hexToNumber(asset?.chainId as Hex);
+
     if (asset.experience.type === EARN_EXPERIENCES.POOLED_STAKING) {
       if (stakingApiService) {
         setIsLoading(true);
@@ -45,10 +48,6 @@ const useEarningsHistory = ({
               limitDays,
             );
           setEarningsHistory(earningHistoryResponse.userRewards);
-          console.log(
-            'earningHistoryResponse.userRewards',
-            earningHistoryResponse.userRewards,
-          );
         } catch (err) {
           setError('Failed to fetch pooled staking earnings history');
         } finally {
@@ -69,17 +68,14 @@ const useEarningsHistory = ({
             marketAddress: asset.experience.market?.address || '',
             protocol: asset.experience.market?.protocol || '',
           })) as unknown as LendingPositionHistory;
-        console.log(
-          'earningHistoryResponse.historicalAssets',
-          earningHistoryResponse.historicalAssets,
-        );
+
         setEarningsHistory(
-          earningHistoryResponse.historicalAssets.map((asset) => ({
-            timestamp: asset.timestamp,
-            dateStr: new Date(asset.timestamp).toISOString().split('T')[0],
+          earningHistoryResponse.historicalAssets.map((history) => ({
+            timestamp: history.timestamp,
+            dateStr: new Date(history.timestamp).toISOString().split('T')[0],
             // TODO: be more specific about which lifetime rewards to use
             sumRewards: earningHistoryResponse.lifetimeRewards[0].assets,
-            dailyRewards: asset.assets,
+            dailyRewards: history.assets,
           })),
         );
       } catch (err) {
@@ -89,11 +85,11 @@ const useEarningsHistory = ({
       }
     }
   }, [
-    numericChainId,
     selectedAddress,
     limitDays,
-    asset.experience.type,
-    asset.experience.market,
+    asset?.chainId,
+    asset?.experience?.type,
+    asset?.experience?.market,
   ]);
 
   useEffect(() => {

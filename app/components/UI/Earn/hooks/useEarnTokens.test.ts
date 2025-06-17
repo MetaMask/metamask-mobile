@@ -28,9 +28,6 @@ import {
 import { TokenI } from '../../Tokens/types';
 import useEarnTokens from './useEarnTokens';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type TestMockVar = any;
-
 const mockSelectPooledStakingEnabledFlag = jest.fn();
 const mockSelectStablecoinLendingEnabledFlag = jest.fn();
 

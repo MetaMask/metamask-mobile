@@ -334,7 +334,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
             "paddingHorizontal": 16,
           }
         }
-        testID="stake-earnings-history-button"
+        testID="earn-earnings-history-button"
       >
         <Text
           accessibilityRole="text"
@@ -631,7 +631,7 @@ exports[`Staking Earnings should render correctly 1`] = `
             "paddingHorizontal": 16,
           }
         }
-        testID="stake-earnings-history-button"
+        testID="earn-earnings-history-button"
       >
         <Text
           accessibilityRole="text"

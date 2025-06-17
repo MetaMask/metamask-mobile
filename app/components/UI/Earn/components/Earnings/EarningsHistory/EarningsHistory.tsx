@@ -33,8 +33,8 @@ import {
   formatRewardsWei,
   getEntryTimePeriodGroupInfo,
 } from './EarningsHistory.utils';
-import { StakingEarningsHistoryChart } from './EarningsHistoryChart/EarningsHistoryChart';
-import StakingEarningsHistoryList from './EarningsHistoryList/EarningsHistoryList';
+import { EarningsHistoryChart } from './EarningsHistoryChart/EarningsHistoryChart';
+import EarningsHistoryList from './EarningsHistoryList/EarningsHistoryList';
 import TimePeriodButtonGroup from './EarningsTimePeriod/EarningsTimePeriod';
 import { DateRange } from './EarningsTimePeriod/EarningsTimePeriod.types';
 
@@ -60,9 +60,10 @@ const EarningsHistory = ({ asset }: EarningsHistoryProps) => {
     limitDays: EARNINGS_HISTORY_DAYS_LIMIT,
   });
 
-  const ticker = useMemo(() => {
-    return asset.ticker || asset.symbol;
-  }, [asset.ticker, asset.symbol]);
+  const ticker = useMemo(
+    () => asset.ticker || asset.symbol,
+    [asset.ticker, asset.symbol],
+  );
 
   // get exchange rates for asset chainId
   const exchangeRates = multiChainMarketData[asset.chainId as Hex];
@@ -304,13 +305,13 @@ const EarningsHistory = ({ asset }: EarningsHistoryProps) => {
         initialTimePeriod={selectedTimePeriod}
         onTimePeriodChange={onTimePeriodChange}
       />
-      <StakingEarningsHistoryChart
+      <EarningsHistoryChart
         ticker={ticker}
         earningsTotal={earningsHistoryChartData.earningsTotal}
         earnings={earningsHistoryChartData.earnings}
         formatValue={(value: number) => formatRewardsNumber(value, asset)}
       />
-      <StakingEarningsHistoryList
+      <EarningsHistoryList
         earnings={earningsHistoryListData}
         type={outputToken?.experience?.type as EARN_EXPERIENCES}
       />

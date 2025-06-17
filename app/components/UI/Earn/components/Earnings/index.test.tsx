@@ -1,10 +1,13 @@
 import React from 'react';
-import StakingEarnings from '.';
+import Earnings from '.';
 import { strings } from '../../../../../../locales/i18n';
 import { mockNetworkState } from '../../../../../util/test/network';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { selectPooledStakingServiceInterruptionBannerEnabledFlag } from '../../../Earn/selectors/featureFlags';
-import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import {
+  selectPooledStakingServiceInterruptionBannerEnabledFlag,
+  selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
 
 const mockNavigate = jest.fn();
 
@@ -51,15 +54,18 @@ jest.mock('../../../../../selectors/earnController', () => ({
 }));
 
 // Mock the feature flags selector
-jest.mock('../../../Earn/selectors/featureFlags', () => ({
+jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(true),
+  selectStablecoinLendingServiceInterruptionBannerEnabledFlag: jest
+    .fn()
+    .mockReturnValue(false),
   selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
   selectPooledStakingServiceInterruptionBannerEnabledFlag: jest
     .fn()
     .mockReturnValue(false),
 }));
 
-jest.mock('../../../Earn/hooks/useEarnings', () => ({
+jest.mock('../../hooks/useEarnings', () => ({
   __esModule: true,
   default: () => ({
     annualRewardRate: '2.6%',
@@ -68,13 +74,13 @@ jest.mock('../../../Earn/hooks/useEarnings', () => ({
     estimatedAnnualEarnings: '2.5 ETH',
     estimatedAnnualEarningsFiat: '$5000',
     isLoadingEarningsData: false,
-    hasEarnLendingPositions: false,
+    hasEarnLendingPositions: true,
     hasEarnings: true,
     hasEarnPooledStakes: true,
   }),
 }));
 
-jest.mock('../../hooks/usePooledStakes', () => ({
+jest.mock('../../../Stake/hooks/usePooledStakes', () => ({
   __esModule: true,
   default: () => ({
     hasStakedPositions: true,
@@ -99,7 +105,7 @@ jest.mock('../../../../../core/Engine', () => ({
 
 const render = (state = STATE_MOCK) =>
   renderWithProvider(
-    <StakingEarnings
+    <Earnings
       asset={{
         chainId: '0x1',
         symbol: 'ETH',
@@ -119,7 +125,7 @@ const render = (state = STATE_MOCK) =>
     },
   );
 
-describe('Staking Earnings', () => {
+describe('Earnings', () => {
   it('should render correctly', () => {
     const { toJSON, getByText, queryByText } = render();
 
@@ -142,6 +148,23 @@ describe('Staking Earnings', () => {
     (
       selectPooledStakingServiceInterruptionBannerEnabledFlag as jest.MockedFunction<
         typeof selectPooledStakingServiceInterruptionBannerEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    const { toJSON, getByText } = render();
+
+    expect(toJSON()).toMatchSnapshot();
+    expect(
+      getByText(
+        strings('earn.service_interruption_banner.maintenance_message'),
+      ),
+    ).toBeDefined();
+  });
+
+  it('displays lending maintenance banner when feature flag is enabled', () => {
+    (
+      selectStablecoinLendingServiceInterruptionBannerEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingServiceInterruptionBannerEnabledFlag
       >
     ).mockReturnValue(true);
 

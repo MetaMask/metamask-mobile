@@ -5,6 +5,12 @@ import { EARN_EXPERIENCES } from '../constants/experiences';
 import { EarnTokenDetails } from '../types/lending.types';
 
 export const useEarnMetadata = (earnToken: EarnTokenDetails) => {
+  const {
+    annualRewardRate: annualRewardRateFromVault,
+    annualRewardRateDecimal: annualRewardRateDecimalFromVault,
+    isLoadingVaultMetadata: isLoadingVaultMetadataFromVault,
+  } = useVaultMetadata(getDecimalChainId(earnToken?.chainId));
+
   if (!earnToken)
     return {
       annualRewardRate: '',
@@ -12,12 +18,6 @@ export const useEarnMetadata = (earnToken: EarnTokenDetails) => {
       annualRewardRateValue: 0,
       isLoadingEarnMetadata: false,
     };
-
-  const {
-    annualRewardRate: annualRewardRateFromVault,
-    annualRewardRateDecimal: annualRewardRateDecimalFromVault,
-    isLoadingVaultMetadata: isLoadingVaultMetadataFromVault,
-  } = useVaultMetadata(getDecimalChainId(earnToken?.chainId));
 
   let annualRewardRate = '';
   let annualRewardRateDecimal = 0;

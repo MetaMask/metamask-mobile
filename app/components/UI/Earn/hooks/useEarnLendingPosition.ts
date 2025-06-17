@@ -20,19 +20,6 @@ const useEarnLendingPositions = (asset: TokenI) => {
   );
   const [lifetimeRewards, setLifetimeRewards] = useState<string>('0');
 
-  useEffect(() => {
-    if (
-      outputToken &&
-      outputToken.experience?.market?.protocol &&
-      outputToken.experience?.market?.position?.id &&
-      outputToken.experience?.market?.id &&
-      outputToken.experience?.market?.address &&
-      selectedAccount?.address
-    ) {
-      fetchData();
-    }
-  }, [outputToken, selectedAccount]);
-
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -43,13 +30,13 @@ const useEarnLendingPositions = (asset: TokenI) => {
       marketAddress: string;
       protocol: string;
     }) => {
-      const { lifetimeRewards, assets } =
+      const { lifetimeRewards: lifetimeRewardsFromController, assets } =
         (await Engine.context.EarnController.getLendingPositionHistory({
           days: 1,
           address: selectedAccount?.address,
           ...params,
         })) as unknown as LendingPositionHistory;
-      const lifetimeRewardsForToken = lifetimeRewards.find(
+      const lifetimeRewardsForToken = lifetimeRewardsFromController.find(
         (reward) =>
           new BigNumber(reward.assets).gt(0) &&
           reward.token.address ===
@@ -85,6 +72,19 @@ const useEarnLendingPositions = (asset: TokenI) => {
       setIsLoading(false);
     }
   }, [outputToken, selectedAccount]);
+
+  useEffect(() => {
+    if (
+      outputToken &&
+      outputToken.experience?.market?.protocol &&
+      outputToken.experience?.market?.position?.id &&
+      outputToken.experience?.market?.id &&
+      outputToken.experience?.market?.address &&
+      selectedAccount?.address
+    ) {
+      fetchData();
+    }
+  }, [outputToken, selectedAccount, fetchData]);
 
   return {
     earnLendingPositions: outputToken?.experience?.market?.position,

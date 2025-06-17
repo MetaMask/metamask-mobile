@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`StakingEarningsHistoryChart renders to match snapshot 1`] = `
+exports[`EarningsHistoryChart renders to match snapshot 1`] = `
 <View
   onLayout={[Function]}
   testID="earnings-history-chart-container"

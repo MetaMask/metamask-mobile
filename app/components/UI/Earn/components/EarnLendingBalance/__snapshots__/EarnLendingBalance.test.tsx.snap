@@ -316,6 +316,47 @@ exports[`EarnLendingBalance does renders earnings for output tokens 1`] = `
             </View>
           </View>
         </View>
+        <View>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "transparent",
+                "borderColor": "#4459ff",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 40,
+                "justifyContent": "center",
+                "paddingHorizontal": 16,
+              }
+            }
+            testID="earn-earnings-history-button"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              View position history
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   </View>

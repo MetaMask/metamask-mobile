@@ -132,7 +132,7 @@ const useEarnings = ({ asset }: { asset: TokenI }) => {
     estimatedAnnualEarningsFiat,
     isLoadingEarningsData,
     hasEarnPooledStakes: hasStakedPositions,
-    hasEarnLendingPositions: hasEarnLendingPositions,
+    hasEarnLendingPositions,
     hasEarnings: hasStakedPositions || hasEarnLendingPositions,
   };
 };

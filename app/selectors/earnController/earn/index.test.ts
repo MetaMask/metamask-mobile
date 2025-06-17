@@ -19,9 +19,9 @@ import {
 } from '../../../components/UI/Stake/__mocks__/earnControllerMockData';
 import { mockEarnControllerRootState } from '../../../components/UI/Stake/testUtils';
 import { RootState } from '../../../reducers';
-// eslint-disable-next-line import/no-namespace
 import { MOCK_ETH_MAINNET_ASSET } from '../../../components/UI/Stake/__mocks__/stakeMockData';
 import { TokenI } from '../../../components/UI/Tokens/types';
+// eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
 import {
   internalAccount2,
@@ -31,6 +31,7 @@ import {
   MOCK_MULTICHAIN_NETWORK_CONTROLLER_STATE,
   MOCK_NETWORK_CONTROLLER_STATE,
 } from '../../../util/test/confirm-data-helpers';
+import { EarnTokenDetails } from '../../../components/UI/Earn/types/lending.types';
 
 jest.mock('../../../components/UI/Earn/selectors/featureFlags', () => ({
   __esModule: true,
@@ -394,7 +395,7 @@ describe('Earn Controller Selectors', () => {
     it('returns undefined when asset is not provided', () => {
       const result = earnSelectors.selectEarnToken(
         mockState as unknown as RootState,
-        undefined as any,
+        undefined as unknown as EarnTokenDetails,
       );
       expect(result).toBeUndefined();
     });
@@ -402,7 +403,7 @@ describe('Earn Controller Selectors', () => {
     it('returns undefined when asset chainId is not provided', () => {
       const result = earnSelectors.selectEarnToken(
         mockState as unknown as RootState,
-        { address: '0x123' } as any,
+        { address: '0x123' } as unknown as EarnTokenDetails,
       );
       expect(result).toBeUndefined();
     });
@@ -410,7 +411,7 @@ describe('Earn Controller Selectors', () => {
     it('returns undefined when asset address is not provided', () => {
       const result = earnSelectors.selectEarnToken(
         mockState as unknown as RootState,
-        { chainId: '0x1' } as any,
+        { chainId: '0x1' } as unknown as EarnTokenDetails,
       );
       expect(result).toBeUndefined();
     });
@@ -433,9 +434,6 @@ describe('Earn Controller Selectors', () => {
         mockState.engine.backgroundState.TokensController.allTokens['0x1'][
           internalAccount2.address
         ][0];
-      const earnTokens = earnSelectors.selectEarnTokens(
-        mockState as unknown as RootState,
-      );
 
       const result = earnSelectors.selectEarnToken(
         mockState as unknown as RootState,
@@ -453,7 +451,7 @@ describe('Earn Controller Selectors', () => {
     it('returns undefined when asset is not provided', () => {
       const result = earnSelectors.selectEarnOutputToken(
         mockState as unknown as RootState,
-        undefined as any,
+        undefined as unknown as EarnTokenDetails,
       );
       expect(result).toBeUndefined();
     });
@@ -461,7 +459,7 @@ describe('Earn Controller Selectors', () => {
     it('returns undefined when asset chainId is not provided', () => {
       const result = earnSelectors.selectEarnOutputToken(
         mockState as unknown as RootState,
-        { address: '0x123' } as any,
+        { address: '0x123' } as unknown as EarnTokenDetails,
       );
       expect(result).toBeUndefined();
     });
@@ -469,7 +467,7 @@ describe('Earn Controller Selectors', () => {
     it('returns undefined when asset address is not provided', () => {
       const result = earnSelectors.selectEarnOutputToken(
         mockState as unknown as RootState,
-        { chainId: '0x1' } as any,
+        { chainId: '0x1' } as unknown as EarnTokenDetails,
       );
       expect(result).toBeUndefined();
     });
@@ -507,7 +505,7 @@ describe('Earn Controller Selectors', () => {
     it('returns undefined when asset is not provided', () => {
       const result = earnSelectors.selectPairedEarnToken(
         mockState as unknown as RootState,
-        undefined as any,
+        undefined as unknown as EarnTokenDetails,
       );
       expect(result).toBeUndefined();
     });
@@ -515,7 +513,7 @@ describe('Earn Controller Selectors', () => {
     it('returns undefined when asset chainId is not provided', () => {
       const result = earnSelectors.selectPairedEarnToken(
         mockState as unknown as RootState,
-        { address: '0x123' } as any,
+        { address: '0x123' } as unknown as EarnTokenDetails,
       );
       expect(result).toBeUndefined();
     });
@@ -523,7 +521,7 @@ describe('Earn Controller Selectors', () => {
     it('returns undefined when asset address is not provided', () => {
       const result = earnSelectors.selectPairedEarnToken(
         mockState as unknown as RootState,
-        { chainId: '0x1' } as any,
+        { chainId: '0x1' } as unknown as EarnTokenDetails,
       );
       expect(result).toBeUndefined();
     });
@@ -561,7 +559,7 @@ describe('Earn Controller Selectors', () => {
     it('returns undefined when asset is not provided', () => {
       const result = earnSelectors.selectPairedEarnOutputToken(
         mockState as unknown as RootState,
-        undefined as any,
+        undefined as unknown as EarnTokenDetails,
       );
       expect(result).toBeUndefined();
     });
@@ -569,7 +567,7 @@ describe('Earn Controller Selectors', () => {
     it('returns undefined when asset chainId is not provided', () => {
       const result = earnSelectors.selectPairedEarnOutputToken(
         mockState as unknown as RootState,
-        { address: '0x123' } as any,
+        { address: '0x123' } as unknown as EarnTokenDetails,
       );
       expect(result).toBeUndefined();
     });
@@ -577,7 +575,7 @@ describe('Earn Controller Selectors', () => {
     it('returns undefined when asset address is not provided', () => {
       const result = earnSelectors.selectPairedEarnOutputToken(
         mockState as unknown as RootState,
-        { chainId: '0x1' } as any,
+        { chainId: '0x1' } as unknown as EarnTokenDetails,
       );
       expect(result).toBeUndefined();
     });
@@ -620,7 +618,7 @@ describe('Earn Controller Selectors', () => {
           address: '0x234245346536',
           isETH: false,
           isStaked: false,
-        } as any,
+        } as unknown as EarnTokenDetails,
       );
       expect(result.earnToken).toBeUndefined();
       expect(result.outputToken).toBeUndefined();

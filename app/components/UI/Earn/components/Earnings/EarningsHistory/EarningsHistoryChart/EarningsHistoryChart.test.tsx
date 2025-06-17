@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, RenderResult } from '@testing-library/react-native';
-import { StakingEarningsHistoryChart } from './EarningsHistoryChart';
+import { EarningsHistoryChart } from './EarningsHistoryChart';
 import { fireLayoutEvent } from '../../../../../../../util/testUtils/react-native-svg-charts';
 import { lightTheme } from '@metamask/design-tokens';
 
@@ -23,11 +23,11 @@ const mockEarningsData = {
 };
 
 const barChartComponent = (
-  <StakingEarningsHistoryChart
+  <EarningsHistoryChart
     earnings={mockEarningsData.earnings}
     earningsTotal={mockEarningsData.earningsTotal}
     ticker={mockEarningsData.ticker}
-  ></StakingEarningsHistoryChart>
+  ></EarningsHistoryChart>
 );
 
 const renderChart = () => {
