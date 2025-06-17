@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Fuse from 'fuse.js';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { FlashList } from '@shopify/flash-list';
 import { isSmartContractAddress } from '../../../../../../util/transactions';
 import { strings } from '../../../../../../../locales/i18n';
 import AddressElement from '../AddressElement';
@@ -16,7 +17,6 @@ import { selectInternalEvmAccounts } from '../../../../../../selectors/accountsC
 import styleSheet from './AddressList.styles';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
-import { FlashList } from '@shopify/flash-list';
 
 const LabelElement = (styles, label) => (
   <View key={label} style={styles.labelElementWrapper}>
@@ -25,8 +25,6 @@ const LabelElement = (styles, label) => (
     </Text>
   </View>
 );
-
-const BATCH_SIZE = 10; // Process 10 addresses at a time
 
 const AddressList = ({
   chainId,
@@ -41,6 +39,7 @@ const AddressList = ({
   const styles = styleSheet(colors);
   const [contactElements, setContactElements] = useState([]);
   const [fuse, setFuse] = useState(undefined);
+  const internalAccounts = useSelector(selectInternalEvmAccounts);
   const addressBook = useSelector(selectAddressBook);
   const ambiguousAddressEntries = useSelector(
     (state) => state.user.ambiguousAddressEntries,
@@ -63,63 +62,22 @@ const AddressList = ({
         };
       });
 
-      // Process contacts in batches
-      const processBatches = async () => {
-        const updatedContacts = [];
-
-        for (let i = 0; i < contacts.length; i += BATCH_SIZE) {
-          const batch = contacts.slice(i, i + BATCH_SIZE);
-          const batchPromises = batch.map((contact) =>
-            isSmartContractAddress(contact.address, contact.chainId)
-              .then((isSmartContract) => {
-                if (isSmartContract) {
-                  return { ...contact, isSmartContract: true };
-                }
-                return contact;
-              })
-              .catch(() => contact),
-          );
-
-          const batchResults = await Promise.all(batchPromises);
-          updatedContacts.push(...batchResults);
-        }
-
+      Promise.all(
+        contacts.map((contact) =>
+          isSmartContractAddress(contact.address, contact.chainId)
+            .then((isSmartContract) => {
+              if (isSmartContract) {
+                return { ...contact, isSmartContract: true };
+              }
+              return contact;
+            })
+            .catch(() => contact),
+        ),
+      ).then((updatedContacts) => {
         const newContactElements = [];
         const addressBookTree = {};
 
         updatedContacts.forEach((contact) => {
-          const contactNameInitial = contact?.name?.[0];
-          const nameInitial = regex.nameInitial.exec(contactNameInitial);
-          const initial = nameInitial
-            ? nameInitial[0].toLowerCase()
-            : strings('address_book.others');
-          if (Object.keys(addressBookTree).includes(initial)) {
-            addressBookTree[initial].push(contact);
-          } else if (contact.isSmartContract && !onlyRenderAddressBook) {
-            return;
-          } else {
-            addressBookTree[initial] = [contact];
-          }
-        });
-
-        Object.keys(addressBookTree)
-          .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
-          .forEach((initial) => {
-            newContactElements.push(initial);
-            addressBookTree[initial].forEach((contact) => {
-              newContactElements.push(contact);
-            });
-          });
-
-        setContactElements(newContactElements);
-      };
-
-      processBatches().catch(() => {
-        // If there's an error, use the original contacts
-        const newContactElements = [];
-        const addressBookTree = {};
-
-        contacts.forEach((contact) => {
           const contactNameInitial = contact?.name?.[0];
           const nameInitial = regex.nameInitial.exec(contactNameInitial);
           const initial = nameInitial
@@ -191,50 +149,7 @@ const AddressList = ({
     parseAddressBook,
   ]);
 
-  const AccountItem = React.memo(({ item, onAccountPress, onIconPress, onAccountLongPress, chainId }) => (
-    <AddressElement
-      key={item.id}
-      address={toChecksumHexAddress(item.address)}
-      name={item.metadata.name}
-      onAccountPress={onAccountPress}
-      onIconPress={onIconPress}
-      onAccountLongPress={onAccountLongPress}
-      testID={SendViewSelectorsIDs.MY_ACCOUNT_ELEMENT}
-      chainId={chainId}
-    />
-  ));
-
   const renderMyAccounts = () => {
-    const internalAccounts = useSelector(selectInternalEvmAccounts);
-    const { colors } = useTheme();
-    const styles = useMemo(() => styleSheet(colors), [colors]);
-
-    const handleAccountPress = useCallback((address) => {
-      onAccountPress(address);
-    }, [onAccountPress]);
-
-    const handleIconPress = useCallback((address) => {
-      onIconPress(address);
-    }, [onIconPress]);
-
-    const handleAccountLongPress = useCallback((address) => {
-      onAccountLongPress(address);
-    }, [onAccountLongPress]);
-
-    const renderAccountItem = useCallback(({ item }) => (
-      <AccountItem
-        item={item}
-        onAccountPress={handleAccountPress}
-        onIconPress={handleIconPress}
-        onAccountLongPress={handleAccountLongPress}
-        chainId={chainId}
-      />
-    ), [handleAccountPress, handleIconPress, handleAccountLongPress, chainId]);
-
-    const getItemType = useCallback((item) => {
-      return item.id;
-    }, []);
-
     if (inputSearch) return null;
 
     return (
@@ -247,18 +162,20 @@ const AddressList = ({
         </Text>
         <FlashList
           data={internalAccounts}
-          renderItem={renderAccountItem}
+          renderItem={({ item: account }) => (
+            <AddressElement
+              key={account.id}
+              address={toChecksumHexAddress(account.address)}
+              name={account.metadata.name}
+              onAccountPress={onAccountPress}
+              onIconPress={onIconPress}
+              onAccountLongPress={onAccountLongPress}
+              testID={SendViewSelectorsIDs.MY_ACCOUNT_ELEMENT}
+              chainId={chainId}
+            />
+          )}
           estimatedItemSize={80}
-          keyExtractor={getItemType}
-          showsVerticalScrollIndicator={false}
-          nestedScrollEnabled
-          removeClippedSubviews
-          initialNumToRender={internalAccounts.length}
-          maxToRenderPerBatch={internalAccounts.length}
-          windowSize={5}
-          overrideItemLayout={(layout, item) => {
-            layout.size = 80;
-          }}
+          keyExtractor={(item) => item.id}
         />
       </View>
     );
