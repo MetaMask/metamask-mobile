@@ -94,13 +94,6 @@ const BuildQuote = () => {
 
   const handleOnPressContinue = useCallback(async () => {
     try {
-      console.log('handleOnPressContinue', {
-        fiatCurrency: fiatCurrency.id,
-        cryptoCurrency: cryptoCurrency.symbol,
-        paymentMethod: paymentMethod.name,
-        amount: amountAsNumber,
-      });
-
       const quote = await getQuote(
         getTransakFiatCurrencyId(fiatCurrency),
         getTransakCryptoCurrencyId(cryptoCurrency),
@@ -136,6 +129,7 @@ const BuildQuote = () => {
     }
   }, [
     amount,
+    amountAsNumber,
     cryptoCurrency,
     fetchKycForms,
     fiatCurrency,

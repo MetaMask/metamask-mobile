@@ -30,10 +30,9 @@ const useDepsositTokenExchange = ({
 
   const rate = currentToken ? rates[currentToken.symbol] ?? null : null;
 
-  
   const tokenAmount = rate
-  ? (parseFloat(fiatAmount || '0') * rate).toFixed(token.decimals)
-  : '0';
+    ? (parseFloat(fiatAmount || '0') * rate).toFixed(token.decimals)
+    : '0';
 
   return {
     tokenAmount,
