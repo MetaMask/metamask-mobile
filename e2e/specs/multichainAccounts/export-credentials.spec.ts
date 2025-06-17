@@ -1,7 +1,7 @@
 'use strict';
 import { SmokeWalletPlatform } from '../../tags';
 import {
-  HdAccount,
+  HD_ACCOUNT,
   goToAccountDetails,
   withMultichainAccountDetailsEnabled,
 } from './common';
@@ -32,7 +32,7 @@ const exportPrivateKey = async () => {
   await checkCredentials();
 };
 
-const exportSRP = async () => {
+const exportSrp = async () => {
   await AccountDetails.tapExportSRPButton();
   await Assertions.checkIfVisible(ExportCredentials.srpInfoContainer);
   await ExportCredentials.tapNextButton();
@@ -43,15 +43,15 @@ const exportSRP = async () => {
 describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
   it('exports private key', async () => {
     await withMultichainAccountDetailsEnabled(async () => {
-      await goToAccountDetails(HdAccount);
+      await goToAccountDetails(HD_ACCOUNT);
       await exportPrivateKey();
     });
   });
 
   it('exports SRP', async () => {
     await withMultichainAccountDetailsEnabled(async () => {
-      await goToAccountDetails(HdAccount);
-      await exportSRP();
+      await goToAccountDetails(HD_ACCOUNT);
+      await exportSrp();
     });
   });
 });

@@ -13,13 +13,13 @@ export interface Account {
   address: string;
 }
 
-export const HdAccount: Account = {
+export const HD_ACCOUNT: Account = {
   name: 'Account 1',
   index: 0,
   address: DEFAULT_FIXTURE_ACCOUNT,
 };
 
-export const SimpleKeyPairAccount: Account = {
+export const SIMPLE_KEYPAIR_ACCOUNT: Account = {
   name: 'Account 5',
   index: 4,
   address: DEFAULT_FIXTURE_ACCOUNT,

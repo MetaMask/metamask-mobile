@@ -1,17 +1,17 @@
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import { MultichainDeleteAccountsSelectors } from '../../selectors/MultichainAccounts/DeleteAccount.selectors';
+import { MultichainDeleteAccountSelectors } from '../../selectors/MultichainAccounts/DeleteAccount.selectors';
 
 class DeleteAccount {
   get container() {
     return Matchers.getElementByID(
-      MultichainDeleteAccountsSelectors.deleteAccountContainer,
+      MultichainDeleteAccountSelectors.deleteAccountContainer,
     );
   }
 
   get deleteAccountButton() {
     return Matchers.getElementByID(
-      MultichainDeleteAccountsSelectors.deleteAccountRemoveButton,
+      MultichainDeleteAccountSelectors.deleteAccountRemoveButton,
     );
   }
 

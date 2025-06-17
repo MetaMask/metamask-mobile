@@ -4,7 +4,7 @@ import { ExportCredentialsIds } from '../../selectors/MultichainAccounts/ExportC
 import { RevealSeedViewSelectorsIDs } from '../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 import { IndexableNativeElement } from 'detox/detox';
 
-class DeleteAccount {
+class ExportCredentials {
   get srpInfoContainer() {
     return Matchers.getElementByID(ExportCredentialsIds.CONTAINER);
   }
@@ -21,7 +21,7 @@ class DeleteAccount {
     );
   }
 
-  get exportSRPButton() {
+  get exportSrpButton() {
     return Matchers.getElementByID(ExportCredentialsIds.EXPORT_SRP_BUTTON);
   }
 
@@ -44,7 +44,7 @@ class DeleteAccount {
   }
 
   async tapExportSRPButton() {
-    await Gestures.waitAndTap(this.exportSRPButton);
+    await Gestures.waitAndTap(this.exportSrpButton);
   }
 
   async enterPassword(password: string) {
@@ -60,4 +60,4 @@ class DeleteAccount {
   }
 }
 
-export default new DeleteAccount();
+export default new ExportCredentials();

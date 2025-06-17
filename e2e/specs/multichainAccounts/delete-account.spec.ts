@@ -1,7 +1,7 @@
 'use strict';
 import { SmokeWalletPlatform } from '../../tags';
 import {
-  SimpleKeyPairAccount,
+  SIMPLE_KEYPAIR_ACCOUNT,
   goToAccountDetails,
   withMultichainAccountDetailsEnabled,
 } from './common';
@@ -19,11 +19,11 @@ const deleteAccount = async () => {
 describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
   it('deletes the account', async () => {
     await withMultichainAccountDetailsEnabled(async () => {
-      await goToAccountDetails(SimpleKeyPairAccount);
+      await goToAccountDetails(SIMPLE_KEYPAIR_ACCOUNT);
       await deleteAccount();
       // Go back to account list
       await WalletView.tapIdenticon();
-      const name = Matchers.getElementByText(SimpleKeyPairAccount.name);
+      const name = Matchers.getElementByText(SIMPLE_KEYPAIR_ACCOUNT.name);
       await Assertions.checkIfNotVisible(name);
     });
   });

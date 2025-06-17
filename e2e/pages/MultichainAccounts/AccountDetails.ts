@@ -1,10 +1,10 @@
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import { AccountDetailsIds } from '../../selectors/MultichainAccounts/AccountDetails.selectors';
-import { MultichainDeleteAccountsSelectors } from '../../selectors/MultichainAccounts/DeleteAccount.selectors';
+import { MultichainDeleteAccountSelectors } from '../../selectors/MultichainAccounts/DeleteAccount.selectors';
 import { ExportCredentialsIds } from '../../selectors/MultichainAccounts/ExportCredentials.selectors';
 
-class AddNewHdAccountComponent {
+class AccountDetails {
   get container() {
     return Matchers.getElementByID(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER);
   }
@@ -27,7 +27,7 @@ class AddNewHdAccountComponent {
 
   get deleteAccountLink() {
     return Matchers.getElementByID(
-      MultichainDeleteAccountsSelectors.deleteAccountRemoveButton,
+      MultichainDeleteAccountSelectors.deleteAccountRemoveButton,
     );
   }
 
@@ -37,7 +37,7 @@ class AddNewHdAccountComponent {
     );
   }
 
-  get exportSRPButton() {
+  get exportSrpButton() {
     return Matchers.getElementByID(ExportCredentialsIds.EXPORT_SRP_BUTTON);
   }
 
@@ -66,8 +66,8 @@ class AddNewHdAccountComponent {
   }
 
   async tapExportSRPButton() {
-    await Gestures.waitAndTap(this.exportSRPButton);
+    await Gestures.waitAndTap(this.exportSrpButton);
   }
 }
 
-export default new AddNewHdAccountComponent();
+export default new AccountDetails();

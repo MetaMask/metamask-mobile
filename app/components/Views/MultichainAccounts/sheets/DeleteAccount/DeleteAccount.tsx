@@ -34,7 +34,7 @@ import {
 } from '../../../../UI/Box/box.types';
 import Routes from '../../../../../constants/navigation/Routes';
 import AccountInfo from '../../AccountDetails/components/AccountInfo';
-import { MultichainDeleteAccountsSelectors } from '../../../../../../e2e/selectors/MultichainAccounts/DeleteAccount.selectors';
+import { MultichainDeleteAccountSelectors } from '../../../../../../e2e/selectors/MultichainAccounts/DeleteAccount.selectors';
 
 interface RootNavigationParamList extends ParamListBase {
   DeleteAccount: {
@@ -78,7 +78,7 @@ export const DeleteAccount = () => {
     label: strings('multichain_accounts.delete_account.cancel_button'),
     size: ButtonSize.Lg,
     onPress: handleOnBack,
-    testID: MultichainDeleteAccountsSelectors.deleteAccountCancelButton,
+    testID: MultichainDeleteAccountSelectors.DELETE_ACCOUNT_CANCEL_BUTTON,
   };
 
   const removeButtonProps: ButtonProps = {
@@ -86,7 +86,7 @@ export const DeleteAccount = () => {
     label: strings('multichain_accounts.delete_account.remove_button'),
     size: ButtonSize.Lg,
     onPress: handleDeleteAccount,
-    testID: MultichainDeleteAccountsSelectors.deleteAccountRemoveButton,
+    testID: MultichainDeleteAccountSelectors.DELETE_ACCOUNT_REMOVE_BUTTON,
   };
 
   return (
@@ -99,7 +99,7 @@ export const DeleteAccount = () => {
         flexDirection={FlexDirection.Column}
         justifyContent={JustifyContent.flexStart}
         alignItems={AlignItems.center}
-        testID={MultichainDeleteAccountsSelectors.deleteAccountContainer}
+        testID={MultichainDeleteAccountSelectors.DELETE_ACCOUNT_CONTAINER}
       >
         <AccountInfo account={account} />
         <BannerAlert
@@ -108,7 +108,7 @@ export const DeleteAccount = () => {
           description={strings(
             'multichain_accounts.delete_account.warning_description',
           )}
-          testID={MultichainDeleteAccountsSelectors.deleteAccountWarningTitle}
+          testID={MultichainDeleteAccountSelectors.DELETE_ACCOUNT_WARNING_TITLE}
         />
         {error && <Text color={TextColor.Error}>{error}</Text>}
       </Box>

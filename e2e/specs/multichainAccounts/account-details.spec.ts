@@ -5,7 +5,7 @@ import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import EditAccountName from '../../pages/MultichainAccounts/EditAccountName';
 import ShareAddress from '../../pages/MultichainAccounts/ShareAddress';
 import {
-  HdAccount,
+  HD_ACCOUNT,
   goToAccountDetails,
   withMultichainAccountDetailsEnabled,
 } from './common';
@@ -26,13 +26,13 @@ const editName = async (newName: string) => {
 describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
   it('renames the account', async () => {
     await withMultichainAccountDetailsEnabled(async () => {
-      await goToAccountDetails(HdAccount);
+      await goToAccountDetails(HD_ACCOUNT);
       await editName('Account 1-edited');
     });
   });
 
-  it('shows the account address in qr code format', async () => {
-    await checkAddress(HdAccount.address);
+  it('copies the account address', async () => {
+    await checkAddress(HD_ACCOUNT.address);
   });
 
   it.skip('renames the wallet', async () => {

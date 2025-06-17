@@ -1,7 +1,7 @@
-export const MultichainDeleteAccountsSelectors = {
-  deleteAccountContainer: 'delete-account-container',
-  deleteAccountWarningTitle: 'delete-account-warning-title',
-  deleteAccountWarningDescription: 'delete-account-warning-description',
-  deleteAccountCancelButton: 'delete-account-cancel-button',
-  deleteAccountRemoveButton: 'delete-account-remove-button',
+export const MultichainDeleteAccountSelectors = {
+  DELETE_ACCOUNT_CONTAINER: 'delete-account-container',
+  DELETE_ACCOUNT_WARNING_TITLE: 'delete-account-warning-title',
+  DELETE_ACCOUNT_WARNING_DESCRIPTION: 'delete-account-warning-description',
+  DELETE_ACCOUNT_CANCEL_BUTTON: 'delete-account-cancel-button',
+  DELETE_ACCOUNT_REMOVE_BUTTON: 'delete-account-remove-button',
 };
