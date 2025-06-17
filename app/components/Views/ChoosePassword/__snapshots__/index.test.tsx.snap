@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ChoosePassword should render correctly 1`] = `
+exports[`ChoosePassword render matches snapshot 1`] = `
 <RCTSafeAreaView
   style={
     {
@@ -444,6 +444,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             style={
               {
                 "flexDirection": "column",
+                "marginBottom": 0,
                 "marginTop": "auto",
                 "rowGap": 18,
                 "width": "100%",
