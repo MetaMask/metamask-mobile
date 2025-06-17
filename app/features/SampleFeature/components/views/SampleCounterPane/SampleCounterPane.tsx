@@ -9,17 +9,17 @@ import {useStyles} from '../../../../../component-library/hooks';
 
 /**
  * SampleCounterPane Component
- * 
+ *
  * A demonstration component that implements a simple counter functionality.
  * This component showcases the use of custom hooks, state management, and
  * internationalization in the MetaMask mobile app.
- * 
+ *
  * @component
  * @example
  * ```tsx
  * <SampleCounterPane />
  * ```
- * 
+ *
  * @remarks
  * This is a sample feature and should not be used in production code.
  * It demonstrates:
@@ -28,10 +28,10 @@ import {useStyles} from '../../../../../component-library/hooks';
  * - Internationalization
  * - Component composition
  * - Testing patterns
- * 
+ *
  * @sampleFeature do not use in production code
- * 
- * @returns {JSX.Element} A card containing a counter display and increment button
+ *
+ * @returns A card containing a counter display and increment button
  */
 export function SampleCounterPane() {
 

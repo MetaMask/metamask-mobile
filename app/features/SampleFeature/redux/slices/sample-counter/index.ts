@@ -1,4 +1,4 @@
-import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../../../../reducers';
 
 /**
@@ -54,20 +54,12 @@ const slice = createSlice({
       state.count += 1;
     },
     /**
-     * Decrements the counter by 1
-     * 
-     * @param state - The current state
-     */
-    decrement: (state) => {
-      state.count -= 1;
-    },
-    /**
      * Sets the counter to a specific value
      * 
      * @param state - The current state
      * @param action - The action containing the new count value
      */
-    setCount: (state, action: PayloadAction<number>) => {
+    setCount: (state, action: { payload: number }) => {
       state.count = action.payload;
     },
   },
@@ -80,7 +72,7 @@ const { actions, reducer } = slice;
  * 
  * @sampleFeature do not use in production code
  */
-export const { increment, decrement, setCount } = actions;
+export const { increment, setCount } = actions;
 
 /**
  * Selector to get the current count from the Redux store
@@ -91,5 +83,7 @@ export const { increment, decrement, setCount } = actions;
  * @sampleFeature do not use in production code
  */
 export const selectCount = (state: RootState) => state[name].count;
+
+export { initialState };
 
 export default reducer; 

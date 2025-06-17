@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { SampleCounterPane } from './SampleCounterPane';
+import { strings } from '../../../../../../locales/i18n';
 
 /**
  * Mock implementation for react-native Linking module
@@ -22,12 +23,12 @@ const mockIncrement = jest.fn();
  * Provides a controlled test environment for the counter functionality
  */
 jest.mock('../../hooks/useSampleCounter/useSampleCounter', () => ({
-        __esModule: true,
-        default: () => ({
-                value: 42,
-                increment: mockIncrement,
-            }),
-    }));
+    __esModule: true,
+    useSampleCounter: () => ({
+        count: 42,
+        incrementCount: mockIncrement,
+    }),
+}));
 
 /**
  * Test suite for SampleCounterPane component
@@ -42,7 +43,7 @@ describe('SampleCounterPane', () => {
 
     /**
      * Verifies that the component renders correctly and matches the snapshot
-     * 
+     *
      * @test
      */
     it('render matches snapshot', () => {
@@ -52,14 +53,14 @@ describe('SampleCounterPane', () => {
 
     /**
      * Verifies that the counter value is displayed correctly
-     * 
+     *
      * @test
      */
     it('displays counter value', () => {
         const { getByTestId } = renderWithProvider(<SampleCounterPane />);
         const valueElement = getByTestId('sample-counter-pane-value');
         expect(valueElement).toBeDefined();
-        expect(valueElement.props.children).toBe('Value: 42');
+        expect(valueElement.props.children).toBe(strings('sample_feature.counter.value', {value: 42}));
     });
 
     /**

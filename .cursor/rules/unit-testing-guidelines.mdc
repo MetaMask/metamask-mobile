@@ -1,7 +1,7 @@
 ---
 description: 
-globs: 
-alwaysApply: true
+globs: *.test.*
+alwaysApply: false
 ---
 - Use (the unit testing guidelines)[https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/unit-testing.md]
 	
