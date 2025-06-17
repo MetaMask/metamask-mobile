@@ -91,7 +91,6 @@ export const useSwapBridgeNavigation = ({
         params: {
           token: bridgeToken,
           sourcePage,
-          bridgeViewMode,
         } as BridgeRouteParams,
       });
 
