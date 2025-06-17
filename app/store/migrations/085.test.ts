@@ -1,4 +1,4 @@
-import migrate from './084';
+import migrate from './085';
 import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
 
@@ -13,7 +13,7 @@ jest.mock('./util', () => ({
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 
-const migrationVersion = '084';
+const migrationVersion = '085';
 
 describe(`Migration ${migrationVersion}: Remove Automatic Security Checks state`, () => {
   beforeEach(() => {

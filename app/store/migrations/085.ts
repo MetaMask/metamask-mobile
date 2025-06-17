@@ -8,7 +8,7 @@ import { captureException } from '@sentry/react-native';
  * This migration removes the automatic security checks state from the security state.
  */
 const migration = (state: unknown): unknown => {
-  const migrationVersion = '084';
+  const migrationVersion = '085';
 
   if (!ensureValidState(state, Number(migrationVersion))) {
     return state;
