@@ -160,7 +160,6 @@ exports[`AddressList should render correctly 1`] = `
             finalRenderAheadOffset={250}
             forceNonDeterministicRendering={true}
             horizontal={false}
-            initialNumToRender={1}
             initialOffset={0}
             initialRenderIndex={0}
             isHorizontal={false}
@@ -241,7 +240,7 @@ exports[`AddressList should render correctly 1`] = `
                 },
                 "defaultEstimatedItemSize": 100,
                 "layoutObject": {
-                  "size": 80,
+                  "size": undefined,
                   "span": undefined,
                 },
                 "props": {
@@ -271,16 +270,9 @@ exports[`AddressList should render correctly 1`] = `
                     },
                   ],
                   "estimatedItemSize": 80,
-                  "initialNumToRender": 1,
                   "keyExtractor": [Function],
-                  "maxToRenderPerBatch": 1,
-                  "nestedScrollEnabled": true,
                   "numColumns": 1,
-                  "overrideItemLayout": [Function],
-                  "removeClippedSubviews": true,
                   "renderItem": [Function],
-                  "showsVerticalScrollIndicator": false,
-                  "windowSize": 5,
                 },
                 "renderWindowInsets": {
                   "height": 0,
@@ -290,8 +282,6 @@ exports[`AddressList should render correctly 1`] = `
               }
             }
             maxRenderAhead={750}
-            maxToRenderPerBatch={1}
-            nestedScrollEnabled={true}
             numColumns={1}
             onEndReached={[Function]}
             onEndReachedThreshold={0}
@@ -302,7 +292,6 @@ exports[`AddressList should render correctly 1`] = `
             onScrollBeginDrag={[Function]}
             onSizeChanged={[Function]}
             onVisibleIndicesChanged={[Function]}
-            overrideItemLayout={[Function]}
             removeClippedSubviews={false}
             renderAheadOffset={0}
             renderAheadStep={250}
@@ -330,7 +319,6 @@ exports[`AddressList should render correctly 1`] = `
                 },
               }
             }
-            showsVerticalScrollIndicator={false}
             style={
               {
                 "minHeight": 1,
@@ -349,7 +337,6 @@ exports[`AddressList should render correctly 1`] = `
                 },
               }
             }
-            windowSize={5}
           >
             <View>
               <View
