@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Fuse from 'fuse.js';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { FlashList } from '@shopify/flash-list';
 import { isSmartContractAddress } from '../../../../../../util/transactions';
 import { strings } from '../../../../../../../locales/i18n';
 import AddressElement from '../AddressElement';
@@ -159,18 +160,23 @@ const AddressList = ({
         >
           {strings('onboarding_wizard.step2.title')}
         </Text>
-        {internalAccounts.map((account) => (
-          <AddressElement
-            key={account.id}
-            address={toChecksumHexAddress(account.address)}
-            name={account.metadata.name}
-            onAccountPress={onAccountPress}
-            onIconPress={onIconPress}
-            onAccountLongPress={onAccountLongPress}
-            testID={SendViewSelectorsIDs.MY_ACCOUNT_ELEMENT}
-            chainId={chainId}
-          />
-        ))}
+        <FlashList
+          data={internalAccounts}
+          renderItem={({ item: account }) => (
+            <AddressElement
+              key={account.id}
+              address={toChecksumHexAddress(account.address)}
+              name={account.metadata.name}
+              onAccountPress={onAccountPress}
+              onIconPress={onIconPress}
+              onAccountLongPress={onAccountLongPress}
+              testID={SendViewSelectorsIDs.MY_ACCOUNT_ELEMENT}
+              chainId={chainId}
+            />
+          )}
+          estimatedItemSize={80}
+          keyExtractor={(item) => item.id}
+        />
       </View>
     );
   };

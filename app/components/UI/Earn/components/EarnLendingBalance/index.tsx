@@ -69,6 +69,11 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
     [receiptToken?.balanceMinimalUnit],
   );
 
+  const userHasUnderlyingTokensAvailableToLend = useMemo(
+    () => new BigNumber(earnToken?.balanceMinimalUnit ?? '0').gt(0),
+    [earnToken?.balanceMinimalUnit],
+  );
+
   const handleNavigateToWithdrawalInputScreen = () => {
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
@@ -141,29 +146,30 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
         </View>
       )}
       {/* Buttons */}
-      {/* {userHasLendingPositions && ( */}
-      <View style={styles.container}>
-        {userHasLendingPositions && receiptToken && (
-          <Button
-            variant={ButtonVariants.Secondary}
-            style={styles.button}
-            size={ButtonSize.Lg}
-            label={strings('earn.withdraw')}
-            onPress={handleNavigateToWithdrawalInputScreen}
-            testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
-          />
-        )}
-        {userHasLendingPositions && earnToken && (
-          <Button
-            variant={ButtonVariants.Secondary}
-            style={styles.button}
-            size={ButtonSize.Lg}
-            label={strings('earn.deposit_more')}
-            onPress={handleNavigateToDepositInputScreen}
-            testID={EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON}
-          />
-        )}
-      </View>
+      {userHasLendingPositions && (
+        <View style={styles.container}>
+          {receiptToken && (
+            <Button
+              variant={ButtonVariants.Secondary}
+              style={styles.button}
+              size={ButtonSize.Lg}
+              label={strings('earn.withdraw')}
+              onPress={handleNavigateToWithdrawalInputScreen}
+              testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
+            />
+          )}
+          {userHasUnderlyingTokensAvailableToLend && !isAssetReceiptToken && (
+            <Button
+              variant={ButtonVariants.Secondary}
+              style={styles.button}
+              size={ButtonSize.Lg}
+              label={strings('earn.deposit_more')}
+              onPress={handleNavigateToDepositInputScreen}
+              testID={EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON}
+            />
+          )}
+        </View>
+      )}
     </View>
   );
 };
