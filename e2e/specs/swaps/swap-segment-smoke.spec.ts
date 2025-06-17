@@ -25,7 +25,7 @@ import {
 } from '../../api-mocking/mock-server.js';
 import SoftAssert from '../../utils/SoftAssert';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
-import SwapView from '../../pages/swaps/SwapView.js';
+import SwapView from '../../pages/swaps/SwapView';
 import QuotesModal from '../../pages/swaps/QuoteModal';
 import type { MockttpServer } from 'mockttp';
 
