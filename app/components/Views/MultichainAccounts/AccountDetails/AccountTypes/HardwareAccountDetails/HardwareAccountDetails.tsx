@@ -12,6 +12,7 @@ export const HardwareAccountDetails = ({
   account,
 }: HardwareAccountDetailsProps) => (
   <BaseAccountDetails account={account}>
+    <SmartAccount account={account} />
     <RemoveAccount account={account} />
     <SmartAccount account={account} />
   </BaseAccountDetails>
