@@ -1,22 +1,25 @@
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectCount, increment } from '../../../redux/slices/sample-counter';
+import { RootState } from '../../../../../../app/reducers';
+import { increment, selectCount } from '../../../redux/slices/sample-counter';
 
 /**
  * Sample useSampleCounter hook
  *
  * @sampleFeature do not use in production code
  */
-export function useSampleCounter() {
+export const useSampleCounter = () => {
   const dispatch = useDispatch();
-  const count = useSelector(selectCount);
+  const count = useSelector((state: RootState) => selectCount(state));
 
-  const incrementCount = useCallback(() => {
+  const incrementCountHandler = useCallback(() => {
     dispatch(increment());
   }, [dispatch]);
 
   return {
     count,
-    incrementCount,
+    incrementCount: incrementCountHandler,
   };
-}
+};
+
+export default useSampleCounter;

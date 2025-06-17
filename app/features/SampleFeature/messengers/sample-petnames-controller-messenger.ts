@@ -1,10 +1,5 @@
 import { BaseControllerMessenger } from '../../../core/Engine/types';
-import {
-  SamplePetnamesController,
-  SamplePetnamesControllerActions,
-  SamplePetnamesControllerEvents,
-  SamplePetnamesControllerMessenger,
-} from '@metamask/sample-controllers';
+import type { SamplePetnamesControllerMessenger } from '@metamask/sample-controllers';
 
 /**
  * Get the messenger for the SamplePetnamesController.
@@ -18,6 +13,6 @@ export const getSamplePetnamesControllerMessenger = (
   return baseMessenger.getRestricted({
     name: 'SamplePetnamesController',
     allowedActions: [],
-    allowedEvents: ['SamplePetnamesController:stateChange'],
+    allowedEvents: ['SamplePetnamesController:stateChange' as unknown as 'ComposableController:stateChange'],
   });
 };
