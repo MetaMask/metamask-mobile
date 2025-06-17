@@ -1,5 +1,5 @@
 import TestHelpers from '../../helpers';
-import { SmokeNetworkExpansion } from '../../tags';
+import { FlaskBuildTests } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -16,7 +16,7 @@ import TestSnaps from '../../pages/Browser/TestSnap';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeNetworkExpansion('BIP-44 Snap Tests'), () => {
+describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
 
   const BIP_44_SNAP_NAME = 'BIP-44 Example Snap';
   const EXPECTED_PUBLIC_KEY = '"0x90043dd7faa56b3ed9fe959d25ae17132dc7e0f604663e68a84cf21e0f64390fbdd4781e4baa99c236f3bbf95182bdee"';
