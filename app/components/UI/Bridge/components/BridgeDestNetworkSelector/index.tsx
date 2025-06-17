@@ -16,8 +16,10 @@ import { NetworkRow } from '../NetworkRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { BridgeViewMode } from '../../types';
+
 export interface BridgeDestNetworkSelectorRouteParams {
   shouldGoToTokens?: boolean;
+  bridgeViewMode?: BridgeViewMode;
 }
 
 const createStyles = () => StyleSheet.create({
@@ -50,7 +52,12 @@ export const BridgeDestNetworkSelector: React.FC = () => {
   }, [dispatch, navigation, route.params.shouldGoToTokens]);
 
   const renderDestChains = useCallback(() => (
-    enabledDestChains.filter(chain => chain.chainId !== currentChainId).map((chain) => (
+    enabledDestChains.filter(chain => {
+      if (route.params.bridgeViewMode === BridgeViewMode.Unified) {
+        return true;
+      }
+      return chain.chainId !== currentChainId;
+    }).map((chain) => (
       <TouchableOpacity
         key={chain.chainId}
         onPress={() => handleChainSelect(chain.chainId)}
@@ -65,7 +72,7 @@ export const BridgeDestNetworkSelector: React.FC = () => {
         </ListItem>
       </TouchableOpacity>
     ))
-  ), [enabledDestChains, handleChainSelect, currentChainId]);
+  ), [enabledDestChains, handleChainSelect, currentChainId, route.params.bridgeViewMode]);
 
   return (
     <BridgeNetworkSelectorBase>
