@@ -29,6 +29,7 @@ const baseApprovalControllerMock = {
 };
 
 export const transactionApprovalControllerMock = merge(
+  {},
   baseApprovalControllerMock,
   {
     engine: {
