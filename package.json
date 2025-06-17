@@ -459,7 +459,7 @@
     "listr2": "^8.0.2",
     "metro-react-native-babel-preset": "~0.76.9",
     "metro-react-native-babel-transformer": "~0.76.9",
-    "multiple-cucumber-html-reporter": "^3.0.1",
+    "multiple-cucumber-html-reporter": "^3.9.3",
     "nock": "^13.3.1",
     "nyc": "^17.1.0",
     "octonode": "0.10.2",
