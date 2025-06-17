@@ -4627,6 +4627,16 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.0.1"
 
+"@metamask/account-tree-controller@0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.1.1.tgz#7562b0b7d2bdbc62228367bd11f68cb0701dea2e"
+  integrity sha512-UgQwEo1n3mYsoYj4r65YTqISyApGk1luHFZRKQxkULf3fWEfpiEZ7T6D6ceMapE/iCWoVsgb0B70spyr6wbIWA==
+  dependencies:
+    "@metamask/base-controller" "^8.0.1"
+    "@metamask/snaps-sdk" "^7.1.0"
+    "@metamask/snaps-utils" "^9.4.0"
+    lodash "^4.17.21"
+
 "@metamask/accounts-controller@^30.0.0":
   version "30.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-30.0.0.tgz#641f007a9a4ccb0e5eedbc0deb38c543058b64af"
