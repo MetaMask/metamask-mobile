@@ -80,7 +80,7 @@ class FixtureBuilder {
       '@MetaMask:onboardingWizard': 'explored',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
       '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
-      '@MetaMask:solanaFeatureModalShown': 'false'
+      '@MetaMask:solanaFeatureModalShown': 'false',
     };
     return this;
   }
@@ -470,11 +470,6 @@ class FixtureBuilder {
               url: 'https://google.com',
               id: 1692550481062,
             },
-            {
-              url: getSecondTestDappLocalUrl(),
-              id: 1749234797566,
-              isArchived: false,
-            },
           ],
           activeTab: 1692550481062,
         },
@@ -760,7 +755,10 @@ class FixtureBuilder {
    * @param {Object} additionalPermissions - Additional permissions to merge with permission
    * @returns {Object} Permission controller configuration object
    */
-  createPermissionControllerConfig(additionalPermissions = {}, dappUrl = DAPP_URL) {
+  createPermissionControllerConfig(
+    additionalPermissions = {},
+    dappUrl = DAPP_URL,
+  ) {
     const caip25CaveatValue = additionalPermissions?.[
       Caip25EndowmentPermissionName
     ]?.caveats?.find((caveat) => caveat.type === Caip25CaveatType)?.value ?? {
@@ -802,17 +800,22 @@ class FixtureBuilder {
    * @param {Object} additionalPermissions - Additional permissions to merge.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
-  withPermissionControllerConnectedToTestDapp(additionalPermissions = {}, connectSecondDapp = false) {
-    const testDappPermissions = this.createPermissionControllerConfig(additionalPermissions);
+  withPermissionControllerConnectedToTestDapp(
+    additionalPermissions = {},
+    connectSecondDapp = false,
+  ) {
+    const testDappPermissions = this.createPermissionControllerConfig(
+      additionalPermissions,
+    );
     let secondDappPermissions = {};
     if (connectSecondDapp) {
       secondDappPermissions = this.createPermissionControllerConfig(
         additionalPermissions,
-         device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1'
+        device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1',
       );
     }
     this.withPermissionController(
-      merge(testDappPermissions, secondDappPermissions)
+      merge(testDappPermissions, secondDappPermissions),
     );
 
     // Ensure Solana feature modal is suppressed
@@ -862,8 +865,14 @@ class FixtureBuilder {
       isMultichainOrigin: false,
     };
 
-    const caip25CaveatValueWithChains = setPermittedEthChainIds(defaultCaip25CaveatValue, chainIds);
-    const caip25CaveatValueWithDefaultAccount = setEthAccounts(caip25CaveatValueWithChains, [DEFAULT_FIXTURE_ACCOUNT]);
+    const caip25CaveatValueWithChains = setPermittedEthChainIds(
+      defaultCaip25CaveatValue,
+      chainIds,
+    );
+    const caip25CaveatValueWithDefaultAccount = setEthAccounts(
+      caip25CaveatValueWithChains,
+      [DEFAULT_FIXTURE_ACCOUNT],
+    );
     const chainPermission = {
       [Caip25EndowmentPermissionName]: {
         id: 'Lde5rzDG2bUF6HbXl4xxT',
@@ -1178,7 +1187,7 @@ class FixtureBuilder {
     return this;
   }
 
-/**
+  /**
    * Sets up a minimal Solana fixture with mainnet configuration
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
    */
@@ -1192,11 +1201,29 @@ class FixtureBuilder {
           chainId: SolScope.Mainnet,
           name: 'Solana Mainnet',
           nativeCurrency: `${SolScope.Mainnet}/${SOLANA_TOKEN}`,
-          isEvm: false
-        }
+          isEvm: false,
+        },
       },
-      isEvmSelected: false
+      isEvmSelected: false,
     };
+
+    return this;
+  }
+
+  /**
+   * Adds a second test dapp tab to the browser state.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withSecondTestDappTab() {
+    if (!this.fixture.state.browser.tabs) {
+      this.fixture.state.browser.tabs = [];
+    }
+
+    this.fixture.state.browser.tabs.push({
+      url: getSecondTestDappLocalUrl(),
+      id: 1749234797566,
+      isArchived: false,
+    });
 
     return this;
   }

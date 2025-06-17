@@ -70,14 +70,38 @@ const baseTransactionControllerMock = {
   },
 };
 
-export const simpleSendTransaction = merge(baseTransactionMock, {
+export const simpleSendTransaction = merge({}, baseTransactionMock, {
   id: transactionIdMock,
   txParams: {
     value: '0x0',
   },
 });
 
+export const approveERC20Transaction = merge({}, baseTransactionMock, {
+  id: transactionIdMock,
+  type: 'approve',
+  txParams: {
+    data: '0x095ea7b30000000000000000000000009bc5baf874d2da8d216ae9f137804184ee5afef40000000000000000000000000000000000000000000000000000000000011170',
+  },
+});
+
+/* Controller Mocks */
+export const approveERC20TransactionControllerMock = merge(
+  {},
+  baseTransactionControllerMock,
+  {
+    engine: {
+      backgroundState: {
+        TransactionController: {
+          transactions: [approveERC20Transaction],
+        },
+      },
+    },
+  },
+);
+
 export const simpleSendTransactionControllerMock = merge(
+  {},
   baseTransactionControllerMock,
   {
     engine: {

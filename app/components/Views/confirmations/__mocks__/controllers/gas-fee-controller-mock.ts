@@ -1,3 +1,5 @@
+import { merge } from 'lodash';
+
 export const feeMarketEstimates = {
   low: {
     suggestedMaxPriorityFeePerGas: '0',
@@ -25,3 +27,29 @@ export const feeMarketEstimates = {
   priorityFeeTrend: 'up',
   networkCongestion: 0,
 };
+
+const baseGasFeeControllerMock = {
+  engine: {
+    backgroundState: {
+      GasFeeController: {
+        gasFeeEstimates: {},
+      },
+    },
+  },
+};
+
+export const gasFeeControllerMock = merge(
+  {},
+  baseGasFeeControllerMock,
+  {
+    engine: {
+      backgroundState: {
+        GasFeeController: {
+          gasFeeEstimatesByChainId: {
+            '0x1': feeMarketEstimates,
+          },
+        },
+      },
+    },
+  },
+);
