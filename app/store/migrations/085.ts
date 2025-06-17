@@ -16,20 +16,6 @@ const migration = (state: unknown): unknown => {
 
   try {
     if (
-      !hasProperty(state, 'engine') ||
-      !isObject(state.engine) ||
-      !hasProperty(state.engine, 'backgroundState') ||
-      !isObject(state.engine.backgroundState)
-    ) {
-      captureException(
-        new Error(
-          `Migration ${migrationVersion}: Invalid engine state structure`,
-        ),
-      );
-      return state;
-    }
-
-    if (
       !hasProperty(state.engine.backgroundState, 'security') ||
       !isObject(state.engine.backgroundState.security)
     ) {
