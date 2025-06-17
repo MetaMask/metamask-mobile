@@ -2,6 +2,7 @@ import {
   AccountsController,
   AccountsControllerMessenger,
 } from '@metamask/accounts-controller';
+import { ApprovalController } from '@metamask/approval-controller';
 import {
   CurrencyRateController,
   DeFiPositionsController,
@@ -28,6 +29,7 @@ import { merge } from 'lodash';
 
 import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
 import { accountsControllerInit } from '../controllers/accounts-controller';
+import { ApprovalControllerInit } from '../controllers/approval-controller';
 import { currencyRateControllerInit } from '../controllers/currency-rate-controller/currency-rate-controller-init';
 import { GasFeeControllerInit } from '../controllers/gas-fee-controller';
 import { multichainAssetsControllerInit } from '../controllers/multichain-assets-controller/multichain-assets-controller-init';
@@ -56,6 +58,7 @@ import { accountTreeControllerInit } from '../../../multichain-accounts/controll
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/app-metadata-controller');
+jest.mock('../controllers/approval-controller');
 jest.mock(
   '../controllers/currency-rate-controller/currency-rate-controller-init',
 );
@@ -89,6 +92,7 @@ jest.mock('../../../multichain-accounts/controllers/account-tree-controller');
 
 describe('initModularizedControllers', () => {
   const mockAccountsControllerInit = jest.mocked(accountsControllerInit);
+  const mockApprovalControllerInit = jest.mocked(ApprovalControllerInit);
   const mockMultichainNetworkControllerInit = jest.mocked(
     multichainNetworkControllerInit,
   );
@@ -137,6 +141,7 @@ describe('initModularizedControllers', () => {
         controllerInitFunctions: {
           AccountsController: mockAccountsControllerInit,
           AccountTreeController: mockAccountTreeControllerInit,
+          ApprovalController: mockApprovalControllerInit,
           CurrencyRateController: mockCurrencyRateControllerInit,
           CronjobController: mockCronjobControllerInit,
           GasFeeController: mockGasFeeControllerInit,
@@ -174,6 +179,9 @@ describe('initModularizedControllers', () => {
 
     mockAccountsControllerInit.mockReturnValue({
       controller: {} as unknown as AccountsController,
+    });
+    mockApprovalControllerInit.mockReturnValue({
+      controller: {} as unknown as ApprovalController,
     });
     mockTransactionControllerInit.mockReturnValue({
       controller: {} as unknown as TransactionController,
@@ -239,6 +247,7 @@ describe('initModularizedControllers', () => {
     const controllers = initModularizedControllers(request);
 
     expect(controllers.controllersByName.AccountsController).toBeDefined();
+    expect(controllers.controllersByName.ApprovalController).toBeDefined();
     expect(
       controllers.controllersByName.MultichainNetworkController,
     ).toBeDefined();
