@@ -14,3 +14,6 @@ export const TestSnapResultSelectorWebIDS = {
   BIP44_SIGN_RESULT_SPAN_ID: 'bip44SignResult',
 };
 
+export const TestSnapBottomSheetSelectorWebIDS = {
+  BOTTOMSHEET_FOOTER_BUTTON_ID: 'bottomsheetfooter-button-subsequent',
+};

@@ -6,6 +6,7 @@ import {
   TestSnapViewSelectorWebIDS,
   TestSnapInputSelectorWebIDS,
   TestSnapResultSelectorWebIDS,
+  TestSnapBottomSheetSelectorWebIDS,
 } from '../../selectors/Browser/TestSnap.selectors';
 import Gestures from '../../utils/Gestures';
 import {
@@ -78,7 +79,9 @@ class TestSnaps {
   }
 
   get getApproveSignRequestButton() {
-    return Matchers.getElementByID('bottomsheetfooter-button-subsequent');
+    return Matchers.getElementByID(
+      TestSnapBottomSheetSelectorWebIDS.BOTTOMSHEET_FOOTER_BUTTON_ID,
+    );
   }
 
   get getSignBip44MessageResultSpan() {
