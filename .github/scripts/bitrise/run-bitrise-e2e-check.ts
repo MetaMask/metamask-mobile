@@ -102,8 +102,9 @@ async function main(): Promise<void> {
   const [shouldRun, reason] = shouldRunBitriseE2E(flags);
   console.log(`Should run: ${shouldRun}, Reason: ${reason}`);
 
-  // One of these two labels must exist for pull_request type
-  if (!mergeQueue && !flags.hasSmokeTestLabel && !flags.hasAntiLabel) {
+  // One of these two labels must exist for pull_request type (unless it's a custom Flask workflow)
+  const isFlaskWorkflow = process.env.STATUS_CHECK_NAME && process.env.STATUS_CHECK_NAME !== 'Bitrise E2E Status';
+  if (!mergeQueue && !flags.hasSmokeTestLabel && !flags.hasAntiLabel && !isFlaskWorkflow) {
 
     // Fail Status due to missing labels
     await upsertStatusCheck(statusCheckName, latestCommitHash, StatusCheckStatusType.Completed, 
