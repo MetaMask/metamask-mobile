@@ -498,7 +498,6 @@ describe('WalletActions', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       params: {
-        bridgeViewMode: 'Swap',
         sourcePage: 'MainView',
         token: {
           address: ethers.constants.AddressZero,
