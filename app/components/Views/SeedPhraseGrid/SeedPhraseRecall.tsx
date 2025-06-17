@@ -21,20 +21,14 @@ export const SeedPhraseRecall = ({ seedPhrase }: SeedPhraseRevealProps) => {
   const [seedPhraseToShow, setSeedPhraseToShow] = useState<string[]>([]);
 
   useEffect(() => {
-    console.log('Setting up with randomWordIndexes:', randomWordIndexes);
-    console.log('Seed phrase length:', seedPhrase.length);
-    console.log('Seed phrase:', seedPhrase);
-
     const initialDisplay = seedPhrase.map((word, index) => {
       const shouldHide = randomWordIndexes.includes(index);
-      console.log(`Index ${index}, word "${word}", shouldHide: ${shouldHide}`);
       if (!shouldHide) {
         return word;
       }
       return '';
     });
 
-    console.log('Initial display:', initialDisplay);
     setSeedPhraseToShow(initialDisplay);
   }, [seedPhrase, randomWordIndexes]);
 
@@ -75,8 +69,6 @@ export const SeedPhraseRecall = ({ seedPhrase }: SeedPhraseRevealProps) => {
 
         return newSeedPhrase;
       });
-
-      console.log(`Unselected word at index ${index}: "${seedPhrase[index]}"`);
     } else {
       // Select the word
       const newSelectedOrder = [...selectedWordOrder, index];
@@ -95,31 +87,18 @@ export const SeedPhraseRecall = ({ seedPhrase }: SeedPhraseRevealProps) => {
         newSeedPhrase[positionToFill] = seedPhrase[index];
         return newSeedPhrase;
       });
-
-      // Check if the selection is in the correct order
-      const sortedRandomIndexes = [...randomWordIndexes].sort((a, b) => a - b);
-      const expectedIndex = sortedRandomIndexes[newSelectedOrder.length - 1];
-      const isCorrect = index === expectedIndex;
-
-      console.log(`Selected word at index ${index}: "${seedPhrase[index]}"`);
-      console.log(`Expected index: ${expectedIndex}, Is correct: ${isCorrect}`);
     }
-
-    console.log(
-      `Selection order:`,
-      selectedWordOrder.map((i) => `${i}: "${seedPhrase[i]}"`),
-    );
   };
 
   return (
     <View>
       <SeedPhraseGrid
         seedPhrase={seedPhraseToShow}
-        setSeedPhrase={() => {}}
+        setSeedPhrase={() => {
+          // No-op for read-only display
+        }}
         isEditable={false}
         canShowSeedPhraseWord={(index) => randomWordIndexes.includes(index)}
-        hideSeedPhraseInput={false}
-        showAllSeedPhrase={false}
       />
       <View>
         {randomWordIndexes.map((index) => (
