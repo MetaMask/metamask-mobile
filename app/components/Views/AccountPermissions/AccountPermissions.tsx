@@ -91,6 +91,7 @@ import { NetworkAvatarProps } from '../AccountConnect/AccountConnect.types';
 import styleSheet from './AccountPermissions.styles';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import AddNewAccount from '../AddNewAccount';
+import { trace, endTrace, TraceName } from '../../../util/trace';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const { navigate } = useNavigation();
@@ -300,6 +301,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   }, [hostname, navigate]);
 
   const toggleRevokeAllPermissionsModal = useCallback(() => {
+    trace({ name: TraceName.DisconnectAllAccountPermissions });
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
       params: {
@@ -311,6 +313,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
       },
     });
+    endTrace({ name: TraceName.DisconnectAllAccountPermissions });
   }, [navigate, urlWithProtocol, isRenderedAsBottomSheet, onRevokeAllHandler]);
 
   const handleCreateAccount = useCallback(

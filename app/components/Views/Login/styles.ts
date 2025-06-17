@@ -1,5 +1,5 @@
 import { Theme } from '@metamask/design-tokens';
-import { StyleSheet } from 'react-native';
+import { Platform, StatusBar, StyleSheet } from 'react-native';
 import Device from '../../../util/device';
 import { fontStyles } from '../../../styles/common';
 const deviceHeight = Device.getDeviceHeight();
@@ -12,6 +12,10 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     mainWrapper: {
+      paddingTop: Platform.select({
+        android: StatusBar.currentHeight ?? 0,
+        default: 0,
+      }),
       backgroundColor: colors.background.default,
       flex: 1,
     },
