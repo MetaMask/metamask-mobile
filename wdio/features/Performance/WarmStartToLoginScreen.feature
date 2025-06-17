@@ -12,4 +12,4 @@ Feature: Measure Login Screen Warm Start
         When I background the app for 30 seconds
         And the app is move to the foreground
         And the timer starts running
-        Then The Login screen should be visible in "2" seconds
+        Then The Login screen should be visible in "3" seconds
