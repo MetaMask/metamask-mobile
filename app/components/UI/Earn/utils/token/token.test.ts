@@ -1,4 +1,15 @@
-import { getEstimatedAnnualRewards } from '.';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import {
+  getEstimatedAnnualRewards,
+  sortByHighestRewards,
+  sortByHighestApr,
+} from '.';
+import {
+  createMockEarnToken,
+  getCreateMockTokenOptions,
+} from '../../../Stake/testUtils';
+import { TOKENS_WITH_DEFAULT_OPTIONS } from '../../../Stake/testUtils/testUtils.types';
+import { EarnTokenDetails } from '../../types/lending.types';
 
 describe('tokenUtils', () => {
   describe('getEstimatedAnnualRewards', () => {
@@ -52,6 +63,140 @@ describe('tokenUtils', () => {
       expect(result.estimatedAnnualRewardsFiatNumber).toBe(0);
       expect(result.estimatedAnnualRewardsTokenMinimalUnit).toBe('0');
       expect(result.estimatedAnnualRewardsTokenFormatted).toBe('');
+    });
+  });
+
+  describe('sortByHighestRewards', () => {
+    const tokens = [
+      createMockEarnToken({
+        ...getCreateMockTokenOptions(
+          CHAIN_IDS.MAINNET,
+          TOKENS_WITH_DEFAULT_OPTIONS.ETH,
+        ),
+        experience: {
+          apr: '2.5',
+          estimatedAnnualRewardsFiatNumber: 50,
+        } as EarnTokenDetails['experience'],
+      }),
+      createMockEarnToken({
+        ...getCreateMockTokenOptions(
+          CHAIN_IDS.MAINNET,
+          TOKENS_WITH_DEFAULT_OPTIONS.DAI,
+        ),
+        experience: {
+          apr: '3.0',
+          estimatedAnnualRewardsFiatNumber: 100,
+        } as EarnTokenDetails['experience'],
+      }),
+      createMockEarnToken({
+        ...getCreateMockTokenOptions(
+          CHAIN_IDS.MAINNET,
+          TOKENS_WITH_DEFAULT_OPTIONS.USDC,
+        ),
+        experience: {
+          apr: '1.0',
+          estimatedAnnualRewardsFiatNumber: 10,
+        } as EarnTokenDetails['experience'],
+      }),
+    ];
+
+    it('sorts tokens by highest fiat rewards', () => {
+      const sorted = sortByHighestRewards(tokens);
+
+      expect(sorted[0].experience.estimatedAnnualRewardsFiatNumber).toBe(100);
+      expect(sorted[1].experience.estimatedAnnualRewardsFiatNumber).toBe(50);
+      expect(sorted[2].experience.estimatedAnnualRewardsFiatNumber).toBe(10);
+    });
+
+    it('handles tokens with zero rewards', () => {
+      const tokensWithZero = [
+        ...tokens,
+        createMockEarnToken({
+          ...getCreateMockTokenOptions(
+            CHAIN_IDS.MAINNET,
+            TOKENS_WITH_DEFAULT_OPTIONS.USDT,
+          ),
+          experience: {
+            apr: '0.0',
+            estimatedAnnualRewardsFiatNumber: 0,
+          } as EarnTokenDetails['experience'],
+        }),
+      ];
+      const sorted = sortByHighestRewards(tokensWithZero);
+
+      expect(
+        sorted[sorted.length - 1].experience.estimatedAnnualRewardsFiatNumber,
+      ).toBe(0);
+    });
+
+    it('returns empty array if input is empty', () => {
+      expect(sortByHighestRewards([])).toEqual([]);
+    });
+  });
+
+  describe('sortByHighestApr', () => {
+    const tokens = [
+      createMockEarnToken({
+        ...getCreateMockTokenOptions(
+          CHAIN_IDS.MAINNET,
+          TOKENS_WITH_DEFAULT_OPTIONS.ETH,
+        ),
+        experience: {
+          apr: '2.5',
+          estimatedAnnualRewardsFiatNumber: 50,
+        } as EarnTokenDetails['experience'],
+      }),
+      createMockEarnToken({
+        ...getCreateMockTokenOptions(
+          CHAIN_IDS.MAINNET,
+          TOKENS_WITH_DEFAULT_OPTIONS.DAI,
+        ),
+        experience: {
+          apr: '3.0',
+          estimatedAnnualRewardsFiatNumber: 100,
+        } as EarnTokenDetails['experience'],
+      }),
+      createMockEarnToken({
+        ...getCreateMockTokenOptions(
+          CHAIN_IDS.MAINNET,
+          TOKENS_WITH_DEFAULT_OPTIONS.USDC,
+        ),
+        experience: {
+          apr: '1.0',
+          estimatedAnnualRewardsFiatNumber: 10,
+        } as EarnTokenDetails['experience'],
+      }),
+    ];
+
+    it('sorts tokens by highest APR', () => {
+      const sorted = sortByHighestApr(tokens);
+
+      expect(sorted[0].experience.apr).toBe('3.0');
+      expect(sorted[1].experience.apr).toBe('2.5');
+      expect(sorted[2].experience.apr).toBe('1.0');
+    });
+
+    it('handles tokens with zero APR', () => {
+      const tokensWithZero = [
+        ...tokens,
+        createMockEarnToken({
+          ...getCreateMockTokenOptions(
+            CHAIN_IDS.MAINNET,
+            TOKENS_WITH_DEFAULT_OPTIONS.USDT,
+          ),
+          experience: {
+            apr: '0',
+            estimatedAnnualRewardsFiatNumber: 0,
+          } as EarnTokenDetails['experience'],
+        }),
+      ];
+      const sorted = sortByHighestApr(tokensWithZero);
+
+      expect(sorted[sorted.length - 1].experience.apr).toBe('0');
+    });
+
+    it('returns empty array if input is empty', () => {
+      expect(sortByHighestApr([])).toEqual([]);
     });
   });
 });

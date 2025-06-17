@@ -166,7 +166,7 @@ describe('EarnTokenList', () => {
     expect(getByText(strings('stake.select_a_token'))).toBeDefined();
 
     // Upsell Banner
-    expect(getByText(strings('stake.you_could_earn'))).toBeDefined();
+    expect(getByText(strings('stake.you_could_earn_up_to'))).toBeDefined();
     expect(getByText(strings('stake.per_year_on_your_tokens'))).toBeDefined();
 
     // Token List
@@ -202,9 +202,9 @@ describe('EarnTokenList', () => {
       earnTokens: [
         {
           ...MOCK_USDC_BASE_MAINNET_ASSET,
-          balanceFormatted: '0',
-          balanceMinimalUnit: '0',
-          balanceFiatNumber: 0,
+          balanceFormatted: '1 USDC',
+          balanceMinimalUnit: '1000000',
+          balanceFiatNumber: 1,
           tokenUsdExchangeRate: 1,
           experience: {
             apr: '4.5',
@@ -403,12 +403,14 @@ describe('EarnTokenList', () => {
       {
         ...MOCK_ETH_MAINNET_ASSET,
         balanceFormatted: '1.5 ETH',
+        balanceMinimalUnit: '1500000000000000000', // wei
         experience: { apr: '5.2', type: EARN_EXPERIENCES.POOLED_STAKING },
         experiences: [{ apr: '5.2', type: EARN_EXPERIENCES.POOLED_STAKING }],
       },
       {
         ...MOCK_USDC_MAINNET_ASSET,
         balanceFormatted: '100.0 USDC',
+        balanceMinimalUnit: '100000000',
         experience: { apr: '3.5', type: EARN_EXPERIENCES.STABLECOIN_LENDING },
         experiences: [
           { apr: '3.5', type: EARN_EXPERIENCES.STABLECOIN_LENDING },

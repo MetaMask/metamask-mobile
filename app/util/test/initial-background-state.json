@@ -479,8 +479,7 @@
     "historicalPrices": {}
   },
   "CronjobController": {
-    "events": {},
-    "jobs": {}
+    "events": {}
   },
   "EarnController": {
     "lastUpdated": 0,

@@ -3,6 +3,7 @@ import {
   addCurrencySymbol,
   renderFromTokenMinimalUnit,
 } from '../../../../../util/number';
+import { EarnTokenDetails } from '../../types/lending.types';
 
 export const getEstimatedAnnualRewards = (
   apr: string,
@@ -61,3 +62,15 @@ export const getEstimatedAnnualRewards = (
     estimatedAnnualRewardsTokenFormatted,
   };
 };
+
+export const sortByHighestRewards = (tokensToSort: EarnTokenDetails[]) =>
+  [...tokensToSort].sort(
+    (a, b) =>
+      b.experience.estimatedAnnualRewardsFiatNumber -
+      a.experience.estimatedAnnualRewardsFiatNumber,
+  );
+
+export const sortByHighestApr = (tokensToSort: EarnTokenDetails[]) =>
+  [...tokensToSort].sort(
+    (a, b) => parseFloat(b.experience.apr) - parseFloat(a.experience.apr),
+  );

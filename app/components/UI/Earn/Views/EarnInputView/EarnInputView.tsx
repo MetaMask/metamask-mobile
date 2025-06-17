@@ -5,7 +5,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import { formatEther } from 'ethers/lib/utils';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -53,6 +53,7 @@ import {
   EARN_LENDING_ACTIONS,
   EarnTokenDetails,
 } from '../../types/lending.types';
+import { debounce } from 'lodash';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -409,31 +410,17 @@ const EarnInputView = () => {
     ? earnNavBarEventOptions
     : stakingNavBarEventOptions;
 
-  const title = useMemo(() => {
-    if (isStablecoinLendingEnabled) {
-      return strings('earn.deposit');
-    }
-    return strings('stake.stake');
-  }, [isStablecoinLendingEnabled]);
-
   useEffect(() => {
     navigation.setOptions(
       getStakingNavbar(
-        title,
+        strings('earn.deposit'),
         navigation,
         theme.colors,
         navBarOptions,
         navBarEventOptions,
       ),
     );
-  }, [
-    navigation,
-    token,
-    theme.colors,
-    navBarEventOptions,
-    navBarOptions,
-    title,
-  ]);
+  }, [navigation, token, theme.colors, navBarEventOptions, navBarOptions]);
 
   useEffect(() => {
     calculateEstimatedAnnualRewards();
@@ -450,7 +437,6 @@ const EarnInputView = () => {
         isOverMaximum={isOverMaximum}
         balanceText={balanceText}
         balanceValue={balanceValue}
-        isNonZeroAmount={isNonZeroAmount}
         amountToken={amountToken}
         amountFiatNumber={amountFiatNumber}
         isFiat={isFiat}
@@ -513,7 +499,8 @@ const EarnInputView = () => {
       />
       <Keypad
         value={!isFiat ? amountToken : amountFiatNumber}
-        onChange={handleKeypadChange}
+        // Debounce used to avoid error message flicker from recalculating gas fee estimate
+        onChange={debounce(handleKeypadChange, 1)}
         style={styles.keypad}
         currency={token.symbol}
         decimals={!isFiat ? 5 : 2}
