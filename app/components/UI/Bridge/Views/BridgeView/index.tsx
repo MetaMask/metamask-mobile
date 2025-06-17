@@ -323,7 +323,7 @@ const BridgeView = () => {
       return strings('bridge.continue');
     }
 
-    const isSwap = bridgeViewMode === BridgeViewMode.Swap;
+    const isSwap = sourceToken?.chainId === destToken?.chainId;
     return isSwap
       ? strings('bridge.confirm_swap')
       : strings('bridge.confirm_bridge');
