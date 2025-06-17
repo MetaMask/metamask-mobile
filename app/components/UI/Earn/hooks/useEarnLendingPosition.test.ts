@@ -1,4 +1,3 @@
-import { LendingProtocol } from '@metamask/stake-sdk';
 import Engine from '../../../../core/Engine';
 import { RootState } from '../../../../reducers';
 import {
@@ -14,7 +13,7 @@ import {
 import { MOCK_USDC_MAINNET_ASSET } from '../../Stake/__mocks__/stakeMockData';
 import { TokenI } from '../../Tokens/types';
 import { EARN_EXPERIENCES } from '../constants/experiences';
-import { EarnTokenDetails } from '../types/lending.types';
+import { EarnTokenDetails, LendingProtocol } from '../types/lending.types';
 import useEarnLendingPositions from './useEarnLendingPosition';
 import { act } from 'react';
 

@@ -6,7 +6,7 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import { RootState } from '../../../../reducers';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { TokenI } from '../../Tokens/types';
-import { EarnTokenDetails } from '../types/lending.types';
+import { EarnTokenDetails, LendingProtocol } from '../types/lending.types';
 import useEarnings from './useEarnings';
 import useBalance from '../../Stake/hooks/useBalance';
 import usePooledStakes from '../../Stake/hooks/usePooledStakes';
@@ -14,7 +14,6 @@ import useEarnLendingPositions from './useEarnLendingPosition';
 import { useEarnMetadata } from './useEarnMetadata';
 import { earnSelectors } from '../../../../selectors/earnController/earn';
 import BN4 from 'bnjs4';
-import { LendingProtocol } from '@metamask/stake-sdk';
 import { MOCK_USDC_MAINNET_ASSET } from '../../Stake/__mocks__/stakeMockData';
 
 // Mock dependencies

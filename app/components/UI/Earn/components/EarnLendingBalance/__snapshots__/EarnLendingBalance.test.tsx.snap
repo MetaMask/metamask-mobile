@@ -8,7 +8,6 @@ exports[`EarnLendingBalance does renders earnings for output tokens 1`] = `
         "flexDirection": "row",
         "gap": 16,
         "justifyContent": "space-between",
-        "paddingBottom": 6,
         "paddingHorizontal": 16,
         "paddingTop": 14,
       }

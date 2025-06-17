@@ -73,7 +73,6 @@ const useEarningsHistory = ({
           earningHistoryResponse.historicalAssets.map((history) => ({
             timestamp: history.timestamp,
             dateStr: new Date(history.timestamp).toISOString().split('T')[0],
-            // TODO: be more specific about which lifetime rewards to use
             sumRewards: earningHistoryResponse.lifetimeRewards[0].assets,
             dailyRewards: history.assets,
           })),
