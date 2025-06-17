@@ -13,6 +13,7 @@ import {
   transferConfirmationState,
   upgradeAccountConfirmation,
 } from '../../../../util/test/confirm-data-helpers';
+import { approveERC20TransactionStateMock } from '../__mocks__/approve-transaction-mock';
 import { useConfirmationRedesignEnabled } from './useConfirmationRedesignEnabled';
 import { selectConfirmationRedesignFlags } from '../../../../selectors/featureFlagController/confirmations';
 
@@ -278,6 +279,39 @@ describe('useConfirmationRedesignEnabled', () => {
         expect(result.current.isRedesignedEnabled).toBe(true);
       });
     });
+
+    it('returns true when flag is enabled for approve transaction', async () => {
+      confirmationRedesignFlagsMock.mockReturnValue({
+        ...disabledFeatureFlags,
+        approve: true,
+      });
+      const { result } = renderHookWithProvider(
+        useConfirmationRedesignEnabled,
+        {
+          state: approveERC20TransactionStateMock,
+        },
+      );
+
+      expect(result.current.isRedesignedEnabled).toBe(true);
+    });
+
+    it('returns true when flag is enabled for contract interaction transaction', async () => {
+      const state = cloneDeep(approveERC20TransactionStateMock);
+      state.engine.backgroundState.TransactionController.transactions[0].type =
+        TransactionType.contractInteraction;
+      confirmationRedesignFlagsMock.mockReturnValue({
+        ...disabledFeatureFlags,
+        contract_interaction: true,
+      });
+      const { result } = renderHookWithProvider(
+        useConfirmationRedesignEnabled,
+        {
+          state,
+        },
+      );
+
+      expect(result.current.isRedesignedEnabled).toBe(true);
+    });
   });
 
   it('if confirmation is a transaction, validates `txParams.from` is hardware account', () => {
@@ -297,6 +331,18 @@ describe('useConfirmationRedesignEnabled', () => {
 
     expect(isHardwareAccountMock).toHaveBeenCalledTimes(1);
     expect(isHardwareAccountMock).toHaveBeenCalledWith(expectedFromAddress);
+
+    expect(result.current.isRedesignedEnabled).toBe(false);
+  });
+
+  it('returns false if transaction type is not in the list of redesigned transaction types', () => {
+    const state = cloneDeep(approveERC20TransactionStateMock);
+    state.engine.backgroundState.TransactionController.transactions[0].type =
+      TransactionType.swapAndSend;
+
+    const { result } = renderHookWithProvider(useConfirmationRedesignEnabled, {
+      state,
+    });
 
     expect(result.current.isRedesignedEnabled).toBe(false);
   });

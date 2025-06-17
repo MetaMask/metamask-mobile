@@ -155,6 +155,7 @@ describe('useConfirmationLocation', () => {
   it.each([
     [TransactionType.tokenMethodApprove],
     [TransactionType.tokenMethodSetApprovalForAll],
+    [TransactionType.tokenMethodIncreaseAllowance],
   ])('returns APPROVE location for %s transactions', (transactionType) => {
     mockUseApprovalRequest.mockReturnValue(
       createApprovalRequestMock({

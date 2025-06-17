@@ -51,6 +51,7 @@ const ConfirmationInfoComponentMap = {
         return Transfer;
       case TransactionType.tokenMethodApprove:
       case TransactionType.tokenMethodSetApprovalForAll:
+      case TransactionType.tokenMethodIncreaseAllowance:
         return Approve;
       default:
         return null;

@@ -24,6 +24,7 @@ export const REDESIGNED_TRANSACTION_TYPES = [
 
 export const REDESIGNED_APPROVE_TYPES = [
   TransactionType.tokenMethodApprove,
+  TransactionType.tokenMethodIncreaseAllowance,
   TransactionType.tokenMethodSetApprovalForAll,
 ];
 
