@@ -1,23 +1,21 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import useMultichainBalancesForAllAccounts from '../../../../hooks/useMultichainBalances/useMultichainBalancesForAllAccounts';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { UseWalletBalancesHook } from './useWalletBalances.types';
+import { formatWithThreshold } from '../../../../../util/assets';
+import I18n from '../../../../../../locales/i18n';
 
 const formatCurrency = (value: number, currency: string) =>
-  new Intl.NumberFormat(undefined, {
+  formatWithThreshold(value, 0, I18n.locale, {
     style: 'currency',
-    currency,
-    currencyDisplay: 'symbol',
-  }).format(value);
+    currency: currency.toUpperCase(),
+  });
 
 export const useWalletBalances = (
   accounts: InternalAccount[],
 ): UseWalletBalancesHook => {
   const { multichainBalancesForAllAccounts } =
     useMultichainBalancesForAllAccounts();
-  const currentCurrency = useSelector(selectCurrentCurrency);
 
   const isLoading = useMemo(
     () =>
@@ -44,8 +42,20 @@ export const useWalletBalances = (
     if (isLoading) {
       return undefined;
     }
-    return formatCurrency(walletTotalBalance, currentCurrency);
-  }, [isLoading, walletTotalBalance, currentCurrency]);
+
+    // Get displayCurrency from the first account (all accounts should have the same currency)
+    const firstAccountId = accounts[0]?.id;
+    const displayCurrency = firstAccountId
+      ? multichainBalancesForAllAccounts[firstAccountId]?.displayCurrency
+      : 'USD';
+
+    return formatCurrency(walletTotalBalance, displayCurrency);
+  }, [
+    isLoading,
+    walletTotalBalance,
+    accounts,
+    multichainBalancesForAllAccounts,
+  ]);
 
   return {
     formattedWalletTotalBalance,
