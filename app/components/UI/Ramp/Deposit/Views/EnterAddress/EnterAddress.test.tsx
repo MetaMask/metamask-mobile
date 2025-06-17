@@ -4,7 +4,6 @@ import EnterAddress from './EnterAddress';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();

@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useEffect, useRef, FC } from 'react';
 import { TextInput, View, TouchableOpacity } from 'react-native';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './OtpCode.styles';
@@ -23,8 +24,20 @@ import DepositProgressBar from '../../components/DepositProgressBar';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createVerifyIdentityNavDetails } from '../VerifyIdentity/VerifyIdentity';
 import { useDepositSDK } from '../../sdk';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
 import Row from '../../../Aggregator/components/Row';
+
+export interface OtpCodeParams {
+  quote: BuyQuote;
+  email: string;
+}
+
+export const createOtpCodeNavDetails = createNavigationDetails<OtpCodeParams>(
+  Routes.DEPOSIT.OTP_CODE,
+);
+
+const CELL_COUNT = 6;
+const COOLDOWN_TIME = 30;
+const MAX_RESET_ATTEMPTS = 3;
 
 const ResendButton: FC<{
   onPress: VoidFunction;
@@ -42,23 +55,11 @@ const ResendButton: FC<{
   );
 };
 
-export interface OtpCodeParams {
-  quote: BuyQuote;
-}
-
-export const createOtpCodeNavDetails = createNavigationDetails<OtpCodeParams>(
-  Routes.DEPOSIT.OTP_CODE,
-);
-
-const CELL_COUNT = 6;
-const COOLDOWN_TIME = 30;
-const MAX_RESET_ATTEMPTS = 3;
-
 const OtpCode = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { email, setAuthToken } = useDepositSDK();
-  const { quote } = useParams<OtpCodeParams>();
+  const { setAuthToken } = useDepositSDK();
+  const { quote, email } = useParams<OtpCodeParams>();
   const [resendButtonState, setResendButtonState] = useState<
     'resend' | 'cooldown' | 'contactSupport' | 'resendError'
   >('resend');

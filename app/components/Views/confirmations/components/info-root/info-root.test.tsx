@@ -9,6 +9,7 @@ import {
   upgradeAccountConfirmation,
   upgradeOnlyAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
+import { approveERC20TransactionStateMock } from '../../__mocks__/approve-transaction-mock';
 // eslint-disable-next-line import/no-namespace
 import * as QRHardwareHook from '../../context/qr-hardware-context/qr-hardware-context';
 import Info from './info-root';
@@ -108,5 +109,13 @@ describe('Info', () => {
     expect(getByText('Estimated changes')).toBeTruthy();
     expect(getByText('Switching To')).toBeTruthy();
     expect(getByText('Smart Account')).toBeTruthy();
+  });
+
+  it('renders expected elements for approve', () => {
+    const { getByText } = renderWithProvider(<Info />, {
+      state: approveERC20TransactionStateMock,
+    });
+    expect(getByText('Network Fee')).toBeTruthy();
+    expect(getByText('Advanced details')).toBeTruthy();
   });
 });
