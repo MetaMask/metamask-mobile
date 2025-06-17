@@ -386,7 +386,14 @@
     "secure": "Secure wallet",
     "confirm": "Confirm Secret Recovery Phrase",
     "password_updated": "Password updated",
-    "successfully_changed": "Your password has been successfully changed"
+    "successfully_changed": "Your password has been successfully changed",
+    "new_password_placeholder": "Use at least 8 characters",
+    "confirm_password_placeholder": "Re-enter your password",
+    "confirm_btn": "Confirm",
+    "warning_password_change_title": "Warning: Wallets will be locked from all devices",
+    "warning_password_change_description": "For safety, this action will lock wallet access on any other device you're currently signed into. To regain access, you'll need to log in again with your new password.",
+    "warning_password_change_button": "Confirm",
+    "warning_password_cancel_button": "Cancel"
   },
   "import_from_seed": {
     "title": "Import a wallet",
