@@ -4682,10 +4682,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^68.1.0":
-  version "68.1.0"
-  resolved "https://registry.npmjs.org/@metamask/assets-controllers/-/assets-controllers-68.1.0.tgz#3c705d6a9d59ef3985ecf8c2eb10b59736e7ca0f"
-  integrity sha512-RettOtWLm8bP2M3a1PET39wnUFJrUiiADEar0aZCt0jvmrRXWMdA1f3ldu0EEPngz4m0bnCixXGNbdgkOMPndg==
+"@metamask/assets-controllers@^68.2.0":
+  version "68.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-68.2.0.tgz#536ae4fbdaff8784649522a2c944722b00323aec"
+  integrity sha512-tTJIoXnZx8R9A78KW3lbp0PABXUoDqzFKTC0LFUoAqqEbbrg540CUit3zkAr3WaZXdJUgtW9S0HGOATrKB8AOA==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
