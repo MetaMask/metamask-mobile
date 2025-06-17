@@ -1,5 +1,5 @@
 import type { ControllerInitFunction } from '../../../core/Engine/types';
-import { 
+import {
   SamplePetnamesController,
   SamplePetnamesControllerMessenger,
 } from '@metamask/sample-controllers';
@@ -22,4 +22,4 @@ export const samplePetnamesControllerInit: ControllerInitFunction<
   });
 
   return { controller };
-}; 
+};

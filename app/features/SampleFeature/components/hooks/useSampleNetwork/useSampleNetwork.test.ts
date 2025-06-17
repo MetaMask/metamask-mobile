@@ -12,8 +12,8 @@ import {
   selectChainId,
   selectNetworkConfigurations,
 } from '../../../../../selectors/networkController';
-import {ImageSourcePropType} from 'react-native';
-import {Hex} from '@metamask/utils';
+import { ImageSourcePropType } from 'react-native';
+import { Hex } from '@metamask/utils';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -33,18 +33,21 @@ describe('useSampleNetwork', () => {
     fallbackName?: string;
   }) => {
     mockedUseSelector.mockImplementation((selector) => {
-      if (selector === selectNetworkImageSource) return overrides.image ?? mockTestnetImage;
+      if (selector === selectNetworkImageSource)
+        return overrides.image ?? mockTestnetImage;
       if (selector === selectChainId) return overrides.chainId ?? '0xe705';
       if (selector === selectNetworkConfigurations) return overrides.configs;
-      if (selector === selectNetworkName) return overrides.fallbackName ?? 'Linea Sepolia';
+      if (selector === selectNetworkName)
+        return overrides.fallbackName ?? 'Linea Sepolia';
       return undefined;
     });
   };
 
   it('returns network infos', () => {
-
     mockSelectors({
-      image: mockMainnetImage, chainId: '0xe708', configs: { '0xe708': { name: 'Linea' } },
+      image: mockMainnetImage,
+      chainId: '0xe708',
+      configs: { '0xe708': { name: 'Linea' } },
     });
 
     const { result } = renderHook(() => useSampleNetwork());

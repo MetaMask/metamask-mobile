@@ -1,7 +1,6 @@
 import { act, renderHook } from '@testing-library/react-hooks';
-import { Provider } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useSampleCounter } from './useSampleCounter';
-import React from 'react';
 
 // Mock the Redux hooks
 jest.mock('react-redux', () => ({
@@ -16,8 +15,8 @@ describe('useSampleCounter', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    require('react-redux').useDispatch.mockReturnValue(mockDispatch);
-    require('react-redux').useSelector.mockReturnValue(mockCount);
+    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+    (useSelector as jest.Mock).mockReturnValue(mockCount);
   });
 
   it('returns current count from selector', () => {
@@ -45,4 +44,4 @@ describe('useSampleCounter', () => {
 
     expect(result.current.incrementCount).toBe(firstIncrementCount);
   });
-}); 
+});

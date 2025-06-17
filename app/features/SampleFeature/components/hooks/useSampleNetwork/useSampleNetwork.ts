@@ -1,6 +1,12 @@
-import {useSelector} from 'react-redux';
-import {selectNetworkImageSource, selectNetworkName} from '../../../../../selectors/networkInfos';
-import {selectChainId, selectNetworkConfigurations} from '../../../../../selectors/networkController';
+import { useSelector } from 'react-redux';
+import {
+  selectNetworkImageSource,
+  selectNetworkName,
+} from '../../../../../selectors/networkInfos';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../../../../selectors/networkController';
 
 /**
  * Sample useSampleCounter hook
@@ -8,18 +14,17 @@ import {selectChainId, selectNetworkConfigurations} from '../../../../../selecto
  * @sampleFeature do not use in production code
  */
 function useSampleNetwork() {
+  const networkImageSource = useSelector(selectNetworkImageSource);
+  const chainId = useSelector(selectChainId);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const name = useSelector(selectNetworkName);
+  const networkName = networkConfigurations?.[chainId]?.name ?? name;
 
-    const networkImageSource = useSelector(selectNetworkImageSource);
-    const chainId = useSelector(selectChainId);
-    const networkConfigurations = useSelector(selectNetworkConfigurations);
-    const name = useSelector(selectNetworkName);
-    const networkName = networkConfigurations?.[chainId]?.name ?? name;
-
-    return {
-        networkImageSource,
-        chainId,
-        networkName
-    };
+  return {
+    networkImageSource,
+    chainId,
+    networkName,
+  };
 }
 
 export default useSampleNetwork;

@@ -1,16 +1,16 @@
-import {SupportedCaipChainId} from '@metamask/multichain-network-controller';
-import {Hex} from '@metamask/utils';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { Hex } from '@metamask/utils';
 
 /**
  * Interface for PetNamesList component props
- * 
+ *
  * @interface SamplePetNamesListProps
  * @property chainId - The chain ID to filter pet names by
  * @property onAccountPress - Callback when an account is selected
- * 
+ *
  * @sampleFeature do not use in production code
  */
 export interface SamplePetNamesListProps {
-    chainId: SupportedCaipChainId | Hex;
-    onAccountPress: (params: { address: string; name: string }) => void;
+  chainId: SupportedCaipChainId | Hex;
+  onAccountPress: (params: { address: string; name: string }) => void;
 }

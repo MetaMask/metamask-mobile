@@ -8,15 +8,15 @@ import { selectCount, increment } from '../../../redux/slices/sample-counter';
  * @sampleFeature do not use in production code
  */
 export function useSampleCounter() {
-    const dispatch = useDispatch();
-    const count = useSelector(selectCount);
+  const dispatch = useDispatch();
+  const count = useSelector(selectCount);
 
-    const incrementCount = useCallback(() => {
-        dispatch(increment());
-    }, [dispatch]);
+  const incrementCount = useCallback(() => {
+    dispatch(increment());
+  }, [dispatch]);
 
-    return {
-        count,
-        incrementCount,
-    };
+  return {
+    count,
+    incrementCount,
+  };
 }

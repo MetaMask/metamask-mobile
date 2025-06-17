@@ -20,4 +20,4 @@ export const getSamplePetnamesControllerMessenger = (
     allowedActions: [],
     allowedEvents: ['SamplePetnamesController:stateChange'],
   });
-}; 
+};

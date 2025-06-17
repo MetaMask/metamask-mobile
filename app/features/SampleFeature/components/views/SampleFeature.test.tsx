@@ -8,26 +8,27 @@ import initialRootState from '../../../../util/test/initial-root-state';
  * Required for testing components that use deep linking functionality
  */
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
-    addEventListener: jest.fn(() => ({
-        remove: jest.fn(),
-    })),
+  addEventListener: jest.fn(() => ({
+    remove: jest.fn(),
+  })),
 }));
 
 /**
  * Test suite for SampleFeature component
- * 
+ *
  * @group Components
  * @group SampleFeature
  */
 describe('SampleFeature', () => {
-    /**
-     * Verifies that the component renders correctly and matches the snapshot
-     * 
-     * @test
-     */
-    it('render matches snapshot', () => {
-        const {toJSON} = renderWithProvider(<SampleFeature/>,
-            { state: initialRootState });
-        expect(toJSON()).toMatchSnapshot();
+  /**
+   * Verifies that the component renders correctly and matches the snapshot
+   *
+   * @test
+   */
+  it('render matches snapshot', () => {
+    const { toJSON } = renderWithProvider(<SampleFeature />, {
+      state: initialRootState,
     });
+    expect(toJSON()).toMatchSnapshot();
+  });
 });

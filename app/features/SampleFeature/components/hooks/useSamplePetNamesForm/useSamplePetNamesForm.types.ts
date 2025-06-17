@@ -4,11 +4,11 @@
  * @sampleFeature do not use in production code
  */
 export interface UseSamplePetNamesFormReturn {
-    address: string;
-    setAddress: (address: string) => void;
-    name: string;
-    setName: (name: string) => void;
-    isValid: boolean;
-    onSubmit: () => void;
-    reset: () => void;
+  address: string;
+  setAddress: (address: string) => void;
+  name: string;
+  setName: (name: string) => void;
+  isValid: boolean;
+  onSubmit: () => void;
+  reset: () => void;
 }

@@ -1,5 +1,4 @@
-import { increment, setCount, selectCount, initialState } from './index';
-import reducer from './index';
+import { increment, setCount, selectCount, initialState, default as reducer } from './index';
 import { RootState } from '../../../../../reducers';
 import initialRootState from '../../../../../util/test/initial-root-state';
 
@@ -85,4 +84,4 @@ describe('Sample Counter Slice', () => {
       expect(count).toBe(0);
     });
   });
-}); 
+});

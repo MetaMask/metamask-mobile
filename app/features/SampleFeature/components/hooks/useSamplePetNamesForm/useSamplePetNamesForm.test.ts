@@ -27,7 +27,7 @@ describe('useSamplePetNamesForm', () => {
 
   it('loads initial values', () => {
     const { result } = renderHook(() =>
-        useSamplePetNamesForm(chainId, initialAddress, initialName)
+      useSamplePetNamesForm(chainId, initialAddress, initialName),
     );
 
     expect(result.current.address).toBe(initialAddress);
@@ -37,7 +37,7 @@ describe('useSamplePetNamesForm', () => {
 
   it('updates address and name', () => {
     const { result } = renderHook(() =>
-        useSamplePetNamesForm(chainId, initialAddress, initialName)
+      useSamplePetNamesForm(chainId, initialAddress, initialName),
     );
 
     act(() => {
@@ -52,7 +52,7 @@ describe('useSamplePetNamesForm', () => {
 
   it('resets to initial values', () => {
     const { result } = renderHook(() =>
-        useSamplePetNamesForm(chainId, initialAddress, initialName)
+      useSamplePetNamesForm(chainId, initialAddress, initialName),
     );
 
     act(() => {
@@ -66,9 +66,7 @@ describe('useSamplePetNamesForm', () => {
   });
 
   it('does not store invalid values', () => {
-    const { result } = renderHook(() =>
-        useSamplePetNamesForm(chainId, '', '')
-    );
+    const { result } = renderHook(() => useSamplePetNamesForm(chainId, '', ''));
 
     act(() => {
       result.current.onSubmit();
@@ -79,7 +77,7 @@ describe('useSamplePetNamesForm', () => {
 
   it('stores valid values ', () => {
     const { result } = renderHook(() =>
-        useSamplePetNamesForm(chainId, initialAddress, initialName)
+      useSamplePetNamesForm(chainId, initialAddress, initialName),
     );
 
     act(() => {
@@ -87,9 +85,9 @@ describe('useSamplePetNamesForm', () => {
     });
 
     expect(Engine.context.AddressBookController.set).toHaveBeenCalledWith(
-        toChecksumAddress(initialAddress),
-        initialName,
-        chainId
+      toChecksumAddress(initialAddress),
+      initialName,
+      chainId,
     );
   });
 });
