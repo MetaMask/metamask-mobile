@@ -216,7 +216,6 @@ describe('ManualBackupStep2', () => {
           type: 'success',
           onClose: expect.any(Function),
           onPrimaryButtonPress: expect.any(Function),
-          closeOnPrimaryButtonPress: false,
         },
       });
 
@@ -268,7 +267,6 @@ describe('ManualBackupStep2', () => {
           type: 'error',
           onClose: expect.any(Function),
           onPrimaryButtonPress: expect.any(Function),
-          closeOnPrimaryButtonPress: true,
         },
       });
 
@@ -338,7 +336,6 @@ describe('ManualBackupStep2', () => {
           type: 'success',
           onClose: expect.any(Function),
           onPrimaryButtonPress: expect.any(Function),
-          closeOnPrimaryButtonPress: false,
         },
       });
 

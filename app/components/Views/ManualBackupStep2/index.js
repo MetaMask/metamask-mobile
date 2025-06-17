@@ -49,7 +49,6 @@ const ManualBackupStep2 = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const [showStatusBottomSheet, setShowStatusBottomSheet] = useState(false);
   const [gridWords, setGridWords] = useState([]);
   const [emptySlots, setEmptySlots] = useState([]);
   const [missingWords, setMissingWords] = useState([]);
@@ -121,9 +120,6 @@ const ManualBackupStep2 = ({
                 name: Routes.ONBOARDING.SUCCESS_FLOW,
                 params: {
                   screen: Routes.ONBOARDING.SUCCESS,
-                  params: {
-                    successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
-                  },
                 },
               },
             ],
@@ -153,9 +149,7 @@ const ManualBackupStep2 = ({
     }
   };
 
-  useEffect(() => {
-    if (showStatusBottomSheet) return;
-
+  const generateMissingWords = useCallback(() => {
     const rows = [0, 1, 2, 3];
     const sortGridRows = rows.sort(() => 0.5 - Math.random());
     const selectRandomSlots = sortGridRows.slice(0, 3);
@@ -178,7 +172,11 @@ const ManualBackupStep2 = ({
     const sortedIndexes = emptySlotsIndexes.sort((a, b) => a - b);
     setSortedSlots(emptySlotsIndexes.filter((_, i) => i !== 0));
     setSelectedSlot(sortedIndexes[0]);
-  }, [words, showStatusBottomSheet]);
+  }, [words]);
+
+  useEffect(() => {
+    generateMissingWords();
+  }, [generateMissingWords]);
 
   const handleWordSelect = useCallback(
     (word) => {
@@ -352,26 +350,30 @@ const ManualBackupStep2 = ({
 
   const validateSeedPhrase = () => {
     const isSuccess = validateWords();
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-      params: {
-        title: isSuccess
-          ? strings('manual_backup_step_2.success-title')
-          : strings('manual_backup_step_2.error-title'),
-        description: isSuccess
-          ? strings('manual_backup_step_2.success-description')
-          : strings('manual_backup_step_2.error-description'),
-        primaryButtonLabel: isSuccess
-          ? strings('manual_backup_step_2.success-button')
-          : strings('manual_backup_step_2.error-button'),
-        type: isSuccess ? 'success' : 'error',
-        onClose: () => setShowStatusBottomSheet((prev) => !prev),
-        onPrimaryButtonPress: isSuccess
-          ? goNext
-          : () => setShowStatusBottomSheet((prev) => !prev),
-        closeOnPrimaryButtonPress: !isSuccess,
-      },
-    });
+    if (isSuccess) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+        params: {
+          title: strings('manual_backup_step_2.success-title'),
+          description: strings('manual_backup_step_2.success-description'),
+          primaryButtonLabel: strings('manual_backup_step_2.success-button'),
+          type: 'success',
+          onPrimaryButtonPress: goNext,
+        },
+      });
+    } else {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+        params: {
+          title: strings('manual_backup_step_2.error-title'),
+          description: strings('manual_backup_step_2.error-description'),
+          primaryButtonLabel: strings('manual_backup_step_2.error-button'),
+          type: 'error',
+          onClose: () => generateMissingWords(),
+          onPrimaryButtonPress: () => generateMissingWords(),
+        },
+      });
+    }
   };
 
   return (
