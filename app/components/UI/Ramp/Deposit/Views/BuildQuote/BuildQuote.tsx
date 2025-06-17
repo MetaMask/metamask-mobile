@@ -129,7 +129,6 @@ const BuildQuote = () => {
     }
   }, [
     amount,
-    amountAsNumber,
     cryptoCurrency,
     fetchKycForms,
     fiatCurrency,
