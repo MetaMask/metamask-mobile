@@ -7,7 +7,6 @@ import {
   View,
   ViewStyle,
   SectionList,
-  TouchableOpacity,
 } from 'react-native';
 import { CaipChainId } from '@metamask/utils';
 import { shallowEqual, useSelector } from 'react-redux';
@@ -254,23 +253,12 @@ const EvmAccountSelectorList = ({
   );
 
   const renderSectionHeader = useCallback(
-    ({ section: { title, wallet } }: { section: AccountSection }) => (
+    ({ section: { title } }: { section: AccountSection }) => (
       <View style={styles.sectionHeader}>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>{title}</Text>
         <Text variant={TextVariant.BodySM} style={styles.sectionDetailsLink}>
           {strings('multichain_accounts.accounts_list.details')}
         </Text>
-        <TouchableOpacity
-          onPress={() => {
-            navigate(Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS, {
-              wallet,
-            });
-          }}
-        >
-          <Text variant={TextVariant.BodySM} style={styles.sectionDetailsLink}>
-            {strings('multichain_accounts.accounts_list.details')}
-          </Text>
-        </TouchableOpacity>
       </View>
     ), [styles.sectionHeader, styles.sectionDetailsLink]);
 

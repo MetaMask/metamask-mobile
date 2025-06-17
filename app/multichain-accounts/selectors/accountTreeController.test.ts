@@ -88,16 +88,51 @@ describe('AccountTreeController Selectors', () => {
       expect(result).toEqual([
         {
           title: 'Wallet 1',
+          wallet: {
+            groups: {
+              group1: {
+                accounts: [
+                  {
+                    address: '0x123',
+                    id: 'account1',
+                    name: 'Account 1',
+                  },
+                ],
+              },
+              group2: {
+                accounts: [
+                  {
+                    address: '0x456',
+                    id: 'account2',
+                    name: 'Account 2',
+                  },
+                ],
+              },
+            },
+            metadata: {
+              name: 'Wallet 1',
+            },
+          },
           data: mockAccounts,
         },
         {
           title: 'Wallet 2',
+          wallet: {
+            groups: {
+              group3: {
+                accounts: [],
+              },
+            },
+            metadata: {
+              name: 'Wallet 2',
+            },
+          },
           data: [],
         },
       ]);
     });
 
-    it('returns null when wallets object is empty', () => {
+    it('returns null when wallets  is empty', () => {
       const mockState = {
         engine: {
           backgroundState: {
