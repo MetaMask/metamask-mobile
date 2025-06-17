@@ -3849,6 +3849,14 @@
         "higher_liquidation_risk": "Higher liquidation risk",
         "infinite": "Infinite",
         "no_debt_maximum_security": "No debt, maximum safety"
+      },
+      "lending_risk_aware_withdrawal_tooltip": {
+        "why_cant_i_withdraw_full_balance": "Why can't I withdraw my full balance?",
+        "your_withdrawal_amount_may_be_limited_by": "Your withdrawal amount may be limited by",
+        "pool_liquidity": "Pool Liquidity",
+        "not_enough_funds_available_in_the_lending_pool_right_now": "Not enough funds available in the lending pool right now.",
+        "existing_borrow_positions": "Existing Borrow Positions",
+        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "Withdrawing could put your existing loan positions at risk of liquidation."
       }
     },
     "withdraw": "Withdraw",
@@ -3861,7 +3869,8 @@
     "liquidation_risk": "Liquidation risk",
     "insufficient_pool_liquidity": "Insufficient Pool Liquidity",
     "available_to_withdraw": "available to withdraw",
-    "unknown": "unknown"
+    "unknown": "unknown",
+    "amount_exceeds_safe_withdrawal_limit": "Amount exceeds safe withdrawal limit"
   },
   "stake": {
     "stake": "Stake",
