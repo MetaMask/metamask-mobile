@@ -53,6 +53,24 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 
+import { NativeModules } from 'react-native';
+
+setTimeout(() => {
+  const fdm = NativeModules.FpsDebugModule;
+
+  fdm.isFpsDebugEnabled().then((isEnabled) => {
+    console.log('FPS Debug Enabled:', isEnabled);
+  });
+
+  fdm.setFpsDebugEnabled(true).then(() => {
+    console.log(`FPS Debug Enabled set to true`);
+    fdm.isFpsDebugEnabled().then((isEnabled) => {
+      console.log('Later, FPS Debug Enabled:', isEnabled);
+    });
+  });
+}, 3000);
+
+
 const IMAGE_RATIO = 250 / 200;
 const DEVICE_WIDTH = Dimensions.get('window').width;
 const DEVICE_HEIGHT = Dimensions.get('window').height;

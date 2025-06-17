@@ -64,10 +64,9 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
 
     const defiPositionsList = Object.entries(chainFilteredDeFiPositions)
       .map(([chainId, chainDeFiPositions]) =>
-        Object.entries(chainDeFiPositions.protocols).map(
-          ([protocolId, protocolAggregate]) => ({
+        Object.values(chainDeFiPositions.protocols).map(
+          (protocolAggregate) => ({
             chainId: toHex(chainId),
-            protocolId,
             protocolAggregate,
           }),
         ),
@@ -131,12 +130,9 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
         <FlatList
           testID={WalletViewSelectorsIDs.DEFI_POSITIONS_LIST}
           data={formattedDeFiPositions}
-          renderItem={({
-            item: { chainId, protocolId, protocolAggregate },
-          }) => (
+          renderItem={({ item: { chainId, protocolAggregate } }) => (
             <DeFiPositionsListItem
               chainId={chainId}
-              protocolId={protocolId}
               protocolAggregate={protocolAggregate}
               privacyMode={privacyMode}
             />

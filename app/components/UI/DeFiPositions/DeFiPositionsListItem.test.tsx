@@ -5,8 +5,6 @@ import { Hex } from '@metamask/utils';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import DeFiPositionsListItem from './DeFiPositionsListItem';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { MetaMetricsEvents } from '../../hooks/useMetrics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -15,18 +13,6 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
   }),
 }));
-
-const mockTrackEvent = jest.fn();
-jest.mock('../../hooks/useMetrics', () => {
-  const actualUseMetrics = jest.requireActual('../../hooks/useMetrics');
-  return {
-    ...actualUseMetrics,
-    useMetrics: () => ({
-      ...actualUseMetrics.useMetrics(),
-      trackEvent: mockTrackEvent,
-    }),
-  };
-});
 
 const mockInitialState = {
   engine: {
@@ -118,8 +104,7 @@ const mockProtocolAggregateData: GroupedDeFiPositions['protocols'][number] = {
   aggregatedMarketValue: 51100,
 };
 
-const chainId: Hex = '0x1';
-const protocolId = 'protocolId1';
+const ethereumChainId: Hex = '0x1';
 
 describe('DeFiPositionsListItem', () => {
   beforeEach(() => {
@@ -129,8 +114,7 @@ describe('DeFiPositionsListItem', () => {
   it('renders protocol name and aggregated value', async () => {
     const { findByText, findAllByTestId } = renderWithProvider(
       <DeFiPositionsListItem
-        chainId={chainId}
-        protocolId={protocolId}
+        chainId={ethereumChainId}
         protocolAggregate={mockProtocolAggregateData}
         privacyMode={false}
       />,
@@ -147,8 +131,7 @@ describe('DeFiPositionsListItem', () => {
   it('renders the component without balances in privacy mode', async () => {
     const { findByText, queryByText } = renderWithProvider(
       <DeFiPositionsListItem
-        chainId={chainId}
-        protocolId={protocolId}
+        chainId={ethereumChainId}
         protocolAggregate={mockProtocolAggregateData}
         privacyMode
       />,
@@ -164,8 +147,7 @@ describe('DeFiPositionsListItem', () => {
   it('navigates to DeFiProtocolPositionDetails on press', async () => {
     const { getByText } = renderWithProvider(
       <DeFiPositionsListItem
-        chainId={chainId}
-        protocolId={protocolId}
+        chainId={ethereumChainId}
         protocolAggregate={mockProtocolAggregateData}
         privacyMode={false}
       />,
@@ -179,17 +161,5 @@ describe('DeFiPositionsListItem', () => {
       protocolAggregate: mockProtocolAggregateData,
       networkIconAvatar: expect.anything(),
     });
-
-    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.DEFI_PROTOCOL_DETAILS_OPENED,
-      )
-        .addProperties({
-          chain_id: chainId,
-          protocol_id: protocolId,
-        })
-        .build(),
-    );
   });
 });

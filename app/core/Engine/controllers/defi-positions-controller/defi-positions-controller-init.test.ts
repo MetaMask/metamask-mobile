@@ -11,7 +11,6 @@ import {
   DeFiPositionsControllerMessenger,
 } from '@metamask/assets-controllers';
 import { defiPositionsControllerInit } from './defi-positions-controller-init';
-import { MetaMetrics } from '../../../Analytics';
 
 jest.mock('@metamask/assets-controllers');
 
@@ -55,38 +54,6 @@ describe('DeFiPositionsControllerInit', () => {
     expect(controllerMock).toHaveBeenCalledWith({
       messenger: expect.any(Object),
       isEnabled: expect.any(Function),
-      trackEvent: expect.any(Function),
-    });
-  });
-
-  describe('trackEvent', () => {
-    it('calls the MetaMetrics `trackEvent` function', () => {
-      defiPositionsControllerInit(getInitRequestMock());
-
-      const controllerMock = jest.mocked(DeFiPositionsController);
-      const trackEvent = controllerMock.mock.calls[0][0].trackEvent;
-
-      const instance = MetaMetrics.getInstance();
-      const spy = jest.spyOn(instance, 'trackEvent');
-
-      trackEvent?.({
-        event: 'test-event',
-        category: 'test-category',
-        properties: {
-          totalPositions: 1,
-          totalMarketValueUSD: 100,
-        },
-      });
-
-      expect(spy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'test-event',
-          properties: {
-            totalPositions: 1,
-            totalMarketValueUSD: 100,
-          },
-        }),
-      );
     });
   });
 });
