@@ -56,6 +56,7 @@ import Button, {
 
 import fox from '../../../animations/Searching_Fox.json';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -361,6 +362,7 @@ class Onboarding extends PureComponent {
   };
 
   onPressCreate = () => {
+    trace({ name: TraceName.OnboardingCreateWallet });
     const action = () => {
       bufferedTrace({
         name: TraceName.OnboardingNewSrpCreateWallet,
@@ -376,6 +378,7 @@ class Onboarding extends PureComponent {
     };
 
     this.handleExistingUser(action);
+    endTrace({ name: TraceName.OnboardingCreateWallet });
   };
 
   onPressImport = () => {

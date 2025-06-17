@@ -6,6 +6,7 @@ exports[`Login renders matching snapshot 1`] = `
     {
       "backgroundColor": "#ffffff",
       "flex": 1,
+      "paddingTop": 0,
     }
   }
 >
@@ -375,6 +376,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
     {
       "backgroundColor": "#ffffff",
       "flex": 1,
+      "paddingTop": 0,
     }
   }
 >

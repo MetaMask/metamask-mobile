@@ -86,6 +86,9 @@ export enum TraceName {
   OnboardingOAuthProviderLoginError = 'Onboarding - OAuth Provider Login Error',
   OnboardingOAuthBYOAServerGetAuthTokensError = 'Onboarding - OAuth BYOA Server Get Auth Tokens Error',
   OnboardingOAuthSeedlessAuthenticateError = 'Onboarding - OAuth Seedless Authenticate Error',
+  DisconnectAllAccountPermissions = 'Disconnect All Account Permissions',
+  OnboardingCreateWallet = 'Onboarding Create Wallet',
+  QRTabSwitcher = 'QR Tab Switcher',
 }
 
 export enum TraceOperation {
