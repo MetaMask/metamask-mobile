@@ -4,15 +4,17 @@ import Label from '../../../../../../../component-library/components/Form/Label'
 import Text from '../../../../../../../component-library/components/Texts/Text';
 import { TextVariant } from '../../../../../../../component-library/components/Texts/Text/Text.types';
 import { useTheme } from '../../../../../../../util/theme';
-import styleSheet from './StakingEarningsHistoryList.styles';
+import styleSheet from './EarningsHistoryList.styles';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../../../../locales/i18n';
-import { StakingEarningsHistoryListProps } from './StakingEarningsHistoryList.types';
+import { EarningsHistoryListProps } from './EarningsHistoryList.types';
+import { EARN_EXPERIENCES } from '../../../../constants/experiences';
 
-const StakingEarningsHistoryList = ({
+const EarningsHistoryList = ({
+  type,
   earnings,
   filterByGroupLabel,
-}: StakingEarningsHistoryListProps) => {
+}: EarningsHistoryListProps) => {
   const { colors } = useTheme();
   const styles = styleSheet();
 
@@ -89,11 +91,13 @@ const StakingEarningsHistoryList = ({
   );
 
   return (
-    <View style={styles.stakingEarningsHistoryListContainer}>
+    <View style={styles.earningsHistoryListContainer}>
       {earnings ? (
         <>
           <Label variant={TextVariant.BodyMDBold} color={colors.text.default}>
-            {strings('stake.earnings_history_list_title')}
+            {type === EARN_EXPERIENCES.STABLECOIN_LENDING
+              ? strings('earn.earnings_history_list_title.lending')
+              : strings('earn.earnings_history_list_title.staking')}
           </Label>
           {renderEarningsList()}
         </>
@@ -104,4 +108,4 @@ const StakingEarningsHistoryList = ({
   );
 };
 
-export default StakingEarningsHistoryList;
+export default EarningsHistoryList;

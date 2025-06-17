@@ -1,15 +1,15 @@
 import {
   MOCK_STAKED_ETH_MAINNET_ASSET,
   MOCK_USDC_MAINNET_ASSET,
-} from '../../../__mocks__/stakeMockData';
+} from '../../../../Stake/__mocks__/stakeMockData';
 import {
   getEntryTimePeriodGroupInfo,
   fillGapsInEarningsHistory,
   formatRewardsWei,
   formatRewardsNumber,
   formatRewardsFiat,
-} from './StakingEarningsHistory.utils';
-import { DateRange } from './StakingEarningsTimePeriod/StakingEarningsTimePeriod.types';
+} from './EarningsHistory.utils';
+import { DateRange } from './EarningsTimePeriod/EarningsTimePeriod.types';
 
 const mockChartGroupDaily = {
   dateStr: '2023-10-01',
@@ -38,7 +38,7 @@ const mockChartGroupYearly = {
   listGroupHeader: '',
 };
 
-describe('StakingEarningsHistory Utils', () => {
+describe('EarningsHistory Utils', () => {
   describe('getEntryTimePeriodGroupInfo', () => {
     it('should return correct time period group info for daily', () => {
       const result = getEntryTimePeriodGroupInfo(

@@ -19,6 +19,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import EarningsHistoryButton from '../../../Earn/components/Earnings/EarningsHistoryButton/EarningsHistoryButton';
 import EarnMaintenanceBanner from '../../../Earn/components/EarnMaintenanceBanner';
 import useEarnings from '../../../Earn/hooks/useEarnings';
 import { selectPooledStakingServiceInterruptionBannerEnabledFlag } from '../../../Earn/selectors/featureFlags';
@@ -29,7 +30,6 @@ import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { getTooltipMetricProperties } from '../../utils/metaMetrics/tooltipMetaMetricsUtils';
 import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
 import styleSheet from './StakingEarnings.styles';
-import StakingEarningsHistoryButton from './StakingEarningsHistoryButton/StakingEarningsHistoryButton';
 
 export interface StakingEarningsProps {
   asset: TokenI;
@@ -191,7 +191,7 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
             )}
           </View>
         </View>
-        <StakingEarningsHistoryButton asset={asset} />
+        <EarningsHistoryButton asset={asset} />
       </View>
     </View>
   );

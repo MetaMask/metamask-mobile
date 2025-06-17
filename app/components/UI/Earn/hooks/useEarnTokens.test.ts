@@ -7,7 +7,6 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { RootState } from '../../../../reducers';
-import { selectAccountTokensAcrossChains } from '../../../../selectors/multichain';
 import {
   internalAccount2,
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -23,22 +22,11 @@ import {
   MOCK_LENDING_MARKET_WETH,
 } from '../../Stake/__mocks__/earnControllerMockData';
 import {
-  MOCK_ABASUSDC_BASE_MAINNET_ASSET,
-  MOCK_ADAI_MAINNET_ASSET,
-  MOCK_AETHUSDC_MAINNET_ASSET,
-  MOCK_AUSDT_MAINNET_ASSET,
-  MOCK_DAI_MAINNET_ASSET,
-  MOCK_ETH_MAINNET_ASSET,
-  MOCK_USDC_BASE_MAINNET_ASSET,
-  MOCK_USDC_MAINNET_ASSET,
-  MOCK_USDT_MAINNET_ASSET,
-} from '../../Stake/__mocks__/stakeMockData';
-import {
   createMockToken,
   mockEarnControllerRootState,
 } from '../../Stake/testUtils';
 import { TokenI } from '../../Tokens/types';
-import useEarnTokens, { useHasSupportedStablecoin } from './useEarnTokens';
+import useEarnTokens from './useEarnTokens';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TestMockVar = any;

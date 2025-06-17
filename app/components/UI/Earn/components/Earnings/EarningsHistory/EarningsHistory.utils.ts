@@ -8,10 +8,10 @@ import {
   fromWei,
 } from '../../../../../../util/number';
 import { BN } from 'ethereumjs-util';
-import type { TimePeriodGroupInfo } from './StakingEarningsHistory.types';
-import { DateRange } from './StakingEarningsTimePeriod/StakingEarningsTimePeriod.types';
+import type { TimePeriodGroupInfo } from './EarningsHistory.types';
+import { DateRange } from './EarningsTimePeriod/EarningsTimePeriod.types';
 import BigNumber from 'bignumber.js';
-import type { EarningHistory } from '../../../hooks/useStakingEarningsHistory';
+import type { EarningHistory } from '../../../hooks/useEarningsHistory';
 import type { TokenI } from '../../../../Tokens/types';
 
 /**

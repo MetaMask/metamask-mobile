@@ -1,10 +1,10 @@
-export interface StakingEarningsHistoryChartData {
+export interface EarningsHistoryChartData {
   value: number;
   label: string;
 }
 
-export interface StakingEarningsHistoryChartProps {
-  earnings: StakingEarningsHistoryChartData[];
+export interface EarningsHistoryChartProps {
+  earnings: EarningsHistoryChartData[];
   ticker: string;
   earningsTotal: string;
   // callback to handle selected earning
@@ -22,5 +22,5 @@ export interface HorizontalLinesProps {
   y?: (number: number) => number;
   height?: number;
   bandwidth?: number;
-  data?: StakingEarningsHistoryChartProps['earnings'];
+  data?: EarningsHistoryChartProps['earnings'];
 }

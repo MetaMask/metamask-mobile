@@ -1,18 +1,18 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { GestureResponderEvent, View, LayoutChangeEvent } from 'react-native';
+import { GestureResponderEvent, LayoutChangeEvent, View } from 'react-native';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { Defs, Line, LinearGradient, Stop } from 'react-native-svg';
 import { BarChart, Grid } from 'react-native-svg-charts';
-import { useStyles } from '../../../../../../../component-library/hooks';
-import { useTheme } from '../../../../../../../util/theme';
-import styleSheet from './StakingEarningsHistoryChart.styles';
 import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { useStyles } from '../../../../../../../component-library/hooks';
+import { useTheme } from '../../../../../../../util/theme';
+import styleSheet from './EarningsHistoryChart.styles';
 import {
+  EarningsHistoryChartProps,
   HorizontalLinesProps,
-  StakingEarningsHistoryChartProps,
-} from './StakingEarningsHistoryChart.types';
+} from './EarningsHistoryChart.types';
 
 const HorizontalLines = ({
   x,
@@ -53,11 +53,11 @@ export function StakingEarningsHistoryChart({
   earningsTotal,
   formatValue = (value) => value.toFixed(5),
   onSelectedEarning,
-}: StakingEarningsHistoryChartProps): React.ReactElement {
+}: EarningsHistoryChartProps): React.ReactElement {
   //hooks
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
-
+  console.log('ticker from chart', ticker);
   // constants
   const animate = false;
   const barGradientId = 'bar-gradient';
@@ -222,7 +222,7 @@ export function StakingEarningsHistoryChart({
       testID={'earnings-history-chart-container'}
     >
       <View>
-        <View style={styles.stakingEarningsHistoryChartHeaderContainer}>
+        <View style={styles.earningsHistoryChartHeaderContainer}>
           <Text variant={TextVariant.HeadingLG} color={colors.success.default}>
             {selectedBarAmount ?? earningsTotal} {ticker}
           </Text>
@@ -231,7 +231,7 @@ export function StakingEarningsHistoryChart({
           </Text>
         </View>
         <View
-          style={styles.stakingEarningsHistoryChartContainer}
+          style={styles.earningsHistoryChartContainer}
           onTouchStart={handleTouch}
           onTouchMove={handleTouch}
           onTouchEnd={handleTouchEnd}
@@ -239,7 +239,7 @@ export function StakingEarningsHistoryChart({
         >
           <BarChart
             animate={animate}
-            style={[styles.stakingEarningsHistoryChart]}
+            style={[styles.earningsHistoryChart]}
             data={transformedData}
             width={chartWidth}
             gridMin={0}

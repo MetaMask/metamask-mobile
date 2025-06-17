@@ -1,5 +1,5 @@
 import React from 'react';
-import StakingEarnings from './';
+import StakingEarnings from '.';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
 import { mockNetworkState } from '../../../../../util/test/network';
@@ -36,16 +36,18 @@ jest.mock('../../../Earn/selectors/featureFlags', () => ({
     .mockReturnValue(false),
 }));
 
-jest.mock('../../hooks/useStakingEarnings', () => ({
+jest.mock('../../../Earn/hooks/useEarnings', () => ({
   __esModule: true,
   default: () => ({
     annualRewardRate: '2.6%',
-    lifetimeRewardsETH: '2.5 ETH',
+    lifetimeRewards: '2.5 ETH',
     lifetimeRewardsFiat: '$5000',
-    estimatedAnnualEarningsETH: '2.5 ETH',
+    estimatedAnnualEarnings: '2.5 ETH',
     estimatedAnnualEarningsFiat: '$5000',
     isLoadingEarningsData: false,
-    hasStakedPositions: true,
+    hasEarnLendingPositions: false,
+    hasEarnings: true,
+    hasEarnPooledStakes: true,
   }),
 }));
 

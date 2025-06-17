@@ -5,11 +5,11 @@ import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
-import styleSheet from './StakingEarningsTimePeriod.styles';
+import styleSheet from './EarningsTimePeriod.styles';
 import {
   DateRange,
   TimePeriodButtonGroupProps,
-} from './StakingEarningsTimePeriod.types';
+} from './EarningsTimePeriod.types';
 
 const TimePeriodButtonGroup: React.FC<TimePeriodButtonGroupProps> = ({
   onTimePeriodChange = () => undefined,

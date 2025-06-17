@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
-    stakingEarningsHistoryListContainer: {
+    earningsHistoryListContainer: {
       flex: 1,
       paddingTop: 24,
       paddingBottom: 35,

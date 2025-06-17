@@ -1,4 +1,4 @@
-import { DateRange } from './StakingEarningsTimePeriod/StakingEarningsTimePeriod.types';
+import { DateRange } from './EarningsTimePeriod/EarningsTimePeriod.types';
 
 export const EARNINGS_HISTORY_TIME_PERIOD_DEFAULT = DateRange.MONTHLY;
 export const EARNINGS_HISTORY_DAYS_LIMIT = 730;

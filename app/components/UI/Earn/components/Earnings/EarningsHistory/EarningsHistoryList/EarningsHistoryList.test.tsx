@@ -1,8 +1,9 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import StakingEarningsHistoryList from './StakingEarningsHistoryList';
+import EarningsHistoryList from './EarningsHistoryList';
+import { EARN_EXPERIENCES } from '../../../../constants/experiences';
 
-describe('StakingEarningsHistoryList', () => {
+describe('EarningsHistoryList', () => {
   const mockEarnings = [
     {
       label: 'Reward 1',
@@ -32,7 +33,10 @@ describe('StakingEarningsHistoryList', () => {
 
   it('renders correctly with earnings data', () => {
     const { getByText, getAllByText } = render(
-      <StakingEarningsHistoryList earnings={mockEarnings} />,
+      <EarningsHistoryList
+        earnings={mockEarnings}
+        type={EARN_EXPERIENCES.POOLED_STAKING}
+      />,
     );
 
     // Check if each earning is displayed

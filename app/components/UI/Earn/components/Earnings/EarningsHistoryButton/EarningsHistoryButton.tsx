@@ -9,16 +9,21 @@ import Button, {
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenI } from '../../../../Tokens/types';
 import { WalletViewSelectorsIDs } from '../../../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { useSelector } from 'react-redux';
+import { earnSelectors } from '../../../../../../selectors/earnController';
+import { EARN_EXPERIENCES } from '../../../constants/experiences';
+import { RootState } from '../../../../../../reducers';
 
-interface StakingEarningsHistoryButtonProps {
+interface EarningsHistoryButtonProps {
   asset: TokenI;
 }
 
-const StakingEarningsHistoryButton = ({
-  asset,
-}: StakingEarningsHistoryButtonProps) => {
+const EarningsHistoryButton = ({ asset }: EarningsHistoryButtonProps) => {
   const { navigate } = useNavigation();
 
+  const { outputToken } = useSelector((state: RootState) =>
+    earnSelectors.selectEarnTokenPair(state, asset),
+  );
   const onViewEarningsHistoryPress = () => {
     navigate('StakeScreens', {
       screen: Routes.STAKING.EARNINGS_HISTORY,
@@ -32,11 +37,15 @@ const StakingEarningsHistoryButton = ({
         testID={WalletViewSelectorsIDs.STAKE_EARNINGS_HISTORY_BUTTON}
         width={ButtonWidthTypes.Full}
         variant={ButtonVariants.Secondary}
-        label={strings('stake.view_earnings_history')}
+        label={
+          outputToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
+            ? strings('earn.view_earnings_history.lending')
+            : strings('earn.view_earnings_history.staking')
+        }
         onPress={onViewEarningsHistoryPress}
       />
     </View>
   );
 };
 
-export default StakingEarningsHistoryButton;
+export default EarningsHistoryButton;

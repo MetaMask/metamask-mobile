@@ -1,15 +1,16 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import StakingEarningsHistory from './StakingEarningsHistory';
-import useStakingEarningsHistory from '../../../hooks/useStakingEarningsHistory';
-import { MOCK_STAKED_ETH_MAINNET_ASSET } from '../../../__mocks__/stakeMockData';
+import StakingEarningsHistory from './EarningsHistory';
+import useEarningsHistory from '../../../hooks/useEarningsHistory';
+
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { Hex } from '@metamask/smart-transactions-controller/dist/types';
 import { TokenI } from '../../../../Tokens/types';
+import { MOCK_STAKED_ETH_MAINNET_ASSET } from '../../../../Stake/__mocks__/stakeMockData';
 
-jest.mock('../../../hooks/useStakingEarningsHistory');
+jest.mock('../../../hooks/useEarningsHistory');
 jest.mock('react-native-svg-charts', () => {
   const reactNativeSvgCharts = jest.requireActual('react-native-svg-charts');
   return {
@@ -60,9 +61,9 @@ const mockInitialState = {
   },
 };
 
-describe('StakingEarningsHistory', () => {
+describe('EarningsHistory', () => {
   beforeEach(() => {
-    (useStakingEarningsHistory as jest.Mock).mockReturnValue({
+    (useEarningsHistory as jest.Mock).mockReturnValue({
       earningsHistory: [
         {
           dateStr: '2022-12-31',
@@ -104,7 +105,7 @@ describe('StakingEarningsHistory', () => {
   });
 
   it('renders correctly with trailing zero values', () => {
-    (useStakingEarningsHistory as jest.Mock).mockReturnValue({
+    (useEarningsHistory as jest.Mock).mockReturnValue({
       earningsHistory: [
         {
           dateStr: '2022-11-02',
@@ -145,7 +146,7 @@ describe('StakingEarningsHistory', () => {
   });
 
   it('should render correctly with an erc20 token asset', () => {
-    (useStakingEarningsHistory as jest.Mock).mockReturnValue({
+    (useEarningsHistory as jest.Mock).mockReturnValue({
       earningsHistory: [
         {
           dateStr: '2022-12-31',
@@ -191,7 +192,7 @@ describe('StakingEarningsHistory', () => {
   });
 
   it('should render correctly when switching currency setting', () => {
-    (useStakingEarningsHistory as jest.Mock).mockReturnValue({
+    (useEarningsHistory as jest.Mock).mockReturnValue({
       earningsHistory: [
         {
           dateStr: '2022-12-31',
@@ -255,7 +256,7 @@ describe('StakingEarningsHistory', () => {
   });
 
   it('renders correctly with inner and trailing zero values', () => {
-    (useStakingEarningsHistory as jest.Mock).mockReturnValue({
+    (useEarningsHistory as jest.Mock).mockReturnValue({
       earningsHistory: [
         {
           dateStr: '2022-10-02',

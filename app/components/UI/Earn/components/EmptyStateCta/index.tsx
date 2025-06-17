@@ -1,29 +1,32 @@
+import { useNavigation } from '@react-navigation/native';
+import _ from 'lodash';
 import React from 'react';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../hooks/useStyles';
-import styleSheet from './EmptyStateCta.styles';
+import { Linking } from 'react-native';
 import { View } from 'react-native-animatable';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import { useNavigation } from '@react-navigation/native';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
-import { TokenI } from '../../../Tokens/types';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
-import { getDecimalChainId } from '../../../../../util/networks';
-import _ from 'lodash';
-import { useSelector } from 'react-redux';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
-import useEarnTokens from '../../hooks/useEarnTokens';
+import { RootState } from '../../../../../reducers';
+import { earnSelectors } from '../../../../../selectors/earnController';
 import { capitalize } from '../../../../../util/general';
 import { parseFloatSafe } from '../../utils/number';
+import { getDecimalChainId } from '../../../../../util/networks';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useStyles } from '../../../../hooks/useStyles';
+import { TokenI } from '../../../Tokens/types';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import { EARN_URLS } from '../../constants/urls';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import styleSheet from './EmptyStateCta.styles';
 
 interface EarnEmptyStateCta {
   token: TokenI;
@@ -42,8 +45,9 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
     selectStablecoinLendingEnabledFlag,
   );
 
-  const { getEarnToken } = useEarnTokens();
-  const earnToken = getEarnToken(token);
+  const earnToken = useSelector((state: RootState) =>
+    earnSelectors.selectEarnToken(state, token),
+  );
 
   const estimatedAnnualRewardsFormatted = parseFloatSafe(
     earnToken?.experience?.estimatedAnnualRewardsFormatted ?? '0',

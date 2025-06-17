@@ -1,41 +1,44 @@
+import { Hex } from '@metamask/utils';
 import { BN } from 'ethereumjs-util';
 import React, { useMemo, useState } from 'react';
 import { View } from 'react-native';
-import useStakingEarningsHistory, {
-  EarningHistory,
-} from '../../../hooks/useStakingEarningsHistory';
-import { StakingEarningsHistoryChart } from './StakingEarningsHistoryChart/StakingEarningsHistoryChart';
-import { ChainId } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
+import { RootState } from '../../../../../../reducers';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
 } from '../../../../../../selectors/currencyRateController';
+import { earnSelectors } from '../../../../../../selectors/earnController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../../selectors/networkController';
 import { selectTokenMarketData } from '../../../../../../selectors/tokenRatesController';
-import { Hex } from '@metamask/utils';
-import {
-  EarningsHistoryData,
-  StakingEarningsHistoryProps,
-  TimePeriodGroupInfo,
-} from './StakingEarningsHistory.types';
-import StakingEarningsHistoryList from './StakingEarningsHistoryList/StakingEarningsHistoryList';
-import TimePeriodButtonGroup from './StakingEarningsTimePeriod/StakingEarningsTimePeriod';
+import { EARN_EXPERIENCES } from '../../../constants/experiences';
+import useEarningsHistory, {
+  EarningHistory,
+} from '../../../hooks/useEarningsHistory';
+import { EarnTokenDetails } from '../../../types/lending.types';
 import {
   EARNINGS_HISTORY_CHART_BAR_LIMIT,
   EARNINGS_HISTORY_DAYS_LIMIT,
   EARNINGS_HISTORY_TIME_PERIOD_DEFAULT,
-} from './StakingEarningsHistory.constants';
-import { DateRange } from './StakingEarningsTimePeriod/StakingEarningsTimePeriod.types';
+} from './EarningsHistory.constants';
+import {
+  EarningsHistoryData,
+  EarningsHistoryProps,
+  TimePeriodGroupInfo,
+} from './EarningsHistory.types';
 import {
   fillGapsInEarningsHistory,
   formatRewardsFiat,
   formatRewardsNumber,
   formatRewardsWei,
   getEntryTimePeriodGroupInfo,
-} from './StakingEarningsHistory.utils';
+} from './EarningsHistory.utils';
+import { StakingEarningsHistoryChart } from './EarningsHistoryChart/EarningsHistoryChart';
+import StakingEarningsHistoryList from './EarningsHistoryList/EarningsHistoryList';
+import TimePeriodButtonGroup from './EarningsTimePeriod/EarningsTimePeriod';
+import { DateRange } from './EarningsTimePeriod/EarningsTimePeriod.types';
 
-const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
+const EarningsHistory = ({ asset }: EarningsHistoryProps) => {
   const [selectedTimePeriod, setSelectedTimePeriod] = useState<DateRange>(
     EARNINGS_HISTORY_TIME_PERIOD_DEFAULT,
   );
@@ -45,16 +48,22 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+  const { outputToken } = useSelector((state: RootState) =>
+    earnSelectors.selectEarnTokenPair(state, asset),
+  );
   const {
     earningsHistory,
     isLoading: isLoadingEarningsHistory,
     error: errorEarningsHistory,
-  } = useStakingEarningsHistory({
-    chainId: asset.chainId as ChainId,
+  } = useEarningsHistory({
+    asset: outputToken as EarnTokenDetails,
     limitDays: EARNINGS_HISTORY_DAYS_LIMIT,
   });
 
-  const ticker = asset.ticker ?? asset.symbol;
+  const ticker = useMemo(() => {
+    return asset.ticker || asset.symbol;
+  }, [asset.ticker, asset.symbol]);
+
   // get exchange rates for asset chainId
   const exchangeRates = multiChainMarketData[asset.chainId as Hex];
   let exchangeRate = 0;
@@ -299,11 +308,14 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
         ticker={ticker}
         earningsTotal={earningsHistoryChartData.earningsTotal}
         earnings={earningsHistoryChartData.earnings}
-        formatValue={(value) => formatRewardsNumber(value, asset)}
+        formatValue={(value: number) => formatRewardsNumber(value, asset)}
       />
-      <StakingEarningsHistoryList earnings={earningsHistoryListData} />
+      <StakingEarningsHistoryList
+        earnings={earningsHistoryListData}
+        type={outputToken?.experience?.type as EARN_EXPERIENCES}
+      />
     </View>
   );
 };
 
-export default StakingEarningsHistory;
+export default EarningsHistory;

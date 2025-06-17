@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, RenderResult } from '@testing-library/react-native';
-import { StakingEarningsHistoryChart } from './StakingEarningsHistoryChart';
+import { StakingEarningsHistoryChart } from './EarningsHistoryChart';
 import { fireLayoutEvent } from '../../../../../../../util/testUtils/react-native-svg-charts';
 import { lightTheme } from '@metamask/design-tokens';
 
@@ -41,7 +41,7 @@ const renderChart = () => {
   };
 };
 
-describe('StakingEarningsHistoryChart', () => {
+describe('EarningsHistoryChart', () => {
   let chartContainer: RenderResult;
   let chart: {
     data: {

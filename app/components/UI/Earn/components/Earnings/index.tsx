@@ -26,6 +26,7 @@ import { getTooltipMetricProperties } from '../../../Stake/utils/metaMetrics/too
 import { withMetaMetrics } from '../../../Stake/utils/metaMetrics/withMetaMetrics';
 import { TokenI } from '../../../Tokens/types';
 import styleSheet from './Earnings.styles';
+import EarningsHistoryButton from './EarningsHistoryButton/EarningsHistoryButton';
 
 export interface EarningsProps {
   asset: TokenI;
@@ -184,6 +185,7 @@ const EarningsContent = ({ asset }: EarningsProps) => {
           </View>
         </View>
       </View>
+      <EarningsHistoryButton asset={asset} />
     </View>
   );
 };
