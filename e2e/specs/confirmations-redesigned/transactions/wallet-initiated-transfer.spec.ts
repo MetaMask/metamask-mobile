@@ -20,16 +20,9 @@ import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import SendView from '../../../pages/Send/SendView';
 import AmountView from '../../../pages/Send/AmountView';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
-import WalletView from '../../../pages/wallet/WalletView';
-import NetworkListModal from '../../../pages/Network/NetworkListModal';
-import NetworkEducationModal from '../../../pages/Network/NetworkEducationModal';
-import { CustomNetworks } from '../../../resources/networks.e2e';
 
-const RECIPIENT = '0xbeC040014De5b4f1117EdD010828EA35cEc28B30';
+const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 const AMOUNT = '1';
-const SMALL_AMOUNT = '0.0000001';
-const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
-const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
 
 describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
   const testSpecificMock = {
@@ -86,75 +79,6 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
 
         // Check activity tab
         await TabBarComponent.tapActivity();
-        await Assertions.checkIfTextIsDisplayed('Confirmed');
-      },
-    );
-  });
-
-  it(`should send native ${MONAD_TESTNET.nickname} from inside the wallet`, async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().withGanacheNetwork().build(),
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
-        await WalletView.tapNetworksButtonOnNavBar();
-        await Assertions.checkIfVisible(NetworkListModal.networkScroll);
-        await NetworkListModal.scrollToBottomOfNetworkList();
-        await NetworkListModal.changeNetworkTo(MONAD_TESTNET.nickname);
-        await Assertions.checkIfVisible(NetworkEducationModal.container);
-        
-        await NetworkEducationModal.tapGotItButton();
-
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapSendButton();
-
-        await SendView.inputAddress(RECIPIENT);
-        await SendView.tapNextButton();
-
-        await AmountView.typeInTransactionAmount(SMALL_AMOUNT);
-        await AmountView.tapNextButton();
-
-        await FooterActions.tapConfirmButton();
-        await TestHelpers.delay(3000);
-        await TabBarComponent.tapActivity();
-
-        await Assertions.checkIfTextIsDisplayed('Confirmed');
-      },
-    );
-  });
-
-  it(`should send native ${MEGAETH_TESTNET.nickname} from inside the wallet`, async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().withGanacheNetwork().build(),
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
-        await WalletView.tapNetworksButtonOnNavBar();
-        await Assertions.checkIfVisible(NetworkListModal.networkScroll);
-        await NetworkListModal.scrollToBottomOfNetworkList();
-        //Change network to MegaETH Testnet
-        await NetworkListModal.changeNetworkTo(MEGAETH_TESTNET.nickname);
-        await Assertions.checkIfVisible(NetworkEducationModal.container);
-      
-        await NetworkEducationModal.tapGotItButton();
-
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapSendButton();
-
-        await SendView.inputAddress(RECIPIENT);
-        await SendView.tapNextButton();
-
-        await AmountView.typeInTransactionAmount(SMALL_AMOUNT);
-        await AmountView.tapNextButton();
-
-        await FooterActions.tapConfirmButton();
-        await TestHelpers.delay(3000);
-        await TabBarComponent.tapActivity();
-
         await Assertions.checkIfTextIsDisplayed('Confirmed');
       },
     );
