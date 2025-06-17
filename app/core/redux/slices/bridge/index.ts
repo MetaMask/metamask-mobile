@@ -47,7 +47,6 @@ export interface BridgeState {
 }
 
 export const initialState: BridgeState = {
-  bridgeViewMode: undefined,
   sourceAmount: undefined,
   destAmount: undefined,
   sourceToken: undefined,
@@ -57,6 +56,7 @@ export const initialState: BridgeState = {
   selectedDestChainId: undefined,
   slippage: '0.5',
   isSubmittingTx: false,
+  bridgeViewMode: undefined,
 };
 
 const name = 'bridge';
