@@ -91,27 +91,27 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
         await Assertions.checkIfTextMatches(accountAfterSwitch, account1Short);
       },
     );
+  });
 
-    it('Should stay connected after page refresh', async () => {
-      await withSolanaAccountSnap({}, async () => {
-        await navigateToSolanaTestDApp();
+  it('Should stay connected after page refresh', async () => {
+    await withSolanaAccountSnap({}, async () => {
+      await navigateToSolanaTestDApp();
 
-        await connectSolanaTestDapp();
+      await connectSolanaTestDapp();
 
-        // Should be connected
-        const header = SolanaTestDApp.getHeader();
-        const account = await header.getAccount();
-        await Assertions.checkIfTextMatches(account, account1Short);
+      // Should be connected
+      const header = SolanaTestDApp.getHeader();
+      const account = await header.getAccount();
+      await Assertions.checkIfTextMatches(account, account1Short);
 
-        // Refresh the page
-        await SolanaTestDApp.reloadSolanaTestDApp();
-        await TestHelpers.delay(4000);
+      // Refresh the page
+      await SolanaTestDApp.reloadSolanaTestDApp();
+      await TestHelpers.delay(4000);
 
-        // Should still be connected after refresh
-        const headerAfterRefresh = SolanaTestDApp.getHeader();
-        const accountAfterRefresh = await headerAfterRefresh.getAccount();
-        await Assertions.checkIfTextMatches(accountAfterRefresh, account1Short);
-      });
+      // Should still be connected after refresh
+      const headerAfterRefresh = SolanaTestDApp.getHeader();
+      const accountAfterRefresh = await headerAfterRefresh.getAccount();
+      await Assertions.checkIfTextMatches(accountAfterRefresh, account1Short);
     });
   });
 });
