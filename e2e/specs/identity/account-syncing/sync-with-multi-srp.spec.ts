@@ -22,14 +22,18 @@ import ImportSrpView from '../../../pages/importSrp/ImportSrpView';
 import AddNewHdAccountComponent from '../../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import SRPListItemComponent from '../../../pages/wallet/MultiSrp/Common/SRPListItemComponent';
 import { arrangeTestUtils } from '../utils/helpers';
-import { UserStorageMockttpControllerEvents } from '../utils/user-storage/userStorageMockttpController';
+import {
+  UserStorageMockttpController,
+  UserStorageMockttpControllerEvents,
+} from '../utils/user-storage/userStorageMockttpController';
+import { MockttpServer } from 'mockttp';
 
 describe(
   SmokeWalletPlatform('Account syncing - syncs after adding a second SRP'),
   () => {
     const TEST_SPECIFIC_MOCK_SERVER_PORT = 8003;
-    let mockServer;
-    let userStorageMockttpController;
+    let mockServer: MockttpServer;
+    let userStorageMockttpController: UserStorageMockttpController;
 
     const defaultAccountOneName = 'Account 1';
     const secondAccountName = 'My Second Account';
