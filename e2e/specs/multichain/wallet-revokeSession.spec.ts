@@ -6,16 +6,13 @@
  * Tests revoking sessions and verifying the session state afterwards
  */
 import TestHelpers from '../../helpers';
-import { SmokeNetworkExpansion } from '../../tags';
+import { SmokeMultiChainAPI } from '../../tags';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS, withFixtures } from '../../fixtures/fixture-helper';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
-import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import MultichainUtilities from '../../utils/MultichainUtilities';
-import Assertions from '../../utils/Assertions';
-import { MULTICHAIN_TEST_TIMEOUTS } from '../../selectors/Browser/MultichainTestDapp.selectors';
 
-describe(SmokeNetworkExpansion('wallet_revokeSession'), () => {
+describe(SmokeMultiChainAPI('wallet_revokeSession'), () => {
     beforeEach(() => {
         jest.setTimeout(150000);
     });

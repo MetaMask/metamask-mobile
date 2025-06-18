@@ -8,10 +8,10 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS, withFixtures } from '../../fixtures/fixture-helper';
 import TestHelpers from '../../helpers';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
-import { SmokeNetworkExpansion } from '../../tags';
+import { SmokeMultiChainAPI } from '../../tags';
 import MultichainUtilities from '../../utils/MultichainUtilities';
 
-describe(SmokeNetworkExpansion('wallet_createSession'), () => {
+describe(SmokeMultiChainAPI('wallet_createSession'), () => {
     beforeEach(() => {
         jest.setTimeout(150000);
     });

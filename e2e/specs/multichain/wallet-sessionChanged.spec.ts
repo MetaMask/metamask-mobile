@@ -5,7 +5,7 @@
  * Tests that sessionChanged event is fired when networks are added to the session
  */
 import TestHelpers from '../../helpers';
-import { SmokeNetworkExpansion } from '../../tags';
+import { SmokeMultiChainAPI } from '../../tags';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS, withFixtures } from '../../fixtures/fixture-helper';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
@@ -13,7 +13,7 @@ import MultichainUtilities from '../../utils/MultichainUtilities';
 import Assertions from '../../utils/Assertions';
 import { MULTICHAIN_TEST_TIMEOUTS } from '../../selectors/Browser/MultichainTestDapp.selectors';
 
-describe(SmokeNetworkExpansion('wallet_sessionChanged'), () => {
+describe(SmokeMultiChainAPI('wallet_sessionChanged'), () => {
     beforeEach(() => {
         jest.setTimeout(150000);
     });
