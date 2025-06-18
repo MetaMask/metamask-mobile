@@ -798,9 +798,9 @@
     "action_description_1_prefix": "Private:",
     "action_description_2_prefix": "General:",
     "action_description_3_prefix": "Optional:",
-    "action_description_1_description": "clicks and views on the app are stored, but other details (like your public address) are not.",
-    "action_description_2_description": "we temporarily use your IP address to detect a general location (like your country or region), but it's never stored.",
-    "action_description_3_description": "you decide if you want to share or delete your usage data via settings any time.",
+    "action_description_1_description": "Clicks and views on the app are stored, but other details (like your public address) are not.",
+    "action_description_2_description": "We temporarily use your IP address to detect a general location (like your country or region), but it's never stored.",
+    "action_description_3_description": "You decide if you want to share or delete your usage data via settings any time.",
     "cta_no_thanks": "No thanks",
     "cta_i_agree": "I agree",
     "fine_print_1_legacy": "This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679.",
@@ -1075,9 +1075,9 @@
     "clear_browser_cookies_desc": "Clear browser cookies",
     "clear": "CLEAR",
     "protect_cta": "Protect",
-    "protect_title": "Protect your wallet",
+    "protect_title": "Wallet recovery",
     "video_failed": "Video Failed to Load.",
-    "protect_desc": "Protect your wallet by saving your Secret Recovery Phrase in a place only you can access and that you will not forget. Be sure to keep it offline for optimal safety.",
+    "protect_desc": "Back up your Secret Recovery Phrase so you never lose access to your wallet. Be sure to store it in a safe place that only you can access and won’t forget.",
     "protect_desc_no_backup": "This is your wallet’s 12 word phrase. This phrase can be used to take control of all your current and future accounts, including the ability to send away funds in your wallet. Keep this phrase stored safely, DO NOT share it with anyone. MetaMask cannot help you recover this key.",
     "learn_more": "Learn more.",
     "seedphrase_not_backed_up": "Important! Secret Recovery Phrase not backed up",
@@ -1138,7 +1138,7 @@
     "no_permissions_desc": "If you connect an account to a site or an app, you’ll see it here.",
     "security_title": "Security & Privacy",
     "back": "Back",
-    "security_desc": "Privacy settings, MetaMetrics, private key and wallet Secret Recovery Phrase",
+    "security_desc": "Privacy settings, MetaMetrics, private key, and Secret Recovery Phrase.",
     "networks_title": "Networks",
     "networks_default_title": "Default Network",
     "network_delete": "If you delete this network, you will need to add it again to view your assets in this network",
@@ -3846,9 +3846,15 @@
         "between_one_dot_five_and_2_dot_zero": "Between 1.5-2.0",
         "medium_liquidation_risk": "Medium Liquidation risk",
         "below_one_dot_five": "Below 1.5",
-        "higher_liquidation_risk": "Higher liquidation risk",
-        "infinite": "Infinite",
-        "no_debt_maximum_security": "No debt, maximum safety"
+        "higher_liquidation_risk": "Higher liquidation risk"
+      },
+      "lending_risk_aware_withdrawal_tooltip": {
+        "why_cant_i_withdraw_full_balance": "Why can't I withdraw my full balance?",
+        "your_withdrawal_amount_may_be_limited_by": "Your withdrawal amount may be limited by",
+        "pool_liquidity": "Pool Liquidity",
+        "not_enough_funds_available_in_the_lending_pool_right_now": "Not enough funds available in the lending pool right now.",
+        "existing_borrow_positions": "Existing Borrow Positions",
+        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "Withdrawing could put your existing loan positions at risk of liquidation."
       }
     },
     "withdraw": "Withdraw",
@@ -3861,7 +3867,15 @@
     "liquidation_risk": "Liquidation risk",
     "insufficient_pool_liquidity": "Insufficient Pool Liquidity",
     "available_to_withdraw": "available to withdraw",
-    "unknown": "unknown"
+    "unknown": "unknown",
+    "how_it_works": "How it works",
+    "market_historic_apr_modal": {
+      "earn_rewards_on_your_token": "Earn rewards on your {{tokenSymbol}}",
+      "lend_and_earn_daily_rewards": "Lend your {{tokenSymbol}} with {{protocol}} and earn daily rewards. Rewards grow over time and APR varies.",
+      "withdraw_whenever_you_want": "Withdraw whenever you want",
+      "get_asset_back_in_your_wallet_instantly": "Get {{tokenSymbol}} back in your wallet instantly."
+    },
+    "amount_exceeds_safe_withdrawal_limit": "Amount exceeds safe withdrawal limit"
   },
   "stake": {
     "stake": "Stake",
@@ -4187,7 +4201,8 @@
     "data": "Data",
     "review": "Review",
     "transferRequest": "Transfer request",
-    "nested_transaction_heading": "Transaction {{index}}"
+    "nested_transaction_heading": "Transaction {{index}}",
+    "transaction": "Transaction"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
@@ -4312,6 +4327,9 @@
       "account_address": "Account Address",
       "wallet": "Wallet",
       "private_key": "Private key"
+    },
+    "accounts_list": {
+      "details": "Details"
     },
     "smart_account": {
       "title": "Enable Smart Account",
