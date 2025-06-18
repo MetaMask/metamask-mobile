@@ -43,9 +43,7 @@ import { selectConfirmationRedesignFlags } from '../../../../../selectors/featur
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { isSupportedLendingTokenByChainId } from '../../utils';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
-import { EARN_EXPERIENCES } from '../../constants/experiences';
-
-type EventLoggingStrategy = 'LOG_STABLECOIN_WITHDRAWAL_EVENT' | 'LOG_STAKING_EVENT' | 'SKIP_EVENT_LOGGING';
+import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
@@ -82,21 +80,12 @@ const EarnWithdrawInputView = () => {
 
   const { trackEvent, createEventBuilder } = useMetrics();
 
-  const getEventLoggingStrategy = useCallback((): EventLoggingStrategy => {
-    if (
-      earnToken?.experience === EARN_EXPERIENCES.STABLECOIN_LENDING &&
-      isStablecoinLendingEnabled
-    ) {
-      return 'LOG_STABLECOIN_WITHDRAWAL_EVENT';
-    }
-
-    // assume it's a staking experience
-    if (!isStablecoinLendingEnabled || token.isETH) {
-      return 'LOG_STAKING_EVENT';
-    }
-
-    return 'SKIP_EVENT_LOGGING';
-  }, [earnToken?.experience, isStablecoinLendingEnabled, token.isETH]);
+  const { shouldLogStablecoinEvent, shouldLogStakingEvent } = useEarnAnalyticsEventLogging({
+    earnToken,
+    isStablecoinLendingEnabled,
+    token,
+    actionType: 'withdrawal',
+  });
 
   const {
     isFiat,
@@ -119,9 +108,7 @@ const EarnWithdrawInputView = () => {
   });
 
   useEffect(() => {
-    const strategy = getEventLoggingStrategy();
-
-    if (strategy === 'LOG_STABLECOIN_WITHDRAWAL_EVENT') {
+    if (shouldLogStablecoinEvent()) {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.EARN_INPUT_OPENED)
           .addProperties({
@@ -223,11 +210,10 @@ const EarnWithdrawInputView = () => {
   );
 
   const handleUnstakePress = useCallback(async () => {
-    const strategy = getEventLoggingStrategy();
     const isStakingDepositRedesignedEnabled =
       confirmationRedesignFlags?.staking_confirmations;
 
-    if (strategy === 'LOG_STABLECOIN_WITHDRAWAL_EVENT') {
+    if (shouldLogStablecoinEvent()) {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.EARN_REVIEW_BUTTON_CLICKED)
           .addProperties({
@@ -306,19 +292,17 @@ const EarnWithdrawInputView = () => {
     attemptUnstakeTransaction,
     activeAccount?.address,
     confirmationRedesignFlags?.staking_confirmations,
-    getEventLoggingStrategy,
+    shouldLogStablecoinEvent,
     earnToken?.symbol,
     network?.name,
     earnBalanceValue,
   ]);
 
   const handleKeypadChangeWithTracking = useCallback((params: { value: string; pressedKey: string }) => {
-    const strategy = getEventLoggingStrategy();
-
     // call the original handler first
     handleKeypadChange(params);
 
-    if (strategy === 'LOG_STABLECOIN_WITHDRAWAL_EVENT' && params.value !== '0' && params.value !== '') {
+    if (shouldLogStablecoinEvent() && params.value !== '0' && params.value !== '') {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED)
           .addProperties({
@@ -331,7 +315,7 @@ const EarnWithdrawInputView = () => {
           .build(),
       );
     }
-  }, [getEventLoggingStrategy, handleKeypadChange, trackEvent, createEventBuilder, earnToken?.symbol, network?.name, earnBalanceValue]);
+  }, [shouldLogStablecoinEvent, handleKeypadChange, trackEvent, createEventBuilder, earnToken?.symbol, network?.name, earnBalanceValue]);
 
   return (
     <ScreenLayout style={styles.container}>
@@ -361,21 +345,20 @@ const EarnWithdrawInputView = () => {
       <QuickAmounts
         amounts={percentageOptions}
         onAmountPress={({ value }: { value: number }) => {
-          const strategy = getEventLoggingStrategy();
           const metrics: any[] = [];
 
-          if (strategy === 'LOG_STABLECOIN_WITHDRAWAL_EVENT') {
+          if (shouldLogStablecoinEvent()) {
             metrics.push({
               event: MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED,
               properties: {
                 action_type: 'withdrawal',
-                input_value: value,
+                input_value: value === 1 ? "Max" : `${value * 100}%`,
                 token: earnToken?.symbol,
                 network: network?.name,
                 user_token_balance: earnBalanceValue,
               },
             });
-          } else if (strategy === 'LOG_STAKING_EVENT') {
+          } else if (shouldLogStakingEvent()) {
             metrics.push({
               event: MetaMetricsEvents.UNSTAKE_INPUT_QUICK_AMOUNT_CLICKED,
               properties: {

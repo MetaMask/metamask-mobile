@@ -52,8 +52,7 @@ import {
 } from '../../utils/tempLending';
 import BigNumber from 'bignumber.js';
 import { isSupportedLendingTokenByChainId } from '../../utils';
-
-type EventLoggingStrategy = 'LOG_STABLECOIN_LEND_EVENT' | 'LOG_STAKING_EVENT' | 'SKIP_EVENT_LOGGING';
+import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -128,26 +127,15 @@ const EarnInputView = () => {
     exchangeRate,
   });
 
-  const getEventLoggingStrategy = useCallback((): EventLoggingStrategy => {
-    if (
-      earnToken?.experience === EARN_EXPERIENCES.STABLECOIN_LENDING &&
-      isStablecoinLendingEnabled
-    ) {
-      return 'LOG_STABLECOIN_LEND_EVENT';
-    }
-
-    // assume it's a staking experience
-    if (!isStablecoinLendingEnabled || token.isETH) {
-      return 'LOG_STAKING_EVENT';
-    }
-
-    return 'SKIP_EVENT_LOGGING';
-  }, [earnToken?.experience, isStablecoinLendingEnabled, token.isETH]);
+  const { shouldLogStablecoinEvent, shouldLogStakingEvent } = useEarnAnalyticsEventLogging({
+    earnToken,
+    isStablecoinLendingEnabled,
+    token,
+    actionType: 'deposit',
+  });
 
   useEffect(() => {
-    const strategy = getEventLoggingStrategy();
-
-    if (strategy === 'LOG_STABLECOIN_LEND_EVENT') {
+    if (shouldLogStablecoinEvent()) {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.EARN_INPUT_OPENED)
           .addProperties({
@@ -169,12 +157,10 @@ const EarnInputView = () => {
   };
 
   const handleKeypadChangeWithTracking = useCallback((params: { value: string; pressedKey: string }) => {
-    const strategy = getEventLoggingStrategy();
-
     // call the original handler first
     handleKeypadChange(params);
 
-    if (strategy === 'LOG_STABLECOIN_LEND_EVENT' && params.value !== '0' && params.value !== '') {
+    if (shouldLogStablecoinEvent() && params.value !== '0' && params.value !== '') {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED)
           .addProperties({
@@ -187,7 +173,7 @@ const EarnInputView = () => {
           .build(),
       );
     }
-  }, [getEventLoggingStrategy, handleKeypadChange, trackEvent, createEventBuilder, earnToken?.symbol, network?.name, balanceValue]);
+  }, [shouldLogStablecoinEvent, handleKeypadChange, trackEvent, createEventBuilder, earnToken?.symbol, network?.name, balanceValue]);
 
   const handleLendingFlow = useCallback(async () => {
     if (!activeAccount?.address) return;
@@ -555,21 +541,20 @@ const EarnInputView = () => {
       <QuickAmounts
         amounts={percentageOptions}
         onAmountPress={({ value }: { value: number }) => {
-          const strategy = getEventLoggingStrategy();
           const metrics: any[] = [];
 
-          if (strategy === 'LOG_STABLECOIN_LEND_EVENT') {
+          if (shouldLogStablecoinEvent()) {
             metrics.push({
               event: MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED,
               properties: {
                 action_type: 'deposit',
-                input_value: value,
+                input_value: `${value * 100}%`,
                 token: earnToken?.symbol,
                 network: network?.name,
                 user_token_balance: balanceValue,
               },
             });
-          } else if (strategy === 'LOG_STAKING_EVENT') {
+          } else if (shouldLogStakingEvent()) {
             metrics.push({
               event: MetaMetricsEvents.STAKE_INPUT_QUICK_AMOUNT_CLICKED,
               properties: {
@@ -584,10 +569,9 @@ const EarnInputView = () => {
           withMetaMetrics(handleQuickAmountPress, metrics)({ value });
         }}
         onMaxPress={() => {
-          const strategy = getEventLoggingStrategy();
           const metrics: any[] = [];
 
-          if (strategy === 'LOG_STABLECOIN_LEND_EVENT') {
+          if (shouldLogStablecoinEvent()) {
             metrics.push({
               event: MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED,
               properties: {
@@ -598,7 +582,7 @@ const EarnInputView = () => {
                 user_token_balance: balanceValue,
               },
             });
-          } else if (strategy === 'LOG_STAKING_EVENT') {
+          } else if (shouldLogStakingEvent()) {
             metrics.push({
               event: MetaMetricsEvents.STAKE_INPUT_QUICK_AMOUNT_CLICKED,
               properties: {
