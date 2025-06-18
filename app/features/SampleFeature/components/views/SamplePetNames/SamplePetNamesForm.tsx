@@ -46,7 +46,7 @@ export function SamplePetNamesForm({
   chainId,
   initialAddress,
   initialName,
-}: SamplePetNamesFormContentProps) {
+}: Readonly<SamplePetNamesFormContentProps>) {
   const { styles } = useStyles(styleSheet, {});
 
   const { onSubmit, isValid, name, setName, setAddress, address } =

@@ -50,7 +50,7 @@ import { SamplePetNamesListProps } from './SamplePetNamesList.types';
 export function SamplePetNamesList({
   chainId,
   onAccountPress,
-}: SamplePetNamesListProps) {
+}: Readonly<SamplePetNamesListProps>) {
   const { styles } = useStyles(styleSheet, {});
 
   const addressBook = useSelector((state: RootState) =>
