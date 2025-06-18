@@ -11,6 +11,7 @@ import ExportCredentials from '../../pages/MultichainAccounts/ExportCredentials'
 import RevealPrivateKey from '../../pages/Settings/SecurityAndPrivacy/RevealPrivateKeyView.js';
 import { completeSrpQuiz } from '../multisrp/utils';
 import { defaultOptions } from '../../seeder/anvil-manager';
+import TestHelpers from '../../helpers.js';
 
 const PASSWORD = '123123123';
 
@@ -41,7 +42,11 @@ const exportSrp = async () => {
 };
 
 // TODO: fix this test
-describe.skip(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
+describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
+  beforeEach(async () => {
+    await TestHelpers.reverseServerPort();
+  });
+
   it('exports private key', async () => {
     await withMultichainAccountDetailsEnabled(async () => {
       await goToAccountDetails(HD_ACCOUNT);

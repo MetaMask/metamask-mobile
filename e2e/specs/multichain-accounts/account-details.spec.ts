@@ -9,6 +9,7 @@ import {
   goToAccountDetails,
   withMultichainAccountDetailsEnabled,
 } from './common';
+import TestHelpers from '../../helpers';
 
 const checkAddress = async (expectedAddress: string) => {
   await AccountDetails.tapShareAddress();
@@ -24,7 +25,11 @@ const editName = async (newName: string) => {
 };
 
 // TODO: fix this test
-describe.skip(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
+describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
+  beforeEach(async () => {
+    await TestHelpers.reverseServerPort();
+  });
+
   it('renames the account', async () => {
     await withMultichainAccountDetailsEnabled(async () => {
       await goToAccountDetails(HD_ACCOUNT);
