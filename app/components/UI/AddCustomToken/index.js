@@ -309,10 +309,11 @@ class AddCustomToken extends PureComponent {
           address.toLowerCase()
         ];
 
+      console.log('token ***********', token);
       if (token) {
         this.setState({
           symbol: token.symbol,
-          decimals: token.decimals,
+          decimals: String(token.decimals),
           name: token.name,
         });
         return;
@@ -758,7 +759,7 @@ class AddCustomToken extends PureComponent {
           <Button
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
-            label={strings('transaction.next')}
+            label={strings('transaction.next') + 'test 1111'}
             style={styles.import}
             onPress={this.goToConfirmAddToken}
             isDisabled={isDisabled}
