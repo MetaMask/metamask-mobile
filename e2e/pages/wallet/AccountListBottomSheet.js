@@ -86,9 +86,9 @@ class AccountListBottomSheet {
 
   async tapEditAccountActionsAtIndex(index) {
     const accountActionsButton = Matchers.getElementByID(
-      `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${index}`,
+      `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${index}`, index,
     );
-    await Gestures.waitAndTap(accountActionsButton);
+    await Gestures.tapAtIndex(accountActionsButton, index);
   }
 
   async accountNameInList(accountName) {
