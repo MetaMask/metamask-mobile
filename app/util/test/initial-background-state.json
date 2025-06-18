@@ -17,6 +17,11 @@
       "selectedAccount": ""
     }
   },
+  "AccountTreeController": {
+    "accountTree": {
+      "wallets": {}
+    }
+  },
   "AddressBookController": {
     "addressBook": {}
   },
@@ -479,8 +484,7 @@
     "historicalPrices": {}
   },
   "CronjobController": {
-    "events": {},
-    "jobs": {}
+    "events": {}
   },
   "EarnController": {
     "lastUpdated": 0,

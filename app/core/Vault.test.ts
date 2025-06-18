@@ -85,37 +85,6 @@ const mockPrivateKeyAccount = createMockInternalAccount(
   KeyringTypes.simple,
   EthAccountType.Eoa,
 );
-
-const mockHdKeyring = {
-  type: KeyringTypes.hd,
-  accounts: [mockHdAccount1.address, mockHdAccount2.address],
-};
-
-const mockHdKeyring2 = {
-  type: KeyringTypes.hd,
-  accounts: [mockHdAccount3.address, mockHdAccount4.address],
-};
-
-const mockQrKeyring = {
-  type: KeyringTypes.qr,
-  accounts: [mockQrAccount.address],
-};
-
-const mockLedgerKeyring = {
-  type: KeyringTypes.ledger,
-  accounts: [mockLedgerAccount.address],
-};
-
-const mockSnapKeyring = {
-  type: KeyringTypes.snap,
-  accounts: [mockSolanaAccount.address, mockThirdPartySnapAccount.address],
-};
-
-const mockSimpleKeyring = {
-  type: KeyringTypes.simple,
-  accounts: [mockPrivateKeyAccount.address],
-};
-
 const mockHdKeyringMetadata = {
   id: 'hd-keyring-id',
   name: '',
@@ -144,6 +113,42 @@ const mockSnapKeyringMetadata = {
 const mockSimpleKeyringMetadata = {
   id: 'simple-keyring-id',
   name: '',
+};
+
+const mockHdKeyring = {
+  type: KeyringTypes.hd,
+  accounts: [mockHdAccount1.address, mockHdAccount2.address],
+  metadata: mockHdKeyringMetadata,
+};
+
+const mockHdKeyring2 = {
+  type: KeyringTypes.hd,
+  accounts: [mockHdAccount3.address, mockHdAccount4.address],
+  metadata: mockHdKeyringMetadata2,
+};
+
+const mockQrKeyring = {
+  type: KeyringTypes.qr,
+  accounts: [mockQrAccount.address],
+  metadata: mockQrKeyringMetadata,
+};
+
+const mockLedgerKeyring = {
+  type: KeyringTypes.ledger,
+  accounts: [mockLedgerAccount.address],
+  metadata: mockLedgerKeyringMetadata,
+};
+
+const mockSnapKeyring = {
+  type: KeyringTypes.snap,
+  accounts: [mockSolanaAccount.address, mockThirdPartySnapAccount.address],
+  metadata: mockSnapKeyringMetadata,
+};
+
+const mockSimpleKeyring = {
+  type: KeyringTypes.simple,
+  accounts: [mockPrivateKeyAccount.address],
+  metadata: mockSimpleKeyringMetadata,
 };
 
 jest.mock('./Engine', () => ({
@@ -177,16 +182,6 @@ jest.mock('./Engine', () => ({
             mockLedgerKeyring,
             mockSnapKeyring,
             mockSimpleKeyring,
-          ];
-        },
-        get keyringsMetadata() {
-          return [
-            mockHdKeyringMetadata,
-            mockHdKeyringMetadata2,
-            mockQrKeyringMetadata,
-            mockLedgerKeyringMetadata,
-            mockSnapKeyringMetadata,
-            mockSimpleKeyringMetadata,
           ];
         },
       },

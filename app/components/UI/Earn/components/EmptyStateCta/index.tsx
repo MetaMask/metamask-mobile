@@ -69,6 +69,13 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
     });
   };
 
+  const navigateToLendingHistoricApyChart = () => {
+    navigate(Routes.EARN.MODALS.ROOT, {
+      screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
+      params: { asset: earnToken },
+    });
+  };
+
   if (!token || _.isEmpty(token) || !isStablecoinLendingEnabled) return <></>;
 
   return (
@@ -85,9 +92,11 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
           {apr}%
         </Text>{' '}
         {strings('earn.empty_state_cta.annually')}{' '}
-        <Text color={TextColor.Primary}>
-          {strings('earn.empty_state_cta.learn_more')}
-        </Text>
+        <Button
+          label={strings('earn.empty_state_cta.learn_more')}
+          variant={ButtonVariants.Link}
+          onPress={navigateToLendingHistoricApyChart}
+        />
       </Text>
       <Button
         variant={ButtonVariants.Secondary}
