@@ -6,7 +6,7 @@ import {
 } from '../../selectors/swaps/QuoteView.selectors';
 
 class QuoteView {
-  get getQuotes() {
+  get getQuotes(): DetoxElement {
     return Matchers.getElementByText(QuoteViewSelectorText.GET_QUOTES);
   }
 
@@ -18,28 +18,28 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.CANCEL);
   }
 
-  get sourceToken() {
+  get sourceToken(): DetoxElement {
     return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN);
   }
 
-  get destToken() {
+  get destToken(): DetoxElement {
     return Matchers.getElementByID(QuoteViewSelectorIDs.DEST_TOKEN);
   }
 
-  get searchToken() {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.SEARCH_TOKEN);
+  get searchToken(): TypableElement {
+    return Matchers.getElementByID(QuoteViewSelectorIDs.SEARCH_TOKEN) as TypableElement;
   }
 
-  get maxSlippage() {
+  get maxSlippage(): DetoxElement {
     return Matchers.getElementByID(QuoteViewSelectorIDs.MAX_SLIPPAGE);
   }
 
-  async enterSwapAmount(amount) {
-    for (let idx = 0; idx < amount.length; idx++) {
-      const element = Matchers.getElementByText(amount[idx]);
-      await Gestures.waitAndTap(element);
-    }
+ async enterSwapAmount(amount: string) {
+  for (const digit of amount) {
+    const button = Matchers.getElementByText(digit);
+    await Gestures.waitAndTap(button);
   }
+}
 
   async tapOnSelectSourceToken() {
     await Gestures.waitAndTap(this.sourceToken);
@@ -57,13 +57,13 @@ class QuoteView {
     });
   }
 
-  async typeSearchToken(symbol) {
+  async typeSearchToken(symbol: string) {
     await Gestures.typeTextAndHideKeyboard(this.searchToken, symbol);
   }
 
-  async selectToken(symbol, index = 1) {
-    const element = Matchers.getElementByText(symbol, index);
-    await Gestures.waitAndTap(element);
+  async selectToken(symbol: string, index: number = 1): Promise<void> {
+    const token = Matchers.getElementByText(symbol, index);
+    await Gestures.waitAndTap(token);
   }
 
   async tapOnGetQuotes() {

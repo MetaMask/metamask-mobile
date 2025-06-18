@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import { loginToApp } from '../../viewHelper.js';
-import QuoteView from '../../pages/swaps/QuoteView.js';
+import QuoteView from '../../pages/swaps/QuoteView.ts';
 import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
 import WalletView from '../../pages/wallet/WalletView.js';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
@@ -23,10 +23,10 @@ import {
   startMockServer,
   stopMockServer,
 } from '../../api-mocking/mock-server.js';
-import SoftAssert from '../../utils/SoftAssert';
-import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
-import SwapView from '../../pages/swaps/SwapView.js';
-import QuotesModal from '../../pages/swaps/QuoteModal';
+import SoftAssert from '../../utils/SoftAssert.ts';
+import { prepareSwapsTestEnvironment } from '../swaps/helpers/prepareSwapsTestEnvironment.ts';
+import SwapView from '../../pages/swaps/SwapView.ts';
+import QuotesModal from '../../pages/swaps/QuoteModal.ts';
 import type { MockttpServer } from 'mockttp';
 
 const fixtureServer = new FixtureServer();
@@ -106,7 +106,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
     await QuoteView.tapOnSelectDestToken();
     await QuoteView.tapSearchToken();
     await QuoteView.typeSearchToken('DAI');
-    await TestHelpers.delay(3000); 
+    await TestHelpers.delay(3000);
     await QuoteView.selectToken('DAI');
     await QuoteView.enterSwapAmount('0.01');
     await QuoteView.tapOnGetQuotes();
