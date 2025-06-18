@@ -49,19 +49,16 @@ describe('container', () => {
           {
             "children": {
               "children": {
-                "children": {
-                  "children": [
-                    "Hello",
-                  ],
-                  "element": "text",
-                  "props": {
-                    "style": {
-                      "gap": 16,
-                      "margin": 16,
-                    },
+                "children": [
+                  "Hello",
+                ],
+                "element": "text",
+                "props": {
+                  "style": {
+                    "gap": 16,
+                    "margin": 16,
                   },
                 },
-                "element": "TouchableWithoutFeedback",
               },
               "element": "TouchableHighlight",
             },
@@ -105,37 +102,34 @@ describe('container', () => {
         "children": {
           "children": {
             "children": {
-              "children": {
-                "children": "navigation.close",
-                "element": "SnapUIFooterButton",
-                "key": "default-button",
-                "props": {
-                  "isSnapAction": false,
-                  "onCancel": [MockFunction],
-                  "testID": "default-snap-footer-button",
-                  "variant": "Secondary",
-                },
-              },
-              "element": "Box",
-              "key": "default-footer",
+              "children": "navigation.close",
+              "element": "SnapUIFooterButton",
+              "key": "default-button",
               "props": {
-                "flexDirection": "row",
-                "gap": 16,
-                "padding": 16,
-                "style": {
-                  "alignItems": "center",
-                  "bottom": 0,
-                  "gap": 16,
-                  "height": 80,
-                  "justifyContent": "space-evenly",
-                  "margin": 16,
-                  "paddingVertical": 16,
-                  "position": "absolute",
-                  "width": "100%",
-                },
+                "isSnapAction": false,
+                "onCancel": [MockFunction],
+                "testID": "default-snap-footer-button",
+                "variant": "Secondary",
               },
             },
-            "element": "TouchableWithoutFeedback",
+            "element": "Box",
+            "key": "default-footer",
+            "props": {
+              "flexDirection": "row",
+              "gap": 16,
+              "padding": 16,
+              "style": {
+                "alignItems": "center",
+                "bottom": 0,
+                "gap": 16,
+                "height": 80,
+                "justifyContent": "space-evenly",
+                "margin": 16,
+                "paddingVertical": 16,
+                "position": "absolute",
+                "width": "100%",
+              },
+            },
           },
           "element": "TouchableHighlight",
         },
