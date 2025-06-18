@@ -1,8 +1,8 @@
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import { generateStablecoinLendingDepositConfirmationState } from '../../../__mocks__/controllers/transaction-batch-mock';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
-import { generateStablecoinLendingDepositConfirmationState } from '../../../mock-data/transaction-batch-mock';
 import { getNavbar } from '../../UI/navbar/navbar';
 import TransactionBatch from './transaction-batch';
 
