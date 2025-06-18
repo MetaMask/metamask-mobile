@@ -33,7 +33,7 @@ describe(
   () => {
     const NEW_ACCOUNT_NAME = 'My third account';
     const TEST_SPECIFIC_MOCK_SERVER_PORT = 8000;
-    let decryptedAccountNames = [] as string[];
+    let decryptedAccountNames: string[] = [];
     let mockServer: Mockttp;
     let userStorageMockttpController: UserStorageMockttpController;
 

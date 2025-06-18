@@ -29,7 +29,7 @@ describe(
   () => {
     const ADDED_ACCOUNT = 'Account 3';
     const TEST_SPECIFIC_MOCK_SERVER_PORT = 8004;
-    let decryptedAccountNames = [] as string[];
+    let decryptedAccountNames: string[] = [];
     let mockServer: Mockttp;
 
     beforeAll(async () => {
