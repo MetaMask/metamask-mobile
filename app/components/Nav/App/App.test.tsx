@@ -80,13 +80,21 @@ describe('App', () => {
         });
       });
     });
-    it('navigates to login when user exists and logs in', async () => {
+    it('navigates to home when user exists and logs in', async () => {
       jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(true);
       jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
-      renderScreen(App, { name: 'App' }, { state: initialState });
+      renderScreen(App, { name: 'App' }, { 
+        state: {
+          ...initialState,
+          user: {
+            ...initialState.user,
+            existingUser: true,
+          },
+        } 
+      });
       await waitFor(() => {
         expect(mockReset).toHaveBeenCalledWith({
-          routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
+          routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
         });
       });
     });
