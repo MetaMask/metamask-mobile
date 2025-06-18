@@ -24,7 +24,7 @@ export default function useValidateBridgeTx() {
         method: SolMethod.SignAndSendTransaction,
         encoding: 'base64',
         account_address: selectedAccount?.address ? Buffer.from(base58.decode(selectedAccount.address)).toString('base64') : undefined,
-        chain: "mainnet",
+        chain: 'mainnet',
         transactions: [quoteResponse.trade],
         options: ['simulation', 'validation'],
         metadata: {
