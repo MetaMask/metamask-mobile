@@ -10,6 +10,7 @@ import { RootState } from '../../../reducers';
 import { strings } from '../../../../locales/i18n';
 import { DeleteWalletModalSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/DeleteWalletModal.selectors';
 import { SET_COMPLETED_ONBOARDING } from '../../../actions/onboarding';
+import { InteractionManager } from 'react-native';
 
 const mockInitialState = {
   engine: { backgroundState },
@@ -72,6 +73,19 @@ const renderComponent = (state: DeepPartial<RootState> = {}) =>
   );
 
 describe('DeleteWalletModal', () => {
+  const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
+    cb();
+    return {
+      then: (onfulfilled: () => void) => Promise.resolve(onfulfilled()),
+      done: (onfulfilled: () => void, onrejected: () => void) =>
+        Promise.resolve().then(onfulfilled, onrejected),
+      cancel: jest.fn(),
+    };
+  });
+  jest
+    .spyOn(InteractionManager, 'runAfterInteractions')
+    .mockImplementation(mockRunAfterInteractions);
+
   describe('bottom sheet', () => {
     it('renders matching snapshot', () => {
       const wrapper = renderComponent(mockInitialState);

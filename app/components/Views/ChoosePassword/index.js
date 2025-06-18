@@ -16,10 +16,7 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { connect } from 'react-redux';
-import {
-  saveOnboardingEvent as SaveEvent,
-  saveOnboardingEvent,
-} from '../../../actions/onboarding';
+import { saveOnboardingEvent as SaveEvent } from '../../../actions/onboarding';
 import {
   passwordSet,
   passwordUnset,
@@ -227,10 +224,6 @@ class ChoosePassword extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
-    /**
-     * Action to save onboarding event
-     */
-    dispatchSaveOnboardingEvent: PropTypes.func,
   };
 
   state = {
