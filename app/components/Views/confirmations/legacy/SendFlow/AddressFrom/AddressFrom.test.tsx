@@ -40,8 +40,6 @@ const mockInitialState = {
       address: '0xd018538C87232FF95acbCe4870629b75640a78E7',
       decimals: 18,
       symbol: 'ETH',
-      balance: '1.5',
-      isETH: true,
     },
   },
   engine: {
@@ -51,7 +49,7 @@ const mockInitialState = {
         accountsByChainId: {
           '0x1': {
             '0xd018538C87232FF95acbCe4870629b75640a78E7': {
-              balance: '0x1BC16D674EC80000', // 2 ETH in hex
+              balance: '0x0',
             },
           },
         },
@@ -86,12 +84,6 @@ const mockInitialState = {
       KeyringController: {
         state: {
           keyrings: [],
-        },
-      },
-      NetworkController: {
-        providerConfig: {
-          chainId: '0x1',
-          ticker: 'ETH',
         },
       },
     },
