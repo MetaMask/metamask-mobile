@@ -1,21 +1,53 @@
 import { renderHook, act } from '@testing-library/react-hooks';
+import { QuoteResponse } from '../../types';
+import { QuoteMetadata } from '@metamask/bridge-controller';
 
 /**
  * Unit tests for the blockaid validation logic.
  * These tests isolate the validation logic to ensure it handles different response scenarios correctly.
  */
 
+// Type definitions for the test function
+type ValidateBridgeTx = (params: {
+  quoteResponse: QuoteResponse & QuoteMetadata;
+}) => Promise<{
+  error?: string;
+  result?: {
+    validation?: {
+      reason?: string | null;
+    };
+  };
+}>;
+
+type NavigateFunction = (route: string, params?: {
+  screen?: string;
+  params?: {
+    errorType?: string;
+    errorMessage?: string;
+  };
+}) => void;
+
+type DispatchFunction = (action: {
+  type: string;
+  payload: boolean;
+}) => void;
+
 describe('Blockaid Validation Logic', () => {
-  const mockNavigate = jest.fn();
-  const mockDispatch = jest.fn();
-  const mockValidateBridgeTx = jest.fn();
+  const mockNavigate = jest.fn() as jest.MockedFunction<NavigateFunction>;
+  const mockDispatch = jest.fn() as jest.MockedFunction<DispatchFunction>;
+  const mockValidateBridgeTx = jest.fn() as jest.MockedFunction<ValidateBridgeTx>;
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   // Simulate the handleContinue logic extracted for testing
-  const handleContinueLogic = async (activeQuote: any, validateBridgeTx: any, navigate: any, dispatch: any) => {
+  const handleContinueLogic = async (
+    activeQuote: QuoteResponse & QuoteMetadata | null,
+    validateBridgeTx: ValidateBridgeTx,
+    navigate: NavigateFunction,
+    dispatch: DispatchFunction
+  ) => {
     if (activeQuote) {
       dispatch({ type: 'setIsSubmittingTx', payload: true });
       
@@ -31,7 +63,7 @@ describe('Blockaid Validation Logic', () => {
             params: {
               errorType: isValidationError ? 'validation' : 'simulation',
               errorMessage: isValidationError 
-                ? validationResult.result.validation.reason 
+                ? (validationResult.result?.validation?.reason || '') 
                 : validationResult.error,
             },
           });
@@ -49,8 +81,18 @@ describe('Blockaid Validation Logic', () => {
     }
   };
 
+  // Helper to create a simple mock quote for testing
+  const createMockQuote = (id: string) => ({
+    id,
+    quote: {} as any,
+    approval: null,
+    trade: {} as any,
+    estimatedProcessingTimeInSeconds: 60,
+    // Add other required properties as needed
+  }) as unknown as QuoteResponse & QuoteMetadata;
+
   it('should navigate to blockaid modal with validation error', async () => {
-    const mockQuote = { id: 'test-quote' };
+    const mockQuote = createMockQuote('test-quote');
     
     mockValidateBridgeTx.mockResolvedValue({
       result: {
@@ -81,7 +123,7 @@ describe('Blockaid Validation Logic', () => {
   });
 
   it('should navigate to blockaid modal with simulation error', async () => {
-    const mockQuote = { id: 'test-quote' };
+    const mockQuote = createMockQuote('test-quote');
     
     mockValidateBridgeTx.mockResolvedValue({
       error: 'Simulation failed: Insufficient balance for transaction',
@@ -106,7 +148,7 @@ describe('Blockaid Validation Logic', () => {
   });
 
   it('should prioritize validation error over simulation error', async () => {
-    const mockQuote = { id: 'test-quote' };
+    const mockQuote = createMockQuote('test-quote');
     
     mockValidateBridgeTx.mockResolvedValue({
       error: 'Simulation failed: Some simulation error',
@@ -131,7 +173,7 @@ describe('Blockaid Validation Logic', () => {
   });
 
   it('should proceed without blockaid modal when validation passes', async () => {
-    const mockQuote = { id: 'test-quote' };
+    const mockQuote = createMockQuote('test-quote');
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
     
     mockValidateBridgeTx.mockResolvedValue({
@@ -157,7 +199,7 @@ describe('Blockaid Validation Logic', () => {
   });
 
   it('should handle validation hook errors gracefully', async () => {
-    const mockQuote = { id: 'test-quote' };
+    const mockQuote = createMockQuote('test-quote');
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
     
     mockValidateBridgeTx.mockRejectedValue(new Error('Network error'));
@@ -179,11 +221,11 @@ describe('Blockaid Validation Logic', () => {
   });
 
   it('should handle malformed validation responses', async () => {
-    const mockQuote = { id: 'test-quote' };
+    const mockQuote = createMockQuote('test-quote');
     
     mockValidateBridgeTx.mockResolvedValue({
       // Missing result property
-    });
+    } as any);
 
     await act(async () => {
       await handleContinueLogic(mockQuote, mockValidateBridgeTx, mockNavigate, mockDispatch);
@@ -199,9 +241,9 @@ describe('Blockaid Validation Logic', () => {
   });
 
   it('should handle undefined validation responses', async () => {
-    const mockQuote = { id: 'test-quote' };
+    const mockQuote = createMockQuote('test-quote');
     
-    mockValidateBridgeTx.mockResolvedValue(undefined);
+    mockValidateBridgeTx.mockResolvedValue(undefined as any);
 
     await act(async () => {
       await handleContinueLogic(mockQuote, mockValidateBridgeTx, mockNavigate, mockDispatch);
