@@ -7,7 +7,7 @@ import {
   TestSnapInputSelectorWebIDS,
   TestSnapResultSelectorWebIDS,
   TestSnapBottomSheetSelectorWebIDS,
-} from '../../selectors/Browser/TestSnap.selectors';
+} from '../../selectors/Browser/TestSnaps.selectors';
 import Gestures from '../../utils/Gestures';
 import {
   SNAP_INSTALL_CONNECT,
