@@ -38,7 +38,7 @@ class PortfolioHomePage {
   }
 
   async closePrivacyModal() {
-    await TestHelpers.delay(1000);
+    
     await Gestures.tapWebElement(this.closeIconPrivacyModal);
   }
 

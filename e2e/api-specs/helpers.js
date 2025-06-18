@@ -32,7 +32,7 @@ const pollResult = async (driver, generatedKey) => {
     addToQueue({
       name: 'pollResult',
       task: async () => {
-        await TestHelpers.delay(500);
+        
         const text = await driver.runScript(
           (el, g) => window[g],
           [generatedKey],

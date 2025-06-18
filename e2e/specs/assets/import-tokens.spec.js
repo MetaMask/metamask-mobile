@@ -39,7 +39,7 @@ describe(Regression('Import Tokens'), () => {
     await ImportTokensView.tapOnToken(); // taps the first token in the returned list
     await ImportTokensView.tapOnNextButton();
 
-    await TestHelpers.delay(500);
+    
     await Assertions.checkIfVisible(ConfirmAddAssetView.container);
 
     await ConfirmAddAssetView.tapOnConfirmButton();
@@ -51,12 +51,12 @@ describe(Regression('Import Tokens'), () => {
   it('should cancel add a token via token autocomplete', async () => {
     await WalletView.tapImportTokensButton();
     await ImportTokensView.searchToken('SNX');
-    await TestHelpers.delay(2000);
+    
     await ImportTokensView.tapOnToken();
-    await TestHelpers.delay(500);
+    
     await ImportTokensView.tapOnNextButton();
 
-    await TestHelpers.delay(500);
+    
     await Assertions.checkIfVisible(ConfirmAddAssetView.container);
 
     await ConfirmAddAssetView.tapOnCancelButton();
@@ -70,13 +70,13 @@ describe(Regression('Import Tokens'), () => {
   });
 
   it('should add a token via token footer link', async () => {
-    await TestHelpers.delay(2000); // Wait for the footer link to be visible
+     // Wait for the footer link to be visible
     await WalletView.tapImportTokensFooterLink();
     await ImportTokensView.searchToken('SNX');
     await ImportTokensView.tapOnToken(); // taps the first token in the returned list
     await ImportTokensView.tapOnNextButton();
 
-    await TestHelpers.delay(500);
+    
     await Assertions.checkIfVisible(ConfirmAddAssetView.container);
 
     await ConfirmAddAssetView.tapOnConfirmButton();

@@ -52,7 +52,7 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         // Initial setup: Login and navigate to test dapp
         await loginToApp();
         await TabBarComponent.tapBrowser();
-        await TestHelpers.delay(3000);
+        
         await Assertions.checkIfVisible(Browser.browserScreenID);
         await Browser.navigateToTestDApp();
         // First permission modification: Add Linea Sepolia

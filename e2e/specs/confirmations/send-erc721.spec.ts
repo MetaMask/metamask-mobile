@@ -60,7 +60,7 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
         // Transfer NFT
 
         await TestDApp.tapNFTTransferButton();
-        await TestHelpers.delay(3000);
+        
 
         await TestDApp.tapConfirmButton();
 

@@ -85,7 +85,7 @@ class SendView {
 
   async removeAddress() {
     await Gestures.waitAndTap(this.removeAddressButton);
-    await TestHelpers.delay(1000);
+    
   }
 
   async splitAddressText(){

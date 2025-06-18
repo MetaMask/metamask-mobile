@@ -44,7 +44,7 @@ describe('NFT Details page', () => {
         await QuoteView.tapOnSelectDestToken();
         await QuoteView.tapSearchToken();
         await QuoteView.typeSearchToken(destTokenSymbol);
-        await TestHelpers.delay(2000);
+        
         await QuoteView.selectToken(destTokenSymbol);
 
         await QuoteView.tapOnGetQuotes();
@@ -66,7 +66,7 @@ describe('NFT Details page', () => {
           console.log(`Swap complete didn't pop up: ${e}`);
         }
         // await device.enableSynchronization();
-        await TestHelpers.delay(10000);
+        
 
         // Check the swap activity completed
         await TabBarComponent.tapActivity();

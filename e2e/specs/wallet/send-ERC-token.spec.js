@@ -47,7 +47,6 @@ describe(Regression('Send ERC Token'), () => {
 
   it('should add Sepolia testnet to my networks list', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
-    await TestHelpers.delay(2000);
     await NetworkListModal.scrollToBottomOfNetworkList();
     await NetworkListModal.tapTestNetworkSwitch();
     await NetworkListModal.scrollToBottomOfNetworkList();
@@ -80,15 +79,15 @@ describe(Regression('Send ERC Token'), () => {
 
   it('should send token to address via asset overview screen', async () => {
     await WalletView.tapOnToken('ChainLink Token');
-    await TestHelpers.delay(3500);
+    
     await TokenOverview.scrollOnScreen();
-    await TestHelpers.delay(3500);
+    
     await TokenOverview.tapSendButton();
     await SendView.inputAddress(SEND_ADDRESS);
-    await TestHelpers.delay(1000);
+    
     await SendView.tapNextButton();
     await AmountView.typeInTransactionAmount('0.000001');
-    await TestHelpers.delay(5000);
+    
     await AmountView.tapNextButton();
     await Assertions.checkIfTextIsDisplayed('< 0.00001 LINK');
     await TransactionConfirmationView.tapConfirmButton();

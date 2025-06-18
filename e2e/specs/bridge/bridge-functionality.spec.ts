@@ -55,7 +55,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
       },
     });
 
-    await TestHelpers.delay(5000);
+    
     await loginToApp();
   });
 
@@ -85,12 +85,12 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await Assertions.checkIfVisible(WalletView.container);
 
     await TabBarComponent.tapActions();
-    await TestHelpers.delay(500);
+    
     await WalletActionsBottomSheet.tapBridgeButton();
     await device.disableSynchronization();
     await QuoteView.enterBridgeAmount('1');
     await QuoteView.tapBridgeTo();
-    await TestHelpers.delay(1000);
+    
     await QuoteView.selectNetwork('Solana');
     await Assertions.checkIfVisible(QuoteView.token('SOL'));
     await QuoteView.selectToken('SOL');
@@ -120,7 +120,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await device.disableSynchronization();
     await QuoteView.enterBridgeAmount('1');
     await QuoteView.tapBridgeTo();
-    await TestHelpers.delay(1000);
+    
     await QuoteView.selectNetwork('Base');
     await Assertions.checkIfVisible(QuoteView.token('ETH'));
     await QuoteView.selectToken('ETH');
@@ -153,7 +153,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await device.disableSynchronization();
     await QuoteView.enterBridgeAmount('1');
     await QuoteView.tapBridgeTo();
-    await TestHelpers.delay(1000);
+    
     await QuoteView.selectNetwork('OP Mainnet');
     await Assertions.checkIfVisible(QuoteView.token('ETH'));
     await QuoteView.selectToken('ETH');

@@ -103,7 +103,7 @@ describe(Regression('Multiple Swaps from Actions'), () => {
           false,
         );
         await NetworkEducationModal.tapGotItButton();
-        await TestHelpers.delay(3000);
+        
         currentNetwork = network.providerConfig.nickname;
       }
 
@@ -118,7 +118,7 @@ describe(Regression('Multiple Swaps from Actions'), () => {
         await QuoteView.tapOnSelectSourceToken();
         await QuoteView.tapSearchToken();
         await QuoteView.typeSearchToken(sourceTokenSymbol);
-        await TestHelpers.delay(2000);
+        
         await QuoteView.selectToken(sourceTokenSymbol);
       }
       await QuoteView.enterSwapAmount(quantity);
@@ -128,7 +128,7 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       if (destTokenSymbol !== 'ETH') {
         await QuoteView.tapSearchToken();
         await QuoteView.typeSearchToken(destTokenSymbol);
-        await TestHelpers.delay(2000);
+        
         await QuoteView.selectToken(destTokenSymbol);
       } else await QuoteView.selectToken(destTokenSymbol, firstElement);
 
@@ -158,7 +158,7 @@ describe(Regression('Multiple Swaps from Actions'), () => {
         console.log(`Swap complete didn't pop up: ${e}`);
       }
       await device.enableSynchronization();
-      await TestHelpers.delay(10000);
+      
 
       // Check the swap activity completed
       await TabBarComponent.tapActivity();

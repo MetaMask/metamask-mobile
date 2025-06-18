@@ -49,7 +49,7 @@ describe(SmokeNetworkAbstractions('Asset Watch:'), () => {
         await TestDApp.navigateToTestDappWithContract({
           contractAddress: hstAddress,
         });
-        await TestHelpers.delay(3000); // Because loading the dapp is slow on CI
+         // Because loading the dapp is slow on CI
 
         await TestDApp.tapAddERC20TokenToWalletButton();
         await Assertions.checkIfVisible(AssetWatchBottomSheet.container);

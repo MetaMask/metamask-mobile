@@ -58,7 +58,6 @@ describe(SmokeNetworkAbstractions('Connect account to Portfolio'), () => {
     await device.disableSynchronization();
     await PortfolioHomePage.tapBurgerMenu();
     await PortfolioHomePage.tapConnectMetaMask();
-    await TestHelpers.delay(2000);
     await ConnectBottomSheet.tapConnectButton();
     await device.enableSynchronization();
   });

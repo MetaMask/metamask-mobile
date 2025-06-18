@@ -58,7 +58,7 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
         });
         // Approve NFT
         await TestDApp.tapApproveERC721TokenButton();
-        await TestHelpers.delay(3000);
+        
         await TestDApp.tapApproveButton();
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();

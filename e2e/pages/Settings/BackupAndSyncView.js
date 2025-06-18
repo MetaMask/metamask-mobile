@@ -18,12 +18,12 @@ class BackupAndSyncView {
 
   async toggleBackupAndSync() {
     await Gestures.waitAndTap(this.backupAndSyncToggle);
-    await TestHelpers.delay(2000);
+    
   }
 
   async toggleAccountSync() {
     await Gestures.waitAndTap(this.accountSyncToggle);
-    await TestHelpers.delay(2000);
+    
   }
 }
 

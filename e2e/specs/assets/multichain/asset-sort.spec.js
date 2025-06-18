@@ -47,7 +47,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await ImportTokensView.tapOnToken(); // taps the first token in the returned list
     await ImportTokensView.tapOnNextButton();
 
-    await TestHelpers.delay(500);
+    
     await Assertions.checkIfVisible(ConfirmAddAssetView.container);
 
     await ConfirmAddAssetView.tapOnConfirmButton();

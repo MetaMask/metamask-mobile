@@ -85,7 +85,7 @@ describe.skip(SmokeTrade('Stake from Actions'), (): void => {
       permissions: { notifications: 'YES' },
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
-    await TestHelpers.delay(5000);
+    
     await loginToApp();
   });
 
@@ -125,7 +125,7 @@ describe.skip(SmokeTrade('Stake from Actions'), (): void => {
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(FIRST_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
     // Wait fot toeast to clear
-    await TestHelpers.delay(8000);
+    
     await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
     await TabBarComponent.tapWallet();
     // Waiting for funds to arrive
@@ -154,12 +154,12 @@ describe.skip(SmokeTrade('Stake from Actions'), (): void => {
     await StakeView.tapReview();
     await StakeView.tapContinue();
     await StakeConfirmView.tapConfirmButton();
-    await TestHelpers.delay(2000);
+    
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.stakeDepositedLabel);
     await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(FIRST_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
     // Wait fot toeast to clear
-    await TestHelpers.delay(8000);
+    
     await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
     await TabBarComponent.tapWallet();
   });
@@ -170,18 +170,18 @@ describe.skip(SmokeTrade('Stake from Actions'), (): void => {
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnStakedEthereum();
     await TokenOverview.scrollOnScreen();
-    await TestHelpers.delay(3000);
+    
     await TokenOverview.tapStakeMoreButton();
     await Assertions.checkIfVisible(StakeView.stakeContainer);
     await StakeView.enterAmount('.001');
     await StakeView.tapReview();
     await StakeView.tapContinue();
     await StakeConfirmView.tapConfirmButton();
-    await TestHelpers.delay(10000);
+    
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.stakeDepositedLabel);
     await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(FIRST_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
-    await TestHelpers.delay(8000);
+    
     await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
     await TabBarComponent.tapWallet();
   });
@@ -190,25 +190,25 @@ describe.skip(SmokeTrade('Stake from Actions'), (): void => {
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnStakedEthereum();
     await TokenOverview.scrollOnScreen();
-    await TestHelpers.delay(3000);
+    
     await TokenOverview.tapUnstakeButton();
     await Assertions.checkIfVisible(StakeView.unstakeContainer);
     await StakeView.enterAmount('.002');
     await StakeView.tapReview();
     await StakeView.tapContinue();
     await StakeConfirmView.tapConfirmButton();
-    await TestHelpers.delay(15000);
+    
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.unstakeLabel);
     await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(FIRST_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
     // Wait fot toeast to clear
-    await TestHelpers.delay(8000);
+    
     await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnStakedEthereum();
     await TokenOverview.scrollOnScreen();
-    await TestHelpers.delay(3000);
+    
     await Assertions.checkIfVisible(TokenOverview.unstakingBanner);
     await TokenOverview.tapBackButton();
   });
@@ -226,7 +226,7 @@ describe.skip(SmokeTrade('Stake from Actions'), (): void => {
     // 3rd one is Linea Network
     await WalletView.tapOnToken('Ethereum', THIRD_ONE);
     await TokenOverview.scrollOnScreen();
-    await TestHelpers.delay(3000);
+    
     await Assertions.checkIfNotVisible(TokenOverview.stakedBalance);
     await Assertions.checkIfNotVisible(TokenOverview.unstakingBanner);
     await Assertions.checkIfNotVisible(TokenOverview.unstakeButton);
@@ -286,14 +286,14 @@ it('should Stake Claim ETH', async (): Promise<void> => {
   await loginToApp();
   await WalletView.tapOnStakedEthereum();
   await TokenOverview.scrollOnScreen();
-  await TestHelpers.delay(3000);
+  
   await TokenOverview.tapClaimButton();
   await StakeConfirmView.tapConfirmButton();
   await TokenOverview.tapBackButton();
   //Wait for transaction to complete
   try {
     await Assertions.checkIfTextIsDisplayed('Transaction #3 Complete!',30000);
-    await TestHelpers.delay(8000);
+    
     } catch (e) {
       // eslint-disable-next-line no-console
        console.log(`Transaction complete didn't pop up: ${e}`);

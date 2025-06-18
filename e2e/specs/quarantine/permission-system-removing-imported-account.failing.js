@@ -36,19 +36,19 @@ describe(
     });
 
     it('should navigate to browser', async () => {
-      await TestHelpers.delay(2000);
+      
       await TabBarComponent.tapBrowser();
       await Assertions.checkIfVisible(Browser.browserScreenID);
     });
 
     it('should trigger connect modal in the test dapp', async () => {
-      await TestHelpers.delay(3000);
+      
       //TODO: Create goToTestDappAndTapConnectButton method.
       // await TestDApp.goToTestDappAndTapConnectButton();
     });
 
     it('should go to multiconnect in the connect account modal', async () => {
-      await TestHelpers.delay(3000);
+      
       await ConnectBottomSheet.tapConnectMultipleAccountsButton();
     });
 
@@ -82,11 +82,11 @@ describe(
     });
 
     it('should set the imported account as primary account', async () => {
-      await TestHelpers.delay(1500);
+      
     });
 
     it('should navigate to wallet view', async () => {
-      await TestHelpers.delay(1500);
+      
       await TabBarComponent.tapWallet();
       await Assertions.checkIfVisible(WalletView.container);
     });
@@ -102,7 +102,7 @@ describe(
 
     it('should return to browser', async () => {
       //await AccountListView.swipeToDimssAccountsModal();
-      await TestHelpers.delay(4500);
+      
       await TabBarComponent.tapBrowser();
       // Check that we are on the browser screen
       await Assertions.checkIfVisible(Browser.browserScreenID);

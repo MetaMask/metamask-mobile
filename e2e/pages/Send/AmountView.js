@@ -35,7 +35,7 @@ class AmountView {
   }
 
   async tapNextButton() {
-    await TestHelpers.delay(1000);
+    
     await Gestures.waitAndTap(this.nextButton);
   }
 
@@ -44,11 +44,11 @@ class AmountView {
   }
 
   async typeInTransactionAmount(amount) {
-    await TestHelpers.delay(1000);
+    
     device.getPlatform() === 'android'
       ? await Gestures.typeTextAndHideKeyboard(this.amountInputField, amount)
       : await Gestures.replaceTextInField(this.amountInputField, amount);
-    await TestHelpers.delay(1000);
+    
 
   }
 

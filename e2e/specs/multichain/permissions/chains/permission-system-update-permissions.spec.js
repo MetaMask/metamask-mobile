@@ -93,12 +93,12 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
       async () => {
         await loginToApp();
         await TabBarComponent.tapBrowser();
-        await TestHelpers.delay(3000);
+        
         await Browser.navigateToTestDApp();
 
         // adding delay,
         // on artifact recording it shows the toast is stuck, and looks like tapNetworkAvatar is tapped but bottom sheet not coming up yet grey overlay usually behind the bottom sheet was showing, and recording stopped there, yet toast was stuck on screen for 15 seconds anduntil end of recording
-        await TestHelpers.delay(3000);
+        
 
         // Open network permissions menu
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
@@ -114,11 +114,11 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         // Handle network education modal and close bottom sheet
         await NetworkEducationModal.tapGotItButton();
         await device.enableSynchronization();
-        await TestHelpers.delay(3000);
+        
 
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await PermissionSummaryBottomSheet.swipeToDismissModal();
-        await TestHelpers.delay(3000);
+        
 
         // Verify network switched to Sepolia in wallet view
         await TabBarComponent.tapWallet();
@@ -148,14 +148,14 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         await Browser.navigateToTestDApp();
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.checkIfVisible(ConnectedAccountsModal.title);
-        await TestHelpers.delay(2000);
+        
         await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
 
         // validate that one account is connected
         await ConnectedAccountsModal.tapManagePermissionsButton();
         await Assertions.checkIfTextIsDisplayed(accountOneText);
         await PermissionSummaryBottomSheet.tapBackButton();
-        await TestHelpers.delay(2000);
+        
 
         // connect more accounts through the "connect more accounts" button
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();

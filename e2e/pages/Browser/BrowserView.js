@@ -171,7 +171,7 @@ class Browser {
   }
 
   async tapNetworkAvatarOrAccountButtonOnBrowser() {
-    await TestHelpers.delay(4000);
+    
     await Gestures.waitAndTap(this.networkAvatarOrAccountButton);
   }
 
@@ -212,7 +212,7 @@ class Browser {
   }
 
   async waitForBrowserPageToLoad() {
-    await TestHelpers.delay(5000);
+    
   }
 
   async navigateToTestDApp() {

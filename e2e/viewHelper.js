@@ -55,7 +55,7 @@ export const closeOnboardingModals = async (solanaSheetAction = 'dismiss') => {
 These onboarding modals are becoming a bit wild. We need less of these so we don't
 have to have all these workarounds in the tests
   */
-  await TestHelpers.delay(1000);
+  
 
   try {
     await Assertions.checkIfVisible(ToastModal.container);
@@ -77,7 +77,7 @@ have to have all these workarounds in the tests
 };
 
 export const skipNotificationsDeviceSettings = async () => {
-  await TestHelpers.delay(1000);
+  
 
   try {
     await Assertions.checkIfVisible(
@@ -119,7 +119,7 @@ export const importWalletWithRecoveryPhrase = async ({
 
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
-  await TestHelpers.delay(3500);
+  
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
   await ImportWalletView.enterSecretRecoveryPhrase(
@@ -127,7 +127,7 @@ export const importWalletWithRecoveryPhrase = async ({
   );
   await ImportWalletView.tapTitle();
   await ImportWalletView.tapContinueButton();
-  await TestHelpers.delay(3500);
+  
 
   await CreatePasswordView.enterPassword(password ?? validAccount.password);
   await CreatePasswordView.reEnterPassword(password ?? validAccount.password);
@@ -145,7 +145,7 @@ export const importWalletWithRecoveryPhrase = async ({
   }
 
   //'Should dismiss Enable device Notifications checks alert'
-  await TestHelpers.delay(3500);
+  
   await Assertions.checkIfVisible(OnboardingSuccessView.container);
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
@@ -199,7 +199,7 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
   await SkipAccountSecurityModal.tapSkipButton();
   await device.enableSynchronization();
-  await TestHelpers.delay(3500);
+  
 
   await Assertions.checkIfVisible(MetaMetricsOptIn.container);
   optInToMetrics
@@ -227,7 +227,7 @@ export const addLocalhostNetwork = async () => {
   await SettingsView.tapNetworks();
   await Assertions.checkIfVisible(NetworkView.networkContainer);
 
-  await TestHelpers.delay(3000);
+  
   await NetworkView.tapAddNetworkButton();
   await NetworkView.switchToCustomNetworks();
 
@@ -240,7 +240,7 @@ export const addLocalhostNetwork = async () => {
     // await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
     await NetworkView.tapRpcNetworkAddButton();
   }
-  await TestHelpers.delay(3000);
+  
 
   await Assertions.checkIfVisible(NetworkEducationModal.container);
   await Assertions.checkIfElementToHaveText(
@@ -300,7 +300,7 @@ export const waitForTestDappToLoad = async () => {
           `Test dapp failed to load after ${MAX_RETRIES} attempts: ${error.message}`,
         );
       }
-      await TestHelpers.delay(RETRY_DELAY);
+      
     }
   }
 

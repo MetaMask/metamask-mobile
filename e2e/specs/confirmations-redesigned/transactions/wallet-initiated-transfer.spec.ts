@@ -55,7 +55,7 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
         await loginToApp();
 
         await TabBarComponent.tapActions();
-        await TestHelpers.delay(2000);
+        
         await WalletActionsBottomSheet.tapSendButton();
 
         await SendView.inputAddress(RECIPIENT);

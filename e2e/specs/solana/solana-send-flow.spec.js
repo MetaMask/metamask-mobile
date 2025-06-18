@@ -52,7 +52,7 @@ describe(
       await WalletActionsBottomSheet.tapSendButton();
       await SnapSendActionSheet.sendActionInputAddress(RECIPIENT_ADDRESS);
       await SnapSendActionSheet.sendActionInputAmount(TRANSFER_AMOUNT);
-      await TestHelpers.delay(4000);
+      
       await SnapSendActionSheet.tapContinueButton();
         SendActionViewSelectorsIDs.SOL_CONFIRM_SEND_VIEW,
       // Snap UI components prove tricky for testID's require more time
@@ -62,7 +62,7 @@ describe(
     });
 
     it('Should verify that transaction is sent successfully', async () => {
-      await TestHelpers.delay(4000);
+      
       await SnapSendActionSheet.tapCloseButton();
       await TabBarComponent.tapActivity();
       await ActivitiesView.tapOnTransactionItem(RECENT_TRANSACTION_INDEX);

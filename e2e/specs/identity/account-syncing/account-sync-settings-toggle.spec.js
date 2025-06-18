@@ -81,7 +81,7 @@ describe(
 
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-      await TestHelpers.delay(4000);
+      
 
       for (const accountName of decryptedAccountNames) {
         await Assertions.checkIfVisible(
@@ -98,7 +98,7 @@ describe(
 
       await Assertions.checkIfVisible(BackupAndSyncView.backupAndSyncToggle);
       await BackupAndSyncView.toggleAccountSync();
-      await TestHelpers.delay(2000);
+      
 
       await CommonView.tapBackButton();
       await Assertions.checkIfVisible(SettingsView.backupAndSyncSectionButton);
@@ -107,7 +107,7 @@ describe(
 
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-      await TestHelpers.delay(2000);
+      
 
       await AccountListBottomSheet.tapAddAccountButton();
       await AddAccountBottomSheet.tapCreateAccount();
@@ -130,7 +130,7 @@ describe(
 
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-      await TestHelpers.delay(2000);
+      
 
       await Assertions.checkIfNotVisible(
         AccountListBottomSheet.getAccountElementByAccountName(ADDED_ACCOUNT),

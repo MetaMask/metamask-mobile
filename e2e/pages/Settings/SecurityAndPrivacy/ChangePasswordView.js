@@ -55,7 +55,7 @@ class ChangePasswordView {
       await Gestures.waitAndTap(this.iosUnderstandCheck);
     } else {
       // Tap by the I understand text
-      await TestHelpers.delay(1000);
+      
       await Gestures.waitAndTap(this.androidUnderstandCheck);
     }
   }

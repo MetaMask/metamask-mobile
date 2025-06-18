@@ -55,7 +55,7 @@ describe(Regression('Custom RPC Tests'), () => {
     await NetworkView.tapRpcDropDownButton();
     await NetworkView.tapAddRpcButton();
 
-    await TestHelpers.delay(200);
+    
     await NetworkView.typeInRpcUrl('abc'); // Input incorrect RPC URL
     await Assertions.checkIfVisible(NetworkView.rpcWarningBanner);
     await NetworkView.clearRpcInputBox();
@@ -192,7 +192,7 @@ describe(Regression('Custom RPC Tests'), () => {
     // delete Gnosis network
     await NetworkListModal.deleteNetwork();
 
-    await TestHelpers.delay(200);
+    
 
     await NetworkListModal.tapDeleteButton();
 

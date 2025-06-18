@@ -52,7 +52,7 @@ describe(SmokeConfirmationsRedesigned('Send Max Transfer'), () => {
         await loginToApp();
 
         await TabBarComponent.tapActions();
-        await TestHelpers.delay(2000);
+        
         await WalletActionsBottomSheet.tapSendButton();
 
         await SendView.inputAddress(RECIPIENT);
@@ -60,7 +60,7 @@ describe(SmokeConfirmationsRedesigned('Send Max Transfer'), () => {
 
         // Do double tab here to prevent flakiness
         await AmountView.tapMaxButton();
-        await TestHelpers.delay(2000);
+        
         await AmountView.tapMaxButton();
 
         await AmountView.tapNextButton();

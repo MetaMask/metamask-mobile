@@ -50,7 +50,7 @@ xdescribe(
           await device.enableSynchronization();
           // Verify bottom sheet appears
           await TabBarComponent.tapBrowser();
-          await TestHelpers.delay(3000);
+          
           await Browser.navigateToTestDApp();
           await Assertions.checkIfVisible(
             NetworkNonPemittedBottomSheet.addThisNetworkTitle,
@@ -85,7 +85,7 @@ xdescribe(
           await device.enableSynchronization();
           // Verify no bottom sheet appears
           await TabBarComponent.tapBrowser();
-          await TestHelpers.delay(3000);
+          
           await Browser.navigateToTestDApp();
           await Assertions.checkIfNotVisible(
             NetworkNonPemittedBottomSheet.addThisNetworkTitle,
@@ -118,7 +118,7 @@ xdescribe(
 
           // Add network permission
           await TabBarComponent.tapBrowser();
-          await TestHelpers.delay(3000);
+          
           await Browser.navigateToTestDApp();
           await NetworkNonPemittedBottomSheet.tapAddThisNetworkButton();
 
@@ -161,19 +161,19 @@ xdescribe(
 
           // Verify bottom sheet appears and choose from permitted networks
           await TabBarComponent.tapBrowser();
-          await TestHelpers.delay(3000); // Wait for the browser to load
+           // Wait for the browser to load
           await Browser.navigateToTestDApp();
-          await TestHelpers.delay(3000); // Wait for the toast to disappear
+           // Wait for the toast to disappear
           await Assertions.checkIfVisible(
             NetworkNonPemittedBottomSheet.addThisNetworkTitle,
           );
-          await TestHelpers.delay(3000); // still waiting for the toast to disappear
+           // still waiting for the toast to disappear
           await NetworkNonPemittedBottomSheet.tapChooseFromPermittedNetworksButton();
 
           // Select Sepolia from permitted networks
           await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
           await NetworkEducationModal.tapGotItButton();
-          await TestHelpers.delay(3000); // another toast to wait for, after switching to Sepolia
+           // another toast to wait for, after switching to Sepolia
 
           // Verify network switched to Sepolia
           await TabBarComponent.tapWallet();
@@ -208,12 +208,12 @@ xdescribe(
 
           // Verify bottom sheet appears and navigate to edit permissions
           await TabBarComponent.tapBrowser();
-          await TestHelpers.delay(3000); // Wait for the browser to load
+           // Wait for the browser to load
           await Browser.navigateToTestDApp();
           await Assertions.checkIfVisible(
             NetworkNonPemittedBottomSheet.addThisNetworkTitle,
           );
-          await TestHelpers.delay(3000); // Wait for the toast to disappear
+           // Wait for the toast to disappear
           await NetworkNonPemittedBottomSheet.tapChooseFromPermittedNetworksButton();
           await NetworkNonPemittedBottomSheet.tapEditPermissionsButton();
 
@@ -221,12 +221,12 @@ xdescribe(
           await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
           await NetworkConnectMultiSelector.tapUpdateButton();
           // await NetworkEducationModal.tapGotItButton(); // commeting this line for now, for some reason the e2e recordings dont currently show a got it modal here
-          await TestHelpers.delay(3000); // Wait for the toast to disappear
+           // Wait for the toast to disappear
 
           // Select Linea Sepolia from permitted networks
           await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
           await NetworkEducationModal.tapGotItButton();
-          await TestHelpers.delay(3000); // Wait for the toast to disappear
+           // Wait for the toast to disappear
 
           // Verify network switched to Linea Sepolia
           await TabBarComponent.tapWallet();

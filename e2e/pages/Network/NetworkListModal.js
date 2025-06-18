@@ -71,7 +71,7 @@ class NetworkListModal {
   async changeNetworkTo(networkName, custom) {
     const elem = this.getCustomNetwork(networkName, custom);
     await Gestures.waitAndTap(elem, { delayBeforeTap: 2500 });
-    await TestHelpers.delay(3000);
+    
   }
 
   async scrollToBottomOfNetworkList() {

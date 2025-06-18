@@ -68,7 +68,7 @@ export default class ConfirmationsRejectRule {
             await Assertions.checkIfNotVisible(
               PermissionSummaryBottomSheet.container,
             );
-            await TestHelpers.delay(3000);
+            
 
             try {
               await Assertions.checkIfVisible(SpamFilterModal.title);
@@ -139,7 +139,7 @@ export default class ConfirmationsRejectRule {
         resolve,
         reject,
         task: async () => {
-          await TestHelpers.delay(3000);
+          
           const imagePath = await device.takeScreenshot(
             `afterRequest-${this.getTitle()}`,
           );
@@ -151,7 +151,7 @@ export default class ConfirmationsRejectRule {
             type: 'image',
           });
           let cancelButton;
-          await TestHelpers.delay(3000);
+          
           if (this.allCapsCancel.includes(call.methodName)) {
             await AssetWatchBottomSheet.tapCancelButton();
           } else if (call.methodName === 'wallet_revokePermissions') {

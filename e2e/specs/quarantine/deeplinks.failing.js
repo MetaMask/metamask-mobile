@@ -56,7 +56,7 @@ describe(Regression('Deep linking Tests'), () => {
     await SettingsView.tapSecurityAndPrivacy();
 
     await SecurityAndPrivacy.scrollToTurnOnRememberMe();
-    await TestHelpers.delay(3000);
+    
   });
 
   it('should enable remember me', async () => {
@@ -76,7 +76,7 @@ describe(Regression('Deep linking Tests'), () => {
 
   it('should deep link to Binance Smart Chain & show a network not found error message', async () => {
     await TestHelpers.openDeepLink(BINANCE_DEEPLINK_URL);
-    await TestHelpers.delay(3000);
+    
     await TestHelpers.checkIfElementWithTextIsVisible(networkNotFoundText);
     await TestHelpers.checkIfElementWithTextIsVisible(networkErrorBodyMessage);
     await CommonView.tapOKAlertButton();
@@ -91,7 +91,7 @@ describe(Regression('Deep linking Tests'), () => {
 
   it('should add BSC network', async () => {
     // Tap on Add Network button
-    await TestHelpers.delay(3000);
+    
     await NetworkView.tapAddNetworkButton();
 
     await Assertions.checkIfVisible(NetworkView.networkContainer);
@@ -123,7 +123,7 @@ describe(Regression('Deep linking Tests'), () => {
     );
 
     await NetworkApprovalBottomSheet.tapApproveButton();
-    await TestHelpers.delay(1000);
+    
 
     await Assertions.checkIfVisible(NetworkAddedBottomSheet.switchNetwork);
     await NetworkAddedBottomSheet.tapSwitchToNetwork();
@@ -138,18 +138,18 @@ describe(Regression('Deep linking Tests'), () => {
   it('should deep link to the send flow on matic', async () => {
     await TestHelpers.openDeepLink(POLYGON_DEEPLINK_URL); //FIXME: this is failing on iOS simulator
 
-    await TestHelpers.delay(4500);
+    
     await Assertions.checkIfVisible(
       TransactionConfirmationView.transactionViewContainer,
     );
     //TODO: Update isNetworkNameVisible method
     //await TransactionConfirmationView.isNetworkNameVisible('Polygon Mainnet');
-    await TestHelpers.delay(1500);
+    
     await TransactionConfirmationView.tapCancelButton();
   });
   it('should deep link to the send flow on BSC', async () => {
     await TestHelpers.openDeepLink(BINANCE_DEEPLINK_URL);
-    await TestHelpers.delay(4500);
+    
     await Assertions.checkIfVisible(
       TransactionConfirmationView.transactionViewContainer,
     );
@@ -159,7 +159,7 @@ describe(Regression('Deep linking Tests'), () => {
 
   it('should deep link to the send flow on Goerli and submit the transaction', async () => {
     await TestHelpers.openDeepLink(GOERLI_DEEPLINK_URL);
-    await TestHelpers.delay(4500);
+    
     await Assertions.checkIfVisible(
       TransactionConfirmationView.transactionViewContainer,
     );
@@ -177,7 +177,7 @@ describe(Regression('Deep linking Tests'), () => {
 
   it('should deep link to the send flow on mainnet', async () => {
     await TestHelpers.openDeepLink(ETHEREUM_DEEPLINK_URL);
-    await TestHelpers.delay(4500);
+    
 
     await Assertions.checkIfVisible(
       TransactionConfirmationView.transactionViewContainer,
@@ -191,7 +191,7 @@ describe(Regression('Deep linking Tests'), () => {
 
   it('should deep link to a dapp (Sushi swap)', async () => {
     await TestHelpers.openDeepLink(DAPP_DEEPLINK_URL);
-    await TestHelpers.delay(4500);
+    
 
     await Assertions.checkIfVisible(ConnectBottomSheet.container);
     await ConnectBottomSheet.tapConnectButton();

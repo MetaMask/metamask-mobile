@@ -41,7 +41,7 @@ describe(SmokeNetworkAbstractions('Networks Search'), () => {
         // delete avalanche network
         await NetworkListModal.deleteNetwork();
 
-        await TestHelpers.delay(2000);
+        
         await NetworkListModal.tapDeleteButton();
 
         await Assertions.checkIfVisible(

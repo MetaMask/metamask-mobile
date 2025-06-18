@@ -109,7 +109,7 @@ describe(SmokeWalletPlatform('Addressbook Tests'), () => {
     await ContactsView.tapOnAlias('Myth'); // Tap on Myth address
     await AddContactView.tapEditButton();
     await AddContactView.typeInName('Moon'); // Change name from Myth to Moon
-    await TestHelpers.delay(1500);
+    
 
     await AddContactView.tapEditContactCTA();
     if (device.getPlatform() === 'ios'){

@@ -98,7 +98,7 @@ describe(Regression('Swap from Token view'), (): void => {
     await QuoteView.tapOnSelectDestToken();
     await QuoteView.tapSearchToken();
     await QuoteView.typeSearchToken(destTokenSymbol);
-    await TestHelpers.delay(3000);
+    
     await QuoteView.selectToken(destTokenSymbol);
     await QuoteView.tapOnGetQuotes();
     await Assertions.checkIfVisible(SwapView.fetchingQuotes);
@@ -106,7 +106,7 @@ describe(Regression('Swap from Token view'), (): void => {
     await Assertions.checkIfVisible(SwapView.gasFee);
     await SwapView.tapIUnderstandPriceWarning();
     await SwapView.tapSwapButton();
-    await TestHelpers.delay(2000);
+    
     //Wait for Swap to complete
     try {
       await Assertions.checkIfTextIsDisplayed(
@@ -118,7 +118,7 @@ describe(Regression('Swap from Token view'), (): void => {
       console.log(`Swap complete didn't pop up: ${e}`);
     }
     await device.enableSynchronization();
-    await TestHelpers.delay(10000);
+    
 
     // After the swap is complete, the DAI balance shouldn't be 0
     await Assertions.checkIfTextIsNotDisplayed('0 DAI', 60000);

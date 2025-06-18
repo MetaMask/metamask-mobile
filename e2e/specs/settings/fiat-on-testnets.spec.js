@@ -44,7 +44,7 @@ describe(SmokeNetworkAbstractions('Fiat On Testnets Setting'), () => {
         );
 
         // Wait for network switch toast to disapear
-        await TestHelpers.delay(2500);
+        
 
         // Enable fiat on testnets setting
         await TabBarComponent.tapSettings();

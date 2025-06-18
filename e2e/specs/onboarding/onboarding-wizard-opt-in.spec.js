@@ -62,7 +62,7 @@ describe(
 
     it('should dismiss the marketing consent bottom sheet', async () => {
       // dealing with flakiness on bitrise.
-      await TestHelpers.delay(1000);
+      
       try {
         await Assertions.checkIfVisible(
           ExperienceEnhancerBottomSheet.container,
@@ -79,7 +79,7 @@ describe(
       await Assertions.checkIfVisible(
         ProtectYourWalletModal.collapseWalletModal,
       );
-      await TestHelpers.delay(1000);
+      
       await ProtectYourWalletModal.tapRemindMeLaterButton();
       await SkipAccountSecurityModal.tapIUnderstandCheckBox();
       await SkipAccountSecurityModal.tapSkipButton();
@@ -90,13 +90,13 @@ describe(
       await TabBarComponent.tapSettings();
       await SettingsView.tapSecurityAndPrivacy();
       await SecurityAndPrivacy.scrollToMetaMetrics();
-      await TestHelpers.delay(2000);
+      
       await Assertions.checkIfToggleIsOn(SecurityAndPrivacy.metaMetricsToggle);
     });
 
     it('should disable metametrics', async () => {
       await SecurityAndPrivacy.tapMetaMetricsToggle();
-      await TestHelpers.delay(1500);
+      
       await CommonView.tapOkAlert();
       await Assertions.checkIfToggleIsOff(SecurityAndPrivacy.metaMetricsToggle);
     });

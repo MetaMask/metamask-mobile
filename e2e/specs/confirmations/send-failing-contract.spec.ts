@@ -59,7 +59,7 @@ describe(SmokeConfirmations('Failing contracts'), () => {
 
         // Send a failing transaction
         await TestDApp.tapSendFailingTransactionButton();
-        await TestHelpers.delay(3000);
+        
 
         await TestDApp.tapConfirmButton();
 

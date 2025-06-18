@@ -49,7 +49,7 @@ describe(Regression('Permission System'), () => {
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.checkIfVisible(ConnectedAccountsModal.title);
         await ConnectedAccountsModal.scrollToBottomOfModal();
-        await TestHelpers.delay(2000);
+        
 
         //go to settings then security & privacy
         await TabBarComponent.tapSettings();
@@ -67,13 +67,13 @@ describe(Regression('Permission System'), () => {
         await DeleteWalletModal.typeDeleteInInputBox();
         await DeleteWalletModal.tapDeleteMyWalletButton();
         await Assertions.checkIfNotVisible(DeleteWalletModal.container);
-        await TestHelpers.delay(2000);
+        
         await Assertions.checkIfVisible(OnboardingView.container);
         if (device.getPlatform() === 'ios') {
           await Assertions.checkIfVisible(ToastModal.notificationTitle);
           await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
         } else {
-          await TestHelpers.delay(3000);
+          
         }
         await OnboardingView.tapCreateWallet();
 

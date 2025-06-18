@@ -89,7 +89,7 @@ describe(Regression('Carousel Tests'), () => {
       await WalletView.getCarouselSlideCloseButton(SLIDES[0].id);
     await Assertions.checkIfVisible(firstSlideCloseButton, 5000);
     await WalletView.closeCarouselSlide(SLIDES[0].id);
-    await TestHelpers.delay(5000);
+    
     await Assertions.checkIfElementToHaveText(
       carouselSecondSlideTitle,
       SLIDES[1].title,
@@ -112,7 +112,7 @@ describe(Regression('Carousel Tests'), () => {
     );
     await WalletView.tapCarouselSlide(SLIDES[2].id);
     await Assertions.checkIfVisible(container, 5000);
-    await TestHelpers.delay(5000);
+    
     await device.enableSynchronization();
   });
 });

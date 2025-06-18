@@ -85,13 +85,13 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
     await QuoteView.tapOnSelectDestToken();
     await QuoteView.tapSearchToken();
     await QuoteView.typeSearchToken('DAI');
-    await TestHelpers.delay(3000);
+    
     await QuoteView.selectToken('DAI');
     await QuoteView.enterSwapAmount('0.01');
     // This is to ensure we tap cancel before quotes are fetched - the cancel event is only sent if the quotes are not fetched
     await device.disableSynchronization();
     await QuoteView.tapOnGetQuotes();
-    await TestHelpers.delay(1000);
+    
     await QuoteView.tapOnCancelButton();
     await device.enableSynchronization();
     await Assertions.checkIfVisible(WalletView.container);
@@ -106,7 +106,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
     await QuoteView.tapOnSelectDestToken();
     await QuoteView.tapSearchToken();
     await QuoteView.typeSearchToken('DAI');
-    await TestHelpers.delay(3000);
+    
     await QuoteView.selectToken('DAI');
     await QuoteView.enterSwapAmount('0.01');
     await QuoteView.tapOnGetQuotes();

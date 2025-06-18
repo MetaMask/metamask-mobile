@@ -62,7 +62,7 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
         await Browser.waitForBrowserPageToLoad();
 
         // This is here to debug whether or not the second test dapp loads and connected to chain
-        // await TestHelpers.delay(10000)
+        // 
 
         // Closing tabs because there is a webview challenging while selecting elements with more than 1 webview (tabs) are opened
         await Browser.tapOpenAllTabsButton();
@@ -89,7 +89,7 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
           'Use your enabled networks Linea Sepolia',
         );
 
-        // await TestHelpers.delay(2000);
+        // 
         await PermissionSummaryBottomSheet.tapBackButton();
         await ConnectedAccountsModal.scrollToBottomOfModal();
 
@@ -144,7 +144,7 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
         await ConnectedAccountsModal.scrollToBottomOfModal();
 
         // // Going back to test dapp 1 to verify that the network is still  linea sepolia
-        await TestHelpers.delay(2000);
+        
         await Browser.tapOpenAllTabsButton();
         await Browser.tapCloseTabsButton();
         await Browser.tapOpenNewTabButton();

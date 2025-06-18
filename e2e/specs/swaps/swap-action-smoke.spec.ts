@@ -101,7 +101,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
           false,
         );
         await NetworkEducationModal.tapGotItButton();
-        await TestHelpers.delay(3000);
+        
         currentNetwork = network.providerConfig.nickname;
       }
 
@@ -115,7 +115,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
         await QuoteView.tapOnSelectSourceToken();
         await QuoteView.tapSearchToken();
         await QuoteView.typeSearchToken(sourceTokenSymbol);
-        await TestHelpers.delay(2000);
+        
         await QuoteView.selectToken(sourceTokenSymbol, 1);
       }
       await QuoteView.enterSwapAmount(quantity);
@@ -125,7 +125,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
       if (destTokenSymbol !== 'ETH') {
         await QuoteView.tapSearchToken();
         await QuoteView.typeSearchToken(destTokenSymbol);
-        await TestHelpers.delay(2000);
+        
         await QuoteView.selectToken(destTokenSymbol, 1);
       } else await QuoteView.selectToken(destTokenSymbol, firstElement);
 
@@ -141,7 +141,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
       await Assertions.checkIfVisible(SwapView.gasFee);
       await SwapView.tapIUnderstandPriceWarning();
       await Assertions.checkIfVisible(SwapView.swapButton);
-      await TestHelpers.delay(2000);
+      
       await SwapView.tapSwapButton();
       //Wait for Swap to complete
       try {
@@ -157,7 +157,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
         console.log(`Swap complete didn't pop up: ${e}`);
       }
       await device.enableSynchronization();
-      await TestHelpers.delay(10000);
+      
 
       // Check the swap activity completed
       await TabBarComponent.tapActivity();

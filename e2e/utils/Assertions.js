@@ -1,140 +1,185 @@
-import { waitFor, element, by } from 'detox';
+import { waitFor, element, by, expect } from 'detox';
 import Matchers from './Matchers';
 
 // Global timeout variable
 const TIMEOUT = 15000;
+const DEFAULT_RETRY_COUNT = 3;
+const BASE_RETRY_DELAY = 1000;
 
 /**
  * Class representing a set of assertions for Detox testing.
  */
 class Assertions {
   /**
-   * Check if an element with the specified ID is visible.
-   * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement | Detox.NativeElement>} element - The element to check.
-   * @param timeout
+   * Internal retry mechanism with exponential backoff
+   * @param {Function} assertionFn - The assertion function to retry
+   * @param {Array} args - Arguments to pass to the assertion function
+   * @param {number} retries - Number of retry attempts
+   * @param {string} operationName - Name of the operation for logging
    */
-  static async checkIfVisible(element, timeout = TIMEOUT) {
-    return await waitFor(await element)
-      .toBeVisible()
-      .withTimeout(timeout);
+  static async _retryAssertion(assertionFn, args, retries = DEFAULT_RETRY_COUNT, operationName = 'assertion') {
+    let lastError;
+
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        // eslint-disable-next-line no-console
+        console.log(`[${operationName}] Attempt ${attempt + 1}/${retries + 1}`);
+        return await assertionFn.apply(this, args);
+      } catch (error) {
+        lastError = error;
+
+        if (attempt === retries) {
+          console.error(`[${operationName}] Failed after ${retries + 1} attempts. Final error:`, lastError.message);
+          throw lastError;
+        }
+
+        const delay = BASE_RETRY_DELAY * Math.pow(2, attempt);
+        console.warn(`[${operationName}] Attempt ${attempt + 1} failed: ${lastError.message}. Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+
+    throw lastError;
+  }
+
+  /**
+   * Check if an element with the specified ID is visible.
+   * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement | Detox.NativeElement>} targetElement - The element to check.
+   * @param {number} timeout - Timeout in milliseconds.
+   * @param {number} retries - Number of retry attempts.
+   */
+  static async checkIfVisible(targetElement, timeout = TIMEOUT, retries = DEFAULT_RETRY_COUNT) {
+    const assertionFn = async (el, to) => await waitFor(await el).toBeVisible().withTimeout(to);
+
+    return await this._retryAssertion(assertionFn, [targetElement, timeout], retries, 'checkIfVisible');
   }
 
   /**
    * Check if an element with the specified web selector exists.
-   * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement | Detox.NativeElement>} element - The element to check.
+   * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement | Detox.NativeElement>} targetElement - The element to check.
    */
-  static async webViewElementExists(element) {
+  static async webViewElementExists(targetElement) {
     // rename this. We are checking if element is visible.
-    return await expect(await element).toExist();
+    return await expect(await targetElement).toExist();
   }
-
 
   /**
    * Check if an element with the specified ID is not visible.
-   * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement | Detox.NativeElement>} element - The element to check.
+   * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement | Detox.NativeElement>} targetElement - The element to check.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
+   * @param {number} retries - Number of retry attempts.
    */
-  static async checkIfNotVisible(element, timeout = TIMEOUT) {
-    return await waitFor(await element)
-      .not.toBeVisible()
-      .withTimeout(timeout);
+  static async checkIfNotVisible(targetElement, timeout = TIMEOUT, retries = DEFAULT_RETRY_COUNT) {
+    const assertionFn = async (el, to) => await waitFor(await el).not.toBeVisible().withTimeout(to);
+
+    return await this._retryAssertion(assertionFn, [targetElement, timeout], retries, 'checkIfNotVisible');
   }
 
   /**
    * Check if an element with the specified ID does have the specified text.
-   * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement | Detox.NativeElement>} element - The element to check.
+   * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement | Detox.NativeElement>} targetElement - The element to check.
    * @param {string} text - The text content to check.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
+   * @param {number} retries - Number of retry attempts.
    */
-  static async checkIfElementToHaveText(element, text, timeout = TIMEOUT) {
+  static async checkIfElementToHaveText(targetElement, text, timeout = TIMEOUT, retries = DEFAULT_RETRY_COUNT) {
     // Rename me. The naming convention here is terrible.
+    const assertionFn = async (el, txt, to) => await waitFor(await el).toHaveText(txt).withTimeout(to);
 
-    return await waitFor(await element)
-      .toHaveText(text)
-      .withTimeout(timeout);
+    return await this._retryAssertion(assertionFn, [targetElement, text, timeout], retries, 'checkIfElementToHaveText');
   }
 
   /**
    * Check if an element with the specified ID does have the specified label.
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to check.
+   * @param {Promise<Detox.IndexableNativeElement>} targetElement - The element to check.
    * @param {string} label - The label content to check.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
+   * @param {number} retries - Number of retry attempts.
    */
-  static async checkIfElementHasLabel(element, label, timeout = TIMEOUT) {
-    return await waitFor(await element)
-      .toHaveLabel(label)
-      .withTimeout(timeout);
-  }
+  static async checkIfElementHasLabel(targetElement, label, timeout = TIMEOUT, retries = DEFAULT_RETRY_COUNT) {
+    const assertionFn = async (el, lbl, to) => await waitFor(await el).toHaveLabel(lbl).withTimeout(to);
 
+    return await this._retryAssertion(assertionFn, [targetElement, label, timeout], retries, 'checkIfElementHasLabel');
+  }
 
   /**
    * Check if text is visible.
    * @param {string} text - The text to check if displayed.
-   * @param {number} [index=0] - Index of the element if multiple elements match.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
+   * @param {number} retries - Number of retry attempts.
    */
-  static async checkIfTextIsDisplayed(text, timeout = TIMEOUT) {
-    const element = Matchers.getElementByText(text);
-    return this.checkIfVisible(element, timeout);
+  static async checkIfTextIsDisplayed(text, timeout = TIMEOUT, retries = DEFAULT_RETRY_COUNT) {
+    const assertionFn = async (txt, to) => {
+      const targetElement = Matchers.getElementByText(txt);
+      return await this.checkIfVisible(targetElement, to, 0); // No nested retries
+    };
+
+    return await this._retryAssertion(assertionFn, [text, timeout], retries, 'checkIfTextIsDisplayed');
   }
 
   /**
    * Check if text is not visible.
    * @param {string} text - The text to check if not displayed.
-   * @param {number} [index=0] - Index of the element if multiple elements match.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
+   * @param {number} retries - Number of retry attempts.
    */
-  static async checkIfTextIsNotDisplayed(text, timeout = TIMEOUT) {
-    const element = Matchers.getElementByText(text);
-    return this.checkIfNotVisible(element, timeout);
+  static async checkIfTextIsNotDisplayed(text, timeout = TIMEOUT, retries = DEFAULT_RETRY_COUNT) {
+    const assertionFn = async (txt, to) => {
+      const targetElement = Matchers.getElementByText(txt);
+      return await this.checkIfNotVisible(targetElement, to, 0); // No nested retries
+    };
+
+    return await this._retryAssertion(assertionFn, [text, timeout], retries, 'checkIfTextIsNotDisplayed');
   }
 
   /**
    * Check if an element with the specified ID does not have the specified text.
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to check.
+   * @param {Promise<Detox.IndexableNativeElement>} targetElement - The element to check.
    * @param {string} text - The text content to check.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
+   * @param {number} retries - Number of retry attempts.
    */
-  static async checkIfElementNotToHaveText(element, text, timeout = TIMEOUT) {
+  static async checkIfElementNotToHaveText(targetElement, text, timeout = TIMEOUT, retries = DEFAULT_RETRY_COUNT) {
     // Rename me. The naming convention here is terrible.
+    const assertionFn = async (el, txt, to) => await waitFor(await el).not.toHaveText(txt).withTimeout(to);
 
-    return await waitFor(await element)
-      .not.toHaveText(text)
-      .withTimeout(timeout);
+    return await this._retryAssertion(assertionFn, [targetElement, text, timeout], retries, 'checkIfElementNotToHaveText');
   }
 
   /**
    * Check if an element with the specified ID does not have the specified label.
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to check.
+   * @param {Promise<Detox.IndexableNativeElement>} targetElement - The element to check.
    * @param {string} label - The label content to check.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
+   * @param {number} retries - Number of retry attempts.
    */
-  static async checkIfElementDoesNotHaveLabel(
-    element,
-    label,
-    timeout = TIMEOUT,
-  ) {
+  static async checkIfElementDoesNotHaveLabel(targetElement, label, timeout = TIMEOUT, retries = DEFAULT_RETRY_COUNT) {
     // Rename me. The naming convention here is terrible.
+    const assertionFn = async (el, lbl, to) => await waitFor(await el).not.toHaveLabel(lbl).withTimeout(to);
 
-    return await waitFor(await element)
-      .not.toHaveLabel(label)
-      .withTimeout(timeout);
+    return await this._retryAssertion(assertionFn, [targetElement, label, timeout], retries, 'checkIfElementDoesNotHaveLabel');
   }
 
   /**
    * Check if the toggle with the specified ID is in the "on" state.
-   * @param {Promise<Detox.IndexableNativeElement>} element - The ID of the toggle element.
+   * @param {Promise<Detox.IndexableNativeElement>} targetElement - The toggle element.
+   * @param {number} retries - Number of retry attempts.
    */
-  static async checkIfToggleIsOn(element) {
-    return expect(await element).toHaveToggleValue(true);
+  static async checkIfToggleIsOn(targetElement, retries = DEFAULT_RETRY_COUNT) {
+    const assertionFn = async (el) => expect(await el).toHaveToggleValue(true);
+
+    return await this._retryAssertion(assertionFn, [targetElement], retries, 'checkIfToggleIsOn');
   }
 
   /**
    * Check if the toggle with the specified ID is in the "off" state.
-   * @param {Promise<Detox.IndexableNativeElement>} element - The toggle element.
+   * @param {Promise<Detox.IndexableNativeElement>} targetElement - The toggle element.
+   * @param {number} retries - Number of retry attempts.
    */
-  static async checkIfToggleIsOff(element) {
-    return expect(await element).toHaveToggleValue(false);
+  static async checkIfToggleIsOff(targetElement, retries = DEFAULT_RETRY_COUNT) {
+    const assertionFn = async (el) => expect(await el).toHaveToggleValue(false);
+
+    return await this._retryAssertion(assertionFn, [targetElement], retries, 'checkIfToggleIsOff');
   }
 
   /**
@@ -271,32 +316,41 @@ class Assertions {
 
   /**
    * Check if element is enabled
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to check
+   * @param {Promise<Detox.IndexableNativeElement>} targetElement - The element to check
+   * @param {number} retries - Number of retry attempts.
    * @return {Promise<boolean>} - Resolves to true if the element is enabled, false otherwise
    */
-  static async checkIfEnabled(element) {
-    return (await (await element).getAttributes()).enabled;
+  static async checkIfEnabled(targetElement, retries = DEFAULT_RETRY_COUNT) {
+    const assertionFn = async (el) => (await (await el).getAttributes()).enabled;
+
+    return await this._retryAssertion(assertionFn, [targetElement], retries, 'checkIfEnabled');
   }
 
   /**
    * Check if element is disabled
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to check
+   * @param {Promise<Detox.IndexableNativeElement>} targetElement - The element to check
+   * @param {number} retries - Number of retry attempts.
    * @return {Promise<boolean>} - Resolves to true if the element is disabled, false otherwise
    */
-  static async checkIfDisabled(element) {
-    return (await (await element).getAttributes()).enabled;
+  static async checkIfDisabled(targetElement, retries = DEFAULT_RETRY_COUNT) {
+    const assertionFn = async (el) => !(await (await el).getAttributes()).enabled;
+
+    return await this._retryAssertion(assertionFn, [targetElement], retries, 'checkIfDisabled');
   }
 
   /**
    * Check if label contains text
    * @param {string} text - The text to check if the label contains
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
+   * @param {number} retries - Number of retry attempts.
    */
-  static async checkIfLabelContainsText(text, timeout = TIMEOUT) {
-    const labelMatcher = element(by.label(new RegExp(text)));
-    return await waitFor(labelMatcher)
-      .toExist()
-      .withTimeout(timeout);
+  static async checkIfLabelContainsText(text, timeout = TIMEOUT, retries = DEFAULT_RETRY_COUNT) {
+    const assertionFn = async (txt, to) => {
+      const labelMatcher = element(by.label(new RegExp(txt)));
+      return await waitFor(labelMatcher).toExist().withTimeout(to);
+    };
+
+    return await this._retryAssertion(assertionFn, [text, timeout], retries, 'checkIfLabelContainsText');
   }
 }
 

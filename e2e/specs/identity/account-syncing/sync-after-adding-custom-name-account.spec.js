@@ -84,7 +84,7 @@ describe(
 
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-      await TestHelpers.delay(4000);
+      
 
       for (const accountName of decryptedAccountNames) {
         await Assertions.checkIfVisible(
@@ -102,7 +102,7 @@ describe(
 
       await AccountListBottomSheet.tapAddAccountButton();
       await AddAccountBottomSheet.tapCreateAccount();
-      await TestHelpers.delay(2000);
+      
 
       await AccountListBottomSheet.tapEditAccountActionsAtIndex(2);
       await AccountActionsBottomSheet.renameActiveAccount(NEW_ACCOUNT_NAME);
@@ -127,7 +127,7 @@ describe(
 
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-      await TestHelpers.delay(4000);
+      
 
       await Assertions.checkIfVisible(
         AccountListBottomSheet.getAccountElementByAccountName(NEW_ACCOUNT_NAME),

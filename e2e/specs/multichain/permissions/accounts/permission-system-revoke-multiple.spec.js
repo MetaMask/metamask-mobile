@@ -41,7 +41,7 @@ describe(SmokeNetworkExpansion('Account Permission Management'), () => {
         await Browser.navigateToTestDApp();
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.checkIfVisible(ConnectedAccountsModal.title);
-        await TestHelpers.delay(2000);
+        
 
         await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();

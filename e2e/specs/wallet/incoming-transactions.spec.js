@@ -167,7 +167,6 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
         await loginToApp();
         await TabBarComponent.tapActivity();
         await ActivitiesView.swipeDown();
-        await TestHelpers.delay(2000);
         await Assertions.checkIfTextIsNotDisplayed('Received ETH');
       },
     );
@@ -194,7 +193,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
         await loginToApp();
         await TabBarComponent.tapActivity();
         await ActivitiesView.swipeDown();
-        await TestHelpers.delay(2000);
+        
         await Assertions.checkIfTextIsNotDisplayed('Received ETH');
       },
     );

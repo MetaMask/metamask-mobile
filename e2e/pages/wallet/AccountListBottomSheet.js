@@ -120,7 +120,7 @@ class AccountListBottomSheet {
 
   async swipeToDismissAccountsModal() {
     await Gestures.swipe(this.title, 'down', 'fast', 0.6);
-    await TestHelpers.delay(2000);
+    
   }
 
   async tapYesToRemoveImportedAccountAlertButton() {

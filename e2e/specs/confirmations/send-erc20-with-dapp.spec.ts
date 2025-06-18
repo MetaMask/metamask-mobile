@@ -60,11 +60,11 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         await TestDApp.navigateToTestDappWithContract({
           contractAddress: hstAddress,
         });
-        await TestHelpers.delay(3000);
+        
 
         // Transfer ERC20 tokens
         await TestDApp.tapERC20TransferButton();
-        await TestHelpers.delay(3000);
+        
 
         // Tap confirm button
         await TestDApp.tapConfirmButton();
