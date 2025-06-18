@@ -13,7 +13,7 @@ jest.mock('./util', () => ({
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 
-const migrationVersion = '085';
+const migrationVersion = 85;
 
 describe(`Migration ${migrationVersion}: Remove Automatic Security Checks state`, () => {
   beforeEach(() => {
