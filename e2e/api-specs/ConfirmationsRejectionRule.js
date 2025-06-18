@@ -160,7 +160,7 @@ export default class ConfirmationsRejectRule {
           } else {
             // Unideal fix for flaky tests from performance degradation in confirmation rendering
             // personal_sign scenario the most recent cause for this
-            await TestHelpers.delay(15000);
+            await TestHelpers.delay(30000);
             cancelButton = await Matchers.getElementByText('Cancel');
             await Gestures.waitAndTap(cancelButton);
           }
