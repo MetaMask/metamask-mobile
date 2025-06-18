@@ -5,6 +5,7 @@ import AppConstants from '../../core/AppConstants';
  * {@see {@link https://github.com/mathiasbynens/punycode.js?tab=readme-ov-file#installation}
  */
 import { toASCII } from 'punycode/';
+import DevLogger from '../../core/SDKConnect/utils/DevLogger';
 
 const hostnameRegex =
   /^(?:[a-zA-Z][a-zA-Z0-9+.-]*:\/\/)?(?:www\.)?([^/?:]+)(?::\d+)?/;
@@ -73,5 +74,35 @@ export const toPunycodeURL = (urlString: string) => {
   } catch (err: unknown) {
     console.error(`Failed to convert URL to Punycode: ${err}`);
     return urlString;
+  }
+};
+
+
+export const getHostname = (uri: string): string => {
+  try {
+    // Handle empty or invalid URIs
+    if (!uri) return '';
+
+    // For standard URLs, use URL API
+    if (uri.includes('://')) {
+      try {
+        const url = new URL(uri);
+        return url.hostname;
+      } catch (e) {
+        // If URL parsing fails, continue with manual parsing
+      }
+    }
+
+    // For protocol-based URIs like wc: or ethereum:
+    const pathStart: number = uri.indexOf(':');
+    if (pathStart !== -1) {
+      return uri.substring(0, pathStart);
+    }
+
+    // If no protocol separator found, return the original string
+    return uri;
+  } catch (error) {
+    DevLogger.log('Error in getHostname:', error);
+    return uri;
   }
 };

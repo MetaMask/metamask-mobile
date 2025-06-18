@@ -76,6 +76,7 @@ import AccountConnectCreateInitialAccount from '../../Views/AccountConnect/Accou
 import { SolScope } from '@metamask/keyring-api';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { endTrace, trace, TraceName } from '../../../util/trace';
+import { getHostname } from '../../../util/url';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -121,10 +122,10 @@ const PermissionsSummary = ({
   const privacyMode = useSelector(selectPrivacyMode);
   const [bottomSheetHeight, setBottomSheetHeight] = useState(0);
 
-  const hostname = useMemo(
-    () => new URL(currentPageInformation.url).hostname,
-    [currentPageInformation.url],
-  );
+  const hostname = useMemo(() => {
+    return getHostname(currentPageInformation.url);
+  }, [currentPageInformation.url]);
+
   const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
   // if network switch, we get the chain name from the customNetworkInformation
@@ -248,7 +249,7 @@ const PermissionsSummary = ({
                       metadata: {
                         origin:
                           currentPageInformation?.url &&
-                          new URL(currentPageInformation?.url).hostname,
+                          hostname,
                       },
                     },
                     connectionDateTime: new Date().getTime(),

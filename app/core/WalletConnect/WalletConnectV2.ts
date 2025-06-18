@@ -22,7 +22,6 @@ import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import extractApprovedAccounts from './extractApprovedAccounts';
 import WalletConnect from './WalletConnect';
 import {
-  getHostname,
   getScopedPermissions,
   hideWCLoadingState,
   parseWalletConnectUri,
@@ -32,6 +31,7 @@ import {
 import { Caip25CaveatType, Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 import WalletConnect2Session from './WalletConnect2Session';
 import { CaipChainId } from '@metamask/utils';
+import { getHostname } from '../../util/url';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
   typeof PROJECT_ID === 'string' && PROJECT_ID?.length > 0;
