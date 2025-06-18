@@ -117,9 +117,10 @@ const DeepLinkModal = () => {
 
     const onContinuePressed = useCallback(() => {
         dismissModal(() => {
-            if (LINK_TYPE_MAP[linkType].eventContinue) {
+            const eventContinue = LINK_TYPE_MAP[linkType].eventContinue;
+            if (eventContinue) {
                 trackEvent(
-                    createEventBuilder(LINK_TYPE_MAP[linkType].eventContinue)
+                    createEventBuilder(eventContinue)
                         .addProperties({
                             ...generateDeviceAnalyticsMetaData(),
                             pageTitle,
