@@ -66,54 +66,36 @@ describe(
         password: IDENTITY_TEAM_PASSWORD,
       });
 
-      await TabBarComponent.tapContacts();
-      await Assertions.checkIfVisible(
-        ContactsView.container,
-        'Contacts view should be visible',
-      );
+      await TabBarComponent.tapSettings();
+      await TestHelpers.delay(1000);
+      await ContactsView.tapAddContactButton();
+      await Assertions.checkIfVisible(ContactsView.container);
       await TestHelpers.delay(4000);
 
       await TabBarComponent.tapSettings();
-      await Assertions.checkIfVisible(
-        SettingsView.backupAndSyncSectionButton,
-        'Backup and sync section should be visible',
-      );
+      await Assertions.checkIfVisible(SettingsView.backupAndSyncSectionButton);
       await SettingsView.tapBackupAndSync();
       await TestHelpers.delay(2000);
 
-      await Assertions.checkIfVisible(
-        BackupAndSyncView.backupAndSyncToggle,
-        'Backup and sync toggle should be visible',
-      );
-      await BackupAndSyncView.toggleContactSync();
+      await Assertions.checkIfVisible(BackupAndSyncView.backupAndSyncToggle);
+      await BackupAndSyncView.toggleBackupAndSync();
       await TestHelpers.delay(2000);
 
       await CommonView.tapBackButton();
-      await Assertions.checkIfVisible(
-        SettingsView.backupAndSyncSectionButton,
-        'Backup and sync section should be visible after going back',
-      );
-      await TabBarComponent.tapContacts();
-      await Assertions.checkIfVisible(
-        ContactsView.container,
-        'Contacts view should be visible',
-      );
-      await TestHelpers.delay(2000);
-
+      await Assertions.checkIfVisible(SettingsView.backupAndSyncSectionButton);
+      await TabBarComponent.tapSettings();
+      await TestHelpers.delay(1000);
       await ContactsView.tapAddContactButton();
-      await Assertions.checkIfVisible(
-        AddContactView.container,
-        'Add contact view should be visible',
-      );
-      await AddContactView.typeContactName(NEW_CONTACT_NAME);
-      await AddContactView.typeContactAddress(NEW_CONTACT_ADDRESS);
-      await AddContactView.tapSaveButton();
+      await Assertions.checkIfVisible(ContactsView.container);
       await TestHelpers.delay(2000);
 
-      await Assertions.checkIfVisible(
-        ContactsView.getContactElementByContactName(NEW_CONTACT_NAME),
-        `Contact "${NEW_CONTACT_NAME}" should be visible in the list`,
-      );
+      await Assertions.checkIfVisible(AddContactView.container);
+      await AddContactView.typeInName(NEW_CONTACT_NAME);
+      await AddContactView.typeInAddress(NEW_CONTACT_ADDRESS);
+      await AddContactView.tapAddContactButton();
+      await TestHelpers.delay(2000);
+
+      await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
 
       await TestHelpers.launchApp({
         newInstance: true,
@@ -126,61 +108,40 @@ describe(
         password: IDENTITY_TEAM_PASSWORD,
       });
 
-      await TabBarComponent.tapContacts();
-      await Assertions.checkIfVisible(
-        ContactsView.container,
-        'Contacts view should be visible',
-      );
+      await TabBarComponent.tapSettings();
+      await TestHelpers.delay(1000);
+      await ContactsView.tapAddContactButton();
+      await Assertions.checkIfVisible(ContactsView.container);
       await TestHelpers.delay(4000);
 
-      await Assertions.checkIfNotVisible(
-        ContactsView.getContactElementByContactName(NEW_CONTACT_NAME),
-        `Contact "${NEW_CONTACT_NAME}" should not be visible in the list when sync is off`,
-      );
+      await ContactsView.isContactAliasNotVisible(NEW_CONTACT_NAME);
     });
 
     it('should sync new contacts when contacts sync toggle is on', async () => {
       await TabBarComponent.tapSettings();
-      await Assertions.checkIfVisible(
-        SettingsView.backupAndSyncSectionButton,
-        'Backup and sync section should be visible',
-      );
+      await Assertions.checkIfVisible(SettingsView.backupAndSyncSectionButton);
       await SettingsView.tapBackupAndSync();
       await TestHelpers.delay(2000);
 
-      await Assertions.checkIfVisible(
-        BackupAndSyncView.backupAndSyncToggle,
-        'Backup and sync toggle should be visible',
-      );
-      await BackupAndSyncView.toggleContactSync();
+      await Assertions.checkIfVisible(BackupAndSyncView.backupAndSyncToggle);
+      await BackupAndSyncView.toggleBackupAndSync();
       await TestHelpers.delay(2000);
 
       await CommonView.tapBackButton();
-      await Assertions.checkIfVisible(
-        SettingsView.backupAndSyncSectionButton,
-        'Backup and sync section should be visible after going back',
-      );
-      await TabBarComponent.tapContacts();
-      await Assertions.checkIfVisible(
-        ContactsView.container,
-        'Contacts view should be visible',
-      );
-      await TestHelpers.delay(2000);
-
+      await Assertions.checkIfVisible(SettingsView.backupAndSyncSectionButton);
+      await TabBarComponent.tapSettings();
+      await TestHelpers.delay(1000);
       await ContactsView.tapAddContactButton();
-      await Assertions.checkIfVisible(
-        AddContactView.container,
-        'Add contact view should be visible',
-      );
-      await AddContactView.typeContactName(NEW_CONTACT_NAME);
-      await AddContactView.typeContactAddress(NEW_CONTACT_ADDRESS);
-      await AddContactView.tapSaveButton();
+      await Assertions.checkIfVisible(ContactsView.container);
       await TestHelpers.delay(2000);
 
-      await Assertions.checkIfVisible(
-        ContactsView.getContactElementByContactName(NEW_CONTACT_NAME),
-        `Contact "${NEW_CONTACT_NAME}" should be visible in the list`,
-      );
+      await Assertions.checkIfVisible(AddContactView.container);
+      await AddContactView.typeInName(NEW_CONTACT_NAME);
+      await AddContactView.typeInAddress(NEW_CONTACT_ADDRESS);
+      await AddContactView.tapAddContactButton();
+      await TestHelpers.delay(2000);
+
+      await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
 
       await TestHelpers.launchApp({
         newInstance: true,
@@ -193,17 +154,13 @@ describe(
         password: IDENTITY_TEAM_PASSWORD,
       });
 
-      await TabBarComponent.tapContacts();
-      await Assertions.checkIfVisible(
-        ContactsView.container,
-        'Contacts view should be visible',
-      );
+      await TabBarComponent.tapSettings();
+      await TestHelpers.delay(1000);
+      await ContactsView.tapAddContactButton();
+      await Assertions.checkIfVisible(ContactsView.container);
       await TestHelpers.delay(4000);
 
-      await Assertions.checkIfVisible(
-        ContactsView.getContactElementByContactName(NEW_CONTACT_NAME),
-        `Contact "${NEW_CONTACT_NAME}" should be visible in the list when sync is on`,
-      );
+      await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
     });
   },
 );

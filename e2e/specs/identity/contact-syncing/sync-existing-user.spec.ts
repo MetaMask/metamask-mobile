@@ -87,55 +87,37 @@ describe(
         password: IDENTITY_TEAM_PASSWORD,
       });
 
-      await TabBarComponent.tapContacts();
-      await Assertions.checkIfVisible(
-        ContactsView.container,
-        'Contacts view should be visible',
-      );
+      await TabBarComponent.tapSettings();
+      await TestHelpers.delay(1000);
+      await ContactsView.tapAddContactButton();
+      await Assertions.checkIfVisible(ContactsView.container);
       await TestHelpers.delay(4000);
 
       for (const contactName of decryptedContactNames) {
-        await Assertions.checkIfVisible(
-          ContactsView.getContactElementByContactName(contactName),
-          `Contact "${contactName}" should be visible in the list`,
-        );
+        await ContactsView.isContactAliasVisible(contactName);
       }
 
       /**
        * TEST SEGMENT/METAMETRICS EVENTS
        */
       const events = await getEventsPayloads(mockServer, [
-        EVENT_NAME.CONTACTS_SYNC_ADDED,
-        EVENT_NAME.CONTACTS_SYNC_NAME_UPDATED,
+        EVENT_NAME.IDENTITY_EVENT,
       ]);
 
       // There should be 2 events for updating the names (from user storage)
       const updatedContactEvents = events.filter(
-        (event) => event.event === EVENT_NAME.CONTACTS_SYNC_NAME_UPDATED,
+        (event) =>
+          event.event === EVENT_NAME.IDENTITY_EVENT &&
+          event.properties?.feature_name === 'Contacts Sync' &&
+          event.properties?.action === 'Contacts Sync Contact Updated'
       );
 
-      await Assertions.checkIfArrayHasLength(
-        updatedContactEvents,
-        2,
-        'Should have exactly 2 contact name update events',
-      );
+      await Assertions.checkIfArrayHasLength(updatedContactEvents, 2);
 
       for (const event of events) {
-        await Assertions.checkIfValueIsPresent(
-          event.properties,
-          'profile_id',
-          'Event should have a profile_id property',
-        );
-        await Assertions.checkIfValueIsPresent(
-          event.properties,
-          'contact_address',
-          'Event should have a contact_address property',
-        );
-        await Assertions.checkIfValueIsPresent(
-          event.properties,
-          'contact_name',
-          'Event should have a contact_name property',
-        );
+        await Assertions.checkIfObjectContains(event.properties, { profile_id: expect.anything() });
+        await Assertions.checkIfObjectContains(event.properties, { contact_address: expect.anything() });
+        await Assertions.checkIfObjectContains(event.properties, { contact_name: expect.anything() });
       }
     });
   },
