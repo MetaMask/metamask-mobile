@@ -26,10 +26,6 @@ const mockSubtle = QuickCrypto.webcrypto.subtle as jest.Mocked<
 describe('verifySignature', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-
-    jest.spyOn(console, 'error').mockImplementation(() => {
-      // Mock implementation to suppress console output in tests
-    });
   });
 
   afterEach(() => {
@@ -100,11 +96,6 @@ describe('verifySignature', () => {
       const result = await verifyDeeplinkSignature(url);
 
       expect(result).toBe(INVALID);
-      expect(console.error).toHaveBeenCalledWith(
-        '❌ Invalid signature length:',
-        expect.any(Number),
-        '(expected 64)',
-      );
     });
 
     it('returns VALID when signature verification succeeds', async () => {
@@ -240,10 +231,6 @@ describe('verifySignature', () => {
       const result = await verifyDeeplinkSignature(url);
 
       expect(result).toBe(INVALID);
-      expect(console.error).toHaveBeenCalledWith(
-        '💥 Error during signature verification:',
-        error,
-      );
     });
 
     it('handles complex URLs with fragments and multiple query params', async () => {

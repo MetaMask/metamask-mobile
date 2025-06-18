@@ -86,11 +86,6 @@ export const verifyDeeplinkSignature = async (
     const signature = base64StringToBytes(signatureStr);
 
     if (signature.length !== 64) {
-      console.error(
-        '❌ Invalid signature length:',
-        signature.length,
-        '(expected 64)',
-      );
       return INVALID;
     }
 
@@ -109,7 +104,6 @@ export const verifyDeeplinkSignature = async (
 
     return ok ? VALID : INVALID;
   } catch (error) {
-    console.error('💥 Error during signature verification:', error);
     return INVALID;
   }
 };
