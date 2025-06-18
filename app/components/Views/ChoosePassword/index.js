@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   StyleSheet,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Text, {
@@ -122,7 +123,11 @@ const createStyles = (colors) =>
       flexDirection: 'column',
       rowGap: 18,
       marginTop: 'auto',
-      marginBottom: 16,
+      marginBottom: Platform.select({
+        ios: 16,
+        android: 24,
+        default: 16,
+      }),
     },
     // eslint-disable-next-line react-native/no-unused-styles
     strength_weak: {
