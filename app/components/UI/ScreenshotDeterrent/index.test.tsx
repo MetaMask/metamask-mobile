@@ -1,14 +1,8 @@
-import React, { act } from 'react';
+import React from 'react';
 import { render } from '@testing-library/react-native';
-import { InteractionManager, Linking } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { InteractionManager } from 'react-native';
 import ScreenshotDeterrent from './ScreenshotDeterrent';
 import PreventScreenshot from '../../../core/PreventScreenshot';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { SRP_GUIDE_URL } from '../../../constants/urls';
-import Routes from '../../../constants/navigation/Routes';
-import { strings } from '../../../../locales/i18n';
-import useScreenshotDeterrent from '../../hooks/useScreenshotDeterrent';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
