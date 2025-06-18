@@ -1,31 +1,30 @@
+import { useNavigation } from '@react-navigation/native';
+import _ from 'lodash';
 import React from 'react';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../hooks/useStyles';
-import styleSheet from './EmptyStateCta.styles';
 import { View } from 'react-native-animatable';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import { useNavigation } from '@react-navigation/native';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
-import { TokenI } from '../../../Tokens/types';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
-import { getDecimalChainId } from '../../../../../util/networks';
-import _ from 'lodash';
-import { useSelector } from 'react-redux';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
-import useEarnTokens from '../../hooks/useEarnTokens';
+import { RootState } from '../../../../../reducers';
+import { earnSelectors } from '../../../../../selectors/earnController';
 import { capitalize } from '../../../../../util/general';
+import { getDecimalChainId } from '../../../../../util/networks';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useStyles } from '../../../../hooks/useStyles';
+import { TokenI } from '../../../Tokens/types';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { parseFloatSafe } from '../../utils/number';
-import { Linking } from 'react-native';
-import { EARN_URLS } from '../../constants/urls';
+import styleSheet from './EmptyStateCta.styles';
 
 interface EarnEmptyStateCta {
   token: TokenI;
@@ -44,8 +43,9 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
     selectStablecoinLendingEnabledFlag,
   );
 
-  const { getEarnToken } = useEarnTokens();
-  const earnToken = getEarnToken(token);
+  const earnToken = useSelector((state: RootState) =>
+    earnSelectors.selectEarnToken(state, token),
+  );
 
   const estimatedAnnualRewardsFormatted = parseFloatSafe(
     earnToken?.experience?.estimatedAnnualRewardsFormatted ?? '0',
@@ -71,8 +71,11 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
     });
   };
 
-  const navigateToLendingFaq = () => {
-    Linking.openURL(EARN_URLS.LENDING_FAQ);
+  const navigateToLendingHistoricApyChart = () => {
+    navigate(Routes.EARN.MODALS.ROOT, {
+      screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
+      params: { asset: earnToken },
+    });
   };
 
   if (!token || _.isEmpty(token) || !isStablecoinLendingEnabled) return <></>;
@@ -92,9 +95,9 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
         </Text>{' '}
         {strings('earn.empty_state_cta.annually')}{' '}
         <Button
-          variant={ButtonVariants.Link}
           label={strings('earn.empty_state_cta.learn_more')}
-          onPress={navigateToLendingFaq}
+          variant={ButtonVariants.Link}
+          onPress={navigateToLendingHistoricApyChart}
         />
       </Text>
       <Button

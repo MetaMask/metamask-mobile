@@ -1,4 +1,3 @@
-import { LendingProtocol } from '@metamask/stake-sdk';
 import { fireEvent, screen } from '@testing-library/react-native';
 import BN4 from 'bnjs4';
 import React, { act } from 'react';
@@ -21,7 +20,7 @@ import {
 } from '../../../Stake/__mocks__/stakeMockData';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
-import { EarnTokenDetails } from '../../types/lending.types';
+import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import { getAaveV3MaxRiskAwareWithdrawalAmount } from '../../utils/tempLending';
 import EarnWithdrawInputView from './EarnWithdrawInputView';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
@@ -494,7 +493,7 @@ describe('EarnWithdrawInputView', () => {
 
       expect(mockAttemptUnstakeTransaction).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_WITHDRAWAL,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         params: expect.objectContaining({
           amountWei: expect.any(String),
           amountFiat: expect.any(String),
