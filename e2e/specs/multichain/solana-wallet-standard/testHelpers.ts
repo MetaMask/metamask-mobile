@@ -11,12 +11,10 @@ export const account2Short = '9Wa2...Dj2U';
 /**
  * Connects the Solana test dapp to the wallet.
  *
- * @param options
- * @param options.selectAllAccounts
- * @param options.includeDevnet
+ * @param options.selectAllAccounts - Whether we connect with all accounts or only the default one
  */
 export const connectSolanaTestDapp = async (
-  options: { selectAllAccounts?: boolean; includeDevnet?: boolean } = {},
+  options: { selectAllAccounts?: boolean } = {},
 ): Promise<void> => {
   const { selectAllAccounts } = options;
 

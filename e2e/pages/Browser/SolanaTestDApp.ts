@@ -10,11 +10,18 @@ import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTes
 // Use the same port as the regular test dapp - the solanaDapp flag controls which dapp is served
 export const SOLANA_TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
 
+/**
+ * Get a test element by data-testid
+ * @param dataTestId - The data-testid of the element
+ * @param options.tag - The tag of the element having the data-testid attribute (e.g. 'div', 'input', etc.). Defaults to 'div'
+ * @param options.extraXPath - The extra xpath to the element (e.g. '/div/button'), useful for accessing elements we aren't able to assign a data-testid to
+ * @returns The test element
+ */
 function getTestElement(
   dataTestId: string,
   options: { extraXPath?: string; tag?: string } = {},
 ): Promise<Detox.IndexableWebElement & Detox.SecuredWebElementFacade> {
-  const { extraXPath = '', tag = 'div' } = options;
+  const { tag = 'div', extraXPath = '' } = options;
   const xpath = `//${tag}[@data-testid="${dataTestId}"]${extraXPath}`;
 
   return Matchers.getElementByXPath(
@@ -24,12 +31,9 @@ function getTestElement(
 }
 
 /**
- * Class to interact with the Multichain Test DApp via WebView
+ * Class to interact with the Multichain Test DApp via the WebView
  */
 class SolanaTestDApp {
-  /**
-   * WebView element getters
-   */
   get connectButtonSelector() {
     return getTestElement(dataTestIds.testPage.header.connect, {
       extraXPath: '/div/button',
@@ -55,16 +59,11 @@ class SolanaTestDApp {
     );
   }
 
-  /**
-   * Navigate to the solana test dapp
-   */
   async navigateToSolanaTestDApp(): Promise<void> {
-    // Using Browser methods to navigate
     await Browser.tapUrlInputBox();
 
     await Browser.navigateToURL(SOLANA_TEST_DAPP_LOCAL_URL);
 
-    // Wait for WebView to be visible using native Detox waitFor
     await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)))
       .toBeVisible()
       .withTimeout(10000);
@@ -81,18 +80,10 @@ class SolanaTestDApp {
   /**
    * Tap a button in the WebView
    */
-  async tapButton(
-    elementId:
-      | Detox.WebElement
-      | Detox.IndexableWebElement
-      | Detox.SecuredWebElementFacade,
-  ): Promise<void> {
-    await Gestures.scrollToWebViewPort(
-      Promise.resolve(elementId as unknown as Element),
-    );
-    await Gestures.tapWebElement(
-      Promise.resolve(elementId as Detox.IndexableWebElement),
-    );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async tapButton(elementId: any): Promise<void> {
+    await Gestures.scrollToWebViewPort(elementId);
+    await Gestures.tapWebElement(elementId);
   }
 
   getHeader() {
@@ -120,13 +111,6 @@ class SolanaTestDApp {
         return await account.getText();
       },
     };
-  }
-
-  /**
-   * Get the WebView object for interaction
-   */
-  getWebView() {
-    return web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)).atIndex(0);
   }
 
   getSignMessageTest() {
