@@ -142,7 +142,7 @@ describe('DeepLinkModal', () => {
     linkType        |continueButtonText           |eventContinue                                                    |pageTitle
     ${'public'}     | ${'Continue'}               | ${MetaMetricsEvents.DEEP_LINK_PUBLIC_MODAL_CONTINUE_CLICKED}    | ${'MetaMask'}
     ${'private'}    | ${'Continue'}               | ${MetaMetricsEvents.DEEP_LINK_PRIVATE_MODAL_CONTINUE_CLICKED}   | ${'MetaMask'}
-    ${'invalid'}    | ${'Go to homepage'}   | ${MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_CONTINUE_CLICKED}   | ${''}
+    ${'invalid'}    | ${'Go to homepage'}         | ${MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_CONTINUE_CLICKED}   | ${''}
   `('should track correct action event and pageTitleon continue button pressed when linkType is $linkType',
         async ({ linkType, continueButtonText, eventContinue, pageTitle }) => {
             (useParams as jest.Mock).mockReturnValue({ ...baseParams, linkType });
