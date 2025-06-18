@@ -170,6 +170,8 @@ const ImportFromSecretRecoveryPhrase = ({
     setErrorWordIndexes({});
     setShowAllSeedPhrase(false);
     setError('');
+    setSeedPhraseInputFocusedIndex(0);
+    setNextSeedPhraseInputFocusedIndex(0);
   }, []);
 
   const handleSeedPhraseChange = useCallback(
@@ -643,6 +645,28 @@ const ImportFromSecretRecoveryPhrase = ({
     [setSeedPhraseInputFocusedIndex, seedPhrase, seedPhraseInputFocusedIndex],
   );
 
+  const handleOnBlur = useCallback(
+    (index, seedPhraseInputFocusedIndex) => {
+      if (index === seedPhraseInputFocusedIndex) {
+        setSeedPhraseInputFocusedIndex(null);
+      }
+
+      // update error index
+      if (!checkValidSeedWord(seedPhrase[seedPhraseInputFocusedIndex])) {
+        setErrorWordIndexes((prev) => ({
+          ...prev,
+          [seedPhraseInputFocusedIndex]: true,
+        }));
+      } else {
+        setErrorWordIndexes((prev) => ({
+          ...prev,
+          [seedPhraseInputFocusedIndex]: false,
+        }));
+      }
+    },
+    [setSeedPhraseInputFocusedIndex, seedPhrase],
+  );
+
   return (
     <SafeAreaView style={styles.root}>
       <KeyboardAwareScrollView
@@ -772,6 +796,12 @@ const ImportFromSecretRecoveryPhrase = ({
                                       });
                                     }
                                     handleOnFocus(index);
+                                  }}
+                                  onBlur={() => {
+                                    handleOnBlur(
+                                      index,
+                                      seedPhraseInputFocusedIndex,
+                                    );
                                   }}
                                   onChangeText={(text) =>
                                     handleSeedPhraseChangeAtIndex(text, index)
