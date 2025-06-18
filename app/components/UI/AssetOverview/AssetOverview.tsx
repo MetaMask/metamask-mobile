@@ -6,12 +6,8 @@ import {
   Hex,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipAssetType,
-  CaipChainId,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { SnapId } from '@metamask/snaps-sdk';
-///: END:ONLY_INCLUDE_IF
 import I18n, { strings } from '../../../../locales/i18n';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -75,8 +71,7 @@ import { TraceName, endTrace } from '../../../util/trace';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../selectors/multichain';
 import { isEvmAccountType, KeyringAccountType } from '@metamask/keyring-api';
-import { isMultichainWalletSnap } from '../../../core/SnapKeyring/utils/snaps';
-import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
+import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
@@ -158,6 +153,14 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     },
   });
 
+  // Hook for handling non-EVM asset sending
+  const { sendNonEvmAsset } = useSendNonEvmAsset({
+    asset: {
+      chainId: asset.chainId as string,
+      address: asset.address,
+    },
+  });
+
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
 
@@ -194,41 +197,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   const onSend = async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    if (
-      selectedInternalAccount &&
-      !isEvmAccountType(selectedInternalAccount.type as KeyringAccountType)
-    ) {
-      if (!selectedInternalAccount.metadata.snap) {
-        throw new Error('Non-EVM needs to be Snap accounts');
-      }
-
-      if (
-        !isMultichainWalletSnap(
-          selectedInternalAccount.metadata.snap.id as SnapId,
-        )
-      ) {
-        throw new Error(
-          `Non-EVM Snap is not whitelisted: ${selectedInternalAccount.metadata.snap.id}`,
-        );
-      }
-
-      try {
-        await sendMultichainTransaction(
-          selectedInternalAccount.metadata.snap.id as SnapId,
-          {
-            account: selectedInternalAccount.id,
-            scope: asset.chainId as CaipChainId,
-            assetId: asset.address as CaipAssetType,
-          },
-        );
-        return;
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'AssetOverview: Error sending multichain transaction',
-        );
-        return;
-      }
+    // Try non-EVM first, if handled, return early
+    const wasHandledAsNonEvm = await sendNonEvmAsset();
+    if (wasHandledAsNonEvm) {
+      return;
     }
     ///: END:ONLY_INCLUDE_IF
 

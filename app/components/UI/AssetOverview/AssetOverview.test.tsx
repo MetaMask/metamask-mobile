@@ -25,8 +25,7 @@ import {
   SECONDARY_BALANCE_TEST_ID,
 } from '../AssetElement/index.constants';
 import { SolScope, SolAccountType } from '@metamask/keyring-api';
-import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
-import { isMultichainWalletSnap } from '../../../core/SnapKeyring/utils/snaps';
+import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -153,6 +152,10 @@ jest.mock('../../../core/SnapKeyring/utils/sendMultichainTransaction', () => ({
   sendMultichainTransaction: jest.fn().mockResolvedValue(undefined),
 }));
 
+jest.mock('../../hooks/useSendNonEvmAsset', () => ({
+  useSendNonEvmAsset: jest.fn(),
+}));
+
 const mockAddPopularNetwork = jest
   .fn()
   .mockImplementation(() => Promise.resolve());
@@ -184,6 +187,17 @@ const assetFromSearch = {
 };
 
 describe('AssetOverview', () => {
+  const mockSendNonEvmAsset = jest.fn();
+
+  beforeEach(() => {
+    // Default mock setup for the hook - return false to continue with EVM flow
+    mockSendNonEvmAsset.mockResolvedValue(false);
+    (useSendNonEvmAsset as jest.Mock).mockReturnValue({
+      sendNonEvmAsset: mockSendNonEvmAsset,
+      isNonEvmAccount: false,
+    });
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -241,6 +255,9 @@ describe('AssetOverview', () => {
 
     const sendButton = getByTestId('token-send-button');
     fireEvent.press(sendButton);
+
+    // Wait for async operations to complete
+    await Promise.resolve();
 
     expect(navigate).toHaveBeenCalledWith('SendFlowView', {});
   });
@@ -312,6 +329,10 @@ describe('AssetOverview', () => {
 
     const sendButton = getByTestId('token-send-button');
     fireEvent.press(sendButton);
+
+    // Wait for async operations to complete
+    await Promise.resolve();
+
     expect(navigate).toHaveBeenCalledWith('SendFlowView', {});
     expect(spyOnGetEther).toHaveBeenCalledWith('BNB');
   });
@@ -694,33 +715,8 @@ describe('AssetOverview', () => {
         isNative: true,
       };
 
-      // Create a mock Solana account
-      const mockSolanaAccount = createMockSnapInternalAccount(
-        'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH',
-        'Solana Account 1',
-        SolAccountType.DataAccount,
-      );
-
-      const solanaAccountState = {
-        ...mockInitialState,
-        engine: {
-          ...mockInitialState.engine,
-          backgroundState: {
-            ...mockInitialState.engine.backgroundState,
-            AccountsController: {
-              ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-              internalAccounts: {
-                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
-                selectedAccount: mockSolanaAccount.id,
-                accounts: {
-                  ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
-                  [mockSolanaAccount.id]: mockSolanaAccount,
-                },
-              },
-            },
-          },
-        },
-      };
+      // Mock the hook to handle non-EVM transaction
+      mockSendNonEvmAsset.mockResolvedValue(true);
 
       const { getByTestId } = renderWithProvider(
         <AssetOverview
@@ -730,7 +726,7 @@ describe('AssetOverview', () => {
           displayBridgeButton
           swapsIsLive
         />,
-        { state: solanaAccountState },
+        { state: mockInitialState },
       );
 
       const sendButton = getByTestId('token-send-button');
@@ -738,14 +734,15 @@ describe('AssetOverview', () => {
 
       await Promise.resolve();
 
-      expect(jest.mocked(sendMultichainTransaction)).toHaveBeenCalledWith(
-        mockSolanaAccount.metadata.snap?.id,
-        {
-          account: mockSolanaAccount.id,
-          scope: SolScope.Mainnet,
-          assetId: solanaAsset.address,
+      // Verify hook was called with correct parameters
+      expect(useSendNonEvmAsset).toHaveBeenCalledWith({
+        asset: {
+          chainId: SolScope.Mainnet,
+          address: solanaAsset.address,
         },
-      );
+      });
+
+      expect(mockSendNonEvmAsset).toHaveBeenCalled();
 
       expect(
         Engine.context.NetworkController.getNetworkConfigurationByChainId,
@@ -765,36 +762,9 @@ describe('AssetOverview', () => {
         isNative: true,
       };
 
-      const mockSolanaAccount = createMockSnapInternalAccount(
-        'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH',
-        'Solana Account 1',
-        SolAccountType.DataAccount,
-      );
-
-      // Mock sendMultichainTransaction to throw an error
-      const mockError = new Error('Transaction failed');
-      jest.mocked(sendMultichainTransaction).mockRejectedValueOnce(mockError);
-
-      const solanaAccountState = {
-        ...mockInitialState,
-        engine: {
-          ...mockInitialState.engine,
-          backgroundState: {
-            ...mockInitialState.engine.backgroundState,
-            AccountsController: {
-              ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-              internalAccounts: {
-                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
-                selectedAccount: mockSolanaAccount.id,
-                accounts: {
-                  ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
-                  [mockSolanaAccount.id]: mockSolanaAccount,
-                },
-              },
-            },
-          },
-        },
-      };
+      // Mock the hook to return true (handled) even when there's an internal error
+      // The hook implementation handles errors gracefully and never throws
+      mockSendNonEvmAsset.mockResolvedValue(true);
 
       const { getByTestId } = renderWithProvider(
         <AssetOverview
@@ -804,7 +774,7 @@ describe('AssetOverview', () => {
           displayBridgeButton
           swapsIsLive
         />,
-        { state: solanaAccountState },
+        { state: mockInitialState },
       );
 
       const sendButton = getByTestId('token-send-button');
@@ -812,14 +782,14 @@ describe('AssetOverview', () => {
 
       await Promise.resolve();
 
-      // Should still call sendMultichainTransaction
-      expect(jest.mocked(sendMultichainTransaction)).toHaveBeenCalled();
+      // Should still call the hook
+      expect(mockSendNonEvmAsset).toHaveBeenCalled();
 
-      // Should not navigate to traditional send flow even on error
+      // Should not navigate to traditional send flow since hook handled it
       expect(navigate).not.toHaveBeenCalledWith('SendFlowView', {});
     });
 
-    it('should throw error for non-EVM account without snap metadata', async () => {
+    it('should handle non-EVM account validation through hook', async () => {
       const solanaAsset = {
         ...asset,
         address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
@@ -827,41 +797,8 @@ describe('AssetOverview', () => {
         isNative: true,
       };
 
-      // Create account without snap metadata
-      const mockAccountWithoutSnap = {
-        ...createMockSnapInternalAccount(
-          'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH',
-          'Solana Account 1',
-          SolAccountType.DataAccount,
-        ),
-        metadata: {
-          name: 'Solana Account 1',
-          importTime: 1684232000456,
-          keyring: { type: 'Snap Keyring' },
-          // No snap metadata
-        },
-      };
-
-      const accountState = {
-        ...mockInitialState,
-        engine: {
-          ...mockInitialState.engine,
-          backgroundState: {
-            ...mockInitialState.engine.backgroundState,
-            AccountsController: {
-              ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-              internalAccounts: {
-                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
-                selectedAccount: mockAccountWithoutSnap.id,
-                accounts: {
-                  ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
-                  [mockAccountWithoutSnap.id]: mockAccountWithoutSnap,
-                },
-              },
-            },
-          },
-        },
-      };
+      // Mock the hook to handle validation errors internally
+      mockSendNonEvmAsset.mockResolvedValue(true);
 
       const { getByTestId } = renderWithProvider(
         <AssetOverview
@@ -871,18 +808,20 @@ describe('AssetOverview', () => {
           displayBridgeButton
           swapsIsLive
         />,
-        { state: accountState },
+        { state: mockInitialState },
       );
 
       const sendButton = getByTestId('token-send-button');
+      await fireEvent.press(sendButton);
 
-      // Should throw error for non-EVM account without snap metadata
-      await expect(fireEvent.press(sendButton)).rejects.toThrow(
-        'Non-EVM needs to be Snap accounts',
-      );
+      await Promise.resolve();
+
+      // Hook should be called and handle validation
+      expect(mockSendNonEvmAsset).toHaveBeenCalled();
+      expect(navigate).not.toHaveBeenCalledWith('SendFlowView', {});
     });
 
-    it('should throw error for non-whitelisted snap', async () => {
+    it('should delegate snap validation to hook', async () => {
       const solanaAsset = {
         ...asset,
         address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
@@ -890,35 +829,8 @@ describe('AssetOverview', () => {
         isNative: true,
       };
 
-      const mockSolanaAccount = createMockSnapInternalAccount(
-        'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH',
-        'Solana Account 1',
-        SolAccountType.DataAccount,
-      );
-
-      // Mock isMultichainWalletSnap to return false for this test
-      jest.mocked(isMultichainWalletSnap).mockReturnValueOnce(false);
-
-      const solanaAccountState = {
-        ...mockInitialState,
-        engine: {
-          ...mockInitialState.engine,
-          backgroundState: {
-            ...mockInitialState.engine.backgroundState,
-            AccountsController: {
-              ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-              internalAccounts: {
-                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
-                selectedAccount: mockSolanaAccount.id,
-                accounts: {
-                  ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
-                  [mockSolanaAccount.id]: mockSolanaAccount,
-                },
-              },
-            },
-          },
-        },
-      };
+      // Mock the hook to handle snap validation internally
+      mockSendNonEvmAsset.mockResolvedValue(true);
 
       const { getByTestId } = renderWithProvider(
         <AssetOverview
@@ -928,15 +840,17 @@ describe('AssetOverview', () => {
           displayBridgeButton
           swapsIsLive
         />,
-        { state: solanaAccountState },
+        { state: mockInitialState },
       );
 
       const sendButton = getByTestId('token-send-button');
+      await fireEvent.press(sendButton);
 
-      // Should throw error for non-whitelisted snap
-      await expect(fireEvent.press(sendButton)).rejects.toThrow(
-        'Non-EVM Snap is not whitelisted',
-      );
+      await Promise.resolve();
+
+      // Hook should handle all snap validation
+      expect(mockSendNonEvmAsset).toHaveBeenCalled();
+      expect(navigate).not.toHaveBeenCalledWith('SendFlowView', {});
     });
 
     it('should use traditional EVM send flow for EVM accounts', async () => {
@@ -946,7 +860,9 @@ describe('AssetOverview', () => {
         isETH: true,
       };
 
-      // Use the default EVM account from mockInitialState
+      // Mock the hook to indicate it didn't handle the transaction (EVM account)
+      mockSendNonEvmAsset.mockResolvedValue(false);
+
       const { getByTestId } = renderWithProvider(
         <AssetOverview
           asset={evmAsset}
@@ -963,8 +879,8 @@ describe('AssetOverview', () => {
 
       await Promise.resolve();
 
-      // Should not call sendMultichainTransaction for EVM accounts
-      expect(jest.mocked(sendMultichainTransaction)).not.toHaveBeenCalled();
+      // Hook should be called but return false for EVM accounts
+      expect(mockSendNonEvmAsset).toHaveBeenCalled();
 
       // Should navigate to traditional send flow
       expect(navigate).toHaveBeenCalledWith('SendFlowView', {});
