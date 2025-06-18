@@ -32,6 +32,7 @@ import stylesheet from './ModalMandatory.styles';
 import { TermsOfUseModalSelectorsIDs } from '../../../../../e2e/selectors/Onboarding/TermsOfUseModal.selectors';
 import BottomSheet, { BottomSheetRef } from '../../BottomSheets/BottomSheet';
 import { useNavigation } from '@react-navigation/native';
+import { throttle } from 'lodash';
 
 const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const { colors } = useTheme();
@@ -193,9 +194,9 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         injectedJavaScript={isScrollEndedJS}
         onLoad={() => setIsWebViewLoaded(true)}
         onMessage={onMessage}
-        onScroll={({ nativeEvent }) =>
-          isCloseToBottom(nativeEvent as NativeScrollEvent)
-        }
+        onScroll={({ nativeEvent }) => {
+          throttle(() => isCloseToBottom(nativeEvent as NativeScrollEvent), 50);
+        }}
         {...(source.uri && {
           onShouldStartLoadWithRequest: (req) => source.uri === req.url,
         })}
