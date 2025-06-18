@@ -13,7 +13,7 @@ export interface SolanaTestDappWebIDs {
  * Web element IDs for the Multichain Test Dapp
  */
 export const SolanaTestDappSelectorsWebIDs: SolanaTestDappWebIDs = {
-  WALLET_BUTTON_SELECTOR: '.wallet-adapter-modal-list .wallet-adapter-button', // Space between classes indicates parent-child relationship: find button inside modal list
+  WALLET_BUTTON_SELECTOR: '.wallet-adapter-modal-list .wallet-adapter-button', // Important space between classes to indicate a parent-child relationship
   CONFIRM_TRANSACTION_BUTTON_SELECTOR:
     'confirm-sign-and-send-transaction-confirm-snap-footer-button',
   CANCEL_TRANSACTION_BUTTON_SELECTOR:
