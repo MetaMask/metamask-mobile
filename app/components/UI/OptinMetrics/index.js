@@ -47,6 +47,11 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { getConfiguredCaipChainIds } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
+import { setupSentry } from '../../../util/sentry/utils';
+import {
+  flushBufferedTraces,
+  discardBufferedTraces,
+} from '../../../util/trace';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -324,6 +329,8 @@ class OptinMetrics extends PureComponent {
       // and disable analytics
       clearOnboardingEvents();
       await metrics.enable(false);
+      await setupSentry(); // Re-setup Sentry with enabled: false
+      discardBufferedTraces();
     }, 200);
     this.continue();
   };
@@ -340,6 +347,8 @@ class OptinMetrics extends PureComponent {
     } = this.props;
 
     await metrics.enable();
+    await setupSentry(); // Re-setup Sentry with enabled: true
+    await flushBufferedTraces();
 
     // Handle null case for marketing consent
     if (

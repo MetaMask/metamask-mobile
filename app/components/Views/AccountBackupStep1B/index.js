@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { connect } from 'react-redux';
 import {
   ScrollView,
   TouchableOpacity,
@@ -21,14 +22,13 @@ import ActionModal from '../../UI/ActionModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { saveOnboardingEvent as SaveEvent } from '../../../actions/onboarding';
 
 import { useTheme } from '../../../util/theme';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Routes from '../../../constants/navigation/Routes';
-import { saveOnboardingEvent } from '../../../actions/onboarding';
-import { connect } from 'react-redux';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -203,12 +203,17 @@ const createStyles = (colors) =>
  * the backup seed phrase flow
  */
 const AccountBackupStep1B = (props) => {
-  const { navigation, route, dispatchSaveOnboardingEvent } = props;
+  const { navigation, route } = props;
   const [showWhySecureWalletModal, setWhySecureWalletModal] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const headerLeft = useCallback(() => <View />, []);
+  const track = (event, properties) => {
+    const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
+    eventBuilder.addProperties(properties);
+    trackOnboarding(eventBuilder.build(), props.saveOnboardingEvent);
+  };
 
   useEffect(() => {
     navigation.setOptions(
@@ -227,12 +232,7 @@ const AccountBackupStep1B = (props) => {
       ...props.route.params,
       settingsBackup: true,
     });
-    trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED,
-      ).build(),
-      dispatchSaveOnboardingEvent,
-    );
+    track(MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED, {});
   };
 
   const learnMore = () => {
@@ -252,6 +252,9 @@ const AccountBackupStep1B = (props) => {
   const hideWhySecureWallet = () => setWhySecureWalletModal(false);
 
   const showWhatIsSeedphrase = () => {
+    track(MetaMetricsEvents.SRP_DEFINITION_CLICKED, {
+      location: 'account_backup_step_1b',
+    });
     props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SEEDPHRASE_MODAL,
     });
@@ -411,12 +414,11 @@ AccountBackupStep1B.propTypes = {
   /**
    * Action to save onboarding event
    */
-  dispatchSaveOnboardingEvent: PropTypes.func,
+  saveOnboardingEvent: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  dispatchSaveOnboardingEvent: (...eventArgs) =>
-    dispatch(saveOnboardingEvent(eventArgs)),
+  saveOnboardingEvent: (...eventArgs) => dispatch(SaveEvent(eventArgs)),
 });
 
 export default connect(null, mapDispatchToProps)(AccountBackupStep1B);

@@ -10,6 +10,8 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { MIN_PASSWORD_LENGTH } from '../../../util/password';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import { TraceName } from '../../../util/trace';
+import { InteractionManager } from 'react-native';
 
 // Mock the clipboard
 jest.mock('@react-native-clipboard/clipboard', () => ({
@@ -36,7 +38,30 @@ jest.mock('../../hooks/useMetrics', () => {
   };
 });
 
+const mockUseRoute = jest.fn().mockReturnValue({ params: {} });
+// mock useRoute
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useRoute: () => mockUseRoute(),
+  };
+});
+
 describe('ImportFromSecretRecoveryPhrase', () => {
+  jest
+    .spyOn(InteractionManager, 'runAfterInteractions')
+    .mockImplementation((cb) => {
+      if (cb && typeof cb === 'function') {
+        cb();
+      }
+      return {
+        then: jest.fn(),
+        done: jest.fn(),
+        cancel: jest.fn(),
+      };
+    });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -535,6 +560,20 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const input3 = getInput(3);
       expect(input3).toBeOnTheScreen();
     });
+
+    it('show seedphrase modal when srp link is pressed', () => {
+      const { getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      const srpLink = getByTestId(
+        ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID,
+      );
+      expect(srpLink).toBeOnTheScreen();
+      fireEvent.press(srpLink);
+    });
   });
 
   describe('Create password UI', () => {
@@ -800,6 +839,14 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
     it('Import seed phrase with optin metrics flow', async () => {
       mockIsEnabled.mockReturnValue(false);
+      mockUseRoute.mockReturnValue({
+        params: {
+          onboardingTraceCtx: {
+            name: TraceName.OnboardingNewSrpCreateWallet,
+          },
+        },
+      });
+
       const { getByTestId, getByPlaceholderText } =
         await renderCreatePasswordUI();
 

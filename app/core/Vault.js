@@ -12,7 +12,13 @@ import {
   SolAccountType,
   SolScope,
 } from '@metamask/keyring-api';
-import { toFormattedAddress, areAddressesEqual } from '../util/address';
+import { areAddressesEqual } from '../util/address';
+import {
+  bufferedTrace,
+  bufferedEndTrace,
+  TraceName,
+  TraceOperation,
+} from '../util/trace';
 
 /**
  * Restore the given serialized QR keyring.
@@ -127,153 +133,174 @@ export const recreateVaultWithNewPassword = async (
   newPassword,
   selectedAddress,
 ) => {
-  const { KeyringController, AccountsController } = Engine.context;
-  const hdKeyringsWithMetadata = KeyringController.state.keyrings.filter(
-    (keyring) => keyring.type === KeyringTypes.hd,
-  );
+  bufferedTrace({
+    name: TraceName.OnboardingResetPassword,
+    op: TraceOperation.OnboardingSecurityOp,
+  });
 
-  const seedPhrases = await Promise.all(
-    hdKeyringsWithMetadata.map(async (keyring) => {
-      try {
-        return await getSeedPhrase(password, keyring.metadata.id);
-      } catch (e) {
-        Logger.error(
-          e,
-          'error while trying to get seed phrase on recreate vault',
-        );
-        return null;
-      }
-    }),
-  );
-  const [primaryKeyringSeedPhrase, ...otherSeedPhrases] = seedPhrases;
-  if (!primaryKeyringSeedPhrase) {
-    throw new Error('error while trying to get seed phrase on recreate vault');
-  }
-
-  // START: Getting accounts to be reimported
-
-  let importedAccounts = [];
   try {
-    // Get imported accounts
-    const simpleKeyrings = KeyringController.state.keyrings.filter(
-      (keyring) => keyring.type === KeyringTypes.simple,
+    const { KeyringController, AccountsController } = Engine.context;
+    const hdKeyringsWithMetadata = KeyringController.state.keyrings.filter(
+      (keyring) => keyring.type === KeyringTypes.hd,
     );
-    for (let i = 0; i < simpleKeyrings.length; i++) {
-      const simpleKeyring = simpleKeyrings[i];
-      const simpleKeyringAccounts = await Promise.all(
-        simpleKeyring.accounts.map((account) =>
-          KeyringController.exportAccount(password, account),
-        ),
+
+    const seedPhrases = await Promise.all(
+      hdKeyringsWithMetadata.map(async (keyring) => {
+        try {
+          return await getSeedPhrase(password, keyring.metadata.id);
+        } catch (e) {
+          Logger.error(
+            e,
+            'error while trying to get seed phrase on recreate vault',
+          );
+          return null;
+        }
+      }),
+    );
+    const [primaryKeyringSeedPhrase, ...otherSeedPhrases] = seedPhrases;
+    if (!primaryKeyringSeedPhrase) {
+      throw new Error('error while trying to get seed phrase on recreate vault');
+    }
+
+    // START: Getting accounts to be reimported
+
+    let importedAccounts = [];
+    try {
+      // Get imported accounts
+      const simpleKeyrings = KeyringController.state.keyrings.filter(
+        (keyring) => keyring.type === KeyringTypes.simple,
       );
-      importedAccounts = [...importedAccounts, ...simpleKeyringAccounts];
+      for (let i = 0; i < simpleKeyrings.length; i++) {
+        const simpleKeyring = simpleKeyrings[i];
+        const simpleKeyringAccounts = await Promise.all(
+          simpleKeyring.accounts.map((account) =>
+            KeyringController.exportAccount(password, account),
+          ),
+        );
+        importedAccounts = [...importedAccounts, ...simpleKeyringAccounts];
+      }
+    } catch (e) {
+      Logger.error(
+        e,
+        'error while trying to get imported accounts on recreate vault',
+      );
     }
-  } catch (e) {
-    Logger.error(
-      e,
-      'error while trying to get imported accounts on recreate vault',
+    const firstPartySnapAccounts =
+      AccountsController.listMultichainAccounts().filter(
+        (account) =>
+          account.options?.entropySource &&
+          account.metadata.keyring.type === KeyringTypes.snap,
+      );
+    // Get props to restore vault
+    const hdKeyringsAccountCount = hdKeyringsWithMetadata.map(
+      (keyring) => keyring.accounts.length,
     );
-  }
-  const firstPartySnapAccounts =
-    AccountsController.listMultichainAccounts().filter(
-      (account) =>
-        account.options?.entropySource &&
-        account.metadata.keyring.type === KeyringTypes.snap,
+    const [primaryKeyringAccountCount, ...otherKeyringAccountCounts] =
+      hdKeyringsAccountCount;
+
+    // END: Getting accounts to be reimported
+
+    const serializedLedgerKeyring = hasKeyringType(
+      KeyringController.state,
+      KeyringTypes.ledger,
+    )
+      ? await getSerializedKeyring(KeyringTypes.ledger)
+      : undefined;
+    const serializedQrKeyring = hasKeyringType(
+      KeyringController.state,
+      KeyringTypes.qr,
+    )
+      ? await getSerializedKeyring(KeyringTypes.qr)
+      : undefined;
+
+    // Recreate keyring with password given to this method
+    await KeyringController.createNewVaultAndRestore(
+      newPassword,
+      primaryKeyringSeedPhrase,
     );
-  // Get props to restore vault
-  const hdKeyringsAccountCount = hdKeyringsWithMetadata.map(
-    (keyring) => keyring.accounts.length,
-  );
-  const [primaryKeyringAccountCount, ...otherKeyringAccountCounts] =
-    hdKeyringsAccountCount;
+    const [newPrimaryKeyring] = KeyringController.state.keyrings;
+    const newPrimaryKeyringId = newPrimaryKeyring.metadata.id;
 
-  // END: Getting accounts to be reimported
+    // START: Restoring keyrings
 
-  const serializedLedgerKeyring = hasKeyringType(
-    KeyringController.state,
-    KeyringTypes.ledger,
-  )
-    ? await getSerializedKeyring(KeyringTypes.ledger)
-    : undefined;
-  const serializedQrKeyring = hasKeyringType(
-    KeyringController.state,
-    KeyringTypes.qr,
-  )
-    ? await getSerializedKeyring(KeyringTypes.qr)
-    : undefined;
-
-  // Recreate keyring with password given to this method
-  await KeyringController.createNewVaultAndRestore(
-    newPassword,
-    primaryKeyringSeedPhrase,
-  );
-  const [newPrimaryKeyring] = KeyringController.state.keyrings;
-  const newPrimaryKeyringId = newPrimaryKeyring.metadata.id;
-
-  // START: Restoring keyrings
-
-  if (serializedQrKeyring !== undefined) {
-    await restoreQRKeyring(serializedQrKeyring);
-  }
-  if (serializedLedgerKeyring !== undefined) {
-    await restoreLedgerKeyring(serializedLedgerKeyring);
-  }
-
-  // Create previous accounts again
-  for (let i = 0; i < primaryKeyringAccountCount - 1; i++) {
-    await KeyringController.addNewAccount();
-  }
-
-  try {
-    // Import imported accounts again
-    for (let i = 0; i < importedAccounts.length; i++) {
-      await KeyringController.importAccountWithStrategy('privateKey', [
-        importedAccounts[i],
-      ]);
+    if (serializedQrKeyring !== undefined) {
+      await restoreQRKeyring(serializedQrKeyring);
     }
-  } catch (e) {
-    Logger.error(e, 'error while trying to import accounts on recreate vault');
-  }
-
-  // recreate import srp accounts
-  const importedSrpKeyringIds = [];
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-  for (const [index, otherSeedPhrase] of otherSeedPhrases.entries()) {
-    const importedSrpKeyring = await restoreImportedSrp(
-      otherSeedPhrase,
-      otherKeyringAccountCounts[index],
-    );
-    importedSrpKeyringIds.push(importedSrpKeyring);
-  }
-  ///: END:ONLY_INCLUDE_IF(multi-srp)
-
-  const newHdKeyringIds = [newPrimaryKeyringId, ...importedSrpKeyringIds];
-  // map old keyring id to new keyring id
-  const keyringIdMap = new Map();
-  for (const [index, keyring] of hdKeyringsWithMetadata.entries()) {
-    keyringIdMap.set(keyring.metadata.id, newHdKeyringIds[index]);
-  }
-
-  // recreate snap accounts
-  for (const snapAccount of firstPartySnapAccounts) {
-    await restoreSnapAccounts(
-      snapAccount.type,
-      keyringIdMap.get(snapAccount.options.entropySource),
-    );
-  }
-
-  // END: Restoring keyrings
-
-  const recreatedKeyrings = KeyringController.state.keyrings;
-  // Reselect previous selected account if still available
-  for (const keyring of recreatedKeyrings) {
-    if (
-      keyring.accounts.some((account) =>
-        areAddressesEqual(account, selectedAddress),
-      )
-    ) {
-      Engine.setSelectedAddress(selectedAddress);
-      return;
+    if (serializedLedgerKeyring !== undefined) {
+      await restoreLedgerKeyring(serializedLedgerKeyring);
     }
+
+    // Create previous accounts again
+    for (let i = 0; i < primaryKeyringAccountCount - 1; i++) {
+      await KeyringController.addNewAccount();
+    }
+
+    try {
+      // Import imported accounts again
+      for (let i = 0; i < importedAccounts.length; i++) {
+        await KeyringController.importAccountWithStrategy('privateKey', [
+          importedAccounts[i],
+        ]);
+      }
+    } catch (e) {
+      Logger.error(e, 'error while trying to import accounts on recreate vault');
+    }
+
+    // recreate import srp accounts
+    const importedSrpKeyringIds = [];
+    ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+    for (const [index, otherSeedPhrase] of otherSeedPhrases.entries()) {
+      const importedSrpKeyring = await restoreImportedSrp(
+        otherSeedPhrase,
+        otherKeyringAccountCounts[index],
+      );
+      importedSrpKeyringIds.push(importedSrpKeyring);
+    }
+    ///: END:ONLY_INCLUDE_IF(multi-srp)
+
+    const newHdKeyringIds = [newPrimaryKeyringId, ...importedSrpKeyringIds];
+    // map old keyring id to new keyring id
+    const keyringIdMap = new Map();
+    for (const [index, keyring] of hdKeyringsWithMetadata.entries()) {
+      keyringIdMap.set(keyring.metadata.id, newHdKeyringIds[index]);
+    }
+
+    // recreate snap accounts
+    for (const snapAccount of firstPartySnapAccounts) {
+      await restoreSnapAccounts(
+        snapAccount.type,
+        keyringIdMap.get(snapAccount.options.entropySource),
+      );
+    }
+
+    // END: Restoring keyrings
+
+    const recreatedKeyrings = KeyringController.state.keyrings;
+    // Reselect previous selected account if still available
+    for (const keyring of recreatedKeyrings) {
+      if (
+        keyring.accounts.some((account) =>
+          areAddressesEqual(account, selectedAddress),
+        )
+      ) {
+        Engine.setSelectedAddress(selectedAddress);
+        return;
+      }
+    }
+  } catch (error) {
+    const errorMessage = error?.message || 'Unknown error occurred';
+    
+    bufferedTrace({
+      name: TraceName.OnboardingResetPasswordError,
+      op: TraceOperation.OnboardingError,
+      tags: { errorMessage },
+    });
+    
+    bufferedEndTrace({ name: TraceName.OnboardingResetPasswordError });
+    
+    throw error;
+  } finally {
+    bufferedEndTrace({ name: TraceName.OnboardingResetPassword });
   }
 };
 

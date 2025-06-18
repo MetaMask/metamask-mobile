@@ -14,6 +14,7 @@ import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { seedphraseBackedUp } from '../../../actions/user';
+import { saveOnboardingEvent as SaveEvent } from '../../../actions/onboarding';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { compareMnemonics } from '../../../util/mnemonic';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -31,16 +32,16 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import Routes from '../../../constants/navigation/Routes';
-import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { useMetrics } from '../../hooks/useMetrics';
 import { CommonActions } from '@react-navigation/native';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import { TraceName, bufferedEndTrace } from '../../../util/trace';
 
 const ManualBackupStep2 = ({
   navigation,
   seedphraseBackedUp,
   route,
-  dispatchSaveOnboardingEvent,
+  saveOnboardingEvent,
 }) => {
   const words = route?.params?.words;
   const backupFlow = route?.params?.backupFlow;
@@ -53,6 +54,7 @@ const ManualBackupStep2 = ({
   const [emptySlots, setEmptySlots] = useState([]);
   const [missingWords, setMissingWords] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const { isEnabled: isMetricsEnabled } = useMetrics();
 
   const headerLeft = useCallback(
     () => (
@@ -98,7 +100,6 @@ const ManualBackupStep2 = ({
     return gridWords.filter((word) => word !== '').length === validWords.length;
   }, [route.params?.words, gridWords]);
 
-  const { isEnabled: isMetricsEnabled } = useMetrics();
   const goNext = () => {
     if (validateWords()) {
       seedphraseBackedUp();
@@ -122,6 +123,8 @@ const ManualBackupStep2 = ({
           });
           navigation.dispatch(resetAction);
         } else {
+          bufferedEndTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
+          bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
           const resetAction = CommonActions.reset({
             index: 0,
             routes: [
@@ -150,7 +153,7 @@ const ManualBackupStep2 = ({
           MetricsEventBuilder.createEventBuilder(
             MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
           ).build(),
-          dispatchSaveOnboardingEvent,
+          saveOnboardingEvent,
         );
       });
     } else {
@@ -456,12 +459,11 @@ const ManualBackupStep2 = ({
 
 ManualBackupStep2.propTypes = {
   /**
-  /* navigation object required to push and pop other views
-  */
+   * navigation object required to push and pop other views
+   */
   navigation: PropTypes.object,
   /**
-   * The action to update the seedphrase backed up flag
-   * in the redux store
+   * Action to mark seed phrase as backed up
    */
   seedphraseBackedUp: PropTypes.func,
   /**
@@ -471,13 +473,12 @@ ManualBackupStep2.propTypes = {
   /**
    * Action to save onboarding event
    */
-  dispatchSaveOnboardingEvent: PropTypes.func,
+  saveOnboardingEvent: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({
   seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
-  dispatchSaveOnboardingEvent: (...eventArgs) =>
-    dispatch(saveOnboardingEvent(eventArgs)),
+  saveOnboardingEvent: (...eventArgs) => dispatch(SaveEvent(eventArgs)),
 });
 
 export default connect(null, mapDispatchToProps)(ManualBackupStep2);

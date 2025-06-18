@@ -470,5 +470,15 @@ describe('Vault', () => {
         mockHdAccount1.address,
       );
     });
+
+    it('throws error if seed phrase is not found', async () => {
+      const error = new Error(
+        'error while trying to get seed phrase on recreate vault',
+      );
+      mockExportSeedPhrase.mockRejectedValue(error);
+      await expect(
+        recreateVaultWithNewPassword('password', 'new-password', 'address'),
+      ).rejects.toThrow(error);
+    });
   });
 });

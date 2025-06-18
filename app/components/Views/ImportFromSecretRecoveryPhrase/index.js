@@ -36,6 +36,7 @@ import {
 } from '../../../util/password';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
+import { saveOnboardingEvent as SaveEvent } from '../../../actions/onboarding';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import { setLockTime } from '../../../actions/settings';
@@ -84,8 +85,7 @@ import Text, {
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import { saveOnboardingEvent } from '../../../actions/onboarding';
-import { CommonActions } from '@react-navigation/native';
+import { CommonActions, useRoute } from '@react-navigation/native';
 import {
   SRP_LENGTHS,
   NUM_COLUMNS,
@@ -97,6 +97,12 @@ import { useMetrics } from '../../hooks/useMetrics';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { formatSeedPhraseToSingleLine } from '../../../util/string';
+import {
+  TraceName,
+  bufferedEndTrace,
+  bufferedTrace,
+  TraceOperation,
+} from '../../../util/trace';
 
 const checkValidSeedWord = (text) => wordlist.includes(text);
 
@@ -110,15 +116,16 @@ const ImportFromSecretRecoveryPhrase = ({
   passwordSet,
   setLockTime,
   seedphraseBackedUp,
+  saveOnboardingEvent,
   setOnboardingWizardStep,
-  route,
-  dispatchSaveOnboardingEvent,
 }) => {
+  const route = useRoute();
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
   const seedPhraseInputRefs = useRef([]);
   const confirmPasswordInput = useRef();
+  const passwordSetupAttemptTraceCtxRef = useRef(null);
 
   const { toastRef } = useContext(ToastContext);
 
@@ -160,7 +167,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
-    trackOnboarding(eventBuilder.build(), dispatchSaveOnboardingEvent);
+    trackOnboarding(eventBuilder.build(), saveOnboardingEvent);
   };
 
   const [errorWordIndexes, setErrorWordIndexes] = useState({});
@@ -353,6 +360,16 @@ const ImportFromSecretRecoveryPhrase = ({
     termsOfUse();
   }, [termsOfUse]);
 
+  useEffect(
+    () => () => {
+      if (passwordSetupAttemptTraceCtxRef.current) {
+        bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
+        passwordSetupAttemptTraceCtxRef.current = null;
+      }
+    },
+    [],
+  );
+
   const updateBiometryChoice = async (biometryChoice) => {
     await updateAuthTypeStorageFlags(biometryChoice);
     setBiometryChoice(biometryChoice);
@@ -475,6 +492,15 @@ const ImportFromSecretRecoveryPhrase = ({
       return;
     }
     setCurrentStep(currentStep + 1);
+    // Start the trace when moving to the password setup step
+    const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+    if (onboardingTraceCtx) {
+      passwordSetupAttemptTraceCtxRef.current = bufferedTrace({
+        name: TraceName.OnboardingPasswordSetupAttempt,
+        op: TraceOperation.OnboardingUserJourney,
+        parentContext: onboardingTraceCtx,
+      });
+    }
   };
 
   const isContinueButtonDisabled = useMemo(
@@ -554,10 +580,14 @@ const ImportFromSecretRecoveryPhrase = ({
         track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
           wallet_setup_type: 'import',
           new_wallet: false,
+          account_type: 'imported',
         });
         !onboardingWizard && setOnboardingWizardStep(1);
 
         fetchAccountsWithActivity();
+
+        bufferedEndTrace({ name: TraceName.OnboardingExistingSrpImport });
+        bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
         const resetAction = CommonActions.reset({
           index: 1,
           routes: [
@@ -595,6 +625,17 @@ const ImportFromSecretRecoveryPhrase = ({
           wallet_setup_type: 'import',
           error_type: error.toString(),
         });
+
+        const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+        if (onboardingTraceCtx) {
+          bufferedTrace({
+            name: TraceName.OnboardingPasswordSetupError,
+            op: TraceOperation.OnboardingUserJourney,
+            parentContext: onboardingTraceCtx,
+            tags: { errorMessage: error.toString() },
+          });
+          bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupError });
+        }
       }
     }
   };
@@ -603,6 +644,9 @@ const ImportFromSecretRecoveryPhrase = ({
     password !== '' && confirmPassword !== '' && password !== confirmPassword;
 
   const showWhatIsSeedPhrase = () => {
+    track(MetaMetricsEvents.SRP_DEFINITION_CLICKED, {
+      location: 'import_from_seed',
+    });
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SEEDPHRASE_MODAL,
     });
@@ -703,7 +747,12 @@ const ImportFromSecretRecoveryPhrase = ({
                       'import_from_seed.enter_your_secret_recovery_phrase',
                     )}
                   </Text>
-                  <TouchableOpacity onPress={showWhatIsSeedPhrase}>
+                  <TouchableOpacity
+                    onPress={showWhatIsSeedPhrase}
+                    testID={
+                      ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID
+                    }
+                  >
                     <Icon
                       name={IconName.Info}
                       size={IconSize.Md}
@@ -1099,17 +1148,13 @@ ImportFromSecretRecoveryPhrase.propTypes = {
    */
   seedphraseBackedUp: PropTypes.func,
   /**
+   * Action to save onboarding event
+   */
+  saveOnboardingEvent: PropTypes.func,
+  /**
    * Action to set onboarding wizard step
    */
   setOnboardingWizardStep: PropTypes.func,
-  /**
-   * Object that represents the current route info like params passed to it
-   */
-  route: PropTypes.object,
-  /**
-   * Action to save onboarding event
-   */
-  dispatchSaveOnboardingEvent: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({
@@ -1117,8 +1162,7 @@ const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
   passwordSet: () => dispatch(passwordSet()),
   seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
-  dispatchSaveOnboardingEvent: (...eventArgs) =>
-    dispatch(saveOnboardingEvent(eventArgs)),
+  saveOnboardingEvent: (...eventArgs) => dispatch(SaveEvent(eventArgs)),
 });
 
 export default connect(
