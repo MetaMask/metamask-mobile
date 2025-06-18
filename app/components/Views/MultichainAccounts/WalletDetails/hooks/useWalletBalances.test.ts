@@ -103,4 +103,27 @@ describe('useWalletBalances', () => {
     );
     expect(result.current.formattedWalletTotalBalance).toBeUndefined();
   });
+
+  it('formats different currencies correctly', () => {
+    (useMultichainBalancesForAllAccounts as jest.Mock).mockReturnValue({
+      multichainBalancesForAllAccounts: {
+        [account1.id]: {
+          totalFiatBalance: 100,
+          isLoadingAccount: false,
+          displayBalance: '€100.00',
+          displayCurrency: 'EUR',
+        },
+        [account2.id]: {
+          totalFiatBalance: 200,
+          isLoadingAccount: false,
+          displayBalance: '€200.00',
+          displayCurrency: 'EUR',
+        },
+      },
+    });
+    const { result } = renderHook(() =>
+      useWalletBalances([account1, account2]),
+    );
+    expect(result.current.formattedWalletTotalBalance).toBe('€300.00');
+  });
 });
