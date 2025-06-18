@@ -8,10 +8,14 @@ const styleSheet = (params: { theme: Theme }) => {
     return StyleSheet.create({
         screen: {
             flex: 1,
-            paddingHorizontal: 24,
-            paddingVertical: 16,
+            paddingHorizontal: 16,
             alignItems: 'center',
             backgroundColor: colors.background.default,
+        },
+        box: {
+            marginTop: 24,
+            width: '100%',
+            alignItems: 'flex-end',
         },
         content: {
             flexGrow: 1,

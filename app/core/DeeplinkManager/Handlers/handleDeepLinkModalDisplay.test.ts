@@ -52,6 +52,7 @@ describe('handleDeepLinkModalDisplay', () => {
                 linkType,
                 pageTitle: 'MetaMask',
                 onContinue: jest.fn(),
+                onBack: jest.fn(),
             });
             if (shouldRedirect) {
                 await waitFor(() => {
