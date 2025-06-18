@@ -715,7 +715,7 @@ describe('EarnInputView', () => {
       const getErc20SpendingLimitSpy = jest
         .spyOn(tempLendingUtils, 'getErc20SpendingLimit')
         .mockResolvedValue('0');
-      
+
       // Create a USDC token with a higher balance to avoid "Not enough USDC" error
       const usdcTokenWithHighBalance = {
         ...MOCK_USDC_MAINNET_ASSET,
@@ -726,7 +726,7 @@ describe('EarnInputView', () => {
         price: 1, // 1 USDC = $1
         experience: EARN_EXPERIENCES.STABLECOIN_LENDING, // Add this for lending flow
       };
-      
+
       const routeParamsWithUSDC: EarnInputViewProps['route'] = {
         params: {
           token: usdcTokenWithHighBalance,
@@ -734,7 +734,7 @@ describe('EarnInputView', () => {
         key: Routes.STAKING.STAKE,
         name: 'params',
       };
-      
+
       // Mock the token balance in the state
       const customState = {
         ...mockInitialState,
@@ -771,16 +771,16 @@ describe('EarnInputView', () => {
           },
         },
       };
-      
+
       const { getByText, getAllByText } = render(
-        EarnInputView, 
+        EarnInputView,
         routeParamsWithUSDC,
         customState
       );
-      
+
       // Clear previous calls from the initial render
       mockTrackEvent.mockClear();
-      
+
       // Enter 0.5 USDC (which is less than the 10 USDC balance)
       // Use getAllByText and select the keypad button (usually the last one)
       await act(async () => {
@@ -794,17 +794,17 @@ describe('EarnInputView', () => {
         const fiveButtons = getAllByText('5');
         fireEvent.press(fiveButtons[fiveButtons.length - 1]); // Press the keypad 5
       });
-      
+
       // Wait for the state to update and button to show "Review"
       await waitFor(() => {
         expect(getByText(strings('stake.review'))).toBeTruthy();
       });
-      
+
       // Now press the review button
       await act(async () => {
         fireEvent.press(getByText(strings('stake.review')));
       });
-      
+
       // Wait for navigation and tracking
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
@@ -814,7 +814,7 @@ describe('EarnInputView', () => {
           })
         );
       });
-      
+
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Earn Review button clicked',
@@ -827,7 +827,7 @@ describe('EarnInputView', () => {
           },
         }),
       );
-      
+
       getErc20SpendingLimitSpy.mockRestore();
     });
   });

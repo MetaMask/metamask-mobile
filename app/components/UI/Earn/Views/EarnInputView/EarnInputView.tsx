@@ -151,7 +151,7 @@ const EarnInputView = () => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.EARN_INPUT_OPENED)
           .addProperties({
-            // action_type: 'deposit',
+            action_type: 'deposit',
             token: earnToken?.symbol,
             network: network?.name,
             user_token_balance: balanceValue,
@@ -178,7 +178,7 @@ const EarnInputView = () => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED)
           .addProperties({
-            // action_type: 'deposit',
+            action_type: 'deposit',
             input_value: params.value,
             token: earnToken?.symbol,
             network: network?.name,
@@ -215,7 +215,7 @@ const EarnInputView = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.EARN_REVIEW_BUTTON_CLICKED)
         .addProperties({
-          // action_type: 'deposit',
+          action_type: 'deposit',
           token: earnToken?.symbol,
           network: network?.name,
           user_token_balance: balanceValue,
@@ -562,8 +562,8 @@ const EarnInputView = () => {
             metrics.push({
               event: MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED,
               properties: {
-                // action_type: 'deposit',
-                input_value: `${value * 100}%`,
+                action_type: 'deposit',
+                input_value: value,
                 token: earnToken?.symbol,
                 network: network?.name,
                 user_token_balance: balanceValue,
@@ -591,7 +591,7 @@ const EarnInputView = () => {
             metrics.push({
               event: MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED,
               properties: {
-                // action_type: 'deposit',
+                action_type: 'deposit',
                 input_value: 'Max',
                 token: earnToken?.symbol,
                 network: network?.name,

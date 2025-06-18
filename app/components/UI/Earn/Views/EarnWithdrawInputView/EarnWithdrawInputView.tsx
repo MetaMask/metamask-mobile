@@ -42,6 +42,10 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { isSupportedLendingTokenByChainId } from '../../utils';
+import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+
+type EventLoggingStrategy = 'LOG_STABLECOIN_WITHDRAWAL_EVENT' | 'LOG_STAKING_EVENT' | 'SKIP_EVENT_LOGGING';
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
@@ -71,9 +75,28 @@ const EarnWithdrawInputView = () => {
   const contractExchangeRates = useSelector((state: RootState) =>
     selectContractExchangeRatesByChainId(state, token.chainId as Hex),
   );
+  const network = useSelector((state: RootState) =>
+    selectNetworkConfigurationByChainId(state, token.chainId as Hex),
+  );
   const exchangeRate = contractExchangeRates?.[token.address as Hex]?.price;
 
   const { trackEvent, createEventBuilder } = useMetrics();
+
+  const getEventLoggingStrategy = useCallback((): EventLoggingStrategy => {
+    if (
+      earnToken?.experience === EARN_EXPERIENCES.STABLECOIN_LENDING &&
+      isStablecoinLendingEnabled
+    ) {
+      return 'LOG_STABLECOIN_WITHDRAWAL_EVENT';
+    }
+
+    // assume it's a staking experience
+    if (!isStablecoinLendingEnabled || token.isETH) {
+      return 'LOG_STAKING_EVENT';
+    }
+
+    return 'SKIP_EVENT_LOGGING';
+  }, [earnToken?.experience, isStablecoinLendingEnabled, token.isETH]);
 
   const {
     isFiat,
@@ -94,6 +117,24 @@ const EarnWithdrawInputView = () => {
     conversionRate,
     exchangeRate,
   });
+
+  useEffect(() => {
+    const strategy = getEventLoggingStrategy();
+
+    if (strategy === 'LOG_STABLECOIN_WITHDRAWAL_EVENT') {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EARN_INPUT_OPENED)
+          .addProperties({
+            action_type: 'withdrawal',
+            token: earnToken?.symbol,
+            network: network?.name,
+            user_token_balance: earnBalanceValue,
+          })
+          .build(),
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const stakedBalanceText = strings('stake.staked_balance');
 
@@ -182,8 +223,23 @@ const EarnWithdrawInputView = () => {
   );
 
   const handleUnstakePress = useCallback(async () => {
+    const strategy = getEventLoggingStrategy();
     const isStakingDepositRedesignedEnabled =
       confirmationRedesignFlags?.staking_confirmations;
+
+    if (strategy === 'LOG_STABLECOIN_WITHDRAWAL_EVENT') {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EARN_REVIEW_BUTTON_CLICKED)
+          .addProperties({
+            action_type: 'withdrawal',
+            token: earnToken?.symbol,
+            network: network?.name,
+            user_token_balance: earnBalanceValue,
+            transaction_value: amountToken,
+          })
+          .build(),
+      );
+    }
 
     const unstakeButtonClickEventProperties = {
       selected_provider: EVENT_PROVIDERS.CONSENSYS,
@@ -250,7 +306,32 @@ const EarnWithdrawInputView = () => {
     attemptUnstakeTransaction,
     activeAccount?.address,
     confirmationRedesignFlags?.staking_confirmations,
+    getEventLoggingStrategy,
+    earnToken?.symbol,
+    network?.name,
+    earnBalanceValue,
   ]);
+
+  const handleKeypadChangeWithTracking = useCallback((params: { value: string; pressedKey: string }) => {
+    const strategy = getEventLoggingStrategy();
+
+    // call the original handler first
+    handleKeypadChange(params);
+
+    if (strategy === 'LOG_STABLECOIN_WITHDRAWAL_EVENT' && params.value !== '0' && params.value !== '') {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED)
+          .addProperties({
+            action_type: 'withdrawal',
+            input_value: params.value,
+            token: earnToken?.symbol,
+            network: network?.name,
+            user_token_balance: earnBalanceValue,
+          })
+          .build(),
+      );
+    }
+  }, [getEventLoggingStrategy, handleKeypadChange, trackEvent, createEventBuilder, earnToken?.symbol, network?.name, earnBalanceValue]);
 
   return (
     <ScreenLayout style={styles.container}>
@@ -279,21 +360,39 @@ const EarnWithdrawInputView = () => {
       <UnstakeInputViewBanner style={styles.unstakeBanner} />
       <QuickAmounts
         amounts={percentageOptions}
-        onAmountPress={({ value }: { value: number }) =>
-          withMetaMetrics(handleQuickAmountPress, {
-            event: MetaMetricsEvents.UNSTAKE_INPUT_QUICK_AMOUNT_CLICKED,
-            properties: {
-              location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
-              amount: value,
-              is_max: value === 1,
-              mode: isFiat ? 'fiat' : 'native',
-            },
-          })({ value })
-        }
+        onAmountPress={({ value }: { value: number }) => {
+          const strategy = getEventLoggingStrategy();
+          const metrics: any[] = [];
+
+          if (strategy === 'LOG_STABLECOIN_WITHDRAWAL_EVENT') {
+            metrics.push({
+              event: MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED,
+              properties: {
+                action_type: 'withdrawal',
+                input_value: value,
+                token: earnToken?.symbol,
+                network: network?.name,
+                user_token_balance: earnBalanceValue,
+              },
+            });
+          } else if (strategy === 'LOG_STAKING_EVENT') {
+            metrics.push({
+              event: MetaMetricsEvents.UNSTAKE_INPUT_QUICK_AMOUNT_CLICKED,
+              properties: {
+                location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
+                amount: value,
+                is_max: value === 1,
+                mode: isFiat ? 'fiat' : 'native',
+              },
+            });
+          }
+
+          withMetaMetrics(handleQuickAmountPress, metrics)({ value });
+        }}
       />
       <Keypad
         value={isFiat ? amountFiatNumber : amountToken}
-        onChange={handleKeypadChange}
+        onChange={handleKeypadChangeWithTracking}
         style={styles.keypad}
         // TODO: this should be the underlying token symbol/ticker if not ETH
         // once this data is available in the state we can use that
