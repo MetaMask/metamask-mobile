@@ -12,25 +12,23 @@ describe(
       jest.setTimeout(150000);
     });
 
-    describe('Sign Message', () => {
-      it('Should sign a message', async () => {
-        await withSolanaAccountSnap({}, async () => {
-          await navigateToSolanaTestDApp();
+    it('Should sign a message', async () => {
+      await withSolanaAccountSnap({}, async () => {
+        await navigateToSolanaTestDApp();
 
-          await connectSolanaTestDapp();
+        await connectSolanaTestDapp();
 
-          const signMessageTest = SolanaTestDApp.getSignMessageTest();
-          await signMessageTest.signMessage();
+        const signMessageTest = SolanaTestDApp.getSignMessageTest();
+        await signMessageTest.signMessage();
 
-          // Confirm the signature
-          await SolanaTestDApp.confirmSignMessage();
+        // Confirm the signature
+        await SolanaTestDApp.confirmSignMessage();
 
-          const signedMessage = await signMessageTest.getSignedMessage();
-          await Assertions.checkIfTextMatches(
-            signedMessage,
-            'Kort1JYMAf3dmzKRx4WiYXW9gSfPHzxw0flAka25ymjB4d+UZpU/trFoSPk4DM7emT1c/e6Wk0bsRcLsj/h9BQ==',
-          );
-        });
+        const signedMessage = await signMessageTest.getSignedMessage();
+        await Assertions.checkIfTextMatches(
+          signedMessage,
+          'Kort1JYMAf3dmzKRx4WiYXW9gSfPHzxw0flAka25ymjB4d+UZpU/trFoSPk4DM7emT1c/e6Wk0bsRcLsj/h9BQ==',
+        );
       });
     });
   },

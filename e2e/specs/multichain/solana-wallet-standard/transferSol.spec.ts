@@ -12,38 +12,36 @@ describe(
       jest.setTimeout(150000);
     });
 
-    describe('Send a transaction', () => {
-      it('Should sign a transaction', async () => {
-        await withSolanaAccountSnap({}, async () => {
-          await navigateToSolanaTestDApp();
-          await connectSolanaTestDapp();
+    it('Should sign a transaction', async () => {
+      await withSolanaAccountSnap({}, async () => {
+        await navigateToSolanaTestDApp();
+        await connectSolanaTestDapp();
 
-          await device.disableSynchronization(); // Synchronization is preventing from reading the MetaMask bottom sheet
+        await device.disableSynchronization(); // Synchronization is preventing from reading the MetaMask bottom sheet
 
-          const sendSolTest = SolanaTestDApp.getSendSolTest();
-          await sendSolTest.signTransaction();
+        const sendSolTest = SolanaTestDApp.getSendSolTest();
+        await sendSolTest.signTransaction();
 
-          await Assertions.checkIfTextIsDisplayed('Transaction request');
+        await Assertions.checkIfTextIsDisplayed('Transaction request');
 
-          await SolanaTestDApp.cancelTransaction();
-        });
+        await SolanaTestDApp.cancelTransaction();
       });
+    });
 
-      // TODO: Enable when devnet is supported on mobile
-      it.skip('Should send a transaction', async () => {
-        await withSolanaAccountSnap({}, async () => {
-          await navigateToSolanaTestDApp();
-          await connectSolanaTestDapp();
+    // TODO: Enable when devnet is supported on mobile
+    it.skip('Should send a transaction', async () => {
+      await withSolanaAccountSnap({}, async () => {
+        await navigateToSolanaTestDApp();
+        await connectSolanaTestDapp();
 
-          await device.disableSynchronization(); // Synchronization is preventing from reading the MetaMask bottom sheet
+        await device.disableSynchronization(); // Synchronization is preventing from reading the MetaMask bottom sheet
 
-          const sendSolTest = SolanaTestDApp.getSendSolTest();
-          await sendSolTest.sendTransaction();
+        const sendSolTest = SolanaTestDApp.getSendSolTest();
+        await sendSolTest.sendTransaction();
 
-          await Assertions.checkIfTextIsDisplayed('Transaction request');
+        await Assertions.checkIfTextIsDisplayed('Transaction request');
 
-          await SolanaTestDApp.cancelTransaction();
-        });
+        await SolanaTestDApp.cancelTransaction();
       });
     });
   },
