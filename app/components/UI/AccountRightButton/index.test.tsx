@@ -1,4 +1,6 @@
 import React from 'react';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { SolScope } from '@metamask/keyring-api';
 import {
   DeepPartial,
   renderScreen,
@@ -7,8 +9,7 @@ import AccountRightButton from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
 import { mockNetworkState } from '../../../util/test/network';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { SolScope } from '@metamask/keyring-api';
+import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/Browser/AccountOverview.selectors';
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
@@ -33,7 +34,6 @@ const mockInitialState: DeepPartial<RootState> = {
         multichainNetworkConfigurationsByChainId: {
           'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
             name: 'Solana Mainnet',
-            nativeCurrency: 'solana:sol/token:sol',
           },
         },
       },
@@ -94,6 +94,72 @@ describe('AccountRightButton', () => {
       { state: mockInitialStateNonEvm },
     );
 
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should call onPress when button is pressed and selectedAddress is present', () => {
+    const onPressMock = jest.fn();
+    const { getByTestId } = renderScreen(
+      () => (
+        <AccountRightButton selectedAddress="0x123" onPress={onPressMock} />
+      ),
+      {
+        name: 'AccountRightButton',
+      },
+      { state: mockInitialState },
+    );
+    // Simulate button press
+    getByTestId(AccountOverviewSelectorsIDs.ACCOUNT_BUTTON).props.onPress();
+    expect(onPressMock).toHaveBeenCalled();
+  });
+
+  it('should render network avatar when selectedAddress is not provided (EVM)', () => {
+    const { toJSON } = renderScreen(
+      () => <AccountRightButton selectedAddress="" onPress={() => undefined} />,
+      {
+        name: 'AccountRightButton',
+      },
+      { state: mockInitialState },
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should render network avatar when selectedAddress is not provided (non-EVM)', () => {
+    const mockInitialStateNonEvm = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine?.backgroundState,
+          MultichainNetworkController: {
+            ...mockInitialState.engine?.backgroundState
+              ?.MultichainNetworkController,
+            isEvmSelected: false,
+          },
+        },
+      },
+    };
+
+    const { toJSON } = renderScreen(
+      () => <AccountRightButton selectedAddress="" onPress={() => undefined} />,
+      {
+        name: 'AccountRightButton',
+      },
+      { state: mockInitialStateNonEvm },
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should render account avatar when selectedAddress is provided', () => {
+    const { toJSON } = renderScreen(
+      () => (
+        <AccountRightButton selectedAddress="0x123" onPress={() => undefined} />
+      ),
+      {
+        name: 'AccountRightButton',
+      },
+      { state: mockInitialState },
+    );
     expect(toJSON()).toMatchSnapshot();
   });
 });
