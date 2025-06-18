@@ -759,7 +759,7 @@ class AddCustomToken extends PureComponent {
           <Button
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
-            label={strings('transaction.next') + 'test 1111'}
+            label={strings('transaction.next')}
             style={styles.import}
             onPress={this.goToConfirmAddToken}
             isDisabled={isDisabled}
