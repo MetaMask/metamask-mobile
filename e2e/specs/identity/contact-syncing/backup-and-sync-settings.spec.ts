@@ -68,11 +68,6 @@ describe(
 
       await TabBarComponent.tapSettings();
       await TestHelpers.delay(1000);
-      await ContactsView.tapAddContactButton();
-      await Assertions.checkIfVisible(ContactsView.container);
-      await TestHelpers.delay(4000);
-
-      await TabBarComponent.tapSettings();
       await Assertions.checkIfVisible(SettingsView.backupAndSyncSectionButton);
       await SettingsView.tapBackupAndSync();
       await TestHelpers.delay(2000);
@@ -82,14 +77,11 @@ describe(
       await TestHelpers.delay(2000);
 
       await CommonView.tapBackButton();
-      await Assertions.checkIfVisible(SettingsView.backupAndSyncSectionButton);
-      await TabBarComponent.tapSettings();
-      await TestHelpers.delay(1000);
-      await ContactsView.tapAddContactButton();
+      await SettingsView.tapContacts();
       await Assertions.checkIfVisible(ContactsView.container);
-      await TestHelpers.delay(2000);
-
+      await ContactsView.tapAddContactButton();
       await Assertions.checkIfVisible(AddContactView.container);
+
       await AddContactView.typeInName(NEW_CONTACT_NAME);
       await AddContactView.typeInAddress(NEW_CONTACT_ADDRESS);
       await AddContactView.tapAddContactButton();
@@ -110,7 +102,7 @@ describe(
 
       await TabBarComponent.tapSettings();
       await TestHelpers.delay(1000);
-      await ContactsView.tapAddContactButton();
+      await SettingsView.tapContacts();
       await Assertions.checkIfVisible(ContactsView.container);
       await TestHelpers.delay(4000);
 
@@ -120,21 +112,9 @@ describe(
     it('should sync new contacts when contacts sync toggle is on', async () => {
       await TabBarComponent.tapSettings();
       await Assertions.checkIfVisible(SettingsView.backupAndSyncSectionButton);
-      await SettingsView.tapBackupAndSync();
-      await TestHelpers.delay(2000);
-
-      await Assertions.checkIfVisible(BackupAndSyncView.backupAndSyncToggle);
-      await BackupAndSyncView.toggleBackupAndSync();
-      await TestHelpers.delay(2000);
-
-      await CommonView.tapBackButton();
-      await Assertions.checkIfVisible(SettingsView.backupAndSyncSectionButton);
-      await TabBarComponent.tapSettings();
-      await TestHelpers.delay(1000);
-      await ContactsView.tapAddContactButton();
+      await SettingsView.tapContacts();
       await Assertions.checkIfVisible(ContactsView.container);
-      await TestHelpers.delay(2000);
-
+      await ContactsView.tapAddContactButton();
       await Assertions.checkIfVisible(AddContactView.container);
       await AddContactView.typeInName(NEW_CONTACT_NAME);
       await AddContactView.typeInAddress(NEW_CONTACT_ADDRESS);
@@ -156,7 +136,7 @@ describe(
 
       await TabBarComponent.tapSettings();
       await TestHelpers.delay(1000);
-      await ContactsView.tapAddContactButton();
+      await SettingsView.tapContacts();
       await Assertions.checkIfVisible(ContactsView.container);
       await TestHelpers.delay(4000);
 
