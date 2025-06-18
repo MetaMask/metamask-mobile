@@ -10,7 +10,6 @@ import DeleteAccount from '../../pages/MultichainAccounts/DeleteAccount';
 import Assertions from '../../utils/Assertions';
 import Matchers from '../../utils/Matchers';
 import WalletView from '../../pages/wallet/WalletView';
-import TestHelpers from '../../helpers';
 
 const deleteAccount = async () => {
   await AccountDetails.tapDeleteAccountLink();
@@ -18,10 +17,6 @@ const deleteAccount = async () => {
 };
 
 describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
-  beforeEach(async () => {
-    await TestHelpers.reverseServerPort();
-  });
-
   it('deletes the account', async () => {
     await withMultichainAccountDetailsEnabled(async () => {
       await goToAccountDetails(SIMPLE_KEYPAIR_ACCOUNT);
