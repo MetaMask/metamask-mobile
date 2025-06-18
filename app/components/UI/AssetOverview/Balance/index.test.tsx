@@ -1,18 +1,19 @@
+import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
 import { Image } from 'react-native';
-import Balance from '.';
-import { render, fireEvent } from '@testing-library/react-native';
-import { selectNetworkName } from '../../../../selectors/networkInfos';
-import { selectChainId } from '../../../../selectors/networkController';
 import { Provider, useSelector } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
-import { backgroundState } from '../../../../util/test/initial-root-state';
-import { NetworkBadgeSource } from './Balance';
-import { MOCK_VAULT_APY_AVERAGES } from '../../Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
-import { EARN_EXPERIENCES } from '../../Earn/constants/experiences';
-import { MOCK_DAI_MAINNET_ASSET } from '../../Stake/__mocks__/stakeMockData';
-import { createMockToken } from '../../Stake/testUtils';
+import Balance from '.';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
+import { selectChainId } from '../../../../selectors/networkController';
+import { selectNetworkName } from '../../../../selectors/networkInfos';
+import { backgroundState } from '../../../../util/test/initial-root-state';
+import { EARN_EXPERIENCES } from '../../Earn/constants/experiences';
+import { EarnTokenDetails } from '../../Earn/types/lending.types';
+import { MOCK_STAKED_ETH_MAINNET_ASSET } from '../../Stake/__mocks__/stakeMockData';
+import { MOCK_VAULT_APY_AVERAGES } from '../../Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
+import { TokenI } from '../../Tokens/types';
+import { NetworkBadgeSource } from './Balance';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -25,6 +26,14 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
+  }),
+}));
+
+jest.mock('../../Stake/hooks/useBalance', () => ({
+  __esModule: true,
+  default: () => ({
+    currentCurrency: 'usd',
+    conversionRate: 1,
   }),
 }));
 
@@ -120,31 +129,41 @@ jest.mock('../../Stake/hooks/useStakingEligibility', () => ({
   }),
 }));
 
-const mockDaiMainnet = {
-  ...MOCK_DAI_MAINNET_ASSET,
-  apr: '4.5',
-  balanceFiat: '$100',
-  balanceFormatted: '100 DAI',
-  balanceMinimalUnit: '100',
-  balanceFiatNumber: 100,
-  experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
-};
+jest.mock('../../../../selectors/earnController', () => ({
+  ...jest.requireActual('../../../../selectors/earnController'),
+  earnSelectors: {
+    selectEarnTokenPair: jest.fn().mockImplementation((token: TokenI) => ({
+      earnToken: token,
+      outputToken: token,
+    })),
+    selectEarnToken: jest.fn(),
+    selectOutputToken: jest.fn(),
+  },
+}));
+jest.mock('../../../../selectors/networkInfos', () => ({
+  ...jest.requireActual('../../../../selectors/networkInfos'),
+  selectNetworkName: jest.fn().mockReturnValue({}),
+}));
 
-const mockADaiMainnet = {
-  ...createMockToken({ chainId: '0x1', symbol: 'ADAI', name: 'Aave v3 DAI' }),
-  apr: '4.5',
-  balanceFiat: '$100',
-  balanceFormatted: '100 ADAI',
-  balanceMinimalUnit: '100',
-  balanceFiatNumber: 100,
-  experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
-};
+jest.mock('../../../../selectors/networkController', () => ({
+  ...jest.requireActual('../../../../selectors/networkController'),
+  selectChainId: jest.fn().mockReturnValue('1'),
+}));
 
-const mockEarnTokens = [mockDaiMainnet, mockADaiMainnet];
+jest.mock('../../../../selectors/multichainNetworkController', () => ({
+  ...jest.requireActual('../../../../selectors/multichainNetworkController'),
+  selectIsEvmNetworkSelected: jest.fn().mockReturnValue(true),
+}));
 
-jest.mock('../../Earn/hooks/useEarnTokens', () => ({
-  __esModule: true,
-  default: () => mockEarnTokens,
+jest.mock('../../../../selectors/multichain/multichain', () => ({
+  ...jest.requireActual('../../../../selectors/multichain/multichain'),
+  selectMultichainAssetsRates: jest.fn().mockReturnValue({
+    '0x6b175474e89094c44da98b954eedeac495271d0f': {
+      marketData: {
+        pricePercentChange: { P1D: 10 },
+      },
+    },
+  }),
 }));
 
 const mockInitialState = {
@@ -182,16 +201,23 @@ describe('Balance', () => {
 
   beforeEach(() => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
-      switch (selector) {
-        case selectNetworkName:
-          return {};
-        case selectChainId:
-          return '1';
-        case selectIsEvmNetworkSelected:
-          return true;
-        default:
-          return undefined;
+      // Try to match by function name or string contents
+      if (selector === selectNetworkName) return {};
+      if (selector === selectChainId) return '1';
+      if (selector === selectIsEvmNetworkSelected) return true;
+      if (selector.toString().includes('selectEarnTokenPair')) {
+        return {
+          earnToken: mockETH,
+          outputToken: {
+            ...MOCK_STAKED_ETH_MAINNET_ASSET,
+            experience: {
+              type: EARN_EXPERIENCES.POOLED_STAKING,
+            } as EarnTokenDetails['experience'],
+          },
+        };
       }
+
+      return undefined;
     });
   });
 
