@@ -61,6 +61,7 @@ import { isBridgeAllowed } from '../../UI/Bridge/utils';
 import { selectDepositEntrypointWalletActions } from '../../../selectors/featureFlagController/deposit';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
 import { earnSelectors } from '../../../selectors/earnController/earn';
+import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -86,6 +87,7 @@ const WalletActions = () => {
   ///: END:ONLY_INCLUDE_IF
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
+  const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
   const { goToBridge: goToBridgeBase, goToSwaps: goToSwapsBase } =
     useSwapBridgeNavigation({
       location: SwapBridgeNavigationLocation.TabBar,
@@ -397,7 +399,7 @@ const WalletActions = () => {
             disabled={!canSignTransactions || !swapsIsLive}
           />
         )}
-        {AppConstants.BRIDGE.ACTIVE && isBridgeAllowed(chainId) && (
+        {AppConstants.BRIDGE.ACTIVE && isBridgeAllowed(chainId) && !isUnifiedSwapsEnabled && (
           <WalletAction
             actionType={WalletActionType.Bridge}
             iconName={IconName.Bridge}
