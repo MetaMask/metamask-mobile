@@ -8,10 +8,12 @@ import { store } from '../../../store';
 import NavigationService from '../../../core/NavigationService';
 
 const handleDeepLinkModalDisplay = (props: DeepLinkModalProps) => {
+  // TODO: Update name since this is meant to remove interstitial if don't remind me again was toggled
   const deepLinkModalDisabled = selectDeepLinkModalDisabled(store.getState());
 
   if (props.linkType === 'private' && deepLinkModalDisabled) {
-    props.onBack();
+    // Skip interstitial if don't remind me again was toggled
+    props.onContinue();
     return;
   }
   NavigationService.navigation.navigate(
