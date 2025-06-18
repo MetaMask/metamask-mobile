@@ -345,9 +345,6 @@ class SmartTransactionHook {
     }
   }
 
-  
-
-  // here first
   #getFees = async () => {
     try {
       return await this.#smartTransactionsController.getFees(
