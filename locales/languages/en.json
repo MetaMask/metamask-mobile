@@ -3852,9 +3852,15 @@
         "between_one_dot_five_and_2_dot_zero": "Between 1.5-2.0",
         "medium_liquidation_risk": "Medium Liquidation risk",
         "below_one_dot_five": "Below 1.5",
-        "higher_liquidation_risk": "Higher liquidation risk",
-        "infinite": "Infinite",
-        "no_debt_maximum_security": "No debt, maximum safety"
+        "higher_liquidation_risk": "Higher liquidation risk"
+      },
+      "lending_risk_aware_withdrawal_tooltip": {
+        "why_cant_i_withdraw_full_balance": "Why can't I withdraw my full balance?",
+        "your_withdrawal_amount_may_be_limited_by": "Your withdrawal amount may be limited by",
+        "pool_liquidity": "Pool Liquidity",
+        "not_enough_funds_available_in_the_lending_pool_right_now": "Not enough funds available in the lending pool right now.",
+        "existing_borrow_positions": "Existing Borrow Positions",
+        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "Withdrawing could put your existing loan positions at risk of liquidation."
       }
     },
     "withdraw": "Withdraw",
@@ -3874,7 +3880,8 @@
       "lend_and_earn_daily_rewards": "Lend your {{tokenSymbol}} with {{protocol}} and earn daily rewards. Rewards grow over time and APR varies.",
       "withdraw_whenever_you_want": "Withdraw whenever you want",
       "get_asset_back_in_your_wallet_instantly": "Get {{tokenSymbol}} back in your wallet instantly."
-    }
+    },
+    "amount_exceeds_safe_withdrawal_limit": "Amount exceeds safe withdrawal limit"
   },
   "stake": {
     "stake": "Stake",
@@ -4321,6 +4328,9 @@
       "account_address": "Account Address",
       "wallet": "Wallet",
       "private_key": "Private key"
+    },
+    "accounts_list": {
+      "details": "Details"
     },
     "smart_account": {
       "title": "Enable Smart Account",

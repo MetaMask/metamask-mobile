@@ -1,5 +1,6 @@
 'use strict';
 import { ethers } from 'ethers';
+import { MockttpServer } from 'mockttp';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
@@ -29,20 +30,50 @@ import ImportAccountView from '../../pages/importAccount/ImportAccountView';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 
-const fixtureServer = new FixtureServer();
+interface ExitRequest {
+  positionTicket: string;
+  timestamp: string;
+  totalShares: string;
+  withdrawalTimestamp: string;
+  exitQueueIndex: string;
+  claimedAssets: string;
+  leftShares: string;
+}
 
-describe.skip(SmokeTrade('Stake from Actions'), () => {
-  const FIRST_ROW = 0;
-  const AMOUNT_TO_SEND = '.005';
-  let mockServer;
-  const wallet = ethers.Wallet.createRandom();
+interface StakingAccount {
+  account: string;
+  lifetimeRewards: string;
+  assets: string;
+  exitRequests: ExitRequest[];
+}
 
-  beforeAll(async () => {
+interface StakingAPIResponse {
+  accounts: StakingAccount[];
+}
 
+interface MockEndpoint {
+  urlEndpoint: string;
+  response: StakingAPIResponse;
+  responseCode: number;
+}
+
+interface MockConfig {
+  GET: MockEndpoint[];
+}
+
+const fixtureServer: FixtureServer = new FixtureServer();
+
+describe.skip(SmokeTrade('Stake from Actions'), (): void => {
+  const FIRST_ROW: number = 0;
+  const AMOUNT_TO_SEND: string = '.005';
+  let mockServer: MockttpServer;
+  const wallet: ethers.Wallet = ethers.Wallet.createRandom();
+
+  beforeAll(async (): Promise<void> => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
       .withNetworkController(PopularNetworksList.zkSync)
@@ -58,17 +89,17 @@ describe.skip(SmokeTrade('Stake from Actions'), () => {
     await loginToApp();
   });
 
-  afterAll(async () => {
+  afterAll(async (): Promise<void> => {
     if (mockServer)
     await stopMockServer(mockServer);
     await stopFixtureServer(fixtureServer);
   });
 
-  beforeEach(async () => {
+  beforeEach(async (): Promise<void> => {
     jest.setTimeout(150000);
   });
 
-  it('should be able to import stake test account with funds', async () => {
+  it('should be able to import stake test account with funds', async (): Promise<void> => {
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapIdenticon();
     await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
@@ -82,7 +113,7 @@ describe.skip(SmokeTrade('Stake from Actions'), () => {
     await Assertions.checkIfVisible(WalletView.container);
   });
 
-  it('should send ETH to new account', async () => {
+  it('should send ETH to new account', async (): Promise<void> => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSendButton();
     await SendView.inputAddress(wallet.address);
@@ -101,7 +132,7 @@ describe.skip(SmokeTrade('Stake from Actions'), () => {
     await Assertions.checkIfTextIsNotDisplayed('$0',60000);
   });
 
-  it('should be able to import the new funded account', async () => {
+  it('should be able to import the new funded account', async (): Promise<void> => {
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapIdenticon();
     await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
@@ -115,7 +146,7 @@ describe.skip(SmokeTrade('Stake from Actions'), () => {
     await Assertions.checkIfVisible(WalletView.container);
   });
 
-  it('should Stake ETH', async () => {
+  it('should Stake ETH', async (): Promise<void> => {
     await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
     await WalletView.tapOnEarnButton();
     await Assertions.checkIfVisible(StakeView.stakeContainer);
@@ -133,7 +164,7 @@ describe.skip(SmokeTrade('Stake from Actions'), () => {
     await TabBarComponent.tapWallet();
   });
 
-  it('should Stake more ETH', async () => {
+  it('should Stake more ETH', async (): Promise<void> => {
     await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
@@ -155,7 +186,7 @@ describe.skip(SmokeTrade('Stake from Actions'), () => {
     await TabBarComponent.tapWallet();
   });
 
-  it('should Unstake ETH', async () => {
+  it('should Unstake ETH', async (): Promise<void> => {
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnStakedEthereum();
     await TokenOverview.scrollOnScreen();
@@ -182,8 +213,8 @@ describe.skip(SmokeTrade('Stake from Actions'), () => {
     await TokenOverview.tapBackButton();
   });
 
-  it('should make sure staking actions are hidden for ETH assets that are not on main', async () => {
-    const THIRD_ONE = 2;
+  it('should make sure staking actions are hidden for ETH assets that are not on main', async (): Promise<void> => {
+    const THIRD_ONE: number = 2;
     await TabBarComponent.tapWallet();
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.changeNetworkTo(PopularNetworksList.zkSync.providerConfig.nickname, false);
@@ -205,19 +236,19 @@ describe.skip(SmokeTrade('Stake from Actions'), () => {
     await NetworkEducationModal.tapGotItButton();
   });
 
-it('should Stake Claim ETH', async () => {
-  const stakeAPIUrl = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/17000?accounts=${wallet.address}&resetCache=true`;
-  const response = await axios.get(stakeAPIUrl);
+it('should Stake Claim ETH', async (): Promise<void> => {
+  const stakeAPIUrl: string = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/17000?accounts=${wallet.address}&resetCache=true`;
+  const response: AxiosResponse<StakingAPIResponse> = await axios.get(stakeAPIUrl);
 
   if (response.status !== 200) {
     throw new Error('Error calling Staking API');
   }
-  const account =  response.data.accounts[0];
+  const account: StakingAccount = response.data.accounts[0];
   if (!account.exitRequests[0]) {
     throw new Error(`No claim entries found for account ${wallet.address}`);
   }
 
-  const testSpecificMock  = {
+  const testSpecificMock: MockConfig = {
     GET: [ {
         urlEndpoint: stakeAPIUrl,
         response: {
@@ -228,7 +259,6 @@ it('should Stake Claim ETH', async () => {
               assets: account.lifetimeRewards,
               exitRequests: [
                 {
-
                   positionTicket: account.exitRequests[0].positionTicket,
                   timestamp: '1737657204000',
                   totalShares: account.exitRequests[0].totalShares,
@@ -247,8 +277,7 @@ it('should Stake Claim ETH', async () => {
   };
   await device.terminateApp();
 
-
-  const mockServerPort = getMockServerPort();
+  const mockServerPort: number = getMockServerPort();
   mockServer = await startMockServer(testSpecificMock, mockServerPort);
 
   await TestHelpers.launchApp({
