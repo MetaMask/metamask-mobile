@@ -568,7 +568,21 @@ class Amount extends PureComponent {
     );
   };
 
+  UNSAFE_componentWillMount = async () => {
+     await Engine.context.TokenDetectionController.detectTokens({
+      chainIds: [this.props.sendFlowContextualChainId],
+    });
+    await Engine.context.TokenListController.fetchTokenList(this.props.sendFlowContextualChainId);
+    await Engine.context.TokenBalancesController.updateBalancesByChainId({
+      chainId: this.props.sendFlowContextualChainId,
+    });
+    // await Engine.context.AccountTrackerController.updateAccountsByChainId({
+    //   chainId: this.props.sendFlowContextualChainId,
+    // });
+  };
+
   componentDidMount = async () => {
+    console.log(">>> Amount componentDidMount");
     const {
       ticker,
       transactionState: { readableValue },
@@ -582,9 +596,22 @@ class Amount extends PureComponent {
     } = this.props;
     // For analytics
 
+    console.log(">>> Amount componentDidMount sendFlowContextualChainId", this.props.sendFlowContextualChainId);
     this.updateNavBar();
     navigation.setParams({ providerType, isPaymentRequest });
 
+    // await Engine.context.TokenDetectionController.detectTokens({
+    //   chainIds: [this.props.sendFlowContextualChainId],
+    // });
+    // await Engine.context.TokenListController.fetchTokenList(this.props.sendFlowContextualChainId);
+    // await Engine.context.TokenBalancesController.updateBalancesByChainId({
+    //   chainId: this.props.sendFlowContextualChainId,
+    // });
+    // await Engine.context.AccountTrackerController.updateAccountsByChainId({
+    //   chainId: this.props.sendFlowContextualChainId,
+    // });
+
+    console.log(">>> Amount allTokens", this.props.allTokens);
     const allTokensFilteredByChainId =
       this.props.allTokens?.[this.props.sendFlowContextualChainId]?.[
         this.props.selectedAddress?.toLowerCase()
@@ -763,9 +790,19 @@ class Amount extends PureComponent {
               : BNToHex(transaction.value),
         };
 
+        const { globalNetworkClientId } = this.props;
+
+        const { rpcEndpoints, defaultRpcEndpointIndex } =
+          this.props.sendFlowContextualNetworkConfiguration;
+        const { networkClientId: sendFlowContextualNetworkClientId } =
+          rpcEndpoints[defaultRpcEndpointIndex];
+        const effectiveNetworkClientId =
+          sendFlowContextualNetworkClientId || globalNetworkClientId;
+
+        console.log('>>> Amount addTransaction effectiveNetworkClientId', effectiveNetworkClientId);
         await addTransaction(transactionParams, {
           origin: MMM_ORIGIN,
-          networkClientId: globalNetworkClientId,
+          networkClientId: effectiveNetworkClientId,
         });
         this.setState({ isRedesignedTransferTransactionLoading: false });
         navigation.navigate('SendFlowView', {
@@ -1660,12 +1697,13 @@ const mapStateToProps = (state, ownProps) => {
   const globalChainId = selectEvmChainId(state);
   const globalNetworkClientId = selectNetworkClientId(state);
   const sendFlowContextualChainId = selectSendFlowContextualChainId(state);
+  console.log('>>> Amount sendFlowContextualChainId', sendFlowContextualChainId);
   const sendFlowContextualNetworkConfiguration =
     selectNetworkConfigurationByChainId(
       state,
       toHexadecimal(selectSendFlowContextualChainId(state)),
     );
-
+  console.log('>>> Amount sendFlowContextualNetworkConfiguration', sendFlowContextualNetworkConfiguration);
   // TODO: double check all mapped state is used in the component
   return {
     accounts: selectAccounts(state),

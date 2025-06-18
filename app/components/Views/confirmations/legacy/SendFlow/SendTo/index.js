@@ -233,6 +233,7 @@ class SendFlow extends PureComponent {
 
     // Verify the state was set by checking selector directly
     const contextualChainId = selectSendFlowContextualChainId(store.getState());
+    console.log('>>> SendTo contextualChainId', contextualChainId);
   };
 
   componentDidUpdate(prevProps) {
