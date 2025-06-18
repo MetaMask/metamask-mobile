@@ -133,8 +133,9 @@ export function* basicFunctionalityToggle() {
 
 export function* handleDeeplinkSaga() {
   while (true) {
-    yield all([take(UserActionType.LOGIN)]);
-    console.log('XXXXXX - LOGIN');
+    // Handle parsing deeplinks after login or when the lock manager is resolved
+    yield take([UserActionType.LOGIN, UserActionType.RESOLVE_LOCK_MANAGER]);
+
     if (AppStateEventProcessor.currentDeeplink) {
       console.log(
         'XXXXXX - CURRENT DEEPLINK',
