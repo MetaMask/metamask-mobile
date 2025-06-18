@@ -53,6 +53,7 @@ import { enableAllNetworksFilter } from '../../UI/Tokens/util/enableAllNetworksF
 import Engine from '../../../core/Engine';
 import NetworkListBottomSheet from './components/NetworkListBottomSheet';
 import NetworkFilterBottomSheet from './components/NetworkFilterBottomSheet';
+import { selectERC20TokensByChain } from '../../../selectors/tokenListController';
 
 export enum FilterOption {
   AllNetworks,
@@ -106,6 +107,7 @@ const AddAsset = () => {
     [allNetworks],
   );
   const isAllNetworksEnabled = useSelector(selectTokenNetworkFilter);
+  const allTokenList = useSelector(selectERC20TokensByChain);
 
   const [openNetworkFilter, setOpenNetworkFilter] = useState(false);
   const [openNetworkSelector, setOpenNetworkSelector] = useState(false);
@@ -276,6 +278,7 @@ const AddAsset = () => {
                   ]?.networkClientId
                 : null
             }
+            tokenList={allTokenList}
           />
         </ScrollableTabView>
       ) : (
