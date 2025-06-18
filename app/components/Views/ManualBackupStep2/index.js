@@ -193,14 +193,6 @@ const ManualBackupStep2 = ({
           setSelectedSlot(existingIndex);
           return;
         }
-
-        // If not an empty slot, find the first empty slot in order
-        const emptySlotsInOrder = emptySlots.sort((a, b) => a - b);
-        const firstEmptySlot = emptySlotsInOrder.find(
-          (slot) => updatedGrid[slot] === '',
-        );
-        setSelectedSlot(firstEmptySlot);
-        return;
       }
 
       // Word must be one of the missing ones
