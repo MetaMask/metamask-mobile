@@ -87,6 +87,20 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../../hooks/useMetrics', () => ({
+  useMetrics: jest.fn(),
+  MetaMetricsEvents: {
+    EARN_CONFIRMATION_PAGE_VIEWED: 'Earn confirmation page viewed',
+    EARN_ACTION_SUBMITTED: 'Earn action submitted',
+    EARN_TRANSACTION_INITIATED: 'Earn transaction initiated',
+    EARN_TRANSACTION_REJECTED: 'Earn transaction rejected',
+    EARN_TRANSACTION_SUBMITTED: 'Earn transaction submitted',
+    EARN_TRANSACTION_CONFIRMED: 'Earn transaction confirmed',
+    EARN_TRANSACTION_FAILED: 'Earn transaction failed',
+    EARN_TRANSACTION_DROPPED: 'Earn transaction dropped',
+  },
+}));
+
 jest.mock('../../hooks/useEarnTokens', () => ({
   __esModule: true,
   default: () => ({
@@ -97,6 +111,9 @@ jest.mock('../../hooks/useEarnTokens', () => ({
 }));
 
 describe('EarnLendingWithdrawalConfirmationView', () => {
+  const mockTrackEvent = jest.fn();
+  const mockCreateEventBuilder = jest.fn();
+
   const mockInitialState = {
     engine: {
       backgroundState: {
@@ -167,6 +184,17 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     (useRoute as jest.MockedFunction<typeof useRoute>).mockReturnValue(
       defaultRouteParams,
     );
+
+    // Mock useMetrics hook
+    const useMetricsMock = jest.mocked(require('../../../../../hooks/useMetrics').useMetrics);
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({ name: 'test-event', properties: {} }),
+    });
+    useMetricsMock.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    });
   });
 
   it('matches snapshot', () => {
@@ -334,5 +362,248 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     expect(Linking.openURL).toHaveBeenLastCalledWith(
       AppConstants.URLS.EARN_RISK_DISCLOSURE,
     );
+  });
+
+  describe('Analytics', () => {
+    it('should track EARN_CONFIRMATION_PAGE_VIEWED on render', () => {
+      renderWithProvider(<EarnLendingWithdrawalConfirmationView />, {
+        state: mockInitialState,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn confirmation page viewed',
+          properties: expect.objectContaining({
+            action_type: 'withdrawal',
+            token: 'AUSDC',
+            network: 'Linea',
+            user_token_balance: expect.any(String),
+            transaction_value: '0.99',
+          }),
+        }),
+      );
+    });
+
+    it('should track EARN_ACTION_SUBMITTED and EARN_TRANSACTION_INITIATED on confirm', async () => {
+      const mockExecuteLendingWithdraw = Engine.context.EarnController.executeLendingWithdraw as jest.MockedFunction<typeof Engine.context.EarnController.executeLendingWithdraw>;
+      
+      mockExecuteLendingWithdraw.mockResolvedValue({
+        transactionMeta: {
+          id: '123',
+          type: 'lendingWithdraw' as any,
+        },
+      } as any);
+
+      const { getByTestId } = renderWithProvider(
+        <EarnLendingWithdrawalConfirmationView />,
+        { state: mockInitialState },
+      );
+
+      // Clear previous calls from the initial render
+      mockTrackEvent.mockClear();
+
+      const confirmButton = getByTestId(
+        CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      // Check that EARN_ACTION_SUBMITTED was tracked
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn action submitted',
+          properties: expect.objectContaining({
+            action_type: 'withdrawal',
+            token: 'AUSDC',
+            network: 'Linea',
+            user_token_balance: expect.any(String),
+            transaction_value: '0.99',
+          }),
+        }),
+      );
+
+      // Check that EARN_TRANSACTION_INITIATED was tracked
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn transaction initiated',
+          properties: expect.objectContaining({
+            action_type: 'withdrawal',
+            token: 'AUSDC',
+            network: 'Linea',
+            user_token_balance: expect.any(String),
+            transaction_value: '0.99',
+            transaction_id: '123',
+          }),
+        }),
+      );
+    });
+
+    it('should track EARN_TRANSACTION_DROPPED when transaction is dropped', async () => {
+      const mockExecuteLendingWithdraw = Engine.context.EarnController.executeLendingWithdraw as jest.MockedFunction<typeof Engine.context.EarnController.executeLendingWithdraw>;
+      const transactionId = '123';
+      
+      mockExecuteLendingWithdraw.mockResolvedValue({
+        transactionMeta: {
+          id: transactionId,
+          type: 'lendingWithdraw' as any,
+        },
+      } as any);
+
+      // Create a spy to capture the callback functions
+      const subscribeCallbacks: { [key: string]: any } = {};
+      jest.mocked(Engine.controllerMessenger.subscribeOnceIf).mockImplementation(
+        (eventName: string, callback: any) => {
+          subscribeCallbacks[eventName] = callback;
+          return undefined as any;
+        }
+      );
+
+      const { getByTestId } = renderWithProvider(
+        <EarnLendingWithdrawalConfirmationView />,
+        { state: mockInitialState },
+      );
+
+      const confirmButton = getByTestId(
+        CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      // Clear previous tracking calls
+      mockTrackEvent.mockClear();
+
+      // Simulate transaction dropped event
+      const transactionDroppedCallback = subscribeCallbacks['TransactionController:transactionDropped'];
+      expect(transactionDroppedCallback).toBeDefined();
+
+      await act(async () => {
+        transactionDroppedCallback({ transactionMeta: { id: transactionId } });
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn transaction dropped',
+          properties: expect.objectContaining({
+            action_type: 'withdrawal',
+            token: 'AUSDC',
+            network: 'Linea',
+            user_token_balance: expect.any(String),
+            transaction_value: '0.99',
+            transaction_id: transactionId,
+          }),
+        }),
+      );
+    });
+
+    it('should track transaction status events for withdrawal', async () => {
+      const mockExecuteLendingWithdraw = Engine.context.EarnController.executeLendingWithdraw as jest.MockedFunction<typeof Engine.context.EarnController.executeLendingWithdraw>;
+      const transactionId = '123';
+      
+      mockExecuteLendingWithdraw.mockResolvedValue({
+        transactionMeta: {
+          id: transactionId,
+          type: 'lendingWithdraw' as any,
+        },
+      } as any);
+
+      // Create a spy to capture the callback functions
+      const subscribeCallbacks: { [key: string]: any } = {};
+      jest.mocked(Engine.controllerMessenger.subscribeOnceIf).mockImplementation(
+        (eventName: string, callback: any) => {
+          subscribeCallbacks[eventName] = callback;
+          return undefined as any;
+        }
+      );
+
+      const { getByTestId } = renderWithProvider(
+        <EarnLendingWithdrawalConfirmationView />,
+        { state: mockInitialState },
+      );
+
+      const confirmButton = getByTestId(
+        CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      // Clear previous tracking calls
+      mockTrackEvent.mockClear();
+
+      // Test transaction rejected
+      const transactionRejectedCallback = subscribeCallbacks['TransactionController:transactionRejected'];
+      await act(async () => {
+        transactionRejectedCallback({ transactionMeta: { id: transactionId } });
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn transaction rejected',
+          properties: expect.objectContaining({
+            action_type: 'withdrawal',
+            transaction_id: transactionId,
+          }),
+        }),
+      );
+
+      mockTrackEvent.mockClear();
+
+      // Test transaction failed
+      const transactionFailedCallback = subscribeCallbacks['TransactionController:transactionFailed'];
+      await act(async () => {
+        transactionFailedCallback({ transactionMeta: { id: transactionId } });
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn transaction failed',
+          properties: expect.objectContaining({
+            action_type: 'withdrawal',
+            transaction_id: transactionId,
+          }),
+        }),
+      );
+
+      mockTrackEvent.mockClear();
+
+      // Test transaction submitted
+      const transactionSubmittedCallback = subscribeCallbacks['TransactionController:transactionSubmitted'];
+      await act(async () => {
+        transactionSubmittedCallback({ transactionMeta: { id: transactionId } });
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn transaction submitted',
+          properties: expect.objectContaining({
+            action_type: 'withdrawal',
+            transaction_id: transactionId,
+          }),
+        }),
+      );
+
+      mockTrackEvent.mockClear();
+
+      // Test transaction confirmed
+      const transactionConfirmedCallback = subscribeCallbacks['TransactionController:transactionConfirmed'];
+      await act(async () => {
+        transactionConfirmedCallback({ id: transactionId });
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn transaction confirmed',
+          properties: expect.objectContaining({
+            action_type: 'withdrawal',
+            transaction_id: transactionId,
+          }),
+        }),
+      );
+    });
   });
 });

@@ -185,39 +185,7 @@ const EarnInputView = () => {
     }
   };
 
-  const handleKeypadChangeWithTracking = useCallback(
-    (params: { value: string; pressedKey: string }) => {
-      // call the original handler first
-      handleKeypadChange(params);
 
-      if (
-        shouldLogStablecoinEvent() &&
-        params.value !== '0' &&
-        params.value !== ''
-      ) {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED)
-            .addProperties({
-              action_type: 'deposit',
-              input_value: params.value,
-              token: earnToken?.symbol,
-              network: network?.name,
-              user_token_balance: balanceValue,
-            })
-            .build(),
-        );
-      }
-    },
-    [
-      shouldLogStablecoinEvent,
-      handleKeypadChange,
-      trackEvent,
-      createEventBuilder,
-      earnToken?.symbol,
-      network?.name,
-      balanceValue,
-    ],
-  );
 
   const handleQuickAmountPressWithTracking = useCallback(
     ({ value }: { value: number }) => {
@@ -752,7 +720,7 @@ const EarnInputView = () => {
       <Keypad
         value={!isFiat ? amountToken : amountFiatNumber}
         // Debounce used to avoid error message flicker from recalculating gas fee estimate
-        onChange={debounce(handleKeypadChangeWithTracking, 1)}
+        onChange={debounce(handleKeypadChange, 1)}
         style={styles.keypad}
         currency={token.symbol}
         decimals={!isFiat ? 5 : 2}

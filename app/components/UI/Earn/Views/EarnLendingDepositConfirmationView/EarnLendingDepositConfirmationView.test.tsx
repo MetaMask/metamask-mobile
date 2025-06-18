@@ -205,6 +205,7 @@ jest.mock('../../../../../hooks/useMetrics', () => ({
     EARN_TRANSACTION_SUBMITTED: 'Earn transaction submitted',
     EARN_TRANSACTION_CONFIRMED: 'Earn transaction confirmed',
     EARN_TRANSACTION_FAILED: 'Earn transaction failed',
+    EARN_TRANSACTION_DROPPED: 'Earn transaction dropped',
   },
 }));
 
@@ -358,28 +359,28 @@ describe('EarnLendingDepositConfirmationView', () => {
           type: 'lendingDeposit' as TransactionType,
         },
       } as Result);
-      
+
       const { getByTestId } = renderWithProvider(
         <EarnLendingDepositConfirmationView />,
         { state: mockInitialState },
       );
-      
+
       // Clear previous calls from the initial render
       mockTrackEvent.mockClear();
-      
+
       const depositButton = getByTestId(
         LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
       );
-      
+
       await act(async () => {
         fireEvent.press(depositButton);
       });
-      
+
       // Wait for async operations
       await waitFor(() => {
         expect(mockAddTransaction).toHaveBeenCalled();
       });
-      
+
       // Check that EARN_ACTION_SUBMITTED was tracked
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -393,7 +394,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           },
         }),
       );
-      
+
       // Check that EARN_TRANSACTION_INITIATED was tracked
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -415,11 +416,11 @@ describe('EarnLendingDepositConfirmationView', () => {
         id: '123',
         type: 'lendingDeposit' as TransactionType,
       } as any;
-      
+
       mockAddTransaction.mockResolvedValue({
         transactionMeta,
       } as Result);
-      
+
       // Mock the subscribeOnceIf to simulate transaction status callbacks
       let transactionStatusCallback: any;
       jest.mocked(Engine.controllerMessenger.subscribeOnceIf).mockImplementation(
@@ -428,27 +429,27 @@ describe('EarnLendingDepositConfirmationView', () => {
           return undefined as any;
         },
       );
-      
+
       const { getByTestId } = renderWithProvider(
         <EarnLendingDepositConfirmationView />,
         { state: mockInitialState },
       );
-      
+
       const depositButton = getByTestId(
         LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
       );
-      
+
       await act(async () => {
         fireEvent.press(depositButton);
       });
-      
+
       await waitFor(() => {
         expect(mockAddTransaction).toHaveBeenCalled();
       });
-      
+
       // Clear previous calls
       mockTrackEvent.mockClear();
-      
+
       // Simulate transaction rejected
       await act(async () => {
         transactionStatusCallback({
@@ -456,7 +457,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           status: TransactionStatus.rejected,
         });
       });
-      
+
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Earn transaction rejected',
@@ -470,17 +471,17 @@ describe('EarnLendingDepositConfirmationView', () => {
           },
         }),
       );
-      
+
       // Clear and test submitted status
       mockTrackEvent.mockClear();
-      
+
       await act(async () => {
         transactionStatusCallback({
           ...transactionMeta,
           status: TransactionStatus.submitted,
         });
       });
-      
+
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Earn transaction submitted',
@@ -494,17 +495,17 @@ describe('EarnLendingDepositConfirmationView', () => {
           },
         }),
       );
-      
+
       // Clear and test confirmed status
       mockTrackEvent.mockClear();
-      
+
       await act(async () => {
         transactionStatusCallback({
           ...transactionMeta,
           status: TransactionStatus.confirmed,
         });
       });
-      
+
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Earn transaction confirmed',
@@ -518,17 +519,17 @@ describe('EarnLendingDepositConfirmationView', () => {
           },
         }),
       );
-      
+
       // Clear and test failed status
       mockTrackEvent.mockClear();
-      
+
       await act(async () => {
         transactionStatusCallback({
           ...transactionMeta,
           status: TransactionStatus.failed,
         });
       });
-      
+
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Earn transaction failed',
@@ -552,16 +553,16 @@ describe('EarnLendingDepositConfirmationView', () => {
           action: EARN_INPUT_VIEW_ACTIONS.ALLOWANCE_INCREASE,
         },
       };
-      
+
       (useRoute as jest.Mock).mockReturnValue(routeParamsWithApproveAction);
-      
+
       mockAddTransaction.mockResolvedValue({
         transactionMeta: {
           id: '456',
           type: TransactionType.tokenMethodIncreaseAllowance,
         },
       } as Result);
-      
+
       // Mock the subscribeOnceIf to simulate transaction confirmed callback
       let transactionStatusCallback: any;
       jest.mocked(Engine.controllerMessenger.subscribeOnceIf).mockImplementation(
@@ -570,27 +571,25 @@ describe('EarnLendingDepositConfirmationView', () => {
           return undefined as any;
         },
       );
-      
+
       const { getByTestId } = renderWithProvider(
         <EarnLendingDepositConfirmationView />,
         { state: mockInitialState },
       );
-      
+
       const depositButton = getByTestId(
         LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
       );
-      
+
       await act(async () => {
         fireEvent.press(depositButton);
       });
-      
-      await waitFor(() => {
-        expect(mockAddTransaction).toHaveBeenCalled();
-      });
-      
+
+      waitFor(() => expect(mockAddTransaction).toHaveBeenCalled());
+
       // Clear previous calls
       mockTrackEvent.mockClear();
-      
+
       // Simulate transaction confirmed
       await act(async () => {
         transactionStatusCallback({
@@ -599,7 +598,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           status: TransactionStatus.confirmed,
         } as any);
       });
-      
+
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Earn transaction approved',
