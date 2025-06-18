@@ -32,7 +32,6 @@ import PreventScreenshot from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { EXISTING_USER } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
@@ -49,6 +48,7 @@ import Button, {
 
 import fox from '../../../animations/Searching_Fox.json';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -67,13 +67,13 @@ const createStyles = (colors) =>
     },
     image: {
       alignSelf: 'center',
-      width: Device.isLargeDevice() ? 200 : 175,
-      height: Device.isLargeDevice() ? 200 : 175,
+      width: Device.isLargeDevice() ? 280 : 220,
+      height: Device.isLargeDevice() ? 280 : 220,
     },
     largeFoxWrapper: {
       alignItems: 'center',
-      paddingTop: Device.isLargeDevice() ? 60 : 40,
-      paddingBottom: Device.isLargeDevice() ? 100 : 40,
+      paddingTop: 40,
+      paddingBottom: Device.isLargeDevice() ? 80 : 40,
     },
     foxImage: {
       width: 145,
@@ -96,8 +96,8 @@ const createStyles = (colors) =>
       paddingHorizontal: 20,
     },
     footer: {
-      marginTop: -40,
       marginBottom: 40,
+      marginTop: -40,
     },
     login: {
       fontSize: 18,
@@ -112,11 +112,11 @@ const createStyles = (colors) =>
       marginVertical: 16,
     },
     createWrapper: {
-      flex: 1,
       flexDirection: 'column',
       justifyContent: 'flex-end',
       rowGap: 16,
       marginBottom: 16,
+      marginTop: 'auto',
     },
     buttonWrapper: {
       flexDirection: 'column',
@@ -222,10 +222,6 @@ class Onboarding extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
-    /**
-     * Metrics injected by withMetricsAwareness HOC
-     */
-    metrics: PropTypes.object,
     /**
      * Function to save onboarding event prior to metrics being enabled
      */
@@ -349,46 +345,27 @@ class Onboarding extends PureComponent {
   };
 
   onPressCreate = () => {
+    trace({ name: TraceName.OnboardingCreateWallet });
     const action = () => {
-      const { metrics } = this.props;
-      if (metrics.isEnabled()) {
-        this.props.navigation.navigate('ChoosePassword', {
-          [PREVIOUS_SCREEN]: ONBOARDING,
-        });
-        this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
-      } else {
-        this.props.navigation.navigate('OptinMetrics', {
-          onContinue: () => {
-            this.props.navigation.replace('ChoosePassword', {
-              [PREVIOUS_SCREEN]: ONBOARDING,
-            });
-            this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
-          },
-        });
-      }
+      this.props.navigation.navigate('ChoosePassword', {
+        [PREVIOUS_SCREEN]: ONBOARDING,
+      });
+      this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
     };
 
     this.handleExistingUser(action);
+    endTrace({ name: TraceName.OnboardingCreateWallet });
   };
 
   onPressImport = () => {
     const action = async () => {
-      const { metrics } = this.props;
-      if (metrics.isEnabled()) {
-        this.props.navigation.push(
-          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-        );
-        this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
-      } else {
-        this.props.navigation.navigate('OptinMetrics', {
-          onContinue: () => {
-            this.props.navigation.replace(
-              Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-            );
-            this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
-          },
-        });
-      }
+      this.props.navigation.navigate(
+        Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        {
+          [PREVIOUS_SCREEN]: ONBOARDING,
+        },
+      );
+      this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
     };
     this.handleExistingUser(action);
   };
@@ -473,7 +450,7 @@ class Onboarding extends PureComponent {
                 variant={TextVariant.BodyMDMedium}
                 color={importedColors.btnBlack}
               >
-                {strings('onboarding.have_existing_wallet')}
+                {strings('onboarding.import_using_srp')}
               </Text>
             }
           />
@@ -576,10 +553,8 @@ const mapDispatchToProps = (dispatch) => ({
   unsetLoading: () => dispatch(loadingUnset()),
   disableNewPrivacyPolicyToast: () =>
     dispatch(storePrivacyPolicyClickedOrClosedAction()),
-  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
+  dispatchSaveOnboardingEvent: (...eventArgs) =>
+    dispatch(saveOnboardingEvent(eventArgs)),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(withMetricsAwareness(Onboarding));
+export default connect(mapStateToProps, mapDispatchToProps)(Onboarding);

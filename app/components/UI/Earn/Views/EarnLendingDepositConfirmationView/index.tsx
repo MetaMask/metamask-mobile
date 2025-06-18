@@ -1,50 +1,43 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
-import { View } from 'react-native';
-import styleSheet from './EarnLendingDepositConfirmationView.styles';
-import { useStyles } from '../../../../hooks/useStyles';
-import Erc20TokenHero from './components/Erc20TokenHero';
+import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
+import {
+  TransactionType,
+  WalletDevice,
+} from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import { TokenI } from '../../../Tokens/types';
 import { isEmpty } from 'lodash';
-import { EARN_INPUT_VIEW_ACTIONS } from '../EarnInputView/EarnInputView.types';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { capitalize } from '../../../../../util/general';
+import {
+  addCurrencySymbol,
+  renderFromTokenMinimalUnit,
+} from '../../../../../util/number';
+import { useStyles } from '../../../../hooks/useStyles';
+import { getStakingNavbar } from '../../../Navbar';
+import { TokenI } from '../../../Tokens/types';
+import useEarnToken from '../../hooks/useEarnToken';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import { EARN_LENDING_ACTIONS } from '../../types/lending.types';
+import { parseFloatSafe } from '../../utils';
+import ConfirmationFooter from './components/ConfirmationFooter';
 import DepositInfoSection from './components/DepositInfoSection';
 import DepositReceiveSection from './components/DepositReceiveSection';
-import DepositFooter from './components/DepositFooter';
-import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import {
-  generateLendingAllowanceIncreaseTransaction,
-  generateLendingDepositTransaction,
-} from '../../utils/tempLending';
-import {
-  TransactionParams,
-  TransactionType,
-} from '@metamask/transaction-controller';
-import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
-import Engine from '../../../../../core/Engine';
-import Toast, {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
-import Routes from '../../../../../constants/navigation/Routes';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
-import { getStakingNavbar } from '../../../Navbar';
-
+import Erc20TokenHero from './components/Erc20TokenHero';
+import styleSheet from './EarnLendingDepositConfirmationView.styles';
 export interface LendingDepositViewRouteParams {
   token?: TokenI;
   amountTokenMinimalUnit?: string;
   amountFiat?: string;
   annualRewardsToken?: string;
   annualRewardsFiat?: string;
-  action?: Extract<EARN_INPUT_VIEW_ACTIONS, 'ALLOWANCE_INCREASE' | 'LEND'>;
+  action?: Extract<EARN_LENDING_ACTIONS, 'ALLOWANCE_INCREASE' | 'DEPOSIT'>;
   lendingContractAddress?: string;
   lendingProtocol?: string;
 }
@@ -53,14 +46,6 @@ export interface EarnLendingDepositConfirmationViewProps {
   route: RouteProp<{ params: LendingDepositViewRouteParams }, 'params'>;
 }
 
-const MOCK_DATA_TO_REPLACE = {
-  RECEIPT_TOKEN_NAME: 'Aave v3 USDC Coin',
-  RECEIPT_TOKEN_AMOUNT: {
-    FIAT: '$10,000.00',
-    TOKEN: '10,100 AETHUSDC',
-  },
-};
-
 const Steps = {
   ALLOWANCE_INCREASE: 0,
   DEPOSIT: 1,
@@ -68,7 +53,7 @@ const Steps = {
 
 const EarnLendingDepositConfirmationView = () => {
   const { styles, theme } = useStyles(styleSheet, {});
-
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const { params } =
     useRoute<EarnLendingDepositConfirmationViewProps['route']>();
 
@@ -96,7 +81,7 @@ const EarnLendingDepositConfirmationView = () => {
 
   const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
   const [activeStep, setActiveStep] = useState(
-    action === EARN_INPUT_VIEW_ACTIONS.ALLOWANCE_INCREASE
+    action === EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE
       ? Steps.ALLOWANCE_INCREASE
       : Steps.DEPOSIT,
   );
@@ -108,9 +93,8 @@ const EarnLendingDepositConfirmationView = () => {
     selectStablecoinLendingEnabledFlag,
   );
 
-  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
-
-  const { toastRef } = useContext(ToastContext);
+  const { earnToken, outputToken, getTokenSnapshot, tokenSnapshot } =
+    useEarnToken(token as TokenI);
 
   const confirmButtonText = useMemo(
     () =>
@@ -120,47 +104,21 @@ const EarnLendingDepositConfirmationView = () => {
     [activeStep],
   );
 
-  const showTransactionSubmissionToast = useCallback(() => {
-    const prefix =
-      activeStep === Steps.ALLOWANCE_INCREASE
-        ? strings('earn.approval')
-        : strings('earn.deposit');
-
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.Check,
-      iconColor: theme.colors.success.default,
-      backgroundColor: theme.colors.background.default,
-      labelOptions: [
-        {
-          label: `${prefix} ${strings('earn.transaction_submitted')}`,
-          isBold: false,
-        },
-      ],
-      hasNoTimeout: false,
-    });
-  }, [
-    activeStep,
-    theme.colors.background.default,
-    theme.colors.success.default,
-    toastRef,
-  ]);
-
   const createAllowanceTxEventListeners = useCallback(
     (transactionId: string) => {
       Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionRejected',
+        'TransactionController:transactionFailed',
         () => {
           setIsConfirmButtonDisabled(false);
           setIsApprovalLoading(false);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
-
       Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionSubmitted',
+        'TransactionController:transactionRejected',
         () => {
-          showTransactionSubmissionToast();
+          setIsConfirmButtonDisabled(false);
+          setIsApprovalLoading(false);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
@@ -175,7 +133,7 @@ const EarnLendingDepositConfirmationView = () => {
         (transactionMeta) => transactionMeta.id === transactionId,
       );
     },
-    [showTransactionSubmissionToast],
+    [],
   );
 
   const createDepositTxEventListeners = useCallback(
@@ -192,7 +150,7 @@ const EarnLendingDepositConfirmationView = () => {
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionSubmitted',
         () => {
-          showTransactionSubmissionToast();
+          navigation.navigate(Routes.TRANSACTIONS_VIEW);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
@@ -200,12 +158,29 @@ const EarnLendingDepositConfirmationView = () => {
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionConfirmed',
         () => {
-          navigation.navigate(Routes.TRANSACTIONS_VIEW);
+          if (!outputToken) {
+            const networkClientId =
+              Engine.context.NetworkController.findNetworkClientIdByChainId(
+                tokenSnapshot?.chainId as Hex,
+              );
+            Engine.context.TokensController.addToken({
+              decimals: tokenSnapshot?.token?.decimals || 0,
+              symbol: tokenSnapshot?.token?.symbol || '',
+              address: tokenSnapshot?.token?.address || '',
+              name: tokenSnapshot?.token?.name || '',
+              networkClientId,
+            }).catch((error) => {
+              console.error(
+                error,
+                'error adding counter-token on confirmation',
+              );
+            });
+          }
         },
         (transactionMeta) => transactionMeta.id === transactionId,
       );
     },
-    [navigation, showTransactionSubmissionToast],
+    [navigation, outputToken, tokenSnapshot],
   );
 
   const createTransactionEventListeners = useCallback(
@@ -225,9 +200,19 @@ const EarnLendingDepositConfirmationView = () => {
     [createAllowanceTxEventListeners, createDepositTxEventListeners],
   );
 
+  useEffect(() => {
+    if (!outputToken) {
+      getTokenSnapshot(
+        earnToken?.chainId as Hex,
+        earnToken?.experience.market?.outputToken?.address as Hex,
+      );
+    }
+  }, [outputToken, getTokenSnapshot, earnToken]);
+
   // Route param guards
   if (
     isEmpty(token) ||
+    !earnToken ||
     !amountTokenMinimalUnit ||
     !amountFiat ||
     !lendingContractAddress ||
@@ -236,95 +221,112 @@ const EarnLendingDepositConfirmationView = () => {
   )
     return null;
 
-  const earnToken = getTokenWithBalanceAndApr(token);
-
   const handleCancel = () => {
     navigation.goBack();
   };
 
   const handleConfirm = async () => {
-    const isSupportedLendingAction =
-      action === EARN_INPUT_VIEW_ACTIONS.ALLOWANCE_INCREASE ||
-      action === EARN_INPUT_VIEW_ACTIONS.LEND;
+    try {
+      const isSupportedLendingAction =
+        action === EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE ||
+        action === EARN_LENDING_ACTIONS.DEPOSIT;
 
-    setIsConfirmButtonDisabled(true);
+      setIsConfirmButtonDisabled(true);
 
-    // Guards
-    if (
-      !activeAccount?.address ||
-      !earnToken?.chainId ||
-      !isSupportedLendingAction
-    ) {
-      setIsConfirmButtonDisabled(false);
-      return;
-    }
+      // Guards
+      if (
+        !activeAccount?.address ||
+        !earnToken?.chainId ||
+        !isSupportedLendingAction ||
+        !earnToken?.experience?.market?.protocol ||
+        !earnToken?.experience?.market?.underlying?.address
+      ) {
+        setIsConfirmButtonDisabled(false);
+        return;
+      }
 
-    // 1. Build Transaction
-    let txParams: TransactionParams;
-    let txOptions;
+      // 1. Build Transaction
 
-    const tokenContractAddress = earnToken?.address;
+      const tokenContractAddress = earnToken?.address;
 
-    if (!tokenContractAddress) return;
-
-    // Requires allowance increase
-    if (activeStep === Steps.ALLOWANCE_INCREASE) {
-      const allowanceIncreaseTransaction =
-        generateLendingAllowanceIncreaseTransaction(
-          amountTokenMinimalUnit,
-          activeAccount.address,
-          tokenContractAddress,
-          earnToken.chainId,
+      if (!tokenContractAddress) return;
+      const networkClientId =
+        Engine.context.NetworkController.findNetworkClientIdByChainId(
+          toHex(earnToken.chainId),
         );
 
-      if (!allowanceIncreaseTransaction) return;
-
-      txParams = allowanceIncreaseTransaction.txParams;
-      txOptions = allowanceIncreaseTransaction.txOptions;
-
-      setIsApprovalLoading(true);
-    }
-    // Already has necessary allowance and can deposit straight away.
-    else {
-      const depositTransaction = generateLendingDepositTransaction(
-        amountTokenMinimalUnit,
-        activeAccount.address,
-        tokenContractAddress,
-        earnToken.chainId,
-      );
-
-      if (!depositTransaction) return;
-
-      txParams = depositTransaction.txParams;
-      txOptions = depositTransaction.txOptions;
-
-      setIsDepositLoading(true);
-    }
-
-    // 2. Add Transaction
-    const txRes = await Engine.context.TransactionController.addTransaction(
-      txParams,
-      txOptions,
-    ).catch(() => {
+      let txResult;
+      // Requires allowance increase
       if (activeStep === Steps.ALLOWANCE_INCREASE) {
-        setIsApprovalLoading(false);
-      }
-      if (activeStep === Steps.DEPOSIT) {
-        setIsDepositLoading(false);
-      }
-      setIsConfirmButtonDisabled(false);
-    });
+        setIsApprovalLoading(true);
 
-    const transactionId = txRes?.transactionMeta?.id;
-    const txType = txRes?.transactionMeta?.type;
+        const allowanceIncreaseTransaction =
+          await Engine.context.EarnController.executeLendingTokenApprove({
+            protocol: earnToken?.experience?.market?.protocol,
+            amount: amountTokenMinimalUnit,
+            underlyingTokenAddress:
+              earnToken?.experience?.market?.underlying?.address,
+            gasOptions: {},
+            txOptions: {
+              deviceConfirmedOn: WalletDevice.MM_MOBILE,
+              networkClientId,
+              origin: ORIGIN_METAMASK,
+              type: TransactionType.tokenMethodIncreaseAllowance,
+            },
+          });
 
-    if (!transactionId || !txType) {
+        if (!allowanceIncreaseTransaction) {
+          setIsApprovalLoading(false);
+          setIsConfirmButtonDisabled(false);
+          return;
+        }
+
+        txResult = allowanceIncreaseTransaction;
+      }
+      // Already has necessary allowance and can deposit straight away.
+      else {
+        setIsDepositLoading(true);
+
+        const depositTransaction =
+          await Engine.context.EarnController.executeLendingDeposit({
+            amount: amountTokenMinimalUnit,
+            protocol: earnToken?.experience?.market?.protocol,
+            underlyingTokenAddress:
+              earnToken?.experience?.market?.underlying?.address,
+            gasOptions: {},
+            txOptions: {
+              deviceConfirmedOn: WalletDevice.MM_MOBILE,
+              networkClientId,
+              origin: ORIGIN_METAMASK,
+              type: TransactionType.lendingDeposit,
+            },
+          });
+
+        if (!depositTransaction) {
+          setIsDepositLoading(false);
+          setIsConfirmButtonDisabled(false);
+
+          return;
+        }
+
+        txResult = depositTransaction;
+      }
+
+      const transactionId = txResult?.transactionMeta?.id;
+      const txType = txResult?.transactionMeta?.type;
+
+      if (!transactionId || !txType) {
+        setIsConfirmButtonDisabled(false);
+        return;
+      }
+      // 3. Setup Transaction Event Listeners
+      createTransactionEventListeners(transactionId, txType);
+    } catch (error) {
+      console.error('error', error);
+      // allow user to try again
+      setIsDepositLoading(false);
       setIsConfirmButtonDisabled(false);
-      return;
     }
-
-    // 3. Setup Transaction Event Listeners
-    createTransactionEventListeners(transactionId, txType);
   };
 
   if (!isStablecoinLendingEnabled) {
@@ -342,32 +344,49 @@ const EarnLendingDepositConfirmationView = () => {
         <DepositInfoSection
           token={token}
           lendingContractAddress={lendingContractAddress}
-          lendingProtocol={lendingProtocol}
+          lendingProtocol={capitalize(
+            lendingProtocol ?? strings('earn.unknown'),
+          )}
+          amountTokenMinimalUnit={amountTokenMinimalUnit}
+          amountFiatNumber={parseFloatSafe(amountFiat)}
         />
         <DepositReceiveSection
           token={token}
-          // TODO: Replace MOCK_DATA before launch
-          receiptTokenName={MOCK_DATA_TO_REPLACE.RECEIPT_TOKEN_NAME}
-          receiptTokenAmount={MOCK_DATA_TO_REPLACE.RECEIPT_TOKEN_AMOUNT.TOKEN}
-          receiptTokenAmountFiat={
-            MOCK_DATA_TO_REPLACE.RECEIPT_TOKEN_AMOUNT.FIAT
+          receiptTokenName={
+            outputToken?.name || tokenSnapshot?.token.name || ''
           }
+          receiptTokenAmount={
+            renderFromTokenMinimalUnit(
+              amountTokenMinimalUnit,
+              earnToken.decimals,
+            ) +
+            ' ' +
+            (outputToken?.ticker ||
+              outputToken?.symbol ||
+              tokenSnapshot?.token.symbol ||
+              '')
+          }
+          receiptTokenAmountFiat={addCurrencySymbol(
+            amountFiat,
+            currentCurrency,
+          )}
         />
       </View>
-      <DepositFooter
+      <ConfirmationFooter
         onCancel={handleCancel}
         onConfirm={handleConfirm}
         buttonPrimary={{
           disabled: isConfirmButtonDisabled,
           text: confirmButtonText,
         }}
-        activeStep={activeStep}
-        steps={[
-          { label: strings('earn.approve'), isLoading: isApprovalLoading },
-          { label: strings('earn.deposit'), isLoading: isDepositLoading },
-        ]}
+        progressBar={{
+          activeStep,
+          steps: [
+            { label: strings('earn.approve'), isLoading: isApprovalLoading },
+            { label: strings('earn.deposit'), isLoading: isDepositLoading },
+          ],
+        }}
       />
-      <Toast ref={toastRef} />
     </View>
   );
 };

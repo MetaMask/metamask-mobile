@@ -39,8 +39,10 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
           style={
             {
               "flex": 1,
-              "paddingBottom": 24,
-              "paddingTop": 30,
+              "flexDirection": "column",
+              "justifyContent": "space-around",
+              "paddingVertical": 24,
+              "rowGap": 24,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -108,7 +110,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
                     <View
                       style={
                         {
-                          "marginHorizontal": 30,
+                          "marginHorizontal": 16,
                         }
                       }
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
@@ -154,42 +156,53 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
                         testID="carousel-one-image"
                       />
                     </View>
-                    <Text
-                      accessibilityRole="text"
+                    <View
                       style={
                         {
-                          "color": "#190066",
-                          "fontFamily": "MMSans-Regular",
-                          "fontSize": 40,
-                          "fontWeight": "400",
+                          "alignItems": "center",
+                          "flex": 1,
+                          "flexDirection": "column",
                           "justifyContent": "center",
-                          "letterSpacing": 0,
-                          "lineHeight": 40,
-                          "marginBottom": 28,
-                          "paddingHorizontal": 60,
-                          "textAlign": "center",
+                          "rowGap": 24,
                         }
                       }
                     >
-                      Welcome to MetaMask
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "paddingHorizontal": 16,
-                          "textAlign": "center",
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#190066",
+                            "fontFamily": "MMSans-Regular",
+                            "fontSize": 40,
+                            "fontWeight": "400",
+                            "justifyContent": "center",
+                            "letterSpacing": 0,
+                            "lineHeight": 40,
+                            "paddingHorizontal": 40,
+                            "textAlign": "center",
+                          }
                         }
-                      }
-                    >
-                      Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
-                    </Text>
+                      >
+                        Welcome to MetaMask
+                      </Text>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#190066",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                            "paddingHorizontal": 16,
+                            "textAlign": "center",
+                          }
+                        }
+                      >
+                        Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
+                      </Text>
+                    </View>
                   </View>
                 </View>
                 <View
@@ -218,8 +231,6 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
-                "marginTop": 47,
-                "padding": 10,
               }
             }
           >
@@ -376,8 +387,10 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
           style={
             {
               "flex": 1,
-              "paddingBottom": 24,
-              "paddingTop": 30,
+              "flexDirection": "column",
+              "justifyContent": "space-around",
+              "paddingVertical": 24,
+              "rowGap": 24,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -445,7 +458,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
                     <View
                       style={
                         {
-                          "marginHorizontal": 30,
+                          "marginHorizontal": 16,
                         }
                       }
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
@@ -491,42 +504,53 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
                         testID="carousel-one-image"
                       />
                     </View>
-                    <Text
-                      accessibilityRole="text"
+                    <View
                       style={
                         {
-                          "color": "#190066",
-                          "fontFamily": "MMSans-Regular",
-                          "fontSize": 40,
-                          "fontWeight": "400",
+                          "alignItems": "center",
+                          "flex": 1,
+                          "flexDirection": "column",
                           "justifyContent": "center",
-                          "letterSpacing": 0,
-                          "lineHeight": 40,
-                          "marginBottom": 28,
-                          "paddingHorizontal": 60,
-                          "textAlign": "center",
+                          "rowGap": 24,
                         }
                       }
                     >
-                      Welcome to MetaMask
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "paddingHorizontal": 16,
-                          "textAlign": "center",
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#190066",
+                            "fontFamily": "MMSans-Regular",
+                            "fontSize": 40,
+                            "fontWeight": "400",
+                            "justifyContent": "center",
+                            "letterSpacing": 0,
+                            "lineHeight": 40,
+                            "paddingHorizontal": 40,
+                            "textAlign": "center",
+                          }
                         }
-                      }
-                    >
-                      Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
-                    </Text>
+                      >
+                        Welcome to MetaMask
+                      </Text>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#190066",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                            "paddingHorizontal": 16,
+                            "textAlign": "center",
+                          }
+                        }
+                      >
+                        Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
+                      </Text>
+                    </View>
                   </View>
                 </View>
                 <View
@@ -555,8 +579,6 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
-                "marginTop": 47,
-                "padding": 10,
               }
             }
           >
@@ -713,8 +735,10 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
           style={
             {
               "flex": 1,
-              "paddingBottom": 24,
-              "paddingTop": 30,
+              "flexDirection": "column",
+              "justifyContent": "space-around",
+              "paddingVertical": 24,
+              "rowGap": 24,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -782,7 +806,7 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
                     <View
                       style={
                         {
-                          "marginHorizontal": 30,
+                          "marginHorizontal": 16,
                         }
                       }
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
@@ -828,42 +852,53 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
                         testID="carousel-one-image"
                       />
                     </View>
-                    <Text
-                      accessibilityRole="text"
+                    <View
                       style={
                         {
-                          "color": "#190066",
-                          "fontFamily": "MMSans-Regular",
-                          "fontSize": 40,
-                          "fontWeight": "400",
+                          "alignItems": "center",
+                          "flex": 1,
+                          "flexDirection": "column",
                           "justifyContent": "center",
-                          "letterSpacing": 0,
-                          "lineHeight": 40,
-                          "marginBottom": 28,
-                          "paddingHorizontal": 60,
-                          "textAlign": "center",
+                          "rowGap": 24,
                         }
                       }
                     >
-                      Welcome to MetaMask
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "paddingHorizontal": 16,
-                          "textAlign": "center",
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#190066",
+                            "fontFamily": "MMSans-Regular",
+                            "fontSize": 40,
+                            "fontWeight": "400",
+                            "justifyContent": "center",
+                            "letterSpacing": 0,
+                            "lineHeight": 40,
+                            "paddingHorizontal": 40,
+                            "textAlign": "center",
+                          }
                         }
-                      }
-                    >
-                      Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
-                    </Text>
+                      >
+                        Welcome to MetaMask
+                      </Text>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#190066",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                            "paddingHorizontal": 16,
+                            "textAlign": "center",
+                          }
+                        }
+                      >
+                        Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
+                      </Text>
+                    </View>
                   </View>
                 </View>
                 <View
@@ -892,8 +927,6 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
-                "marginTop": 47,
-                "padding": 10,
               }
             }
           >
@@ -1050,8 +1083,10 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
           style={
             {
               "flex": 1,
-              "paddingBottom": 24,
-              "paddingTop": 30,
+              "flexDirection": "column",
+              "justifyContent": "space-around",
+              "paddingVertical": 24,
+              "rowGap": 24,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -1119,7 +1154,7 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
                     <View
                       style={
                         {
-                          "marginHorizontal": 30,
+                          "marginHorizontal": 16,
                         }
                       }
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
@@ -1165,42 +1200,53 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
                         testID="carousel-one-image"
                       />
                     </View>
-                    <Text
-                      accessibilityRole="text"
+                    <View
                       style={
                         {
-                          "color": "#190066",
-                          "fontFamily": "MMSans-Regular",
-                          "fontSize": 40,
-                          "fontWeight": "400",
+                          "alignItems": "center",
+                          "flex": 1,
+                          "flexDirection": "column",
                           "justifyContent": "center",
-                          "letterSpacing": 0,
-                          "lineHeight": 40,
-                          "marginBottom": 28,
-                          "paddingHorizontal": 40,
-                          "textAlign": "center",
+                          "rowGap": 24,
                         }
                       }
                     >
-                      Welcome to MetaMask
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "paddingHorizontal": 16,
-                          "textAlign": "center",
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#190066",
+                            "fontFamily": "MMSans-Regular",
+                            "fontSize": 40,
+                            "fontWeight": "400",
+                            "justifyContent": "center",
+                            "letterSpacing": 0,
+                            "lineHeight": 40,
+                            "paddingHorizontal": 40,
+                            "textAlign": "center",
+                          }
                         }
-                      }
-                    >
-                      Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
-                    </Text>
+                      >
+                        Welcome to MetaMask
+                      </Text>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#190066",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                            "paddingHorizontal": 16,
+                            "textAlign": "center",
+                          }
+                        }
+                      >
+                        Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
+                      </Text>
+                    </View>
                   </View>
                 </View>
                 <View
@@ -1229,8 +1275,6 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
-                "marginTop": 47,
-                "padding": 10,
               }
             }
           >
@@ -1387,8 +1431,10 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
           style={
             {
               "flex": 1,
-              "paddingBottom": 24,
-              "paddingTop": 30,
+              "flexDirection": "column",
+              "justifyContent": "space-around",
+              "paddingVertical": 24,
+              "rowGap": 24,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -1456,7 +1502,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                     <View
                       style={
                         {
-                          "marginHorizontal": 30,
+                          "marginHorizontal": 16,
                         }
                       }
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
@@ -1502,42 +1548,53 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                         testID="carousel-one-image"
                       />
                     </View>
-                    <Text
-                      accessibilityRole="text"
+                    <View
                       style={
                         {
-                          "color": "#190066",
-                          "fontFamily": "MMSans-Regular",
-                          "fontSize": 40,
-                          "fontWeight": "400",
+                          "alignItems": "center",
+                          "flex": 1,
+                          "flexDirection": "column",
                           "justifyContent": "center",
-                          "letterSpacing": 0,
-                          "lineHeight": 40,
-                          "marginBottom": 28,
-                          "paddingHorizontal": 40,
-                          "textAlign": "center",
+                          "rowGap": 24,
                         }
                       }
                     >
-                      Welcome to MetaMask
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "paddingHorizontal": 16,
-                          "textAlign": "center",
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#190066",
+                            "fontFamily": "MMSans-Regular",
+                            "fontSize": 40,
+                            "fontWeight": "400",
+                            "justifyContent": "center",
+                            "letterSpacing": 0,
+                            "lineHeight": 40,
+                            "paddingHorizontal": 40,
+                            "textAlign": "center",
+                          }
                         }
-                      }
-                    >
-                      Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
-                    </Text>
+                      >
+                        Welcome to MetaMask
+                      </Text>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#190066",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                            "paddingHorizontal": 16,
+                            "textAlign": "center",
+                          }
+                        }
+                      >
+                        Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
+                      </Text>
+                    </View>
                   </View>
                 </View>
                 <View
@@ -1566,8 +1623,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
-                "marginTop": 47,
-                "padding": 10,
               }
             }
           >
@@ -1724,8 +1779,10 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
           style={
             {
               "flex": 1,
-              "paddingBottom": 24,
-              "paddingTop": 30,
+              "flexDirection": "column",
+              "justifyContent": "space-around",
+              "paddingVertical": 24,
+              "rowGap": 24,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -1793,7 +1850,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
                     <View
                       style={
                         {
-                          "marginHorizontal": 30,
+                          "marginHorizontal": 16,
                         }
                       }
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
@@ -1839,42 +1896,53 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
                         testID="carousel-one-image"
                       />
                     </View>
-                    <Text
-                      accessibilityRole="text"
+                    <View
                       style={
                         {
-                          "color": "#190066",
-                          "fontFamily": "MMSans-Regular",
-                          "fontSize": 40,
-                          "fontWeight": "400",
+                          "alignItems": "center",
+                          "flex": 1,
+                          "flexDirection": "column",
                           "justifyContent": "center",
-                          "letterSpacing": 0,
-                          "lineHeight": 40,
-                          "marginBottom": 28,
-                          "paddingHorizontal": 40,
-                          "textAlign": "center",
+                          "rowGap": 24,
                         }
                       }
                     >
-                      Welcome to MetaMask
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "paddingHorizontal": 16,
-                          "textAlign": "center",
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#190066",
+                            "fontFamily": "MMSans-Regular",
+                            "fontSize": 40,
+                            "fontWeight": "400",
+                            "justifyContent": "center",
+                            "letterSpacing": 0,
+                            "lineHeight": 40,
+                            "paddingHorizontal": 40,
+                            "textAlign": "center",
+                          }
                         }
-                      }
-                    >
-                      Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
-                    </Text>
+                      >
+                        Welcome to MetaMask
+                      </Text>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#190066",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                            "paddingHorizontal": 16,
+                            "textAlign": "center",
+                          }
+                        }
+                      >
+                        Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
+                      </Text>
+                    </View>
                   </View>
                 </View>
                 <View
@@ -1903,8 +1971,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
-                "marginTop": 47,
-                "padding": 10,
               }
             }
           >
@@ -2061,8 +2127,10 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
           style={
             {
               "flex": 1,
-              "paddingBottom": 24,
-              "paddingTop": 30,
+              "flexDirection": "column",
+              "justifyContent": "space-around",
+              "paddingVertical": 24,
+              "rowGap": 24,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -2130,7 +2198,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                     <View
                       style={
                         {
-                          "marginHorizontal": 30,
+                          "marginHorizontal": 16,
                         }
                       }
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
@@ -2176,42 +2244,53 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                         testID="carousel-one-image"
                       />
                     </View>
-                    <Text
-                      accessibilityRole="text"
+                    <View
                       style={
                         {
-                          "color": "#190066",
-                          "fontFamily": "MMSans-Regular",
-                          "fontSize": 40,
-                          "fontWeight": "400",
+                          "alignItems": "center",
+                          "flex": 1,
+                          "flexDirection": "column",
                           "justifyContent": "center",
-                          "letterSpacing": 0,
-                          "lineHeight": 40,
-                          "marginBottom": 28,
-                          "paddingHorizontal": 60,
-                          "textAlign": "center",
+                          "rowGap": 24,
                         }
                       }
                     >
-                      Welcome to MetaMask
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "paddingHorizontal": 16,
-                          "textAlign": "center",
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#190066",
+                            "fontFamily": "MMSans-Regular",
+                            "fontSize": 40,
+                            "fontWeight": "400",
+                            "justifyContent": "center",
+                            "letterSpacing": 0,
+                            "lineHeight": 40,
+                            "paddingHorizontal": 40,
+                            "textAlign": "center",
+                          }
                         }
-                      }
-                    >
-                      Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
-                    </Text>
+                      >
+                        Welcome to MetaMask
+                      </Text>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#190066",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                            "paddingHorizontal": 16,
+                            "textAlign": "center",
+                          }
+                        }
+                      >
+                        Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
+                      </Text>
+                    </View>
                   </View>
                 </View>
                 <View
@@ -2240,8 +2319,6 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
-                "marginTop": 47,
-                "padding": 10,
               }
             }
           >
@@ -2398,8 +2475,10 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
           style={
             {
               "flex": 1,
-              "paddingBottom": 24,
-              "paddingTop": 30,
+              "flexDirection": "column",
+              "justifyContent": "space-around",
+              "paddingVertical": 24,
+              "rowGap": 24,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -2467,7 +2546,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
                     <View
                       style={
                         {
-                          "marginHorizontal": 30,
+                          "marginHorizontal": 16,
                         }
                       }
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
@@ -2513,42 +2592,53 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
                         testID="carousel-one-image"
                       />
                     </View>
-                    <Text
-                      accessibilityRole="text"
+                    <View
                       style={
                         {
-                          "color": "#190066",
-                          "fontFamily": "MMSans-Regular",
-                          "fontSize": 40,
-                          "fontWeight": "400",
+                          "alignItems": "center",
+                          "flex": 1,
+                          "flexDirection": "column",
                           "justifyContent": "center",
-                          "letterSpacing": 0,
-                          "lineHeight": 40,
-                          "marginBottom": 28,
-                          "paddingHorizontal": 60,
-                          "textAlign": "center",
+                          "rowGap": 24,
                         }
                       }
                     >
-                      Welcome to MetaMask
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "paddingHorizontal": 16,
-                          "textAlign": "center",
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#190066",
+                            "fontFamily": "MMSans-Regular",
+                            "fontSize": 40,
+                            "fontWeight": "400",
+                            "justifyContent": "center",
+                            "letterSpacing": 0,
+                            "lineHeight": 40,
+                            "paddingHorizontal": 40,
+                            "textAlign": "center",
+                          }
                         }
-                      }
-                    >
-                      Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
-                    </Text>
+                      >
+                        Welcome to MetaMask
+                      </Text>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#190066",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                            "paddingHorizontal": 16,
+                            "textAlign": "center",
+                          }
+                        }
+                      >
+                        Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
+                      </Text>
+                    </View>
                   </View>
                 </View>
                 <View
@@ -2577,8 +2667,6 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
-                "marginTop": 47,
-                "padding": 10,
               }
             }
           >
@@ -2735,8 +2823,10 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
           style={
             {
               "flex": 1,
-              "paddingBottom": 24,
-              "paddingTop": 30,
+              "flexDirection": "column",
+              "justifyContent": "space-around",
+              "paddingVertical": 24,
+              "rowGap": 24,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -2804,7 +2894,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                     <View
                       style={
                         {
-                          "marginHorizontal": 30,
+                          "marginHorizontal": 16,
                         }
                       }
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
@@ -2850,42 +2940,53 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                         testID="carousel-one-image"
                       />
                     </View>
-                    <Text
-                      accessibilityRole="text"
+                    <View
                       style={
                         {
-                          "color": "#190066",
-                          "fontFamily": "MMSans-Regular",
-                          "fontSize": 40,
-                          "fontWeight": "400",
+                          "alignItems": "center",
+                          "flex": 1,
+                          "flexDirection": "column",
                           "justifyContent": "center",
-                          "letterSpacing": 0,
-                          "lineHeight": 40,
-                          "marginBottom": 28,
-                          "paddingHorizontal": 60,
-                          "textAlign": "center",
+                          "rowGap": 24,
                         }
                       }
                     >
-                      Welcome to MetaMask
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "paddingHorizontal": 16,
-                          "textAlign": "center",
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#190066",
+                            "fontFamily": "MMSans-Regular",
+                            "fontSize": 40,
+                            "fontWeight": "400",
+                            "justifyContent": "center",
+                            "letterSpacing": 0,
+                            "lineHeight": 40,
+                            "paddingHorizontal": 40,
+                            "textAlign": "center",
+                          }
                         }
-                      }
-                    >
-                      Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
-                    </Text>
+                      >
+                        Welcome to MetaMask
+                      </Text>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#190066",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                            "paddingHorizontal": 16,
+                            "textAlign": "center",
+                          }
+                        }
+                      >
+                        Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
+                      </Text>
+                    </View>
                   </View>
                 </View>
                 <View
@@ -2914,8 +3015,6 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
-                "marginTop": 47,
-                "padding": 10,
               }
             }
           >
@@ -3072,8 +3171,10 @@ exports[`OnboardingCarousel should render correctly 1`] = `
           style={
             {
               "flex": 1,
-              "paddingBottom": 24,
-              "paddingTop": 30,
+              "flexDirection": "column",
+              "justifyContent": "space-around",
+              "paddingVertical": 24,
+              "rowGap": 24,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -3141,7 +3242,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                     <View
                       style={
                         {
-                          "marginHorizontal": 30,
+                          "marginHorizontal": 16,
                         }
                       }
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
@@ -3187,42 +3288,53 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                         testID="carousel-one-image"
                       />
                     </View>
-                    <Text
-                      accessibilityRole="text"
+                    <View
                       style={
                         {
-                          "color": "#190066",
-                          "fontFamily": "MMSans-Regular",
-                          "fontSize": 40,
-                          "fontWeight": "400",
+                          "alignItems": "center",
+                          "flex": 1,
+                          "flexDirection": "column",
                           "justifyContent": "center",
-                          "letterSpacing": 0,
-                          "lineHeight": 40,
-                          "marginBottom": 28,
-                          "paddingHorizontal": 60,
-                          "textAlign": "center",
+                          "rowGap": 24,
                         }
                       }
                     >
-                      Welcome to MetaMask
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "paddingHorizontal": 16,
-                          "textAlign": "center",
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#190066",
+                            "fontFamily": "MMSans-Regular",
+                            "fontSize": 40,
+                            "fontWeight": "400",
+                            "justifyContent": "center",
+                            "letterSpacing": 0,
+                            "lineHeight": 40,
+                            "paddingHorizontal": 40,
+                            "textAlign": "center",
+                          }
                         }
-                      }
-                    >
-                      Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
-                    </Text>
+                      >
+                        Welcome to MetaMask
+                      </Text>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#190066",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                            "paddingHorizontal": 16,
+                            "textAlign": "center",
+                          }
+                        }
+                      >
+                        Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
+                      </Text>
+                    </View>
                   </View>
                 </View>
                 <View
@@ -3251,8 +3363,6 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
-                "marginTop": 47,
-                "padding": 10,
               }
             }
           >
@@ -3409,8 +3519,10 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
           style={
             {
               "flex": 1,
-              "paddingBottom": 24,
-              "paddingTop": 30,
+              "flexDirection": "column",
+              "justifyContent": "space-around",
+              "paddingVertical": 24,
+              "rowGap": 24,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -3478,7 +3590,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                     <View
                       style={
                         {
-                          "marginHorizontal": 30,
+                          "marginHorizontal": 16,
                         }
                       }
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
@@ -3524,42 +3636,53 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                         testID="carousel-one-image"
                       />
                     </View>
-                    <Text
-                      accessibilityRole="text"
+                    <View
                       style={
                         {
-                          "color": "#190066",
-                          "fontFamily": "MMSans-Regular",
-                          "fontSize": 40,
-                          "fontWeight": "400",
+                          "alignItems": "center",
+                          "flex": 1,
+                          "flexDirection": "column",
                           "justifyContent": "center",
-                          "letterSpacing": 0,
-                          "lineHeight": 40,
-                          "marginBottom": 28,
-                          "paddingHorizontal": 60,
-                          "textAlign": "center",
+                          "rowGap": 24,
                         }
                       }
                     >
-                      Welcome to MetaMask
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "paddingHorizontal": 16,
-                          "textAlign": "center",
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#190066",
+                            "fontFamily": "MMSans-Regular",
+                            "fontSize": 40,
+                            "fontWeight": "400",
+                            "justifyContent": "center",
+                            "letterSpacing": 0,
+                            "lineHeight": 40,
+                            "paddingHorizontal": 40,
+                            "textAlign": "center",
+                          }
                         }
-                      }
-                    >
-                      Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
-                    </Text>
+                      >
+                        Welcome to MetaMask
+                      </Text>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#190066",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                            "paddingHorizontal": 16,
+                            "textAlign": "center",
+                          }
+                        }
+                      >
+                        Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
+                      </Text>
+                    </View>
                   </View>
                 </View>
                 <View
@@ -3588,8 +3711,6 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
-                "marginTop": 47,
-                "padding": 10,
               }
             }
           >

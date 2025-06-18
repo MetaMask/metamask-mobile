@@ -64,7 +64,6 @@ import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
-import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
 import { RestoreWallet } from '../../Views/RestoreWallet';
@@ -144,6 +143,7 @@ import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
 import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
+import { DeepLinkModal } from '../../UI/DeepLinkModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -422,10 +422,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
     <Stack.Screen name={'NftOptions'} component={NftOptions} />
     <Stack.Screen name={Routes.MODAL.UPDATE_NEEDED} component={UpdateNeeded} />
-    <Stack.Screen
-      name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
-      component={EnableAutomaticSecurityChecksModal}
-    />
     {
       <Stack.Screen
         name={Routes.SHEET.SELECT_SRP}
@@ -476,6 +472,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={ChangeInSimulationModal}
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
+    <Stack.Screen name={Routes.MODAL.DEEP_LINK_MODAL} component={DeepLinkModal} />
   </Stack.Navigator>
 );
 
@@ -583,12 +580,6 @@ const MultichainAccountDetails = () => {
     </Stack.Navigator>
   );
 };
-
-const FlatConfirmationRequest = () => (
-  <Stack.Navigator>
-    <Stack.Screen name={Routes.CONFIRMATION_REQUEST_FLAT} component={Confirm} />
-  </Stack.Navigator>
-);
 
 const ModalConfirmationRequest = () => (
   <Stack.Navigator
@@ -747,10 +738,6 @@ const AppFlow = () => {
         name={Routes.LOCK_SCREEN}
         component={LockScreen}
         options={{ gestureEnabled: false }}
-      />
-      <Stack.Screen
-        name={Routes.CONFIRMATION_REQUEST_FLAT}
-        component={FlatConfirmationRequest}
       />
       <Stack.Screen
         name={Routes.CONFIRMATION_REQUEST_MODAL}

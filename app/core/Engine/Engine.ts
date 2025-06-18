@@ -185,12 +185,11 @@ import {
   STATELESS_NON_CONTROLLER_NAMES,
   swapsSupportedChainIds,
 } from './constants';
-import {
-  getGlobalChainId,
-} from '../../util/networks/global-network';
+import { getGlobalChainId } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
 import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
+import { accountTreeControllerInit } from '../../multichain-accounts/controllers/account-tree-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
 import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
@@ -1196,6 +1195,7 @@ export class Engine {
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
+        AccountTreeController: accountTreeControllerInit,
         AppMetadataController: appMetadataControllerInit,
         GasFeeController: GasFeeControllerInit,
         TransactionController: TransactionControllerInit,
@@ -1227,6 +1227,7 @@ export class Engine {
     });
 
     const accountsController = controllersByName.AccountsController;
+    const accountTreeController = controllersByName.AccountTreeController;
     const gasFeeController = controllersByName.GasFeeController;
     const signatureController = controllersByName.SignatureController;
     const transactionController = controllersByName.TransactionController;
@@ -1352,10 +1353,14 @@ export class Engine {
           'NetworkController:getState',
         ],
       }),
+      addTransactionFn: transactionController.addTransaction.bind(
+        transactionController,
+      ),
     });
 
     this.context = {
       KeyringController: this.keyringController,
+      AccountTreeController: accountTreeController,
       AccountTrackerController: accountTrackerController,
       AddressBookController: new AddressBookController({
         messenger: this.controllerMessenger.getRestricted({
@@ -1816,7 +1821,9 @@ export class Engine {
 
     const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
 
-    const networkConfigurations = Object.values(NetworkController.state.networkConfigurationsByChainId || {});
+    const networkConfigurations = Object.values(
+      NetworkController.state.networkConfigurationsByChainId || {},
+    );
 
     networkConfigurations.forEach((networkConfig) => {
       const { chainId } = networkConfig;
@@ -1828,9 +1835,11 @@ export class Engine {
 
       let ticker = '';
       try {
-        const networkClientId = NetworkController.findNetworkClientIdByChainId(chainId);
+        const networkClientId =
+          NetworkController.findNetworkClientIdByChainId(chainId);
         if (networkClientId) {
-          const networkClient = NetworkController.getNetworkClientById(networkClientId);
+          const networkClient =
+            NetworkController.getNetworkClientById(networkClientId);
           ticker = networkClient.configuration.ticker;
         }
       } catch (error) {
@@ -1838,7 +1847,8 @@ export class Engine {
       }
 
       const conversionRate =
-        CurrencyRateController.state?.currencyRates?.[ticker]?.conversionRate ?? 0;
+        CurrencyRateController.state?.currencyRates?.[ticker]?.conversionRate ??
+        0;
 
       if (conversionRate === 0) {
         return;
@@ -1848,13 +1858,18 @@ export class Engine {
         primaryTicker = ticker;
       }
 
-      const accountData = accountsByChainId?.[chainIdHex]?.[selectedInternalAccountFormattedAddress];
+      const accountData =
+        accountsByChainId?.[chainIdHex]?.[
+          selectedInternalAccountFormattedAddress
+        ];
       if (accountData) {
         const balanceHex = accountData.balance;
         const balanceBN = hexToBN(balanceHex);
 
         const stakedBalanceBN = hexToBN(accountData.stakedBalance || '0x00');
-        const totalAccountBalance = balanceBN.add(stakedBalanceBN).toString('hex');
+        const totalAccountBalance = balanceBN
+          .add(stakedBalanceBN)
+          .toString('hex');
 
         const chainEthFiat = weiToFiatNumber(
           totalAccountBalance,
@@ -1868,11 +1883,17 @@ export class Engine {
         }
 
         const tokenExchangeRates = marketData?.[chainIdHex];
-        const ethPricePercentChange1d = tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
+        const ethPricePercentChange1d =
+          tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
 
         let chainEthFiat1dAgo = chainEthFiat;
-        if (ethPricePercentChange1d !== undefined && isFinite(ethPricePercentChange1d) && ethPricePercentChange1d !== -100) {
-          chainEthFiat1dAgo = chainEthFiat / (1 + ethPricePercentChange1d / 100);
+        if (
+          ethPricePercentChange1d !== undefined &&
+          isFinite(ethPricePercentChange1d) &&
+          ethPricePercentChange1d !== -100
+        ) {
+          chainEthFiat1dAgo =
+            chainEthFiat / (1 + ethPricePercentChange1d / 100);
         }
 
         if (isFinite(chainEthFiat1dAgo)) {
@@ -1881,56 +1902,80 @@ export class Engine {
 
         const chainNativeBalance = renderFromWei(balanceHex);
         if (chainNativeBalance && parseFloat(chainNativeBalance) > 0) {
-          const currentAggregated = parseFloat(aggregatedNativeTokenBalance || '0');
-          aggregatedNativeTokenBalance = (currentAggregated + parseFloat(chainNativeBalance)).toString();
+          const currentAggregated = parseFloat(
+            aggregatedNativeTokenBalance || '0',
+          );
+          aggregatedNativeTokenBalance = (
+            currentAggregated + parseFloat(chainNativeBalance)
+          ).toString();
         }
       }
 
-      const tokens = TokensController.state.allTokens?.[chainIdHex]?.[selectedInternalAccount.address] || [];
+      const tokens =
+        TokensController.state.allTokens?.[chainIdHex]?.[
+          selectedInternalAccount.address
+        ] || [];
       const tokenExchangeRates = marketData?.[chainIdHex];
 
       if (tokens.length > 0) {
-        const { tokenBalances: allTokenBalances } = TokenBalancesController.state;
-        const tokenBalances = allTokenBalances?.[selectedInternalAccount.address as Hex]?.[chainId] ?? {};
+        const { tokenBalances: allTokenBalances } =
+          TokenBalancesController.state;
+        const tokenBalances =
+          allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
+            chainId
+          ] ?? {};
 
-        tokens.forEach((item: { address: string; balance?: string; decimals: number }) => {
-          const exchangeRate = tokenExchangeRates?.[item.address as Hex]?.price;
+        tokens.forEach(
+          (item: { address: string; balance?: string; decimals: number }) => {
+            const exchangeRate =
+              tokenExchangeRates?.[item.address as Hex]?.price;
 
-          if (!exchangeRate || !isFinite(exchangeRate)) {
-            return;
-          }
+            if (!exchangeRate || !isFinite(exchangeRate)) {
+              return;
+            }
 
-          const tokenBalance = item.balance ||
-            (item.address in tokenBalances
-              ? renderFromTokenMinimalUnit(tokenBalances[item.address as Hex], item.decimals)
-              : undefined);
+            const tokenBalance =
+              item.balance ||
+              (item.address in tokenBalances
+                ? renderFromTokenMinimalUnit(
+                    tokenBalances[item.address as Hex],
+                    item.decimals,
+                  )
+                : undefined);
 
-          if (!tokenBalance) {
-            return;
-          }
+            if (!tokenBalance) {
+              return;
+            }
 
-          const tokenBalanceFiat = balanceToFiatNumber(
-            tokenBalance,
-            conversionRate,
-            exchangeRate,
-            decimalsToShow,
-          );
+            const tokenBalanceFiat = balanceToFiatNumber(
+              tokenBalance,
+              conversionRate,
+              exchangeRate,
+              decimalsToShow,
+            );
 
-          if (isFinite(tokenBalanceFiat)) {
-            totalTokenFiat += tokenBalanceFiat;
-          }
+            if (isFinite(tokenBalanceFiat)) {
+              totalTokenFiat += tokenBalanceFiat;
+            }
 
-          const tokenPricePercentChange1d = tokenExchangeRates?.[item.address as Hex]?.pricePercentChange1d;
-          let tokenBalance1dAgo = tokenBalanceFiat;
+            const tokenPricePercentChange1d =
+              tokenExchangeRates?.[item.address as Hex]?.pricePercentChange1d;
+            let tokenBalance1dAgo = tokenBalanceFiat;
 
-          if (tokenPricePercentChange1d !== undefined && isFinite(tokenPricePercentChange1d) && tokenPricePercentChange1d !== -100) {
-            tokenBalance1dAgo = tokenBalanceFiat / (1 + tokenPricePercentChange1d / 100);
-          }
+            if (
+              tokenPricePercentChange1d !== undefined &&
+              isFinite(tokenPricePercentChange1d) &&
+              tokenPricePercentChange1d !== -100
+            ) {
+              tokenBalance1dAgo =
+                tokenBalanceFiat / (1 + tokenPricePercentChange1d / 100);
+            }
 
-          if (isFinite(tokenBalance1dAgo)) {
-            totalTokenFiat1dAgo += tokenBalance1dAgo;
-          }
-        });
+            if (isFinite(tokenBalance1dAgo)) {
+              totalTokenFiat1dAgo += tokenBalance1dAgo;
+            }
+          },
+        );
       }
     });
 
@@ -2229,6 +2274,7 @@ export default {
       TokensController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
+      CronjobController,
       SubjectMetadataController,
       AuthenticationController,
       UserStorageController,
@@ -2240,6 +2286,7 @@ export default {
       ApprovalController,
       LoggingController,
       AccountsController,
+      AccountTreeController,
       SignatureController,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController,
@@ -2280,6 +2327,7 @@ export default {
       GasFeeController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
+      CronjobController,
       SubjectMetadataController,
       AuthenticationController,
       UserStorageController,
@@ -2291,6 +2339,7 @@ export default {
       ApprovalController,
       LoggingController,
       AccountsController,
+      AccountTreeController,
       SignatureController,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController,

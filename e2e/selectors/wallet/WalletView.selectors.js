@@ -10,7 +10,7 @@ export const WalletViewSelectorsIDs = {
   PORTFOLIO_BUTTON: 'portfolio-button',
   TOTAL_BALANCE_TEXT: 'total-balance-text',
   STAKE_BUTTON: 'stake-button',
-  STAKE_EARNINGS_HISTORY_BUTTON: 'stake-earnings-history-button',
+  EARN_EARNINGS_HISTORY_BUTTON: 'earn-earnings-history-button',
   UNSTAKE_BUTTON: 'unstake-button',
   STAKE_MORE_BUTTON: 'stake-more-button',
   IMPORT_NFT_BUTTON: 'import-collectible-button',
