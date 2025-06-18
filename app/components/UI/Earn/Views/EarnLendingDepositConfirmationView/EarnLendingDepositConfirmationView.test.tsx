@@ -16,13 +16,16 @@ import {
   DEPOSIT_FOOTER_TEST_ID,
   LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS,
 } from './components/DepositFooter';
-import { act, fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { MOCK_ADDRESS_2 } from '../../../../../util/test/accountsControllerTestUtils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import Engine from '../../../../../core/Engine';
-import { Result, TransactionType } from '@metamask/transaction-controller';
+import { Result, TransactionType, TransactionStatus } from '@metamask/transaction-controller';
+import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import useMetrics from '../../../../hooks/useMetrics/useMetrics';
+import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
 
 jest.mock('../../../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../../../selectors/accountsController'),
@@ -71,11 +74,40 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../hooks/useEarnTokenDetails', () => ({
+  useEarnTokenDetails: () => ({
+    getTokenWithBalanceAndApr: (token: any) => ({
+      ...token,
+      balanceFormatted: token.symbol === 'USDC' ? '1.00 USDC' : '1.5 ETH',
+      apr: '4.5',
+    }),
+  }),
+}));
+
+jest.mock('../../../../hooks/useMetrics/useMetrics');
+
+jest.mock('../../../../../hooks/useMetrics', () => ({
+  useMetrics: jest.fn(),
+  MetaMetricsEvents: {
+    EARN_CONFIRMATION_PAGE_VIEWED: 'Earn confirmation page viewed',
+    EARN_ACTION_SUBMITTED: 'Earn action submitted',
+    EARN_TRANSACTION_INITIATED: 'Earn transaction initiated',
+    EARN_TRANSACTION_APPROVED: 'Earn transaction approved',
+    EARN_TRANSACTION_REJECTED: 'Earn transaction rejected',
+    EARN_TRANSACTION_SUBMITTED: 'Earn transaction submitted',
+    EARN_TRANSACTION_CONFIRMED: 'Earn transaction confirmed',
+    EARN_TRANSACTION_FAILED: 'Earn transaction failed',
+  },
+}));
+
 describe('EarnLendingDepositConfirmationView', () => {
   jest.mocked(getStakingNavbar);
   const mockAddTransaction = jest.mocked(
     Engine.context.TransactionController.addTransaction,
   );
+  const useMetricsMock = jest.mocked(useMetrics);
+  const mockTrackEvent = jest.fn();
+  const useEarnTokenDetailsMock = jest.mocked(useEarnTokenDetails);
 
   const selectSelectedInternalAccountMock = jest.mocked(
     selectSelectedInternalAccount,
@@ -104,6 +136,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       lendingContractAddress: AAVE_V3_ETHEREUM_MAINNET_POOL_CONTRACT_ADDRESS,
       lendingProtocol: 'AAVE v3',
       token: { ...MOCK_USDC_MAINNET_ASSET, address: USDC_TOKEN_ADDRESS },
+      networkName: 'Ethereum Mainnet',
     },
   };
 
@@ -121,6 +154,18 @@ describe('EarnLendingDepositConfirmationView', () => {
     selectSelectedInternalAccountMock.mockReturnValue({
       address: MOCK_ADDRESS_2,
     } as InternalAccount);
+
+    useMetricsMock.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+    } as unknown as ReturnType<typeof useMetrics>);
+
+    useEarnTokenDetailsMock.mockReturnValue({
+      getTokenWithBalanceAndApr: jest.fn().mockReturnValue({
+        balanceFormatted: '1.00 USDC',
+        apr: '4.5',
+      }),
+    } as unknown as ReturnType<typeof useEarnTokenDetails>);
   });
 
   it('renders correctly', () => {
@@ -179,6 +224,290 @@ describe('EarnLendingDepositConfirmationView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
+  describe('Analytics', () => {
+    it('should track EARN_CONFIRMATION_PAGE_VIEWED on render', () => {
+      renderWithProvider(<EarnLendingDepositConfirmationView />, {
+        state: mockInitialState,
+      });
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn confirmation page viewed',
+          properties: {
+            action_type: 'deposit',
+            token: 'USDC',
+            network: 'Ethereum Mainnet',
+            User_token_balance: '1.00 USDC',
+            transaction_value: '4.99',
+          },
+        }),
+      );
+    });
+
+    it('should track EARN_ACTION_SUBMITTED and EARN_TRANSACTION_INITIATED on confirm', async () => {
+      mockAddTransaction.mockResolvedValue({
+        transactionMeta: {
+          id: '123',
+          type: 'lendingDeposit' as TransactionType,
+        },
+      } as Result);
+      
+      const { getByTestId } = renderWithProvider(
+        <EarnLendingDepositConfirmationView />,
+        { state: mockInitialState },
+      );
+      
+      // Clear previous calls from the initial render
+      mockTrackEvent.mockClear();
+      
+      const depositButton = getByTestId(
+        LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      );
+      
+      await act(async () => {
+        fireEvent.press(depositButton);
+      });
+      
+      // Wait for async operations
+      await waitFor(() => {
+        expect(mockAddTransaction).toHaveBeenCalled();
+      });
+      
+      // Check that EARN_ACTION_SUBMITTED was tracked
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn action submitted',
+          properties: {
+            action_type: 'deposit',
+            token: 'USDC',
+            network: 'Ethereum Mainnet',
+            User_token_balance: '1.00 USDC',
+            transaction_value: '4.99',
+          },
+        }),
+      );
+      
+      // Check that EARN_TRANSACTION_INITIATED was tracked
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn transaction initiated',
+          properties: {
+            action_type: 'deposit',
+            token: 'USDC',
+            network: 'Ethereum Mainnet',
+            User_token_balance: '1.00 USDC',
+            transaction_value: '4.99',
+            transaction_id: '123',
+          },
+        }),
+      );
+    });
+
+    it('should track transaction status events', async () => {
+      const transactionMeta = {
+        id: '123',
+        type: 'lendingDeposit' as TransactionType,
+      } as any;
+      
+      mockAddTransaction.mockResolvedValue({
+        transactionMeta,
+      } as Result);
+      
+      // Mock the subscribeOnceIf to simulate transaction status callbacks
+      let transactionStatusCallback: any;
+      jest.mocked(Engine.controllerMessenger.subscribeOnceIf).mockImplementation(
+        (_eventFilter: any, callback: any) => {
+          transactionStatusCallback = callback;
+          return undefined as any;
+        },
+      );
+      
+      const { getByTestId } = renderWithProvider(
+        <EarnLendingDepositConfirmationView />,
+        { state: mockInitialState },
+      );
+      
+      const depositButton = getByTestId(
+        LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      );
+      
+      await act(async () => {
+        fireEvent.press(depositButton);
+      });
+      
+      await waitFor(() => {
+        expect(mockAddTransaction).toHaveBeenCalled();
+      });
+      
+      // Clear previous calls
+      mockTrackEvent.mockClear();
+      
+      // Simulate transaction rejected
+      await act(async () => {
+        transactionStatusCallback({
+          ...transactionMeta,
+          status: TransactionStatus.rejected,
+        });
+      });
+      
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn transaction rejected',
+          properties: {
+            action_type: 'deposit',
+            token: 'USDC',
+            network: 'Ethereum Mainnet',
+            User_token_balance: '1.00 USDC',
+            transaction_value: '4.99',
+            transaction_id: '123',
+          },
+        }),
+      );
+      
+      // Clear and test submitted status
+      mockTrackEvent.mockClear();
+      
+      await act(async () => {
+        transactionStatusCallback({
+          ...transactionMeta,
+          status: TransactionStatus.submitted,
+        });
+      });
+      
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn transaction submitted',
+          properties: {
+            action_type: 'deposit',
+            token: 'USDC',
+            network: 'Ethereum Mainnet',
+            User_token_balance: '1.00 USDC',
+            transaction_value: '4.99',
+            transaction_id: '123',
+          },
+        }),
+      );
+      
+      // Clear and test confirmed status
+      mockTrackEvent.mockClear();
+      
+      await act(async () => {
+        transactionStatusCallback({
+          ...transactionMeta,
+          status: TransactionStatus.confirmed,
+        });
+      });
+      
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn transaction confirmed',
+          properties: {
+            action_type: 'deposit',
+            token: 'USDC',
+            network: 'Ethereum Mainnet',
+            User_token_balance: '1.00 USDC',
+            transaction_value: '4.99',
+            transaction_id: '123',
+          },
+        }),
+      );
+      
+      // Clear and test failed status
+      mockTrackEvent.mockClear();
+      
+      await act(async () => {
+        transactionStatusCallback({
+          ...transactionMeta,
+          status: TransactionStatus.failed,
+        });
+      });
+      
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn transaction failed',
+          properties: {
+            action_type: 'deposit',
+            token: 'USDC',
+            network: 'Ethereum Mainnet',
+            User_token_balance: '1.00 USDC',
+            transaction_value: '4.99',
+            transaction_id: '123',
+          },
+        }),
+      );
+    });
+
+    it('should track EARN_TRANSACTION_APPROVED on allowance confirmation', async () => {
+      const routeParamsWithApproveAction = {
+        ...defaultRouteParams,
+        params: {
+          ...defaultRouteParams.params,
+          action: EARN_INPUT_VIEW_ACTIONS.ALLOWANCE_INCREASE,
+        },
+      };
+      
+      (useRoute as jest.Mock).mockReturnValue(routeParamsWithApproveAction);
+      
+      mockAddTransaction.mockResolvedValue({
+        transactionMeta: {
+          id: '456',
+          type: TransactionType.tokenMethodIncreaseAllowance,
+        },
+      } as Result);
+      
+      // Mock the subscribeOnceIf to simulate transaction confirmed callback
+      let transactionStatusCallback: any;
+      jest.mocked(Engine.controllerMessenger.subscribeOnceIf).mockImplementation(
+        (_eventFilter: any, callback: any) => {
+          transactionStatusCallback = callback;
+          return undefined as any;
+        },
+      );
+      
+      const { getByTestId } = renderWithProvider(
+        <EarnLendingDepositConfirmationView />,
+        { state: mockInitialState },
+      );
+      
+      const depositButton = getByTestId(
+        LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      );
+      
+      await act(async () => {
+        fireEvent.press(depositButton);
+      });
+      
+      await waitFor(() => {
+        expect(mockAddTransaction).toHaveBeenCalled();
+      });
+      
+      // Clear previous calls
+      mockTrackEvent.mockClear();
+      
+      // Simulate transaction confirmed
+      await act(async () => {
+        transactionStatusCallback({
+          id: '456',
+          type: TransactionType.tokenMethodIncreaseAllowance,
+          status: TransactionStatus.confirmed,
+        } as any);
+      });
+      
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn transaction approved',
+          properties: {
+            action_type: 'deposit',
+            token: 'USDC',
+            network: 'Ethereum Mainnet',
+            User_token_balance: '1.00 USDC',
+            transaction_value: '4.99',
+            transaction_id: '456',
+          },
+        }),
+      );
+    });
+  });
+
   it('initiates transaction approval flow if token allowance is needed', async () => {
     const routeParamsWithApproveAction = {
       ...defaultRouteParams,
@@ -197,6 +526,9 @@ describe('EarnLendingDepositConfirmationView', () => {
         type: TransactionType.tokenMethodIncreaseAllowance,
       },
     } as Result);
+
+    // Clear previous calls to subscribeOnceIf
+    jest.mocked(Engine.controllerMessenger.subscribeOnceIf).mockClear();
 
     const { queryAllByText, getByTestId } = renderWithProvider(
       <EarnLendingDepositConfirmationView />,
@@ -241,6 +573,9 @@ describe('EarnLendingDepositConfirmationView', () => {
       },
     } as Result);
 
+    // Clear previous calls to subscribeOnceIf
+    jest.mocked(Engine.controllerMessenger.subscribeOnceIf).mockClear();
+
     const { queryAllByText, getByTestId } = renderWithProvider(
       <EarnLendingDepositConfirmationView />,
       { state: mockInitialState },
@@ -258,7 +593,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       fireEvent.press(depositButton);
     });
 
-    expect(Engine.controllerMessenger.subscribeOnceIf).toHaveBeenCalledTimes(3);
+    expect(Engine.controllerMessenger.subscribeOnceIf).toHaveBeenCalledTimes(4);
 
     expect(mockAddTransaction).toHaveBeenCalledWith(
       {

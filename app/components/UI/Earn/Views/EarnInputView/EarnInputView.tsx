@@ -20,6 +20,7 @@ import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { selectConversionRate } from '../../../../../selectors/currencyRateController';
 import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
@@ -52,6 +53,8 @@ import {
 import BigNumber from 'bignumber.js';
 import { isSupportedLendingTokenByChainId } from '../../utils';
 
+type EventLoggingStrategy = 'LOG_STABLECOIN_LEND_EVENT' | 'LOG_STAKING_EVENT' | 'SKIP_EVENT_LOGGING';
+
 const EarnInputView = () => {
   // navigation hooks
   const navigation = useNavigation();
@@ -74,6 +77,9 @@ const EarnInputView = () => {
   const conversionRate = useSelector(selectConversionRate) ?? 1;
   const contractExchangeRates = useSelector((state: RootState) =>
     selectContractExchangeRatesByChainId(state, token.chainId as Hex),
+  );
+  const network = useSelector((state: RootState) =>
+    selectNetworkConfigurationByChainId(state, token.chainId as Hex),
   );
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
@@ -122,11 +128,66 @@ const EarnInputView = () => {
     exchangeRate,
   });
 
+  const getEventLoggingStrategy = useCallback((): EventLoggingStrategy => {
+    if (
+      earnToken?.experience === EARN_EXPERIENCES.STABLECOIN_LENDING &&
+      isStablecoinLendingEnabled
+    ) {
+      return 'LOG_STABLECOIN_LEND_EVENT';
+    }
+
+    // assume it's a staking experience
+    if (!isStablecoinLendingEnabled || token.isETH) {
+      return 'LOG_STAKING_EVENT';
+    }
+
+    return 'SKIP_EVENT_LOGGING';
+  }, [earnToken?.experience, isStablecoinLendingEnabled, token.isETH]);
+
+  useEffect(() => {
+    const strategy = getEventLoggingStrategy();
+
+    if (strategy === 'LOG_STABLECOIN_LEND_EVENT') {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EARN_INPUT_OPENED)
+          .addProperties({
+            // action_type: 'deposit',
+            token: earnToken?.symbol,
+            network: network?.name,
+            user_token_balance: balanceValue,
+          })
+          .build(),
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const navigateToLearnMoreModal = () => {
     navigation.navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
     });
   };
+
+  const handleKeypadChangeWithTracking = useCallback((params: { value: string; pressedKey: string }) => {
+    const strategy = getEventLoggingStrategy();
+
+    // call the original handler first
+    handleKeypadChange(params);
+
+    if (strategy === 'LOG_STABLECOIN_LEND_EVENT' && params.value !== '0' && params.value !== '') {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED)
+          .addProperties({
+            // action_type: 'deposit',
+            input_value: params.value,
+            token: earnToken?.symbol,
+            network: network?.name,
+            user_token_balance: balanceValue,
+          })
+          .build(),
+      );
+    }
+  }, [getEventLoggingStrategy, handleKeypadChange, trackEvent, createEventBuilder, earnToken?.symbol, network?.name, balanceValue]);
 
   const handleLendingFlow = useCallback(async () => {
     if (!activeAccount?.address) return;
@@ -151,6 +212,18 @@ const EarnInputView = () => {
     const lendingPoolContractAddress =
       CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS[earnToken.chainId] ?? '';
 
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EARN_REVIEW_BUTTON_CLICKED)
+        .addProperties({
+          // action_type: 'deposit',
+          token: earnToken?.symbol,
+          network: network?.name,
+          user_token_balance: balanceValue,
+          transaction_value: amountToken,
+        })
+        .build(),
+    );
+
     navigation.navigate(Routes.EARN.ROOT, {
       screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
       params: {
@@ -168,6 +241,7 @@ const EarnInputView = () => {
         action: needsAllowanceIncrease
           ? EARN_INPUT_VIEW_ACTIONS.ALLOWANCE_INCREASE
           : EARN_INPUT_VIEW_ACTIONS.LEND,
+        networkName: network?.name,
       },
     });
   }, [
@@ -181,6 +255,12 @@ const EarnInputView = () => {
     earnToken?.chainId,
     navigation,
     token,
+    trackEvent,
+    createEventBuilder,
+    earnToken?.symbol,
+    network?.name,
+    balanceValue,
+    amountToken,
   ]);
 
   const handlePooledStakingFlow = useCallback(async () => {
@@ -474,29 +554,67 @@ const EarnInputView = () => {
       </View>
       <QuickAmounts
         amounts={percentageOptions}
-        onAmountPress={({ value }: { value: number }) =>
-          withMetaMetrics(handleQuickAmountPress, {
-            event: MetaMetricsEvents.STAKE_INPUT_QUICK_AMOUNT_CLICKED,
-            properties: {
-              location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
-              amount: value,
-              is_max: false,
-              mode: !isFiat ? 'native' : 'fiat',
-            },
-          })({ value })
-        }
-        onMaxPress={withMetaMetrics(handleMaxButtonPress, {
-          event: MetaMetricsEvents.STAKE_INPUT_QUICK_AMOUNT_CLICKED,
-          properties: {
-            location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
-            is_max: true,
-            mode: !isFiat ? 'native' : 'fiat',
-          },
-        })}
+        onAmountPress={({ value }: { value: number }) => {
+          const strategy = getEventLoggingStrategy();
+          const metrics: any[] = [];
+
+          if (strategy === 'LOG_STABLECOIN_LEND_EVENT') {
+            metrics.push({
+              event: MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED,
+              properties: {
+                // action_type: 'deposit',
+                input_value: `${value * 100}%`,
+                token: earnToken?.symbol,
+                network: network?.name,
+                user_token_balance: balanceValue,
+              },
+            });
+          } else if (strategy === 'LOG_STAKING_EVENT') {
+            metrics.push({
+              event: MetaMetricsEvents.STAKE_INPUT_QUICK_AMOUNT_CLICKED,
+              properties: {
+                location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
+                amount: value,
+                is_max: false,
+                mode: !isFiat ? 'native' : 'fiat',
+              },
+            });
+          }
+
+          withMetaMetrics(handleQuickAmountPress, metrics)({ value });
+        }}
+        onMaxPress={() => {
+          const strategy = getEventLoggingStrategy();
+          const metrics: any[] = [];
+
+          if (strategy === 'LOG_STABLECOIN_LEND_EVENT') {
+            metrics.push({
+              event: MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED,
+              properties: {
+                // action_type: 'deposit',
+                input_value: 'Max',
+                token: earnToken?.symbol,
+                network: network?.name,
+                user_token_balance: balanceValue,
+              },
+            });
+          } else if (strategy === 'LOG_STAKING_EVENT') {
+            metrics.push({
+              event: MetaMetricsEvents.STAKE_INPUT_QUICK_AMOUNT_CLICKED,
+              properties: {
+                location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
+                is_max: true,
+                mode: !isFiat ? 'native' : 'fiat',
+              },
+            });
+          }
+
+          withMetaMetrics(handleMaxButtonPress, metrics)();
+        }}
       />
       <Keypad
         value={!isFiat ? amountToken : amountFiatNumber}
-        onChange={handleKeypadChange}
+        onChange={handleKeypadChangeWithTracking}
         style={styles.keypad}
         currency={token.symbol}
         decimals={!isFiat ? 5 : 2}
