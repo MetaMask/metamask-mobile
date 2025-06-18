@@ -3,6 +3,12 @@ import { MetaMetricsEvents, useMetrics } from '../useMetrics';
 import { SearchDiscoveryCategory, SearchDiscoveryResultItem, TokenSearchDiscoveryResult } from '../../UI/SearchDiscoveryResult/types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
+/**
+ * Adds properties to the event builder based on the result and search term.
+ * @param eventBuilder - The event builder to add properties to.
+ * @param result - The result to get properties from.
+ * @param searchTerm - The optional search term.
+ */
 const addProperties = (eventBuilder: MetricsEventBuilder, result: SearchDiscoveryResultItem, searchTerm: string | null) => {
     eventBuilder.addProperties({
         source: searchTerm === null ? 'discovery' : 'search',
@@ -31,6 +37,10 @@ const addProperties = (eventBuilder: MetricsEventBuilder, result: SearchDiscover
     }
 };
 
+/**
+ * Tracks the interactions with a token search & discovery item.
+ * @returns An object with the `trackItemOpened` and `trackSwapOpened` functions.
+ */
 export const useTokenSearchDiscoveryMetrics = () => {
     const { trackEvent, createEventBuilder } = useMetrics();
 
