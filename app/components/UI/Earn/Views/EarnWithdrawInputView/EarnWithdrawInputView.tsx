@@ -1,9 +1,11 @@
+import { Hex } from '@metamask/utils';
 import {
   useFocusEffect,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useCallback, useEffect, useState } from 'react';
+import { StackNavigationProp } from '@react-navigation/stack';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -14,48 +16,58 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
+import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectConversionRate } from '../../../../../selectors/currencyRateController';
+import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
+import useEarnWithdrawInput from '../../../Earn/hooks/useEarnWithdrawInput';
 import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
-import InputDisplay from '../../components/InputDisplay';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
 import {
   EVENT_LOCATIONS,
   EVENT_PROVIDERS,
 } from '../../../Stake/constants/events';
 import usePoolStakedUnstake from '../../../Stake/hooks/usePoolStakedUnstake';
-import useEarnWithdrawInput from '../../../Earn/hooks/useEarnWithdrawInput';
 import { StakeNavigationParamsList } from '../../../Stake/types';
-import { withMetaMetrics } from '../../../Stake/utils/metaMetrics/withMetaMetrics';
-import UnstakeInputViewBanner from './UnstakeBanner';
+import {
+  withMetaMetrics,
+  WithMetaMetricsEvent,
+} from '../../../Stake/utils/metaMetrics/withMetaMetrics';
+import EarnTokenSelector from '../../components/EarnTokenSelector';
+import InputDisplay from '../../components/InputDisplay';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import {
+  calculateAaveV3HealthFactorAfterWithdrawal,
+  CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS,
+  getAaveV3MaxRiskAwareWithdrawalAmount,
+} from '../../utils/tempLending';
+import { EARN_INPUT_VIEW_ACTIONS } from '../EarnInputView/EarnInputView.types';
 import styleSheet from './EarnWithdrawInputView.styles';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
-import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
-import { RootState } from '../../../../../reducers';
-import { selectConversionRate } from '../../../../../selectors/currencyRateController';
-import { Hex } from '@metamask/utils';
-import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
-import { isSupportedLendingTokenByChainId } from '../../utils';
-import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
+import BN from 'bnjs4';
+import { renderFromTokenMinimalUnit } from '../../../../../util/number';
+import { TokenI } from '../../../Tokens/types';
+import useEarnTokens from '../../hooks/useEarnTokens';
+import { EarnTokenDetails } from '../../types/lending.types';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
+import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
   const { token } = route.params;
-  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
-  const earnToken = getTokenWithBalanceAndApr(token);
-  const title = isSupportedLendingTokenByChainId(
-    token.symbol,
-    token?.chainId as string,
-  )
-    ? strings('earn.withdraw')
-    : strings('stake.unstake_eth');
+
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
+  const { getPairedEarnTokens } = useEarnTokens();
+  const { earnToken, outputToken: receiptToken } = getPairedEarnTokens(token);
+
   const navigation =
     useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
   const { styles, theme } = useStyles(styleSheet, {});
@@ -63,10 +75,6 @@ const EarnWithdrawInputView = () => {
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const confirmationRedesignFlags = useSelector(
     selectConfirmationRedesignFlags,
-  );
-
-  const isStablecoinLendingEnabled = useSelector(
-    selectStablecoinLendingEnabledFlag,
   );
 
   const conversionRate = useSelector(selectConversionRate) ?? 1;
@@ -80,12 +88,14 @@ const EarnWithdrawInputView = () => {
 
   const { trackEvent, createEventBuilder } = useMetrics();
 
-  const { shouldLogStablecoinEvent, shouldLogStakingEvent } = useEarnAnalyticsEventLogging({
-    earnToken,
-    isStablecoinLendingEnabled,
-    token,
-    actionType: 'withdrawal',
-  });
+  const { shouldLogStablecoinEvent, shouldLogStakingEvent } =
+    useEarnAnalyticsEventLogging({
+      // Do we want to track the earnToken/underlying (e.g. USDC) or the receiptToken (e.g. aUSDC)?
+      earnToken: receiptToken,
+      isStablecoinLendingEnabled,
+      token,
+      actionType: 'withdrawal',
+    });
 
   const {
     isFiat,
@@ -102,7 +112,7 @@ const EarnWithdrawInputView = () => {
     handleKeypadChange,
     earnBalanceValue,
   } = useEarnWithdrawInput({
-    earnToken,
+    earnToken: receiptToken as EarnTokenDetails,
     conversionRate,
     exchangeRate,
   });
@@ -123,24 +133,40 @@ const EarnWithdrawInputView = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const stakedBalanceText = strings('stake.staked_balance');
+  const [maxRiskAwareWithdrawalAmount, setMaxRiskAwareWithdrawalAmount] =
+    useState('0');
+  const [
+    isLoadingMaxSafeWithdrawalAmount,
+    setIsLoadingMaxSafeWithdrawalAmount,
+  ] = useState(false);
 
-  const getButtonLabel = () => {
-    if (!isNonZeroAmount) {
-      return strings('stake.enter_amount');
-    }
-    if (isOverMaximum.isOverMaximumToken) {
-      return strings('stake.not_enough_token', {
-        ticker: earnToken.ticker ?? earnToken.symbol,
+  // For lending withdrawals, fetch AAVE pool metadata once on render.
+  useEffect(() => {
+    if (
+      receiptToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING ||
+      !activeAccount?.address ||
+      !receiptToken?.address ||
+      !receiptToken?.chainId
+    )
+      return;
+
+    setIsLoadingMaxSafeWithdrawalAmount(true);
+
+    getAaveV3MaxRiskAwareWithdrawalAmount(
+      activeAccount.address,
+      receiptToken as EarnTokenDetails,
+    )
+      .then((maxAmount) => {
+        setMaxRiskAwareWithdrawalAmount(maxAmount);
+      })
+      .finally(() => {
+        setIsLoadingMaxSafeWithdrawalAmount(false);
       });
-    }
-    if (isOverMaximum.isOverMaximumEth) {
-      return strings('stake.not_enough_eth');
-    }
-    return strings('stake.review');
-  };
+    // Call once on render and only once
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [receiptToken, activeAccount?.address]);
 
-  const buttonLabel = getButtonLabel();
+  const stakedBalanceText = strings('stake.staked_balance');
 
   const stakingNavBarOptions = {
     hasCancelButton: true,
@@ -158,8 +184,9 @@ const EarnWithdrawInputView = () => {
   const earnNavBarOptions = {
     hasCancelButton: false,
     hasBackButton: true,
-    hasIconButton: true,
-    // TODO: STAKE-903
+    // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-903
+    hasIconButton: !isStablecoinLendingEnabled,
+    // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-903
     // handleIconPress: ???,
   };
   const earnNavBarEventOptions = {
@@ -170,7 +197,7 @@ const EarnWithdrawInputView = () => {
         location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
       },
     },
-    // TODO: STAKE-903
+    // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-903
     // iconButtonEvent: {
     //   event: MetaMetricsEvents.TOOLTIP_OPENED,
     //   properties: {
@@ -187,17 +214,18 @@ const EarnWithdrawInputView = () => {
   const navBarEventOptions = isStablecoinLendingEnabled
     ? earnNavBarEventOptions
     : stakingNavBarEventOptions;
+
   useEffect(() => {
     navigation.setOptions(
       getStakingNavbar(
-        title,
+        strings('earn.withdraw'),
         navigation,
         theme.colors,
         navBarOptions,
         navBarEventOptions,
       ),
     );
-  }, [navigation, theme.colors, title, navBarOptions, navBarEventOptions]);
+  }, [navigation, theme.colors, navBarOptions, navBarEventOptions]);
 
   const [
     isSubmittingStakeWithdrawalTransaction,
@@ -209,23 +237,57 @@ const EarnWithdrawInputView = () => {
     }, []),
   );
 
-  const handleUnstakePress = useCallback(async () => {
+  const handleLendingWithdrawalFlow = useCallback(async () => {
+    // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-1044
+    // We likely want to inform the user if this data is missing and the withdrawal fails.
+    if (
+      !activeAccount?.address ||
+      !receiptToken?.experience?.market?.underlying.address ||
+      !receiptToken?.address ||
+      !receiptToken?.chainId
+    )
+      return;
+
+    const simulatedHealthFactorAfterWithdrawal =
+      await calculateAaveV3HealthFactorAfterWithdrawal(
+        activeAccount.address,
+        amountTokenMinimalUnit.toString(),
+        receiptToken as EarnTokenDetails,
+      );
+
+    setIsSubmittingStakeWithdrawalTransaction(true);
+
+    const amountToWithdraw = amountTokenMinimalUnit.toString();
+
+    try {
+      const lendingPoolContractAddress =
+        CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS[receiptToken.chainId] ?? '';
+
+      navigation.navigate(Routes.EARN.ROOT, {
+        screen: Routes.EARN.LENDING_WITHDRAWAL_CONFIRMATION,
+        params: {
+          token: receiptToken,
+          amountTokenMinimalUnit: amountToWithdraw,
+          amountFiat: amountFiatNumber,
+          lendingProtocol: receiptToken.experience?.market?.protocol,
+          lendingContractAddress: lendingPoolContractAddress,
+          healthFactorSimulation: simulatedHealthFactorAfterWithdrawal,
+        },
+      });
+    } catch (e) {
+      setIsSubmittingStakeWithdrawalTransaction(false);
+    }
+  }, [
+    activeAccount?.address,
+    amountFiatNumber,
+    amountTokenMinimalUnit,
+    navigation,
+    receiptToken,
+  ]);
+
+  const handleUnstakeWithdrawalFlow = useCallback(async () => {
     const isStakingDepositRedesignedEnabled =
       confirmationRedesignFlags?.staking_confirmations;
-
-    if (shouldLogStablecoinEvent()) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.EARN_REVIEW_BUTTON_CLICKED)
-          .addProperties({
-            action_type: 'withdrawal',
-            token: earnToken?.symbol,
-            network: network?.name,
-            user_token_balance: earnBalanceValue,
-            transaction_value: amountToken,
-          })
-          .build(),
-      );
-    }
 
     const unstakeButtonClickEventProperties = {
       selected_provider: EVENT_PROVIDERS.CONSENSYS,
@@ -248,7 +310,7 @@ const EarnWithdrawInputView = () => {
       );
 
       navigation.navigate('StakeScreens', {
-        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_WITHDRAWAL,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         params: {
           amountWei: amountTokenMinimalUnit.toString(),
           amountFiat: amountFiatNumber,
@@ -283,39 +345,158 @@ const EarnWithdrawInputView = () => {
         .build(),
     );
   }, [
+    activeAccount?.address,
+    amountFiatNumber,
     amountToken,
     amountTokenMinimalUnit,
+    attemptUnstakeTransaction,
+    confirmationRedesignFlags?.staking_confirmations,
     createEventBuilder,
-    amountFiatNumber,
     navigation,
     trackEvent,
-    attemptUnstakeTransaction,
-    activeAccount?.address,
-    confirmationRedesignFlags?.staking_confirmations,
-    shouldLogStablecoinEvent,
-    earnToken?.symbol,
-    network?.name,
-    earnBalanceValue,
   ]);
 
-  const handleKeypadChangeWithTracking = useCallback((params: { value: string; pressedKey: string }) => {
-    // call the original handler first
-    handleKeypadChange(params);
-
-    if (shouldLogStablecoinEvent() && params.value !== '0' && params.value !== '') {
+  // TODO: access primary experience a better way
+  // TODO: think about if we could rely on receiptToken experience instead here
+  // should we be able to, consider the implications of not being able to
+  const handleWithdrawPress = useCallback(async () => {
+    if (shouldLogStablecoinEvent()) {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED)
+        createEventBuilder(MetaMetricsEvents.EARN_REVIEW_BUTTON_CLICKED)
           .addProperties({
             action_type: 'withdrawal',
-            input_value: params.value,
             token: earnToken?.symbol,
             network: network?.name,
             user_token_balance: earnBalanceValue,
+            transaction_value: amountToken,
           })
           .build(),
       );
     }
-  }, [shouldLogStablecoinEvent, handleKeypadChange, trackEvent, createEventBuilder, earnToken?.symbol, network?.name, earnBalanceValue]);
+
+    if (
+      receiptToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
+    ) {
+      return handleLendingWithdrawalFlow();
+    }
+
+    if (receiptToken?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING) {
+      return handleUnstakeWithdrawalFlow();
+    }
+  }, [
+    shouldLogStablecoinEvent,
+    receiptToken?.experience?.type,
+    trackEvent,
+    createEventBuilder,
+    earnToken?.symbol,
+    network?.name,
+    earnBalanceValue,
+    amountToken,
+    handleLendingWithdrawalFlow,
+    handleUnstakeWithdrawalFlow,
+  ]);
+
+  /**
+   * Displayed when user has borrow positions detected outside the wallet
+   * If a user has debt they won't be able to withdraw their full collateral or they'd risk liquidation.
+   *
+   * Does not display message for users that only supply and withdraw within MM since they'd have no debt
+   */
+  const maxRiskAwareWithdrawalText = useMemo(() => {
+    if (isLoadingMaxSafeWithdrawalAmount) return;
+
+    // We don't want to display the max safe withdrawal text if it isn't applicable.
+    if (maxRiskAwareWithdrawalAmount === receiptToken?.balanceMinimalUnit)
+      return;
+
+    return renderFromTokenMinimalUnit(
+      maxRiskAwareWithdrawalAmount,
+      receiptToken?.decimals as number,
+    );
+  }, [
+    isLoadingMaxSafeWithdrawalAmount,
+    maxRiskAwareWithdrawalAmount,
+    receiptToken?.balanceMinimalUnit,
+    receiptToken?.decimals,
+  ]);
+
+  const isWithdrawingMoreThanAvailableForLendingToken = useMemo(() => {
+    // This check only applies to lending experience.
+    if (
+      receiptToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING
+    ) {
+      return false;
+    }
+
+    return new BN(amountTokenMinimalUnit).gt(
+      new BN(maxRiskAwareWithdrawalAmount),
+    );
+  }, [
+    amountTokenMinimalUnit,
+    receiptToken?.experience?.type,
+    maxRiskAwareWithdrawalAmount,
+  ]);
+
+  const buttonLabel = useMemo(() => {
+    if (!isNonZeroAmount) {
+      return strings('stake.enter_amount');
+    }
+    if (isOverMaximum.isOverMaximumToken) {
+      return strings('stake.not_enough_token', {
+        ticker: receiptToken?.ticker ?? receiptToken?.symbol ?? '',
+      });
+    }
+    if (isOverMaximum.isOverMaximumEth) {
+      return strings('stake.not_enough_eth');
+    }
+
+    if (isWithdrawingMoreThanAvailableForLendingToken) {
+      return strings('earn.amount_exceeds_safe_withdrawal_limit');
+    }
+
+    return strings('stake.review');
+  }, [
+    isNonZeroAmount,
+    isOverMaximum.isOverMaximumToken,
+    isOverMaximum.isOverMaximumEth,
+    isWithdrawingMoreThanAvailableForLendingToken,
+    receiptToken?.ticker,
+    receiptToken?.symbol,
+  ]);
+
+  const handleKeypadChangeWithTracking = useCallback(
+    (params: { value: string; pressedKey: string }) => {
+      // call the original handler first
+      handleKeypadChange(params);
+
+      if (
+        shouldLogStablecoinEvent() &&
+        params.value !== '0' &&
+        params.value !== ''
+      ) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED)
+            .addProperties({
+              action_type: 'withdrawal',
+              input_value: params.value,
+              token: earnToken?.symbol,
+              network: network?.name,
+              user_token_balance: earnBalanceValue,
+            })
+            .build(),
+        );
+      }
+    },
+    [
+      shouldLogStablecoinEvent,
+      handleKeypadChange,
+      trackEvent,
+      createEventBuilder,
+      earnToken?.symbol,
+      network?.name,
+      earnBalanceValue,
+    ],
+  );
 
   return (
     <ScreenLayout style={styles.container}>
@@ -323,11 +504,10 @@ const EarnWithdrawInputView = () => {
         isOverMaximum={isOverMaximum}
         balanceText={stakedBalanceText}
         balanceValue={earnBalanceValue}
-        isNonZeroAmount={isNonZeroAmount}
         amountToken={amountToken}
         amountFiatNumber={amountFiatNumber}
         isFiat={isFiat}
-        ticker={earnToken.ticker ?? earnToken.symbol}
+        asset={token}
         currentCurrency={currentCurrency}
         handleCurrencySwitch={withMetaMetrics(handleCurrencySwitch, {
           event: MetaMetricsEvents.UNSTAKE_INPUT_CURRENCY_SWITCH_CLICKED,
@@ -340,19 +520,32 @@ const EarnWithdrawInputView = () => {
           },
         })}
         currencyToggleValue={currencyToggleValue}
+        maxWithdrawalAmount={maxRiskAwareWithdrawalText}
+        error={
+          isWithdrawingMoreThanAvailableForLendingToken
+            ? strings('earn.amount_exceeds_safe_withdrawal_limit')
+            : undefined
+        }
       />
-      <UnstakeInputViewBanner style={styles.unstakeBanner} />
+      {isStablecoinLendingEnabled && (
+        <View style={styles.earnTokenSelectorContainer}>
+          <EarnTokenSelector
+            token={receiptToken as TokenI}
+            action={EARN_INPUT_VIEW_ACTIONS.WITHDRAW}
+          />
+        </View>
+      )}
       <QuickAmounts
         amounts={percentageOptions}
         onAmountPress={({ value }: { value: number }) => {
-          const metrics: any[] = [];
+          const metrics: WithMetaMetricsEvent[] = [];
 
           if (shouldLogStablecoinEvent()) {
             metrics.push({
               event: MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED,
               properties: {
                 action_type: 'withdrawal',
-                input_value: value === 1 ? "Max" : `${value * 100}%`,
+                input_value: value === 1 ? 'Max' : `${value * 100}%`,
                 token: earnToken?.symbol,
                 network: network?.name,
                 user_token_balance: earnBalanceValue,
@@ -384,19 +577,21 @@ const EarnWithdrawInputView = () => {
       />
       <View style={styles.reviewButtonContainer}>
         <Button
+          testID="review-button"
           label={buttonLabel}
           size={ButtonSize.Lg}
           labelTextVariant={TextVariant.BodyMDMedium}
           variant={ButtonVariants.Primary}
           loading={isSubmittingStakeWithdrawalTransaction}
           isDisabled={
+            isWithdrawingMoreThanAvailableForLendingToken ||
             isOverMaximum.isOverMaximumToken ||
             isOverMaximum.isOverMaximumEth ||
             !isNonZeroAmount ||
             isSubmittingStakeWithdrawalTransaction
           }
           width={ButtonWidthTypes.Full}
-          onPress={handleUnstakePress}
+          onPress={handleWithdrawPress}
         />
       </View>
     </ScreenLayout>

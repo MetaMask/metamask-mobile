@@ -1,43 +1,36 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
-import { View } from 'react-native';
-import styleSheet from './EarnLendingDepositConfirmationView.styles';
-import { useStyles } from '../../../../hooks/useStyles';
-import Erc20TokenHero from './components/Erc20TokenHero';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import { TokenI } from '../../../Tokens/types';
-import { isEmpty } from 'lodash';
-import { EARN_INPUT_VIEW_ACTIONS } from '../EarnInputView/EarnInputView.types';
-import { strings } from '../../../../../../locales/i18n';
-import DepositInfoSection from './components/DepositInfoSection';
-import DepositReceiveSection from './components/DepositReceiveSection';
-import DepositFooter from './components/DepositFooter';
-import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
 import {
-  generateLendingAllowanceIncreaseTransaction,
-  generateLendingDepositTransaction,
-} from '../../utils/tempLending';
-import {
-  TransactionParams,
   TransactionType,
+  WalletDevice,
 } from '@metamask/transaction-controller';
-import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
-import Engine from '../../../../../core/Engine';
-import Toast, {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { isEmpty } from 'lodash';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { View } from 'react-native';
+import { useSelector } from 'react-redux';
+import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import Engine from '../../../../../core/Engine';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { TokenI } from '../../../Tokens/types';
+import useEarnTokens from '../../hooks/useEarnTokens';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import { EARN_LENDING_ACTIONS } from '../../types/lending.types';
+import ConfirmationFooter from './components/ConfirmationFooter';
+import DepositInfoSection from './components/DepositInfoSection';
+import DepositReceiveSection from './components/DepositReceiveSection';
+import Erc20TokenHero from './components/Erc20TokenHero';
+import styleSheet from './EarnLendingDepositConfirmationView.styles';
+import { parseFloatSafe } from '../../utils';
+import {
+  addCurrencySymbol,
+  renderFromTokenMinimalUnit,
+} from '../../../../../util/number';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { capitalize } from '../../../../../util/general';
 
 export interface LendingDepositViewRouteParams {
   token?: TokenI;
@@ -45,7 +38,7 @@ export interface LendingDepositViewRouteParams {
   amountFiat?: string;
   annualRewardsToken?: string;
   annualRewardsFiat?: string;
-  action?: Extract<EARN_INPUT_VIEW_ACTIONS, 'ALLOWANCE_INCREASE' | 'LEND'>;
+  action?: Extract<EARN_LENDING_ACTIONS, 'ALLOWANCE_INCREASE' | 'DEPOSIT'>;
   lendingContractAddress?: string;
   lendingProtocol?: string;
   networkName?: string;
@@ -55,14 +48,6 @@ export interface EarnLendingDepositConfirmationViewProps {
   route: RouteProp<{ params: LendingDepositViewRouteParams }, 'params'>;
 }
 
-const MOCK_DATA_TO_REPLACE = {
-  RECEIPT_TOKEN_NAME: 'Aave v3 USDC Coin',
-  RECEIPT_TOKEN_AMOUNT: {
-    FIAT: '$10,000.00',
-    TOKEN: '10,100 AETHUSDC',
-  },
-};
-
 const Steps = {
   ALLOWANCE_INCREASE: 0,
   DEPOSIT: 1,
@@ -70,7 +55,7 @@ const Steps = {
 
 const EarnLendingDepositConfirmationView = () => {
   const { styles, theme } = useStyles(styleSheet, {});
-
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const { params } =
     useRoute<EarnLendingDepositConfirmationViewProps['route']>();
 
@@ -89,6 +74,54 @@ const EarnLendingDepositConfirmationView = () => {
 
   getStakingNavbar(strings('earn.deposit'), navigation, theme.colors);
 
+  const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
+  const [activeStep, setActiveStep] = useState(
+    action === EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE
+      ? Steps.ALLOWANCE_INCREASE
+      : Steps.DEPOSIT,
+  );
+  const [isApprovalLoading, setIsApprovalLoading] = useState(false);
+  const [isDepositLoading, setIsDepositLoading] = useState(false);
+
+  const activeAccount = useSelector(selectSelectedInternalAccount);
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
+
+  const { getPairedEarnTokens } = useEarnTokens();
+
+  const confirmButtonText = useMemo(
+    () =>
+      activeStep === Steps.ALLOWANCE_INCREASE
+        ? strings('earn.approve')
+        : strings('earn.confirm'),
+    [activeStep],
+  );
+
+  const { earnToken, outputToken } = getPairedEarnTokens(token as TokenI);
+
+  const getTrackEventProperties = useCallback(
+    (actionType: string, transactionId?: string) => {
+      const baseProperties = {
+        action_type: actionType,
+        token: token?.symbol,
+        network: networkName,
+        user_token_balance: earnToken?.balanceFormatted,
+        transaction_value: amountFiat,
+      };
+
+      if (transactionId) {
+        return {
+          ...baseProperties,
+          transaction_id: transactionId,
+        };
+      }
+
+      return baseProperties;
+    },
+    [amountFiat, networkName, token?.symbol, earnToken?.balanceFormatted],
+  );
+
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.EARN_CONFIRMATION_PAGE_VIEWED)
@@ -105,108 +138,21 @@ const EarnLendingDepositConfirmationView = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigation, theme.colors]);
 
-  const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
-  const [activeStep, setActiveStep] = useState(
-    action === EARN_INPUT_VIEW_ACTIONS.ALLOWANCE_INCREASE
-      ? Steps.ALLOWANCE_INCREASE
-      : Steps.DEPOSIT,
-  );
-  const [isApprovalLoading, setIsApprovalLoading] = useState(false);
-  const [isDepositLoading, setIsDepositLoading] = useState(false);
-
-  const activeAccount = useSelector(selectSelectedInternalAccount);
-  const isStablecoinLendingEnabled = useSelector(
-    selectStablecoinLendingEnabledFlag,
-  );
-
-  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
-
-  const { toastRef } = useContext(ToastContext);
-
-  // Route param guards
-  if (
-    isEmpty(token) ||
-    !amountTokenMinimalUnit ||
-    !amountFiat ||
-    !lendingContractAddress ||
-    !lendingProtocol ||
-    !action
-  )
-    return null;
-
-  const earnToken = getTokenWithBalanceAndApr(token);
-
-  const confirmButtonText = useMemo(
-    () =>
-      activeStep === Steps.ALLOWANCE_INCREASE
-        ? strings('earn.approve')
-        : strings('earn.confirm'),
-    [activeStep],
-  );
-
-    const getTrackEventProperties = useCallback(
-    (action: string, transactionId?: string) => {
-      const baseProperties = {
-        action_type: action,
-        token: token?.symbol,
-        network: networkName,
-        user_token_balance: earnToken?.balanceFormatted,
-        transaction_value: amountFiat,
-      };
-      
-      if (transactionId) {
-        return {
-          ...baseProperties,
-          transaction_id: transactionId,
-        };
-      }
-      
-      return baseProperties;
-    },
-    [amountFiat, networkName, token?.symbol, earnToken?.balanceFormatted],
-  );
-
-  const showTransactionSubmissionToast = useCallback(() => {
-    const prefix =
-      activeStep === Steps.ALLOWANCE_INCREASE
-        ? strings('earn.approval')
-        : strings('earn.deposit');
-
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.Check,
-      iconColor: theme.colors.success.default,
-      backgroundColor: theme.colors.background.default,
-      labelOptions: [
-        {
-          label: `${prefix} ${strings('earn.transaction_submitted')}`,
-          isBold: false,
-        },
-      ],
-      hasNoTimeout: false,
-    });
-  }, [
-    activeStep,
-    theme.colors.background.default,
-    theme.colors.success.default,
-    toastRef,
-  ]);
-
   const createAllowanceTxEventListeners = useCallback(
     (transactionId: string) => {
       Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionRejected',
+        'TransactionController:transactionFailed',
         () => {
           setIsConfirmButtonDisabled(false);
           setIsApprovalLoading(false);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
-
       Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionSubmitted',
+        'TransactionController:transactionRejected',
         () => {
-          showTransactionSubmissionToast();
+          setIsConfirmButtonDisabled(false);
+          setIsApprovalLoading(false);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
@@ -226,12 +172,7 @@ const EarnLendingDepositConfirmationView = () => {
         (transactionMeta) => transactionMeta.id === transactionId,
       );
     },
-    [
-      showTransactionSubmissionToast,
-      trackEvent,
-      createEventBuilder,
-      getTrackEventProperties,
-    ],
+    [trackEvent, createEventBuilder, getTrackEventProperties],
   );
 
   const createDepositTxEventListeners = useCallback(
@@ -253,7 +194,6 @@ const EarnLendingDepositConfirmationView = () => {
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionSubmitted',
         () => {
-          showTransactionSubmissionToast();
           trackEvent(
             createEventBuilder(MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED)
               .addProperties(getTrackEventProperties('deposit', transactionId))
@@ -290,13 +230,7 @@ const EarnLendingDepositConfirmationView = () => {
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
     },
-    [
-      navigation,
-      showTransactionSubmissionToast,
-      trackEvent,
-      createEventBuilder,
-      getTrackEventProperties,
-    ],
+    [navigation, trackEvent, createEventBuilder, getTrackEventProperties],
   );
 
   const createTransactionEventListeners = useCallback(
@@ -307,116 +241,154 @@ const EarnLendingDepositConfirmationView = () => {
         createAllowanceTxEventListeners(transactionId);
       }
 
-      // TEMP: The lendingDeposit TransactionType has been added to the TransactionController but not released yet.
-      // if (transactionType === TransactionType.lendingDeposit) {
-      if (transactionType === 'lendingDeposit') {
+      if (transactionType === TransactionType.lendingDeposit) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.EARN_TRANSACTION_INITIATED)
+            .addProperties(getTrackEventProperties('deposit', transactionId))
+            .build(),
+        );
+
         createDepositTxEventListeners(transactionId);
       }
     },
-    [createAllowanceTxEventListeners, createDepositTxEventListeners],
+    [
+      createAllowanceTxEventListeners,
+      createDepositTxEventListeners,
+      createEventBuilder,
+      getTrackEventProperties,
+      trackEvent,
+    ],
   );
+
+  // In my opinion, we shouldn't remove these guards.
+  // Route param guards
+  if (
+    isEmpty(token) ||
+    !amountTokenMinimalUnit ||
+    !amountFiat ||
+    !lendingContractAddress ||
+    !lendingProtocol ||
+    !action
+  )
+    return null;
+
+  if (!earnToken) return null;
 
   const handleCancel = () => {
     navigation.goBack();
   };
 
   const handleConfirm = async () => {
-    const isSupportedLendingAction =
-      action === EARN_INPUT_VIEW_ACTIONS.ALLOWANCE_INCREASE ||
-      action === EARN_INPUT_VIEW_ACTIONS.LEND;
+    try {
+      const isSupportedLendingAction =
+        action === EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE ||
+        action === EARN_LENDING_ACTIONS.DEPOSIT;
 
-    setIsConfirmButtonDisabled(true);
+      setIsConfirmButtonDisabled(true);
 
-    // Guards
-    if (
-      !activeAccount?.address ||
-      !earnToken?.chainId ||
-      !isSupportedLendingAction
-    ) {
-      setIsConfirmButtonDisabled(false);
-      return;
-    }
+      // Guards
+      if (
+        !activeAccount?.address ||
+        !earnToken?.chainId ||
+        !isSupportedLendingAction ||
+        !earnToken?.experience?.market?.protocol ||
+        !earnToken?.experience?.market?.underlying?.address
+      ) {
+        setIsConfirmButtonDisabled(false);
+        return;
+      }
 
-    // 1. Build Transaction
-    let txParams: TransactionParams;
-    let txOptions;
+      // 1. Build Transaction
 
-    const tokenContractAddress = earnToken?.address;
+      const tokenContractAddress = earnToken?.address;
 
-    if (!tokenContractAddress) return;
-
-    // Requires allowance increase
-    if (activeStep === Steps.ALLOWANCE_INCREASE) {
-      const allowanceIncreaseTransaction =
-        generateLendingAllowanceIncreaseTransaction(
-          amountTokenMinimalUnit,
-          activeAccount.address,
-          tokenContractAddress,
-          earnToken.chainId,
+      if (!tokenContractAddress) return;
+      const networkClientId =
+        Engine.context.NetworkController.findNetworkClientIdByChainId(
+          toHex(earnToken.chainId),
         );
 
-      if (!allowanceIncreaseTransaction) return;
-
-      txParams = allowanceIncreaseTransaction.txParams;
-      txOptions = allowanceIncreaseTransaction.txOptions;
-
-      setIsApprovalLoading(true);
-    }
-    // Already has necessary allowance and can deposit straight away.
-    else {
-      const depositTransaction = generateLendingDepositTransaction(
-        amountTokenMinimalUnit,
-        activeAccount.address,
-        tokenContractAddress,
-        earnToken.chainId,
-      );
-
-      if (!depositTransaction) return;
-
-      txParams = depositTransaction.txParams;
-      txOptions = depositTransaction.txOptions;
-
-      setIsDepositLoading(true);
-
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.EARN_ACTION_SUBMITTED)
-          .addProperties(getTrackEventProperties('deposit'))
-          .build(),
-      );
-    }
-
-    // 2. Add Transaction
-    const txRes = await Engine.context.TransactionController.addTransaction(
-      txParams,
-      txOptions,
-    ).catch(() => {
+      let txResult;
+      // Requires allowance increase
       if (activeStep === Steps.ALLOWANCE_INCREASE) {
-        setIsApprovalLoading(false);
+        setIsApprovalLoading(true);
+
+        const allowanceIncreaseTransaction =
+          await Engine.context.EarnController.executeLendingTokenApprove({
+            protocol: earnToken?.experience?.market?.protocol,
+            amount: amountTokenMinimalUnit,
+            underlyingTokenAddress:
+              earnToken?.experience?.market?.underlying?.address,
+            gasOptions: {},
+            txOptions: {
+              deviceConfirmedOn: WalletDevice.MM_MOBILE,
+              networkClientId,
+              origin: ORIGIN_METAMASK,
+              type: TransactionType.tokenMethodIncreaseAllowance,
+            },
+          });
+
+        if (!allowanceIncreaseTransaction) {
+          setIsApprovalLoading(false);
+          setIsConfirmButtonDisabled(false);
+          return;
+        }
+
+        txResult = allowanceIncreaseTransaction;
       }
-      if (activeStep === Steps.DEPOSIT) {
-        setIsDepositLoading(false);
+      // Already has necessary allowance and can deposit straight away.
+      else {
+        setIsDepositLoading(true);
+
+        const depositTransaction =
+          await Engine.context.EarnController.executeLendingDeposit({
+            amount: amountTokenMinimalUnit,
+            protocol: earnToken?.experience?.market?.protocol,
+            underlyingTokenAddress:
+              earnToken?.experience?.market?.underlying?.address,
+            gasOptions: {
+              // gasLimit: 60000,
+            },
+            txOptions: {
+              deviceConfirmedOn: WalletDevice.MM_MOBILE,
+              networkClientId,
+              origin: ORIGIN_METAMASK,
+              type: TransactionType.lendingDeposit,
+            },
+          });
+
+        if (!depositTransaction) {
+          setIsDepositLoading(false);
+          setIsConfirmButtonDisabled(false);
+
+          return;
+        }
+        // PR REMINDER: Not sure what the difference is between these two events.
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.EARN_ACTION_SUBMITTED)
+            .addProperties(getTrackEventProperties('deposit'))
+            .build(),
+        );
+
+        txResult = depositTransaction;
       }
+
+      const transactionId = txResult?.transactionMeta?.id;
+      const txType = txResult?.transactionMeta?.type;
+
+      if (!transactionId || !txType) {
+        setIsConfirmButtonDisabled(false);
+        return;
+      }
+
+      // 3. Setup Transaction Event Listeners
+      createTransactionEventListeners(transactionId, txType);
+    } catch (error) {
+      console.error('error', error);
+      // allow user to try again
+      setIsDepositLoading(false);
       setIsConfirmButtonDisabled(false);
-    });
-
-    const transactionId = txRes?.transactionMeta?.id;
-    const txType = txRes?.transactionMeta?.type;
-
-    if (!transactionId || !txType) {
-      setIsConfirmButtonDisabled(false);
-      return;
     }
-
-    if (txType === TransactionType.lendingDeposit) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.EARN_TRANSACTION_INITIATED)
-          .addProperties(getTrackEventProperties('deposit', transactionId))
-          .build(),
-      );
-    }
-
-    // 3. Setup Transaction Event Listeners
-    createTransactionEventListeners(transactionId, txType);
   };
 
   if (!isStablecoinLendingEnabled) {
@@ -434,32 +406,44 @@ const EarnLendingDepositConfirmationView = () => {
         <DepositInfoSection
           token={token}
           lendingContractAddress={lendingContractAddress}
-          lendingProtocol={lendingProtocol}
+          lendingProtocol={capitalize(
+            lendingProtocol ?? strings('earn.unknown'),
+          )}
+          amountTokenMinimalUnit={amountTokenMinimalUnit}
+          amountFiatNumber={parseFloatSafe(amountFiat)}
         />
         <DepositReceiveSection
           token={token}
-          // TODO: Replace MOCK_DATA before launch
-          receiptTokenName={MOCK_DATA_TO_REPLACE.RECEIPT_TOKEN_NAME}
-          receiptTokenAmount={MOCK_DATA_TO_REPLACE.RECEIPT_TOKEN_AMOUNT.TOKEN}
-          receiptTokenAmountFiat={
-            MOCK_DATA_TO_REPLACE.RECEIPT_TOKEN_AMOUNT.FIAT
+          receiptTokenName={outputToken?.name || ''}
+          receiptTokenAmount={
+            renderFromTokenMinimalUnit(
+              amountTokenMinimalUnit,
+              earnToken.decimals,
+            ) +
+            ' ' +
+            (outputToken?.ticker || outputToken?.symbol || '')
           }
+          receiptTokenAmountFiat={addCurrencySymbol(
+            amountFiat,
+            currentCurrency,
+          )}
         />
       </View>
-      <DepositFooter
+      <ConfirmationFooter
         onCancel={handleCancel}
         onConfirm={handleConfirm}
         buttonPrimary={{
           disabled: isConfirmButtonDisabled,
           text: confirmButtonText,
         }}
-        activeStep={activeStep}
-        steps={[
-          { label: strings('earn.approve'), isLoading: isApprovalLoading },
-          { label: strings('earn.deposit'), isLoading: isDepositLoading },
-        ]}
+        progressBar={{
+          activeStep,
+          steps: [
+            { label: strings('earn.approve'), isLoading: isApprovalLoading },
+            { label: strings('earn.deposit'), isLoading: isDepositLoading },
+          ],
+        }}
       />
-      <Toast ref={toastRef} />
     </View>
   );
 };

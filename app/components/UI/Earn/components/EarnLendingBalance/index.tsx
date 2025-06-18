@@ -1,34 +1,39 @@
-import React from 'react';
+import { Hex } from '@metamask/utils';
+import { useNavigation } from '@react-navigation/native';
+import BigNumber from 'bignumber.js';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
+import { useSelector } from 'react-redux';
+import { strings } from '../../../../../../locales/i18n';
+import PercentageChange from '../../../../../component-library/components-temp/Price/PercentageChange';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import Badge, {
+  BadgeVariant,
+} from '../../../../../component-library/components/Badges/Badge';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import { TokenI } from '../../../Tokens/types';
-import styleSheet from './EarnLendingBalance.styles';
-import { useStyles } from '../../../../hooks/useStyles';
-import { strings } from '../../../../../../locales/i18n';
-import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
-import { useSelector } from 'react-redux';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
-import AssetElement from '../../../AssetElement';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
+import Routes from '../../../../../constants/navigation/Routes';
 import { RootState } from '../../../../../reducers';
-import { Hex } from '@metamask/utils';
-import useLendingTokenPair from '../../hooks/useLendingTokenPair';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import { earnSelectors } from '../../../../../selectors/earnController';
+import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
+import { useStyles } from '../../../../hooks/useStyles';
+import AssetElement from '../../../AssetElement';
+import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
+import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
+import { TokenI } from '../../../Tokens/types';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import Earnings from '../Earnings';
+import EarnEmptyStateCta from '../EmptyStateCta';
+import styleSheet from './EarnLendingBalance.styles';
 
 export const EARN_LENDING_BALANCE_TEST_IDS = {
   RECEIPT_TOKEN_BALANCE_ASSET_LOGO: 'receipt-token-balance-asset-logo',
@@ -39,15 +44,10 @@ export const EARN_LENDING_BALANCE_TEST_IDS = {
 
 export interface EarnLendingBalanceProps {
   asset: TokenI;
-  displayBalance?: boolean;
-  displayButtons?: boolean;
 }
 
-const EarnLendingBalance = ({
-  asset,
-  displayBalance = true,
-  displayButtons = true,
-}: EarnLendingBalanceProps) => {
+const { selectEarnTokenPair, selectEarnOutputToken } = earnSelectors;
+const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   const networkConfigurationByChainId = useSelector((state: RootState) =>
@@ -60,7 +60,23 @@ const EarnLendingBalance = ({
 
   const navigation = useNavigation();
 
-  const { receiptToken } = useLendingTokenPair(asset);
+  const { outputToken: receiptToken, earnToken } = useSelector(
+    (state: RootState) => selectEarnTokenPair(state, asset),
+  );
+  const isAssetReceiptToken = useSelector((state: RootState) =>
+    selectEarnOutputToken(state, asset),
+  );
+  const pricePercentChange1d = useTokenPricePercentageChange(receiptToken);
+
+  const userHasLendingPositions = useMemo(
+    () => new BigNumber(receiptToken?.balanceMinimalUnit ?? '0').gt(0),
+    [receiptToken?.balanceMinimalUnit],
+  );
+
+  const userHasUnderlyingTokensAvailableToLend = useMemo(
+    () => new BigNumber(earnToken?.balanceMinimalUnit ?? '0').gt(0),
+    [earnToken?.balanceMinimalUnit],
+  );
 
   const handleNavigateToWithdrawalInputScreen = () => {
     navigation.navigate('StakeScreens', {
@@ -75,7 +91,7 @@ const EarnLendingBalance = ({
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE,
       params: {
-        token: asset,
+        token: earnToken,
       },
     });
   };
@@ -83,44 +99,59 @@ const EarnLendingBalance = ({
   if (!isStablecoinLendingEnabled) return null;
 
   return (
+    // Receipt Token Balance
     <View>
-      {displayBalance && (
-        <AssetElement
-          asset={receiptToken as TokenI}
-          balance={receiptToken.balanceFiat}
-          secondaryBalance={receiptToken.balanceFormatted}
-        >
-          <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
-            style={styles.badgeWrapper}
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={NetworkBadgeSource(receiptToken.chainId as Hex)}
-                name={networkConfigurationByChainId?.name}
-              />
-            }
+      {receiptToken?.balanceFiat &&
+        Boolean(receiptToken?.balanceFormatted) &&
+        receiptToken?.chainId &&
+        Boolean(receiptToken?.name) &&
+        !isAssetReceiptToken &&
+        userHasLendingPositions && (
+          <AssetElement
+            asset={receiptToken as TokenI}
+            balance={receiptToken.balanceFiat}
+            secondaryBalance={receiptToken.balanceFormatted}
           >
-            <AvatarToken
-              name={asset.symbol}
-              imageSource={{ uri: asset.image }}
-              size={AvatarSize.Md}
-              testID={
-                EARN_LENDING_BALANCE_TEST_IDS.RECEIPT_TOKEN_BALANCE_ASSET_LOGO
+            <BadgeWrapper
+              badgePosition={BadgePosition.BottomRight}
+              style={styles.badgeWrapper}
+              badgeElement={
+                <Badge
+                  variant={BadgeVariant.Network}
+                  imageSource={NetworkBadgeSource(receiptToken.chainId as Hex)}
+                  name={networkConfigurationByChainId?.name}
+                />
               }
-            />
-          </BadgeWrapper>
-          <Text
-            style={styles.balances}
-            variant={TextVariant.BodyLGMedium}
-            testID={EARN_LENDING_BALANCE_TEST_IDS.RECEIPT_TOKEN_LABEL}
-          >
-            {receiptToken.name}
-          </Text>
-        </AssetElement>
+            >
+              <AvatarToken
+                name={asset.symbol}
+                imageSource={{ uri: asset.image }}
+                size={AvatarSize.Md}
+                testID={
+                  EARN_LENDING_BALANCE_TEST_IDS.RECEIPT_TOKEN_BALANCE_ASSET_LOGO
+                }
+              />
+            </BadgeWrapper>
+            <View style={styles.balances}>
+              <Text
+                variant={TextVariant.BodyMD}
+                testID={EARN_LENDING_BALANCE_TEST_IDS.RECEIPT_TOKEN_LABEL}
+              >
+                {receiptToken.name}
+              </Text>
+              <PercentageChange value={pricePercentChange1d ?? 0} />
+            </View>
+          </AssetElement>
+        )}
+      {/* Empty State CTA */}
+      {!isAssetReceiptToken && !userHasLendingPositions && (
+        <View style={styles.EarnEmptyStateCta}>
+          <EarnEmptyStateCta token={asset} />
+        </View>
       )}
-      {displayButtons && (
-        <View style={styles.container}>
+      {/* Buttons */}
+      <View style={styles.container}>
+        {userHasLendingPositions && receiptToken && (
           <Button
             variant={ButtonVariants.Secondary}
             style={styles.button}
@@ -129,14 +160,23 @@ const EarnLendingBalance = ({
             onPress={handleNavigateToWithdrawalInputScreen}
             testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
           />
-          <Button
-            variant={ButtonVariants.Secondary}
-            style={styles.button}
-            size={ButtonSize.Lg}
-            label={strings('earn.deposit_more')}
-            onPress={handleNavigateToDepositInputScreen}
-            testID={EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON}
-          />
+        )}
+        {userHasUnderlyingTokensAvailableToLend &&
+          !isAssetReceiptToken &&
+          userHasLendingPositions && (
+            <Button
+              variant={ButtonVariants.Secondary}
+              style={styles.button}
+              size={ButtonSize.Lg}
+              label={strings('earn.deposit_more')}
+              onPress={handleNavigateToDepositInputScreen}
+              testID={EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON}
+            />
+          )}
+      </View>
+      {isAssetReceiptToken && (
+        <View style={styles.earnings}>
+          <Earnings asset={asset} />
         </View>
       )}
     </View>
