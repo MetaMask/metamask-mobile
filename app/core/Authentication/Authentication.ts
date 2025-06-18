@@ -45,8 +45,6 @@ import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import OAuthService from '../OAuthService/OAuthService';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { recreateVaultWithNewPassword } from '../Vault';
-import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
 ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 /**
@@ -539,6 +537,7 @@ class AuthenticationService {
         password,
         keyringMetadata.id,
       );
+      const keyringEncryptionKey = await KeyringController.exportEncryptionKey();
 
       Logger.log(
         'SeedlessOnboardingController state',
@@ -549,6 +548,7 @@ class AuthenticationService {
         password,
         seedPhrase,
         keyringMetadata.id,
+        keyringEncryptionKey,
       );
 
       this.dispatchOauthReset();
@@ -632,7 +632,7 @@ class AuthenticationService {
     globalPassword: string,
     authType: AuthData,
   ): Promise<void> => {
-    const { SeedlessOnboardingController } = Engine.context;
+    const { SeedlessOnboardingController, KeyringController } = Engine.context;
     // If vault is not created, user is not using social login, return undefined
     if (!SeedlessOnboardingController.state.vault) {
       // this is only available for seedless onboarding flow
@@ -641,30 +641,25 @@ class AuthenticationService {
       );
     }
 
-    // recover the current device password
-    const { password: currentDevicePassword } =
-      await SeedlessOnboardingController.recoverCurrentDevicePassword({
+    // recover the current keyring encryption key
+    const { keyringEncryptionKey } =
+      await SeedlessOnboardingController.recoverKeyringEncryptionKey({
         globalPassword,
       });
-    // use current device password to unlock the keyringController vault
-    await this.userEntryAuth(currentDevicePassword, authType);
+    // use encryption key to unlock the keyringController vault
+    await KeyringController.submitEncryptionKey(keyringEncryptionKey);
 
     try {
       // update seedlessOnboardingController to use latest global password
       await SeedlessOnboardingController.syncLatestGlobalPassword({
-        oldPassword: currentDevicePassword,
         globalPassword,
       });
 
       // update vault password to global password
-      await recreateVaultWithNewPassword(
-        currentDevicePassword,
+      await KeyringController.changePassword(globalPassword);
+      await SeedlessOnboardingController.syncLatestGlobalPassword({
         globalPassword,
-        selectSelectedInternalAccountFormattedAddress(
-          ReduxService.store.getState(),
-        ),
-        true,
-      );
+      });
       await this.resetPassword();
 
       // check password outdated again skip cache to reset the cache after successful syncing
