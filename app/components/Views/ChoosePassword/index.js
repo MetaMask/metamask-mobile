@@ -255,11 +255,14 @@ class ChoosePassword extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const marginLeft = 16;
     return (
-      <TouchableOpacity onPress={() => navigation.goBack()}>
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        disabled={this.state.loading}
+      >
         <Icon
           name={IconName.ArrowLeft}
           size={IconSize.Lg}
-          color={colors.text.default}
+          color={this.state.loading ? colors.icon.muted : colors.icon.default}
           style={{ marginLeft }}
         />
       </TouchableOpacity>
@@ -841,7 +844,8 @@ const mapDispatchToProps = (dispatch) => ({
   passwordUnset: () => dispatch(passwordUnset()),
   setLockTime: (time) => dispatch(setLockTime(time)),
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
-  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
+  dispatchSaveOnboardingEvent: (...eventArgs) =>
+    dispatch(saveOnboardingEvent(eventArgs)),
 });
 
 const mapStateToProps = (state) => ({});

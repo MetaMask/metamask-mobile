@@ -18,6 +18,14 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.tokenMethodTransferFrom,
   TransactionType.batch,
   TransactionType.revokeDelegation,
+  TransactionType.tokenMethodApprove,
+  TransactionType.tokenMethodSetApprovalForAll,
+];
+
+export const REDESIGNED_APPROVE_TYPES = [
+  TransactionType.tokenMethodApprove,
+  TransactionType.tokenMethodIncreaseAllowance,
+  TransactionType.tokenMethodSetApprovalForAll,
 ];
 
 export const REDESIGNED_TRANSFER_TYPES = [
@@ -26,15 +34,11 @@ export const REDESIGNED_TRANSFER_TYPES = [
   TransactionType.tokenMethodTransferFrom,
 ];
 
-// Confirmation UI types
-export const FLAT_TRANSACTION_CONFIRMATIONS = [
+export const FULL_SCREEN_CONFIRMATIONS = [
+  TransactionType.simpleSend,
+  TransactionType.stakingClaim,
   TransactionType.stakingDeposit,
   TransactionType.stakingUnstake,
-  TransactionType.stakingClaim,
-];
-
-export const STANDALONE_TRANSACTION_CONFIRMATIONS = [
-  TransactionType.stakingDeposit,
-  TransactionType.stakingUnstake,
-  TransactionType.stakingClaim,
-];
+  TransactionType.tokenMethodTransfer,
+  TransactionType.tokenMethodTransferFrom,
+]
