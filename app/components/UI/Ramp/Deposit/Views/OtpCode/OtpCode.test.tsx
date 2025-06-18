@@ -240,7 +240,7 @@ describe('OtpCode Component', () => {
       act(() => {
         jest.advanceTimersByTime(1000);
       });
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      // eslint-disable-next-line no-empty-function
       await act(async () => {});
       try {
         screen.getByText('Resend it');
