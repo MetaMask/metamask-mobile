@@ -4656,13 +4656,13 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
-"@metamask/address-book-controller@npm:@metamask-previews/address-book-controller@6.1.0-preview-ca9d0265":
-  version "6.1.0-preview-ca9d0265"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/address-book-controller/-/address-book-controller-6.1.0-preview-ca9d0265.tgz#22d41333f8075f69cec09bed77f51a80c2cac1b0"
-  integrity sha512-nm9oQDlAX3BszJbizxuX/AyoSj+eUPIXvc38ELw9pUavuS+wq9FdWKlwy6x9k9ed061m4pKEmOR4hcXwlwa0og==
+"@metamask/address-book-controller@^6.1.0":
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/address-book-controller/-/address-book-controller-6.1.0.tgz#741b2a8523e600f84eab8cf2bfd6c55367e03efc"
+  integrity sha512-KYcrLW6YOgtM0XwupA787fwxpI53xCDWqkKNlQ8knd5JDkrH9TXEq8vBCVRPxvOQ14QYXnCBY9uxU7NltFWEqw==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.10.0"
+    "@metamask/controller-utils" "^11.9.0"
     "@metamask/utils" "^11.2.0"
 
 "@metamask/api-specs@^0.10.12":
@@ -5527,10 +5527,10 @@
     "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.9.0"
 
-"@metamask/profile-sync-controller@npm:@metamask-previews/profile-sync-controller@17.1.0-preview-ca9d0265":
-  version "17.1.0-preview-ca9d0265"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/profile-sync-controller/-/profile-sync-controller-17.1.0-preview-ca9d0265.tgz#1b6a9fd4a42e879ea1f4245deef2b698d7ee01fd"
-  integrity sha512-5ZEGY99+MNXRA7+H5LEqRdlC2wPq2VDGUryymQiNeHxZOz5moH6rRabMX9xG/hfvU3diuQTbj33KbPIHCZbk2g==
+"@metamask/profile-sync-controller@^18.0.0":
+  version "18.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-18.0.0.tgz#659faf9990296271d4a7fd12b56d49ce640c2067"
+  integrity sha512-ClO1h8BNv1Cf2jlRCJb/PeLf+kMJUnw5jMni6lqNcuAmzcr9NKPEF2v2lyz83+MeCR+jNgRhLFQaGCrji4i+DA==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/snaps-sdk" "^7.1.0"
