@@ -147,7 +147,8 @@
     "success": "Success",
     "your_wallet": "Your wallet was successfully reset",
     "delete_current": "Reset current wallet",
-    "have_existing_wallet": "I have an existing wallet"
+    "have_existing_wallet": "I have an existing wallet",
+    "import_using_srp": "Import using Secret Recovery Phrase"
   },
   "onboarding_success": {
     "title": "Keep your Secret Recovery Phrase safe!",

@@ -450,7 +450,7 @@ class Onboarding extends PureComponent {
                 variant={TextVariant.BodyMDMedium}
                 color={importedColors.btnBlack}
               >
-                {strings('onboarding.have_existing_wallet')}
+                {strings('onboarding.import_using_srp')}
               </Text>
             }
           />
