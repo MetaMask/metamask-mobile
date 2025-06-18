@@ -5,7 +5,7 @@ import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { CommonActions, useNavigation } from '@react-navigation/native';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import { strings } from '../../../../locales/i18n';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
@@ -260,9 +260,11 @@ describe('ManualBackupStep2', () => {
       fireEvent.press(missingWordOne);
       fireEvent.press(missingWordTwo);
       fireEvent.press(missingWordThree);
+
       fireEvent.press(missingWordOne);
       fireEvent.press(missingWordTwo);
       fireEvent.press(missingWordThree);
+
       fireEvent.press(missingWordOne);
       fireEvent.press(missingWordTwo);
       fireEvent.press(missingWordThree);
@@ -513,7 +515,7 @@ describe('ManualBackupStep2', () => {
       );
     });
 
-    it('handles slot press', async () => {
+    it('on click of the missing word, the empty slot should be selected', async () => {
       const { wrapper } = setupTest();
 
       const missingWordOne = wrapper.getByTestId(
@@ -543,19 +545,55 @@ describe('ManualBackupStep2', () => {
         }
       }
 
-      // Verify we found exactly 3 empty slots and 9 non-empty slots
       expect(emptySlots).toHaveLength(3);
       expect(nonEmptySlots).toHaveLength(9);
 
-      await act(async () => {
-        fireEvent.press(missingWordOne);
-      });
+      fireEvent.press(missingWordOne);
       // Press each empty slot
       fireEvent.press(emptySlots[0]);
 
       fireEvent.press(missingWordOne);
 
       // Verify we found exactly 3 empty slots and 9 non-empty slots
+      expect(missingWordOne).toHaveStyle({
+        borderColor: '#4459ff',
+      });
+    });
+
+    it('on click of the empty slot, slot should be selected', async () => {
+      const { wrapper } = setupTest();
+
+      // Get all empty slots using GRID_ITEM_EMPTY test ID
+      const emptySlots: any[] = [];
+      const nonEmptySlots: any[] = [];
+
+      // Try to find both types of slots for each index
+      for (let i = 0; i < 12; i++) {
+        try {
+          const emptySlot = wrapper.getByTestId(
+            `${ManualBackUpStepsSelectorsIDs.GRID_ITEM_EMPTY}-${i}`,
+          );
+          emptySlots.push(emptySlot);
+        } catch (emptyError) {
+          try {
+            const nonEmptySlot = wrapper.getByTestId(
+              `${ManualBackUpStepsSelectorsIDs.GRID_ITEM}-${i}`,
+            );
+            nonEmptySlots.push(nonEmptySlot);
+          } catch (nonEmptyError) {
+            // Skip if neither type is found (shouldn't happen)
+          }
+        }
+      }
+
+      expect(emptySlots).toHaveLength(3);
+      expect(nonEmptySlots).toHaveLength(9);
+
+      fireEvent.press(emptySlots[0]);
+
+      expect(emptySlots[0]).toHaveStyle({
+        borderColor: '#4459ff',
+      });
     });
   });
 
