@@ -1,4 +1,4 @@
-import { BaseControllerMessenger } from '../../../core/Engine/types';
+import { BaseControllerMessenger } from '../../../core/Engine';
 import type { SamplePetnamesControllerMessenger, SamplePetnamesControllerEvents } from '@metamask/sample-controllers';
 
 /**
