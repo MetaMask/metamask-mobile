@@ -122,13 +122,10 @@ const AccountRightButton = ({
   const handleButtonPress = useCallback(() => {
     dismissKeyboard();
     if (!selectedAddress) {
-      const caipChainId = isEvmSelected
-        ? chainId
-        : selectedNonEvmNetworkChainId;
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.NETWORK_SELECTOR,
         params: {
-          caipChainId,
+          chainId: isEvmSelected ? chainId : selectedNonEvmNetworkChainId,
         },
       });
       trackEvent(

@@ -119,7 +119,7 @@ interface ShowConfirmDeleteModalState {
 }
 
 interface NetworkSelectorRouteParams {
-  caipChainId?: Hex;
+  chainId?: Hex;
   hostInfo?: {
     metadata?: {
       origin?: string;
@@ -164,7 +164,7 @@ const NetworkSelector = () => {
 
   // origin is defined if network selector is opened from a dapp
   const origin = route.params?.hostInfo?.metadata?.origin || '';
-  const browserCaipChainId = route.params?.caipChainId || null;
+  const browserChainId = route.params?.chainId || null;
   const parentSpan = trace({
     name: TraceName.NetworkSwitch,
     tags: getTraceTags(store.getState()),
@@ -350,8 +350,8 @@ const NetworkSelector = () => {
   };
 
   const isNetworkSelected = (chainId: Hex | CaipChainId) => {
-    if (browserCaipChainId) {
-      return chainId === browserCaipChainId;
+    if (browserChainId) {
+      return chainId === browserChainId;
     }
 
     return !isEvmSelected ? false : chainId === selectedChainId;
@@ -697,8 +697,8 @@ const NetworkSelector = () => {
       .filter((network) => network.chainId === SolScope.Mainnet)
       .map((network) => {
         const isSelected =
-          network.chainId === browserCaipChainId ||
-          (!isEvmSelected && !browserCaipChainId);
+          network.chainId === browserChainId ||
+          (!isEvmSelected && !browserChainId);
         return (
           <Cell
             key={network.chainId}
