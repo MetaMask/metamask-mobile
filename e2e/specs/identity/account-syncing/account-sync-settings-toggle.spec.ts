@@ -15,23 +15,22 @@ import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../utils/Assertions';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
-import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
 import { mockIdentityServices } from '../utils/mocks';
 import { SmokeWalletPlatform } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import { arrangeTestUtils } from '../utils/helpers';
-import { UserStorageMockttpControllerEvents } from '../utils/user-storage/userStorageMockttpController';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
+import SettingsView from '../../../pages/Settings/SettingsView';
+import BackupAndSyncView from '../../../pages/Settings/BackupAndSyncView';
+import CommonView from '../../../pages/CommonView';
+import { Mockttp } from 'mockttp';
 
 describe(
-  SmokeWalletPlatform(
-    'Account syncing - syncs and retrieves accounts after adding a custom name account',
-  ),
+  SmokeWalletPlatform('Sync and Backup settings - Account Sync toggle'),
   () => {
-    const NEW_ACCOUNT_NAME = 'My third account';
-    const TEST_SPECIFIC_MOCK_SERVER_PORT = 8000;
-    let decryptedAccountNames = '';
-    let mockServer;
-    let userStorageMockttpController;
+    const ADDED_ACCOUNT = 'Account 3';
+    const TEST_SPECIFIC_MOCK_SERVER_PORT = 8004;
+    let decryptedAccountNames: string[] = [];
+    let mockServer: Mockttp;
 
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
@@ -43,9 +42,7 @@ describe(
       const { userStorageMockttpControllerInstance } =
         await mockIdentityServices(mockServer);
 
-      userStorageMockttpController = userStorageMockttpControllerInstance;
-
-      await userStorageMockttpController.setupPath(
+      await userStorageMockttpControllerInstance.setupPath(
         USER_STORAGE_FEATURE_NAMES.accounts,
         mockServer,
         {
@@ -76,7 +73,7 @@ describe(
       }
     });
 
-    it('syncs newly added accounts with custom names and retrieves same accounts after importing the same SRP', async () => {
+    it('should not sync new accounts when accounts sync toggle is off ', async () => {
       await importWalletWithRecoveryPhrase({
         seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
         password: IDENTITY_TEAM_PASSWORD,
@@ -92,26 +89,32 @@ describe(
         );
       }
 
-      const { prepareEventsEmittedCounter } = arrangeTestUtils(
-        userStorageMockttpController,
-      );
-      const { waitUntilEventsEmittedNumberEquals } =
-        prepareEventsEmittedCounter(
-          UserStorageMockttpControllerEvents.PUT_SINGLE,
-        );
+      await AccountListBottomSheet.swipeToDismissAccountsModal();
+      await Assertions.checkIfNotVisible(AccountListBottomSheet.accountList);
+
+      await TabBarComponent.tapSettings();
+      await Assertions.checkIfVisible(SettingsView.backupAndSyncSectionButton);
+      await SettingsView.tapBackupAndSync();
+
+      await Assertions.checkIfVisible(BackupAndSyncView.backupAndSyncToggle);
+      await BackupAndSyncView.toggleAccountSync();
+      await TestHelpers.delay(2000);
+
+      await CommonView.tapBackButton();
+      await Assertions.checkIfVisible(SettingsView.backupAndSyncSectionButton);
+      await TabBarComponent.tapWallet();
+      await Assertions.checkIfVisible(WalletView.container);
+
+      await WalletView.tapIdenticon();
+      await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+      await TestHelpers.delay(2000);
 
       await AccountListBottomSheet.tapAddAccountButton();
       await AddAccountBottomSheet.tapCreateAccount();
-      await TestHelpers.delay(2000);
-
-      await AccountListBottomSheet.tapEditAccountActionsAtIndex(2);
-      await AccountActionsBottomSheet.renameActiveAccount(NEW_ACCOUNT_NAME);
-
-      await waitUntilEventsEmittedNumberEquals(2);
 
       await Assertions.checkIfElementToHaveText(
         WalletView.accountName,
-        NEW_ACCOUNT_NAME,
+        ADDED_ACCOUNT,
       );
 
       await TestHelpers.launchApp({
@@ -127,10 +130,10 @@ describe(
 
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-      await TestHelpers.delay(4000);
+      await TestHelpers.delay(2000);
 
-      await Assertions.checkIfVisible(
-        AccountListBottomSheet.getAccountElementByAccountName(NEW_ACCOUNT_NAME),
+      await Assertions.checkIfNotVisible(
+        AccountListBottomSheet.getAccountElementByAccountName(ADDED_ACCOUNT),
       );
     });
   },

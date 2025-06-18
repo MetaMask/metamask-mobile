@@ -1,10 +1,10 @@
-import { getLocal } from 'mockttp';
+import { CompletedBody, getLocal, Mockttp } from 'mockttp';
 import { UserStorageMockttpController } from './userStorageMockttpController';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { MOCK_SRP_E2E_IDENTIFIER_BASE_KEY } from '../mocks';
 
 describe('UserStorageMockttpController', () => {
-  let mockServer;
+  let mockServer: Mockttp;
 
   const baseUrl =
     'http://localhost/proxy?url=https://user-storage.api.cx.metamask.io/api/v1/userstorage';
@@ -189,7 +189,7 @@ describe('UserStorageMockttpController', () => {
             getJson: async () => ({
               data: mockedAddedData.Data,
             }),
-          },
+          } as unknown as CompletedBody,
         },
       );
 
@@ -250,7 +250,7 @@ describe('UserStorageMockttpController', () => {
             getJson: async () => ({
               data: mockedUpdatedData.Data,
             }),
-          },
+          } as unknown as CompletedBody,
         },
       );
 
@@ -308,7 +308,7 @@ describe('UserStorageMockttpController', () => {
         },
       );
 
-      const putData = {};
+      const putData = {} as { [key: string]: string };
       mockedUpdatedData.forEach((entry) => {
         putData[entry.HashedKey] = entry.Data;
       });
@@ -324,7 +324,7 @@ describe('UserStorageMockttpController', () => {
             getJson: async () => ({
               data: putData,
             }),
-          },
+          } as unknown as CompletedBody,
         },
       );
 
@@ -431,7 +431,7 @@ describe('UserStorageMockttpController', () => {
             getJson: async () => ({
               batch_delete: [mockedData[1].HashedKey, mockedData[2].HashedKey],
             }),
-          },
+          } as unknown as CompletedBody,
         },
       );
 

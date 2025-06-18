@@ -1,7 +1,24 @@
 import { MOCK_SRP_E2E_IDENTIFIER_BASE_KEY } from './mocks';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
+import { UserStorageMockttpController } from './user-storage/userStorageMockttpController';
 
-export const determineIfFeatureEntryFromURL = (url) => {
+export interface UserStorageAccount {
+  /**
+   * The Version 'v' of the User Storage.
+   * NOTE - will allow us to support upgrade/downgrades in the future
+   */
+  v: string;
+  /** the id 'i' of the account */
+  i: string;
+  /** the address 'a' of the account */
+  a: string;
+  /** the name 'n' of the account */
+  n: string;
+  /** the nameLastUpdatedAt timestamp 'nlu' of the account */
+  nlu?: number;
+}
+
+export const determineIfFeatureEntryFromURL = (url: string) => {
   const decodedUrl = decodeURIComponent(url);
   return (
     decodedUrl.substring(decodedUrl.lastIndexOf('userstorage') + 12).split('/')
@@ -9,10 +26,12 @@ export const determineIfFeatureEntryFromURL = (url) => {
   );
 };
 
-export const getDecodedProxiedURL = (url) =>
+export const getDecodedProxiedURL = (url: string) =>
   decodeURIComponent(String(new URL(url).searchParams.get('url')));
 
-export const getSrpIdentifierFromHeaders = (headers) => {
+export const getSrpIdentifierFromHeaders = (
+  headers: Record<string, unknown>,
+) => {
   const authHeader = headers.authorization;
   return (
     authHeader?.toString()?.split(' ')[1] ||
@@ -20,30 +39,32 @@ export const getSrpIdentifierFromHeaders = (headers) => {
   );
 };
 
-export const arrangeTestUtils = (userStorageMockttpController) => {
+export const arrangeTestUtils = (
+  userStorageMockttpController: UserStorageMockttpController,
+) => {
   const BASE_TIMEOUT = 12000;
   const BASE_INTERVAL = 1000;
 
-  /**
-   * Creates a counter for events and provides a way to wait until a specific number of events have been emitted
-   * @param {string} event - The event to track
-   * @returns {Object} Object containing waitUntilEventsEmittedNumberEquals function
-   */
-  const prepareEventsEmittedCounter = (event) => {
+  const prepareEventsEmittedCounter = (event: string) => {
     let counter = 0;
     userStorageMockttpController.eventEmitter.on(event, () => {
       counter += 1;
     });
 
-    const waitUntilEventsEmittedNumberEquals = (expectedNumber) =>
+    const waitUntilEventsEmittedNumberEquals = (
+      expectedNumber: number,
+    ): Promise<void> =>
       new Promise((resolve, reject) => {
         if (counter >= expectedNumber) {
           resolve();
           return;
         }
 
-        const timerIds = (() => {
-          const ids = {};
+        (() => {
+          const ids = {} as {
+            interval: NodeJS.Timeout;
+            timeout: NodeJS.Timeout;
+          };
 
           ids.interval = setInterval(() => {
             if (counter >= expectedNumber) {
@@ -74,7 +95,9 @@ export const arrangeTestUtils = (userStorageMockttpController) => {
    * @param {number} expectedNumber - The expected number of accounts
    * @returns {Promise} Resolves when the condition is met, rejects on timeout
    */
-  const waitUntilSyncedAccountsNumberEquals = (expectedNumber) =>
+  const waitUntilSyncedAccountsNumberEquals = (
+    expectedNumber: number,
+  ): Promise<void> =>
     new Promise((resolve, reject) => {
       const checkAccounts = () => {
         const accounts = userStorageMockttpController.paths.get(
@@ -88,8 +111,11 @@ export const arrangeTestUtils = (userStorageMockttpController) => {
         return;
       }
 
-      const timerIds = (() => {
-        const ids = {};
+      (() => {
+        const ids = {} as {
+          interval: NodeJS.Timeout;
+          timeout: NodeJS.Timeout;
+        };
 
         ids.interval = setInterval(() => {
           if (checkAccounts()) {

@@ -2,16 +2,17 @@ import { AuthenticationController } from '@metamask/profile-sync-controller';
 import { UserStorageMockttpController } from './user-storage/userStorageMockttpController';
 import { getDecodedProxiedURL } from './helpers';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
+import { Mockttp } from 'mockttp';
 
 const AuthMocks = AuthenticationController.Mocks;
 
-/**
- * E2E mock setup for identity APIs (Auth, UserStorage, Backup and sync)
- *
- * @param server - server obj used to mock our endpoints
- * @param userStorageMockttpController - optional controller to mock user storage endpoints
- */
-export async function mockIdentityServices(server) {
+interface MockResponse {
+  url: string | RegExp;
+  requestMethod: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  response: unknown;
+}
+
+export async function mockIdentityServices(server: Mockttp) {
   // Auth
   mockAPICall(server, AuthMocks.getMockAuthNonceResponse());
   mockAPICall(server, AuthMocks.getMockAuthLoginResponse());
@@ -42,7 +43,7 @@ const MOCK_SRP_E2E_IDENTIFIERS = {
   list: new Map(),
 };
 
-const getE2ESrpIdentifierForPublicKey = (publicKey) => {
+const getE2ESrpIdentifierForPublicKey = (publicKey: string) => {
   const { baseKey, list } = MOCK_SRP_E2E_IDENTIFIERS;
 
   // Check if the identifier already exists
@@ -58,7 +59,7 @@ const getE2ESrpIdentifierForPublicKey = (publicKey) => {
   return nextIdentifier;
 };
 
-function mockAPICall(server, response) {
+function mockAPICall(server: Mockttp, response: MockResponse) {
   let requestRuleBuilder;
 
   if (response.requestMethod === 'GET') {
@@ -93,11 +94,15 @@ function mockAPICall(server, response) {
       ]);
       const requestBody = requestBodyJson ?? requestBodyText;
 
-      const json = response.response(
-        requestBody,
-        decodedPath,
-        getE2ESrpIdentifierForPublicKey,
-      );
+      const json = (
+        response.response as (
+          requestBody: object | string | undefined,
+          path: string,
+          getE2ESrpIdentifierForPublicKey: (
+            publicKey: string,
+          ) => string | undefined,
+        ) => void
+      )(requestBody, decodedPath, getE2ESrpIdentifierForPublicKey);
 
       return {
         statusCode: 200,
@@ -114,7 +119,10 @@ const INFURA_URL = 'https://mainnet.infura.io/v3/';
  * @param {Object} mockServer - The server object to set up the mock responses on
  * @param {Array<String>} accounts - List of account addresses to mock balances for
  */
-export const setupAccountMockedBalances = async (mockServer, accounts) => {
+export const setupAccountMockedBalances = async (
+  mockServer: Mockttp,
+  accounts: string[],
+) => {
   if (!accounts.length) {
     return;
   }

@@ -1,6 +1,8 @@
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { createEncryptedResponse } from '../utils/user-storage/generateEncryptedData';
 import { IDENTITY_TEAM_STORAGE_KEY } from '../utils/constants';
+import { UserStorageAccount } from '../utils/helpers';
+import { UserStorageResponseData } from '../utils/user-storage/userStorageMockttpController';
 
 /**
  * This array represents the accounts mock data before it is encrypted and sent to UserStorage.
@@ -11,7 +13,7 @@ import { IDENTITY_TEAM_STORAGE_KEY } from '../utils/constants';
  * - n: The name of the account.
  * - nlu: The name last updated timestamp of the account.
  */
-export const accountsToMockForAccountsSync = [
+export const accountsToMockForAccountsSync: UserStorageAccount[] = [
   {
     v: '1',
     a: '0xAa4179E7f103701e904D27DF223a39Aa9c27405a'.toLowerCase(),
@@ -38,7 +40,9 @@ export const accountsToMockForAccountsSync = [
  *
  * @returns A promise that resolves to an array of encrypted mock responses.
  */
-export const getAccountsSyncMockResponse = async () => {
+export const getAccountsSyncMockResponse = async (): Promise<
+  UserStorageResponseData[]
+> => {
   const encryptedResponse = await Promise.all(
     accountsToMockForAccountsSync.map((account) =>
       createEncryptedResponse({
