@@ -118,9 +118,7 @@ const createStyles = (colors: any) =>
       fontSize: 14,
     },
     gridItemText: {
-      fontSize: 14,
-      color: colors.text.default,
-      ...fontStyles.normal,
+      width: '95%',
     },
     content: {
       flex: 1,
