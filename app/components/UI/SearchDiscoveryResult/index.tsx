@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import { TouchableOpacity, View, Text } from 'react-native';
 import { useTheme } from '../../../util/theme';
 import { getHost } from '../../../util/browser';
@@ -43,6 +43,14 @@ export const SearchDiscoveryResult: React.FC<SearchDiscoveryResultProps> = memo(
         sourcePage: 'MainView',
         token: result.category === SearchDiscoveryCategory.Tokens ? result : undefined,
       });
+
+    const [isSwapsLoading, setIsSwapsLoading] = useState(false);
+
+    const onPressSwap = useCallback(async () => {
+      setIsSwapsLoading(true);
+      await goToSwaps();
+      setIsSwapsLoading(false);
+    }, [goToSwaps, setIsSwapsLoading]);
 
     return (
       <>
@@ -110,11 +118,12 @@ export const SearchDiscoveryResult: React.FC<SearchDiscoveryResultProps> = memo(
                   style={{
                     ...styles.resultActionButton,
                     ...(swapsEnabled ? {} : styles.hiddenButton),
+                    ...(isSwapsLoading ? styles.loadingButton : {}),
                   }}
                   size={ButtonIconSizes.Md}
                   iconName={IconName.SwapHorizontal}
-                  onPress={() => goToSwaps()}
-                  disabled={!swapsEnabled}
+                  onPress={onPressSwap}
+                  disabled={!swapsEnabled || isSwapsLoading}
                   testID="autocomplete-result-swap-button"
                 />
               )
