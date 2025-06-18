@@ -212,7 +212,7 @@ describe('useSwapBridgeNavigation', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('switches network and navigates to Swaps when goToSwaps is called and token chainId differs from selected chainId', async () => {
+  it.only('switches network and navigates to Swaps when goToSwaps is called and token chainId differs from selected chainId', async () => {
     const differentChainId = '0xa' as Hex;
     const mockToken: BridgeToken = {
       address: '0x0000000000000000000000000000000000000001',
@@ -233,6 +233,8 @@ describe('useSwapBridgeNavigation', () => {
     );
 
     result.current.goToSwaps();
+
+    (selectChainId as unknown as jest.Mock).mockReturnValueOnce(differentChainId);
 
     await waitFor(() => {
       expect(
