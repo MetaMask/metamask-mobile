@@ -22,7 +22,7 @@ describe('SamplePetNamesForm', () => {
     jest.clearAllMocks();
   });
 
-  it('render matches snapshot', async () => {
+  it('matches rendered snapshot', async () => {
     const { toJSON } = renderWithProvider(
       <SamplePetNamesForm
         chainId={'0x1'}

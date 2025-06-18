@@ -25,7 +25,7 @@ describe('SampleFeature', () => {
    *
    * @test
    */
-  it('render matches snapshot', () => {
+  it('matches rendered snapshot', () => {
     const { toJSON } = renderWithProvider(<SampleFeature />, {
       state: initialRootState,
     });

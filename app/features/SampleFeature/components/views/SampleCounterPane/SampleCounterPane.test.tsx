@@ -46,7 +46,7 @@ describe('SampleCounterPane', () => {
    *
    * @test
    */
-  it('render matches snapshot', () => {
+  it('matches rendered snapshot', () => {
     const { toJSON } = renderWithProvider(<SampleCounterPane />);
     expect(toJSON()).toMatchSnapshot();
   });

@@ -22,7 +22,7 @@ describe('SamplePetNamesList', () => {
     jest.clearAllMocks();
   });
 
-  it('render matches snapshot', () => {
+  it('matches rendered snapshot', () => {
     const { toJSON } = renderWithProvider(
       <SamplePetNamesList chainId={'0x1'} onAccountPress={jest.fn} />,
       { state: initialRootState },

@@ -17,7 +17,7 @@ describe('MainNavigator', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the navigation stack with all screens', () => {
+  it('matches rendered snapshot', () => {
     // Given the initial app state
     // When rendering the MainNavigator
     const { toJSON } = renderWithProvider(<MainNavigator />,

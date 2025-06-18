@@ -16,7 +16,7 @@ describe('SampleNetworkDisplay', () => {
    *
    * @test
    */
-  it('render matches snapshot', () => {
+  it('matches rendered snapshot', () => {
     const { toJSON } = renderWithProvider(
       <SampleNetworkDisplay
         name={'My test network'}

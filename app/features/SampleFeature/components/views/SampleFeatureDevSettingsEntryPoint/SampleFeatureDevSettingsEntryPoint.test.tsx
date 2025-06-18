@@ -18,7 +18,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 describe('SampleFeature', () => {
-  it('render matches snapshot', () => {
+  it('matches rendered snapshot', () => {
     const { toJSON } = renderWithProvider(
       <SampleFeatureDevSettingsEntryPoint />,
     );

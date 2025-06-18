@@ -9,7 +9,7 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 }));
 
 describe('SamplePetNamesForm', () => {
-  it('render matches snapshot', async () => {
+  it('matches rendered snapshot', async () => {
     const { toJSON } = renderWithProvider(<SamplePetNames />, {
       state: initialRootState,
     });
