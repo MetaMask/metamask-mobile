@@ -4761,10 +4761,10 @@
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 
-"@metamask/auth-network-utils@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/auth-network-utils/-/auth-network-utils-0.1.0.tgz#8520c4dd69b758030975dfb6802f4ee921033c64"
-  integrity sha512-eSxnbDxu+s/LCoPt/d9bSDoHfb3hWazT3xPnOxn9aeWov6L4vnjew37zUlKHDxfYzxw7oEeEsdZEHzNo5C8enQ==
+"@metamask/auth-network-utils@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/auth-network-utils/-/auth-network-utils-0.3.0.tgz#f4b02c3d9837082ad880d93728139d874c1fbc9f"
+  integrity sha512-/X+weoqPMnjLv+IToAjU2jfI0JOtreZ2aEEsd0mKxg2vIbWUWxNKWH4o4wImvLrnNb/wQhTH9aeEvd9bcj0W/Q==
   dependencies:
     "@noble/curves" "^1.8.1"
     "@noble/hashes" "^1.7.1"
@@ -5296,10 +5296,20 @@
     "@metamask/utils" "^11.1.0"
     bech32 "^2.0.0"
 
-"@metamask/keyring-controller@^21.0.6":
-  version "21.0.6"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-21.0.6.tgz#66a885b995eb899290f2178807034cef8d6a5ea1"
-  integrity sha512-PrAK6whSJv2ImId/t2qfouPk+tE2JXVklixwRf5vxNSjORteQSZVDy10r8O0TOG+O1RsE+x04hEd+vvJ8ClHDQ==
+"@metamask/keyring-api@^18.0.0":
+  version "18.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-18.0.0.tgz#d377d6045dbcf6db95b89179f81d4cb4158f845d"
+  integrity sha512-3KxZmyNZnof715inJ72QSB43pNBLcAguLU31FOjc5tfNVJzzeqKKSWUftuD4AkJhX7XrT/9KRNF+PXZK+wvYng==
+  dependencies:
+    "@metamask/keyring-utils" "^3.0.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.1.0"
+    bitcoin-address-validation "^2.2.3"
+
+"@metamask/keyring-controller@npm:@metamask-previews/keyring-controller@22.0.2-preview-e149187d":
+  version "22.0.2-preview-e149187d"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/keyring-controller/-/keyring-controller-22.0.2-preview-e149187d.tgz#f9dd0649a644ffac431b5cdfc76f5cc7d62a917e"
+  integrity sha512-5eQHjxQT22okEEKeZCBwBPwKSXQRI92ZQbG0zW/LUrQLaMHsb3KHjwB//AyqiMOq8Zt5irKQ8l+ob6SAUUcb5Q==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@keystonehq/metamask-airgapped-keyring" "^0.14.1"
@@ -5308,8 +5318,8 @@
     "@metamask/eth-hd-keyring" "^12.0.0"
     "@metamask/eth-sig-util" "^8.2.0"
     "@metamask/eth-simple-keyring" "^10.0.0"
-    "@metamask/keyring-api" "^17.4.0"
-    "@metamask/keyring-internal-api" "^6.0.1"
+    "@metamask/keyring-api" "^18.0.0"
+    "@metamask/keyring-internal-api" "^6.2.0"
     "@metamask/utils" "^11.2.0"
     async-mutex "^0.5.0"
     ethereumjs-wallet "^1.0.1"
@@ -5333,6 +5343,15 @@
   integrity sha512-Qjv34wtkOHey0kD36J8RFBr/AojemVzF7EGtWzmPSyJyQAsXsLIuFPWIxisYoFgAiT6VeDs/gHDc9L1dwxXVpQ==
   dependencies:
     "@metamask/keyring-api" "^17.4.0"
+    "@metamask/keyring-utils" "^3.0.0"
+    "@metamask/superstruct" "^3.1.0"
+
+"@metamask/keyring-internal-api@^6.2.0":
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-internal-api/-/keyring-internal-api-6.2.0.tgz#646e2e435243ebd6652bf03e8570d1b51e846ed5"
+  integrity sha512-ntHsVWEiGRjbqIS/jooOI9NCc5EAYcT9zo1Nnzlf/azKbUCNJdzjB67FK383mo8KN93GjW/wd5IzaXXexeo+GA==
+  dependencies:
+    "@metamask/keyring-api" "^18.0.0"
     "@metamask/keyring-utils" "^3.0.0"
     "@metamask/superstruct" "^3.1.0"
 
@@ -5778,13 +5797,14 @@
     utf-8-validate "^5.0.2"
     uuid "^8.3.2"
 
-"@metamask/seedless-onboarding-controller@https://github.com/Web3Auth/core/raw/7b0ec56fc8ffa8ab92c15444240ec234ffd779a1/packages/seedless-onboarding-controller/seedless-onboarding-controller.tgz":
-  version "0.0.0"
-  resolved "https://github.com/Web3Auth/core/raw/7b0ec56fc8ffa8ab92c15444240ec234ffd779a1/packages/seedless-onboarding-controller/seedless-onboarding-controller.tgz#995e1551f8f0c4d883c568a648fa930afb1503f9"
+"@metamask/seedless-onboarding-controller@npm:@metamask-previews/seedless-onboarding-controller@1.0.0-preview-01cb507d":
+  version "1.0.0-preview-01cb507d"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/seedless-onboarding-controller/-/seedless-onboarding-controller-1.0.0-preview-01cb507d.tgz#514e9ac220e5a9080f4f1380b40defebfe3e3528"
+  integrity sha512-9+hdRRhlQ9hEmUhVTi6aQNkAnf5Xi/2wiOJKuzLBRt/d9seeTZxpJAV/WuHVaSQQ01oQPvSLYGO2djmdpsNjPA==
   dependencies:
-    "@metamask/auth-network-utils" "^0.1.0"
+    "@metamask/auth-network-utils" "^0.3.0"
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/toprf-secure-backup" "^0.1.0"
+    "@metamask/toprf-secure-backup" "^0.3.1"
     "@metamask/utils" "^11.2.0"
     async-mutex "^0.5.0"
 
@@ -6056,12 +6076,12 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/utils" "^11.2.0"
 
-"@metamask/toprf-secure-backup@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/toprf-secure-backup/-/toprf-secure-backup-0.1.0.tgz#e06f34efb3497e43600131f63ca20ed7067f3fbb"
-  integrity sha512-vcbvVgT/FY08judGDbQAepPp4wgSeCYcUOyljKgvrk2bRrO4n10tkg/Vke7dJSMT8LLtWR641yY2A14bPM3KQA==
+"@metamask/toprf-secure-backup@^0.3.1":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@metamask/toprf-secure-backup/-/toprf-secure-backup-0.3.2.tgz#0fe6c7455e29622dec43b2d2621206f39e7ab565"
+  integrity sha512-FRa2PcH5cf3bRNQVx07yxbvJbyt74BeRTJ1lSy+fLJng+h08jANXqy5r4DFoTcjKD9sROCSEh8IBg95T1QqDxw==
   dependencies:
-    "@metamask/auth-network-utils" "^0.1.0"
+    "@metamask/auth-network-utils" "^0.3.0"
     "@noble/ciphers" "^1.2.1"
     "@noble/curves" "^1.8.1"
     "@noble/hashes" "^1.7.1"
