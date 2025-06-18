@@ -86,7 +86,7 @@ describe('App', () => {
       renderScreen(App, { name: 'App' }, { state: initialState });
       await waitFor(() => {
         expect(mockReset).toHaveBeenCalledWith({
-          routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+          routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
         });
       });
     });
