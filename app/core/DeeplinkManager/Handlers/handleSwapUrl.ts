@@ -8,7 +8,6 @@ import NavigationService from '../../../core/NavigationService';
 
 interface HandleSwapUrlParams {
   swapPath: string;
-  navigation: NavigationProp<ParamListBase>;
 }
 
 /**
@@ -30,10 +29,7 @@ interface HandleSwapUrlParams {
  * - to: CAIP-19 format for destination token
  * - value: Hexadecimal amount (e.g., "0x38d7ea4c68000")
  */
-export const handleSwapUrl = ({
-  swapPath,
-  navigation,
-}: HandleSwapUrlParams) => {
+export const handleSwapUrl = ({ swapPath }: HandleSwapUrlParams) => {
   try {
     const cleanPath = swapPath.startsWith('?') ? swapPath.slice(1) : swapPath;
     const urlParams = new URLSearchParams(cleanPath);

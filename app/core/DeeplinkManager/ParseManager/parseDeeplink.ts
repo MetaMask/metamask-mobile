@@ -84,16 +84,22 @@ async function parseDeeplink({
 
     const { urlObj, params } = extractURLParams(url);
 
+    const linkType = () => {
+      if (isInvalidLink) {
+        return 'invalid';
+      }
+      if (isPrivateLink) {
+        return 'private';
+      }
+      return 'public';
+    };
+
     const shouldProceed = await new Promise<boolean>((resolve) => {
       const pageTitle: ACTIONS = urlObj.pathname.split('/')[1] as ACTIONS;
       NavigationService.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.DEEP_LINK_MODAL,
         params: {
-          linkType: isInvalidLink
-            ? 'invalid'
-            : isPrivateLink
-            ? 'private'
-            : 'public',
+          linkType: linkType(),
           pageTitle: pageTitle.charAt(0).toUpperCase() + pageTitle.slice(1),
           onContinue: () => resolve(true),
           onBack: () => resolve(false),

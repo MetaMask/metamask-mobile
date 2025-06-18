@@ -51,7 +51,7 @@ export class LockManagerService {
         nextAppState === 'inactive' || // Ignore inactive state.
         (this.#appState === 'inactive' && nextAppState === 'active') // Ignore going from inactive -> active state.
       ) {
-        // Let's other services know that the lock manager app state event is resolved while active
+        // Lets other services know that the lock manager app state event is resolved while active
         if (nextAppState === 'active') {
           ReduxService.store.dispatch(resolveLockManager());
         }
