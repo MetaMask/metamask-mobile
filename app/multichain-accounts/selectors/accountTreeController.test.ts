@@ -132,7 +132,7 @@ describe('AccountTreeController Selectors', () => {
       ]);
     });
 
-    it('returns null when wallets  is empty', () => {
+    it('returns null when wallets is empty', () => {
       const mockState = {
         engine: {
           backgroundState: {

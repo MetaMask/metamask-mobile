@@ -1,6 +1,5 @@
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AccountWallet } from '@metamask/account-tree-controller';
-import { AccountId } from '@metamask/accounts-controller';
 import Engine from '../../../../../core/Engine';
 
 /**
@@ -13,17 +12,8 @@ export const getInternalAccountsFromWallet = (
 ): InternalAccount[] => {
   const { AccountsController } = Engine.context;
   const { accounts } = AccountsController.state.internalAccounts;
-
-  // Extract all account IDs from the wallet's groups
-  const accountIds: AccountId[] = [];
-  Object.values(wallet.groups).forEach((group) => {
-    accountIds.push(...group.accounts);
-  });
-
-  // Fetch internal accounts for each account ID
-  const internalAccounts = accountIds
+  return Object.values(wallet.groups)
+    .flatMap((group) => group.accounts)
     .map((accountId) => accounts[accountId])
     .filter((account): account is InternalAccount => account !== undefined);
-
-  return internalAccounts;
 };

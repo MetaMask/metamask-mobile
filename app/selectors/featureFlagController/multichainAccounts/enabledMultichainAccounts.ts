@@ -1,5 +1,3 @@
-/* eslint-disable arrow-body-style */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import compareVersions from 'compare-versions';
 import { createSelector } from 'reselect';
 import packageJson from '../../../../package.json';
