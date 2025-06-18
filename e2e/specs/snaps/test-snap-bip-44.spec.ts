@@ -12,7 +12,7 @@ import FixtureServer from '../../fixtures/fixture-server';
 import Assertions from '../../utils/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import BrowserView from '../../pages/Browser/BrowserView';
-import TestSnaps from '../../pages/Browser/TestSnap';
+import TestSnaps from '../../pages/Browser/TestSnaps';
 
 const fixtureServer = new FixtureServer();
 

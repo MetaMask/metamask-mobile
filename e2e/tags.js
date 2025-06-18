@@ -16,6 +16,7 @@ const tags = {
   smokeStake: 'SmokeStake:',
   smokeNotifications: 'SmokeNotifications:',
   smokeAnalytics: 'SmokeAnalytics:',
+  FlaskBuildTests: 'FlaskBuildTests:',
 };
 
 const Regression = (testName) => `${tags.regression} ${testName}`;
