@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import ManualBackupStep2 from './';
 import configureMockStore from 'redux-mock-store';
@@ -11,6 +10,7 @@ import { strings } from '../../../../locales/i18n';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Routes from '../../../constants/navigation/Routes';
 import { InteractionManager } from 'react-native';
+import { ReactTestInstance } from 'react-test-renderer';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -523,8 +523,8 @@ describe('ManualBackupStep2', () => {
       );
 
       // Get all empty slots using GRID_ITEM_EMPTY test ID
-      const emptySlots: any[] = [];
-      const nonEmptySlots: any[] = [];
+      const emptySlots: ReactTestInstance[] = [];
+      const nonEmptySlots: ReactTestInstance[] = [];
 
       // Try to find both types of slots for each index
       for (let i = 0; i < 12; i++) {
@@ -564,8 +564,8 @@ describe('ManualBackupStep2', () => {
       const { wrapper } = setupTest();
 
       // Get all empty slots using GRID_ITEM_EMPTY test ID
-      const emptySlots: any[] = [];
-      const nonEmptySlots: any[] = [];
+      const emptySlots: ReactTestInstance[] = [];
+      const nonEmptySlots: ReactTestInstance[] = [];
 
       // Try to find both types of slots for each index
       for (let i = 0; i < 12; i++) {
