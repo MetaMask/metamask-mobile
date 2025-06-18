@@ -24,8 +24,6 @@ import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { capitalize } from '../../../../../util/general';
 import { parseFloatSafe } from '../../utils/number';
-import { Linking } from 'react-native';
-import { EARN_URLS } from '../../constants/urls';
 
 interface EarnEmptyStateCta {
   token: TokenI;
@@ -71,8 +69,11 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
     });
   };
 
-  const navigateToLendingFaq = () => {
-    Linking.openURL(EARN_URLS.LENDING_FAQ);
+  const navigateToLendingHistoricApyChart = () => {
+    navigate(Routes.EARN.MODALS.ROOT, {
+      screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
+      params: { asset: earnToken },
+    });
   };
 
   if (!token || _.isEmpty(token) || !isStablecoinLendingEnabled) return <></>;
@@ -92,9 +93,9 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
         </Text>{' '}
         {strings('earn.empty_state_cta.annually')}{' '}
         <Button
-          variant={ButtonVariants.Link}
           label={strings('earn.empty_state_cta.learn_more')}
-          onPress={navigateToLendingFaq}
+          variant={ButtonVariants.Link}
+          onPress={navigateToLendingHistoricApyChart}
         />
       </Text>
       <Button
