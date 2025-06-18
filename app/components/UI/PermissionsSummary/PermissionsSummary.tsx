@@ -9,7 +9,6 @@ import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { useNavigation } from '@react-navigation/native';
 import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
-import images from 'images/image-icons';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
@@ -76,11 +75,6 @@ import AvatarToken from '../../../component-library/components/Avatars/Avatar/va
 import AccountConnectCreateInitialAccount from '../../Views/AccountConnect/AccountConnectCreateInitialAccount';
 import { SolScope } from '@metamask/keyring-api';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
-import {
-  selectIsEvmNetworkSelected,
-  selectNonEvmNetworkConfigurationsByChainId,
-  selectSelectedNonEvmNetworkChainId,
-} from '../../../selectors/multichainNetworkController';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const PermissionsSummary = ({
@@ -124,13 +118,6 @@ const PermissionsSummary = ({
   const { navigate } = navigation;
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectEvmChainId);
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-  const selectedNonEvmNetworkChainId = useSelector(
-    selectSelectedNonEvmNetworkChainId,
-  );
-  const nonEvmNetworkConfigurations = useSelector(
-    selectNonEvmNetworkConfigurationsByChainId,
-  );
   const privacyMode = useSelector(selectPrivacyMode);
   const [bottomSheetHeight, setBottomSheetHeight] = useState(0);
 
@@ -191,14 +178,8 @@ const PermissionsSummary = ({
             badgeElement={
               <Badge
                 variant={BadgeVariant.Network}
-                name={
-                  isEvmSelected
-                    ? networkName
-                    : nonEvmNetworkConfigurations?.[
-                        selectedNonEvmNetworkChainId
-                      ]?.name
-                }
-                imageSource={isEvmSelected ? networkImageSource : images.SOLANA}
+                name={networkName}
+                imageSource={networkImageSource}
               />
             }
           >
