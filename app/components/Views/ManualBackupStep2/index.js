@@ -257,7 +257,17 @@ const ManualBackupStep2 = ({
     (item, index, isEmpty) => (
       <>
         <Text style={styles.gridItemIndex}>{index + 1}.</Text>
-        <Text style={styles.gridItemText}>{isEmpty ? item : '••••••'}</Text>
+        <Text
+          variant={TextVariant.BodySM}
+          color={TextColor.Default}
+          style={styles.gridItemText}
+          adjustsFontSizeToFit
+          allowFontScaling
+          minimumFontScale={0.05}
+          maxFontSizeMultiplier={0}
+        >
+          {isEmpty ? item : '••••••'}
+        </Text>
       </>
     ),
     [styles.gridItemIndex, styles.gridItemText],
@@ -336,6 +346,10 @@ const ManualBackupStep2 = ({
                 variant={TextVariant.BodyMDMedium}
                 color={isUsed ? TextColor.Default : TextColor.Primary}
                 testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-${i}`}
+                adjustsFontSizeToFit
+                allowFontScaling
+                minimumFontScale={0.1}
+                maxFontSizeMultiplier={0}
               >
                 {word}
               </Text>
