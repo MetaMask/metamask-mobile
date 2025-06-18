@@ -57,7 +57,7 @@ describe('Identity actions', () => {
     expect(result).toBeUndefined();
   });
 
-  it('enables backup and sync features successfuly', async () => {
+  it('enables backup and sync features successfully', async () => {
     (
       Engine.context.UserStorageController
         .setIsBackupAndSyncFeatureEnabled as jest.Mock
@@ -74,7 +74,7 @@ describe('Identity actions', () => {
     expect(result).toBeUndefined();
   });
 
-  it('disables backup and sync features successfuly', async () => {
+  it('disables backup and sync features successfully', async () => {
     (
       Engine.context.UserStorageController
         .setIsBackupAndSyncFeatureEnabled as jest.Mock
