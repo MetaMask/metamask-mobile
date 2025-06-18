@@ -55,7 +55,31 @@ class SolanaTestDApp {
   get walletButtonSelector() {
     return Matchers.getElementByCSS(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      SolanaTestDappSelectorsWebIDs.WALLET_BUTTON_SELECTOR,
+      SolanaTestDappSelectorsWebIDs.WALLET_BUTTON,
+    );
+  }
+
+  get confirmTransactionButtonSelector() {
+    return Matchers.getElementByID(
+      SolanaTestDappSelectorsWebIDs.CONFIRM_TRANSACTION_BUTTON,
+    );
+  }
+
+  get cancelTransactionButtonSelector() {
+    return Matchers.getElementByID(
+      SolanaTestDappSelectorsWebIDs.CANCEL_TRANSACTION_BUTTON,
+    );
+  }
+
+  get confirmSignMessageButtonSelector() {
+    return Matchers.getElementByID(
+      SolanaTestDappSelectorsWebIDs.CONFIRM_SIGN_MESSAGE_BUTTON,
+    );
+  }
+
+  get cancelSignMessageButtonSelector() {
+    return Matchers.getElementByID(
+      SolanaTestDappSelectorsWebIDs.CANCEL_SIGN_MESSAGE_BUTTON,
     );
   }
 
@@ -160,31 +184,19 @@ class SolanaTestDApp {
   }
 
   async confirmTransaction(): Promise<void> {
-    const button = Matchers.getElementByID(
-      SolanaTestDappSelectorsWebIDs.CONFIRM_TRANSACTION_BUTTON_SELECTOR,
-    );
-    await Gestures.waitAndTap(button);
+    await Gestures.waitAndTap(this.confirmTransactionButtonSelector);
   }
 
   async cancelTransaction(): Promise<void> {
-    const button = Matchers.getElementByID(
-      SolanaTestDappSelectorsWebIDs.CANCEL_TRANSACTION_BUTTON_SELECTOR,
-    );
-    await Gestures.waitAndTap(button);
+    await Gestures.waitAndTap(this.cancelTransactionButtonSelector);
   }
 
   async confirmSignMessage(): Promise<void> {
-    const button = Matchers.getElementByID(
-      SolanaTestDappSelectorsWebIDs.CONFIRM_SIGN_MESSAGE_BUTTON_SELECTOR,
-    );
-    await Gestures.waitAndTap(button);
+    await Gestures.waitAndTap(this.confirmSignMessageButtonSelector);
   }
 
   async cancelSignMessage(): Promise<void> {
-    const button = Matchers.getElementByID(
-      SolanaTestDappSelectorsWebIDs.CANCEL_SIGN_MESSAGE_BUTTON_SELECTOR,
-    );
-    await Gestures.waitAndTap(button);
+    await Gestures.waitAndTap(this.cancelSignMessageButtonSelector);
   }
 }
 
