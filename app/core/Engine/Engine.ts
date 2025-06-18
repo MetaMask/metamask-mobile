@@ -1022,7 +1022,7 @@ export class Engine {
           onContactUpdated: (profileId) => {
             MetaMetrics.getInstance().trackEvent(
               MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.IDENTITY_EVENT,
+                MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
               )
                 .addProperties({
                   profile_id: profileId,
@@ -1035,7 +1035,7 @@ export class Engine {
           onContactDeleted: (profileId) => {
             MetaMetrics.getInstance().trackEvent(
               MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.IDENTITY_EVENT,
+                MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
               )
                 .addProperties({
                   profile_id: profileId,
@@ -1048,7 +1048,7 @@ export class Engine {
           onContactSyncErroneousSituation(profileId, situationMessage) {
             MetaMetrics.getInstance().trackEvent(
               MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.IDENTITY_EVENT,
+                MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
               )
                 .addProperties({
                   profile_id: profileId,
