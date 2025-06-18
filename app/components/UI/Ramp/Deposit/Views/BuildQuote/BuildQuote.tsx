@@ -44,6 +44,9 @@ import {
   getTransakChainId,
   getTransakPaymentMethodId,
 } from '../../utils';
+import { KycStatus } from '../../hooks/useUserDetailsPolling';
+import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
+import RegionModal from '../../components/RegionModal';
 
 function formatAmount(
   amount: number,
@@ -51,9 +54,6 @@ function formatAmount(
 ): string {
   return getIntlNumberFormatter(I18n.locale, options).format(amount);
 }
-import { KycStatus } from '../../hooks/useUserDetailsPolling';
-import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
-import RegionModal from '../../components/RegionModal';
 
 const BuildQuote = () => {
   const navigation = useNavigation();
