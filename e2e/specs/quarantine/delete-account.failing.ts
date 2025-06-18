@@ -4,7 +4,7 @@ import {
   SIMPLE_KEYPAIR_ACCOUNT,
   goToAccountDetails,
   withMultichainAccountDetailsEnabled,
-} from './common';
+} from '../multichain-accounts/common';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import DeleteAccount from '../../pages/MultichainAccounts/DeleteAccount';
 import Assertions from '../../utils/Assertions';
