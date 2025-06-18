@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { SolMethod } from '@metamask/keyring-api';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { base58 } from 'ethers/lib/utils';
+import AppConstants from '../../../core/AppConstants';
 
 export default function useValidateBridgeTx() {
   const selectedAccount = useSelector(selectSelectedInternalAccount);
@@ -13,7 +14,7 @@ export default function useValidateBridgeTx() {
   }: {
     quoteResponse: QuoteResponse & QuoteMetadata;
   }) => {
-    const response = await fetch(`https://security-alerts.api.cx.metamask.io/solana/message/scan`, {
+    const response = await fetch(`${AppConstants.SECURITY_ALERTS_API.URL}/solana/message/scan`, {
       headers: {
         'Content-Type': 'application/json',
         accept: 'application/json',
