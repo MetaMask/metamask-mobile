@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { act } from '@testing-library/react-hooks';
 import { QuoteResponse } from '../../types';
 import { QuoteMetadata } from '@metamask/bridge-controller';
 
@@ -71,9 +71,10 @@ describe('Blockaid Validation Logic', () => {
         }
         
         // If validation passes, continue with transaction submission
-        console.log('Validation passed, would proceed with transaction');
+        // TODO: Implement actual transaction submission logic
         
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Error submitting bridge tx', error);
       } finally {
         dispatch({ type: 'setIsSubmittingTx', payload: false });
@@ -84,9 +85,9 @@ describe('Blockaid Validation Logic', () => {
   // Helper to create a simple mock quote for testing
   const createMockQuote = (id: string) => ({
     id,
-    quote: {} as any,
+    quote: {} as QuoteResponse['quote'],
     approval: null,
-    trade: {} as any,
+    trade: {} as QuoteResponse['trade'],
     estimatedProcessingTimeInSeconds: 60,
     // Add other required properties as needed
   }) as unknown as QuoteResponse & QuoteMetadata;
@@ -225,7 +226,7 @@ describe('Blockaid Validation Logic', () => {
     
     mockValidateBridgeTx.mockResolvedValue({
       // Missing result property
-    } as any);
+    } as Partial<Awaited<ReturnType<ValidateBridgeTx>>>);
 
     await act(async () => {
       await handleContinueLogic(mockQuote, mockValidateBridgeTx, mockNavigate, mockDispatch);
@@ -243,7 +244,7 @@ describe('Blockaid Validation Logic', () => {
   it('should handle undefined validation responses', async () => {
     const mockQuote = createMockQuote('test-quote');
     
-    mockValidateBridgeTx.mockResolvedValue(undefined as any);
+    mockValidateBridgeTx.mockResolvedValue(undefined as unknown as Awaited<ReturnType<ValidateBridgeTx>>);
 
     await act(async () => {
       await handleContinueLogic(mockQuote, mockValidateBridgeTx, mockNavigate, mockDispatch);
