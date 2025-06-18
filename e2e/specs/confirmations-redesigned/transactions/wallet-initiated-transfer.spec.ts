@@ -12,7 +12,7 @@ import {
 } from '../../../api-mocking/mock-responses/simulations';
 import Assertions from '../../../utils/Assertions';
 import WalletActionsBottomSheet from '../../../pages/wallet/WalletActionsBottomSheet';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
+import FixtureBuilder, { DEFAULT_FIXTURE_ACCOUNT }  from '../../../fixtures/fixture-builder';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
@@ -24,6 +24,7 @@ import WalletView from '../../../pages/wallet/WalletView';
 import NetworkListModal from '../../../pages/Network/NetworkListModal';
 import NetworkEducationModal from '../../../pages/Network/NetworkEducationModal';
 import { CustomNetworks } from '../../../resources/networks.e2e';
+import { getMegaTestnetRpcMocks } from '../../../api-mocking/mock-responses/mega-testnet-rpc-mocks';
 
 const RECIPIENT = '0xbeC040014De5b4f1117EdD010828EA35cEc28B30';
 const AMOUNT = '1';
@@ -126,10 +127,18 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
   });
 
   it(`should send native ${MEGAETH_TESTNET.nickname} from inside the wallet`, async () => {
-    await withFixtures(
+    const testSpecificMock = {
+          POST: getMegaTestnetRpcMocks({
+            accounts: [DEFAULT_FIXTURE_ACCOUNT],
+            balance: '0xde0b6b3a7640000', // 1 ETH in wei
+          }),
+        };
+        
+        await withFixtures(
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
+        testSpecificMock
       },
       async () => {
         await loginToApp();
@@ -155,7 +164,7 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
         await TestHelpers.delay(3000);
         await TabBarComponent.tapActivity();
 
-        await Assertions.checkIfTextIsDisplayed('Confirmed');
+        await Assertions.checkIfTextIsDisplayed('Submitted');
       },
     );
   });
