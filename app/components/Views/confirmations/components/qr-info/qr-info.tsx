@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Linking, TouchableOpacity } from 'react-native';
 import { UR } from '@ngraveio/bc-ur';
 import { stringify as uuidStringify } from 'uuid';

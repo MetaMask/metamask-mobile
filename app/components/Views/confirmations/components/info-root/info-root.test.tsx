@@ -29,11 +29,11 @@ jest.mock('@react-navigation/native', () => ({
 const MockText = Text;
 jest.mock('../qr-info', () => () => {
   const View = jest.requireActual('react-native').View;
-  const ConfirmationInfoComponentIDs = jest.requireActual(
+  const componentIDs = jest.requireActual(
     '../../constants/test',
   ).ConfirmationInfoComponentIDs;
   return (
-    <View testID={ConfirmationInfoComponentIDs.QR_INFO}>
+    <View testID={componentIDs.QR_INFO}>
       <MockText>QR Scanning Component</MockText>
     </View>
   );
