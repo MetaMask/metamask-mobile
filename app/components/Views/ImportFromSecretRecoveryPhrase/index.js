@@ -172,6 +172,8 @@ const ImportFromSecretRecoveryPhrase = ({
     setShowAllSeedPhrase(false);
     setError('');
     setSpellCheckError('');
+    setSeedPhraseInputFocusedIndex(0);
+    setNextSeedPhraseInputFocusedIndex(0);
   }, []);
 
   const handleSeedPhraseChange = useCallback(
@@ -631,10 +633,23 @@ const ImportFromSecretRecoveryPhrase = ({
   const handleOnBlur = useCallback(
     (index, seedPhraseInputFocusedIndex) => {
       if (index === seedPhraseInputFocusedIndex) {
-        setSeedPhraseInputFocusedIndex(-1);
+        setSeedPhraseInputFocusedIndex(null);
+      }
+
+      // update error index
+      if (!checkValidSeedWord(seedPhrase[seedPhraseInputFocusedIndex])) {
+        setErrorWordIndexes((prev) => ({
+          ...prev,
+          [seedPhraseInputFocusedIndex]: true,
+        }));
+      } else {
+        setErrorWordIndexes((prev) => ({
+          ...prev,
+          [seedPhraseInputFocusedIndex]: false,
+        }));
       }
     },
-    [setSeedPhraseInputFocusedIndex],
+    [setSeedPhraseInputFocusedIndex, seedPhrase],
   );
 
   return (
