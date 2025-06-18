@@ -6,14 +6,13 @@ import { processAttribution } from './processAttribution';
 import DevLogger from './SDKConnect/utils/DevLogger';
 import ReduxService from './redux';
 import generateDeviceAnalyticsMetaData from '../util/metrics';
-import generateUserSettingsAnalyticsMetaData
-  from '../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
+import generateUserSettingsAnalyticsMetaData from '../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 
 export class AppStateEventListener {
   private appStateSubscription:
     | ReturnType<typeof AppState.addEventListener>
     | undefined = undefined;
-  private currentDeeplink: string | null = null;
+  public currentDeeplink: string | null = null;
   private lastAppState: AppStateStatus = AppState.currentState;
 
   constructor() {
@@ -63,7 +62,9 @@ export class AppStateEventListener {
           'AppStateManager: Error adding traits to user',
         );
       });
-      const appOpenedEventBuilder = MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.APP_OPENED);
+      const appOpenedEventBuilder = MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.APP_OPENED,
+      );
       if (attribution) {
         const { attributionId, utm, ...utmParams } = attribution;
         DevLogger.log(

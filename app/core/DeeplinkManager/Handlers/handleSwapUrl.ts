@@ -4,6 +4,7 @@ import {
   isHexString,
   parseCaipAssetType,
 } from '@metamask/utils';
+import NavigationService from '../../../core/NavigationService';
 
 interface HandleSwapUrlParams {
   swapPath: string;
@@ -42,14 +43,14 @@ export const handleSwapUrl = ({
     const amount = urlParams.get('value');
 
     if (!isCaipAssetType(fromCaip) || !isCaipAssetType(toCaip)) {
-      navigation.navigate('Swaps', {
+      NavigationService.navigation.navigate('Swaps', {
         screen: 'SwapsAmountView',
       });
       return;
     }
 
     if (!fromCaip || !toCaip) {
-      navigation.navigate('Swaps', {
+      NavigationService.navigation.navigate('Swaps', {
         screen: 'SwapsAmountView',
       });
       return;
@@ -60,13 +61,13 @@ export const handleSwapUrl = ({
     const toAddress = parseCaipAssetType(toCaip).assetReference;
 
     if (!fromAddress || !toAddress) {
-      navigation.navigate('Swaps', {
+      NavigationService.navigation.navigate('Swaps', {
         screen: 'SwapsAmountView',
       });
       return;
     }
-
-    navigation.navigate('Swaps', {
+    console.log('XXXXXX - NAVIGATE TO SWAPS');
+    NavigationService.navigation.navigate('Swaps', {
       screen: 'SwapsAmountView',
       params: {
         sourceToken: fromAddress,
@@ -75,7 +76,7 @@ export const handleSwapUrl = ({
       },
     });
   } catch (_) {
-    navigation.navigate('Swaps', {
+    NavigationService.navigation.navigate('Swaps', {
       screen: 'SwapsAmountView',
     });
   }

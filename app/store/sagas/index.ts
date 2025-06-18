@@ -1,4 +1,4 @@
-import { fork, take, cancel, put, call, all } from 'redux-saga/effects';
+import { fork, take, cancel, put, call, all, delay } from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import {
@@ -21,6 +21,8 @@ import {
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
+import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkManager';
+import AppConstants from '../../core/AppConstants';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -129,6 +131,24 @@ export function* basicFunctionalityToggle() {
   }
 }
 
+export function* handleDeeplinkSaga() {
+  while (true) {
+    yield all([take(UserActionType.LOGIN)]);
+    console.log('XXXXXX - LOGIN');
+    if (AppStateEventProcessor.currentDeeplink) {
+      console.log(
+        'XXXXXX - CURRENT DEEPLINK',
+        AppStateEventProcessor.currentDeeplink,
+      );
+      yield delay(1000);
+      const deeplink = AppStateEventProcessor.currentDeeplink;
+      SharedDeeplinkManager.parse(deeplink, {
+        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+      });
+    }
+  }
+}
+
 /**
  * Handles initializing app services on start up
  */
@@ -154,4 +174,5 @@ export function* rootSaga() {
   yield fork(startAppServices);
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
+  yield fork(handleDeeplinkSaga);
 }

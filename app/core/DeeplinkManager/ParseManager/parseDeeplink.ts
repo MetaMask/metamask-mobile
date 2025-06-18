@@ -18,6 +18,8 @@ import {
   INVALID,
   MISSING,
 } from './utils/verifySignature';
+import NavigationService from '../../../core/NavigationService';
+import Routes from '../../../constants/navigation/Routes';
 
 async function parseDeeplink({
   deeplinkManager: instance,
@@ -72,10 +74,27 @@ async function parseDeeplink({
           isPrivateLink = false;
           break;
       }
-      return isPrivateLink;
     }
 
     const { urlObj, params } = extractURLParams(url);
+
+    // Show the modal and wait for user interaction
+    console.log('XXXXXX - NAVIGATE TO MODAL');
+    const shouldProceed = await new Promise<boolean>((resolve) => {
+      NavigationService.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DEEP_LINK_MODAL,
+        params: {
+          linkType: isPrivateLink ? 'private' : 'public',
+          pageTitle: urlObj.hostname,
+          onContinue: () => resolve(true),
+          onBack: () => resolve(false),
+        },
+      });
+    });
+
+    if (!shouldProceed) {
+      return false;
+    }
 
     const sdkConnect = SDKConnect.getInstance();
 
