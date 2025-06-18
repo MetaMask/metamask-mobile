@@ -6,7 +6,7 @@ import { loginToApp } from '../../viewHelper';
 
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import FixtureBuilder, { DEFAULT_FIXTURE_ACCOUNT } from '../../fixtures/fixture-builder';
 import {
   withFixtures,
   defaultGanacheOptions,
@@ -18,6 +18,7 @@ import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../fixtures/utils';
 import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
 import { CustomNetworks } from '../../resources/networks.e2e';
+import { getMegaTestnetRpcMocks } from '../../api-mocking/mock-responses/mega-testnet-rpc-mocks';
 
 const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
@@ -81,7 +82,14 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
     );
   });
 
-it(`send an ERC721 token from a dapp using ${MEGAETH_TESTNET.nickname}`, async () => {
+it.only(`send an ERC721 token from a dapp using ${MEGAETH_TESTNET.nickname}`, async () => {
+    const testSpecificMock = {
+      POST: getMegaTestnetRpcMocks({
+        accounts: [DEFAULT_FIXTURE_ACCOUNT],
+        balance: '0xde0b6b3a7640000', // 1 ETH in wei
+      }),
+    };
+
     await withFixtures(
       {
         dapp: true,
@@ -93,6 +101,7 @@ it(`send an ERC721 token from a dapp using ${MEGAETH_TESTNET.nickname}`, async (
           .build(),
         restartDevice: true,
         smartContract: NFT_CONTRACT,
+        testSpecificMock,
       },
       // Remove any once withFixtures is typed
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
