@@ -147,7 +147,8 @@
     "success": "Success",
     "your_wallet": "Your wallet was successfully reset",
     "delete_current": "Reset current wallet",
-    "have_existing_wallet": "I have an existing wallet"
+    "have_existing_wallet": "I have an existing wallet",
+    "import_using_srp": "Import using Secret Recovery Phrase"
   },
   "onboarding_success": {
     "title": "Keep your Secret Recovery Phrase safe!",
@@ -2340,7 +2341,7 @@
     "info_text_1_2": "Secret Recovery Phrase",
     "info_text_1_3": "in a place you trust.",
     "info_text_1_4": "It’s the only way to recover your wallet if you get locked out of the app or get a new device.",
-    "cta_text": "Get Started",
+    "cta_text": "Get started",
     "cta_subText": "Highly recommended",
     "skip_button_cancel": "Secure now",
     "skip_button_confirm": "Skip",
@@ -2473,8 +2474,8 @@
     "error-description": "Double-check your Secret Recovery Phrase and try again.",
     "success-title": "Perfect!",
     "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
-    "success-button": "Got It",
-    "error-button": "Try Again",
+    "success-button": "Got it",
+    "error-button": "Try again",
     "continue": "Continue"
   },
   "manual_backup_step_3": {
@@ -3846,9 +3847,15 @@
         "between_one_dot_five_and_2_dot_zero": "Between 1.5-2.0",
         "medium_liquidation_risk": "Medium Liquidation risk",
         "below_one_dot_five": "Below 1.5",
-        "higher_liquidation_risk": "Higher liquidation risk",
-        "infinite": "Infinite",
-        "no_debt_maximum_security": "No debt, maximum safety"
+        "higher_liquidation_risk": "Higher liquidation risk"
+      },
+      "lending_risk_aware_withdrawal_tooltip": {
+        "why_cant_i_withdraw_full_balance": "Why can't I withdraw my full balance?",
+        "your_withdrawal_amount_may_be_limited_by": "Your withdrawal amount may be limited by",
+        "pool_liquidity": "Pool Liquidity",
+        "not_enough_funds_available_in_the_lending_pool_right_now": "Not enough funds available in the lending pool right now.",
+        "existing_borrow_positions": "Existing Borrow Positions",
+        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "Withdrawing could put your existing loan positions at risk of liquidation."
       }
     },
     "withdraw": "Withdraw",
@@ -3861,7 +3868,15 @@
     "liquidation_risk": "Liquidation risk",
     "insufficient_pool_liquidity": "Insufficient Pool Liquidity",
     "available_to_withdraw": "available to withdraw",
-    "unknown": "unknown"
+    "unknown": "unknown",
+    "how_it_works": "How it works",
+    "market_historic_apr_modal": {
+      "earn_rewards_on_your_token": "Earn rewards on your {{tokenSymbol}}",
+      "lend_and_earn_daily_rewards": "Lend your {{tokenSymbol}} with {{protocol}} and earn daily rewards. Rewards grow over time and APR varies.",
+      "withdraw_whenever_you_want": "Withdraw whenever you want",
+      "get_asset_back_in_your_wallet_instantly": "Get {{tokenSymbol}} back in your wallet instantly."
+    },
+    "amount_exceeds_safe_withdrawal_limit": "Amount exceeds safe withdrawal limit"
   },
   "stake": {
     "stake": "Stake",
@@ -4187,7 +4202,8 @@
     "data": "Data",
     "review": "Review",
     "transferRequest": "Transfer request",
-    "nested_transaction_heading": "Transaction {{index}}"
+    "nested_transaction_heading": "Transaction {{index}}",
+    "transaction": "Transaction"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
@@ -4307,6 +4323,9 @@
       "account_address": "Account Address",
       "wallet": "Wallet",
       "private_key": "Private key"
+    },
+    "accounts_list": {
+      "details": "Details"
     },
     "smart_account": {
       "title": "Enable Smart Account",
