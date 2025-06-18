@@ -1,7 +1,15 @@
 import { captureException } from '@sentry/react-native';
 import { isObject, hasProperty } from '@metamask/utils';
 import { NetworkState, NetworkStatus } from '@metamask/network-controller';
-import { InfuraNetworkType } from '@metamask/controller-utils';
+
+const InfuraNetworkType = {
+  mainnet: 'mainnet',
+  goerli: 'goerli',
+  sepolia: 'sepolia',
+  'linea-goerli': 'linea-goerli',
+  'linea-sepolia': 'linea-sepolia',
+  'linea-mainnet': 'linea-mainnet',
+} as const;
 
 /**
  * This migration removes networkDetails and networkStatus property
