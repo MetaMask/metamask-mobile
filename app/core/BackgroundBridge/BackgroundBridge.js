@@ -243,7 +243,7 @@ export class BackgroundBridge extends EventEmitter {
     // Ensures the inpage provider receives a message indiciating background liveliness
     // so that messages sent before BackgroundBridge's EIP-1193 JSON-RPC pipeline was
     // fully initialized can be retried
-    if (!this.isWalletConnect) {
+    if (!this.isRemoteConn && !this.isWalletConnect) {
       this.notifyChainChanged()
     }
 
