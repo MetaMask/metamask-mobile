@@ -24,14 +24,13 @@ import {
 } from '../../../component-library/components/Toast';
 import { ToastOptions } from '../../../component-library/components/Toast/Toast.types';
 import { USER_INTENT } from '../../../constants/permissions';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents, store } from '../../../core/Analytics';
 import Engine from '../../../core/Engine';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import {
   InternalAccountWithCaipAccountId,
   selectInternalAccountsWithCaipAccountId,
 } from '../../../selectors/accountsController';
-import { isDefaultAccountName } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
 import {
   getAddressAccountType,
@@ -42,7 +41,7 @@ import {
   getUrlObj,
   prefixUrlWithProtocol,
 } from '../../../util/browser';
-import { Account, useAccounts } from '../../hooks/useAccounts';
+import { useAccounts } from '../../hooks/useAccounts';
 
 // Internal dependencies.
 import { PermissionsRequest } from '@metamask/permission-controller';
@@ -67,7 +66,6 @@ import {
   AccountConnectScreens,
 } from './AccountConnect.types';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
-import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
@@ -77,7 +75,7 @@ import {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
-import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId, selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import {
@@ -112,6 +110,10 @@ import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnap
 import AddNewAccount from '../AddNewAccount';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
+import { PermissionKeys } from '../../../core/Permissions/specifications';
+import { CaveatTypes } from '../../../core/Permissions/constants';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
@@ -668,6 +670,8 @@ const AccountConnect = (props: AccountConnectProps) => {
     ],
   );
 
+  const {chainId} = useNetworkInfo(hostname);
+
   const handleNetworksSelected = useCallback(
     (newSelectedChainIds: CaipChainId[]) => {
       setSelectedChainIds(newSelectedChainIds);
@@ -676,8 +680,63 @@ const AccountConnect = (props: AccountConnectProps) => {
     [setScreen, setSelectedChainIds],
   );
 
-  const hideSheet = (callback?: () => void) =>
-    sheetRef?.current?.onCloseBottomSheet?.(callback);
+  const hideSheet = useCallback(
+    (callback?: () => void) =>
+      sheetRef?.current?.onCloseBottomSheet?.(callback),
+    [sheetRef],
+  );
+
+  const handleUpdateNetworkPermissions = useCallback(async () => {
+    let hasPermittedChains = false;
+    let chainsToPermit = selectedChainIds.length > 0 ? selectedChainIds : [];
+    if (chainId && chainsToPermit.length === 0) {
+      //This chainId is in format 0x1 but now we have caip25 format, eip155:1
+      chainsToPermit = [
+        formatChainIdToCaip(chainId)
+      ];
+    }
+
+    try {
+      hasPermittedChains = Engine.context.PermissionController.hasCaveat(
+        channelIdOrHostname,
+        PermissionKeys.permittedChains,
+        CaveatTypes.restrictNetworkSwitching,
+      );
+    } catch {
+      // noop
+    }
+
+    if (hasPermittedChains) {
+      Engine.context.PermissionController.updateCaveat(
+        channelIdOrHostname,
+        PermissionKeys.permittedChains,
+        CaveatTypes.restrictNetworkSwitching,
+        chainsToPermit,
+      );
+    } else {
+      Engine.context.PermissionController.grantPermissionsIncremental({
+        subject: {
+          origin: channelIdOrHostname,
+        },
+        approvedPermissions: {
+          [PermissionKeys.permittedChains]: {
+            caveats: [
+              {
+                type: CaveatTypes.restrictNetworkSwitching,
+                value: chainsToPermit,
+              },
+            ],
+          },
+        },
+      });
+    }
+  }, [selectedChainIds, chainId, hostname]);
+
+  const handleConfirm = useCallback(async () => {
+    hideSheet();
+    await handleUpdateNetworkPermissions();
+    await handleConnect();
+  }, [handleUpdateNetworkPermissions, hideSheet, handleConnect]);
 
   /**
    * User intent is set on AccountConnectSingle,
@@ -694,8 +753,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     const handleUserActions = (action: USER_INTENT) => {
       switch (action) {
         case USER_INTENT.Confirm: {
-          handleConnect();
-          hideSheet();
+          handleConfirm();
           break;
         }
         case USER_INTENT.Cancel: {
@@ -751,48 +809,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     cancelPermissionRequest(permissionRequestId);
   };
 
-  const renderSingleConnectScreen = useCallback(() => {
-    const selectedAddress = selectedAddresses[0];
-    const selectedAccount = accounts.find(
-      (account) => account.caipAccountId === selectedAddress,
-    );
-    const { address } = parseCaipAccountId(selectedAddress);
-    const ensName = ensByAccountAddress[address];
-    const defaultSelectedAccount: Account | undefined = selectedAccount
-      ? {
-          ...selectedAccount,
-          name:
-            isDefaultAccountName(selectedAccount.name) && ensName
-              ? ensName
-              : selectedAccount.name,
-        }
-      : undefined;
-    return (
-      <AccountConnectSingle
-        onSetSelectedAddresses={handleAccountsSelected}
-        connection={sdkConnection}
-        onSetScreen={setScreen}
-        onUserAction={setUserIntent}
-        defaultSelectedAccount={defaultSelectedAccount}
-        isLoading={isLoading}
-        favicon={actualIcon}
-        secureIcon={secureIcon}
-        urlWithProtocol={urlWithProtocol}
-      />
-    );
-  }, [
-    accounts,
-    ensByAccountAddress,
-    selectedAddresses,
-    isLoading,
-    setScreen,
-    actualIcon,
-    secureIcon,
-    sdkConnection,
-    urlWithProtocol,
-    setUserIntent,
-    handleAccountsSelected,
-  ]);
 
   const renderPermissionsSummaryScreen = useCallback(() => {
     const permissionsSummaryProps: PermissionsSummaryProps = {
@@ -975,7 +991,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     switch (screen) {
       case AccountConnectScreens.SingleConnect:
         return isSdkUrlUnknown
-          ? renderSingleConnectScreen()
+          ? renderPermissionsSummaryScreen()
           : renderPermissionsSummaryScreen();
       case AccountConnectScreens.SingleConnectSelector:
         return renderSingleConnectSelectorScreen();
@@ -988,8 +1004,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     }
   }, [
     screen,
-    isSdkUrlUnknown,
-    renderSingleConnectScreen,
+    renderPermissionsSummaryScreen,
     renderPermissionsSummaryScreen,
     renderSingleConnectSelectorScreen,
     renderMultiConnectSelectorScreen,
