@@ -18,7 +18,7 @@ interface ValidStateWithUser extends ValidState {
  * This unifies user state management and fixes iCloud backup inconsistencies
  */
 const migration = async (state: unknown): Promise<unknown> => {
-  if (!ensureValidState(state, 83)) {
+  if (!ensureValidState(state, 84)) {
     return state;
   }
 
