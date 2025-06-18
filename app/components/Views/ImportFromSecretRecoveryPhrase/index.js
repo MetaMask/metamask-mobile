@@ -628,6 +628,15 @@ const ImportFromSecretRecoveryPhrase = ({
     [setSeedPhraseInputFocusedIndex, seedPhrase, seedPhraseInputFocusedIndex],
   );
 
+  const handleOnBlur = useCallback(
+    (index, seedPhraseInputFocusedIndex) => {
+      if (index === seedPhraseInputFocusedIndex) {
+        setSeedPhraseInputFocusedIndex(-1);
+      }
+    },
+    [setSeedPhraseInputFocusedIndex],
+  );
+
   return (
     <SafeAreaView style={styles.root}>
       <KeyboardAwareScrollView
@@ -760,6 +769,12 @@ const ImportFromSecretRecoveryPhrase = ({
                                       });
                                     }
                                     handleOnFocus(index);
+                                  }}
+                                  onBlur={() => {
+                                    handleOnBlur(
+                                      index,
+                                      seedPhraseInputFocusedIndex,
+                                    );
                                   }}
                                   onChangeText={(text) =>
                                     handleSeedPhraseChange(text, index)
