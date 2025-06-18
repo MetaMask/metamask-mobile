@@ -8,7 +8,7 @@ import {
   HD_ACCOUNT,
   goToAccountDetails,
   withMultichainAccountDetailsEnabled,
-} from './common';
+} from '../multichain-accounts/common';
 
 const checkAddress = async (expectedAddress: string) => {
   await AccountDetails.tapShareAddress();

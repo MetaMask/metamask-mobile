@@ -1,16 +1,16 @@
 'use strict';
-import { SmokeWalletPlatform } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags.js';
 import {
   HD_ACCOUNT,
   goToAccountDetails,
   withMultichainAccountDetailsEnabled,
-} from './common';
-import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
-import Assertions from '../../utils/Assertions';
-import ExportCredentials from '../../pages/MultichainAccounts/ExportCredentials';
+} from '../multichain-accounts/common.js';
+import AccountDetails from '../../pages/MultichainAccounts/AccountDetails.js';
+import Assertions from '../../utils/Assertions.js';
+import ExportCredentials from '../../pages/MultichainAccounts/ExportCredentials.js';
 import RevealPrivateKey from '../../pages/Settings/SecurityAndPrivacy/RevealPrivateKeyView.js';
-import { completeSrpQuiz } from '../multisrp/utils';
-import { defaultOptions } from '../../seeder/anvil-manager';
+import { completeSrpQuiz } from '../multisrp/utils.js';
+import { defaultOptions } from '../../seeder/anvil-manager.js';
 
 const PASSWORD = '123123123';
 
