@@ -126,6 +126,7 @@ const EarnWithdrawInputView = () => {
             token: earnToken?.symbol,
             network: network?.name,
             user_token_balance: earnBalanceValue,
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
           })
           .build(),
       );
@@ -238,6 +239,19 @@ const EarnWithdrawInputView = () => {
   );
 
   const handleLendingWithdrawalFlow = useCallback(async () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EARN_REVIEW_BUTTON_CLICKED)
+        .addProperties({
+          action_type: 'withdrawal',
+          token: earnToken?.symbol,
+          network: network?.name,
+          user_token_balance: earnBalanceValue,
+          transaction_value: amountToken,
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        })
+        .build(),
+    );
+
     // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-1044
     // We likely want to inform the user if this data is missing and the withdrawal fails.
     if (
@@ -280,12 +294,31 @@ const EarnWithdrawInputView = () => {
   }, [
     activeAccount?.address,
     amountFiatNumber,
+    amountToken,
     amountTokenMinimalUnit,
+    createEventBuilder,
+    earnBalanceValue,
+    earnToken?.symbol,
     navigation,
+    network?.name,
     receiptToken,
+    trackEvent,
   ]);
 
   const handleUnstakeWithdrawalFlow = useCallback(async () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EARN_REVIEW_BUTTON_CLICKED)
+        .addProperties({
+          action_type: 'withdrawal',
+          token: earnToken?.symbol,
+          network: network?.name,
+          user_token_balance: earnBalanceValue,
+          transaction_value: amountToken,
+          experience: EARN_EXPERIENCES.POOLED_STAKING,
+        })
+        .build(),
+    );
+
     const isStakingDepositRedesignedEnabled =
       confirmationRedesignFlags?.staking_confirmations;
 
@@ -293,6 +326,7 @@ const EarnWithdrawInputView = () => {
       selected_provider: EVENT_PROVIDERS.CONSENSYS,
       tokens_to_stake_native_value: amountToken,
       tokens_to_stake_usd_value: amountFiatNumber,
+      experience: EARN_EXPERIENCES.POOLED_STAKING,
     };
 
     if (isStakingDepositRedesignedEnabled) {
@@ -352,7 +386,10 @@ const EarnWithdrawInputView = () => {
     attemptUnstakeTransaction,
     confirmationRedesignFlags?.staking_confirmations,
     createEventBuilder,
+    earnBalanceValue,
+    earnToken?.symbol,
     navigation,
+    network?.name,
     trackEvent,
   ]);
 
@@ -360,20 +397,6 @@ const EarnWithdrawInputView = () => {
   // TODO: think about if we could rely on receiptToken experience instead here
   // should we be able to, consider the implications of not being able to
   const handleWithdrawPress = useCallback(async () => {
-    if (shouldLogStablecoinEvent()) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.EARN_REVIEW_BUTTON_CLICKED)
-          .addProperties({
-            action_type: 'withdrawal',
-            token: earnToken?.symbol,
-            network: network?.name,
-            user_token_balance: earnBalanceValue,
-            transaction_value: amountToken,
-          })
-          .build(),
-      );
-    }
-
     if (
       receiptToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
     ) {
@@ -384,14 +407,7 @@ const EarnWithdrawInputView = () => {
       return handleUnstakeWithdrawalFlow();
     }
   }, [
-    shouldLogStablecoinEvent,
     receiptToken?.experience?.type,
-    trackEvent,
-    createEventBuilder,
-    earnToken?.symbol,
-    network?.name,
-    earnBalanceValue,
-    amountToken,
     handleLendingWithdrawalFlow,
     handleUnstakeWithdrawalFlow,
   ]);
@@ -482,6 +498,7 @@ const EarnWithdrawInputView = () => {
               token: earnToken?.symbol,
               network: network?.name,
               user_token_balance: earnBalanceValue,
+              experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             })
             .build(),
         );

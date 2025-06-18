@@ -10,7 +10,7 @@ import {
 import BigNumber from 'bignumber.js';
 import { formatEther } from 'ethers/lib/utils';
 import { debounce } from 'lodash';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -40,10 +40,8 @@ import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import EstimatedAnnualRewardsCard from '../../../Stake/components/EstimatedAnnualRewardsCard';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
-import {
-  EVENT_LOCATIONS,
-  EVENT_PROVIDERS,
-} from '../../../Stake/constants/events';
+import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
+import { EVENT_LOCATIONS } from '../../constants/events';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
 import { withMetaMetrics } from '../../../Stake/utils/metaMetrics/withMetaMetrics';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
@@ -75,6 +73,9 @@ const EarnInputView = () => {
   const route = useRoute<EarnInputViewProps['route']>();
   const { token } = route.params;
 
+  // We want to keep track of the last quick amount pressed before navigating to review.
+  const lastQuickAmountButtonPressed = useRef<string | null>(null);
+
   // state
   const [
     isSubmittingStakeDepositTransaction,
@@ -90,10 +91,10 @@ const EarnInputView = () => {
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const conversionRate = useSelector(selectConversionRate) ?? 1;
   const contractExchangeRates = useSelector((state: RootState) =>
-    selectContractExchangeRatesByChainId(state, token.chainId as Hex),
+    selectContractExchangeRatesByChainId(state, token?.chainId as Hex),
   );
   const network = useSelector((state: RootState) =>
-    selectNetworkConfigurationByChainId(state, token.chainId as Hex),
+    selectNetworkConfigurationByChainId(state, token?.chainId as Hex),
   );
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
@@ -160,6 +161,7 @@ const EarnInputView = () => {
             token: earnToken?.symbol,
             network: network?.name,
             user_token_balance: balanceValue,
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
           })
           .build(),
       );
@@ -185,10 +187,10 @@ const EarnInputView = () => {
     }
   };
 
-
-
   const handleQuickAmountPressWithTracking = useCallback(
     ({ value }: { value: number }) => {
+      lastQuickAmountButtonPressed.current = `${value * 100}%`;
+
       // call the original handler first
       handleQuickAmountPress({ value });
 
@@ -202,6 +204,7 @@ const EarnInputView = () => {
               token: earnToken?.symbol,
               network: network?.name,
               user_token_balance: balanceValue,
+              experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             })
             .build(),
         );
@@ -209,10 +212,11 @@ const EarnInputView = () => {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.STAKE_INPUT_QUICK_AMOUNT_CLICKED)
             .addProperties({
-              location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
+              location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
               amount: value,
               is_max: false,
               mode: !isFiat ? 'native' : 'fiat',
+              experience: EARN_EXPERIENCES.POOLED_STAKING,
             })
             .build(),
         );
@@ -246,7 +250,12 @@ const EarnInputView = () => {
           token: earnToken?.symbol,
           network: network?.name,
           user_token_balance: balanceValue,
-          transaction_value: amountToken,
+          transaction_value: `${amountToken} ${earnToken?.symbol}`,
+          lastQuickAmountButtonPressed: lastQuickAmountButtonPressed.current,
+          location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+          is_max: Boolean(lastQuickAmountButtonPressed.current === 'MAX'),
+          mode: !isFiat ? 'native' : 'fiat',
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
         })
         .build(),
     );
@@ -322,9 +331,7 @@ const EarnInputView = () => {
             ? toHex(lendingDepositTxParams.txParams.value)
             : undefined,
         },
-        // TODO: Substitute by transaction type from transaction controller once
-        // it's added
-        type: 'lendingDeposit' as TransactionType,
+        type: TransactionType.lendingDeposit,
       };
 
       addTransactionBatch({
@@ -379,20 +386,21 @@ const EarnInputView = () => {
     }
   }, [
     activeAccount,
-    amountFiatNumber,
-    amountTokenMinimalUnit,
-    annualRewardRate,
-    annualRewardsFiat,
-    annualRewardsToken,
     earnToken,
-    navigation,
-    networkClientId,
-    token,
     trackEvent,
     createEventBuilder,
     network?.name,
     balanceValue,
     amountToken,
+    isFiat,
+    amountTokenMinimalUnit,
+    networkClientId,
+    navigation,
+    token,
+    amountFiatNumber,
+    annualRewardsToken,
+    annualRewardsFiat,
+    annualRewardRate,
   ]);
 
   const handlePooledStakingFlow = useCallback(async () => {
@@ -403,11 +411,12 @@ const EarnInputView = () => {
         )
           .addProperties({
             selected_provider: EVENT_PROVIDERS.CONSENSYS,
-            location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
+            location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
             tokens_to_stake_native_value: amountToken,
             tokens_to_stake_usd_value: amountFiatNumber,
             estimated_gas_fee: formatEther(estimatedGasFeeWei.toString()),
             estimated_gas_percentage_of_deposit: `${getDepositTxGasPercentage()}%`,
+            experience: EARN_EXPERIENCES.POOLED_STAKING,
           })
           .build(),
       );
@@ -434,6 +443,7 @@ const EarnInputView = () => {
       selected_provider: EVENT_PROVIDERS.CONSENSYS,
       tokens_to_stake_native_value: amountToken,
       tokens_to_stake_usd_value: amountFiatNumber,
+      experience: EARN_EXPERIENCES.POOLED_STAKING,
     };
 
     if (isStakingDepositRedesignedEnabled) {
@@ -525,7 +535,9 @@ const EarnInputView = () => {
     handleLendingFlow,
   ]);
 
-  const handleMaxButtonPress = () => {
+  const handleMaxButtonPress = useCallback(() => {
+    lastQuickAmountButtonPressed.current = 'MAX';
+
     if (!isStablecoinLendingEnabled || token.isETH) {
       navigation.navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.MAX_INPUT,
@@ -536,7 +548,7 @@ const EarnInputView = () => {
     } else {
       handleMax();
     }
-  };
+  }, [handleMax, isStablecoinLendingEnabled, navigation, token.isETH]);
 
   const handleMaxPressWithTracking = useCallback(() => {
     // call the original handler first
@@ -552,6 +564,7 @@ const EarnInputView = () => {
             token: earnToken?.symbol,
             network: network?.name,
             user_token_balance: balanceValue,
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
           })
           .build(),
       );
@@ -559,9 +572,10 @@ const EarnInputView = () => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.STAKE_INPUT_QUICK_AMOUNT_CLICKED)
           .addProperties({
-            location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
+            location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
             is_max: true,
             mode: !isFiat ? 'native' : 'fiat',
+            experience: EARN_EXPERIENCES.POOLED_STAKING,
           })
           .build(),
       );
@@ -611,7 +625,9 @@ const EarnInputView = () => {
       event: MetaMetricsEvents.STAKE_CANCEL_CLICKED,
       properties: {
         selected_provider: EVENT_PROVIDERS.CONSENSYS,
-        location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
+        location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+        experience: EARN_EXPERIENCES.POOLED_STAKING,
+        token: token.symbol,
       },
     },
   };
@@ -623,22 +639,26 @@ const EarnInputView = () => {
   };
   const earnNavBarEventOptions = {
     backButtonEvent: {
-      event: MetaMetricsEvents.STAKE_CANCEL_CLICKED,
+      event: MetaMetricsEvents.EARN_INPUT_BACK_BUTTON_CLICKED,
       properties: {
         selected_provider: EVENT_PROVIDERS.CONSENSYS,
-        location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
+        location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+        experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        token: token.symbol,
       },
     },
-    // TODO: STAKE-930 (Lending Analytics)
-    // iconButtonEvent: {
-    //   event: MetaMetricsEvents.TOOLTIP_OPENED,
-    //   properties: {
-    //     selected_provider: EVENT_PROVIDERS.CONSENSYS,
-    //     text: 'Tooltip Opened',
-    //     location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
-    //     tooltip_name: 'MetaMask Earn Estimated Rewards',
-    //   },
-    // },
+    iconButtonEvent: {
+      event: MetaMetricsEvents.TOOLTIP_OPENED,
+      properties: {
+        selected_provider: EVENT_PROVIDERS.CONSENSYS,
+        text: 'Tooltip Opened',
+        location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+        tooltip_name: 'Lending Historic Market APY Graph',
+        experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        token: token.symbol,
+        apr: `${earnToken?.experience.apr}%`,
+      },
+    },
   };
   const navBarOptions = isStablecoinLendingEnabled
     ? earnNavBarOptions
@@ -668,6 +688,46 @@ const EarnInputView = () => {
     calculateEstimatedAnnualRewards,
   ]);
 
+  // This component rerenders to recalculate gas estimate which causes duplicate events to fire.
+  // This ref will allow one insufficient funds error to fire per visit to the page.
+  const isSendingInsufficientFundsMetaMetric = useRef(false);
+
+  useEffect(() => {
+    const emitInsufficientFundsMetaMetric = () => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EARN_INPUT_INSUFFICIENT_BALANCE)
+          .addProperties({
+            provider: EVENT_PROVIDERS.CONSENSYS,
+            location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+            token_name: token.name,
+            token: token.symbol,
+            network: network?.name,
+            experience: earnToken?.experience.type,
+          })
+          .build(),
+      );
+    };
+
+    if (
+      isOverMaximum.isOverMaximumEth ||
+      (isOverMaximum.isOverMaximumToken &&
+        !isSendingInsufficientFundsMetaMetric.current)
+    ) {
+      isSendingInsufficientFundsMetaMetric.current = true;
+      emitInsufficientFundsMetaMetric();
+    }
+  }, [
+    createEventBuilder,
+    earnToken?.experience.type,
+    isOverMaximum?.isOverMaximumEth,
+    isOverMaximum?.isOverMaximumToken,
+    network?.name,
+    token.chainId,
+    token.name,
+    token.symbol,
+    trackEvent,
+  ]);
+
   return (
     <ScreenLayout style={styles.container}>
       <InputDisplay
@@ -680,12 +740,13 @@ const EarnInputView = () => {
         asset={token}
         currentCurrency={currentCurrency}
         handleCurrencySwitch={withMetaMetrics(handleCurrencySwitch, {
-          event: MetaMetricsEvents.STAKE_INPUT_CURRENCY_SWITCH_CLICKED,
+          event: MetaMetricsEvents.EARN_INPUT_CURRENCY_SWITCH_CLICKED,
           properties: {
             selected_provider: EVENT_PROVIDERS.CONSENSYS,
-            text: 'Currency Switch Trigger',
-            location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
+            text: 'Currency Switch Clicked',
+            location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
             currency_type: !isFiat ? 'fiat' : 'native',
+            experience: earnToken?.experience?.type,
           },
         })}
         currencyToggleValue={currencyToggleValue}
@@ -704,7 +765,7 @@ const EarnInputView = () => {
               properties: {
                 selected_provider: EVENT_PROVIDERS.CONSENSYS,
                 text: 'Tooltip Opened',
-                location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
+                location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
                 tooltip_name: 'MetaMask Pool Estimated Rewards',
               },
             })}
