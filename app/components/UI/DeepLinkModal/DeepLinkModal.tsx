@@ -144,7 +144,7 @@ const DeepLinkModal = () => {
     }, [isChecked, trackEvent, createEventBuilder, dispatch]);
 
     const shouldShowCheckbox = linkType === 'private';
-    const primaryButtonLabel = linkType === 'invalid' ? strings('deep_link_modal.open_metamask_anyway') : strings('deep_link_modal.continue_button');
+    const primaryButtonLabel = linkType === 'invalid' ? strings('deep_link_modal.go_to_homepage') : strings('deep_link_modal.continue_button');
 
     return (
         <BottomSheet isFullscreen style={styles.screen} ref={bottomSheetRef} isInteractable={false}>
