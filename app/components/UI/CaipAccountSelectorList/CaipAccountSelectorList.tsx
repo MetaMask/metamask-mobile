@@ -211,7 +211,6 @@ const CaipAccountSelectorList = ({
         caipAccountId,
         scopes,
       },
-      index,
     }) => {
       const partialAccount = {
         address,
