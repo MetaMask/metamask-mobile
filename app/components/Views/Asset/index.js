@@ -33,7 +33,6 @@ import { selectTokens } from '../../../selectors/tokensController';
 import { sortTransactions } from '../../../util/activity';
 import {
   areAddressesEqual,
-  toLowerCaseEquals,
   safeToChecksumAddress,
 } from '../../../util/address';
 import {
@@ -471,13 +470,13 @@ class Asset extends PureComponent {
         });
 
         submittedTxs = submittedTxs.filter(({ txParams: { from, nonce } }) => {
-          if (!toLowerCaseEquals(from, this.selectedAddress)) {
+          if (!areAddressesEqual(from, this.selectedAddress)) {
             return false;
           }
           const alreadySubmitted = submittedNonces.includes(nonce);
           const alreadyConfirmed = confirmedTxs.find(
             (confirmedTransaction) =>
-              toLowerCaseEquals(
+              areAddressesEqual(
                 safeToChecksumAddress(confirmedTransaction.txParams.from),
                 this.selectedAddress,
               ) && confirmedTransaction.txParams.nonce === nonce,
