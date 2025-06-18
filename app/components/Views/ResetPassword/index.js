@@ -401,12 +401,14 @@ class ResetPassword extends PureComponent {
       this.props.passwordSet();
 
       // Track password changed event
-      const { biometryChoice } = this.state;
+      const { biometryChoice, passwordStrength } = this.state;
+      const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
       const eventBuilder = MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PASSWORD_CHANGED,
       ).addProperties({
         biometry_type: this.state.biometryType,
         biometrics_enabled: Boolean(biometryChoice),
+        password_strength: passwordStrengthWord,
       });
       MetaMetrics.getInstance().trackEvent(eventBuilder.build());
 

@@ -18,10 +18,7 @@ import scaling from '../../../util/scaling';
 import Engine from '../../../core/Engine';
 import { ONBOARDING_WIZARD } from '../../../constants/storage';
 import { connect } from 'react-redux';
-import {
-  saveOnboardingEvent as SaveEvent,
-  saveOnboardingEvent,
-} from '../../../actions/onboarding';
+import { saveOnboardingEvent as SaveEvent } from '../../../actions/onboarding';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -109,7 +106,7 @@ const createStyles = (colors) =>
  * the backup seed phrase flow
  */
 const AccountBackupStep1 = (props) => {
-  const { route, dispatchSaveOnboardingEvent } = props;
+  const { route } = props;
   const [hasFunds, setHasFunds] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);

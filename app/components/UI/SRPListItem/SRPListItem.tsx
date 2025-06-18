@@ -62,19 +62,6 @@ const SRPListItem = ({
     onActionComplete(keyring.metadata.id);
   };
 
-  const handleDetailsToggle = () => {
-    trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
-      )
-        .addProperties({
-          button_type: 'details',
-        })
-        .build(),
-    );
-    setShowAccounts(!showAccounts);
-  };
-
   return (
     <TouchableWithoutFeedback
       onPress={handleSRPSelection}

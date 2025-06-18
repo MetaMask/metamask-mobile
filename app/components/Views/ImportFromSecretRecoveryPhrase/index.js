@@ -708,7 +708,12 @@ const ImportFromSecretRecoveryPhrase = ({
                       'import_from_seed.enter_your_secret_recovery_phrase',
                     )}
                   </Text>
-                  <TouchableOpacity onPress={showWhatIsSeedPhrase}>
+                  <TouchableOpacity
+                    onPress={showWhatIsSeedPhrase}
+                    testID={
+                      ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID
+                    }
+                  >
                     <Icon
                       name={IconName.Info}
                       size={IconSize.Md}

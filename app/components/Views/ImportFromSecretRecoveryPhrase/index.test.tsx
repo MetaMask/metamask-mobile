@@ -560,6 +560,20 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const input3 = getInput(3);
       expect(input3).toBeOnTheScreen();
     });
+
+    it('show seedphrase modal when srp link is pressed', () => {
+      const { getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      const srpLink = getByTestId(
+        ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID,
+      );
+      expect(srpLink).toBeOnTheScreen();
+      fireEvent.press(srpLink);
+    });
   });
 
   describe('Create password UI', () => {

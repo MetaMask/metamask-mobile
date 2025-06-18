@@ -138,7 +138,7 @@ enum EVENT_NAME {
   WALLET_IMPORT_ATTEMPTED = 'Wallet Import Attempted',
   WALLET_IMPORTED = 'Wallet Imported',
   WALLET_CREATION_ATTEMPTED = 'Wallet Creation Attempted',
-  WALLET_CREATED = 'Wallet Created',
+  WALLET_CREATED = 'Wallet Created (Onboarding)',
   WALLET_SETUP_FAILURE = 'Wallet Setup Failure',
   WALLET_SETUP_COMPLETED = 'Wallet Setup Completed',
   WALLET_REHYDRATION_SELECTED = 'Wallet Rehydration Selected',
