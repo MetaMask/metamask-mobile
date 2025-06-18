@@ -128,7 +128,7 @@ it.only(`send an ERC721 token from a dapp using ${MEGAETH_TESTNET.nickname}`, as
 
         // Check activity tab
         await TabBarComponent.tapActivity();
-        await Assertions.checkIfTextIsDisplayed('Confirmed');
+        await Assertions.checkIfTextIsDisplayed('Submitted');
         await Assertions.checkIfTextIsDisplayed(
           ActivitiesViewSelectorsText.SENT_COLLECTIBLE_MESSAGE_TEXT,
         );
