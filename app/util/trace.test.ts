@@ -4,7 +4,17 @@ import {
   startSpanManual,
 } from '@sentry/react-native';
 import { Scope, type Span, withIsolationScope } from '@sentry/core';
-import { endTrace, trace, TraceName, TRACES_CLEANUP_INTERVAL } from './trace';
+import {
+  bufferedEndTrace,
+  bufferedTrace,
+  endTrace,
+  flushBufferedTraces,
+  trace,
+  TraceName,
+  TRACES_CLEANUP_INTERVAL,
+} from './trace';
+import storageWrapper from '../store/storage-wrapper';
+import { AGREED } from '../constants/storage';
 
 jest.mock('@sentry/react-native', () => ({
   startSpan: jest.fn(),
@@ -318,6 +328,78 @@ describe('Trace', () => {
 
       jest.advanceTimersByTime(TRACES_CLEANUP_INTERVAL + 1000);
 
+      expect(spanEndMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('bufferedTrace', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useFakeTimers({ legacyFakeTimers: true });
+    });
+
+    it('send buffered trace after if consent is given', async () => {
+      const spanEndMock = jest.fn();
+      const spanMock = { end: spanEndMock } as unknown as Span;
+
+      startSpanManualMock.mockImplementation((_, fn) =>
+        fn(spanMock, () => {
+          // Intentionally empty
+        }),
+      );
+
+      bufferedTrace({
+        name: NAME_MOCK,
+        id: ID_MOCK,
+        tags: TAGS_MOCK,
+        data: DATA_MOCK,
+        parentContext: PARENT_CONTEXT_MOCK,
+      });
+
+      bufferedEndTrace({ name: NAME_MOCK, id: ID_MOCK });
+
+      jest
+        .spyOn(storageWrapper, 'getItem')
+        .mockImplementation(async () => AGREED);
+
+      await flushBufferedTraces();
+
+      jest.advanceTimersByTime(TRACES_CLEANUP_INTERVAL + 1000);
+
+      // called twice because of the buffer trace and buffered end trace
+      expect(spanEndMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('discard buffered trace if consent is not given', async () => {
+      jest.spyOn(storageWrapper, 'getItem').mockClear();
+
+      const spanEndMock = jest.fn();
+      const spanMock = { end: spanEndMock } as unknown as Span;
+
+      startSpanManualMock.mockImplementation((_, fn) =>
+        fn(spanMock, () => {
+          // Intentionally empty
+        }),
+      );
+
+      bufferedTrace({
+        name: NAME_MOCK,
+        id: ID_MOCK,
+        tags: TAGS_MOCK,
+        data: DATA_MOCK,
+        parentContext: PARENT_CONTEXT_MOCK,
+      });
+
+      bufferedEndTrace({ name: NAME_MOCK, id: ID_MOCK });
+
+      await flushBufferedTraces();
+
+      jest.advanceTimersByTime(TRACES_CLEANUP_INTERVAL + 1000);
+
+      // will be called once because bufferedEndTrace will be call endTrace
       expect(spanEndMock).toHaveBeenCalledTimes(1);
     });
   });
