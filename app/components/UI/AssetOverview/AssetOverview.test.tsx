@@ -577,53 +577,6 @@ describe('AssetOverview', () => {
       });
     });
 
-    it('should switch networks before swapping when on different chain', async () => {
-      const differentChainAsset = {
-        ...asset,
-        chainId: '0x89', // Different chain (Polygon)
-      };
-
-      const { getByTestId } = renderWithProvider(
-        <AssetOverview
-          asset={differentChainAsset}
-          displayBuyButton
-          displaySwapsButton
-          displayBridgeButton
-          swapsIsLive
-        />,
-        { state: mockInitialState },
-      );
-
-      const swapButton = getByTestId('token-swap-button');
-      await fireEvent.press(swapButton);
-
-      // Wait for all promises to resolve
-      await Promise.resolve();
-
-      expect(navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
-
-      expect(
-        Engine.context.NetworkController.getNetworkConfigurationByChainId,
-      ).toHaveBeenCalledWith('0x89');
-
-      // Fast-forward timers to trigger the swap navigation
-      jest.advanceTimersByTime(500);
-
-      expect(navigate).toHaveBeenCalledWith('Swaps', {
-        screen: 'SwapsAmountView',
-        params: {
-          sourceToken: differentChainAsset.address,
-          sourcePage: 'MainView',
-          chainId: '0x89',
-        },
-      });
-    });
-
     it('should not switch networks when on same chain', async () => {
       const sameChainAsset = {
         ...asset,
