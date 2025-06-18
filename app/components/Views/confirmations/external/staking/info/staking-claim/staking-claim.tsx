@@ -15,7 +15,7 @@ import InfoSection from '../../../../components/UI/info-row/info-section';
 import StakingContractInteractionDetails from '../../components/staking-contract-interaction-details/staking-contract-interaction-details';
 import { HeroRow } from '../../../../components/rows/transactions/hero-row';
 import GasFeesDetailsRow from '../../../../components/rows/transactions/gas-fee-details-row';
-import { ConfirmationInfoComponentIDs } from '../../../../constants/test';
+import { ConfirmationInfoComponentIDs } from '../../../../constants/info-ids';
 
 const StakingClaim = ({
   route,

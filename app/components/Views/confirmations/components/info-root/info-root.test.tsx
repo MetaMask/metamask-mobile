@@ -12,7 +12,7 @@ import {
 import { approveERC20TransactionStateMock } from '../../__mocks__/approve-transaction-mock';
 // eslint-disable-next-line import/no-namespace
 import * as QRHardwareHook from '../../context/qr-hardware-context/qr-hardware-context';
-import { ConfirmationInfoComponentIDs } from '../../constants/test';
+import { ConfirmationInfoComponentIDs } from '../../constants/info-ids';
 import Info from './info-root';
 
 jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
@@ -30,7 +30,7 @@ const MockText = Text;
 jest.mock('../qr-info', () => () => {
   const View = jest.requireActual('react-native').View;
   const componentIDs = jest.requireActual(
-    '../../constants/test',
+    '../../constants/info-ids',
   ).ConfirmationInfoComponentIDs;
   return (
     <View testID={componentIDs.QR_INFO}>

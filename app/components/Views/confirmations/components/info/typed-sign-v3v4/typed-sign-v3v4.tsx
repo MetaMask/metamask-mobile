@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 
-import { ConfirmationInfoComponentIDs } from '../../../constants/test';
+import { ConfirmationInfoComponentIDs } from '../../../constants/info-ids';
 import AccountNetworkInfoRow from '../../rows/account-network-info-row';
 import { InfoSectionOriginAndDetails } from './info-section-origin-and-details';
 import Message from './message';

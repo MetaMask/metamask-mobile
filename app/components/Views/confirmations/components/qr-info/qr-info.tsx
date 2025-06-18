@@ -16,7 +16,7 @@ import {
 } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
-import { ConfirmationInfoComponentIDs } from '../../constants/test';
+import { ConfirmationInfoComponentIDs } from '../../constants/info-ids';
 import styleSheet from './qr-info.styles';
 
 const QRInfo = () => {

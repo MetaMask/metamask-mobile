@@ -7,7 +7,7 @@ import { SimulationDetails } from '../../../../../UI/SimulationDetails/Simulatio
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { ConfirmationInfoComponentIDs } from '../../../constants/test';
+import { ConfirmationInfoComponentIDs } from '../../../constants/info-ids';
 import useNavbar from '../../../hooks/ui/useNavbar';
 import { MMM_ORIGIN } from '../../../constants/confirmations';
 import { useMaxValueRefresher } from '../../../hooks/useMaxValueRefresher';

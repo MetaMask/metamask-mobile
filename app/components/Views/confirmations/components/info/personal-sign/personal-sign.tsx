@@ -5,7 +5,7 @@ import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import AccountNetworkInfoRow from '../../rows/account-network-info-row';
 import OriginRow from '../../rows/origin-row';
 import Message from './message';
-import { ConfirmationInfoComponentIDs } from '../../../constants/test';
+import { ConfirmationInfoComponentIDs } from '../../../constants/info-ids';
 
 const PersonalSign = () => {
   const { approvalRequest } = useApprovalRequest();
