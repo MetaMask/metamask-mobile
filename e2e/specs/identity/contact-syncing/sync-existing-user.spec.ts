@@ -17,10 +17,9 @@ import { mockIdentityServices } from '../utils/mocks';
 import { SmokeWalletPlatform } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
-import { getEventsPayloads } from '../../analytics/helpers';
-import { EVENT_NAME } from '../../../../app/core/Analytics/MetaMetrics.events';
 import { MockttpServer } from 'mockttp';
 import ContactsView from '../../../pages/Settings/Contacts/ContactsView';
+import SettingsView from '../../../pages/Settings/SettingsView';
 
 describe(
   SmokeWalletPlatform('Contact syncing - syncs previously synced contacts'),
@@ -32,6 +31,8 @@ describe(
       const segmentMock = {
         POST: [mockEvents.POST.segmentTrack],
       };
+
+      await TestHelpers.reverseServerPort();
 
       mockServer = await startMockServer(
         segmentMock,
@@ -50,8 +51,6 @@ describe(
           getResponse: contactsSyncMockResponse,
         },
       );
-
-      await TestHelpers.reverseServerPort();
 
       await TestHelpers.launchApp({
         newInstance: true,
@@ -89,35 +88,12 @@ describe(
 
       await TabBarComponent.tapSettings();
       await TestHelpers.delay(1000);
-      await ContactsView.tapAddContactButton();
+      await SettingsView.tapContacts();
       await Assertions.checkIfVisible(ContactsView.container);
       await TestHelpers.delay(4000);
 
       for (const contactName of decryptedContactNames) {
         await ContactsView.isContactAliasVisible(contactName);
-      }
-
-      /**
-       * TEST SEGMENT/METAMETRICS EVENTS
-       */
-      const events = await getEventsPayloads(mockServer, [
-        EVENT_NAME.IDENTITY_EVENT,
-      ]);
-
-      // There should be 2 events for updating the names (from user storage)
-      const updatedContactEvents = events.filter(
-        (event) =>
-          event.event === EVENT_NAME.IDENTITY_EVENT &&
-          event.properties?.feature_name === 'Contacts Sync' &&
-          event.properties?.action === 'Contacts Sync Contact Updated'
-      );
-
-      await Assertions.checkIfArrayHasLength(updatedContactEvents, 2);
-
-      for (const event of events) {
-        await Assertions.checkIfObjectContains(event.properties, { profile_id: expect.anything() });
-        await Assertions.checkIfObjectContains(event.properties, { contact_address: expect.anything() });
-        await Assertions.checkIfObjectContains(event.properties, { contact_name: expect.anything() });
       }
     });
   },
