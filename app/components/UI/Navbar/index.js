@@ -1107,6 +1107,14 @@ export function getWalletNavbarOptions(
         >
           <AddressCopy account={selectedInternalAccount} />
         </View>
+        <ButtonIcon
+          iconColor={IconColor.Default}
+          onPress={() => {
+            navigation.navigate('CardModeView');
+          }}
+          iconName={IconName.Card}
+          size={IconSize.Xl}
+        />
         {isNotificationsFeatureEnabled() && (
           <View>
             {/* Icon */}

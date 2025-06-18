@@ -123,9 +123,6 @@ import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlag
 import { toFormattedAddress } from '../../../util/address';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import CardAssetList from '../../UI/Card/CardAssetList/CardAssetList';
-import { isCardHolder } from '../../UI/Tokens/TokenList/PortfolioBalance/card.utils';
-import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const createStyles = ({ colors, typography }: Theme) =>
@@ -185,16 +182,9 @@ const WalletTokensTabView = React.memo(
     navigation: WalletProps['navigation'];
     onChangeTab: (value: ChangeTabProperties) => void;
     defiEnabled: boolean;
-    cardEnabled: boolean;
     collectiblesEnabled: boolean;
   }) => {
-    const {
-      navigation,
-      onChangeTab,
-      defiEnabled,
-      collectiblesEnabled,
-      cardEnabled,
-    } = props;
+    const { navigation, onChangeTab, defiEnabled, collectiblesEnabled } = props;
 
     const theme = useTheme();
     const styles = useMemo(() => createStyles(theme), [theme]);
@@ -228,15 +218,6 @@ const WalletTokensTabView = React.memo(
       [navigation],
     );
 
-    const cardTabProps = useMemo(
-      () => ({
-        key: 'card-tab',
-        tabLabel: strings('wallet.card'),
-        navigation,
-      }),
-      [navigation],
-    );
-
     const defiPositionsTabProps = useMemo(
       () => ({
         key: 'defi-tab',
@@ -255,12 +236,9 @@ const WalletTokensTabView = React.memo(
       [navigation],
     );
 
-    Logger.log(cardEnabled);
-
     return (
       <ScrollableTabView renderTabBar={renderTabBar} onChangeTab={onChangeTab}>
         <Tokens {...tokensTabProps} />
-        {cardEnabled && <CardAssetList {...cardTabProps} />}
         {defiEnabled && <DeFiPositionsList {...defiPositionsTabProps} />}
         {collectiblesEnabled && (
           <CollectibleContracts {...collectibleContractsTabProps} />
@@ -694,33 +672,6 @@ const Wallet = ({
     }
   }, []);
 
-  // BEGIN CARD LOGIC. NEEDS TO BE REFACTORED
-  const isLineaSelected = useMemo(
-    () => LINEA_CHAIN_ID === chainId.toString(),
-    [chainId],
-  );
-  const [isCardholder, setIsCardholder] = React.useState<boolean>(false);
-  const fakeAccount = false;
-
-  useEffect(() => {
-    const checkCardHolder = async () => {
-      if (selectedAddress && isLineaSelected) {
-        const isHolder = await isCardHolder(
-          fakeAccount
-            ? '0xFe4F94B62C04627C2677bF46FB249321594d0d79'
-            : selectedAddress,
-          chainId,
-        );
-        setIsCardholder(isHolder);
-      }
-    };
-
-    checkCardHolder();
-  }, [selectedAddress, chainId, isLineaSelected, fakeAccount]);
-  Logger.log('isLineaSelected', isLineaSelected);
-  Logger.log('isCardholder', isCardholder);
-  // END CARD LOGIC
-
   const onChangeTab = useCallback(
     async (obj: ChangeTabProperties) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
@@ -824,7 +775,6 @@ const Wallet = ({
             onChangeTab={onChangeTab}
             defiEnabled={defiEnabled}
             collectiblesEnabled={isEvmSelected}
-            cardEnabled={isLineaSelected && isCardholder}
           />
           {
             ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -844,8 +794,6 @@ const Wallet = ({
       turnOnBasicFunctionality,
       onChangeTab,
       navigation,
-      isLineaSelected,
-      isCardholder,
     ],
   );
   const renderLoader = useCallback(

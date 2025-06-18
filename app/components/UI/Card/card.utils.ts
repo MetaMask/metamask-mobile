@@ -1,13 +1,13 @@
 /* eslint-disable no-console */
-import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
-import Logger from '../../../../../util/Logger';
-import { renderFromTokenMinimalUnit } from '../../../../../util/number';
-
-/**
- * Linea chain ID in hex format
- */
-export const LINEA_CHAIN_ID = '0xe708' as Hex;
+import Logger from '../../../util/Logger';
+import { renderFromTokenMinimalUnit } from '../../../util/number';
+import {
+  CardFeature,
+  SupportedToken,
+} from '../../../selectors/featureFlagController/card';
+import { getDecimalChainId } from '../../../util/networks';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 
 /**
  * FoxConnect contract addresses on Linea
@@ -32,11 +32,13 @@ const erc20Abi = [
 ];
 
 /**
- * ERC20 approval event topic
+ * Enum for asset delegation status
  */
-// const APPROVAL_EVENT_TOPIC =
-//   '0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925';
-
+export enum AllowanceState {
+  Delegatable = 'delegatable',
+  Unlimited = 'unlimited',
+  Limited = 'limited',
+}
 /**
  * Transfer event topic
  */
@@ -59,65 +61,24 @@ export interface TokenConfig {
   symbol: string;
   name: string;
   balance: string; // Display balance formatted for UI
+  allowanceState: AllowanceState;
   rawBalance: ethers.BigNumber | string;
   globalAllowance: string;
   usAllowance: string;
 }
 
-/** *
- * Supported token addresses on Linea
+/**
+ * Get contract instances for all supported tokens
+ * @param provider - Ethers provider for Linea
+ * @param tokenAddressesList - List of supported token addresses
+ * @returns Array of contract instances for each token
  */
-const assetList: Record<
-  string,
-  {
-    address: string;
-    decimals: number;
-    name: string;
-    symbol: string; // Some tokens may not have a symbol
-  }
-> = {
-  USDC: {
-    address: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
-    decimals: 6,
-    name: 'USD Coin',
-    symbol: 'USDC',
-  },
-  USDT: {
-    address: '0xA219439258ca9da29E9Cc4cE5596924745e12B93',
-    decimals: 6,
-    name: 'Tether USD',
-    symbol: 'USDT',
-  },
-  WETH: {
-    address: '0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f',
-    decimals: 18,
-    name: 'Wrapped Ether',
-    symbol: 'WETH',
-  },
-  EURe: {
-    address: '0x3ff47c5Bf409C86533FE1f4907524d304062428D',
-    decimals: 18,
-    name: 'EURe',
-    symbol: 'EURe',
-  },
-  GBPe: {
-    address: '0x3Bce82cf1A2bc357F956dd494713Fe11DC54780f',
-    decimals: 18,
-    name: 'GBPe',
-    symbol: 'GBPe',
-  },
-  aUSDC: {
-    address: '0x374D7860c4f2f604De0191298dD393703Cce84f3',
-    decimals: 6,
-    name: 'Aave USDC',
-    symbol: 'aUSDC',
-  },
-};
-
-const getContractsInstances = (provider: ethers.providers.JsonRpcProvider) =>
-  Object.values(assetList).map(
-    (tokenAddress) =>
-      new ethers.Contract(tokenAddress.address, erc20Abi, provider),
+const getContractsInstances = (
+  provider: ethers.providers.JsonRpcProvider,
+  tokenAddressesList: string[],
+) =>
+  Object.values(tokenAddressesList).map(
+    (tokenAddresses) => new ethers.Contract(tokenAddresses, erc20Abi, provider),
   );
 
 const createProvider = () => {
@@ -142,14 +103,63 @@ const createProvider = () => {
 };
 
 /**
+ * getAllowanceState - Determines the allowance state based on the allowance value
+ * @param allowance - The allowance value as a string
+ * @returns AllowanceState - The state of the allowance
+ */
+const getAllowanceState = (allowance: string): AllowanceState => {
+  if (allowance === '0') {
+    return AllowanceState.Delegatable;
+  }
+  // use BigInt for very large values
+  const amount = BigInt(allowance);
+  const UNLIMITED_THRESHOLD = BigInt(99999999999);
+
+  if (amount > UNLIMITED_THRESHOLD) {
+    return AllowanceState.Unlimited;
+  }
+
+  return AllowanceState.Limited;
+};
+
+export const mapCardFeatureToSupportedTokens = (
+  cardFeature: CardFeature | null,
+): SupportedToken[] => {
+  if (!cardFeature) {
+    return [];
+  }
+
+  const supportedTokens: SupportedToken[] = [];
+
+  Object.entries(cardFeature).forEach(([_, chainData]) => {
+    if (chainData?.enabled && chainData.tokens) {
+      chainData.tokens.forEach((token) => {
+        if (token.enabled && token.address) {
+          supportedTokens.push({
+            address: token.address,
+            decimals: token.decimals ?? 18,
+            name: token.name ?? '',
+            symbol: token.symbol ?? '',
+          });
+        }
+      });
+    }
+  });
+
+  return supportedTokens;
+};
+
+/**
  * Check if the address has delegated funds to the FoxConnect contracts using allowance
  * @param address - The address to check
  * @param provider - Ethers provider for Linea
+ * @param tokenAddressesList - List of supported token addresses
  * @returns Promise<boolean>
  */
 const hasDelegatedFunds = async (
   address: string,
   provider: ethers.providers.JsonRpcProvider,
+  tokenAddressesList: string[],
 ): Promise<boolean> => {
   if (!address || typeof address !== 'string') {
     return false;
@@ -158,7 +168,10 @@ const hasDelegatedFunds = async (
   try {
     Logger.log(`Checking delegated funds for address: ${address}`);
 
-    const contractInstances = getContractsInstances(provider);
+    const contractInstances = getContractsInstances(
+      provider,
+      tokenAddressesList,
+    );
 
     const allowanceChecksPromises = contractInstances.reduce(
       (acc, contract) => {
@@ -185,14 +198,8 @@ const hasDelegatedFunds = async (
     );
 
     // Check if any token has a non-zero allowance for either FoxConnect contract
-    for (let i = 0; i < allowances.length; i++) {
-      const allowance = allowances[i];
+    for (const allowance of allowances) {
       if (!allowance.isZero()) {
-        const tokenName = i < 2 ? 'USDC' : i < 4 ? 'USDT' : 'WETH';
-        const contractType = i % 2 === 0 ? 'Global' : 'US';
-        Logger.log(
-          `Found non-zero allowance for ${tokenName} to ${contractType} contract: ${allowance.toString()}`,
-        );
         return true;
       }
     }
@@ -209,11 +216,13 @@ const hasDelegatedFunds = async (
  * Check if the address has performed transactions with the FoxConnect contracts
  * @param address - The address to check
  * @param provider - Ethers provider for Linea
+ * @param tokenAddressesList - List of supported token addresses
  * @returns Promise<boolean>
  */
 const hasTransactedWithFoxConnect = async (
   address: string,
   provider: ethers.providers.JsonRpcProvider,
+  tokenAddressesList: string[],
 ): Promise<boolean> => {
   if (!address || typeof address !== 'string') {
     return false;
@@ -269,7 +278,10 @@ const hasTransactedWithFoxConnect = async (
     }
 
     // Check token balances directly
-    const contractsInstances = getContractsInstances(provider);
+    const contractsInstances = getContractsInstances(
+      provider,
+      tokenAddressesList,
+    );
 
     // First check if the user has any tokens (a prerequisite for transferring them)
     const balancesPromises = contractsInstances.map((contract) => {
@@ -319,7 +331,7 @@ const hasTransactedWithFoxConnect = async (
     // Split into separate smaller queries for better performance
     let transferFound = false;
 
-    for (const tokenAddress of Object.keys(assetList)) {
+    for (const tokenAddress of tokenAddressesList) {
       const tokenBalance = balances[tokenAddress];
 
       // Skip if balance is not an object or is zero
@@ -421,35 +433,34 @@ const hasTransactedWithFoxConnect = async (
 /**
  * Fetch balances of supported tokens on Linea
  * @param address - The address to check
- * @param networkId - The network ID to check, defaults to Linea
+ * @param tokenAddressesList - List of supported token addresses
+ * @param cardFeature - The card feature configuration
  * @returns Promise<boolean>
  */
 export const fetchSupportedTokensBalances = async (
   address: string,
+  cardFeature: CardFeature | null,
 ): Promise<{
   balanceList: TokenConfig[];
   totalBalanceDisplay: string;
 }> => {
   try {
     const provider = createProvider();
+    const supportedTokens = mapCardFeatureToSupportedTokens(cardFeature);
+
+    if (!supportedTokens || supportedTokens.length === 0) {
+      console.warn('No supported tokens found for the card feature');
+      return {
+        balanceList: [],
+        totalBalanceDisplay: '0',
+      };
+    }
 
     // Initialize token contracts
-    const contractInstances = getContractsInstances(provider);
-
-    // const usdcContract = contractInstances.filter(
-    //   (ct) => ct.address === assetList.USDC.address,
-    // )[0];
-
-    // usdcContract
-    //   .allowance(address, FOXCONNECT_GLOBAL_ADDRESS)
-    //   .then((allowance) => {
-    //     Logger.log(
-    //       `USDC allowance for ${address} on Global contract: ${allowance.toString()}`,
-    //     );
-    //   })
-    //   .catch((error) => {
-    //     Logger.log('Error checking USDC allowance:', error);
-    //   });
+    const contractInstances = getContractsInstances(
+      provider,
+      supportedTokens.map((token) => token.address as string),
+    );
 
     const balanceListResult = await Promise.all(
       contractInstances.map((contract) =>
@@ -479,8 +490,9 @@ export const fetchSupportedTokensBalances = async (
         globalAllowance,
         usAllowance,
       }) => {
-        const tokenInfo = Object.values(assetList).find(
-          (token) => token.address.toLowerCase() === TokenAddress.toLowerCase(),
+        const tokenInfo = supportedTokens.find(
+          (token) =>
+            token.address?.toLowerCase() === TokenAddress.toLowerCase(),
         );
 
         if (!tokenInfo) {
@@ -494,35 +506,37 @@ export const fetchSupportedTokensBalances = async (
 
         const { decimals, name, symbol } = tokenInfo;
 
+        const allowance = !usAllowance?.isZero()
+          ? usAllowance
+          : globalAllowance;
+        const allowanceState = getAllowanceState(allowance.toString());
+
         return {
           address: TokenAddress,
-          symbol,
-          name,
-          balance: renderFromTokenMinimalUnit(raw.toString(), decimals),
+          symbol: symbol || '',
+          name: name || '',
+          balance: renderFromTokenMinimalUnit(raw.toString(), decimals || 18),
           rawBalance: raw,
-          decimals,
+          decimals: decimals || 18,
           contract,
+          allowanceState,
           globalAllowance: globalAllowance
-            ? renderFromTokenMinimalUnit(globalAllowance.toString(), decimals)
+            ? renderFromTokenMinimalUnit(
+                globalAllowance.toString(),
+                decimals || 18,
+              )
             : '0',
           usAllowance: usAllowance
-            ? renderFromTokenMinimalUnit(usAllowance.toString(), decimals)
+            ? renderFromTokenMinimalUnit(usAllowance.toString(), decimals || 18)
             : '0',
         };
       },
     );
 
-    // Calculate total balance by summing USDT and USDC balances (excluding WETH)
-    const totalRawBalance = balanceList.reduce((total, token) => {
-      // Only add USDC and USDT to the total
-      if (
-        token.address === assetList.USDC.address ||
-        token.address === assetList.USDT.address
-      ) {
-        return total.add(token.rawBalance);
-      }
-      return total;
-    }, ethers.BigNumber.from(0));
+    const totalRawBalance = balanceList.reduce(
+      (total, token) => total.add(token.rawBalance),
+      ethers.BigNumber.from(0),
+    );
 
     const hasNonZeroBalance = !totalRawBalance.isZero();
 
@@ -550,27 +564,44 @@ export const fetchSupportedTokensBalances = async (
 /**
  * Checks if the given address is a card holder
  * @param address - The Ethereum address to check
- * @param networkId - Optional network ID, defaults to Linea
+ * @param rawNetworkId - Current selected network ID
+ * @param cardFeature - Optional card feature configuration
  * @returns Promise<boolean> - Whether the address is a card holder
  */
 export const isCardHolder = async (
   address: string,
-  networkId: string = LINEA_CHAIN_ID,
+  cardFeature: CardFeature,
+  rawNetworkId: `0x${string}` | SupportedCaipChainId,
 ): Promise<boolean> => {
   try {
+    const supportedNetworks = Object.keys(cardFeature).map(
+      (key) => key.split(':')[1],
+    );
+    const networkId = getDecimalChainId(rawNetworkId);
+
+    if (!supportedNetworks.includes(networkId)) {
+      Logger.log(
+        `Network ID ${networkId} is not supported by card feature, skipping card check`,
+      );
+      return false;
+    }
+
+    const supportedTokens = cardFeature[`eip155:${networkId}`]?.tokens?.filter(
+      (token) => token.enabled,
+    );
+
+    if (!supportedTokens || supportedTokens.length === 0) {
+      Logger.log(
+        `No supported tokens found for network ID ${networkId}, skipping card check`,
+      );
+      return false;
+    }
+
     // Normalize address
     const normalizedAddress = address?.toLowerCase();
 
     if (!normalizedAddress) {
       Logger.log('Invalid address provided');
-      return false;
-    }
-
-    // Only check on Linea network
-    if (networkId !== LINEA_CHAIN_ID) {
-      Logger.log(
-        `Network ID ${networkId} is not Linea ${LINEA_CHAIN_ID}, skipping card check`,
-      );
       return false;
     }
 
@@ -603,7 +634,11 @@ export const isCardHolder = async (
     Logger.log(
       'Checking if address has delegated funds to FoxConnect contracts',
     );
-    const delegated = await hasDelegatedFunds(normalizedAddress, provider);
+    const delegated = await hasDelegatedFunds(
+      normalizedAddress,
+      provider,
+      supportedTokens.map((token) => token.address as string),
+    );
     if (delegated) {
       Logger.log(
         `Address ${normalizedAddress} has delegated funds to FoxConnect contracts`,
@@ -620,6 +655,7 @@ export const isCardHolder = async (
     const transacted = await hasTransactedWithFoxConnect(
       normalizedAddress,
       provider,
+      supportedTokens.map((token) => token.address as string),
     );
 
     Logger.log(

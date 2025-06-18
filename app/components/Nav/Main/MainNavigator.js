@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
@@ -93,13 +93,13 @@ import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
+import CardView from '../../Views/Card';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
-import CardBalance from '../../UI/Tokens/TokenList/CardBalance';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -190,11 +190,6 @@ const WalletTabStackFlow = () => (
     <Stack.Screen
       name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
       component={RevealPrivateCredential}
-    />
-    <Stack.Screen
-      name="CardBalance"
-      component={CardBalance}
-      options={CardBalance.navigationOptions}
     />
   </Stack.Navigator>
 );
@@ -715,6 +710,16 @@ const PaymentRequestView = () => (
   </Stack.Navigator>
 );
 
+const CardModeView = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="CardModeView"
+      component={CardView}
+      options={CardView.navigationOptions}
+    />
+  </Stack.Navigator>
+);
+
 /* eslint-disable react/prop-types */
 const NotificationsModeView = (props) => (
   <Stack.Navigator>
@@ -852,6 +857,7 @@ const MainNavigator = () => (
       name={Routes.NOTIFICATIONS.VIEW}
       component={NotificationsModeView}
     />
+    <Stack.Screen name="CardModeView" component={CardModeView} />
     <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
     <Stack.Screen name="NftDetails" component={NftDetailsModeView} />
     <Stack.Screen

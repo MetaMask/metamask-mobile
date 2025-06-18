@@ -1,5 +1,5 @@
-import { View } from 'react-native';
-import { TokenConfig } from '../../Tokens/TokenList/PortfolioBalance/card.utils';
+import { StyleProp, View, ViewStyle } from 'react-native';
+import { AllowanceState, TokenConfig } from '../card.utils';
 import React, { useCallback } from 'react';
 import { useTheme } from '../../../../util/theme';
 import createStyles from './styles';
@@ -15,8 +15,6 @@ const CardAssetListItem: React.FC<{
 }> = ({ token }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const allowance =
-    token.usAllowance !== '0' ? token.usAllowance : token.globalAllowance;
 
   const renderNetworkAvatar = useCallback(() => {
     if (!token) {
@@ -27,32 +25,29 @@ const CardAssetListItem: React.FC<{
   }, [token]);
 
   const renderChip = useCallback(() => {
-    if (allowance === '0') {
-      return <Tag label="Delegatable" />;
-    }
+    const allowance =
+      token.usAllowance !== '0' ? token.usAllowance : token.globalAllowance;
 
-    // unlimited allowance is set to maximum value.
-    // set an arbitrary number to represent unlimited allowance
-    if (parseInt(allowance) > 99999999999) {
-      return (
-        <Tag
-          label="Enabled"
-          style={{
-            backgroundColor: colors.success.muted,
-          }}
-        />
-      );
-    }
+    const tagConfig: Record<
+      AllowanceState,
+      { label: string; style?: StyleProp<ViewStyle> }
+    > = {
+      [AllowanceState.Delegatable]: {
+        label: 'Delegatable',
+      },
+      [AllowanceState.Unlimited]: {
+        label: 'Enabled',
+        style: { backgroundColor: colors.success.muted },
+      },
+      [AllowanceState.Limited]: {
+        label: `Limited to ${allowance} ${token.symbol}`,
+        style: { backgroundColor: colors.warning.muted },
+      },
+    };
 
-    return (
-      <Tag
-        label={`Limited to ${allowance} ${token.symbol}`}
-        style={{
-          backgroundColor: colors.warning.muted,
-        }}
-      />
-    );
-  }, [allowance, token.symbol, colors]);
+    const { label, style } = tagConfig[token.allowanceState];
+    return <Tag label={label} style={style} />;
+  }, [token, colors]);
 
   return (
     <View key={token.address} style={styles.tokenItem}>
