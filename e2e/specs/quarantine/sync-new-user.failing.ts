@@ -1,23 +1,20 @@
 import {
   IDENTITY_TEAM_PASSWORD,
   IDENTITY_TEAM_SEED_PHRASE,
-} from '../utils/constants';
-import {
-  startMockServer,
-  stopMockServer,
-} from '../../../api-mocking/mock-server';
-import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
-import TestHelpers from '../../../helpers';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import Assertions from '../../../utils/Assertions';
-import { mockIdentityServices } from '../utils/mocks';
-import { SmokeWalletPlatform } from '../../../tags';
+} from '../identity/utils/constants';
+import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
+import { importWalletWithRecoveryPhrase } from '../../viewHelper';
+import TestHelpers from '../../helpers';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import Assertions from '../../utils/Assertions';
+import { mockIdentityServices } from '../identity/utils/mocks';
+import { SmokeWalletPlatform } from '../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController';
+import { UserStorageMockttpController } from '../identity/utils/user-storage/userStorageMockttpController';
 import { MockttpServer } from 'mockttp';
-import ContactsView from '../../../pages/Settings/Contacts/ContactsView';
-import AddContactView from '../../../pages/Settings/Contacts/AddContactView';
-import SettingsView from '../../../pages/Settings/SettingsView';
+import ContactsView from '../../pages/Settings/Contacts/ContactsView';
+import AddContactView from '../../pages/Settings/Contacts/AddContactView';
+import SettingsView from '../../pages/Settings/SettingsView';
 
 describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
   const NEW_CONTACT_NAME = 'New Test Contact';
