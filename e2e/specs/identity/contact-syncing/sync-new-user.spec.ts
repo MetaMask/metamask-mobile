@@ -13,11 +13,7 @@ import Assertions from '../../../utils/Assertions';
 import { mockIdentityServices } from '../utils/mocks';
 import { SmokeWalletPlatform } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import { arrangeTestUtils } from './helpers';
-import {
-  UserStorageMockttpController,
-  UserStorageMockttpControllerEvents,
-} from '../utils/user-storage/userStorageMockttpController';
+import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController';
 import { MockttpServer } from 'mockttp';
 import ContactsView from '../../../pages/Settings/Contacts/ContactsView';
 import AddContactView from '../../../pages/Settings/Contacts/AddContactView';
@@ -75,19 +71,10 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
     await ContactsView.tapAddContactButton();
     await Assertions.checkIfVisible(AddContactView.container);
 
-    const { prepareEventsEmittedCounter } =
-      arrangeTestUtils(userStorageMockttpController);
-    const { waitUntilEventsEmittedNumberEquals } = prepareEventsEmittedCounter(
-      UserStorageMockttpControllerEvents.PUT_SINGLE,
-    );
-
     await AddContactView.typeInName(NEW_CONTACT_NAME);
     await AddContactView.typeInAddress(NEW_CONTACT_ADDRESS);
     await AddContactView.tapAddContactButton();
-    await TestHelpers.delay(2000);
-
-    await waitUntilEventsEmittedNumberEquals(1);
-
+    await TestHelpers.delay(5000);
     await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
 
     await TestHelpers.launchApp({

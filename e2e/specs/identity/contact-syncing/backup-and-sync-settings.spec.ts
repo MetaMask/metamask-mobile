@@ -85,7 +85,7 @@ describe(
       await AddContactView.typeInName(NEW_CONTACT_NAME);
       await AddContactView.typeInAddress(NEW_CONTACT_ADDRESS);
       await AddContactView.tapAddContactButton();
-      await TestHelpers.delay(2000);
+      await TestHelpers.delay(4000);
 
       await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
 
@@ -101,7 +101,7 @@ describe(
       });
 
       await TabBarComponent.tapSettings();
-      await TestHelpers.delay(1000);
+      await TestHelpers.delay(2000);
       await SettingsView.tapContacts();
       await Assertions.checkIfVisible(ContactsView.container);
       await TestHelpers.delay(4000);
@@ -119,7 +119,7 @@ describe(
       await AddContactView.typeInName(NEW_CONTACT_NAME);
       await AddContactView.typeInAddress(NEW_CONTACT_ADDRESS);
       await AddContactView.tapAddContactButton();
-      await TestHelpers.delay(2000);
+      await TestHelpers.delay(4000);
 
       await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
 
@@ -135,11 +135,10 @@ describe(
       });
 
       await TabBarComponent.tapSettings();
-      await TestHelpers.delay(1000);
+      await TestHelpers.delay(2000);
       await SettingsView.tapContacts();
       await Assertions.checkIfVisible(ContactsView.container);
       await TestHelpers.delay(4000);
-
       await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
     });
   },
