@@ -13,6 +13,7 @@ import { useDepositSDK } from '../../sdk';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createProviderWebviewNavDetails } from '../ProviderWebview/ProviderWebview';
 import { createBasicInfoNavDetails } from '../BasicInfo/BasicInfo';
+import { createKycWebviewNavDetails } from '../KycWebview/KycWebview';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 import { View, TouchableOpacity, Image } from 'react-native';
 import Keypad from '../../../../../Base/Keypad';
@@ -48,6 +49,8 @@ function formatAmount(
 ): string {
   return getIntlNumberFormatter(I18n.locale, options).format(amount);
 }
+import { KycStatus } from '../../hooks/useUserDetailsPolling';
+import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
 
 const BuildQuote = () => {
   const navigation = useNavigation();
@@ -79,6 +82,17 @@ const BuildQuote = () => {
     onMount: false,
   });
 
+  const [{ error: kycFormFetchError }, fetchKycFormData] = useDepositSdkMethod({
+    method: 'getKycForm',
+    onMount: false,
+  });
+
+  const [{ error: userDetailsFetchError }, fetchUserDetails] =
+    useDepositSdkMethod({
+      method: 'getUserDetails',
+      onMount: false,
+    });
+
   const { tokenAmount } = useDepositTokenExchange({
     fiatCurrency,
     fiatAmount: amount,
@@ -101,43 +115,100 @@ const BuildQuote = () => {
         getTransakPaymentMethodId(paymentMethod),
         amount,
       );
-
-      if (quote) {
-        const forms = await fetchKycForms(quote);
-        if (kycFormsFetchError) {
-          setError(strings('deposit.buildQuote.kycFormsFetchError'));
-        } else {
-          const { forms: requiredForms } = forms || {};
-          if (isAuthenticated) {
-            if (requiredForms?.length === 0) {
-              navigation.navigate(
-                ...createProviderWebviewNavDetails({ quote }),
-              );
-            } else {
-              navigation.navigate(...createBasicInfoNavDetails({ quote }));
-            }
-          } else {
-            navigation.navigate(...createEnterEmailNavDetails({ quote }));
-          }
-        }
-      } else if (quoteFetchError) {
-        // TODO: Display quote fetch error to the user?
+      if (quoteFetchError || !quote) {
         setError(strings('deposit.buildQuote.quoteFetchError'));
+        return;
       }
+
+      if (!isAuthenticated) {
+        navigation.navigate(...createEnterEmailNavDetails({ quote }));
+      }
+
+      const forms = await fetchKycForms(quote);
+
+      if (kycFormsFetchError) {
+        setError(strings('deposit.buildQuote.unexpectedError'));
+        return;
+      }
+
+      const { forms: requiredForms } = forms || {};
+
+      if (requiredForms?.length === 0) {
+        const userDetails = await fetchUserDetails();
+
+        if (userDetailsFetchError) {
+          setError(strings('deposit.buildQuote.unexpectedError'));
+          return;
+        }
+
+        if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
+          navigation.navigate(...createProviderWebviewNavDetails({ quote }));
+          return;
+        }
+
+        navigation.navigate(...createKycProcessingNavDetails({ quote }));
+        return;
+      }
+
+      const personalDetailsKycForm = requiredForms?.find(
+        (form) => form.id === 'personalDetails',
+      );
+
+      const addressKycForm = requiredForms?.find(
+        (form) => form.id === 'address',
+      );
+
+      const idProofKycForm = requiredForms?.find(
+        (form) => form.id === 'idProof',
+      );
+
+      const idProofData = idProofKycForm
+        ? await fetchKycFormData(quote, idProofKycForm)
+        : null;
+
+      if (kycFormFetchError) {
+        setError(strings('deposit.buildQuote.unexpectedError'));
+        return;
+      }
+
+      if (personalDetailsKycForm || addressKycForm) {
+        navigation.navigate(
+          ...createBasicInfoNavDetails({
+            quote,
+            kycUrl: idProofData?.data?.kycUrl,
+          }),
+        );
+        return;
+      } else if (idProofData) {
+        navigation.navigate(
+          ...createKycWebviewNavDetails({
+            quote,
+            kycUrl: idProofData.data.kycUrl,
+          }),
+        );
+        return;
+      }
+      setError(strings('deposit.buildQuote.unexpectedError'));
+      return;
     } catch (_) {
       setError(strings('deposit.buildQuote.unexpectedError'));
+      return;
     }
   }, [
-    amount,
-    cryptoCurrency,
-    fetchKycForms,
-    fiatCurrency,
     getQuote,
-    isAuthenticated,
-    navigation,
+    fiatCurrency,
+    cryptoCurrency,
     paymentMethod,
+    amount,
     quoteFetchError,
+    isAuthenticated,
+    fetchKycForms,
     kycFormsFetchError,
+    fetchKycFormData,
+    kycFormFetchError,
+    navigation,
+    fetchUserDetails,
+    userDetailsFetchError,
   ]);
 
   const handleKeypadChange = useCallback(

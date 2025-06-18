@@ -147,7 +147,8 @@
     "success": "Success",
     "your_wallet": "Your wallet was successfully reset",
     "delete_current": "Reset current wallet",
-    "have_existing_wallet": "I have an existing wallet"
+    "have_existing_wallet": "I have an existing wallet",
+    "import_using_srp": "Import using Secret Recovery Phrase"
   },
   "onboarding_success": {
     "title": "Keep your Secret Recovery Phrase safe!",
@@ -537,6 +538,10 @@
       "success_heading": "Identity successfully verified!",
       "success_description": "You can now enter your payment info and complete your deposit.",
       "success_button": "Complete your order"
+    },
+    "kyc_webview": {
+      "title": "Verifying your identity",
+      "webview_received_error": "WebView received error status code: {{code}}"
     }
   },
   "receive": {
@@ -587,10 +592,6 @@
     "multisrp": {
       "title": "Add multiple Secret Recovery Phrases",
       "subtitle": "Import and use multiple wallets in MetaMask"
-    },
-    "backupAndSync": {
-      "title": "Introducing backup and sync",
-      "subtitle": "Back up your accounts and sync settings."
     },
     "solana": {
       "title": "Solana is now supported",
@@ -2346,7 +2347,7 @@
     "info_text_1_2": "Secret Recovery Phrase",
     "info_text_1_3": "in a place you trust.",
     "info_text_1_4": "It’s the only way to recover your wallet if you get locked out of the app or get a new device.",
-    "cta_text": "Get Started",
+    "cta_text": "Get started",
     "cta_subText": "Highly recommended",
     "skip_button_cancel": "Secure now",
     "skip_button_confirm": "Skip",
@@ -2479,8 +2480,8 @@
     "error-description": "Double-check your Secret Recovery Phrase and try again.",
     "success-title": "Perfect!",
     "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
-    "success-button": "Got It",
-    "error-button": "Try Again",
+    "success-button": "Got it",
+    "error-button": "Try again",
     "continue": "Continue"
   },
   "manual_backup_step_3": {
@@ -3852,9 +3853,15 @@
         "between_one_dot_five_and_2_dot_zero": "Between 1.5-2.0",
         "medium_liquidation_risk": "Medium Liquidation risk",
         "below_one_dot_five": "Below 1.5",
-        "higher_liquidation_risk": "Higher liquidation risk",
-        "infinite": "Infinite",
-        "no_debt_maximum_security": "No debt, maximum safety"
+        "higher_liquidation_risk": "Higher liquidation risk"
+      },
+      "lending_risk_aware_withdrawal_tooltip": {
+        "why_cant_i_withdraw_full_balance": "Why can't I withdraw my full balance?",
+        "your_withdrawal_amount_may_be_limited_by": "Your withdrawal amount may be limited by",
+        "pool_liquidity": "Pool Liquidity",
+        "not_enough_funds_available_in_the_lending_pool_right_now": "Not enough funds available in the lending pool right now.",
+        "existing_borrow_positions": "Existing Borrow Positions",
+        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "Withdrawing could put your existing loan positions at risk of liquidation."
       }
     },
     "withdraw": "Withdraw",
@@ -3874,6 +3881,15 @@
       "lend_and_earn_daily_rewards": "Lend your {{tokenSymbol}} with {{protocol}} and earn daily rewards. Rewards grow over time and APR varies.",
       "withdraw_whenever_you_want": "Withdraw whenever you want",
       "get_asset_back_in_your_wallet_instantly": "Get {{tokenSymbol}} back in your wallet instantly."
+    },
+    "amount_exceeds_safe_withdrawal_limit": "Amount exceeds safe withdrawal limit",
+    "view_earnings_history": {
+      "lending": "View position history",
+      "staking": "View earnings history"
+    },
+    "earnings_history_list_title": {
+      "lending": "Position history",
+      "staking": "Payout history"
     }
   },
   "stake": {
@@ -3979,9 +3995,7 @@
     "per_year_on_your_tokens": "per year on your tokens",
     "deposit": "Deposit",
     "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than {{percentOverDeposit}}% of your deposit.",
-    "view_earnings_history": "View earnings history",
     "earnings_history_title": "{{ticker}} earnings",
-    "earnings_history_list_title": "Payout history",
     "apr": "APR",
     "interactive_chart": {
       "timespan_buttons": {
@@ -4321,6 +4335,9 @@
       "account_address": "Account Address",
       "wallet": "Wallet",
       "private_key": "Private key"
+    },
+    "accounts_list": {
+      "details": "Details"
     },
     "smart_account": {
       "title": "Enable Smart Account",
