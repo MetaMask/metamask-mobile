@@ -171,6 +171,89 @@ export const getMegaTestnetRpcMocks = (options = {}) => {
       ignoreFields: ['id', 'jsonrpc', 'params'],
       responseCode: 200,
     },
+
+    // eth_getBlockByNumber - Return mock block details
+    {
+      urlEndpoint: MEGA_TESTNET_RPC_URL,
+      response: {
+        jsonrpc: '2.0',
+        id: 1,
+        result: {
+          number: MOCK_BLOCK_NUMBER,
+          hash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+          parentHash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+          timestamp: '0x61bc7c5c',
+          gasLimit: '0x1c9c380',
+          gasUsed: '0x5208',
+          transactions: [],
+        },
+      },
+      requestBody: {
+        method: 'eth_getBlockByNumber',
+      },
+      ignoreFields: ['id', 'jsonrpc', 'params'],
+      responseCode: 200,
+    },
+
+    // eth_getCode - Return mock contract code (empty for EOA, bytecode for contracts)
+    {
+      urlEndpoint: MEGA_TESTNET_RPC_URL,
+      response: {
+        jsonrpc: '2.0',
+        id: 1,
+        result: '0x', // Empty for EOA addresses
+      },
+      requestBody: {
+        method: 'eth_getCode',
+      },
+      ignoreFields: ['id', 'jsonrpc', 'params'],
+      responseCode: 200,
+    },
+
+    // eth_call - Return mock contract call result
+    {
+      urlEndpoint: MEGA_TESTNET_RPC_URL,
+      response: {
+        jsonrpc: '2.0',
+        id: 1,
+        result: '0x0000000000000000000000000000000000000000000000000000000000000001', // Generic success response
+      },
+      requestBody: {
+        method: 'eth_call',
+      },
+      ignoreFields: ['id', 'jsonrpc', 'params'],
+      responseCode: 200,
+    },
+
+    // eth_getTransactionCount - Return mock nonce
+    {
+      urlEndpoint: MEGA_TESTNET_RPC_URL,
+      response: {
+        jsonrpc: '2.0',
+        id: 1,
+        result: '0x0', // Nonce 0 for fresh account
+      },
+      requestBody: {
+        method: 'eth_getTransactionCount',
+      },
+      ignoreFields: ['id', 'jsonrpc', 'params'],
+      responseCode: 200,
+    },
+
+    // eth_sendRawTransaction - Return mock transaction hash for submitted transactions
+    {
+      urlEndpoint: MEGA_TESTNET_RPC_URL,
+      response: {
+        jsonrpc: '2.0',
+        id: 1,
+        result: MOCK_TX_HASH,
+      },
+      requestBody: {
+        method: 'eth_sendRawTransaction',
+      },
+      ignoreFields: ['id', 'jsonrpc', 'params'],
+      responseCode: 200,
+    },
   ];
 
   // Add balance mocks for each account
