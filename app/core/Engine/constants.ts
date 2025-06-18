@@ -20,6 +20,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'AccountsController:stateChange',
+  'AccountTreeController:stateChange',
   'AccountTrackerController:stateChange',
   'AddressBookController:stateChange',
   'AppMetadataController:stateChange',
