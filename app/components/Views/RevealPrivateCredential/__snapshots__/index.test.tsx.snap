@@ -21,11 +21,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
   >
     <RCTScrollView
       automaticallyAdjustContentInsets={false}
-      contentContainerStyle={
-        {
-          "flex": 1,
-        }
-      }
+      contentContainerStyle={{}}
       contentInset={
         {
           "bottom": 0,
@@ -74,6 +70,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
           style={
             [
               {
+                "flex": 1,
                 "padding": 20,
               },
               {
@@ -188,6 +185,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             style={
               [
                 {
+                  "flex": 1,
                   "padding": 20,
                 },
                 {
@@ -267,11 +265,10 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
           style={
             [
               {
+                "flex": 1,
                 "padding": 20,
               },
-              {
-                "flex": 1,
-              },
+              {},
             ]
           }
         >
@@ -433,11 +430,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
   >
     <RCTScrollView
       automaticallyAdjustContentInsets={false}
-      contentContainerStyle={
-        {
-          "flex": 1,
-        }
-      }
+      contentContainerStyle={{}}
       contentInset={
         {
           "bottom": 0,
@@ -486,6 +479,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
           style={
             [
               {
+                "flex": 1,
                 "padding": 20,
               },
               {
@@ -600,6 +594,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             style={
               [
                 {
+                  "flex": 1,
                   "padding": 20,
                 },
                 {
@@ -679,11 +674,10 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
           style={
             [
               {
+                "flex": 1,
                 "padding": 20,
               },
-              {
-                "flex": 1,
-              },
+              {},
             ]
           }
         >
@@ -845,11 +839,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
   >
     <RCTScrollView
       automaticallyAdjustContentInsets={false}
-      contentContainerStyle={
-        {
-          "flex": 1,
-        }
-      }
+      contentContainerStyle={{}}
       contentInset={
         {
           "bottom": 0,
@@ -898,6 +888,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
           style={
             [
               {
+                "flex": 1,
                 "padding": 20,
               },
               {
@@ -1239,11 +1230,10 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
           style={
             [
               {
+                "flex": 1,
                 "padding": 20,
               },
-              {
-                "flex": 1,
-              },
+              {},
             ]
           }
         >
@@ -1405,11 +1395,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
   >
     <RCTScrollView
       automaticallyAdjustContentInsets={false}
-      contentContainerStyle={
-        {
-          "flex": 1,
-        }
-      }
+      contentContainerStyle={{}}
       contentInset={
         {
           "bottom": 0,
@@ -1458,6 +1444,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
           style={
             [
               {
+                "flex": 1,
                 "padding": 20,
               },
               {
@@ -1799,11 +1786,10 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
           style={
             [
               {
+                "flex": 1,
                 "padding": 20,
               },
-              {
-                "flex": 1,
-              },
+              {},
             ]
           }
         >
