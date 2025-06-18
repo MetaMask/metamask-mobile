@@ -152,7 +152,7 @@
   },
   "onboarding_success": {
     "title": "Keep your Secret Recovery Phrase safe!",
-    "description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
+    "description": "This Secret Recovery Phrase can help you regain access if you ever forget your password or lose access to your login.",
     "description_bold": "Settings > Security & Privacy.",
     "description_continued": " you can keep this phrase safe so you never lose access to your money.",
     "learn_more": "Learn more",
@@ -319,7 +319,6 @@
     "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
     "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
     "reset_wallet_desc_srp": "To restore your wallet, you can use your Secret Recovery Phrase. MetaMask doesn’t have this information."
-   
   },
   "connect_hardware": {
     "title_select_hardware": "Connect a hardware wallet",
@@ -532,6 +531,10 @@
       "success_heading": "Identity successfully verified!",
       "success_description": "You can now enter your payment info and complete your deposit.",
       "success_button": "Complete your order"
+    },
+    "kyc_webview": {
+      "title": "Verifying your identity",
+      "webview_received_error": "WebView received error status code: {{code}}"
     }
   },
   "receive": {
@@ -966,7 +969,8 @@
     },
     "account_connect_create_initial_account": {
       "description": "A Solana account is required to connect to this site.",
-      "button": "Create Solana account"}
+      "button": "Create Solana account"
+    }
   },
   "toast": {
     "connected_and_active": "connected and active.",
@@ -4378,5 +4382,23 @@
       "get_started": "Get started",
       "learn_more": "Learn more"
     }
+  },
+  "deep_link_modal": {
+    "private_link": {
+      "title": "Redirecting you to MetaMask",
+      "description": "Clicking on “Continue” will direct you to this page: {{pageTitle}}.",
+      "checkbox_label": "Don't remind me again"
+    },
+    "public_link": {
+      "title": "Proceed with caution",
+      "description": "A third party outside of MetaMask directed you to this page: {{pageTitle}}. Only continue if you trust the source."
+    },
+    "invalid": {
+      "title": "This page doesn't exist",
+      "description": "We can't find the page you're looking for."
+    },
+    "open_metamask_anyway": "Open MetaMask anyway",
+    "back_button": "Back",
+    "continue_button": "Continue"
   }
 }
