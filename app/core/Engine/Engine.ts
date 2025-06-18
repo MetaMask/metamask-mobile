@@ -1054,7 +1054,7 @@ export class Engine {
                   profile_id: profileId,
                   feature_name: 'Contacts Sync',
                   action: 'Contacts Sync Erroneous Situation',
-                  situation_message: situationMessage,
+                  additional_description: situationMessage,
                 })
                 .build(),
             );
