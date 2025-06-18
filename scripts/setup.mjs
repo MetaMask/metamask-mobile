@@ -109,6 +109,13 @@ const copyAndSourceEnvVarsTask = {
   },
 };
 
+const generateTypewriterClientTask = {
+  title: 'Generate SegmentTypewriter client',
+  task: async (_, task) => {
+    await $`yarn typewriter start -t ${process.env.SEGMENT_API_TOKEN}`;
+  },
+};
+
 const buildPpomTask = {
   title: 'Build PPOM',
   task: (_, task) => {
@@ -365,7 +372,7 @@ const prepareDependenciesTask = {
 const concurrentTasks = {
   title: 'Concurrent tasks',
   task: (_, task) =>
-    task.newListr([setupIosTask, buildPpomTask, generateTermsOfUseTask], {
+    task.newListr([setupIosTask, buildPpomTask, generateTermsOfUseTask, generateTypewriterClientTask], {
       concurrent: true,
       exitOnError: true,
       rendererOptions,

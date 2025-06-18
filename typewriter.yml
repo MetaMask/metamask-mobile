@@ -8,7 +8,7 @@ client:
   sdk: analytics-react-native
   languageOptions: {}
 trackingPlans:
-  #Tracking Plan: Demo Test
-  #https://api.segmentapis.com/tracking-plans/tp_2Nlh0KY5PSm8tOaeq8bBFAwgRjv
-  - id: tp_2Nlh0KY5PSm8tOaeq8bBFAwgRjv
+  #Tracking Plan: MetaMask Mobile
+  #https://api.segmentapis.com/tracking-plans/tp_2iOKYXh3y11VP5nMhQJAfB5McDH
+  - id: tp_2iOKYXh3y11VP5nMhQJAfB5McDH
     path: app/core/Analytics/typewriter

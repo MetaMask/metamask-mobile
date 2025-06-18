@@ -93,7 +93,8 @@
     "gen-bundle:ios": "npx react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle",
     "gen-bundle:android": "npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/main.jsbundle",
     "circular:deps": "dpdm ./app/* --circular --exit-code circular:1 --warning=false",
-    "generate-icons": "npx ts-node app/component-library/components/Icons/Icon/scripts/generate-assets.ts"
+    "generate-icons": "npx ts-node app/component-library/components/Icons/Icon/scripts/generate-assets.ts",
+    "typewriter:update": "yarn typewriter -t $SEGMENT_API_TOKEN --update"
   },
   "husky": {
     "hooks": {
@@ -150,7 +151,8 @@
     "content-hash/**/base-x": "3.0.11",
     "multihashes/**/base-x": "3.0.11",
     "@keystonehq/ur-decoder/**/base-x": "3.0.11",
-    "@ethereumjs/tx": "^5.4.0"
+    "@ethereumjs/tx": "^5.4.0",
+    "typewriter": "9.2.0"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
@@ -403,6 +405,7 @@
     "socket.io-client": "^4.5.3",
     "stream-browserify": "3.0.0",
     "through2": "3.0.1",
+    "typewriter": "9.2.0",
     "unicode-confusables": "^0.1.1",
     "uri-js": "^4.4.1",
     "url": "0.11.0",
