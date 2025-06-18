@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SampleCounterPane render matches snapshot 1`] = `
+exports[`SampleCounterPane matches rendered snapshot 1`] = `
 <TouchableOpacity
   style={
     {

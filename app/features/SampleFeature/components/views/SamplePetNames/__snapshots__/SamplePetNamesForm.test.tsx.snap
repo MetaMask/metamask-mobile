@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SamplePetNamesForm render matches snapshot 1`] = `
+exports[`SamplePetNamesForm matches rendered snapshot 1`] = `
 <View
   style={
     {

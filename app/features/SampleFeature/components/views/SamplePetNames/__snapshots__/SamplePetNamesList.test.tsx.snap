@@ -1,3 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SamplePetNamesList render matches snapshot 1`] = `<View />`;
+exports[`SamplePetNamesList matches rendered snapshot 1`] = `<View />`;
