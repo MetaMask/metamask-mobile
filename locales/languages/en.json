@@ -2340,7 +2340,7 @@
     "info_text_1_2": "Secret Recovery Phrase",
     "info_text_1_3": "in a place you trust.",
     "info_text_1_4": "It’s the only way to recover your wallet if you get locked out of the app or get a new device.",
-    "cta_text": "Get Started",
+    "cta_text": "Get started",
     "cta_subText": "Highly recommended",
     "skip_button_cancel": "Secure now",
     "skip_button_confirm": "Skip",
@@ -2473,8 +2473,8 @@
     "error-description": "Double-check your Secret Recovery Phrase and try again.",
     "success-title": "Perfect!",
     "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
-    "success-button": "Got It",
-    "error-button": "Try Again",
+    "success-button": "Got it",
+    "error-button": "Try again",
     "continue": "Continue"
   },
   "manual_backup_step_3": {
