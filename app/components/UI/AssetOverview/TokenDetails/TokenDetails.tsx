@@ -21,16 +21,10 @@ import Logger from '../../../../util/Logger';
 import TokenDetailsList from './TokenDetailsList';
 import MarketDetailsList from './MarketDetailsList';
 import { TokenI } from '../../Tokens/types';
-import StakingEarnings from '../../Stake/components/StakingEarnings';
 import {
   isAssetFromSearch,
   selectTokenDisplayData,
 } from '../../../../selectors/tokenSearchDiscoveryDataController';
-import { isSupportedLendingTokenByChainId } from '../../Earn/utils/token';
-import EarnEmptyStateCta from '../../Earn/components/EmptyStateCta';
-import { parseFloatSafe } from '../../Earn/utils';
-import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
-import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { selectEvmTokenMarketData } from '../../../../selectors/multichain/evm';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
@@ -38,6 +32,7 @@ import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { MarketDataDetails } from '@metamask/assets-controllers';
 import { formatMarketDetails } from '../utils/marketDetails';
 import { getTokenDetails } from '../utils/getTokenDetails';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 
 export interface TokenDetails {
   contractAddress: string | null;
@@ -65,10 +60,10 @@ interface EvmMarketData {
 }
 
 const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
+  // For non evm assets, the resultChainId is equal to the asset.chainId; while for evm assets; the resultChainId === "eip155:1" !== asset.chainId
+  const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
+  const isNonEvmAsset = resultChainId === asset.chainId;
   const { styles } = useStyles(styleSheet, {});
-  const isStablecoinLendingEnabled = useSelector(
-    selectStablecoinLendingEnabledFlag,
-  );
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
@@ -78,9 +73,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   );
   const currentCurrency = useSelector(selectCurrentCurrency);
 
-  const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
-
-  const tokenContractAddress = isEvmNetworkSelected
+  const tokenContractAddress = !isNonEvmAsset
     ? safeToChecksumAddress(asset.address)
     : asset.address;
 
@@ -102,7 +95,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   ///: END:ONLY_INCLUDE_IF
 
   const evmMarketData = useSelector((state: RootState) =>
-    isEvmNetworkSelected
+    !isNonEvmAsset
       ? selectEvmTokenMarketData(state, {
           chainId: asset.chainId as Hex,
           tokenAddress: asset.address,
@@ -114,7 +107,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     ? 1
     : conversionRateBySymbol;
 
-  const conversionRate = isEvmNetworkSelected
+  const conversionRate = !isNonEvmAsset
     ? evmConversionRate
     : nonEvmMetadata.rate;
 
@@ -129,20 +122,18 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     marketData = tokenSearchResult.price;
     tokenMetadata = tokenSearchResult.token;
   } else {
-    tokenMetadata = isEvmNetworkSelected ? evmMarketData?.metadata : null;
-    marketData = isEvmNetworkSelected
-      ? evmMarketData?.marketData
-      : nonEvmMarketData;
+    tokenMetadata = !isNonEvmAsset ? evmMarketData?.metadata : null;
+    marketData = !isNonEvmAsset ? evmMarketData?.marketData : nonEvmMarketData;
   }
   const tokenDetails = useMemo(
     () =>
       getTokenDetails(
         asset,
-        isEvmNetworkSelected,
+        isNonEvmAsset,
         tokenContractAddress,
         tokenMetadata as Record<string, string | number | string[]>,
       ),
-    [asset, isEvmNetworkSelected, tokenContractAddress, tokenMetadata],
+    [asset, isNonEvmAsset, tokenContractAddress, tokenMetadata],
   );
 
   const marketDetails = useMemo(() => {
@@ -177,22 +168,15 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
       {
         locale: i18n.locale,
         currentCurrency,
-        isEvmNetworkSelected,
+        isEvmAssetSelected: !isNonEvmAsset,
         conversionRate,
       },
     );
-  }, [marketData, currentCurrency, isEvmNetworkSelected, conversionRate]);
-
-  const hasAssetBalance =
-    asset.balanceFiat && parseFloatSafe(asset.balanceFiat) > 0;
+  }, [marketData, currentCurrency, isNonEvmAsset, conversionRate]);
 
   return (
     <View style={styles.tokenDetailsContainer}>
-      {asset.isETH && <StakingEarnings asset={asset} />}
-      {isStablecoinLendingEnabled &&
-        isSupportedLendingTokenByChainId(asset.symbol, asset.chainId ?? '') &&
-        hasAssetBalance && <EarnEmptyStateCta token={asset} />}
-      {(asset.isETH || tokenMetadata || !isEvmNetworkSelected) && (
+      {(asset.isETH || tokenMetadata || isNonEvmAsset) && (
         <TokenDetailsList tokenDetails={tokenDetails} />
       )}
       {marketData && marketDetails && (

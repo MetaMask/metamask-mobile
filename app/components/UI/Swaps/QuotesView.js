@@ -18,6 +18,7 @@ import {
   WalletDevice,
   TransactionStatus,
   CHAIN_IDS,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import { ORIGIN_METAMASK, query } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
@@ -69,7 +70,6 @@ import InfoModal from './components/InfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import useBalance from './utils/useBalance';
 import { decodeApproveData, getTicker } from '../../../util/transactions';
-import { toLowerCaseEquals } from '../../../util/general';
 import {
   selectSwapsAggregatorMetadata,
   selectSwapsApprovalTransaction,
@@ -92,6 +92,7 @@ import { useTheme } from '../../../util/theme';
 import {
   getAddressAccountType,
   isHardwareAccount,
+  areAddressesEqual,
 } from '../../../util/address';
 import {
   selectEvmChainId,
@@ -107,8 +108,8 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
-import { createBuyNavigationDetails } from '../Ramp/routes/utils';
-import { SwapsViewSelectors } from '../../../../e2e/selectors/swaps/SwapsView.selectors';
+import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
+import { SwapsViewSelectorsIDs } from '../../../../e2e/selectors/swaps/SwapsView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { addTransaction } from '../../../util/transaction-controller';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
@@ -363,7 +364,7 @@ async function addTokenToAssetsController(newToken, chainId, networkClientId) {
   if (
     !isSwapsNativeAsset(newToken) &&
     !allTokens.includes((token) =>
-      toLowerCaseEquals(token.address, newToken.address),
+      areAddressesEqual(token.address, newToken.address),
     )
   ) {
     const { address, symbol, decimals, name } = newToken;
@@ -425,10 +426,10 @@ function SwapsQuotesView({
 
   /* Get tokens from the tokens list */
   const sourceToken = [...swapsTokens, ...tokens].find((token) =>
-    toLowerCaseEquals(token.address, sourceTokenAddress),
+    areAddressesEqual(token.address, sourceTokenAddress),
   );
   const destinationToken = [...swapsTokens, ...tokens].find((token) =>
-    toLowerCaseEquals(token.address, destinationTokenAddress),
+    areAddressesEqual(token.address, destinationTokenAddress),
   );
 
   /* State */
@@ -999,6 +1000,7 @@ function SwapsQuotesView({
             deviceConfirmedOn: WalletDevice.MM_MOBILE,
             networkClientId,
             origin: process.env.MM_FOX_CODE,
+            type: TransactionType.swap,
           },
         );
 
@@ -1061,6 +1063,7 @@ function SwapsQuotesView({
             deviceConfirmedOn: WalletDevice.MM_MOBILE,
             networkClientId,
             origin: process.env.MM_FOX_CODE,
+            type: TransactionType.swapApproval,
           },
         );
 
@@ -2139,6 +2142,7 @@ function SwapsQuotesView({
                 <TouchableOpacity
                   onPress={handleOpenQuotesModal}
                   disabled={isInFetch}
+                  testID={SwapsViewSelectorsIDs.VIEW_ALL_QUOTES}
                 >
                   <QuotesSummary.HeaderText small>
                     {strings('swaps.view_details')} →
@@ -2150,7 +2154,7 @@ function SwapsQuotesView({
               {canUseGasIncludedSwap && (
                 <View
                   style={styles.quotesRow}
-                  testID={SwapsViewSelectors.QUOTE_SUMMARY}
+                  testID={SwapsViewSelectorsIDs.QUOTE_SUMMARY}
                 >
                   <View style={styles.quotesDescription}>
                     <View style={styles.quotesLegend}>
@@ -2158,7 +2162,7 @@ function SwapsQuotesView({
                         {strings('swaps.gas_fee')}
                       </Text>
                       <TouchableOpacity
-                        testID={SwapsViewSelectors.GAS_FEE}
+                        testID={SwapsViewSelectorsIDs.GAS_FEE}
                         style={styles.gasInfoContainer}
                         onPress={showGasIncludedTooltip}
                         hitSlop={styles.hitSlop}
@@ -2209,7 +2213,7 @@ function SwapsQuotesView({
                 <>
                   <View
                     style={styles.quotesRow}
-                    testID={SwapsViewSelectors.QUOTE_SUMMARY}
+                    testID={SwapsViewSelectorsIDs.QUOTE_SUMMARY}
                   >
                     <View style={styles.quotesDescription}>
                       <View style={styles.quotesLegend}>
@@ -2217,7 +2221,7 @@ function SwapsQuotesView({
                           {strings('swaps.estimated_gas_fee')}
                         </Text>
                         <TouchableOpacity
-                          testID={SwapsViewSelectors.GAS_FEE}
+                          testID={SwapsViewSelectorsIDs.GAS_FEE}
                           style={styles.gasInfoContainer}
                           onPress={showGasTooltip}
                           hitSlop={styles.hitSlop}
@@ -2429,7 +2433,7 @@ function SwapsQuotesView({
           type="confirm"
           onPress={handleCompleteSwap}
           disabled={unableToSwap || isHandlingSwap || isAnimating}
-          testID={SwapsViewSelectors.SWAP_BUTTON}
+          testID={SwapsViewSelectorsIDs.SWAP_BUTTON}
         >
           {strings('swaps.swap')}
         </StyledButton>

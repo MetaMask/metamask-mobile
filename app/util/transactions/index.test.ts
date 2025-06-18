@@ -3,6 +3,7 @@ import BN from 'bnjs4';
 
 /* eslint-disable-next-line import/no-namespace */
 import * as controllerUtilsModule from '@metamask/controller-utils';
+import { ERC721, ERC1155 } from '@metamask/controller-utils';
 
 import { handleMethodData } from '../../util/transaction-controller';
 
@@ -39,12 +40,108 @@ import {
   TOKEN_METHOD_APPROVE,
   getTransactionReviewActionKey,
   getTransactionById,
+  UPGRADE_SMART_ACCOUNT_ACTION_KEY,
+  DOWNGRADE_SMART_ACCOUNT_ACTION_KEY,
+  isLegacyTransaction,
+  getTokenAddressParam,
+  getTokenValueParamAsHex,
+  getTokenValueParam,
+  getTokenValue,
+  isNFTTokenStandard,
+  calcTokenValue,
+  getTransactionToName,
+  addAccountTimeFlagFilter,
+  getNormalizedTxState,
+  getActiveTabUrl,
+  getTicker,
+  getEther,
+  validateTransactionActionBalance,
+  isSmartContractAddress,
 } from '.';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
-import { TransactionType } from '@metamask/transaction-controller';
+import { EIP_7702_REVOKE_ADDRESS } from '../../components/Views/confirmations/hooks/7702/useEIP7702Accounts';
+import {
+  TransactionType,
+  TransactionEnvelopeType,
+  TransactionMeta,
+} from '@metamask/transaction-controller';
 import { Provider } from '@metamask/network-controller';
 import BigNumber from 'bignumber.js';
+
+interface AddressBookEntry {
+  name: string;
+}
+
+interface AddressBook {
+  [chainId: string]: {
+    [address: string]: AddressBookEntry;
+  };
+}
+
+interface InternalAccountMetadata {
+  name: string;
+}
+
+interface InternalAccount {
+  address: string;
+  metadata: InternalAccountMetadata;
+}
+
+interface TransactionToNameConfig {
+  addressBook: AddressBook;
+  chainId: string;
+  toAddress: string;
+  internalAccounts: InternalAccount[];
+  ensRecipient?: string;
+}
+
+interface TransactionWithTime {
+  time: number;
+}
+
+interface TransactionStateData {
+  transaction?: {
+    id: string;
+    transaction: {
+      value: string;
+      gasPrice: string;
+    };
+  };
+}
+
+interface BrowserTab {
+  id: string;
+  url: string;
+}
+
+interface BrowserState {
+  browser?: {
+    activeTab: string | null;
+    tabs: BrowserTab[];
+  };
+}
+
+interface TransactionData {
+  from: string;
+  gasPrice?: string;
+  maxFeePerGas?: string;
+  gas: string;
+  value: string;
+  type?: string;
+}
+
+interface TransactionForBalance {
+  transaction: TransactionData;
+}
+
+interface AccountBalance {
+  balance: string;
+}
+
+interface AccountsMap {
+  [address: string]: AccountBalance;
+}
 
 jest.mock('@metamask/controller-utils', () => ({
   ...jest.requireActual('@metamask/controller-utils'),
@@ -831,13 +928,14 @@ const dappTxMeta = {
   origin: 'pancakeswap.finance',
   transaction: {
     from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
-    data: '0x5ae401dc0000000000000000000000000000000000000000000000000000000065e8dac400000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000e404e45aaf000000000000000000000000b4fbf271143f4fbf7b91a5ded31805e42b2208d600000000000000000000000007865c6e87b9f70255377e024ace6630c1eaa37f00000000000000000000000000000000000000000000000000000000000001f4000000000000000000000000c5fe6ef47965741f6f7a4734bf784bf3ae3f245200000000000000000000000000000000000000000000000000038d7ea4c680000000000000000000000000000000000000000000000000000000000f666eed80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
-    gas: '0x2e7b1',
-    nonce: '0xeb',
-    to: '0x9a489505a00ce272eaa5e07dba6491314cae3796',
-    value: '0x38d7ea4c68000',
-    maxFeePerGas: '0x59682f0a',
-    maxPriorityFeePerGas: '0x59682f00',
+    data: '0x5ae401dc0000000000000000000000000000000000000000000000000000000065e8dac400000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000e404e45aaf000000000000000000000000b4fbf271143f4fbf7b91a5ded31805e42b2208d600000000000000000000000007865c6e87b9f70255377e024ace6630c1eaa37f00000000000000000000000000000000000000000000000000000000000001f4000000000000000000000000c5fe6ef47965741f6f7a4734bf784bf3ae3f245200000000000000000000000000000000000000000000000000038d7ea4c680000000000000000000000000000000000000000000000000000000000f666eed8000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f42400000000000000000000000000000000000000000000000000000e3cb0338a1e400000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000020d440d83ed000000000000000000000000f326e4de8f66a0bdc0970b79e0924e33c79f1915000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000c80502b1c5000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000000f42400000000000000000000000000000000000000000000000000000e5cdc5e9b7a80000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000140000000000000003b5dc1003926a168c11a816e10c13977f75f488bfffe88e4ab4991fe00000000000000000000000000000000000000000000000000bd',
+    gas: '0x3dad5',
+    nonce: '0x3e',
+    to: '0x881d40237659c251811cec9c364ef91dc08d300c',
+    value: '0x0',
+    maxFeePerGas: '0x1bbbdf536e',
+    maxPriorityFeePerGas: '0x120a5d1',
+    estimatedBaseFee: '0x104fbb752f',
   },
 };
 const sendEthTxMeta = {
@@ -891,14 +989,14 @@ const swapFlowSwapERC20TxMeta = {
   origin: process.env.MM_FOX_CODE,
   transaction: {
     from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
-    data: '0x5f5755290000000000000000000000000000000000000000000000000000000000000080000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000000f424000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000136f6e65496e6368563546656544796e616d6963000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f42400000000000000000000000000000000000000000000000000000e3cb0338a1e400000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000020d440d83ed000000000000000000000000f326e4de8f66a0bdc0970b79e0924e33c79f1915000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000c80502b1c5000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000000f42400000000000000000000000000000000000000000000000000000e5cdc5e9b7a80000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000140000000000000003b5dc1003926a168c11a816e10c13977f75f488bfffe88e4ab4991fe00000000000000000000000000000000000000000000000000bd',
-    gas: '0x3dad5',
-    nonce: '0x3e',
+    data: '0x5f5755290000000000000000000000000000000000000000000000000000000000000080000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000000f424000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000136f6e65496e6368563546656544796e616d6963000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f42400000000000000000000000000000000000000000000000000000e3cb0338a1e400000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000020d440d83ed000000000000000000000000f326e4de8f66a0bdc0970b79e0924e33c79f1915000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000c80502b1c5000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000000f42400000000000000000000000000000000000000000000000000000e5cdc5e9b7a80000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000140000000000000003b6d0340b4e16d0168e52d35cacd2c6185b44281ec28c9dcab4991fe000000000000000000000000000000000000000000000000001e',
+    gas: '0x333c5',
+    nonce: '0x3c',
     to: '0x881d40237659c251811cec9c364ef91dc08d300c',
-    value: '0x0',
-    maxFeePerGas: '0x1bbbdf536e',
-    maxPriorityFeePerGas: '0x120a5d1',
-    estimatedBaseFee: '0x104fbb752f',
+    value: '0x2386f26fc10000',
+    maxFeePerGas: '0x1b6bf7e1c3',
+    maxPriorityFeePerGas: '0x200a3b7',
+    estimatedBaseFee: '0x1020371570',
   },
 };
 const swapFlowSwapEthTxMeta = {
@@ -1111,10 +1209,55 @@ describe('Transactions utils :: getTransactionActionKey', () => {
     expect(actionKey).toBe(TOKEN_METHOD_INCREASE_ALLOWANCE);
   });
 
+  it('returns correct value for upgrade smart account transaction', async () => {
+    const transaction = {
+      txParams: {
+        authorizationList: [{ address: '0x1' }],
+        to: '0x1',
+      },
+    };
+    const chainId = '1';
+
+    const actionKey = await getTransactionActionKey(transaction, chainId);
+    expect(actionKey).toBe(UPGRADE_SMART_ACCOUNT_ACTION_KEY);
+  });
+
+  it('returns correct value for downgrade smart account transaction', async () => {
+    const transaction = {
+      txParams: {
+        authorizationList: [{ address: EIP_7702_REVOKE_ADDRESS }],
+        to: '0x1',
+      },
+    };
+    const chainId = '1';
+
+    const actionKey = await getTransactionActionKey(transaction, chainId);
+    expect(actionKey).toBe(DOWNGRADE_SMART_ACCOUNT_ACTION_KEY);
+  });
+
+  it('calls findNetworkClientIdByChainId when toSmartContract is undefined', async () => {
+    const spyOnFindNetworkClientIdByChainId = jest.spyOn(
+      Engine.context.NetworkController,
+      'findNetworkClientIdByChainId',
+    );
+
+    const transaction = {
+      txParams: {
+        to: '0x1',
+      },
+    };
+    const chainId = '1';
+
+    await getTransactionActionKey(transaction, chainId);
+    expect(spyOnFindNetworkClientIdByChainId).toHaveBeenCalledWith('1');
+  });
+
   it.each([
     TransactionType.stakingClaim,
     TransactionType.stakingDeposit,
     TransactionType.stakingUnstake,
+    TransactionType.lendingDeposit,
+    TransactionType.lendingWithdraw,
   ])('returns transaction type if type is %s', async (type) => {
     const transaction = { type };
     const chainId = '1';
@@ -1214,7 +1357,7 @@ describe('Transactions utils :: getTransactionById', () => {
       { id: 'tx2', value: '0x2' },
       { id: 'tx3', value: '0x3' },
     ];
-    
+
     const mockTransactionController = {
       state: {
         transactions: mockTransactions,
@@ -1222,7 +1365,7 @@ describe('Transactions utils :: getTransactionById', () => {
     };
 
     const result = getTransactionById('tx2', mockTransactionController);
-    
+
     expect(result).toEqual(mockTransactions[1]);
   });
 
@@ -1232,7 +1375,7 @@ describe('Transactions utils :: getTransactionById', () => {
       { id: 'tx2', value: '0x2' },
       { id: 'tx3', value: '0x3' },
     ];
-    
+
     const mockTransactionController = {
       state: {
         transactions: mockTransactions,
@@ -1240,7 +1383,7 @@ describe('Transactions utils :: getTransactionById', () => {
     };
 
     const result = getTransactionById('nonexistent', mockTransactionController);
-    
+
     expect(result).toBeUndefined();
   });
 
@@ -1252,7 +1395,820 @@ describe('Transactions utils :: getTransactionById', () => {
     };
 
     const result = getTransactionById('tx1', mockTransactionController);
-    
+
     expect(result).toBeUndefined();
+  });
+});
+
+describe('Transactions utils :: isLegacyTransaction', () => {
+  it('returns true for a transaction with legacy type', () => {
+    const transactionMeta = {
+      txParams: {
+        type: TransactionEnvelopeType.legacy,
+        from: '0x123',
+        to: '0x456',
+        gasPrice: '0x77359400',
+      },
+    };
+
+    expect(isLegacyTransaction(transactionMeta)).toBe(true);
+  });
+
+  it('returns false for an EIP-1559 transaction', () => {
+    const transactionMeta = {
+      txParams: {
+        type: TransactionEnvelopeType.feeMarket,
+        from: '0x123',
+        to: '0x456',
+        maxFeePerGas: '0x77359400',
+        maxPriorityFeePerGas: '0x1',
+      },
+    };
+
+    expect(isLegacyTransaction(transactionMeta)).toBe(false);
+  });
+
+  it('returns false for a transaction without type field', () => {
+    const transactionMeta = {
+      txParams: {
+        from: '0x123',
+        to: '0x456',
+        gasPrice: '0x77359400',
+      },
+    };
+
+    expect(isLegacyTransaction(transactionMeta)).toBe(false);
+  });
+
+  it('returns false for undefined transactionMeta', () => {
+    // @ts-expect-error Testing undefined input
+    expect(isLegacyTransaction(undefined)).toBe(false);
+  });
+
+  it('returns false for transactionMeta without txParams', () => {
+    const transactionMeta = {};
+    expect(
+      isLegacyTransaction(transactionMeta as Partial<TransactionMeta>),
+    ).toBe(false);
+  });
+});
+
+describe('Transactions utils :: getTokenAddressParam', () => {
+  it('returns the _to parameter when present', () => {
+    const tokenData = {
+      args: {
+        _to: '0x1234567890123456789012345678901234567890',
+        _value: 100,
+      },
+    };
+
+    const result = getTokenAddressParam(tokenData);
+    expect(result).toBe('0x1234567890123456789012345678901234567890');
+  });
+
+  it('returns the first parameter when _to is not present', () => {
+    const tokenData = {
+      args: ['0xabcdefabcdefabcdefabcdefabcdefabcdefabcd', 100],
+    };
+
+    const result = getTokenAddressParam(tokenData);
+    expect(result).toBe('0xabcdefabcdefabcdefabcdefabcdefabcdefabcd');
+  });
+
+  it('returns undefined when no parameters are present', () => {
+    const tokenData = {
+      args: {},
+    };
+
+    const result = getTokenAddressParam(tokenData);
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when tokenData is empty', () => {
+    const result = getTokenAddressParam();
+    expect(result).toBeUndefined();
+  });
+
+  it('converts the address to lowercase', () => {
+    const tokenData = {
+      args: {
+        _to: '0x1234567890123456789012345678901234567890'.toUpperCase(),
+      },
+    };
+
+    const result = getTokenAddressParam(tokenData);
+    expect(result).toBe('0x1234567890123456789012345678901234567890');
+  });
+});
+
+describe('Transactions utils :: getTokenValueParamAsHex', () => {
+  it('returns the _value._hex parameter when present', () => {
+    const tokenData = {
+      args: {
+        _value: {
+          _hex: '0x64',
+        },
+      },
+    };
+
+    const result = getTokenValueParamAsHex(tokenData);
+    expect(result).toBe('0x64');
+  });
+
+  it('returns the second parameter._hex when _value is not present', () => {
+    const tokenData = {
+      args: ['0x1234567890123456789012345678901234567890', { _hex: '0xABCD' }],
+    };
+
+    const result = getTokenValueParamAsHex(tokenData);
+    expect(result).toBe('0xabcd');
+  });
+
+  it('returns undefined when no hex parameters are present', () => {
+    const tokenData = {
+      args: {
+        _value: 100, // No _hex property
+        0: 'address',
+        1: 200, // No _hex property on second parameter either
+      },
+    };
+
+    const result = getTokenValueParamAsHex(tokenData);
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when tokenData is empty', () => {
+    const result = getTokenValueParamAsHex();
+    expect(result).toBeUndefined();
+  });
+
+  it('converts the hex value to lowercase', () => {
+    const tokenData = {
+      args: {
+        _value: {
+          _hex: '0xABCDEF',
+        },
+      },
+    };
+
+    const result = getTokenValueParamAsHex(tokenData);
+    expect(result).toBe('0xabcdef');
+  });
+});
+
+describe('Transactions utils :: getTokenValueParam', () => {
+  it('returns the _value parameter as string when present', () => {
+    const tokenData = {
+      args: {
+        _value: 100,
+      },
+    };
+
+    const result = getTokenValueParam(tokenData);
+    expect(result).toBe('100');
+  });
+
+  it('returns undefined when _value is not present', () => {
+    const tokenData = {
+      args: {
+        _to: '0x1234567890123456789012345678901234567890',
+      },
+    };
+
+    const result = getTokenValueParam(tokenData);
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when tokenData is empty', () => {
+    const result = getTokenValueParam();
+    expect(result).toBeUndefined();
+  });
+
+  it('handles BigNumber values correctly', () => {
+    const tokenData = {
+      args: {
+        _value: new BigNumber('1000000000000000000'),
+      },
+    };
+
+    const result = getTokenValueParam(tokenData);
+    expect(result).toBe('1000000000000000000');
+  });
+});
+
+describe('Transactions utils :: getTokenValue', () => {
+  it('returns the value for parameter with name "_value"', () => {
+    const tokenParams = [
+      { name: '_to', value: '0x1234567890123456789012345678901234567890' },
+      { name: '_value', value: '1000000000000000000' },
+    ];
+
+    const result = getTokenValue(tokenParams);
+    expect(result).toBe('1000000000000000000');
+  });
+
+  it('returns undefined when no "_value" parameter exists', () => {
+    const tokenParams = [
+      { name: '_to', value: '0x1234567890123456789012345678901234567890' },
+      { name: '_amount', value: '1000000000000000000' },
+    ];
+
+    const result = getTokenValue(tokenParams);
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when tokenParams is empty', () => {
+    const result = getTokenValue([]);
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when tokenParams is not provided', () => {
+    const result = getTokenValue();
+    expect(result).toBeUndefined();
+  });
+
+  it('returns the first "_value" parameter when multiple exist', () => {
+    const tokenParams = [
+      { name: '_to', value: '0x1234567890123456789012345678901234567890' },
+      { name: '_value', value: '1000000000000000000' },
+      { name: '_value', value: '2000000000000000000' },
+    ];
+
+    const result = getTokenValue(tokenParams);
+    expect(result).toBe('1000000000000000000');
+  });
+});
+
+describe('Transactions utils :: isNFTTokenStandard', () => {
+  it('returns true for ERC721 token standard', () => {
+    const result = isNFTTokenStandard(ERC721);
+    expect(result).toBe(true);
+  });
+
+  it('returns true for ERC1155 token standard', () => {
+    const result = isNFTTokenStandard(ERC1155);
+    expect(result).toBe(true);
+  });
+
+  it('returns false for ERC20 token standard', () => {
+    const result = isNFTTokenStandard('ERC20');
+    expect(result).toBe(false);
+  });
+
+  it('returns false for unknown token standard', () => {
+    const result = isNFTTokenStandard('UNKNOWN');
+    expect(result).toBe(false);
+  });
+
+  it('returns false for undefined token standard', () => {
+    // @ts-expect-error Testing undefined input
+    const result = isNFTTokenStandard(undefined);
+    expect(result).toBe(false);
+  });
+
+  it('returns false for empty string token standard', () => {
+    const result = isNFTTokenStandard('');
+    expect(result).toBe(false);
+  });
+
+  it('is case sensitive', () => {
+    const result1 = isNFTTokenStandard('erc721');
+    const result2 = isNFTTokenStandard('erc1155');
+    expect(result1).toBe(false);
+    expect(result2).toBe(false);
+  });
+});
+
+describe('Transactions utils :: calcTokenValue', () => {
+  it('calculates token value correctly with decimals', () => {
+    const result = calcTokenValue('1.5', 18);
+    expect(result.toString()).toBe('1500000000000000000');
+  });
+
+  it('calculates token value correctly with zero decimals', () => {
+    const result = calcTokenValue('100', 0);
+    expect(result.toString()).toBe('100');
+  });
+
+  it('handles string input correctly', () => {
+    const result = calcTokenValue('123.456', 6);
+    expect(result.toString()).toBe('123456000');
+  });
+
+  it('handles numeric input correctly', () => {
+    const result = calcTokenValue(123.456, 6);
+    expect(result.toString()).toBe('123456000');
+  });
+
+  it('handles BigNumber input correctly', () => {
+    const input = new BigNumber('123.456');
+    const result = calcTokenValue(input, 6);
+    expect(result.toString()).toBe('123456000');
+  });
+
+  it('handles undefined decimals', () => {
+    const result = calcTokenValue('100', undefined);
+    expect(result.toString()).toBe('100');
+  });
+});
+
+describe('Transactions utils :: Edge Cases and Error Handling', () => {
+  describe('getMethodData edge cases', () => {
+    it('handles very short data strings', async () => {
+      const result = await getMethodData('0x123', MOCK_NETWORK_CLIENT_ID);
+      expect(result).toEqual({});
+    });
+
+    it('handles empty data string', async () => {
+      const result = await getMethodData('', MOCK_NETWORK_CLIENT_ID);
+      expect(result).toEqual({});
+    });
+
+    it('handles handleMethodData returning null', async () => {
+      (handleMethodData as jest.Mock).mockResolvedValue(null);
+      const result = await getMethodData(
+        '0x12345678aa',
+        MOCK_NETWORK_CLIENT_ID,
+      );
+      expect(result).toEqual({});
+    });
+
+    it('handles handleMethodData throwing an error', async () => {
+      (handleMethodData as jest.Mock).mockRejectedValue(
+        new Error('Network error'),
+      );
+      const result = await getMethodData(
+        '0x12345678bb',
+        MOCK_NETWORK_CLIENT_ID,
+      );
+      expect(result).toEqual({});
+    });
+  });
+
+  describe('generateApprovalData edge cases', () => {
+    it('handles very large value inputs', () => {
+      const largeValue =
+        '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+      const data = generateApprovalData({
+        spender: MOCK_ADDRESS3,
+        value: largeValue,
+      });
+      expect(data).toBeTruthy();
+      expect(data.length).toBeGreaterThan(10);
+    });
+
+    it('handles zero value approvals', () => {
+      const data = generateApprovalData({
+        spender: MOCK_ADDRESS3,
+        value: '0x0',
+      });
+      expect(data).toBeTruthy();
+      expect(data).toContain(
+        '0000000000000000000000000000000000000000000000000000000000000000',
+      );
+    });
+  });
+
+  describe('getTransactionActionKey edge cases', () => {
+    it('handles transaction with empty authorizationList', async () => {
+      const transaction = {
+        txParams: {
+          authorizationList: [],
+          to: '0x1',
+        },
+      };
+      const result = await getTransactionActionKey(transaction, '1');
+      expect(typeof result).toBe('string');
+    });
+
+    it('handles transaction with malformed txParams', async () => {
+      const transaction = {
+        txParams: null,
+      };
+      const result = await getTransactionActionKey(transaction, '1');
+      expect(result).toBe('deploy');
+    });
+
+    it('handles empty transaction object', async () => {
+      const result = await getTransactionActionKey({}, '1');
+      expect(result).toBe('deploy');
+    });
+
+    it('handles transaction with no "to" field (contract deployment)', async () => {
+      const transaction = {
+        txParams: {
+          from: '0x123',
+          data: '0x608060405234801561001057600080fd5b50',
+        },
+      };
+      const result = await getTransactionActionKey(transaction, '1');
+      expect(result).toBe('deploy');
+    });
+  });
+});
+
+describe('Transactions utils :: getTransactionToName', () => {
+  it('returns ensRecipient when provided', () => {
+    const config: TransactionToNameConfig = {
+      addressBook: {},
+      chainId: '1',
+      toAddress: '0x123',
+      internalAccounts: [],
+      ensRecipient: 'example.eth',
+    };
+
+    const result = getTransactionToName(
+      config as unknown as Parameters<typeof getTransactionToName>[0],
+    );
+    expect(result).toBe('example.eth');
+  });
+
+  it('returns address book name when found', () => {
+    const toAddress = '0x1234567890123456789012345678901234567890';
+    const config: TransactionToNameConfig = {
+      addressBook: {
+        '1': {
+          [toAddress]: { name: 'My Contact' },
+        },
+      },
+      chainId: '1',
+      toAddress,
+      internalAccounts: [],
+    };
+
+    const result = getTransactionToName(
+      config as unknown as Parameters<typeof getTransactionToName>[0],
+    );
+    expect(result).toBe('My Contact');
+  });
+
+  it('returns internal account name when found', () => {
+    const toAddress = '0x1234567890123456789012345678901234567890';
+    const config: TransactionToNameConfig = {
+      addressBook: {},
+      chainId: '1',
+      toAddress,
+      internalAccounts: [
+        {
+          address: toAddress,
+          metadata: { name: 'My Account' },
+        },
+      ],
+    };
+
+    const result = getTransactionToName(
+      config as unknown as Parameters<typeof getTransactionToName>[0],
+    );
+    expect(result).toBe('My Account');
+  });
+
+  it('returns undefined when no name is found', () => {
+    const config: TransactionToNameConfig = {
+      addressBook: {},
+      chainId: '1',
+      toAddress: '0x1234567890123456789012345678901234567890',
+      internalAccounts: [],
+    };
+
+    const result = getTransactionToName(
+      config as unknown as Parameters<typeof getTransactionToName>[0],
+    );
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('Transactions utils :: addAccountTimeFlagFilter', () => {
+  it('returns true when transaction time is less than or equal to added time and flag is false', () => {
+    const transaction: TransactionWithTime = { time: 1000 };
+    const addedAccountTime = 1500;
+    const accountAddedTimeInsertPointFound = false;
+
+    // Use unknown then cast to avoid TypeScript strictness on JS function parameters
+    const result = addAccountTimeFlagFilter(
+      transaction as unknown as object,
+      addedAccountTime as unknown as object,
+      accountAddedTimeInsertPointFound as unknown as object,
+    );
+    expect(result).toBe(true);
+  });
+
+  it('returns false when transaction time is greater than added time', () => {
+    const transaction: TransactionWithTime = { time: 2000 };
+    const addedAccountTime = 1500;
+    const accountAddedTimeInsertPointFound = false;
+
+    const result = addAccountTimeFlagFilter(
+      transaction as unknown as object,
+      addedAccountTime as unknown as object,
+      accountAddedTimeInsertPointFound as unknown as object,
+    );
+    expect(result).toBe(false);
+  });
+
+  it('returns false when flag is already true', () => {
+    const transaction: TransactionWithTime = { time: 1000 };
+    const addedAccountTime = 1500;
+    const accountAddedTimeInsertPointFound = true;
+
+    const result = addAccountTimeFlagFilter(
+      transaction as unknown as object,
+      addedAccountTime as unknown as object,
+      accountAddedTimeInsertPointFound as unknown as object,
+    );
+    expect(result).toBe(false);
+  });
+});
+
+describe('Transactions utils :: getNormalizedTxState', () => {
+  it('returns merged transaction state when transaction exists', () => {
+    const state: TransactionStateData = {
+      transaction: {
+        id: '1',
+        transaction: {
+          value: '0x1',
+          gasPrice: '0x2',
+        },
+      },
+    };
+
+    const result = getNormalizedTxState(state);
+    expect(result).toEqual({
+      id: '1',
+      value: '0x1',
+      gasPrice: '0x2',
+      transaction: {
+        value: '0x1',
+        gasPrice: '0x2',
+      },
+    });
+  });
+
+  it('returns undefined when no transaction exists', () => {
+    const state: TransactionStateData = {};
+    const result = getNormalizedTxState(state);
+    expect(result).toBeUndefined();
+  });
+
+  it('throws error when state is null', () => {
+    expect(() => getNormalizedTxState(null)).toThrow();
+  });
+});
+
+describe('Transactions utils :: getActiveTabUrl', () => {
+  it('returns active tab URL when browser state is valid', () => {
+    const browserState: BrowserState = {
+      browser: {
+        activeTab: 'tab1',
+        tabs: [
+          { id: 'tab1', url: 'https://example.com' },
+          { id: 'tab2', url: 'https://other.com' },
+        ],
+      },
+    };
+
+    const result = getActiveTabUrl(browserState);
+    expect(result).toBe('https://example.com');
+  });
+
+  it('returns null when no active tab exists', () => {
+    const browserState: BrowserState = {
+      browser: {
+        activeTab: null,
+        tabs: [{ id: 'tab1', url: 'https://example.com' }],
+      },
+    };
+
+    const result = getActiveTabUrl(browserState);
+    expect(result).toBeNull();
+  });
+
+  it('returns undefined when no tabs exist', () => {
+    const browserState: BrowserState = {
+      browser: {
+        activeTab: 'tab1',
+        tabs: [],
+      },
+    };
+
+    const result = getActiveTabUrl(browserState);
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when browser state is empty', () => {
+    const emptyState = {};
+    const result = getActiveTabUrl(emptyState);
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('Transactions utils :: getTicker', () => {
+  it('returns provided ticker when valid', () => {
+    const result = getTicker('BTC');
+    expect(result).toBe('BTC');
+  });
+
+  it('returns ETH when ticker is undefined', () => {
+    const result = getTicker(undefined as unknown as string);
+    expect(result).toBe(strings('unit.eth'));
+  });
+
+  it('returns ETH when ticker is null', () => {
+    const result = getTicker(null as unknown as string);
+    expect(result).toBe(strings('unit.eth'));
+  });
+
+  it('returns ETH when ticker is empty string', () => {
+    const result = getTicker('');
+    expect(result).toBe(strings('unit.eth'));
+  });
+});
+
+describe('Transactions utils :: getEther', () => {
+  it('returns ETH object with provided ticker', () => {
+    const result = getEther('ETH');
+    expect(result).toEqual({
+      name: 'Ether',
+      address: '',
+      symbol: 'ETH',
+      logo: '../images/eth-logo-new.png',
+      isETH: true,
+    });
+  });
+
+  it('returns ETH object with default ticker when none provided', () => {
+    const result = getEther(undefined as unknown as string);
+    expect(result).toEqual({
+      name: 'Ether',
+      address: '',
+      symbol: strings('unit.eth'),
+      logo: '../images/eth-logo-new.png',
+      isETH: true,
+    });
+  });
+});
+
+describe('Transactions utils :: validateTransactionActionBalance', () => {
+  it('returns false when balance is sufficient for legacy transaction', () => {
+    const transaction: TransactionForBalance = {
+      transaction: {
+        from: '0x123',
+        gasPrice: '0x1',
+        gas: '0x5208',
+        value: '0x1',
+      },
+    };
+    const rate = 1.1;
+    const accounts: AccountsMap = {
+      '0x123': { balance: '0x1000000000000000000' }, // Large balance
+    };
+
+    // Use unknown cast to work with JS function parameter expectations
+    const result = validateTransactionActionBalance(
+      transaction as unknown as object,
+      rate as unknown as string,
+      accounts as unknown as string,
+    );
+    expect(result).toBe(false);
+  });
+
+  it('returns true when balance is insufficient', () => {
+    const transaction: TransactionForBalance = {
+      transaction: {
+        from: '0x123',
+        gasPrice: '0x77359400',
+        gas: '0x5208',
+        value: '0x1000000000000000000',
+      },
+    };
+    const rate = 1.1;
+    const accounts: AccountsMap = {
+      '0x123': { balance: '0x1' }, // Very small balance
+    };
+
+    const result = validateTransactionActionBalance(
+      transaction as unknown as object,
+      rate as unknown as string,
+      accounts as unknown as string,
+    );
+    expect(result).toBe(true);
+  });
+
+  it('handles EIP-1559 transactions', () => {
+    const transaction: TransactionForBalance = {
+      transaction: {
+        from: '0x123',
+        maxFeePerGas: '0x77359400',
+        gas: '0x5208',
+        value: '0x1',
+        type: '0x2',
+      },
+    };
+    const rate = 1.1;
+    const accounts: AccountsMap = {
+      '0x123': { balance: '0x1000000000000000000' },
+    };
+
+    const result = validateTransactionActionBalance(
+      transaction as unknown as object,
+      rate as unknown as string,
+      accounts as unknown as string,
+    );
+    expect(result).toBe(false);
+  });
+
+  it('returns false when validation throws an error', () => {
+    const transaction = null;
+    const rate = 1.1;
+    const accounts: AccountsMap = {};
+
+    const result = validateTransactionActionBalance(
+      transaction as unknown as object,
+      rate as unknown as string,
+      accounts as unknown as string,
+    );
+    expect(result).toBe(false);
+  });
+});
+
+describe('Transactions utils :: isSmartContractAddress', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns false when address is undefined', async () => {
+    const result = await isSmartContractAddress(
+      undefined as unknown as string,
+      '1',
+    );
+    expect(result).toBe(false);
+  });
+
+  it('returns false when address is empty', async () => {
+    const result = await isSmartContractAddress('', '1');
+    expect(result).toBe(false);
+  });
+
+  it('returns true when address is in token cache for mainnet', async () => {
+    const address = '0x1234567890123456789012345678901234567890';
+
+    // Mock the Engine context for mainnet with cached token
+    ENGINE_MOCK.context.TokenListController.state.tokensChainsCache = {
+      '0x1': {
+        data: {
+          [address]: { symbol: 'TEST' },
+        },
+      },
+    };
+
+    const result = await isSmartContractAddress(address, '0x1');
+    expect(result).toBe(true);
+  });
+
+  it('returns true when contract code is found', async () => {
+    const address = '0x1234567890123456789012345678901234567890';
+
+    // Clear token cache
+    ENGINE_MOCK.context.TokenListController.state.tokensChainsCache = {
+      '0x5': { data: {} },
+    };
+
+    // Mock contract code
+    spyOnQueryMethod('0x608060405234801561001057600080fd5b50');
+
+    const result = await isSmartContractAddress(address, '0x5');
+    expect(result).toBe(true);
+  });
+
+  it('returns false when no contract code is found', async () => {
+    const address = '0x1234567890123456789012345678901234567890';
+
+    // Clear token cache
+    ENGINE_MOCK.context.TokenListController.state.tokensChainsCache = {
+      '0x5': { data: {} },
+    };
+
+    // Mock empty contract code
+    spyOnQueryMethod('0x');
+
+    const result = await isSmartContractAddress(address, '0x5');
+    expect(result).toBe(false);
+  });
+
+  it('uses provided networkClientId when specified', async () => {
+    const address = '0x1234567890123456789012345678901234567890';
+    const customNetworkClientId = 'custom-network';
+
+    ENGINE_MOCK.context.TokenListController.state.tokensChainsCache = {
+      '0x5': { data: {} },
+    };
+
+    spyOnQueryMethod('0x608060405234801561001057600080fd5b50');
+
+    const result = await isSmartContractAddress(
+      address,
+      '0x5',
+      customNetworkClientId,
+    );
+    expect(result).toBe(true);
   });
 });

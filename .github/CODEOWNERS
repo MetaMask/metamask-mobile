@@ -7,14 +7,23 @@ app/component-library/               @MetaMask/design-system-engineers
 # Platform Team
 .github/CODEOWNERS                                          @MetaMask/mobile-platform
 patches/                                                    @MetaMask/mobile-platform
-app/core/Analytics/                                         @MetaMask/mobile-platform
+app/core/Analytics/index.ts                                 @MetaMask/mobile-platform
+app/core/Analytics/MetaMetrics.constants.ts                 @MetaMask/mobile-platform
+app/core/Analytics/MetaMetrics.test.ts                      @MetaMask/mobile-platform
+app/core/Analytics/MetaMetrics.ts                           @MetaMask/mobile-platform
+app/core/Analytics/MetaMetrics.types.ts                     @MetaMask/mobile-platform
+app/core/Analytics/MetaMetricsPrivacySegmentPlugin.ts       @MetaMask/mobile-platform
+app/core/Analytics/MetaMetricsPrivacySegmentPlugin.test.ts  @MetaMask/mobile-platform
+app/core/Analytics/MetaMetricsTestUtils.test.ts             @MetaMask/mobile-platform
+app/core/Analytics/MetaMetricsTestUtils.ts                  @MetaMask/mobile-platform
+app/core/Analytics/MetricsEventBuilder.test.ts              @MetaMask/mobile-platform
+app/core/Analytics/MetricsEventBuilder.ts                   @MetaMask/mobile-platform
 app/util/metrics/                                           @MetaMask/mobile-platform
 app/components/hooks/useMetrics/                            @MetaMask/mobile-platform
 app/selectors/featureFlagController/*                       @MetaMask/mobile-platform
 app/selectors/featureFlagController/minimumAppVersion/      @MetaMask/mobile-platform
 app/store/migrations/                                       @MetaMask/mobile-platform
 bitrise.yml                                                 @MetaMask/mobile-platform
-yarn.lock                                                   @MetaMask/mobile-platform
 ios/Podfile.lock                                            @MetaMask/mobile-platform
 app/components/Views/BrowserTab/BrowserTab.tsx              @MetaMask/mobile-platform
 app/components/Nav/NavigationProvider                       @MetaMask/mobile-platform
@@ -38,7 +47,6 @@ metro.transform.js @MetaMask/mobile-platform @MetaMask/snaps-devs
 # Ramps Team
 app/components/UI/Ramp/              @MetaMask/ramp
 app/reducers/fiatOrders/             @MetaMask/ramp
-app/components/UI/Deposit/           @MetaMask/ramp
 
 # Confirmation Team
 app/components/Views/confirmations                          @MetaMask/confirmations
@@ -65,6 +73,16 @@ app/util/walletconnect.js   @MetaMask/sdk-devs
 app/core/Encryptor/                                         @MetaMask/accounts-engineers
 app/core/Engine/controllers/accounts-controller             @MetaMask/accounts-engineers
 app/core/Engine/messengers/accounts-controller-messenger    @MetaMask/accounts-engineers
+app/core/SnapKeyring                                        @MetaMask/accounts-engineers
+
+# Co-owned by accounts and wallet-ux
+app/components/Views/AccountSelector                        @MetaMask/accounts-engineers @MetaMask/wallet-ux
+app/components/UI/EvmAccountSelectorList                    @MetaMask/accounts-engineers @MetaMask/wallet-ux
+
+# Multichain Accounts
+**/multichain-accounts/**                                   @MetaMask/accounts-engineers
+**/MultichainAccounts/**                                    @MetaMask/accounts-engineers
+**/multichainAccounts/**                                    @MetaMask/accounts-engineers
 
 # Swaps Team
 app/components/UI/Swaps              @MetaMask/swaps-engineers
@@ -125,6 +143,7 @@ app/components/UI/CollectibleMedia @MetaMask/metamask-assets
 app/components/UI/CollectibleModal @MetaMask/metamask-assets
 app/components/UI/CollectibleOverview @MetaMask/metamask-assets
 app/components/UI/ConfirmAddAsset @MetaMask/metamask-assets
+app/components/UI/DeFiPositions @MetaMask/metamask-assets
 app/components/UI/Tokens @MetaMask/metamask-assets
 app/components/Views/AddAsset @MetaMask/metamask-assets
 app/components/Views/Asset @MetaMask/metamask-assets
@@ -137,6 +156,8 @@ app/components/Views/DetectedTokens @MetaMask/metamask-assets
 app/components/Views/NFTAutoDetectionModal @MetaMask/metamask-assets
 app/components/Views/NftDetails @MetaMask/metamask-assets
 app/reducers/collectibles @MetaMask/metamask-assets
+app/core/Engine/controllers/defi-positions-controller @MetaMask/metamask-assets
+app/core/Engine/messengers/defi-positions-controller-messenger @MetaMask/metamask-assets
 
 # UX Team
 app/components/Views/AccountActions @MetaMask/wallet-ux
@@ -147,7 +168,6 @@ app/components/Views/LockScreen @MetaMask/wallet-ux
 app/components/Views/Login @MetaMask/wallet-ux
 app/components/Views/NetworkConnect @MetaMask/wallet-ux
 app/components/Views/NetworkSelector @MetaMask/wallet-ux
-app/components/Views/Onboarding @MetaMask/wallet-ux
 app/components/Views/OnboardingCarousel @MetaMask/wallet-ux
 app/components/Views/OnboardingSuccess @MetaMask/wallet-ux
 app/components/Views/QRAccountDisplay @MetaMask/wallet-ux
@@ -157,12 +177,16 @@ app/components/Views/TermsAndConditions @MetaMask/wallet-ux
 app/reducers/experimentalSettings @MetaMask/wallet-ux
 app/reducers/modals @MetaMask/wallet-ux
 app/reducers/navigation @MetaMask/wallet-ux
-app/reducers/onboarding @MetaMask/wallet-ux
 app/reducers/privacy @MetaMask/wallet-ux
 app/reducers/settings @MetaMask/wallet-ux
 
 # Transactions Team
 app/components/Views/transactions @MetaMask/transactions
+
+# Web3auth Team
+app/components/Views/Onboarding @MetaMask/web3auth
+app/reducers/onboarding @MetaMask/web3auth
+
 
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.

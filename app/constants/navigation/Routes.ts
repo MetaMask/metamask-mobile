@@ -21,6 +21,19 @@ const Routes = {
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
   },
+  DEPOSIT: {
+    ID: 'Deposit',
+    ROOT: 'DepositRoot',
+    BUILD_QUOTE: 'BuildQuote',
+    ENTER_EMAIL: 'EnterEmail',
+    OTP_CODE: 'OtpCode',
+    VERIFY_IDENTITY: 'VerifyIdentity',
+    BASIC_INFO: 'BasicInfo',
+    ENTER_ADDRESS: 'EnterAddress',
+    KYC_PROCESSING: 'KycProcessing',
+    KYC_WEBVIEW: 'KycWebview',
+    PROVIDER_WEBVIEW: 'ProviderWebview',
+  },
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',
     SELECT_DEVICE: 'SelectHardwareWallet',
@@ -42,7 +55,6 @@ const Routes = {
     WHATS_NEW: 'WhatsNewModal',
     TURN_OFF_REMEMBER_ME: 'TurnOffRememberMeModal',
     UPDATE_NEEDED: 'UpdateNeededModal',
-    ENABLE_AUTOMATIC_SECURITY_CHECKS: 'EnableAutomaticSecurityChecksModal',
     DETECTED_TOKENS: 'DetectedTokens',
     SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
     WALLET_ACTIONS: 'WalletActions',
@@ -63,9 +75,12 @@ const Routes = {
     LOGIN: 'Login',
     NAV: 'OnboardingNav',
     MANUAL_BACKUP: {
+      STEP_1: 'ManualBackupStep1',
+      STEP_2: 'ManualBackupStep2',
       STEP_3: 'ManualBackupStep3',
     },
     IMPORT_FROM_SECRET_RECOVERY_PHRASE: 'ImportFromSecretRecoveryPhrase',
+    CHOOSE_PASSWORD: 'ChoosePassword',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -117,6 +132,17 @@ const Routes = {
     TOKEN_FILTER: 'TokenFilter',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
     SELECT_SRP: 'SelectSRP',
+    SEEDPHRASE_MODAL: 'SeedphraseModal',
+    SKIP_ACCOUNT_SECURITY_MODAL: 'SkipAccountSecurityModal',
+    SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
+    MULTICHAIN_ACCOUNT_DETAILS: {
+      EDIT_ACCOUNT_NAME: 'MultichainEditAccountName',
+      EDIT_WALLET_NAME: 'EditWalletName',
+      SHARE_ADDRESS: 'ShareAddress',
+      DELETE_ACCOUNT: 'DeleteAccount',
+      REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredential',
+      REVEAL_SRP_CREDENTIAL: 'RevealSRPCredential',
+    },
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
@@ -158,7 +184,6 @@ const Routes = {
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
   LOCK_SCREEN: 'LockScreen',
-  CONFIRMATION_REQUEST_FLAT: 'ConfirmationRequestFlat',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
   NOTIFICATIONS: {
@@ -184,18 +209,24 @@ const Routes = {
   EARN: {
     ROOT: 'EarnScreens',
     LENDING_DEPOSIT_CONFIRMATION: 'EarnLendingDepositConfirmation',
+    LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
+    MODALS: {
+      ROOT: 'EarnModals',
+      LENDING_MAX_WITHDRAWAL: 'EarnLendingMaxWithdrawalModal',
+      LENDING_LEARN_MORE: 'EarnLendingLearnMoreModal',
+    },
   },
-  STANDALONE_CONFIRMATIONS: {
-    STAKE_DEPOSIT: 'RedesignedStakeDeposit',
-    STAKE_WITHDRAWAL: 'RedesignedStakeWithdrawal',
-    STAKE_CLAIM: 'RedesignedStakeClaim',
-    TRANSFER: 'RedesignedTransfer',
+  FULL_SCREEN_CONFIRMATIONS: {
+    REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
   },
   IDENTITY: {
     TURN_ON_BACKUP_AND_SYNC: 'TurnOnBackupAndSync',
   },
   MULTI_SRP: {
     IMPORT: 'ImportSRPView',
+  },
+  MULTICHAIN_ACCOUNTS: {
+    ACCOUNT_DETAILS: 'MultichainAccountDetails',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
@@ -204,6 +235,14 @@ const Routes = {
   },
   ///: END:ONLY_INCLUDE_IF
   FOX_LOADER: 'FoxLoader',
+  SEEDPHRASE_MODAL: 'SeedphraseModal',
+  SET_PASSWORD_FLOW: {
+    ROOT: 'SetPasswordFlow',
+    MANUAL_BACKUP_STEP_1: 'ManualBackupStep1',
+    MANUAL_BACKUP_STEP_2: 'ManualBackupStep2',
+    MANUAL_BACKUP_STEP_3: 'ManualBackupStep3',
+  },
+
   EDIT_ACCOUNT_NAME: 'EditAccountName',
 };
 

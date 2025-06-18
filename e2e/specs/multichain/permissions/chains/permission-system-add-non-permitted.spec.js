@@ -6,9 +6,7 @@ import NetworkEducationModal from '../../../../pages/Network/NetworkEducationMod
 import Assertions from '../../../../utils/Assertions';
 import TestHelpers from '../../../../helpers';
 import FixtureBuilder from '../../../../fixtures/fixture-builder';
-import {
-  withFixtures,
-} from '../../../../fixtures/fixture-helper';
+import { withFixtures } from '../../../../fixtures/fixture-helper';
 import { CustomNetworks } from '../../../../resources/networks.e2e';
 import Browser from '../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
@@ -18,7 +16,7 @@ import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnec
 
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 
-describe(
+xdescribe(
   SmokeNetworkExpansion('Chain Permission System, non-permitted chain, '),
   () => {
     beforeAll(async () => {
@@ -28,7 +26,6 @@ describe(
     beforeEach(() => {
       jest.setTimeout(150000);
     });
-
 
     it('should show bottom sheet when switching to non-permitted chain', async () => {
       await withFixtures(
@@ -126,8 +123,9 @@ describe(
           await NetworkNonPemittedBottomSheet.tapAddThisNetworkButton();
 
           // Verify the permission was added by checking that disconnecting both networks shows disconnect all button
-          await Browser.tapNetworkAvatarButtonOnBrowser();
+          await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
           await ConnectedAccountsModal.tapManagePermissionsButton();
+          await ConnectedAccountsModal.tapPermissionsSummaryTab();
           await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
           await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
           await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();

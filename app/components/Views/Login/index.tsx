@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import {
   Alert,
   ActivityIndicator,
@@ -11,6 +11,7 @@ import {
   TextInput,
 } from 'react-native';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -53,12 +54,7 @@ import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.s
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { downloadStateLogs } from '../../../util/logs';
-import {
-  trace,
-  endTrace,
-  TraceName,
-  TraceOperation,
-} from '../../../util/trace';
+import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import TextField, {
   TextFieldSize,
 } from '../../../component-library/components/Form/TextField';
@@ -66,8 +62,6 @@ import Label from '../../../component-library/components/Form/Label';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
-import { getTraceTags } from '../../../util/sentry/tags';
-import { store } from '../../../store';
 import {
   DENY_PIN_ERROR_ANDROID,
   JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
@@ -89,20 +83,17 @@ import stylesheet from './styles';
 import ReduxService from '../../../core/redux';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
-import FOX_LOGO from '../../../images/branding/fox.png';
+import METAMASK_NAME from '../../../images/branding/metamask-name.png';
+import ConcealingFox from '../../../animations/Concealing_Fox.json';
+import SearchingFox from '../../../animations/Searching_Fox.json';
+import LottieView from 'lottie-react-native';
 
 /**
  * View where returning users can authenticate
  */
 const Login: React.FC = () => {
   const fieldRef = useRef<TextInput>(null);
-  const parentSpanRef = useRef(
-    trace({
-      name: TraceName.Login,
-      op: TraceOperation.Login,
-      tags: getTraceTags(store.getState()),
-    }),
-  );
+
   const [password, setPassword] = useState('');
   const [biometryType, setBiometryType] = useState<
     BIOMETRY_TYPE | AUTHENTICATION_TYPE | string | null
@@ -116,7 +107,12 @@ const Login: React.FC = () => {
   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route =
-    useRoute<RouteProp<{ params: { locked: boolean } }, 'params'>>();
+    useRoute<
+      RouteProp<
+        { params: { locked: boolean; oauthLoginSuccess?: boolean } },
+        'params'
+      >
+    >();
   const {
     styles,
     theme: { colors, themeAppearance },
@@ -134,12 +130,6 @@ const Login: React.FC = () => {
   };
 
   useEffect(() => {
-    trace({
-      name: TraceName.LoginUserInteraction,
-      op: TraceOperation.Login,
-      parentContext: parentSpanRef.current,
-    });
-
     trackEvent(
       createEventBuilder(MetaMetricsEvents.LOGIN_SCREEN_VIEWED).build(),
     );
@@ -240,8 +230,6 @@ const Login: React.FC = () => {
   };
 
   const onLogin = async () => {
-    endTrace({ name: TraceName.LoginUserInteraction });
-
     try {
       const locked = !passwordRequirementsMet(password);
       if (locked) {
@@ -261,7 +249,6 @@ const Login: React.FC = () => {
         {
           name: TraceName.AuthenticateUser,
           op: TraceOperation.Login,
-          parentContext: parentSpanRef.current,
         },
         async () => {
           await Authentication.userEntryAuth(password, authType);
@@ -326,19 +313,15 @@ const Login: React.FC = () => {
       }
       Logger.error(loginError, 'Failed to unlock');
     }
-    endTrace({ name: TraceName.Login });
   };
 
   const tryBiometric = async () => {
-    endTrace({ name: TraceName.LoginUserInteraction });
-
     fieldRef.current?.blur();
     try {
       await trace(
         {
           name: TraceName.LoginBiometricAuthentication,
           op: TraceOperation.Login,
-          parentContext: parentSpanRef.current,
         },
         async () => {
           await Authentication.appTriggeredAuth();
@@ -398,6 +381,11 @@ const Login: React.FC = () => {
     hasBiometricCredentials
   );
 
+  const lottieSrc = useMemo(
+    () => (password.length > 0 ? ConcealingFox : SearchingFox),
+    [password.length],
+  );
+
   return (
     <ErrorBoundary navigation={navigation} view="Login">
       <SafeAreaView style={styles.mainWrapper}>
@@ -406,33 +394,49 @@ const Login: React.FC = () => {
           resetScrollToCoords={{ x: 0, y: 0 }}
           style={styles.wrapper}
         >
-          <View testID={LoginViewSelectors.CONTAINER}>
+          <View testID={LoginViewSelectors.CONTAINER} style={styles.container}>
+            <Image
+              source={METAMASK_NAME}
+              style={styles.metamaskName}
+              resizeMethod={'auto'}
+            />
+
             <TouchableOpacity
               style={styles.foxWrapper}
               delayLongPress={10 * 1000} // 10 seconds
               onLongPress={handleDownloadStateLogs}
               activeOpacity={1}
             >
-              <Image
-                source={FOX_LOGO}
+              <LottieView
                 style={styles.image}
-                resizeMethod={'auto'}
+                autoPlay
+                loop
+                source={lottieSrc}
+                resizeMode="contain"
               />
             </TouchableOpacity>
 
-            <Text style={styles.title} testID={LoginViewSelectors.TITLE_ID}>
+            <Text
+              variant={TextVariant.DisplayMD}
+              color={TextColor.Default}
+              style={styles.title}
+              testID={LoginViewSelectors.TITLE_ID}
+            >
               {strings('login.title')}
             </Text>
+
             <View style={styles.field}>
-              <Label
-                variant={TextVariant.HeadingSMRegular}
-                style={styles.label}
-              >
-                {strings('login.password')}
-              </Label>
+              <View style={styles.labelContainer}>
+                <Label
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Default}
+                >
+                  {strings('login.password')}
+                </Label>
+              </View>
               <TextField
                 size={TextFieldSize.Lg}
-                placeholder={strings('login.password')}
+                placeholder={strings('login.password_placeholder')}
                 placeholderTextColor={colors.text.muted}
                 testID={LoginViewSelectors.PASSWORD_INPUT}
                 returnKeyType={'done'}
@@ -446,28 +450,31 @@ const Login: React.FC = () => {
                   <BiometryButton
                     onPress={tryBiometric}
                     hidden={shouldHideBiometricAccessoryButton}
-                    biometryType={biometryType}
+                    biometryType={biometryType as BIOMETRY_TYPE}
                   />
                 }
                 keyboardAppearance={themeAppearance}
               />
             </View>
 
-            {renderSwitch()}
+            <View style={styles.helperTextContainer}>
+              {!!error && (
+                <HelpText
+                  severity={HelpTextSeverity.Error}
+                  variant={TextVariant.BodyMD}
+                  testID={LoginViewSelectors.PASSWORD_ERROR}
+                >
+                  {error}
+                </HelpText>
+              )}
+            </View>
 
-            {!!error && (
-              <HelpText
-                severity={HelpTextSeverity.Error}
-                variant={TextVariant.BodyMD}
-                testID={LoginViewSelectors.PASSWORD_ERROR}
-              >
-                {error}
-              </HelpText>
-            )}
             <View
               style={styles.ctaWrapper}
               testID={LoginViewSelectors.LOGIN_BUTTON_ID}
             >
+              {renderSwitch()}
+
               <Button
                 variant={ButtonVariants.Primary}
                 width={ButtonWidthTypes.Full}
@@ -483,19 +490,15 @@ const Login: React.FC = () => {
                     strings('login.unlock_button')
                   )
                 }
+                isDisabled={password.length === 0}
               />
-            </View>
 
-            <View style={styles.footer}>
-              <Text variant={TextVariant.HeadingSMRegular} style={styles.cant}>
-                {strings('login.go_back')}
-              </Text>
               <Button
                 style={styles.goBack}
                 variant={ButtonVariants.Link}
                 onPress={toggleWarningModal}
                 testID={LoginViewSelectors.RESET_WALLET}
-                label={strings('login.reset_wallet')}
+                label={strings('login.forgot_password')}
               />
             </View>
           </View>

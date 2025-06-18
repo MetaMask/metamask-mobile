@@ -1,6 +1,7 @@
 import { Order } from '@consensys/on-ramp-sdk';
+import { toHex } from '@metamask/controller-utils';
 import { createSelector } from 'reselect';
-import { Region } from '../../components/UI/Ramp/types';
+import { Region } from '../../components/UI/Ramp/Aggregator/types';
 import { selectChainId } from '../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
 import {
@@ -16,7 +17,7 @@ import {
 } from './types';
 import type { RootState } from '../';
 import { getDecimalChainId, isTestNet } from '../../util/networks';
-import { toHex } from '@metamask/controller-utils';
+import networkChainIdEquals from '../../components/UI/Ramp/utils/networkChainIdEquals';
 
 export type { FiatOrder } from './types';
 
@@ -53,6 +54,10 @@ export const setFiatOrdersGetStartedAGG = (getStartedFlag: boolean) => ({
 });
 export const setFiatOrdersGetStartedSell = (getStartedFlag: boolean) => ({
   type: ACTIONS.FIAT_SET_GETSTARTED_SELL,
+  payload: getStartedFlag,
+});
+export const setFiatOrdersGetStartedDeposit = (getStartedFlag: boolean) => ({
+  type: ACTIONS.FIAT_SET_GETSTARTED_DEPOSIT,
   payload: getStartedFlag,
 });
 export const addFiatCustomIdData = (customIdData: CustomIdData) => ({
@@ -167,6 +172,10 @@ export const fiatOrdersGetStartedSell: (
   state: RootState,
 ) => FiatOrdersState['getStartedSell'] = (state: RootState) =>
   state.fiatOrders.getStartedSell;
+export const fiatOrdersGetStartedDeposit: (
+  state: RootState,
+) => FiatOrdersState['getStartedDeposit'] = (state: RootState) =>
+  state.fiatOrders.getStartedDeposit;
 
 export const getOrdersProviders = createSelector(ordersSelector, (orders) => {
   const providers = orders
@@ -189,7 +198,8 @@ export const getOrders = createSelector(
       (order) =>
         !order.excludeFromPurchases &&
         order.account === selectedAddress &&
-        (order.network === chainId || isTestNet(toHex(chainId))),
+        (networkChainIdEquals(order.network, chainId) ||
+          isTestNet(toHex(chainId))),
     ),
 );
 
@@ -201,7 +211,7 @@ export const getPendingOrders = createSelector(
     orders.filter(
       (order) =>
         order.account === selectedAddress &&
-        order.network === chainId &&
+        networkChainIdEquals(order.network, chainId) &&
         order.state === FIAT_ORDER_STATES.PENDING,
     ),
 );
@@ -271,6 +281,7 @@ export const initialState: FiatOrdersState = {
   selectedPaymentMethodAgg: null,
   getStartedAgg: false,
   getStartedSell: false,
+  getStartedDeposit: false,
   authenticationUrls: [],
   activationKeys: [],
 };
@@ -349,6 +360,12 @@ const fiatOrderReducer: (
       return {
         ...state,
         getStartedSell: action.payload,
+      };
+    }
+    case ACTIONS.FIAT_SET_GETSTARTED_DEPOSIT: {
+      return {
+        ...state,
+        getStartedDeposit: action.payload,
       };
     }
     case ACTIONS.FIAT_SET_REGION_AGG: {

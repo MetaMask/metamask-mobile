@@ -1,8 +1,8 @@
 import React from 'react';
 import Login from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-// eslint-disable-next-line import/no-namespace
-import * as traceObj from '../../../util/trace';
+import { fireEvent } from '@testing-library/react-native';
+import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -19,12 +19,18 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('Login', () => {
-  it('should render correctly', () => {
-    const spyFetch = jest
-      .spyOn(traceObj, 'trace')
-      .mockImplementation(() => undefined);
+  it('renders matching snapshot', () => {
     const { toJSON } = renderWithProvider(<Login />);
     expect(toJSON()).toMatchSnapshot();
-    expect(spyFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('renders matching snapshot when password input is focused', () => {
+    const { getByTestId, toJSON } = renderWithProvider(<Login />);
+
+    fireEvent.changeText(
+      getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+      'password',
+    );
+    expect(toJSON()).toMatchSnapshot();
   });
 });

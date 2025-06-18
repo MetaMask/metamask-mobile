@@ -14,7 +14,7 @@ import Text, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
-import AccountSelectorList from '../../../UI/AccountSelectorList';
+import CaipAccountSelectorList from '../../../UI/CaipAccountSelectorList';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../../component-library/components/Form/HelpText';
@@ -22,7 +22,6 @@ import HelpText, {
 // Internal dependencies.
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
-import AddAccountActions from '../../AddAccountActions';
 import styleSheet from './AccountConnectMultiSelector.styles';
 import {
   AccountConnectMultiSelectorProps,
@@ -31,12 +30,18 @@ import {
 import Checkbox from '../../../../component-library/components/Checkbox';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
+import { CaipAccountId } from '@metamask/utils';
+import { Box } from '../../../UI/Box/Box';
+import { FlexDirection, JustifyContent } from '../../../UI/Box/box.types';
+import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
+import AddAccountSelection from '../AddAccount/AddAccount';
 
 const AccountConnectMultiSelector = ({
   accounts,
   ensByAccountAddress,
   defaultSelectedAddresses,
   onSubmit,
+  onCreateAccount,
   isLoading,
   isAutoScrollEnabled = true,
   hostname,
@@ -51,24 +56,22 @@ const AccountConnectMultiSelector = ({
     AccountConnectMultiSelectorScreens.AccountMultiSelector,
   );
 
-  const [selectedAddresses, setSelectedAddresses] = useState<string[]>([]);
+  const [selectedAddresses, setSelectedAddresses] = useState<CaipAccountId[]>(
+    [],
+  );
 
   useEffect(() => {
     setSelectedAddresses(defaultSelectedAddresses);
-  }, [
-    setSelectedAddresses,
-    defaultSelectedAddresses,
-  ]);
+  }, [setSelectedAddresses, defaultSelectedAddresses]);
 
   const onSelectAccount = useCallback(
-    (accAddress: string) => {
+    (accAddress: CaipAccountId) => {
       const updatedSelectedAccountAddresses = selectedAddresses.filter(
-        (selectedAccountId) => !isEqualCaseInsensitive(selectedAccountId, accAddress),
+        (selectedAccountId) =>
+          !isEqualCaseInsensitive(selectedAccountId, accAddress),
       );
 
-      if (
-        updatedSelectedAccountAddresses.length === selectedAddresses.length
-      ) {
+      if (updatedSelectedAccountAddresses.length === selectedAddresses.length) {
         setSelectedAddresses([...selectedAddresses, accAddress]);
       } else {
         setSelectedAddresses(updatedSelectedAccountAddresses);
@@ -85,8 +88,9 @@ const AccountConnectMultiSelector = ({
     onSubmit([]);
   }, [onSubmit]);
 
-  const areAllAccountsSelected = accounts
-    .every(({ address }) => selectedAddresses.includes(address));
+  const areAllAccountsSelected = accounts.every(({ caipAccountId }) =>
+    selectedAddresses.includes(caipAccountId),
+  );
 
   const areAnyAccountsSelected = selectedAddresses?.length !== 0;
   const areNoAccountsSelected = selectedAddresses?.length === 0;
@@ -98,7 +102,7 @@ const AccountConnectMultiSelector = ({
     const selectAll = () => {
       if (isLoading) return;
       const allSelectedAccountAddresses = accounts.map(
-        ({ address }) => address,
+        ({ caipAccountId }) => caipAccountId,
       );
       setSelectedAddresses(allSelectedAccountAddresses);
     };
@@ -132,7 +136,8 @@ const AccountConnectMultiSelector = ({
     styles.selectAll,
   ]);
 
-  const renderCtaButtons = useCallback(() => (
+  const renderCtaButtons = useCallback(
+    () => (
       <View style={styles.ctaButtonsContainer}>
         <View style={styles.connectOrUpdateButtonContainer}>
           {areAnyAccountsSelected && (
@@ -143,8 +148,7 @@ const AccountConnectMultiSelector = ({
               size={ButtonSize.Lg}
               style={{
                 ...styles.button,
-                ...(isLoading &&
-                  styles.disabled),
+                ...(isLoading && styles.disabled),
               }}
               disabled={isLoading}
               testID={ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON}
@@ -176,16 +180,18 @@ const AccountConnectMultiSelector = ({
           </View>
         )}
       </View>
-    ), [
-    areAnyAccountsSelected,
-    isLoading,
-    styles,
-    areNoAccountsSelected,
-    hostname,
-    showDisconnectAllButton,
-    handleDisconnect,
-    handleSubmit,
-  ]);
+    ),
+    [
+      areAnyAccountsSelected,
+      isLoading,
+      styles,
+      areNoAccountsSelected,
+      hostname,
+      showDisconnectAllButton,
+      handleDisconnect,
+      handleSubmit,
+    ],
+  );
 
   const renderAccountConnectMultiSelector = useCallback(
     () => (
@@ -200,9 +206,28 @@ const AccountConnectMultiSelector = ({
               {accounts?.length > 0 &&
                 strings('accounts.select_accounts_description')}
             </Text>
-            {accounts?.length > 0 && renderSelectAllCheckbox()}
+            <Box
+              flexDirection={FlexDirection.Row}
+              justifyContent={JustifyContent.spaceBetween}
+            >
+              {accounts?.length > 0 && renderSelectAllCheckbox()}
+              <ButtonLink
+                testID={
+                  AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
+                }
+                style={styles.newAccountButton}
+                label={strings('accounts.new_account')}
+                width={ButtonWidthTypes.Full}
+                size={ButtonSize.Lg}
+                onPress={() => {
+                  setScreen(
+                    AccountConnectMultiSelectorScreens.AddAccountActions,
+                  );
+                }}
+              />
+            </Box>
           </View>
-          <AccountSelectorList
+          <CaipAccountSelectorList
             onSelectAccount={onSelectAccount}
             accounts={accounts}
             ensByAccountAddress={ensByAccountAddress}
@@ -222,20 +247,6 @@ const AccountConnectMultiSelector = ({
               </Text>
             </View>
           )}
-          <View style={styles.addAccountButtonContainer}>
-            <Button
-              variant={ButtonVariants.Link}
-              label={strings('account_actions.add_account_or_hardware_wallet')}
-              width={ButtonWidthTypes.Full}
-              size={ButtonSize.Lg}
-              onPress={() =>
-                setScreen(AccountConnectMultiSelectorScreens.AddAccountActions)
-              }
-              testID={
-                AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
-              }
-            />
-          </View>
           <View style={styles.body}>{renderCtaButtons()}</View>
         </View>
       </SafeAreaView>
@@ -248,13 +259,13 @@ const AccountConnectMultiSelector = ({
       onSelectAccount,
       renderCtaButtons,
       selectedAddresses,
-      styles.addAccountButtonContainer,
       styles.body,
       styles.description,
       connection,
       styles.sdkInfoContainer,
       styles.container,
       styles.sdkInfoDivier,
+      styles.newAccountButton,
       onBack,
       renderSelectAllCheckbox,
       screenTitle,
@@ -263,13 +274,16 @@ const AccountConnectMultiSelector = ({
 
   const renderAddAccountActions = useCallback(
     () => (
-      <AddAccountActions
-        onBack={() =>
-          setScreen(AccountConnectMultiSelectorScreens.AccountMultiSelector)
-        }
+      <AddAccountSelection
+        onBack={() => {
+          setScreen(AccountConnectMultiSelectorScreens.AccountMultiSelector);
+        }}
+        onCreateAccount={(clientType, scope) => {
+          onCreateAccount(clientType, scope);
+        }}
       />
     ),
-    [],
+    [onCreateAccount],
   );
 
   const renderAccountScreens = useCallback(() => {

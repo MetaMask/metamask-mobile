@@ -284,11 +284,6 @@ declare module './util/termsOfUse/termsOfUseContent.ts' {
   export default content;
 }
 
-declare module 'react-native-emoji' {
-  const emoji: React.JSX;
-  export default emoji;
-}
-
 declare module '@metamask/react-native-actionsheet' {
   const ActionSheet;
   export default ActionSheet;
@@ -402,9 +397,8 @@ declare module '@sentry/react-native' {
 
   // Enforce exception to be of type Error for more reliable stack traces - https://docs.sentry.io/platforms/javascript/usage/#capturing-errors
   import { ExclusiveEventHintOrCaptureContext } from '@sentry/core/build/types/utils/prepareEvent';
-  const captureException: (
+  export function captureException(
     exception: Error,
     hint?: ExclusiveEventHintOrCaptureContext,
-  ) => string;
-  export { captureException };
+  ): string;
 }

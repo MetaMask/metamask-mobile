@@ -1,69 +1,76 @@
-import { isSupportedChain } from '@metamask/stake-sdk';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { getDecimalChainId } from '../../../../../util/networks';
-import { TokenI } from '../../../Tokens/types';
+import BigNumber from 'bignumber.js';
+import {
+  addCurrencySymbol,
+  renderFromTokenMinimalUnit,
+} from '../../../../../util/number';
+import { EarnTokenDetails } from '../../types/lending.types';
 
-const SUPPORTED_STAKING_TOKENS = new Set(['Ethereum']);
+export const getEstimatedAnnualRewards = (
+  apr: string,
+  amountFiatNumber: number,
+  amountTokenMinimalUnit: string,
+  currentCurrency: string,
+  assetDecimals: number,
+  assetTicker: string,
+): {
+  estimatedAnnualRewardsFormatted: string;
+  estimatedAnnualRewardsFiatNumber: number;
+  estimatedAnnualRewardsTokenMinimalUnit: string;
+  estimatedAnnualRewardsTokenFormatted: string;
+} => {
+  let estimatedAnnualRewardsFormatted = '';
+  let estimatedAnnualRewardsTokenFormatted = '';
 
-export const SUPPORTED_LENDING_TOKENS = new Set(['DAI', 'USDC', 'USDT']);
+  const aprToUse = isNaN(Number(apr)) ? '0' : apr;
+  const rewardRateDecimal = new BigNumber(aprToUse).dividedBy(100).toNumber();
 
-const SUPPORTED_EARN_TOKENS = new Set([
-  ...SUPPORTED_STAKING_TOKENS,
-  ...SUPPORTED_LENDING_TOKENS,
-]);
-const SUPPORTED_CHAIN_IDS = new Set<string>([
-  CHAIN_IDS.MAINNET,
-  CHAIN_IDS.BASE,
-]);
+  const estimatedAnnualRewardsDecimal = new BigNumber(amountFiatNumber)
+    .multipliedBy(rewardRateDecimal)
+    .toNumber();
+  const estimatedAnnualRewardsTokenMinimalUnit = new BigNumber(
+    amountTokenMinimalUnit,
+  )
+    .multipliedBy(rewardRateDecimal)
+    .toFixed(0, BigNumber.ROUND_DOWN);
+  if (
+    !Number.isNaN(estimatedAnnualRewardsDecimal) &&
+    estimatedAnnualRewardsTokenMinimalUnit !== '0'
+  ) {
+    // Show cents ($0.50) for small amounts. Otherwise round up to nearest dollar ($2).
+    const numDecimalPlacesToShow = estimatedAnnualRewardsDecimal > 1 ? 0 : 2;
 
-export const getSupportedEarnTokens = (tokens: TokenI[]) =>
-  Object.values(tokens).filter(({ isETH, isStaked, symbol, chainId }) => {
-    // We only support staking on Ethereum
-    if (isETH && !isSupportedChain(getDecimalChainId(chainId))) return false;
-    if (isStaked) return false;
-
-    return (
-      SUPPORTED_CHAIN_IDS.has(chainId as string) &&
-      SUPPORTED_EARN_TOKENS.has(symbol)
-    );
-  });
-
-const removeStakingTokens = (tokens: TokenI[]) => {
-  const tokensCopy = [...tokens];
-
-  return tokensCopy.filter(
-    (token) => !SUPPORTED_STAKING_TOKENS.has(token.symbol),
-  );
-};
-
-const removeLendingTokens = (tokens: TokenI[]) => {
-  const tokensCopy = [...tokens];
-  return tokensCopy.filter(
-    (token) => !SUPPORTED_LENDING_TOKENS.has(token.symbol),
-  );
-};
-
-export const filterEligibleTokens = (
-  tokens: TokenI[],
-  options: { canStake: boolean; canLend: boolean },
-) => {
-  const { canStake = false, canLend = false } = options;
-
-  let tokensCopy = [...tokens];
-
-  if (!canStake) {
-    tokensCopy = removeStakingTokens(tokensCopy);
+    estimatedAnnualRewardsFormatted = `${addCurrencySymbol(
+      new BigNumber(estimatedAnnualRewardsDecimal).toFixed(
+        numDecimalPlacesToShow,
+        BigNumber.ROUND_UP,
+      ),
+      currentCurrency,
+    )}`;
+    estimatedAnnualRewardsTokenFormatted =
+      renderFromTokenMinimalUnit(
+        estimatedAnnualRewardsTokenMinimalUnit,
+        assetDecimals,
+      ) +
+      ' ' +
+      assetTicker;
   }
 
-  if (!canLend) {
-    tokensCopy = removeLendingTokens(tokensCopy);
-  }
-
-  return tokensCopy;
+  return {
+    estimatedAnnualRewardsFormatted,
+    estimatedAnnualRewardsFiatNumber: estimatedAnnualRewardsDecimal,
+    estimatedAnnualRewardsTokenMinimalUnit,
+    estimatedAnnualRewardsTokenFormatted,
+  };
 };
 
-export const isSupportedLendingTokenByChainId = (
-  tokenSymbol: string,
-  chainId: string,
-) =>
-  SUPPORTED_LENDING_TOKENS.has(tokenSymbol) && SUPPORTED_CHAIN_IDS.has(chainId);
+export const sortByHighestRewards = (tokensToSort: EarnTokenDetails[]) =>
+  [...tokensToSort].sort(
+    (a, b) =>
+      b.experience.estimatedAnnualRewardsFiatNumber -
+      a.experience.estimatedAnnualRewardsFiatNumber,
+  );
+
+export const sortByHighestApr = (tokensToSort: EarnTokenDetails[]) =>
+  [...tokensToSort].sort(
+    (a, b) => parseFloat(b.experience.apr) - parseFloat(a.experience.apr),
+  );
