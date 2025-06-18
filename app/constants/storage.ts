@@ -41,7 +41,7 @@ export const ENCRYPTION_LIB = `${prefix}encryptionLib`;
 export const SEED_PHRASE_HINTS = 'seedphraseHints';
 
 export const TRUE = 'true';
-
+export const FALSE = 'false';
 export const AGREED = 'agreed';
 export const DENIED = 'denied';
 export const EXPLORED = 'explored';

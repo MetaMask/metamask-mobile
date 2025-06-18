@@ -150,23 +150,6 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                 />
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View />
-            </View>
           </View>
         </View>
       </View>

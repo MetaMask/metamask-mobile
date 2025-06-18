@@ -93,6 +93,9 @@ import { isPortfolioViewEnabled } from '../../../util/networks';
 import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
 import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal';
 import InfoNetworkModal from '../../Views/InfoNetworkModal/InfoNetworkModal';
+import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
+import { Authentication } from '../../../core';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 
@@ -121,6 +124,32 @@ const Main = (props) => {
   const backgroundMode = useRef(false);
   const locale = useRef(I18n.locale);
   const removeConnectionStatusListener = useRef();
+
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  const isSeedlessPasswordOutdated = useSelector(
+    selectIsSeedlessPasswordOutdated,
+  );
+
+  useEffect(() => {
+    if (isSeedlessPasswordOutdated) {
+      // show seedless password outdated modal and force user to lock app
+      props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+        params: {
+          title: strings('login.seedless_password_outdated_modal_title'),
+          description: strings('login.seedless_password_outdated_modal_content'),
+          primaryButtonLabel: strings('login.seedless_password_outdated_modal_confirm'),
+          icon: IconName.RichDanger,
+          isInteractable: false,
+          onPrimaryButtonPress: async () => {
+            await Authentication.lockApp({ locked: true });
+          },
+          closeOnPrimaryButtonPress: true,
+        },
+      });
+    }
+  }, [isSeedlessPasswordOutdated, props.navigation]);
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
   const { connectionChangeHandler } = useConnectionHandler(props.navigation);
 
@@ -251,7 +280,7 @@ const Main = (props) => {
 
       return isEvmSelected
         ? chainId !== previousConfig.chainId ||
-            providerConfig.type !== previousConfig.type
+        providerConfig.type !== previousConfig.type
         : chainId !== previousConfig.chainId;
     },
     [providerConfig.type],
@@ -329,10 +358,9 @@ const Main = (props) => {
         variant: ToastVariants.Plain,
         labelOptions: [
           {
-            label: `${
-              (newNetwork?.name || deletedNetwork?.name) ??
+            label: `${(newNetwork?.name || deletedNetwork?.name) ??
               strings('asset_details.network')
-            } `,
+              } `,
             isBold: true,
           },
           {
@@ -437,10 +465,6 @@ const Main = (props) => {
         <Notification navigation={props.navigation} />
         <RampOrders />
         <SwapsLiveness />
-        <BackupAlert
-          onDismiss={toggleRemindLater}
-          navigation={props.navigation}
-        />
         {renderDeprecatedNetworkAlert(
           props.chainId,
           props.backUpSeedphraseVisible,

@@ -90,6 +90,10 @@ import ConcealingFox from '../../../animations/Concealing_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
 import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+import { useSelector } from 'react-redux';
+import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
+///: END:ONLY_INCLUDE_IF
 
 /**
  * View where returning users can authenticate
@@ -135,6 +139,18 @@ const Login: React.FC = () => {
     dispatch(setOnboardingWizardStepUtil(step));
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
+
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  const isSeedlessPasswordOutdated = useSelector(
+    selectIsSeedlessPasswordOutdated,
+  );
+  useEffect(() => {
+    // first error if seedless password is outdated
+    if (isSeedlessPasswordOutdated) {
+      setError(strings('login.seedless_password_outdated'));
+    }
+  }, [isSeedlessPasswordOutdated]);
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
   const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
 
@@ -306,9 +322,13 @@ const Login: React.FC = () => {
         rememberMe,
       );
 
-      console.log('authType', authType);
       ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
-      if (oauthLoginSuccess) {
+      if (isSeedlessPasswordOutdated) {
+        await Authentication.submitLatestGlobalSeedlessPassword(
+          password,
+          authType,
+        );
+      } else if (oauthLoginSuccess) {
         await Authentication.rehydrateSeedPhrase(password, authType);
       } else {
         ///: END:ONLY_INCLUDE_IF(seedless-onboarding)

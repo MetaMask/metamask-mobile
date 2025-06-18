@@ -1,17 +1,20 @@
 import React from 'react';
-import StyledButton from '../StyledButton';
 import PropTypes from 'prop-types';
 import {
   Keyboard,
   StyleSheet,
   View,
-  ActivityIndicator,
   TouchableWithoutFeedback,
 } from 'react-native';
 import { baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useTheme } from '../../../util/theme';
+import Button, {
+  ButtonVariants,
+  ButtonWidthTypes,
+  ButtonSize,
+} from '../../../component-library/components/Buttons/Button';
 
 export const ConfirmButtonState = {
   Error: 'error',
@@ -21,28 +24,28 @@ export const ConfirmButtonState = {
 
 const getStyles = (colors) =>
   StyleSheet.create({
+    root: {
+      flex: 1,
+    },
+    actionView: {
+      flexDirection: 'column',
+      flex: 1,
+      height: '100%',
+    },
+    container: {
+      flex: 1,
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+    },
     actionContainer: {
-      flex: 0,
+      width: '100%',
       flexDirection: 'row',
-      paddingVertical: 16,
-      paddingHorizontal: 24,
+      marginBottom: 16,
+      paddingHorizontal: 16,
+      columnGap: 8,
     },
     button: {
       flex: 1,
-    },
-    cancel: {
-      marginRight: 8,
-    },
-    confirm: {
-      marginLeft: 8,
-    },
-    confirmButtonError: {
-      backgroundColor: colors.error.default,
-      borderColor: colors.error.default,
-    },
-    confirmButtonWarning: {
-      backgroundColor: colors.warning.default,
-      borderColor: colors.warning.default,
     },
   });
 
@@ -68,6 +71,7 @@ export default function ActionView({
   style = undefined,
   confirmButtonState = ConfirmButtonState.Normal,
   scrollViewTestID,
+  buttonContainerStyle,
   contentContainerStyle,
 }) {
   const { colors } = useTheme();
@@ -76,66 +80,55 @@ export default function ActionView({
   const styles = getStyles(colors);
 
   return (
-    <View style={baseStyles.flexGrow}>
+    <View style={[baseStyles.flexGrow, styles.actionView]}>
       <KeyboardAwareScrollView
-        style={[baseStyles.flexGrow, style]}
+        style={[baseStyles.flexGrow, style, styles.actionView]}
         resetScrollToCoords={{ x: 0, y: 0 }}
         keyboardShouldPersistTaps={keyboardShouldPersistTaps}
         testID={scrollViewTestID}
         contentContainerStyle={contentContainerStyle}
       >
-        <TouchableWithoutFeedback
-          style={baseStyles.flexGrow}
-          // eslint-disable-next-line react/jsx-no-bind
-          onPress={() => {
-            if (keyboardShouldPersistTaps === 'handled') {
-              Keyboard.dismiss();
-            }
-            onTouchablePress && onTouchablePress();
-          }}
-        >
-          {children}
-        </TouchableWithoutFeedback>
+        <View style={styles.container}>
+          <TouchableWithoutFeedback
+            style={[baseStyles.flexGrow, styles.actionView]}
+            // eslint-disable-next-line react/jsx-no-bind
+            onPress={() => {
+              if (keyboardShouldPersistTaps === 'handled') {
+                Keyboard.dismiss();
+              }
+              onTouchablePress && onTouchablePress();
+            }}
+          >
+            {children}
+          </TouchableWithoutFeedback>
 
-        <View style={styles.actionContainer}>
-          {showCancelButton && (
-            <StyledButton
-              testID={cancelTestID}
-              type={confirmButtonMode === 'sign' ? 'signingCancel' : 'cancel'}
-              onPress={onCancelPress}
-              containerStyle={[styles.button, styles.cancel]}
-              disabled={confirmed}
-            >
-              {cancelText}
-            </StyledButton>
-          )}
-          {showConfirmButton && (
-            <StyledButton
-              testID={confirmTestID}
-              type={confirmButtonMode}
-              onPress={onConfirmPress}
-              containerStyle={[
-                styles.button,
-                styles.confirm,
-                confirmButtonState === ConfirmButtonState.Error
-                  ? styles.confirmButtonError
-                  : {},
-                confirmButtonState === ConfirmButtonState.Warning
-                  ? styles.confirmButtonWarning
-                  : {},
-              ]}
-              disabled={confirmed || confirmDisabled || loading}
-            >
-              {confirmed || loading ? (
-                <ActivityIndicator
-                  size="small"
-                  color={colors.primary.default}
-                />
-              ) : (
-                confirmText
-              )}
-            </StyledButton>
-          )}
+          <View style={[styles.actionContainer, buttonContainerStyle]}>
+            {showCancelButton && (
+              <Button
+                variant={ButtonVariants.Secondary}
+                width={ButtonWidthTypes.Full}
+                size={ButtonSize.Lg}
+                onPress={onCancelPress}
+                label={cancelText}
+                isDisabled={confirmed}
+                testID={cancelTestID}
+                style={styles.button}
+              />
+            )}
+            {showConfirmButton && (
+              <Button
+                variant={ButtonVariants.Primary}
+                width={ButtonWidthTypes.Full}
+                size={ButtonSize.Lg}
+                onPress={onConfirmPress}
+                label={confirmText}
+                isDisabled={confirmed || confirmDisabled || loading}
+                loading={confirmed || loading}
+                testID={confirmTestID}
+                style={styles.button}
+              />
+            )}
+          </View>
         </View>
       </KeyboardAwareScrollView>
     </View>
@@ -229,6 +222,10 @@ ActionView.propTypes = {
    * Optional TestID for the parent scroll View
    */
   scrollViewTestID: PropTypes.string,
+  /**
+   * Optional View styles. Applies to action container
+   */
+  buttonContainerStyle: PropTypes.object,
   /**
    * Optional View styles. Applies to scroll view
    */

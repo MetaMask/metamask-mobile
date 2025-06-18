@@ -184,7 +184,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 }
               }
             >
-              Important! Secret Recovery Phrase not backed up
+              Back up Secret Recovery Phrase
             </Text>
           </View>
         </View>
@@ -276,6 +276,44 @@ exports[`SecuritySettings should render correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "stretch",
+              "backgroundColor": "#4459ff",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "marginTop": 16,
+              "paddingHorizontal": 16,
+            }
+          }
+          testID="change-password-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Change password
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
               "backgroundColor": "transparent",
               "borderColor": "#4459ff",
               "borderRadius": 12,
@@ -302,7 +340,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
           >
-            Change password
+            Password hint
           </Text>
         </TouchableOpacity>
       </View>
