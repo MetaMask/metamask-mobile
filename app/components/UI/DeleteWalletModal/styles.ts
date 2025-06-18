@@ -52,6 +52,17 @@ export const createStyles = (colors: any) =>
       flexDirection: 'column',
       rowGap: 16,
     },
+    iconContainer: {
+      flexDirection: 'row',
+      columnGap: 16,
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      width: '100%',
+    },
+    iconEmptyContainer: {
+      width: 24,
+      height: 24,
+    },
     warningIcon: {
       alignSelf: 'center',
     },

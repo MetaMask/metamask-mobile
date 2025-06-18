@@ -7,6 +7,7 @@ import {
   VALID,
   INVALID,
 } from './verifySignature';
+import AppConstants from '../../../../core/AppConstants';
 
 jest.mock('react-native-quick-crypto', () => ({
   webcrypto: {
@@ -26,10 +27,6 @@ const mockSubtle = QuickCrypto.webcrypto.subtle as jest.Mocked<
 describe('verifySignature', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-
-    jest.spyOn(console, 'error').mockImplementation(() => {
-      // Mock implementation to suppress console output in tests
-    });
   });
 
   afterEach(() => {
@@ -75,7 +72,11 @@ describe('verifySignature', () => {
       algorithm: { name: 'ECDSA', namedCurve: 'P-256' },
       usages: ['verify'],
     } as unknown as CryptoKey;
-    const mockAlgorithm = { name: 'ECDSA', hash: 'SHA-256' };
+    const mockAlgorithm = {
+      name: 'ECDSA',
+      hash: 'SHA-256',
+      namedCurve: 'P-256',
+    };
 
     beforeEach(() => {
       mockSubtle.importKey.mockResolvedValue(mockKey);
@@ -100,11 +101,6 @@ describe('verifySignature', () => {
       const result = await verifyDeeplinkSignature(url);
 
       expect(result).toBe(INVALID);
-      expect(console.error).toHaveBeenCalledWith(
-        '❌ Invalid signature length:',
-        expect.any(Number),
-        '(expected 64)',
-      );
     });
 
     it('returns VALID when signature verification succeeds', async () => {
@@ -127,10 +123,14 @@ describe('verifySignature', () => {
           ext: true,
           key_ops: ['verify'],
           kty: 'EC',
-          x: 'nFiE3X_J5n5OJJSlLK95kSByhfLrSJmRxjEtBaP3TD8',
-          y: 'RBeepuE1D3or2SdzjsFcHU-l2rrNb46ZW_4wCXCLSaY',
+          x: AppConstants.MM_DEEP_LINK_PUBLIC_KEY_X,
+          y: AppConstants.MM_DEEP_LINK_PUBLIC_KEY_Y,
         },
-        mockAlgorithm,
+        {
+          name: 'ECDSA',
+          hash: 'SHA-256',
+          namedCurve: 'P-256',
+        },
         false,
         ['verify'],
       );
@@ -240,10 +240,6 @@ describe('verifySignature', () => {
       const result = await verifyDeeplinkSignature(url);
 
       expect(result).toBe(INVALID);
-      expect(console.error).toHaveBeenCalledWith(
-        '💥 Error during signature verification:',
-        error,
-      );
     });
 
     it('handles complex URLs with fragments and multiple query params', async () => {
