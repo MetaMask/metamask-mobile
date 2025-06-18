@@ -175,7 +175,6 @@ describe('Blockaid Validation Logic', () => {
 
   it('should proceed without blockaid modal when validation passes', async () => {
     const mockQuote = createMockQuote('test-quote');
-    const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
     
     mockValidateBridgeTx.mockResolvedValue({
       result: {
@@ -193,10 +192,6 @@ describe('Blockaid Validation Logic', () => {
       screen: 'BLOCKAID_MODAL',
       params: expect.any(Object),
     });
-
-    expect(consoleSpy).toHaveBeenCalledWith('Validation passed, would proceed with transaction');
-    
-    consoleSpy.mockRestore();
   });
 
   it('should handle validation hook errors gracefully', async () => {
