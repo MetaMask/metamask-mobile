@@ -1000,7 +1000,6 @@ function SwapsQuotesView({
             deviceConfirmedOn: WalletDevice.MM_MOBILE,
             networkClientId,
             origin: process.env.MM_FOX_CODE,
-            requireApproval: false,
             type: TransactionType.swap,
           },
         );
@@ -1064,7 +1063,6 @@ function SwapsQuotesView({
             deviceConfirmedOn: WalletDevice.MM_MOBILE,
             networkClientId,
             origin: process.env.MM_FOX_CODE,
-            requireApproval: false,
             type: TransactionType.swapApproval,
           },
         );
