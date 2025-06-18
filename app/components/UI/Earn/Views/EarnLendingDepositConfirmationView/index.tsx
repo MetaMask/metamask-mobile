@@ -141,6 +141,19 @@ const EarnLendingDepositConfirmationView = () => {
   const createAllowanceTxEventListeners = useCallback(
     (transactionId: string) => {
       Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionDropped',
+        () => {
+          setIsConfirmButtonDisabled(false);
+          setIsApprovalLoading(false);
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.EARN_TRANSACTION_DROPPED)
+              .addProperties(getTrackEventProperties('deposit', transactionId))
+              .build(),
+          );
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
+      Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionFailed',
         () => {
           setIsConfirmButtonDisabled(false);
@@ -177,6 +190,19 @@ const EarnLendingDepositConfirmationView = () => {
 
   const createDepositTxEventListeners = useCallback(
     (transactionId: string) => {
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionDropped',
+        () => {
+          setIsConfirmButtonDisabled(false);
+          setIsDepositLoading(false);
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.EARN_TRANSACTION_DROPPED)
+              .addProperties(getTrackEventProperties('deposit', transactionId))
+              .build(),
+          );
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionRejected',
         () => {

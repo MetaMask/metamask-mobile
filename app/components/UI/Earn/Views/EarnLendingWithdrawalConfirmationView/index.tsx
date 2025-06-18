@@ -236,6 +236,11 @@ const EarnLendingWithdrawalConfirmationView = () => {
           'TransactionController:transactionDropped',
           () => {
             setIsConfirmButtonDisabled(false);
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.EARN_TRANSACTION_DROPPED)
+                .addProperties(getTrackEventProperties('withdrawal', transactionId))
+                .build(),
+            );
           },
           ({ transactionMeta }) => transactionMeta.id === transactionId,
         );
