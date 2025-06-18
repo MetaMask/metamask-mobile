@@ -41,7 +41,7 @@ export const useWalletBalances = (
     const displayCurrency =
       multichainBalancesForAllAccounts[accounts[0].id]?.displayCurrency;
 
-    return formatWithThreshold(walletTotalBalance, 0, I18n.locale, {
+    return formatWithThreshold(walletTotalBalance, 0.01, I18n.locale, {
       style: 'currency',
       currency: displayCurrency.toUpperCase(),
     });

@@ -126,4 +126,57 @@ describe('useWalletBalances', () => {
     );
     expect(result.current.formattedWalletTotalBalance).toBe('€300.00');
   });
+
+  it('formats small balances with threshold correctly', () => {
+    (useMultichainBalancesForAllAccounts as jest.Mock).mockReturnValue({
+      multichainBalancesForAllAccounts: {
+        [account1.id]: {
+          totalFiatBalance: 0.005,
+          isLoadingAccount: false,
+          displayBalance: '$0.005',
+          displayCurrency: 'USD',
+        },
+        [account2.id]: {
+          totalFiatBalance: 0.003,
+          isLoadingAccount: false,
+          displayBalance: '$0.003',
+          displayCurrency: 'USD',
+        },
+      },
+    });
+    const { result } = renderHook(() =>
+      useWalletBalances([account1, account2]),
+    );
+    expect(result.current.formattedWalletTotalBalance).toBe('<$0.01');
+  });
+
+  it('formats balances at threshold correctly', () => {
+    (useMultichainBalancesForAllAccounts as jest.Mock).mockReturnValue({
+      multichainBalancesForAllAccounts: {
+        [account1.id]: {
+          totalFiatBalance: 0.01,
+          isLoadingAccount: false,
+          displayBalance: '$0.01',
+          displayCurrency: 'USD',
+        },
+      },
+    });
+    const { result } = renderHook(() => useWalletBalances([account1]));
+    expect(result.current.formattedWalletTotalBalance).toBe('$0.01');
+  });
+
+  it('formats zero balance correctly', () => {
+    (useMultichainBalancesForAllAccounts as jest.Mock).mockReturnValue({
+      multichainBalancesForAllAccounts: {
+        [account1.id]: {
+          totalFiatBalance: 0,
+          isLoadingAccount: false,
+          displayBalance: '$0.00',
+          displayCurrency: 'USD',
+        },
+      },
+    });
+    const { result } = renderHook(() => useWalletBalances([account1]));
+    expect(result.current.formattedWalletTotalBalance).toBe('$0.00');
+  });
 });
