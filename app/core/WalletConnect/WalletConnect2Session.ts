@@ -22,13 +22,13 @@ import { ERROR_MESSAGES } from './WalletConnectV2';
 import METHODS_TO_REDIRECT from './wc-config';
 import {
   checkWCPermissions,
-  getHostname,
   getScopedPermissions,
   hideWCLoadingState,
 } from './wc-utils';
 import Engine from '../Engine/Engine';
 import { isPerDappSelectedNetworkEnabled } from '../../util/networks';
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
+import { getHostname } from '../../util/url';
 
 const ERROR_CODES = {
   USER_REJECT_CODE: 5000,
