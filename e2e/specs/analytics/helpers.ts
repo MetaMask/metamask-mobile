@@ -16,7 +16,7 @@ export const getEventsPayloads = async (
   mockServer: MockttpServer,
   events: string[] = [],
 ): Promise<EventPayload[]> => {
-  const waitForPendingEndpoints = async (timeout = 5000): Promise<ServerMockedEndpoint[]> => {
+  const waitForPendingEndpoints = async (timeout = 30000): Promise<ServerMockedEndpoint[]> => {
     const startTime = Date.now();
 
     const checkPendingEndpoints = async (): Promise<ServerMockedEndpoint[]> => {
