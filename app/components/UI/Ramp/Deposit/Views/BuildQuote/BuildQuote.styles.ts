@@ -5,44 +5,90 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
-    header: {
-      textAlign: 'center',
-      marginTop: 20,
-      marginBottom: 20,
-      fontSize: 18,
-      fontWeight: 'bold',
+    content: {
+      flex: 1,
     },
-    inputContainer: {
-      marginVertical: 16,
+    selectionRow: {
+      flexDirection: 'row',
+      fontWeight: 500,
+      justifyContent: 'center',
+      gap: 12,
     },
-    label: {
-      marginBottom: 8,
-    },
-    detailsContainer: {
-      marginTop: 24,
-    },
-    sectionTitle: {
-      fontSize: 16,
-      fontWeight: 'bold',
-      marginBottom: 16,
-    },
-    detailRow: {
+    selectionBox: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginBottom: 12,
-      paddingBottom: 8,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border.default,
+      gap: 10,
+      alignItems: 'center',
+      backgroundColor: theme.colors.background.default,
+      borderRadius: 12,
+      padding: 8,
+      borderWidth: 1,
+      borderColor: theme.colors.border.muted,
+      alignSelf: 'flex-start',
     },
-    quoteSummary: {
-      marginTop: 16,
-      padding: 16,
-      borderRadius: 8,
+    centerGroup: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      flex: 1,
     },
-    summaryTitle: {
-      fontSize: 14,
-      fontWeight: 'bold',
-      marginBottom: 8,
+    amountContainer: {
+      alignItems: 'center',
+    },
+    mainAmount: {
+      textAlign: 'center',
+      fontSize: 64,
+      lineHeight: 100,
+      fontWeight: 400,
+    },
+    convertedAmount: {
+      textAlign: 'center',
+    },
+    fiatSelector: {
+      backgroundColor: theme.colors.background.default,
+      borderRadius: 12,
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderWidth: 1,
+      borderColor: theme.colors.border.muted,
+    },
+    cryptoPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderRadius: 100,
+      paddingVertical: 8,
+      paddingLeft: 8,
+      paddingRight: 12,
+      backgroundColor: theme.colors.background.muted,
+      borderWidth: 1,
+      borderColor: theme.colors.border.muted,
+    },
+    tokenLogo: {
+      width: 32,
+      height: 32,
+    },
+    cryptoText: {
+      marginLeft: 8,
+    },
+    paymentMethodBox: {
+      backgroundColor: theme.colors.background.default,
+      borderRadius: 12,
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderWidth: 1,
+      borderColor: theme.colors.border.muted,
+    },
+    paymentMethodContent: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    keypad: {
+      paddingHorizontal: 0,
+    },
+    errorContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
     },
   });
 };
