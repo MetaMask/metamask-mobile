@@ -229,6 +229,7 @@ const UrlAutocomplete = forwardRef<
     <SearchDiscoveryResult
       result={item}
       onSelect={onItemSelect}
+      searchTerm={latestSearchTerm.current}
     />
   ), [onItemSelect]);
 
