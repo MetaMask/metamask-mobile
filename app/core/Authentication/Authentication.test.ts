@@ -12,6 +12,7 @@ import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import * as Keychain from 'react-native-keychain';
 import SecureKeychain from '../SecureKeychain';
 import ReduxService, { ReduxStore } from '../redux';
+import Engine from '../Engine';
 
 const storage: Record<string, unknown> = {};
 
@@ -269,12 +270,14 @@ describe('Authentication', () => {
       });
 
       it('completes wallet creation when Solana discovery fails', async () => {
-        mockSnapClient.addDiscoveredAccounts.mockRejectedValueOnce(new Error('Solana RPC error'));
+        mockSnapClient.addDiscoveredAccounts.mockRejectedValueOnce(
+          new Error('Solana RPC error'),
+        );
 
         await expect(
           Authentication.newWalletAndKeychain('1234', {
             currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-          })
+          }),
         ).resolves.not.toThrow();
 
         // Verify Solana discovery was attempted
@@ -283,7 +286,9 @@ describe('Authentication', () => {
 
       it('completes wallet restore when Solana discovery fails', async () => {
         // Mock Solana discovery to fail
-        mockSnapClient.addDiscoveredAccounts.mockRejectedValueOnce(new Error('Network timeout'));
+        mockSnapClient.addDiscoveredAccounts.mockRejectedValueOnce(
+          new Error('Network timeout'),
+        );
 
         // Wallet restore should succeed despite Solana failure
         await expect(
@@ -291,8 +296,8 @@ describe('Authentication', () => {
             '1234',
             { currentAuthType: AUTHENTICATION_TYPE.PASSWORD },
             'test seed phrase',
-            true
-          )
+            true,
+          ),
         ).resolves.not.toThrow();
 
         // Verify Solana discovery was attempted
@@ -304,7 +309,9 @@ describe('Authentication', () => {
         await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
 
         const mockCredentials = { username: 'test', password: 'test' };
-        SecureKeychain.getGenericPassword = jest.fn().mockReturnValue(mockCredentials);
+        SecureKeychain.getGenericPassword = jest
+          .fn()
+          .mockReturnValue(mockCredentials);
 
         // App unlock should succeed even if retry fails
         await expect(Authentication.appTriggeredAuth()).resolves.not.toThrow();
@@ -315,10 +322,14 @@ describe('Authentication', () => {
 
         beforeEach(() => {
           // Spy on the private method
-          mockAttemptSolanaAccountDiscovery = jest.spyOn(
-            Authentication as unknown as { attemptSolanaAccountDiscovery: () => Promise<void> },
-            'attemptSolanaAccountDiscovery'
-          ).mockResolvedValue(undefined);
+          mockAttemptSolanaAccountDiscovery = jest
+            .spyOn(
+              Authentication as unknown as {
+                attemptSolanaAccountDiscovery: () => Promise<void>;
+              },
+              'attemptSolanaAccountDiscovery',
+            )
+            .mockResolvedValue(undefined);
         });
 
         afterEach(() => {
@@ -329,7 +340,9 @@ describe('Authentication', () => {
           await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
 
           const mockCredentials = { username: 'test', password: 'test' };
-          SecureKeychain.getGenericPassword = jest.fn().mockReturnValue(mockCredentials);
+          SecureKeychain.getGenericPassword = jest
+            .fn()
+            .mockReturnValue(mockCredentials);
 
           await Authentication.appTriggeredAuth();
 
@@ -340,7 +353,9 @@ describe('Authentication', () => {
           await StorageWrapper.removeItem(SOLANA_DISCOVERY_PENDING);
 
           const mockCredentials = { username: 'test', password: 'test' };
-          SecureKeychain.getGenericPassword = jest.fn().mockReturnValue(mockCredentials);
+          SecureKeychain.getGenericPassword = jest
+            .fn()
+            .mockReturnValue(mockCredentials);
 
           await Authentication.appTriggeredAuth();
 
@@ -351,7 +366,9 @@ describe('Authentication', () => {
           await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'false');
 
           const mockCredentials = { username: 'test', password: 'test' };
-          SecureKeychain.getGenericPassword = jest.fn().mockReturnValue(mockCredentials);
+          SecureKeychain.getGenericPassword = jest
+            .fn()
+            .mockReturnValue(mockCredentials);
 
           await Authentication.appTriggeredAuth();
 
@@ -370,16 +387,22 @@ describe('Authentication', () => {
 
         it('handles storage errors gracefully without breaking authentication', async () => {
           const originalGetItem = StorageWrapper.getItem;
-          StorageWrapper.getItem = jest.fn().mockRejectedValueOnce(new Error('Storage read error'));
+          StorageWrapper.getItem = jest
+            .fn()
+            .mockRejectedValueOnce(new Error('Storage read error'));
 
           const mockCredentials = { username: 'test', password: 'test' };
-          SecureKeychain.getGenericPassword = jest.fn().mockReturnValue(mockCredentials);
+          SecureKeychain.getGenericPassword = jest
+            .fn()
+            .mockReturnValue(mockCredentials);
 
-          await expect(Authentication.appTriggeredAuth()).resolves.not.toThrow();
+          await expect(
+            Authentication.appTriggeredAuth(),
+          ).resolves.not.toThrow();
 
           expect(console.warn).toHaveBeenCalledWith(
             'Failed to check/retry Solana discovery:',
-            expect.any(Error)
+            expect.any(Error),
           );
 
           // Should not attempt discovery due to storage error
@@ -391,18 +414,95 @@ describe('Authentication', () => {
 
         it('handles discovery attempt errors gracefully', async () => {
           await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
-          mockAttemptSolanaAccountDiscovery.mockRejectedValueOnce(new Error('Discovery failed'));
+          mockAttemptSolanaAccountDiscovery.mockRejectedValueOnce(
+            new Error('Discovery failed'),
+          );
 
           const mockCredentials = { username: 'test', password: 'test' };
-          SecureKeychain.getGenericPassword = jest.fn().mockReturnValue(mockCredentials);
+          SecureKeychain.getGenericPassword = jest
+            .fn()
+            .mockReturnValue(mockCredentials);
 
           // Should not throw and should complete authentication
-          await expect(Authentication.appTriggeredAuth()).resolves.not.toThrow();
+          await expect(
+            Authentication.appTriggeredAuth(),
+          ).resolves.not.toThrow();
 
           expect(mockAttemptSolanaAccountDiscovery).toHaveBeenCalled();
           expect(console.warn).toHaveBeenCalledWith(
             'Failed to check/retry Solana discovery:',
-            expect.any(Error)
+            expect.any(Error),
+          );
+        });
+
+        it('handles discovery attempt errors gracefully on new wallet creation', async () => {
+          await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
+          mockAttemptSolanaAccountDiscovery.mockRejectedValueOnce(
+            new Error('Discovery failed'),
+          );
+
+          const mockCredentials = { username: 'test', password: 'test' };
+          SecureKeychain.getGenericPassword = jest
+            .fn()
+            .mockReturnValue(mockCredentials);
+
+          jest.spyOn(Engine, 'resetState').mockResolvedValue(undefined);
+          jest
+            .spyOn(
+              Engine.context.KeyringController,
+              'createNewVaultAndKeychain',
+            )
+            .mockResolvedValue(undefined);
+
+          // Should not throw and should complete authentication
+          await expect(
+            Authentication.newWalletAndKeychain('1234', {
+              currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+            }),
+          ).resolves.not.toThrow();
+
+          expect(mockAttemptSolanaAccountDiscovery).toHaveBeenCalled();
+          expect(console.warn).toHaveBeenCalledWith(
+            'Solana account discovery failed during wallet creation:',
+            expect.any(Error),
+          );
+        });
+
+        it('handles discovery attempt errors gracefully on new wallet creation and restore', async () => {
+          await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
+          mockAttemptSolanaAccountDiscovery.mockRejectedValueOnce(
+            new Error('Discovery failed'),
+          );
+
+          const mockCredentials = { username: 'test', password: 'test' };
+          SecureKeychain.getGenericPassword = jest
+            .fn()
+            .mockReturnValue(mockCredentials);
+
+          jest.spyOn(Engine, 'resetState').mockResolvedValue(undefined);
+          jest
+            .spyOn(
+              Engine.context.KeyringController,
+              'createNewVaultAndKeychain',
+            )
+            .mockResolvedValue(undefined);
+
+          // Should not throw and should complete authentication
+          await expect(
+            Authentication.newWalletAndRestore(
+              '1234',
+              {
+                currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+              },
+              'test seed phrase',
+              true,
+            ),
+          ).resolves.not.toThrow();
+
+          expect(mockAttemptSolanaAccountDiscovery).toHaveBeenCalled();
+          expect(console.warn).toHaveBeenCalledWith(
+            'Solana account discovery failed during wallet creation:',
+            expect.any(Error),
           );
         });
       });

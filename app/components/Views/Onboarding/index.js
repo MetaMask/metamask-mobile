@@ -76,8 +76,8 @@ const createStyles = (colors) =>
     },
     image: {
       alignSelf: 'center',
-      width: Device.isLargeDevice() ? 200 : 175,
-      height: Device.isLargeDevice() ? 200 : 175,
+      width: Device.isLargeDevice() ? 280 : 220,
+      height: Device.isLargeDevice() ? 280 : 220,
     },
     largeFoxWrapper: {
       alignItems: 'center',

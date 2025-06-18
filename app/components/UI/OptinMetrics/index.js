@@ -110,6 +110,9 @@ const createStyles = ({ colors }) =>
       height: 1,
       backgroundColor: colors.border.muted,
     },
+    title: {
+      fontWeight: '700',
+    },
   });
 
 /**
@@ -599,6 +602,7 @@ class OptinMetrics extends PureComponent {
             <Text
               variant={TextVariant.DisplayMD}
               color={TextColor.Default}
+              style={styles.title}
               testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID}
             >
               {strings('privacy_policy.description_title')}

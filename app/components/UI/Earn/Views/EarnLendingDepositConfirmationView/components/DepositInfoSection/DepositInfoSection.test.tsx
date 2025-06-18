@@ -1,7 +1,5 @@
-import {
-  CHAIN_ID_TO_AAVE_POOL_CONTRACT,
-  LendingProtocol,
-} from '@metamask/stake-sdk';
+import { CHAIN_ID_TO_AAVE_POOL_CONTRACT } from '@metamask/stake-sdk';
+import { LendingProtocol } from '../../../../types/lending.types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import React from 'react';
 import DepositInfoSection, { DepositInfoSectionProps } from '.';
