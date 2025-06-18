@@ -398,10 +398,7 @@ const Login: React.FC = () => {
               {strings('login.title')}
             </Text>
             <View style={styles.field}>
-              <Label
-                variant={TextVariant.HeadingSMRegular}
-                style={styles.label}
-              >
+              <Label variant={TextVariant.BodyMD} style={styles.label}>
                 {strings('login.password')}
               </Label>
               <TextField
@@ -461,7 +458,7 @@ const Login: React.FC = () => {
             </View>
 
             <View style={styles.footer}>
-              <Text variant={TextVariant.HeadingSMRegular} style={styles.cant}>
+              <Text variant={TextVariant.BodyMD} style={styles.cant}>
                 {strings('login.go_back')}
               </Text>
               <Button

@@ -610,10 +610,7 @@ class ChoosePassword extends PureComponent {
                   : 'secure_your_wallet.creating_password',
               )}
             </Text>
-            <Text
-              variant={TextVariant.HeadingSMRegular}
-              style={styles.subtitle}
-            >
+            <Text variant={TextVariant.BodyMD} style={styles.subtitle}>
               {strings('create_wallet.subtitle')}
             </Text>
           </View>
@@ -760,9 +757,7 @@ class ChoosePassword extends PureComponent {
                   <Checkbox
                     onPress={this.setSelection}
                     isChecked={isSelected}
-                    testID={
-                      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
-                    }
+                    testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                     accessibilityLabel={
                       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
                     }

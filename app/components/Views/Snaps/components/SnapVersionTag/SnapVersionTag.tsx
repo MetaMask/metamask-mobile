@@ -29,7 +29,7 @@ const SnapVersionTag: React.FC<SnapVersionTagProps> = ({
     <View testID={SNAP_VERSION_BADGE} style={styles.versionBadgeContainer}>
       <Text
         testID={SNAP_VERSION_BADGE_VALUE}
-        variant={TextVariant.HeadingSMRegular}
+        variant={TextVariant.BodyMD}
         color={TextColor.Default}
         style={styles.versionBadgeItem}
       >

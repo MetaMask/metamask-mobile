@@ -316,7 +316,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                       />
                     </View>
                     <Text
-                      variant={TextVariant.HeadingSMRegular}
+                      variant={TextVariant.BodyMD}
                       style={styles.title}
                       color={onboardingCarouselColors[value].color}
                     >

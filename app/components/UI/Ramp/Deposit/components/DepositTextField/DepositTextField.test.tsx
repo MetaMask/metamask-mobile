@@ -46,7 +46,7 @@ describe('DepositTextField', () => {
     const wrapper = shallow(<DepositTextField {...defaultProps} />);
     const labelComponent = wrapper.find(Label);
     expect(labelComponent.exists()).toBe(true);
-    expect(labelComponent.prop('variant')).toBe(TextVariant.HeadingSMRegular);
+    expect(labelComponent.prop('variant')).toBe(TextVariant.BodyMD);
     expect(labelComponent.prop('children')).toBe('Test Label');
   });
 
