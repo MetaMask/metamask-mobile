@@ -84,7 +84,8 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 
   const renderContent = () => {
     switch (successFlow) {
-      case ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP:
+      case ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP:
+      case ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP:
         return (
           <>
             <Text variant={TextVariant.DisplayMD}>
@@ -111,7 +112,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
                     color={TextColor.Info}
                     onPress={handleLink}
                   >
-                    {strings('onboarding_success.learn_more')}
+                    {strings('onboarding_success.learn_how')}
                   </Text>
                   {' ' + strings('onboarding_success.description_continued')}
                 </Text>
@@ -234,17 +235,19 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   );
 };
 
-const OnboardingSuccess = () => {
+export const OnboardingSuccess = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params as { successFlow: ONBOARDING_SUCCESS_FLOW };
 
   const successFlow = params?.successFlow;
 
+  const nextScreen = ResetNavigationToHome;
+
   return (
     <OnboardingSuccessComponent
       successFlow={successFlow}
-      onDone={() => navigation.dispatch(ResetNavigationToHome)}
+      onDone={() => navigation.dispatch(nextScreen)}
     />
   );
 };
