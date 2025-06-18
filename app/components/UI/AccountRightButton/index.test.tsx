@@ -11,6 +11,27 @@ import { RootState } from '../../../reducers';
 import { mockNetworkState } from '../../../util/test/network';
 import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/Browser/AccountOverview.selectors';
 
+// Mock navigation and metrics
+const mockNavigate = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnValue('mockEvent'),
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+  useRoute: () => ({ params: {} }),
+}));
+
+jest.mock('../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
@@ -42,6 +63,10 @@ const mockInitialState: DeepPartial<RootState> = {
 };
 
 describe('AccountRightButton', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should render correctly', () => {
     const { toJSON } = renderScreen(
       () => (
@@ -160,6 +185,100 @@ describe('AccountRightButton', () => {
       },
       { state: mockInitialState },
     );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should navigate with EVM chainId when selectedAddress is empty and EVM is selected', () => {
+    const { getByTestId } = renderScreen(
+      () => <AccountRightButton selectedAddress="" onPress={() => undefined} />,
+      {
+        name: 'AccountRightButton',
+      },
+      { state: mockInitialState },
+    );
+
+    getByTestId(AccountOverviewSelectorsIDs.ACCOUNT_BUTTON).props.onPress();
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'RootModalFlow',
+      expect.objectContaining({
+        screen: 'NetworkSelector',
+        params: expect.objectContaining({
+          chainId: CHAIN_IDS.MAINNET,
+        }),
+      }),
+    );
+    expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
+  it('should navigate with non-EVM chainId when selectedAddress is empty and non-EVM is selected', () => {
+    const mockInitialStateNonEvm = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine?.backgroundState,
+          MultichainNetworkController: {
+            ...mockInitialState.engine?.backgroundState
+              ?.MultichainNetworkController,
+            isEvmSelected: false,
+          },
+        },
+      },
+    };
+
+    const { getByTestId } = renderScreen(
+      () => <AccountRightButton selectedAddress="" onPress={() => undefined} />,
+      {
+        name: 'AccountRightButton',
+      },
+      { state: mockInitialStateNonEvm },
+    );
+
+    getByTestId(AccountOverviewSelectorsIDs.ACCOUNT_BUTTON).props.onPress();
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'RootModalFlow',
+      expect.objectContaining({
+        screen: 'NetworkSelector',
+        params: expect.objectContaining({
+          chainId: SolScope.Mainnet,
+        }),
+      }),
+    );
+    expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
+  it('should render correct network name for non-EVM network', () => {
+    const mockInitialStateNonEvm = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine?.backgroundState,
+          MultichainNetworkController: {
+            ...mockInitialState.engine?.backgroundState
+              ?.MultichainNetworkController,
+            isEvmSelected: false,
+            selectedMultichainNetworkChainId: SolScope.Mainnet,
+            multichainNetworkConfigurationsByChainId: {
+              [SolScope.Mainnet]: {
+                name: 'Solana Mainnet',
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const { toJSON } = renderScreen(
+      () => <AccountRightButton selectedAddress="" onPress={() => undefined} />,
+      {
+        name: 'AccountRightButton',
+      },
+      { state: mockInitialStateNonEvm },
+    );
+
     expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -119,6 +119,7 @@ const AccountRightButton = ({
     placeholderInputRef.current?.focus();
     placeholderInputRef.current?.blur();
   }, [isKeyboardVisible]);
+
   const handleButtonPress = useCallback(() => {
     dismissKeyboard();
     if (!selectedAddress) {
