@@ -7,21 +7,21 @@ import EarnLendingWithdrawalConfirmationView, {
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import { AAVE_WITHDRAWAL_RISKS } from '../../utils/tempLending';
+import { act, fireEvent } from '@testing-library/react-native';
+import { Linking } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
+import AppConstants from '../../../../../core/AppConstants';
+import Engine from '../../../../../core/Engine';
 // eslint-disable-next-line import/no-namespace
 import * as NavbarUtils from '../../../Navbar';
-import { strings } from '../../../../../../locales/i18n';
+import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
 import {
   CONFIRMATION_FOOTER_BUTTON_TEST_IDS,
   CONFIRMATION_FOOTER_LINK_TEST_IDS,
 } from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
-import { act, fireEvent } from '@testing-library/react-native';
-import Engine from '../../../../../core/Engine';
-import { Linking } from 'react-native';
-import AppConstants from '../../../../../core/AppConstants';
 
 expect.addSnapshotSerializer({
   // any is the expected type for the val parameter
@@ -87,12 +87,50 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../hooks/useEarnTokens', () => ({
+const mockLineaAUsdcExperience = {
+  apr: '2.099841551444753',
+  estimatedAnnualRewardsFiatNumber: 0.07599473563587163,
+  estimatedAnnualRewardsFormatted: '$0.08',
+  estimatedAnnualRewardsTokenFormatted: '0.07604 AUSDC',
+  estimatedAnnualRewardsTokenMinimalUnit: '76036',
+  market: {
+    protocol: 'aave',
+    underlying: {
+      address: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
+      chainId: 59144,
+    },
+  } as LendingMarketWithPosition,
+  type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+};
+
+const mockLineaAUsdc = {
+  address: '0x374D7860c4f2f604De0191298dD393703Cce84f3',
+  aggregators: ['Metamask', 'LineaTeam', 'LiFi'],
+  balanceFiat: '$3.62',
+  balanceFiatNumber: 3.61907,
+  balanceFormatted: '3.62106 AUSDC',
+  balanceMinimalUnit: '3621061',
+  chainId: '0xe708',
+  decimals: 6,
+  experience: mockLineaAUsdcExperience,
+  experiences: [mockLineaAUsdcExperience],
+  image:
+    'https://static.cx.metamask.io/api/v1/tokenIcons/59144/0x374d7860c4f2f604de0191298dd393703cce84f3.png',
+  isETH: false,
+  isNative: false,
+  isStaked: false,
+  name: 'Aave Linea USDC',
+  symbol: 'AUSDC',
+  token: 'Aave Linea USDC',
+  tokenUsdExchangeRate: 0.9994519022078041,
+} as EarnTokenDetails;
+
+jest.mock('../../hooks/useEarnToken', () => ({
   __esModule: true,
   default: () => ({
-    getPairedEarnTokens: (token: TokenI) => ({
-      outputToken: token,
-    }),
+    outputToken: mockLineaAUsdc,
+    earnToken: MOCK_USDC_MAINNET_ASSET,
+    getTokenSnapshot: jest.fn(),
   }),
 }));
 
@@ -105,44 +143,6 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       },
     },
   };
-
-  const mockLineaAUsdcExperience = {
-    apr: '2.099841551444753',
-    estimatedAnnualRewardsFiatNumber: 0.07599473563587163,
-    estimatedAnnualRewardsFormatted: '$0.08',
-    estimatedAnnualRewardsTokenFormatted: '0.07604 AUSDC',
-    estimatedAnnualRewardsTokenMinimalUnit: '76036',
-    market: {
-      protocol: 'aave',
-      underlying: {
-        address: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
-        chainId: 59144,
-      },
-    } as LendingMarketWithPosition,
-    type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-  };
-
-  const mockLineaAUsdc = {
-    address: '0x374D7860c4f2f604De0191298dD393703Cce84f3',
-    aggregators: ['Metamask', 'LineaTeam', 'LiFi'],
-    balanceFiat: '$3.62',
-    balanceFiatNumber: 3.61907,
-    balanceFormatted: '3.62106 AUSDC',
-    balanceMinimalUnit: '3621061',
-    chainId: '0xe708',
-    decimals: 6,
-    experience: mockLineaAUsdcExperience,
-    experiences: [mockLineaAUsdcExperience],
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/59144/0x374d7860c4f2f604de0191298dd393703cce84f3.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'Aave Linea USDC',
-    symbol: 'AUSDC',
-    token: 'Aave Linea USDC',
-    tokenUsdExchangeRate: 0.9994519022078041,
-  } as EarnTokenDetails;
 
   const defaultRouteParams: EarnWithdrawalConfirmationViewProps['route'] = {
     key: 'mock-key',

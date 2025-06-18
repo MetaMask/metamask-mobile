@@ -50,10 +50,10 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../hooks/useEarnTokens', () => ({
+jest.mock('../../hooks/useEarnToken', () => ({
   __esModule: true,
   default: () => ({
-    getEarnToken: () => ({
+    earnToken: {
       ...MOCK_USDC_MAINNET_ASSET,
       experience: {
         type: 'STABLECOIN_LENDING',
@@ -72,8 +72,8 @@ jest.mock('../../hooks/useEarnTokens', () => ({
           },
         },
       },
-    }),
-    getOutputToken: () => ({
+    },
+    outputToken: {
       ...MOCK_USDC_MAINNET_ASSET,
       address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
       symbol: 'aUSDC',
@@ -96,57 +96,8 @@ jest.mock('../../hooks/useEarnTokens', () => ({
           },
         },
       },
-    }),
-    getPairedEarnTokens: () => ({
-      earnToken: {
-        ...MOCK_USDC_MAINNET_ASSET,
-        experience: {
-          type: 'STABLECOIN_LENDING',
-          apr: '4.5',
-          estimatedAnnualRewardsFormatted: '45',
-          estimatedAnnualRewardsFiatNumber: 45,
-          estimatedAnnualRewardsTokenMinimalUnit: '45000000',
-          estimatedAnnualRewardsTokenFormatted: '45',
-          market: {
-            protocol: 'AAVE v3',
-            underlying: {
-              address: MOCK_USDC_MAINNET_ASSET.address,
-            },
-            outputToken: {
-              address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
-            },
-          },
-        },
-      },
-      outputToken: {
-        ...MOCK_USDC_MAINNET_ASSET,
-        address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
-        symbol: 'aUSDC',
-        name: 'aUSDC TOKEN',
-        ticker: 'aUSDC',
-        experience: {
-          type: 'STABLECOIN_LENDING',
-          apr: '4.5',
-          estimatedAnnualRewardsFormatted: '45',
-          estimatedAnnualRewardsFiatNumber: 45,
-          estimatedAnnualRewardsTokenMinimalUnit: '45000000',
-          estimatedAnnualRewardsTokenFormatted: '45',
-          market: {
-            protocol: 'AAVE v3',
-            underlying: {
-              address: MOCK_USDC_MAINNET_ASSET.address,
-            },
-            outputToken: {
-              address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
-            },
-          },
-        },
-      },
-    }),
-    getEarnExperience: () => ({
-      type: 'STABLECOIN_LENDING',
-      apr: '0.05',
-    }),
+    },
+    getTokenSnapshot: jest.fn(),
     getEstimatedAnnualRewardsForAmount: () => ({
       estimatedAnnualRewardsFormatted: '$45.00',
       estimatedAnnualRewardsFiatNumber: 45,
