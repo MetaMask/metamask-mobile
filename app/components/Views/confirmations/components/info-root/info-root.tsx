@@ -36,10 +36,6 @@ const ConfirmationInfoComponentMap = {
     transactionType,
   }: ConfirmationInfoComponentRequest) => {
     switch (transactionType) {
-      case TransactionType.batch:
-        return ContractInteraction;
-      case TransactionType.contractInteraction:
-        return ContractInteraction;
       case TransactionType.stakingClaim:
         return StakingClaim;
       case TransactionType.stakingDeposit:
@@ -54,8 +50,12 @@ const ConfirmationInfoComponentMap = {
       case TransactionType.tokenMethodSetApprovalForAll:
       case TransactionType.tokenMethodIncreaseAllowance:
         return Approve;
+      case TransactionType.batch:
+      case TransactionType.contractInteraction:
+      case TransactionType.lendingDeposit:
+      case TransactionType.lendingWithdraw:
       default:
-        return null;
+        return ContractInteraction;
     }
   },
   [ApprovalType.TransactionBatch]: () => TransactionBatch,

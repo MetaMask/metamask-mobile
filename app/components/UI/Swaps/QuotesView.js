@@ -18,6 +18,7 @@ import {
   WalletDevice,
   TransactionStatus,
   CHAIN_IDS,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import { ORIGIN_METAMASK, query } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
@@ -999,6 +1000,8 @@ function SwapsQuotesView({
             deviceConfirmedOn: WalletDevice.MM_MOBILE,
             networkClientId,
             origin: process.env.MM_FOX_CODE,
+            requireApproval: false,
+            type: TransactionType.swap,
           },
         );
 
@@ -1061,6 +1064,8 @@ function SwapsQuotesView({
             deviceConfirmedOn: WalletDevice.MM_MOBILE,
             networkClientId,
             origin: process.env.MM_FOX_CODE,
+            requireApproval: false,
+            type: TransactionType.swapApproval,
           },
         );
 
