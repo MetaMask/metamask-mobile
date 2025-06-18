@@ -1,11 +1,11 @@
 import {
   EarnApiService,
   EarnSdk,
-  LendingProtocol,
   LendingProvider,
   PooledStakingContract,
   StakingType,
 } from '@metamask/stake-sdk';
+import { LendingProtocol } from '../../Earn/types/lending.types';
 import React, {
   createContext,
   PropsWithChildren,

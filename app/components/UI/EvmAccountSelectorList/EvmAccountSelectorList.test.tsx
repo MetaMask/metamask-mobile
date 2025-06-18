@@ -23,6 +23,8 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 import { AVATARGROUP_CONTAINER_TESTID } from '../../../component-library/components/Avatars/AvatarGroup/AvatarGroup.constants';
 import { KnownCaipNamespace } from '@metamask/utils';
+import Routes from '../../../constants/navigation/Routes';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -150,6 +152,25 @@ const initialState = {
         }),
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      AccountTreeController: {
+        accountTrees: {
+          roots: {
+            'default-group': {
+              metadata: {
+                name: 'Default Group'
+              },
+              groups: {
+                'hd-accounts': {
+                  accounts: [
+                    Object.keys(MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts)[0],
+                    Object.keys(MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts)[1]
+                  ]
+                }
+              }
+            }
+          },
+        },
+      },
       AccountTrackerController: {
         accountsByChainId: {
           '0x1': {
@@ -173,6 +194,12 @@ const initialState = {
       MultichainNetworkController: {
         networksWithTransactionActivity:
           MOCK_NETWORKS_WITH_TRANSACTION_ACTIVITY,
+      },
+      FeatureFlagController: {
+        multichainAccounts: {
+          enabled: false,
+          enabledForDevelopment: false,
+        },
       },
     },
   },
@@ -209,6 +236,8 @@ const defaultAccountsMock = [
     isSelected: true,
     balanceError: undefined,
     caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+    isLoadingAccount: false,
+    scopes: [],
   },
   {
     name: 'Account 2',
@@ -222,6 +251,8 @@ const defaultAccountsMock = [
     isSelected: false,
     balanceError: undefined,
     caipAccountId: `eip155:0:${PERSONAL_ACCOUNT}`,
+    isLoadingAccount: false,
+    scopes: [],
   },
 ];
 
@@ -345,7 +376,7 @@ describe('EvmAccountSelectorList', () => {
     const { getAllByTestId } = renderComponent(initialState);
 
     await waitFor(() => {
-      const accountNameItems = getAllByTestId('cellbase-avatar-title');
+      const accountNameItems = getAllByTestId(CellComponentSelectorsIDs.BASE_TITLE);
       expect(within(accountNameItems[0]).getByText('Account 1')).toBeDefined();
       expect(within(accountNameItems[1]).getByText('Account 2')).toBeDefined();
     });
@@ -594,9 +625,6 @@ describe('EvmAccountSelectorList', () => {
   });
 
   it('renders accounts with balance error', async () => {
-    // Clear previous mocks
-    (useAccounts as jest.Mock).mockClear();
-
     // Create a mock account with balance error
     const mockAccount = {
       name: 'Account 1',
@@ -611,16 +639,11 @@ describe('EvmAccountSelectorList', () => {
       caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
     };
 
+    setAccountsMock([mockAccount]);
+
     // Create a component that explicitly verifies the account data
     let testAccounts: Account[] = [];
     const EvmAccountSelectorListBalanceErrorTest = () => {
-      // Mock useAccounts hook inline to ensure it's used in this test
-      (useAccounts as jest.Mock).mockReturnValue({
-        accounts: [mockAccount],
-        evmAccounts: [],
-        ensByAccountAddress: {},
-      });
-
       const { accounts } = useAccounts();
       // Store for verification
       testAccounts = accounts;
@@ -637,27 +660,23 @@ describe('EvmAccountSelectorList', () => {
   });
 
   it('renders in multi-select mode', () => {
+    setAccountsMock([
+      {
+        name: 'Account 1',
+        address: BUSINESS_ACCOUNT,
+        assets: {
+          fiatBalance: '$3200.00\n1 ETH',
+        },
+        type: 'HD Key Tree',
+        yOffset: 0,
+        isSelected: true,
+        balanceError: undefined,
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+      },
+    ]);
+
     // Create a test component with multi-select mode
     const EvmAccountSelectorListMultiSelectTest = () => {
-      (useAccounts as jest.Mock).mockReturnValue({
-        accounts: [
-          {
-            name: 'Account 1',
-            address: BUSINESS_ACCOUNT,
-            assets: {
-              fiatBalance: '$3200.00\n1 ETH',
-            },
-            type: 'HD Key Tree',
-            yOffset: 0,
-            isSelected: true,
-            balanceError: undefined,
-            caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
-          },
-        ],
-        evmAccounts: [],
-        ensByAccountAddress: {},
-      });
-
       const { accounts, ensByAccountAddress } = useAccounts();
       return (
         <EvmAccountSelectorList
@@ -670,7 +689,7 @@ describe('EvmAccountSelectorList', () => {
       );
     };
 
-    // Modified test to not check props directly
+    // Use initialState to ensure proper AccountTreeController structure
     const { getByTestId } = renderComponent(
       initialState,
       EvmAccountSelectorListMultiSelectTest,
@@ -774,39 +793,35 @@ describe('EvmAccountSelectorList', () => {
     (Engine.context.KeyringController.removeAccount as jest.Mock).mockClear();
 
     // Mock account data that is not removable (HD Key Tree)
-    (useAccounts as jest.Mock).mockImplementationOnce(() => ({
-      accounts: [
-        {
-          name: 'Account 1',
-          address: BUSINESS_ACCOUNT,
-          assets: {
-            fiatBalance: '$3200.00\n1 ETH',
-          },
-          type: 'HD Key Tree', // Not a simple or snap keyring type
-          yOffset: 0,
-          isSelected: true,
-          balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+    setAccountsMock([
+      {
+        name: 'Account 1',
+        address: BUSINESS_ACCOUNT,
+        assets: {
+          fiatBalance: '$3200.00\n1 ETH',
         },
-      ],
-      evmAccounts: [],
-      ensByAccountAddress: {},
-    }));
+        type: 'HD Key Tree', // Not a simple or snap keyring type
+        yOffset: 0,
+        isSelected: true,
+        balanceError: undefined,
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+      },
+    ]);
 
     const { getAllByTestId } = renderComponent(initialState);
 
-    // Find all cell elements
-    const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
-    // Trigger long press on the first cell
-    cells[0].props.onLongPress();
+    await waitFor(() => {
+      const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
+      expect(cells.length).toBeGreaterThan(0);
 
-    // Alert should not be shown for non-removable account types
-    expect(mockAlert).not.toHaveBeenCalled();
+      cells[0].props.onLongPress();
 
-    // Verify removeAccount was not called
-    expect(
-      Engine.context.KeyringController.removeAccount,
-    ).not.toHaveBeenCalled();
+      expect(mockAlert).not.toHaveBeenCalled();
+
+      expect(
+        Engine.context.KeyringController.removeAccount,
+      ).not.toHaveBeenCalled();
+    });
 
     mockAlert.mockRestore();
   });
@@ -819,24 +834,20 @@ describe('EvmAccountSelectorList', () => {
     (Engine.context.KeyringController.removeAccount as jest.Mock).mockClear();
 
     // Mock account data for a simple keyring account (normally removable)
-    (useAccounts as jest.Mock).mockImplementationOnce(() => ({
-      accounts: [
-        {
-          name: 'Account 1',
-          address: BUSINESS_ACCOUNT,
-          assets: {
-            fiatBalance: '$3200.00\n1 ETH',
-          },
-          type: KeyringTypes.simple, // Normally removable type
-          yOffset: 0,
-          isSelected: true,
-          balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+    setAccountsMock([
+      {
+        name: 'Account 1',
+        address: BUSINESS_ACCOUNT,
+        assets: {
+          fiatBalance: '$3200.00\n1 ETH',
         },
-      ],
-      evmAccounts: [],
-      ensByAccountAddress: {},
-    }));
+        type: KeyringTypes.simple, // Normally removable type
+        yOffset: 0,
+        isSelected: true,
+        balanceError: undefined,
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+      },
+    ]);
 
     const EvmAccountSelectorListNoRemoveTest: React.FC = () => {
       const { accounts, ensByAccountAddress } = useAccounts();
@@ -856,18 +867,18 @@ describe('EvmAccountSelectorList', () => {
       EvmAccountSelectorListNoRemoveTest,
     );
 
-    // Find all cell elements
-    const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
-    // Trigger long press on the first cell
-    cells[0].props.onLongPress();
+    await waitFor(() => {
+      const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
+      expect(cells.length).toBeGreaterThan(0);
 
-    // Alert should not be shown because removal is disabled
-    expect(mockAlert).not.toHaveBeenCalled();
+      cells[0].props.onLongPress();
 
-    // Verify removeAccount was not called
-    expect(
-      Engine.context.KeyringController.removeAccount,
-    ).not.toHaveBeenCalled();
+      expect(mockAlert).not.toHaveBeenCalled();
+
+      expect(
+        Engine.context.KeyringController.removeAccount,
+      ).not.toHaveBeenCalled();
+    });
 
     mockAlert.mockRestore();
   });
@@ -918,7 +929,6 @@ describe('EvmAccountSelectorList', () => {
       ensByAccountAddress: {},
     });
 
-    // Render the component
     renderComponent(initialState);
 
     // Skip actually testing the scrollToOffset call since we can't
@@ -962,31 +972,27 @@ describe('EvmAccountSelectorList', () => {
     mockENSUtils.isDefaultAccountName.mockReturnValueOnce(true);
 
     // Mock accounts with ENS names
-    (useAccounts as jest.Mock).mockImplementationOnce(() => ({
-      accounts: [
-        {
-          name: 'Account 1', // Default account name
-          address: BUSINESS_ACCOUNT,
-          assets: {
-            fiatBalance: '$3200.00\n1 ETH',
-          },
-          type: 'HD Key Tree',
-          yOffset: 0,
-          isSelected: true,
-          balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+    setAccountsMock([
+      {
+        name: 'Account 1', // Default account name
+        address: BUSINESS_ACCOUNT,
+        assets: {
+          fiatBalance: '$3200.00\n1 ETH',
         },
-      ],
-      evmAccounts: [],
-      ensByAccountAddress: {
-        [BUSINESS_ACCOUNT]: 'vitalik.eth', // ENS name for the account
+        type: 'HD Key Tree',
+        yOffset: 0,
+        isSelected: true,
+        balanceError: undefined,
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
       },
-    }));
+    ], {
+      [BUSINESS_ACCOUNT]: 'vitalik.eth', // ENS name for the account
+    });
 
     const { getAllByTestId } = renderComponent(initialState);
 
     await waitFor(() => {
-      const accountNameItems = getAllByTestId('cellbase-avatar-title');
+      const accountNameItems = getAllByTestId(CellComponentSelectorsIDs.BASE_TITLE);
       // Should use ENS name instead of account name
       expect(
         within(accountNameItems[0]).getByText('vitalik.eth'),
@@ -1000,31 +1006,27 @@ describe('EvmAccountSelectorList', () => {
     mockENSUtils.isDefaultAccountName.mockReturnValueOnce(false);
 
     // Mock accounts with a custom name
-    (useAccounts as jest.Mock).mockImplementationOnce(() => ({
-      accounts: [
-        {
-          name: 'My Custom Account Name',
-          address: BUSINESS_ACCOUNT,
-          assets: {
-            fiatBalance: '$3200.00\n1 ETH',
-          },
-          type: 'HD Key Tree',
-          yOffset: 0,
-          isSelected: true,
-          balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+    setAccountsMock([
+      {
+        name: 'My Custom Account Name',
+        address: BUSINESS_ACCOUNT,
+        assets: {
+          fiatBalance: '$3200.00\n1 ETH',
         },
-      ],
-      evmAccounts: [],
-      ensByAccountAddress: {
-        [BUSINESS_ACCOUNT]: 'vitalik.eth', // ENS name is available
+        type: 'HD Key Tree',
+        yOffset: 0,
+        isSelected: true,
+        balanceError: undefined,
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
       },
-    }));
+    ], {
+      [BUSINESS_ACCOUNT]: 'vitalik.eth', // ENS name is available
+    });
 
     const { getAllByTestId } = renderComponent(initialState);
 
     await waitFor(() => {
-      const accountNameItems = getAllByTestId('cellbase-avatar-title');
+      const accountNameItems = getAllByTestId(CellComponentSelectorsIDs.BASE_TITLE);
       // Should use the custom account name since it's not a default name
       expect(
         within(accountNameItems[0]).getByText('My Custom Account Name'),
@@ -1033,7 +1035,7 @@ describe('EvmAccountSelectorList', () => {
   });
 
   it('selects an account when tapped', async () => {
-    // Setup with multiple accounts
+    // Setup with multiple accounts using the same addresses as in initialState
     const mockMultipleAccounts = [
       {
         name: 'Account 1',
@@ -1050,7 +1052,7 @@ describe('EvmAccountSelectorList', () => {
       },
       {
         name: 'Account 2',
-        address: MOCK_ADDRESS_1,
+        address: PERSONAL_ACCOUNT, // Use PERSONAL_ACCOUNT instead of MOCK_ADDRESS_1
         assets: {
           fiatBalance: '$6400.00\n2 ETH',
           tokens: [],
@@ -1059,7 +1061,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 78,
         isSelected: false,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`,
+        caipAccountId: `eip155:0:${PERSONAL_ACCOUNT}`
       },
     ];
 
@@ -1067,14 +1069,21 @@ describe('EvmAccountSelectorList', () => {
 
     const { getAllByTestId } = renderComponent(initialState);
 
-    // Use the SELECT_WITH_MENU test ID instead of CELL_SELECT
+    // Wait for exactly 2 cells to render (one for each account)
+    await waitFor(() => {
+      const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
+      expect(cells.length).toBe(2);
+    });
+
     const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
 
-    // Tap the second account (the non-selected one)
+    expect(cells).toHaveLength(2);
+    expect(cells[0]).toBeDefined();
+    expect(cells[1]).toBeDefined();
+
     fireEvent.press(cells[1]);
 
-    // Verify the onSelectAccount was called with the correct address
-    expect(onSelectAccount).toHaveBeenCalledWith(MOCK_ADDRESS_1, false);
+    expect(onSelectAccount).toHaveBeenCalledWith(PERSONAL_ACCOUNT, false);
   });
 
   it('navigates to account details when a balance error is tapped', () => {
@@ -1097,21 +1106,14 @@ describe('EvmAccountSelectorList', () => {
 
     setAccountsMock(mockAccountWithError);
 
-    // Don't test this behavior directly since the element doesn't exist
-    expect(true).toBe(true);
+    // Render the component to ensure it handles accounts with balance errors
+    const { getByTestId } = renderComponent(initialState);
+    
+    // Verify the component renders successfully even with balance errors
+    expect(getByTestId(ACCOUNT_SELECTOR_LIST_TESTID)).toBeDefined();
   });
 
   it('correctly handles auto-scrolling when an account is marked with autoscroll', async () => {
-    // Create mock for FlatList's scrollToOffset
-    const mockScrollToOffset = jest.fn();
-
-    // Mock React.createRef to return our controlled ref
-    jest.spyOn(React, 'createRef').mockImplementation(() => ({
-      current: {
-        scrollToOffset: mockScrollToOffset,
-      },
-    }));
-
     // Setup accounts with one marked for auto-scroll
     const mockAccountsForScroll = [
       {
@@ -1147,25 +1149,26 @@ describe('EvmAccountSelectorList', () => {
 
     renderComponent(initialState);
 
-    // Skip the actual test and mark it as passing
+    // Since we can't properly test SectionList scrolling in this environment,
+    // we'll just verify the component renders correctly
     expect(true).toBe(true);
-
-    // Clean up the mock
-    jest.spyOn(React, 'createRef').mockRestore();
   });
 
   it('should call onSelectAccount when an account is pressed', async () => {
     const { getAllByTestId } = renderComponent(initialState);
+
+    await waitFor(() => {
+      const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
+      expect(cells.length).toBeGreaterThan(0);
+    });
 
     // Find all cell elements
     const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
     // Select the second account
     cells[1].props.onPress();
 
-    await waitFor(() => {
-      // Verify onSelectAccount was called with correct parameters
-      expect(onSelectAccount).toHaveBeenCalledWith(PERSONAL_ACCOUNT, false);
-    });
+    // Verify onSelectAccount was called with correct parameters
+    expect(onSelectAccount).toHaveBeenCalledWith(PERSONAL_ACCOUNT, false);
   });
 
   it('renders network icons for accounts with transaction activity', () => {
@@ -1232,3 +1235,95 @@ describe('EvmAccountSelectorList', () => {
     expect(avatarGroups).toHaveLength(0);
   });
 });
+
+  // Helper to create state with multichain accounts enabled
+  const getMultichainState = (overrides = {}) => ({
+    ...initialState,
+    engine: {
+      ...initialState.engine,
+      backgroundState: {
+        ...initialState.engine.backgroundState,
+        AccountTreeController: {
+          accountTree: {
+            wallets: {
+              wallet1: {
+                metadata: {
+                  name: 'HD Accounts',
+                },
+                groups: {
+                  group1: {
+                    accounts: [
+                      Object.keys(initialState.engine.backgroundState.AccountsController.internalAccounts.accounts)[0],
+                      Object.keys(initialState.engine.backgroundState.AccountsController.internalAccounts.accounts)[1]
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            enableMultichainAccounts: {
+              enabled: true,
+              featureVersion: '1',
+              minimumVersion: '1.0.0',
+            },
+          },
+        },
+        ...overrides,
+      },
+    },
+  });
+
+  it('renders sections based on AccountTreeController when multichain accounts enabled', () => {
+    const multichainState = getMultichainState();
+    const { getByText, getAllByText } = renderComponent(multichainState);
+
+    expect(getByText('HD Accounts')).toBeDefined();
+
+    expect(getAllByText(/^Account/)).toHaveLength(2);
+    expect(getByText('Account 1')).toBeDefined();
+    expect(getByText('Account 2')).toBeDefined();
+  });
+
+  it('navigates to multichain account details when multichain accounts enabled', () => {
+    const multichainState = getMultichainState();
+    const { getAllByTestId } = renderComponent(multichainState);
+
+    const accountActionsButton = getAllByTestId(
+      `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-0`,
+    )[0];
+
+    fireEvent.press(accountActionsButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS,
+      {
+        account: expect.objectContaining({
+          address: BUSINESS_ACCOUNT,
+        }),
+      },
+    );
+  });
+
+  it('does not render tag labels when multichain accounts enabled', () => {
+    jest
+      .requireMock('../../../util/address')
+      .getLabelTextByAddress.mockReturnValue('Imported');
+    
+    const multichainState = getMultichainState();
+    const { queryByText } = renderComponent(multichainState);
+    
+    // Tag labels should not be rendered when multichain is enabled
+    // Even though getLabelTextByAddress might be called, its result shouldn't be displayed
+    expect(queryByText('Imported')).toBeNull();
+  });
+
+  it('renders section headers when multichain accounts enabled', () => {
+    const multichainState = getMultichainState();
+    const { getByText } = renderComponent(multichainState);
+
+    expect(getByText('HD Accounts')).toBeDefined();
+    expect(getByText('Details')).toBeDefined();
+  });
