@@ -20,6 +20,7 @@ import {
 } from './utils/verifySignature';
 import NavigationService from '../../../core/NavigationService';
 import Routes from '../../../constants/navigation/Routes';
+import { ACTIONS } from '../../../constants/deeplinks';
 
 async function parseDeeplink({
   deeplinkManager: instance,
@@ -39,10 +40,8 @@ async function parseDeeplink({
     if (!url || !url.includes('://') || url.split('://')[1].length === 0) {
       throw new Error('Invalid URL format');
     }
-
     const validatedUrl = new URL(url);
 
-    // Additional validation for hostname
     if (
       !validatedUrl.hostname ||
       validatedUrl.hostname.includes('?') ||
@@ -52,6 +51,13 @@ async function parseDeeplink({
     }
 
     let isPrivateLink = false;
+    let isInvalidLink = false;
+
+    const pathname: ACTIONS = validatedUrl.pathname.split('/')[1] as ACTIONS;
+    if (!Object.keys(ACTIONS).includes(pathname.toUpperCase())) {
+      isInvalidLink = true;
+    }
+
     if (hasSignature(validatedUrl)) {
       const signatureResult = await verifyDeeplinkSignature(validatedUrl);
       switch (signatureResult) {
@@ -78,14 +84,17 @@ async function parseDeeplink({
 
     const { urlObj, params } = extractURLParams(url);
 
-    // Show the modal and wait for user interaction
-    console.log('XXXXXX - NAVIGATE TO MODAL');
     const shouldProceed = await new Promise<boolean>((resolve) => {
+      const pageTitle: ACTIONS = urlObj.pathname.split('/')[1] as ACTIONS;
       NavigationService.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.DEEP_LINK_MODAL,
         params: {
-          linkType: isPrivateLink ? 'private' : 'public',
-          pageTitle: urlObj.hostname,
+          linkType: isInvalidLink
+            ? 'invalid'
+            : isPrivateLink
+            ? 'private'
+            : 'public',
+          pageTitle: pageTitle.charAt(0).toUpperCase() + pageTitle.slice(1),
           onContinue: () => resolve(true),
           onBack: () => resolve(false),
         },

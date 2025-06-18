@@ -66,7 +66,7 @@ export const handleSwapUrl = ({
       });
       return;
     }
-    console.log('XXXXXX - NAVIGATE TO SWAPS');
+
     NavigationService.navigation.navigate('Swaps', {
       screen: 'SwapsAmountView',
       params: {

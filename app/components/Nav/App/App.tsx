@@ -472,7 +472,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={ChangeInSimulationModal}
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
-    <Stack.Screen name={Routes.MODAL.DEEP_LINK_MODAL} component={DeepLinkModal} />
+    <Stack.Screen
+      name={Routes.MODAL.DEEP_LINK_MODAL}
+      component={DeepLinkModal}
+    />
   </Stack.Navigator>
 );
 
@@ -779,7 +782,6 @@ const App: React.FC = () => {
   useEffect(() => {
     const appTriggeredAuth = async () => {
       const existingUser = await StorageWrapper.getItem(EXISTING_USER);
-      console.log('XXXXXX - LOCK APP');
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {
@@ -803,7 +805,7 @@ const App: React.FC = () => {
         // if there are no credentials, then they were cleared in the last session and we should not show biometrics on the login screen
         const locked =
           errorMessage === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
-        console.log('XXXXXX - CATCH ERROR', errorMessage);
+
         await Authentication.lockApp({ reset: false, locked });
         trackErrorAsAnalytics(
           'App: Max Attempts Reached',
@@ -833,11 +835,7 @@ const App: React.FC = () => {
       const deeplink = params?.['+non_branch_link'] || uri || null;
       try {
         if (deeplink && typeof deeplink === 'string') {
-          console.log('XXXXXX - PROCESS DEEPLINK in APP.tsx');
           AppStateEventProcessor.setCurrentDeeplink(deeplink);
-          // SharedDeeplinkManager.parse(deeplink, {
-          //   origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-          // });
         }
       } catch (e) {
         Logger.error(e as Error, `Deeplink: Error parsing deeplink`);
