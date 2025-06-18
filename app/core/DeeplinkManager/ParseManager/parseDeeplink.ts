@@ -21,6 +21,7 @@ import {
 import NavigationService from '../../../core/NavigationService';
 import Routes from '../../../constants/navigation/Routes';
 import { ACTIONS } from '../../../constants/deeplinks';
+import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
 
 async function parseDeeplink({
   deeplinkManager: instance,
@@ -96,14 +97,11 @@ async function parseDeeplink({
 
     const shouldProceed = await new Promise<boolean>((resolve) => {
       const pageTitle: ACTIONS = urlObj.pathname.split('/')[1] as ACTIONS;
-      NavigationService.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.DEEP_LINK_MODAL,
-        params: {
-          linkType: linkType(),
-          pageTitle: pageTitle.charAt(0).toUpperCase() + pageTitle.slice(1),
-          onContinue: () => resolve(true),
-          onBack: () => resolve(false),
-        },
+      handleDeepLinkModalDisplay({
+        linkType: linkType(),
+        pageTitle: pageTitle.charAt(0).toUpperCase() + pageTitle.slice(1),
+        onContinue: () => resolve(true),
+        onBack: () => resolve(false),
       });
     });
 
