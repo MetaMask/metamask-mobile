@@ -1,32 +1,25 @@
-import { useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useEffect } from 'react';
 
 import Routes from '../../../../../constants/navigation/Routes';
-import { useFlatConfirmation } from '../../hooks/ui/useFlatConfirmation';
+import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import { useConfirmationRedesignEnabled } from '../../hooks/useConfirmationRedesignEnabled';
-import { useStandaloneConfirmation } from '../../hooks/ui/useStandaloneConfirmation';
 
 export const ConfirmRoot = () => {
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
-  const { isFlatConfirmation } = useFlatConfirmation();
-  const { isStandaloneConfirmation } = useStandaloneConfirmation();
+  const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const navigation = useNavigation();
 
   useEffect(() => {
     if (isRedesignedEnabled) {
-      if (isStandaloneConfirmation) {
+      if (isFullScreenConfirmation) {
         return;
       }
-      navigation.navigate(
-        isFlatConfirmation
-          ? Routes.CONFIRMATION_REQUEST_FLAT
-          : Routes.CONFIRMATION_REQUEST_MODAL,
-      );
+      navigation.navigate(Routes.CONFIRMATION_REQUEST_MODAL);
     }
   }, [
-    isFlatConfirmation,
+    isFullScreenConfirmation,
     isRedesignedEnabled,
-    isStandaloneConfirmation,
     navigation,
   ]);
 

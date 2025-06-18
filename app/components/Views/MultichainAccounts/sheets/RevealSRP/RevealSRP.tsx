@@ -30,6 +30,7 @@ import { useKeyringId } from '../../../../hooks/useKeyringId';
 import SecurityQuizLockImage from '../../../../../images/security-quiz-intro-lock.svg';
 import { ButtonSize } from '../../../../../component-library/components/Buttons/Button';
 import { SRP_GUIDE_URL } from '../../../../../constants/urls';
+import { ExportCredentialsIds } from '../../../../../../e2e/selectors/MultichainAccounts/ExportCredentials.selectors';
 
 interface RootNavigationParamList extends ParamListBase {
   RevealSRP: {
@@ -83,7 +84,7 @@ export const RevealSRP = () => {
       </HeaderBase>
       <View
         style={styles.contentContainer}
-        testID={AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER}
+        testID={ExportCredentialsIds.CONTAINER}
       >
         <SecurityQuizLockImage
           name="security-quiz-lock"
@@ -105,11 +106,13 @@ export const RevealSRP = () => {
           size={ButtonSize.Lg}
           label={strings('multichain_accounts.reveal_srp.get_started')}
           onPress={handleGetStartedClick}
+          testID={ExportCredentialsIds.NEXT_BUTTON}
         />
         <ButtonSecondary
           style={styles.button}
           label={strings('multichain_accounts.reveal_srp.learn_more')}
           onPress={handleLearnMoreClick}
+          testID={ExportCredentialsIds.LEARN_MORE_BUTTON}
         />
       </Box>
     </SafeAreaView>
