@@ -29,9 +29,7 @@ import GENESYS from './genesys.png';
 import KATANA from './katana.png';
 import SOPHON from './sophon.png';
 import SOPHON_TESTNET from './sophon-testnet.png';
-import APECHAIN from './apechain.png';
 import APECHAIN_TOKEN from './apechain-token.png';
-import BERACHAIN from './berachain.png';
 import BERACHAIN_TOKEN from './berachain-token.png';
 import EDU from './edu.png';
 
