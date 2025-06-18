@@ -7,6 +7,7 @@ import { fireEvent } from '@testing-library/react-native';
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
+import { InteractionManager } from 'react-native';
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -23,6 +24,19 @@ jest.mock('../../../util/device', () => ({
   isIphoneX: jest.fn(),
   isIphone5S: jest.fn(),
 }));
+
+const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
+  cb();
+  return {
+    then: (onfulfilled: () => void) => Promise.resolve(onfulfilled()),
+    done: (onfulfilled: () => void, onrejected: () => void) =>
+      Promise.resolve().then(onfulfilled, onrejected),
+    cancel: jest.fn(),
+  };
+});
+jest
+  .spyOn(InteractionManager, 'runAfterInteractions')
+  .mockImplementation(mockRunAfterInteractions);
 
 describe('AccountBackupStep1B', () => {
   beforeEach(() => {

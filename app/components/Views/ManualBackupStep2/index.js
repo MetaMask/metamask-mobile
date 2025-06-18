@@ -32,6 +32,9 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import Routes from '../../../constants/navigation/Routes';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
+import { useMetrics } from '../../hooks/useMetrics';
+import { CommonActions } from '@react-navigation/native';
+import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 
 const ManualBackupStep2 = ({
   navigation,
@@ -51,7 +54,6 @@ const ManualBackupStep2 = ({
   const [emptySlots, setEmptySlots] = useState([]);
   const [missingWords, setMissingWords] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
-  const [sortedSlots, setSortedSlots] = useState([]);
 
   const headerLeft = useCallback(
     () => (
@@ -97,16 +99,43 @@ const ManualBackupStep2 = ({
     return gridWords.filter((word) => word !== '').length === validWords.length;
   }, [route.params?.words, gridWords]);
 
+  const { isEnabled: isMetricsEnabled } = useMetrics();
   const goNext = () => {
     if (validateWords()) {
       seedphraseBackedUp();
       InteractionManager.runAfterInteractions(async () => {
         if (backupFlow) {
-          navigation.reset({ routes: [{ name: 'HomeNav' }] });
+          const resetToHomeNavAction = CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'HomeNav' }],
+          });
+          navigation.dispatch(resetToHomeNavAction);
         } else if (settingsBackup) {
           navigation.navigate(Routes.ONBOARDING.SECURITY_SETTINGS);
         } else {
-          navigation.navigate('OnboardingSuccess');
+          const resetAction = CommonActions.reset({
+            index: 0,
+            routes: [
+              {
+                name: Routes.ONBOARDING.SUCCESS_FLOW,
+                params: {
+                  screen: Routes.ONBOARDING.SUCCESS,
+                  params: {
+                    successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
+                  },
+                },
+              },
+            ],
+          });
+          if (isMetricsEnabled()) {
+            navigation.dispatch(resetAction);
+          } else {
+            navigation.navigate('OptinMetrics', {
+              onContinue: () => {
+                navigation.dispatch(resetAction);
+              },
+            });
+          }
         }
         trackOnboarding(
           MetricsEventBuilder.createEventBuilder(
@@ -146,56 +175,58 @@ const ManualBackupStep2 = ({
     setMissingWords(removed);
     setEmptySlots(emptySlotsIndexes);
     const sortedIndexes = emptySlotsIndexes.sort((a, b) => a - b);
-    setSortedSlots(emptySlotsIndexes.filter((_, i) => i !== 0));
     setSelectedSlot(sortedIndexes[0]);
   }, [words, showStatusBottomSheet]);
 
   const handleWordSelect = useCallback(
     (word) => {
       const updatedGrid = [...gridWords];
-      if (sortedSlots.length === 0) {
-        const emptySlotsIndexes = [...emptySlots];
-        const sortedIndexes = emptySlotsIndexes.sort((a, b) => a - b);
-        setSortedSlots(sortedIndexes);
-      }
 
       // Step 1: Deselect if already placed
       const existingIndex = updatedGrid.findIndex((w) => w === word);
       if (existingIndex !== -1) {
         updatedGrid[existingIndex] = '';
         setGridWords(updatedGrid);
-        setSelectedSlot(null); // ← always reset for top-down behavior
-        return;
+
+        // Focus the slot where we just removed the word if it's an empty slot
+        if (emptySlots.includes(existingIndex)) {
+          setSelectedSlot(existingIndex);
+          return;
+        }
       }
 
       // Word must be one of the missing ones
       if (!missingWords.includes(word)) return;
 
-      // Get empty slots top-down
-      const emptySlotsUpdated = updatedGrid
-        .map((val, idx) => (val === '' ? idx : null))
-        .filter((i) => i !== null);
+      // Get empty slots in order
+      const emptySlotsUpdated = emptySlots
+        .sort((a, b) => a - b)
+        .filter((idx) => updatedGrid[idx] === '');
 
       //  If user clicked a slot manually, use it
       let targetIndex = selectedSlot;
 
-      // FINAL GUARD: Always prefer top-down first empty slot
+      // FINAL GUARD: Always prefer ordered empty slot
       if (
         targetIndex === null || // no slot selected
         updatedGrid[targetIndex] !== '' || // slot already filled
         !emptySlotsUpdated.includes(targetIndex) // invalid slot
       ) {
-        targetIndex = emptySlotsUpdated[0]; // force top-down
+        targetIndex = emptySlotsUpdated[0]; // force first empty slot
       }
 
       if (targetIndex === undefined) return;
 
       updatedGrid[targetIndex] = word;
       setGridWords(updatedGrid);
-      setSelectedSlot(sortedSlots[0]); // reset selection after placing
-      setSortedSlots(sortedSlots.filter((_, i) => i !== 0));
+
+      // Set focus to next empty slot in order
+      const nextEmptySlot =
+        emptySlotsUpdated.find((slot) => slot > targetIndex) ||
+        emptySlotsUpdated[0];
+      setSelectedSlot(nextEmptySlot);
     },
-    [gridWords, missingWords, selectedSlot, sortedSlots, emptySlots],
+    [gridWords, missingWords, selectedSlot, emptySlots],
   );
 
   const handleSlotPress = useCallback(
@@ -226,7 +257,17 @@ const ManualBackupStep2 = ({
     (item, index, isEmpty) => (
       <>
         <Text style={styles.gridItemIndex}>{index + 1}.</Text>
-        <Text style={styles.gridItemText}>{isEmpty ? item : '••••••'}</Text>
+        <Text
+          variant={TextVariant.BodySM}
+          color={TextColor.Default}
+          style={styles.gridItemText}
+          adjustsFontSizeToFit
+          allowFontScaling
+          minimumFontScale={0.05}
+          maxFontSizeMultiplier={0}
+        >
+          {isEmpty ? item : '••••••'}
+        </Text>
       </>
     ),
     [styles.gridItemIndex, styles.gridItemText],
@@ -240,7 +281,11 @@ const ManualBackupStep2 = ({
       return (
         <TouchableOpacity
           key={index}
-          testID={ManualBackUpStepsSelectorsIDs.GRID_ITEM}
+          testID={
+            isEmpty
+              ? `${ManualBackUpStepsSelectorsIDs.GRID_ITEM_EMPTY}-${index}`
+              : `${ManualBackUpStepsSelectorsIDs.GRID_ITEM}-${index}`
+          }
           style={[
             styles.gridItem,
             isEmpty && styles.emptySlot,
@@ -301,6 +346,10 @@ const ManualBackupStep2 = ({
                 variant={TextVariant.BodyMDMedium}
                 color={isUsed ? TextColor.Default : TextColor.Primary}
                 testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-${i}`}
+                adjustsFontSizeToFit
+                allowFontScaling
+                minimumFontScale={0.1}
+                maxFontSizeMultiplier={0}
               >
                 {word}
               </Text>
@@ -411,7 +460,8 @@ ManualBackupStep2.propTypes = {
 
 const mapDispatchToProps = (dispatch) => ({
   seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
-  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
+  dispatchSaveOnboardingEvent: (...eventArgs) =>
+    dispatch(saveOnboardingEvent(eventArgs)),
 });
 
 export default connect(null, mapDispatchToProps)(ManualBackupStep2);

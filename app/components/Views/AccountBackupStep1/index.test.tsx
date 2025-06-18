@@ -2,7 +2,7 @@ import React from 'react';
 import AccountBackupStep1 from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import { fireEvent } from '@testing-library/react-native';
@@ -10,18 +10,12 @@ import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
+import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import Routes from '../../../constants/navigation/Routes';
+import { InteractionManager } from 'react-native';
 
 // Use fake timers to resolve reanimated issues.
 jest.useFakeTimers();
-
-jest.mock('@react-navigation/native', () => {
-  const actualNav = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualNav,
-    useNavigation: jest.fn(),
-    useFocusEffect: jest.fn(),
-  };
-});
 
 jest.mock('../../../util/device', () => ({
   isIos: jest.fn(),
@@ -36,6 +30,68 @@ jest.mock('../../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
 }));
 
+const mockIsEnabled = jest.fn().mockReturnValue(true);
+
+jest.mock('../../hooks/useMetrics', () => {
+  const actualUseMetrics = jest.requireActual('../../hooks/useMetrics');
+  return {
+    ...actualUseMetrics,
+    useMetrics: jest.fn().mockReturnValue({
+      ...actualUseMetrics.useMetrics,
+      isEnabled: () => mockIsEnabled(),
+    }),
+  };
+});
+
+const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+const mockSetOptions = jest.fn();
+const mockDispatch = jest.fn();
+const mockReset = jest.fn();
+
+// mock useNavigation
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+      setOptions: mockSetOptions,
+      dispatch: mockDispatch,
+      reset: mockReset,
+    }),
+  };
+});
+
+const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
+  cb();
+  return {
+    then: (onfulfilled: () => void) => Promise.resolve(onfulfilled()),
+    done: (onfulfilled: () => void, onrejected: () => void) =>
+      Promise.resolve().then(onfulfilled, onrejected),
+    cancel: jest.fn(),
+  };
+});
+jest
+  .spyOn(InteractionManager, 'runAfterInteractions')
+  .mockImplementation(mockRunAfterInteractions);
+
+const mockResetActionOnboardingSuccessWizard = CommonActions.reset({
+  index: 1,
+  routes: [
+    {
+      name: Routes.ONBOARDING.SUCCESS_FLOW,
+      params: {
+        screen: Routes.ONBOARDING.SUCCESS,
+        params: {
+          successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+        },
+      },
+    },
+  ],
+});
+
 describe('AccountBackupStep1', () => {
   afterEach(() => {
     jest.useFakeTimers({ legacyFakeTimers: true });
@@ -43,49 +99,22 @@ describe('AccountBackupStep1', () => {
   });
 
   const setupTest = () => {
-    const mockNavigate = jest.fn();
-    const mockGoBack = jest.fn();
-    const mockSetOptions = jest.fn();
-
     const initialState = {
       engine: {
         backgroundState,
       },
     };
 
-    (useNavigation as jest.Mock).mockReturnValue({
-      navigate: mockNavigate,
-      goBack: mockGoBack,
-      setOptions: mockSetOptions,
-      addListener: jest.fn(),
-      removeListener: jest.fn(),
-      isFocused: jest.fn(),
-      reset: jest.fn(),
+    const wrapper = renderWithProvider(<AccountBackupStep1 route={{}} />, {
+      state: initialState,
     });
-
-    const wrapper = renderWithProvider(
-      <AccountBackupStep1
-        navigation={{
-          navigate: mockNavigate,
-          goBack: mockGoBack,
-          setOptions: mockSetOptions,
-        }}
-        route={{}}
-      />,
-      {
-        state: initialState,
-      },
-    );
 
     return {
       wrapper,
-      mockNavigate,
-      mockGoBack,
-      mockSetOptions,
     };
   };
 
-  it('renders matches snapshot', () => {
+  it('render matches snapshot', () => {
     const { wrapper } = setupTest();
     expect(wrapper).toMatchSnapshot();
   });
@@ -126,7 +155,7 @@ describe('AccountBackupStep1', () => {
 
   it('shows seedphrase modal when srp link is pressed', () => {
     (Engine.hasFunds as jest.Mock).mockReturnValue(true);
-    const { wrapper, mockNavigate } = setupTest();
+    const { wrapper } = setupTest();
     const srpLink = wrapper.getByTestId(
       ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK,
     );
@@ -148,7 +177,7 @@ describe('AccountBackupStep1', () => {
 
   it('navigates to skip account security modal when remind me later button is pressed', () => {
     (Engine.hasFunds as jest.Mock).mockReturnValue(false);
-    const { wrapper, mockNavigate } = setupTest();
+    const { wrapper } = setupTest();
     const reminderButton = wrapper.getByText(
       strings('account_backup_step_1.remind_me_later'),
     );
@@ -180,7 +209,7 @@ describe('AccountBackupStep1', () => {
 
   it('navigates to ManualBackupStep1 when continue button is pressed', () => {
     (Engine.hasFunds as jest.Mock).mockReturnValue(false);
-    const { wrapper, mockNavigate } = setupTest();
+    const { wrapper } = setupTest();
     const reminderButton = wrapper.getByText(
       strings('account_backup_step_1.remind_me_later'),
     );
@@ -207,14 +236,13 @@ describe('AccountBackupStep1', () => {
 
     // Verify customBackPress prop is passed
     expect(androidBackHandler.props.customBackPress).toBeDefined();
-
   });
 
   it('navigates to SkipAccountSecurityModal when customBackPress is called', () => {
     (Device.isAndroid as jest.Mock).mockReturnValue(true);
     (Engine.hasFunds as jest.Mock).mockReturnValue(false);
 
-    const { wrapper, mockNavigate } = setupTest();
+    const { wrapper } = setupTest();
 
     const androidBackHandler = wrapper.UNSAFE_getByType(AndroidBackHandler);
 
@@ -230,7 +258,7 @@ describe('AccountBackupStep1', () => {
   });
 
   it('renders header left button, calls goBack when pressed', () => {
-    const { mockGoBack, mockSetOptions } = setupTest();
+    setupTest();
 
     // Verify that setOptions was called with the correct configuration
     expect(mockSetOptions).toHaveBeenCalled();
@@ -259,7 +287,7 @@ describe('AccountBackupStep1', () => {
         someData: 'exists',
       });
 
-      const { wrapper, mockNavigate } = setupTest();
+      const { wrapper } = setupTest();
 
       // Find and press the "Remind me later" button
       const remindLaterButton = wrapper.getByText(
@@ -274,23 +302,51 @@ describe('AccountBackupStep1', () => {
           call[1].screen === 'SkipAccountSecurityModal',
       )[1].params;
 
+      mockNavigate.mockClear();
       // Call the onConfirm function (skip)
       await modalParams.onConfirm();
 
       // Verify navigation to OnboardingSuccess
-      expect(mockNavigate).toHaveBeenCalledWith('OnboardingSuccess');
-
-      // Verify onboarding wizard step was not set
-      expect(mockNavigate).not.toHaveBeenCalledWith('OnboardingSuccess', {
-        step: 1,
-      });
+      expect(mockDispatch).toHaveBeenCalledWith(
+        mockResetActionOnboardingSuccessWizard,
+      );
     });
 
     it('navigates to OnboardingSuccess when onboarding wizard does not exist', async () => {
       (Engine.hasFunds as jest.Mock).mockReturnValue(false);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
-      const { wrapper, mockNavigate } = setupTest();
+      const { wrapper } = setupTest();
+
+      // Find and press the "Remind me later" button
+      const remindLaterButton = wrapper.getByText(
+        strings('account_backup_step_1.remind_me_later'),
+      );
+      fireEvent.press(remindLaterButton);
+
+      // Get the onConfirm function from the modal params
+      const modalParams = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === 'RootModalFlow' &&
+          call[1].screen === 'SkipAccountSecurityModal',
+      )[1].params;
+
+      mockNavigate.mockClear();
+      // Call the onConfirm function (skip)
+      await modalParams.onConfirm();
+
+      // Verify navigation to OnboardingSuccess
+      expect(mockDispatch).toHaveBeenCalledWith(
+        mockResetActionOnboardingSuccessWizard,
+      );
+    });
+
+    it('should handle skip when metrics is disabled', async () => {
+      mockIsEnabled.mockReturnValue(false);
+      (Engine.hasFunds as jest.Mock).mockReturnValue(false);
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+
+      const { wrapper } = setupTest();
 
       // Find and press the "Remind me later" button
       const remindLaterButton = wrapper.getByText(
@@ -309,7 +365,9 @@ describe('AccountBackupStep1', () => {
       await modalParams.onConfirm();
 
       // Verify navigation to OnboardingSuccess
-      expect(mockNavigate).toHaveBeenCalledWith('OnboardingSuccess');
+      expect(mockNavigate).toHaveBeenCalledWith('OptinMetrics', {
+        onContinue: expect.any(Function),
+      });
     });
   });
 });

@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { BaseAccountDetails } from './AccountTypes/BaseAccountDetails';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import HDAccountDetails from './AccountTypes/HdAccountDetails';
 import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
@@ -8,8 +10,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import PrivateKeyAccountDetails from './AccountTypes/PrivateKeyAccountDetails';
 import HardwareAccountDetails from './AccountTypes/HardwareAccountDetails';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import { isHardwareAccount } from '../../../../util/address';
+import SnapAccountDetails from './AccountTypes/SnapAccountDetails';
 
 interface AccountDetailsProps {
   route: {
@@ -33,11 +35,18 @@ export const AccountDetails = (props: AccountDetailsProps) => {
       navigation.navigate(Routes.SHEET.ACCOUNT_SELECTOR);
       return null;
     }
+
+    if (account.metadata.keyring.type === KeyringTypes.hd) {
+      return <HDAccountDetails account={account} />;
+    }
     if (account.metadata.keyring.type === KeyringTypes.simple) {
       return <PrivateKeyAccountDetails account={account} />;
     }
     if (isHardwareAccount(account.type)) {
       return <HardwareAccountDetails account={account} />;
+    }
+    if (account.metadata.keyring.type === KeyringTypes.snap) {
+      return <SnapAccountDetails account={account} />;
     }
 
     return <BaseAccountDetails account={account} />;

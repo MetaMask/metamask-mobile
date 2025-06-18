@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
@@ -30,7 +31,11 @@ describe('getNetworkNavbarOptions', () => {
 
   const TestNavigator = ({ options }) => (
     <Stack.Navigator>
-      <Stack.Screen name="TestScreen" component={() => options.header()} />
+      <Stack.Screen
+        name="TestScreen"
+        component={() => null}
+        options={options}
+      />
     </Stack.Navigator>
   );
 
@@ -44,6 +49,7 @@ describe('getNetworkNavbarOptions', () => {
       'Test Title',
       false,
       mockNavigation,
+      mockTheme.colors,
     );
 
     const { getByText } = renderWithProvider(
@@ -108,6 +114,11 @@ describe('getOnboardingCarouselNavbarOptions', () => {
 });
 
 describe('getTransparentOnboardingNavbarOptions', () => {
+  const mockNavigation = {
+    pop: jest.fn(),
+    goBack: jest.fn(),
+  };
+
   it('render transparent onboarding navbar options', () => {
     const options = getTransparentOnboardingNavbarOptions(
       mockTheme,
@@ -126,6 +137,16 @@ describe('getTransparentOnboardingNavbarOptions', () => {
       'blue',
     );
     expect(options.headerStyle.backgroundColor).toBe('red');
+  });
+
+  it('handles getOnboardingNavbarOptions', () => {
+    const options = getOnboardingNavbarOptions(
+      mockNavigation,
+      { headerLeft: () => <View />, headerRight: () => <View /> },
+      mockTheme.colors,
+      true,
+    );
+    expect(options).toBeDefined();
   });
 });
 
