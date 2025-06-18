@@ -5927,10 +5927,10 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/utils" "^11.2.0"
 
-"@metamask/transaction-controller@^57.2.0":
-  version "57.3.0"
-  resolved "https://registry.npmjs.org/@metamask/transaction-controller/-/transaction-controller-57.3.0.tgz#fcf034d231ef02859e6323f38f69163bcbff253f"
-  integrity sha512-uiTYEhFQ76t/2RtEA6m/9X3rWH7UL+jLKtUuY8IeXl2OeIq+eRt5Q4Fz2i8R+JGPSbQnCd/qHncnN1urKt9fkw==
+"@metamask/transaction-controller@^57.4.0":
+  version "57.4.0"
+  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-57.4.0.tgz#96c7367089f5d985478ccaf77b9b8c503846f8f5"
+  integrity sha512-eWGRhHSp1AHJkpYTPdsrErN2Mx0LphHfA3ZNJ9IJtRmh3r6IqOwdluCsECmo5+b7vXh68ZxArNdcudZSEZW5Fw==
   dependencies:
     "@ethereumjs/common" "^4.4.0"
     "@ethereumjs/tx" "^5.4.0"
