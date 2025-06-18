@@ -16,6 +16,7 @@ const tags = {
   smokeStake: 'SmokeStake:',
   smokeNotifications: 'SmokeNotifications:',
   smokeAnalytics: 'SmokeAnalytics:',
+  smokeMultiChainAPI: 'SmokeMultiChainAPI:',
   FlaskBuildTests: 'FlaskBuildTests:',
 };
 
