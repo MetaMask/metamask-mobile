@@ -6,6 +6,7 @@ import {
 } from '../helpers';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
+import { CompletedRequest, Mockttp } from 'mockttp';
 
 const baseUrl =
   'https://user-storage\\.api\\.cx\\.metamask\\.io\\/api\\/v1\\/userstorage';
@@ -25,25 +26,41 @@ export const pathRegexps = {
   ),
 };
 
-export const UserStorageMockttpControllerEvents = {
-  GET_NOT_FOUND: 'GET_NOT_FOUND',
-  GET_SINGLE: 'GET_SINGLE',
-  GET_ALL: 'GET_ALL',
-  PUT_SINGLE: 'PUT_SINGLE',
-  PUT_BATCH: 'PUT_BATCH',
-  DELETE_NOT_FOUND: 'DELETE_NOT_FOUND',
-  DELETE_SINGLE: 'DELETE_SINGLE',
-  DELETE_ALL: 'DELETE_ALL',
-  DELETE_BATCH_NOT_FOUND: 'DELETE_BATCH_NOT_FOUND',
-  DELETE_BATCH: 'DELETE_BATCH',
-};
+export interface UserStorageResponseData {
+  HashedKey: string;
+  Data: string;
+  // E2E Specific identifier that is not present in the real API
+  SrpIdentifier?: string;
+}
+
+export enum UserStorageMockttpControllerEvents {
+  GET_NOT_FOUND = 'GET_NOT_FOUND',
+  GET_SINGLE = 'GET_SINGLE',
+  GET_ALL = 'GET_ALL',
+  PUT_SINGLE = 'PUT_SINGLE',
+  PUT_BATCH = 'PUT_BATCH',
+  DELETE_NOT_FOUND = 'DELETE_NOT_FOUND',
+  DELETE_SINGLE = 'DELETE_SINGLE',
+  DELETE_ALL = 'DELETE_ALL',
+  DELETE_BATCH_NOT_FOUND = 'DELETE_BATCH_NOT_FOUND',
+  DELETE_BATCH = 'DELETE_BATCH',
+}
 
 export class UserStorageMockttpController {
-  paths = new Map();
+  paths: Map<
+    keyof typeof pathRegexps,
+    {
+      response: UserStorageResponseData[];
+    }
+  > = new Map();
 
-  eventEmitter = new EventEmitter();
+  eventEmitter: EventEmitter = new EventEmitter();
 
-  async onGet(path, request, statusCode = 200) {
+  async onGet(
+    path: keyof typeof pathRegexps,
+    request: Pick<CompletedRequest, 'url' | 'headers'>,
+    statusCode: number = 200,
+  ) {
     const srpIdentifier = getSrpIdentifierFromHeaders(request.headers);
     const internalPathData = this.paths.get(path);
 
@@ -103,11 +120,18 @@ export class UserStorageMockttpController {
     };
   }
 
-  async onPut(path, request, statusCode = 204) {
+  async onPut(
+    path: keyof typeof pathRegexps,
+    request: Pick<CompletedRequest, 'url' | 'body' | 'headers'>,
+    statusCode: number = 204,
+  ) {
     const srpIdentifier = getSrpIdentifierFromHeaders(request.headers);
     const isFeatureEntry = determineIfFeatureEntryFromURL(request.url);
 
-    const data = await request.body.getJson();
+    const data = (await request.body.getJson()) as {
+      data?: string | Record<string, string>;
+      batch_delete?: string[];
+    };
 
     // We're handling batch delete inside the PUT method due to API limitations
     if (data?.batch_delete) {
@@ -146,7 +170,9 @@ export class UserStorageMockttpController {
         isFeatureEntry && typeof data?.data === 'string'
           ? [
               {
-                HashedKey: getDecodedProxiedURL(request.url).split('/').pop(),
+                HashedKey: getDecodedProxiedURL(request.url)
+                  .split('/')
+                  .pop() as string,
                 Data: data?.data,
                 SrpIdentifier: srpIdentifier,
               },
@@ -180,7 +206,10 @@ export class UserStorageMockttpController {
         } else {
           this.paths.set(path, {
             ...internalPathData,
-            response: [...(internalPathData?.response || []), entry],
+            response: [
+              ...(internalPathData?.response || []),
+              entry as { HashedKey: string; Data: string },
+            ],
           });
         }
 
@@ -206,7 +235,11 @@ export class UserStorageMockttpController {
     };
   }
 
-  async onDelete(path, request, statusCode = 204) {
+  async onDelete(
+    path: keyof typeof pathRegexps,
+    request: Pick<CompletedRequest, 'url' | 'headers'>,
+    statusCode: number = 204,
+  ) {
     const internalPathData = this.paths.get(path);
 
     if (!internalPathData) {
@@ -256,15 +289,16 @@ export class UserStorageMockttpController {
     };
   }
 
-  /**
-   * @param {string} path - path for feature
-   * @param {import('mockttp').Mockttp} server
-   * @param {{
-   *   getResponse?: import('@metamask/profile-sync-controller/sdk').GetUserStorageAllFeatureEntriesResponse
-   *   getStatusCode?: number
-   * }} overrides - initial state of this mock user storage
-   */
-  async setupPath(path, server, overrides) {
+  async setupPath(
+    path: keyof typeof pathRegexps,
+    server: Mockttp,
+    overrides?: {
+      getResponse?: UserStorageResponseData[];
+      getStatusCode?: number;
+      putStatusCode?: number;
+      deleteStatusCode?: number;
+    },
+  ) {
     const previouslySetupPath = this.paths.get(path);
 
     this.paths.set(path, {
