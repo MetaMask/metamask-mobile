@@ -33,6 +33,7 @@ import Routes from '../../constants/navigation/Routes';
 import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
 import ReduxService from '../redux';
 import { retryWithExponentialDelay } from '../../util/exponential-retry';
+import Logger from '../../util/Logger';
 ///: BEGIN:ONLY_INCLUDE_IF(solana)
 import {
   MultichainWalletSnapFactory,
@@ -68,12 +69,24 @@ class AuthenticationService {
    * @param password - password entered on login
    */
   private loginVaultCreation = async (password: string): Promise<void> => {
-    // Restore vault with user entered password
+    const vaultCreationStart = Date.now();
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController }: any = Engine.context;
-    await KeyringController.submitPassword(password);
-    password = this.wipeSensitiveData();
+    try {
+      await KeyringController.submitPassword(password);
+      const vaultCreationEnd = Date.now();
+      console.log(`🧩 Vault unlock operation time: ${vaultCreationEnd - vaultCreationStart}ms`);
+
+      // Try to complete any pending Solana account discovery
+      ///: BEGIN:ONLY_INCLUDE_IF(solana)
+      await this.attemptSolanaAccountDiscovery();
+      ///: END:ONLY_INCLUDE_IF
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      throw new Error((e as Error).message);
+    }
   };
 
   /**
@@ -87,22 +100,24 @@ class AuthenticationService {
     parsedSeed: string,
     clearEngine: boolean,
   ): Promise<void> => {
-    // Restore vault with user entered password
+    const walletRestoreStart = Date.now();
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController }: any = Engine.context;
-    if (clearEngine) await Engine.resetState();
+
+    if (clearEngine) {
+      await Engine.resetState();
+    }
+
     await KeyringController.createNewVaultAndRestore(password, parsedSeed);
+    const walletRestoreEnd = Date.now();
+    console.log(`🧩 Wallet restore operation time: ${walletRestoreEnd - walletRestoreStart}ms`);
+
+    // Try to create Solana accounts
     ///: BEGIN:ONLY_INCLUDE_IF(solana)
-    this.attemptSolanaAccountDiscovery().catch((error) => {
-      console.warn('Solana account discovery failed during wallet creation:', error);
-      // Store flag to retry on next unlock
-      StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, TRUE);
-    });
+    await this.attemptSolanaAccountDiscovery();
     ///: END:ONLY_INCLUDE_IF
-    
-    password = this.wipeSensitiveData();
-    parsedSeed = this.wipeSensitiveData();
+    Logger.log('Authentication: Wallet restored successfully');
   };
 
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
@@ -152,19 +167,20 @@ class AuthenticationService {
   private createWalletVaultAndKeychain = async (
     password: string,
   ): Promise<void> => {
+    const walletCreationStart = Date.now();
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController }: any = Engine.context;
-    await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
+    const walletCreationEnd = Date.now();
+    console.log(`🧩 Wallet creation operation time: ${walletCreationEnd - walletCreationStart}ms`);
 
+    // Try to create Solana accounts
     ///: BEGIN:ONLY_INCLUDE_IF(solana)
-    this.attemptSolanaAccountDiscovery().catch((error) => {
-      console.warn('Solana account discovery failed during wallet creation:', error);
-      StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
-    });
+    await this.attemptSolanaAccountDiscovery();
     ///: END:ONLY_INCLUDE_IF
-    password = this.wipeSensitiveData();
+
+    Logger.log('Authentication: Keychain created successfully');
   };
 
   /**
@@ -182,6 +198,7 @@ class AuthenticationService {
    * @returns @AuthData
    */
   private checkAuthenticationMethod = async (): Promise<AuthData> => {
+    const authCheckStart = Date.now();
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const availableBiometryType: any =
@@ -192,6 +209,8 @@ class AuthenticationService {
     const passcodePreviouslyDisabled = await StorageWrapper.getItem(
       PASSCODE_DISABLED,
     );
+    const authCheckEnd = Date.now();
+    console.log(`🧩 Authentication method check time: ${authCheckEnd - authCheckStart}ms`);
 
     if (
       availableBiometryType &&
@@ -475,7 +494,10 @@ class AuthenticationService {
     try {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const keychainAccessStart = Date.now();
       const credentials: any = await SecureKeychain.getGenericPassword();
+      const keychainAccessEnd = Date.now();
+      console.log(`🧩 Keychain access operation time: ${keychainAccessEnd - keychainAccessStart}ms`);
 
       const password = credentials?.password;
       if (!password) {

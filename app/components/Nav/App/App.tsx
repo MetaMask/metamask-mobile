@@ -949,11 +949,11 @@ const App: React.FC = () => {
   useEffect(() => {
     if (isWC2Enabled) {
       DevLogger.log(`WalletConnect: Initializing WalletConnect Manager`);
-      WC2Manager.init({ navigation: NavigationService.navigation }).catch(
+      /*WC2Manager.init({ navigation: NavigationService.navigation }).catch(
         (err) => {
           console.error('Cannot initialize WalletConnect Manager.', err);
         },
-      );
+      );*/
     }
   }, []);
 

@@ -215,16 +215,20 @@ export class WC2Manager {
     // Keep at the beginning to prevent double instance from react strict double rendering
     this._initialized = true;
 
-    await wait(1000); // add delay to let the keyringController to be initialized
+    //await wait(1000); // add delay to let the keyringController to be initialized
 
     // Wait for keychain to be unlocked before initializing WalletConnect
     const keyringController = (
       Engine.context as { KeyringController: KeyringController }
     ).KeyringController;
+    const keychainUnlockStart = Date.now();
     await waitForKeychainUnlocked({
       keyringController,
       context: 'WalletConnectV2::init',
     });
+    const keychainUnlockEnd = Date.now();
+    console.log(`🧩 WalletConnect keychain unlock wait time: ${keychainUnlockEnd - keychainUnlockStart}ms`);
+
     const currentRouteName = navigation.getCurrentRoute()?.name;
 
     const chainId = parseInt(selectEvmChainId(store.getState()), 16);
@@ -233,7 +237,10 @@ export class WC2Manager {
       `WalletConnectV2::init() chainId=${chainId} currentRouteName=${currentRouteName}`,
     );
 
+    const coreInitStart = Date.now();
     const core = await WC2Manager.initCore(PROJECT_ID);
+    const coreInitEnd = Date.now();
+    console.log(`🧩 WalletConnect core initialization time: ${coreInitEnd - coreInitStart}ms`);
 
     let web3Wallet;
     // Extract chainId from controller
@@ -242,6 +249,7 @@ export class WC2Manager {
       metadata: AppConstants.WALLET_CONNECT.METADATA,
     };
 
+    const walletKitInitStart = Date.now();
     try {
       web3Wallet = await WalletKit.init(options);
     } catch (err) {
@@ -249,6 +257,8 @@ export class WC2Manager {
       // TODO Sometime needs to init twice --- not sure why...
       web3Wallet = await WalletKit.init(options);
     }
+    const walletKitInitEnd = Date.now();
+    console.log(`🧩 WalletConnect WalletKit initialization time: ${walletKitInitEnd - walletKitInitStart}ms`);
 
     let deeplinkSessions = {};
     try {
@@ -265,13 +275,16 @@ export class WC2Manager {
 
     try {
       // Add delay before returning instance
-      await wait(1000);
+      //await wait(1000);
+      const instanceCreateStart = Date.now();
       this.instance = new WC2Manager(
         web3Wallet,
         deeplinkSessions,
         navigation,
         sessions,
       );
+      const instanceCreateEnd = Date.now();
+      console.log(`🧩 WalletConnect instance creation time: ${instanceCreateEnd - instanceCreateStart}ms`);
     } catch (error) {
       Logger.error(error as Error, `WC2@init() failed to create instance`);
     }

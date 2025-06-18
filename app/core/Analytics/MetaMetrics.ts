@@ -268,15 +268,20 @@ class MetaMetrics implements IMetaMetrics {
    * @returns Promise containing the user ID
    */
   #getMetaMetricsId = async (): Promise<string> => {
+    return "ID";
+    const metaMetricsIdStart = Date.now();
     // Important: this ID is used to identify the user in Segment and should be kept in
     // preferences: no reset unless explicitelu asked for.
     // If user later enables MetaMetrics,
     // this same ID should be retrieved from preferences and reused.
     // look for a legacy ID from MixPanel integration and use it
     const legacyId = await StorageWrapper.getItem(MIXPANEL_METAMETRICS_ID);
+    console.log(`🧩 MetaMetrics ID getting legacy id time: ${Date.now() - metaMetricsIdStart}ms`);
     if (legacyId) {
       this.metametricsId = legacyId;
       await StorageWrapper.setItem(METAMETRICS_ID, legacyId);
+      const metaMetricsIdEnd = Date.now();
+      console.log(`🧩 MetaMetrics ID generation (legacy) time: ${metaMetricsIdEnd - metaMetricsIdStart}ms`);
       return legacyId;
     }
 
@@ -284,13 +289,20 @@ class MetaMetrics implements IMetaMetrics {
     const metametricsId: string | undefined = await StorageWrapper.getItem(
       METAMETRICS_ID,
     );
+    console.log(`🧩 MetaMetrics ID getting metametricsId time: ${Date.now() - metaMetricsIdStart}ms`);
+    console.warn('MetaMetrics ID is legacy = ', legacyId);
+    console.warn('MetaMetrics ID metametricsId = ', metametricsId);
     if (!metametricsId) {
       // keep the id format compatible with MixPanel but base it on a UUIDv4
       this.metametricsId = uuidv4();
+      console.log(`🧩 MetaMetrics ID generating uuidv4 time: ${Date.now() - metaMetricsIdStart}ms`);
       await StorageWrapper.setItem(METAMETRICS_ID, this.metametricsId);
+      console.log(`🧩 MetaMetrics ID setting item time: ${Date.now() - metaMetricsIdStart}ms`);
     } else {
       this.metametricsId = metametricsId;
     }
+    const metaMetricsIdEnd = Date.now();
+    console.log(`🧩 MetaMetrics ID generation time: ${metaMetricsIdEnd - metaMetricsIdStart}ms`);
     return this.metametricsId;
   };
 
@@ -553,16 +565,24 @@ class MetaMetrics implements IMetaMetrics {
    */
   configure = async (): Promise<boolean> => {
     if (this.#isConfigured) return true;
+    return true;
+    const configureStart = Date.now();
     try {
       this.enabled = await this.#isMetaMetricsEnabled();
+      console.warn(`🧩 Configuration enabled received in : ${Date.now() - configureStart}ms`);
       // get the user unique id when initializing
       this.metametricsId = await this.#getMetaMetricsId();
+      console.warn(`🧩 Configuration metametricsId received in : ${Date.now() - configureStart}ms`);
       this.deleteRegulationId = await this.#getDeleteRegulationIdFromPrefs();
+      console.warn(`🧩 Configuration deleteRegulationId received in : ${Date.now() - configureStart}ms`);
       this.deleteRegulationDate =
         await this.#getDeleteRegulationDateFromPrefs();
+      console.warn(`🧩 Configuration deleteRegulationDate received in : ${Date.now() - configureStart}ms`);
       this.dataRecorded = await this.#getIsDataRecordedFromPrefs();
+      console.warn(`🧩 Configuration dataRecorded received in : ${Date.now() - configureStart}ms`);
 
       this.segmentClient?.add({ plugin: new MetaMetricsPrivacySegmentPlugin(this.metametricsId) });
+      console.warn(`🧩 Configuration segmentClient received in : ${Date.now() - configureStart}ms`);
 
       this.#isConfigured = true;
 
@@ -573,6 +593,9 @@ class MetaMetrics implements IMetaMetrics {
         ...generateUserSettingsAnalyticsMetaData(),
       };
       await this.addTraitsToUser(consolidatedTraits);
+
+      const configureEnd = Date.now();
+      console.log(`🧩 MetaMetrics configuration time: ${configureEnd - configureStart}ms`);
 
       if (__DEV__)
         Logger.log(`MetaMetrics configured with ID: ${this.metametricsId}`);

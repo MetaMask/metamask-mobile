@@ -26,6 +26,7 @@ const pReducer = persistReducer<RootState, AnyAction>(
 // eslint-disable-next-line import/no-mutable-exports
 let store: ReduxStore, persistor: Persistor;
 const createStoreAndPersistor = async () => {
+  const storeInitStart = Date.now();
   trace({
     name: TraceName.StoreInit,
     parentContext: getUIStartupSpan(),
@@ -43,6 +44,7 @@ const createStoreAndPersistor = async () => {
 
   const middlewares = [sagaMiddleware, thunk];
 
+  const storeConfigStart = Date.now();
   store = configureStore({
     reducer: pReducer,
     middleware: middlewares,
@@ -53,16 +55,25 @@ const createStoreAndPersistor = async () => {
         ? getDefaultEnhancers.concat(devToolsEnhancer())
         : getDefaultEnhancers,
   });
+  const storeConfigEnd = Date.now();
+  console.log(`🧩 Store configuration time: ${storeConfigEnd - storeConfigStart}ms`);
+
   // Set the store in the Redux class
   ReduxService.store = store;
 
+  const sagaStart = Date.now();
   sagaMiddleware.run(rootSaga);
+  const sagaEnd = Date.now();
+  console.log(`🧩 Saga middleware setup time: ${sagaEnd - sagaStart}ms`);
 
   /**
    * Initialize services after persist is completed
    */
   const onPersistComplete = () => {
     endTrace({ name: TraceName.StoreInit });
+    const storeInitEnd = Date.now();
+    console.log(`🧩 Total store initialization time: ${storeInitEnd - storeInitStart}ms`);
+
     // Signal that persisted data has been loaded
     store.dispatch(onPersistedDataLoaded());
 
@@ -83,7 +94,10 @@ const createStoreAndPersistor = async () => {
     }
   };
 
+  const persistorStart = Date.now();
   persistor = persistStore(store, null, onPersistComplete);
+  const persistorEnd = Date.now();
+  console.log(`🧩 Persistor creation time: ${persistorEnd - persistorStart}ms`);
 };
 
 (async () => {

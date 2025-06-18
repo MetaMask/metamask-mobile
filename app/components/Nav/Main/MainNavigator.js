@@ -3,7 +3,7 @@ import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Browser from '../../Views/Browser';
+import LazyBrowserWrapper from '../../Views/Browser/LazyBrowserWrapper';
 import { ChainId } from '@metamask/controller-utils';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
@@ -232,7 +232,7 @@ const BrowserFlow = (props) => (
   >
     <Stack.Screen
       name={Routes.BROWSER.VIEW}
-      component={Browser}
+      component={LazyBrowserWrapper}
       options={{ headerShown: false }}
     />
     <Stack.Screen

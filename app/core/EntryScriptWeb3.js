@@ -5,8 +5,12 @@ const EntryScriptWeb3 = {
   entryScriptWeb3: null,
   // Cache InpageBridgeWeb3 so that it is immediately available
   async init() {
+    const entryScriptInitStart = Date.now();
     this.entryScriptWeb3 = await FileSystem.readAsStringAsync(
       `${FileSystem.bundleDirectory}InpageBridgeWeb3.js`,
+    );
+    console.warn(
+      `🧩 ASYNC EntryScriptWeb3 initialization time: ${entryScriptInitEnd - entryScriptInitStart}ms`
     );
     return this.entryScriptWeb3;
   },

@@ -72,8 +72,16 @@ export class EngineService {
         hasState: Object.keys(state).length > 0,
       });
 
+      const metaMetricsIdStart = Date.now();
       const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
+      const metaMetricsIdEnd = Date.now();
+      console.log(`🧩 MetaMetrics ID retrieval time: ${metaMetricsIdEnd - metaMetricsIdStart}ms`);
+
+      const engineInitStart = Date.now();
       Engine.init(state, null, metaMetricsId);
+      const engineInitEnd = Date.now();
+      console.log(`🧩 Engine initialization time: ${engineInitEnd - engineInitStart}ms`);
+
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       this.updateControllers(Engine as unknown as TypedEngine);
     } catch (error) {
@@ -139,12 +147,20 @@ export class EngineService {
       }
    */
   async initializeVaultFromBackup(): Promise<VaultBackupResult> {
+    const vaultBackupStart = Date.now();
     const keyringState = await getVaultFromBackup();
+    const vaultBackupEnd = Date.now();
+    console.log(`🧩 Vault backup retrieval time: ${vaultBackupEnd - vaultBackupStart}ms`);
+
     const reduxState = ReduxService.store.getState();
     const state = reduxState?.engine?.backgroundState ?? {};
     const Engine = UntypedEngine;
     // This ensures we create an entirely new engine
+    const engineDestroyStart = Date.now();
     await Engine.destroyEngine();
+    const engineDestroyEnd = Date.now();
+    console.log(`🧩 Engine destroy time: ${engineDestroyEnd - engineDestroyStart}ms`);
+
     this.engineInitialized = false;
     if (keyringState) {
       const newKeyringState: KeyringControllerState = {
@@ -157,8 +173,16 @@ export class EngineService {
         hasState: Object.keys(state).length > 0,
       });
 
+      const metaMetricsIdStart = Date.now();
       const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
+      const metaMetricsIdEnd = Date.now();
+      console.log(`🧩 MetaMetrics ID retrieval time: ${metaMetricsIdEnd - metaMetricsIdStart}ms`);
+
+      const engineInitStart = Date.now();
       const instance = Engine.init(state, newKeyringState, metaMetricsId);
+      const engineInitEnd = Date.now();
+      console.log(`🧩 Engine initialization from backup time: ${engineInitEnd - engineInitStart}ms`);
+
       if (instance) {
         this.updateControllers(instance);
         // this is a hack to give the engine time to reinitialize

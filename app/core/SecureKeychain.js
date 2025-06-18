@@ -93,113 +93,140 @@ export default {
   },
 
   async getGenericPassword() {
-    if (instance) {
-      try {
-        instance.isAuthenticating = true;
-        const keychainObject = await Keychain.getGenericPassword(
-          defaultOptions,
-        );
-        if (keychainObject.password) {
-          const encryptedPassword = keychainObject.password;
-          const decrypted = await instance.decryptPassword(encryptedPassword);
-          keychainObject.password = decrypted.password;
-          instance.isAuthenticating = false;
-          return keychainObject;
-        }
-        instance.isAuthenticating = false;
-      } catch (error) {
-        instance.isAuthenticating = false;
-        throw new Error(error.message);
-      }
+    const keychainAccessStart = Date.now();
+    const options = {
+      service: defaultOptions.service,
+      authenticationPrompt: defaultOptions.authenticationPrompt,
+      showModal: true,
+      kLocalizedFallbackTitle: '',
+    };
+
+    // Wrap the operation based on authentication type
+    if (this.getType() === AUTHENTICATION_TYPE.BIOMETRIC) {
+      options.accessControl =
+        Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE;
+    } else if (this.getType() === AUTHENTICATION_TYPE.PASSCODE) {
+      options.accessControl = Keychain.ACCESS_CONTROL.DEVICE_PASSCODE;
     }
-    return null;
+
+    this.isAuthenticating = true;
+
+    try {
+      const credentials = await Keychain.getGenericPassword(options);
+      const keychainAccessEnd = Date.now();
+      console.log(`🧩 Secure keychain access time: ${keychainAccessEnd - keychainAccessStart}ms`);
+
+      if (credentials && credentials.password !== '') {
+        const decryptionStart = Date.now();
+        const result = await this.decryptPassword(credentials.password);
+        const decryptionEnd = Date.now();
+        console.log(`🧩 Password decryption time: ${decryptionEnd - decryptionStart}ms`);
+        
+        return result;
+      }
+
+      return false;
+    } catch (error) {
+      throw error;
+    } finally {
+      this.isAuthenticating = false;
+    }
   },
 
   async setGenericPassword(password, type) {
-    const authOptions = {
-      accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+    const encryptionStart = Date.now();
+    const encryptedPassword = await instance.encryptPassword(password);
+    const encryptionEnd = Date.now();
+    console.log(`🧩 Password encryption time: ${encryptionEnd - encryptionStart}ms`);
+
+    let authOptions;
+    const basicOptions = {
+      service: defaultOptions.service,
     };
 
-    const metrics = MetaMetrics.getInstance();
-    if (type === this.TYPES.BIOMETRICS) {
-      authOptions.accessControl = Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET;
+    switch (type) {
+      case this.TYPES.BIOMETRICS:
+        authOptions = {
+          accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET,
+          authenticationPrompt: defaultOptions.authenticationPrompt,
+          authenticationType: Keychain.AUTHENTICATION_TYPE.BIOMETRICS,
+          ...basicOptions,
+        };
+        await StorageWrapper.setItem(BIOMETRY_CHOICE, TRUE);
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
+          )
+            .addProperties({
+              [UserProfileProperty.AUTHENTICATION_TYPE]:
+                AUTHENTICATION_TYPE.BIOMETRIC,
+            })
+            .build(),
+        );
+        break;
 
-      await metrics.addTraitsToUser({
-        [UserProfileProperty.AUTHENTICATION_TYPE]:
-          AUTHENTICATION_TYPE.BIOMETRIC,
-      });
-    } else if (type === this.TYPES.PASSCODE) {
-      authOptions.accessControl = Keychain.ACCESS_CONTROL.DEVICE_PASSCODE;
-      await metrics.addTraitsToUser({
-        [UserProfileProperty.AUTHENTICATION_TYPE]: AUTHENTICATION_TYPE.PASSCODE,
-      });
-    } else if (type === this.TYPES.REMEMBER_ME) {
-      await metrics.addTraitsToUser({
-        [UserProfileProperty.AUTHENTICATION_TYPE]:
-          AUTHENTICATION_TYPE.REMEMBER_ME,
-      });
-      //Don't need to add any parameter
-    } else {
-      // Setting a password without a type does not save it
-      return await this.resetGenericPassword();
-    }
+      case this.TYPES.PASSCODE:
+        authOptions = {
+          accessControl: Keychain.ACCESS_CONTROL.DEVICE_PASSCODE,
+          authenticationPrompt: defaultOptions.authenticationPrompt,
+          ...basicOptions,
+        };
+        await StorageWrapper.setItem(PASSCODE_CHOICE, TRUE);
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
+          )
+            .addProperties({
+              [UserProfileProperty.AUTHENTICATION_TYPE]:
+                AUTHENTICATION_TYPE.PASSCODE,
+            })
+            .build(),
+        );
+        break;
 
-    const encryptedPassword = await instance.encryptPassword(password);
-    await Keychain.setGenericPassword('metamask-user', encryptedPassword, {
-      ...defaultOptions,
-      ...authOptions,
-    });
+      case this.TYPES.REMEMBER_ME:
+        authOptions = {
+          ...basicOptions,
+        };
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
+          )
+            .addProperties({
+              [UserProfileProperty.AUTHENTICATION_TYPE]:
+                AUTHENTICATION_TYPE.REMEMBER_ME,
+            })
+            .build(),
+        );
+        break;
 
-    if (type === this.TYPES.BIOMETRICS) {
-      await StorageWrapper.setItem(BIOMETRY_CHOICE, TRUE);
-      await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
-      await StorageWrapper.removeItem(PASSCODE_CHOICE);
-      await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
-
-      // If the user enables biometrics, we're trying to read the password
-      // immediately so we get the permission prompt
-      if (Platform.OS === 'ios') {
-        try {
-          await this.getGenericPassword();
-        } catch (error) {
-          // Specifically check for user cancellation
-          if (error.message === 'User canceled the operation.') {
-            // Store password without biometrics
-            const encryptedPassword = await instance.encryptPassword(password);
-            await Keychain.setGenericPassword(
-              'metamask-user',
-              encryptedPassword,
-              {
-                ...defaultOptions,
-              },
-            );
-
-            // Update storage to reflect disabled biometrics
-            await StorageWrapper.removeItem(BIOMETRY_CHOICE);
-            await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-
-            // Update metrics
-            await metrics.addTraitsToUser({
+      default:
+        authOptions = {
+          ...basicOptions,
+        };
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
+          )
+            .addProperties({
               [UserProfileProperty.AUTHENTICATION_TYPE]:
                 AUTHENTICATION_TYPE.PASSWORD,
-            });
-
-            return;
-          }
-        }
-      }
-    } else if (type === this.TYPES.PASSCODE) {
-      await StorageWrapper.removeItem(BIOMETRY_CHOICE);
-      await StorageWrapper.removeItem(PASSCODE_DISABLED);
-      await StorageWrapper.setItem(PASSCODE_CHOICE, TRUE);
-      await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-    } else if (type === this.TYPES.REMEMBER_ME) {
-      await StorageWrapper.removeItem(BIOMETRY_CHOICE);
-      await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
-      await StorageWrapper.removeItem(PASSCODE_CHOICE);
-      await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-      //Don't need to add any parameter
+            })
+            .build(),
+        );
+        break;
     }
+
+    const keychainStoreStart = Date.now();
+    const result = await Keychain.setGenericPassword(
+      'metamask-user',
+      encryptedPassword,
+      authOptions,
+    );
+    const keychainStoreEnd = Date.now();
+    console.log(`🧩 Keychain storage time: ${keychainStoreEnd - keychainStoreStart}ms`);
+
+    return result;
   },
   ACCESS_CONTROL: Keychain.ACCESS_CONTROL,
   ACCESSIBLE: Keychain.ACCESSIBLE,

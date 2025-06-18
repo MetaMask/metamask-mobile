@@ -46,9 +46,13 @@ const Root = ({ foxCode }: RootProps) => {
       const foxCodeError = new Error('WARN - foxCode is an empty string');
       Logger.error(foxCodeError);
     }
+    const secureKeychainInitStart = Date.now();
     SecureKeychain.init(foxCode);
+    const secureKeychainInitEnd = Date.now();
+    console.log(`🧩 SecureKeychain initialization time: ${secureKeychainInitEnd - secureKeychainInitStart}ms`);
+
     // Init EntryScriptWeb3 asynchronously on the background
-    EntryScriptWeb3.init();
+    // EntryScriptWeb3.init();
     // Wait for store to be initialized in Detox tests
     if (isTest) {
       waitForStore();

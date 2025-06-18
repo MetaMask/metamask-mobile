@@ -29,16 +29,7 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const hasInitialized = useRef(false);
-
-  // Start trace when navigation provider is initialized
-  if (!hasInitialized.current) {
-    trace({
-      name: TraceName.NavInit,
-      parentContext: getUIStartupSpan(),
-      op: TraceOperation.NavInit,
-    });
-    hasInitialized.current = true;
-  }
+  const navInitStartTime = useRef<number | null>(null);
 
   /**
    * Triggers when the navigation is ready
@@ -46,6 +37,10 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   const onReady = () => {
     // End trace when navigation is ready
     endTrace({ name: TraceName.NavInit });
+    const navReadyEnd = Date.now();
+    const startTime = navInitStartTime.current || Date.now();
+    console.log(`🧩 Navigation initialization time: ${navReadyEnd - startTime}ms`);
+    
     // Dispatch navigation ready action, used by sagas
     dispatch(onNavigationReady());
   };
@@ -60,6 +55,18 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
     }
     NavigationService.navigation = ref;
   };
+
+  // Start trace when navigation provider is initialized
+  if (!hasInitialized.current) {
+    const navInitStart = Date.now();
+    navInitStartTime.current = navInitStart;
+    trace({
+      name: TraceName.NavInit,
+      parentContext: getUIStartupSpan(),
+      op: TraceOperation.NavInit,
+    });
+    hasInitialized.current = true;
+  }
 
   return (
     <NavigationContainer

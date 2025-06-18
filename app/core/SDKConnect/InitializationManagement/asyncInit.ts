@@ -21,6 +21,7 @@ const asyncInit = async ({
   instance: SDKConnect;
   context?: string;
 }) => {
+  const sdkInitStart = Date.now();
   instance.state.navigation = navigation;
   DevLogger.log(`SDKConnect::init()[${context}] - starting`);
 
@@ -35,6 +36,7 @@ const asyncInit = async ({
   const validConnections: SDKSessions = {};
   const validHosts: ApprovedHosts = {};
   try {
+    const connectionValidationStart = Date.now();
     // Remove connections that have expired.
     const now = Date.now();
     const connectionsLength = Object.keys(sdk.connections).length;
@@ -67,6 +69,9 @@ const asyncInit = async ({
         );
       }
     }
+    const connectionValidationEnd = Date.now();
+    console.log(`🧩 SDKConnect connection validation time: ${connectionValidationEnd - connectionValidationStart}ms`);
+
     DevLogger.log(
       `SDKConnect::init() - valid connections length=${
         Object.keys(validConnections).length
@@ -77,16 +82,22 @@ const asyncInit = async ({
     instance.state.approvedHosts = validHosts;
     instance.state.dappConnections = sdk.dappConnections;
 
+    const storeUpdateStart = Date.now();
     // Update store with valid connection
     store.dispatch(resetConnections(validConnections));
     store.dispatch(resetApprovedHosts(validHosts));
     // All connectectiions are disconnected on start
     store.dispatch(disconnectAll());
+    const storeUpdateEnd = Date.now();
+    console.log(`🧩 SDKConnect store update time: ${storeUpdateEnd - storeUpdateStart}ms`);
+
     DevLogger.log(`SDKConnect::init() - done`);
     instance.state._initialized = true;
   } catch (err) {
     Logger.log(err, `SDKConnect::init() - error loading connections`);
   }
+  const sdkInitEnd = Date.now();
+  console.log(`🧩 SDKConnect total initialization time: ${sdkInitEnd - sdkInitStart}ms`);
 };
 
 export default asyncInit;

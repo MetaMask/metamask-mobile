@@ -284,13 +284,18 @@ export class Engine {
     initialKeyringState?: KeyringControllerState | null,
     metaMetricsId?: string,
   ) {
+    const engineConstructorStart = Date.now();
     logEngineCreation(initialState, initialKeyringState);
 
+    const controllerMessengerStart = Date.now();
     this.controllerMessenger = new ExtendedControllerMessenger();
+    const controllerMessengerEnd = Date.now();
+    console.log(`🧩 ControllerMessenger creation time: ${controllerMessengerEnd - controllerMessengerStart}ms`);
 
     const isBasicFunctionalityToggleEnabled = () =>
       selectBasicFunctionalityEnabled(store.getState());
 
+    const controllersInitStart = Date.now();
     const approvalController = new ApprovalController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'ApprovalController',
@@ -1706,6 +1711,12 @@ export class Engine {
     this.handleVaultBackup();
 
     Engine.instance = this;
+    
+    const controllersInitEnd = Date.now();
+    console.log(`🧩 Controllers initialization time: ${controllersInitEnd - controllersInitStart}ms`);
+    
+    const engineConstructorEnd = Date.now();
+    console.log(`🧩 Engine constructor total time: ${engineConstructorEnd - engineConstructorStart}ms`);
   }
 
   handleVaultBackup() {
