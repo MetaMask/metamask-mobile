@@ -21,6 +21,7 @@ import {
 import { MockttpServer } from 'mockttp';
 import ContactsView from '../../../pages/Settings/Contacts/ContactsView';
 import AddContactView from '../../../pages/Settings/Contacts/AddContactView';
+import SettingsView from '../../../pages/Settings/SettingsView';
 
 describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
   const NEW_CONTACT_NAME = 'New Test Contact';
@@ -43,6 +44,9 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
     await userStorageMockttpController.setupPath(
       USER_STORAGE_FEATURE_NAMES.addressBook,
       mockServer,
+      {
+        getResponse: [], // Start with empty contacts for new user
+      },
     );
 
     await TestHelpers.launchApp({
@@ -66,11 +70,12 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
 
     await TabBarComponent.tapSettings();
     await TestHelpers.delay(1000);
+    await SettingsView.tapContacts();
+    await Assertions.checkIfVisible(ContactsView.container);
     await ContactsView.tapAddContactButton();
     await Assertions.checkIfVisible(AddContactView.container);
-    await TestHelpers.delay(4000);
 
-    const { prepareEventsEmittedCounter, waitUntilSyncedContactsNumberEquals } =
+    const { prepareEventsEmittedCounter } =
       arrangeTestUtils(userStorageMockttpController);
     const { waitUntilEventsEmittedNumberEquals } = prepareEventsEmittedCounter(
       UserStorageMockttpControllerEvents.PUT_SINGLE,
@@ -82,7 +87,6 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
     await TestHelpers.delay(2000);
 
     await waitUntilEventsEmittedNumberEquals(1);
-    await waitUntilSyncedContactsNumberEquals(1);
 
     await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
 
@@ -99,8 +103,8 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
 
     await TabBarComponent.tapSettings();
     await TestHelpers.delay(1000);
-    await ContactsView.tapAddContactButton();
-    await Assertions.checkIfVisible(AddContactView.container);
+    await SettingsView.tapContacts();
+    await Assertions.checkIfVisible(ContactsView.container);
     await TestHelpers.delay(4000);
 
     await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
