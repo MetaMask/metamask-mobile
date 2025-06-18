@@ -146,19 +146,20 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
         </View>
       )}
       {/* Buttons */}
-      {userHasLendingPositions && (
-        <View style={styles.container}>
-          {receiptToken && (
-            <Button
-              variant={ButtonVariants.Secondary}
-              style={styles.button}
-              size={ButtonSize.Lg}
-              label={strings('earn.withdraw')}
-              onPress={handleNavigateToWithdrawalInputScreen}
-              testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
-            />
-          )}
-          {userHasUnderlyingTokensAvailableToLend && !isAssetReceiptToken && (
+      <View style={styles.container}>
+        {userHasLendingPositions && receiptToken && (
+          <Button
+            variant={ButtonVariants.Secondary}
+            style={styles.button}
+            size={ButtonSize.Lg}
+            label={strings('earn.withdraw')}
+            onPress={handleNavigateToWithdrawalInputScreen}
+            testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
+          />
+        )}
+        {userHasUnderlyingTokensAvailableToLend &&
+          !isAssetReceiptToken &&
+          userHasLendingPositions && (
             <Button
               variant={ButtonVariants.Secondary}
               style={styles.button}
@@ -168,8 +169,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
               testID={EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON}
             />
           )}
-        </View>
-      )}
+      </View>
     </View>
   );
 };
