@@ -6,7 +6,7 @@ import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sd
 const AuthMocks = AuthenticationController.Mocks;
 
 /**
- * E2E mock setup for identity APIs (Auth, UserStorage, Profile syncing)
+ * E2E mock setup for identity APIs (Auth, UserStorage, Backup and sync)
  *
  * @param server - server obj used to mock our endpoints
  * @param userStorageMockttpController - optional controller to mock user storage endpoints
@@ -35,6 +35,29 @@ export async function mockIdentityServices(server) {
   };
 }
 
+export const MOCK_SRP_E2E_IDENTIFIER_BASE_KEY = 'MOCK_SRP_IDENTIFIER';
+
+const MOCK_SRP_E2E_IDENTIFIERS = {
+  baseKey: MOCK_SRP_E2E_IDENTIFIER_BASE_KEY,
+  list: new Map(),
+};
+
+const getE2ESrpIdentifierForPublicKey = (publicKey) => {
+  const { baseKey, list } = MOCK_SRP_E2E_IDENTIFIERS;
+
+  // Check if the identifier already exists
+  if (list.has(publicKey)) {
+    return list.get(publicKey);
+  }
+
+  const nextIteration = list.size + 1;
+  const nextIdentifier = `${baseKey}_${nextIteration}`;
+
+  list.set(publicKey, nextIdentifier);
+
+  return nextIdentifier;
+};
+
 function mockAPICall(server, response) {
   let requestRuleBuilder;
 
@@ -60,10 +83,27 @@ function mockAPICall(server, response) {
 
       return url.includes(String(response.url));
     })
-    .thenCallback(() => ({
-      statusCode: 200,
-      json: response.response,
-    }));
+    .thenCallback(async (request) => {
+      const { url, body } = request;
+      const decodedPath = getDecodedProxiedURL(url);
+
+      const [requestBodyJson, requestBodyText] = await Promise.all([
+        body.getJson(),
+        body.getText(),
+      ]);
+      const requestBody = requestBodyJson ?? requestBodyText;
+
+      const json = response.response(
+        requestBody,
+        decodedPath,
+        getE2ESrpIdentifierForPublicKey,
+      );
+
+      return {
+        statusCode: 200,
+        json,
+      };
+    });
 }
 
 const MOCK_ETH_BALANCE = '0xde0b6b3a7640000';

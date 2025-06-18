@@ -1,41 +1,39 @@
-import React from 'react';
-import { TokenI, BrowserTab } from '../../../Tokens/types';
+import { toHex } from '@metamask/controller-utils';
 import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
-import { useSelector } from 'react-redux';
-import AppConstants from '../../../../../core/AppConstants';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { getDecimalChainId } from '../../../../../util/networks';
-import { selectEvmChainId } from '../../../../../selectors/networkController';
+import React from 'react';
 import { Pressable } from 'react-native';
+import { useSelector } from 'react-redux';
+import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
-import { useTheme } from '../../../../../util/theme';
-import createStyles from '../../../Tokens/styles';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import { strings } from '../../../../../../locales/i18n';
-import { RootState } from '../../../../../reducers';
-import useStakingEligibility from '../../hooks/useStakingEligibility';
-import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
-import { EVENT_LOCATIONS } from '../../constants/events';
-import useStakingChain from '../../hooks/useStakingChain';
+import Routes from '../../../../../constants/navigation/Routes';
+import AppConstants from '../../../../../core/AppConstants';
 import Engine from '../../../../../core/Engine';
-import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
+import { RootState } from '../../../../../reducers';
+import { selectEvmChainId } from '../../../../../selectors/networkController';
+import { getDecimalChainId } from '../../../../../util/networks';
+import { useTheme } from '../../../../../util/theme';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
+import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
+import createStyles from '../../../Tokens/styles';
+import { BrowserTab, TokenI } from '../../../Tokens/types';
+import { EVENT_LOCATIONS } from '../../constants/events';
+import useStakingChain from '../../hooks/useStakingChain';
+import useStakingEligibility from '../../hooks/useStakingEligibility';
+import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 
 interface StakeButtonProps {
   asset: TokenI;
 }
+
 const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -52,20 +50,23 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     selectStablecoinLendingEnabledFlag,
   );
 
+  const { getEarnToken } = useEarnTokens();
+  const earnToken = getEarnToken(asset);
+
   const areEarnExperiencesDisabled =
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;
 
-  const onStakeButtonPress = async () => {
+  const handleStakeRedirect = async () => {
     if (!isStakingSupportedChain) {
-      const { MultichainNetworkController } = Engine.context;
-      await MultichainNetworkController.setActiveNetwork('mainnet');
+      await Engine.context.MultichainNetworkController.setActiveNetwork(
+        'mainnet',
+      );
     }
     if (isEligible) {
       navigation.navigate('StakeScreens', {
         screen: Routes.STAKING.STAKE,
         params: {
           token: asset,
-          action: EARN_INPUT_VIEW_ACTIONS.STAKE,
         },
       });
     } else {
@@ -102,29 +103,65 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     );
   };
 
-  if (areEarnExperiencesDisabled) return <></>;
+  const handleLendingRedirect = async () => {
+    if (!asset?.chainId) return;
+
+    const networkClientId =
+      Engine.context.NetworkController.findNetworkClientIdByChainId(
+        toHex(asset.chainId),
+      );
+
+    if (!networkClientId) {
+      console.error(
+        `EarnTokenListItem redirect failed: could not retrieve networkClientId for chainId: ${asset.chainId}`,
+      );
+      return;
+    }
+
+    await Engine.context.NetworkController.setActiveNetwork(networkClientId);
+
+    navigation.navigate('StakeScreens', {
+      screen: Routes.STAKING.STAKE,
+      params: {
+        token: asset,
+      },
+    });
+  };
+
+  const onEarnButtonPress = async () => {
+    if (earnToken?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING) {
+      return handleStakeRedirect();
+    }
+
+    if (earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING) {
+      return handleLendingRedirect();
+    }
+  };
+
+  if (
+    areEarnExperiencesDisabled ||
+    (!earnToken?.isETH && earnToken?.balanceMinimalUnit === '0')
+  )
+    return <></>;
 
   return (
     <Pressable
-      onPress={onStakeButtonPress}
+      onPress={onEarnButtonPress}
       testID={WalletViewSelectorsIDs.STAKE_BUTTON}
       style={styles.stakeButton}
     >
-      <Text variant={TextVariant.BodyLGMedium}>
+      <Text variant={TextVariant.BodySMMedium} style={styles.dot}>
         {' • '}
-        <Text color={TextColor.Primary} variant={TextVariant.BodyLGMedium}>
-          {`${strings('stake.earn')} `}
-        </Text>
       </Text>
-      <Icon
-        name={IconName.Plant}
-        size={IconSize.Sm}
-        color={IconColor.Primary}
-      />
+      <Text color={TextColor.Primary} variant={TextVariant.BodySMMedium}>
+        {`${strings('stake.earn')}`}{' '}
+        {parseFloat(earnToken?.experience?.apr || '').toFixed(1)}%
+      </Text>
     </Pressable>
   );
 };
 
+// TODO: Rename to EarnButton and make component more generic to support lending.
 export const StakeButton = (props: StakeButtonProps) => (
   <StakeSDKProvider>
     <StakeButtonContent {...props} />

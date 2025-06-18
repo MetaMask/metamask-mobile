@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import Keypad from './components';
 import { KEYS } from './constants';
 import useCurrency from './useCurrency';
-import { ViewPropTypes } from 'react-native';
+import { ViewPropTypes } from 'deprecated-react-native-prop-types';
+
 function KeypadComponent({
   onChange,
   value,

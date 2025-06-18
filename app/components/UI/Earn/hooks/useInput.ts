@@ -98,7 +98,7 @@ const useInputHandler = ({
   );
 
   const handleKeypadChange = useCallback(
-    ({ value, pressedKey }) => {
+    ({ value, pressedKey }: { value: string; pressedKey: string }) => {
       const digitsOnly = value.replace(/[^0-9.]/g, '');
       const [whole = '', fraction = ''] = digitsOnly.split('.');
       const totalDigits = whole.length + fraction.length;
@@ -163,19 +163,19 @@ const useInputHandler = ({
   );
 
   const handleMaxInput = useCallback(
-    (maxStakeableMinimalUnit: BN4) => {
+    (maxMinimalUnit: BN4) => {
       const tokenValue = renderFromTokenMinimalUnit(
-        maxStakeableMinimalUnit,
+        maxMinimalUnit,
         decimals,
         5,
       );
       const fiatValue = balanceToFiatNumber(
-        fromTokenMinimalUnit(maxStakeableMinimalUnit, decimals),
+        fromTokenMinimalUnit(maxMinimalUnit, decimals),
         conversionRate,
         exchangeRate,
         2,
       ).toString();
-      setAmountTokenMinimalUnit(maxStakeableMinimalUnit);
+      setAmountTokenMinimalUnit(maxMinimalUnit);
       setAmountToken(tokenValue);
       setAmountFiatNumber(fiatValue);
     },

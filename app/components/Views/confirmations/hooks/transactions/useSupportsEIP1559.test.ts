@@ -5,7 +5,7 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { stakingDepositConfirmationState } from '../../../../../util/test/confirm-data-helpers';
 import { useSupportsEIP1559 } from './useSupportsEIP1559';
 
-describe('useEIP1559TxFees', () => {
+describe('useSupportsEIP1559', () => {
   it('returns true for EIP1559 transaction', async () => {
     const { result } = renderHookWithProvider(
       () =>
@@ -44,7 +44,7 @@ describe('useEIP1559TxFees', () => {
           NetworkController: {
             selectedNetworkClientId: '0x123456',
             networksMetadata: {
-              '0x123456': {
+              'mainnet': {
                 EIPS: { 1559: false },
               },
             },

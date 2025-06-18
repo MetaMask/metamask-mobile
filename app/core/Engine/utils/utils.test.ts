@@ -4,6 +4,7 @@ import {
 } from '@metamask/accounts-controller';
 import {
   CurrencyRateController,
+  DeFiPositionsController,
   MultichainAssetsController,
   MultichainAssetsRatesController,
   MultichainBalancesController,
@@ -37,6 +38,7 @@ import { multichainTransactionsControllerInit } from '../controllers/multichain-
 import { notificationServicesControllerInit } from '../controllers/notifications/notification-services-controller-init';
 import { notificationServicesPushControllerInit } from '../controllers/notifications/notification-services-push-controller-init';
 import { SignatureControllerInit } from '../controllers/signature-controller';
+import { defiPositionsControllerInit } from '../controllers/defi-positions-controller/defi-positions-controller-init';
 import {
   cronjobControllerInit,
   executionServiceInit,
@@ -49,6 +51,8 @@ import { createMockControllerInitFunction } from './test-utils';
 import { getControllerOrThrow, initModularizedControllers } from './utils';
 import { AppMetadataController } from '@metamask/app-metadata-controller';
 import { appMetadataControllerInit } from '../controllers/app-metadata-controller';
+import { AccountTreeController } from '@metamask/account-tree-controller';
+import { accountTreeControllerInit } from '../../../multichain-accounts/controllers/account-tree-controller';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/app-metadata-controller');
@@ -78,6 +82,10 @@ jest.mock(
 jest.mock('../controllers/snaps');
 jest.mock('../controllers/signature-controller');
 jest.mock('../controllers/transaction-controller');
+jest.mock(
+  '../controllers/defi-positions-controller/defi-positions-controller-init',
+);
+jest.mock('../../../multichain-accounts/controllers/account-tree-controller');
 
 describe('initModularizedControllers', () => {
   const mockAccountsControllerInit = jest.mocked(accountsControllerInit);
@@ -116,6 +124,10 @@ describe('initModularizedControllers', () => {
   const mockGasFeeControllerInit = jest.mocked(GasFeeControllerInit);
   const mockAppMetadataControllerInit = jest.mocked(appMetadataControllerInit);
   const mockSignatureControllerInit = jest.mocked(SignatureControllerInit);
+  const mockDeFiPositionsControllerInit = jest.mocked(
+    defiPositionsControllerInit,
+  );
+  const mockAccountTreeControllerInit = jest.mocked(accountTreeControllerInit);
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
   ) {
@@ -124,6 +136,7 @@ describe('initModularizedControllers', () => {
         existingControllersByName: {},
         controllerInitFunctions: {
           AccountsController: mockAccountsControllerInit,
+          AccountTreeController: mockAccountTreeControllerInit,
           CurrencyRateController: mockCurrencyRateControllerInit,
           CronjobController: mockCronjobControllerInit,
           GasFeeController: mockGasFeeControllerInit,
@@ -145,6 +158,7 @@ describe('initModularizedControllers', () => {
           SnapsRegistry: mockSnapsRegistryInit,
           TransactionController: mockTransactionControllerInit,
           AppMetadataController: mockAppMetadataControllerInit,
+          DeFiPositionsController: mockDeFiPositionsControllerInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
@@ -211,6 +225,12 @@ describe('initModularizedControllers', () => {
     });
     mockSignatureControllerInit.mockReturnValue({
       controller: {} as unknown as SignatureController,
+    });
+    mockDeFiPositionsControllerInit.mockReturnValue({
+      controller: {} as unknown as DeFiPositionsController,
+    });
+    mockAccountTreeControllerInit.mockReturnValue({
+      controller: {} as unknown as AccountTreeController,
     });
   });
 

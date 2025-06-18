@@ -7,12 +7,12 @@ import {
 import { SnapRpcHookArgs } from '@metamask/snaps-utils';
 import { RestrictedMethods } from '../Permissions/constants';
 import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermissions';
-import { BackgroundEvent, SnapId } from '@metamask/snaps-sdk';
+import { SnapId } from '@metamask/snaps-sdk';
 import { BaseControllerMessenger, EngineContext } from '../Engine';
 import { handleSnapRequest } from './utils';
 import {
-  CronjobControllerCancelBackgroundEventAction,
-  CronjobControllerGetBackgroundEventsAction,
+  CronjobControllerCancelAction,
+  CronjobControllerGetAction,
   SnapControllerClearSnapStateAction,
   SnapControllerGetPermittedSnapsAction,
   SnapControllerGetSnapAction,
@@ -26,6 +26,10 @@ import {
   SnapInterfaceControllerUpdateInterfaceStateAction,
 } from '../Engine/controllers/snaps';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { MetaMetrics } from '../../../app/core/Analytics';
+import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
+import { Json } from '@metamask/utils';
+import { SchedulableBackgroundEvent } from '@metamask/snaps-controllers';
 
 export function getSnapIdFromRequest(
   request: Record<string, unknown>,
@@ -121,6 +125,19 @@ const snapMethodMiddlewareBuilder = (
       controllerMessenger,
       SnapControllerGetSnapAction,
     ),
+    trackEvent: (eventPayload: {
+      event: string;
+      properties: Record<string, Json>;
+      sensitiveProperties: Record<string, Json>;
+    }) => {
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder({
+          category: eventPayload.event,
+          properties: eventPayload.properties,
+          sensitiveProperties: eventPayload.sensitiveProperties,
+        }).build(),
+      );
+    },
     updateInterfaceState: controllerMessenger.call.bind(
       controllerMessenger,
       SnapInterfaceControllerUpdateInterfaceStateAction,
@@ -146,6 +163,7 @@ const snapMethodMiddlewareBuilder = (
       engineContext.ApprovalController.addAndShowApprovalRequest.bind(
         engineContext.ApprovalController,
       ),
+    getIsActive: () => true, // For now we consider the app to be always active.
     getIsLocked: () => !engineContext.KeyringController.isUnlocked(),
     getEntropySources: () => {
       const state = controllerMessenger.call('KeyringController:getState');
@@ -154,8 +172,8 @@ const snapMethodMiddlewareBuilder = (
         .map((keyring, index) => {
           if (keyring.type === KeyringTypes.hd) {
             return {
-              id: state.keyringsMetadata[index].id,
-              name: state.keyringsMetadata[index].name,
+              id: keyring.metadata.id,
+              name: keyring.metadata.name,
               type: 'mnemonic',
               primary: index === 0,
             };
@@ -180,21 +198,19 @@ const snapMethodMiddlewareBuilder = (
       SnapControllerUpdateSnapStateAction,
       origin as SnapId,
     ),
-    scheduleBackgroundEvent: (
-      event: Omit<BackgroundEvent, 'id' | 'scheduledAt'>,
-    ) =>
-      controllerMessenger.call('CronjobController:scheduleBackgroundEvent', {
+    scheduleBackgroundEvent: (event: SchedulableBackgroundEvent) =>
+      controllerMessenger.call('CronjobController:schedule', {
         ...event,
         snapId: origin as SnapId,
       }),
     cancelBackgroundEvent: controllerMessenger.call.bind(
       controllerMessenger,
-      CronjobControllerCancelBackgroundEventAction,
+      CronjobControllerCancelAction,
       origin as SnapId,
     ),
     getBackgroundEvents: controllerMessenger.call.bind(
       controllerMessenger,
-      CronjobControllerGetBackgroundEventsAction,
+      CronjobControllerGetAction,
       origin as SnapId,
     ),
     getNetworkConfigurationByChainId: controllerMessenger.call.bind(

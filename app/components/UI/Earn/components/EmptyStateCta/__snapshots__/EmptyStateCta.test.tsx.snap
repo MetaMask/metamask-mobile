@@ -11,42 +11,8 @@ exports[`EmptyStateCta renders correctly 1`] = `
       "padding": 16,
     }
   }
+  testID="earn-empty-state-cta-test-id"
 >
-  <View
-    collapsable={false}
-    style={
-      {
-        "paddingBottom": 16,
-      }
-    }
-  >
-    <View
-      style={
-        {
-          "alignItems": "center",
-          "backgroundColor": "#1c7e331a",
-          "borderRadius": 100,
-          "height": 36,
-          "justifyContent": "center",
-          "overflow": "hidden",
-          "width": 36,
-        }
-      }
-    >
-      <SvgMock
-        color="#1c7e33"
-        height={20}
-        name="Plant"
-        style={
-          {
-            "height": 20,
-            "width": 20,
-          }
-        }
-        width={20}
-      />
-    </View>
-  </View>
   <Text
     accessibilityRole="text"
     style={
@@ -78,7 +44,7 @@ exports[`EmptyStateCta renders correctly 1`] = `
       }
     }
   >
-    You could earn up to
+    Lend your USDC with Aave and earn
      
     <Text
       accessibilityRole="text"
@@ -93,15 +59,47 @@ exports[`EmptyStateCta renders correctly 1`] = `
         }
       }
     >
-      $5
-       (
       4.5
-      % 
-      APR
-      )
+      %
     </Text>
      
-    per year by lending your USDC.
+    annually.
+     
+    <Text
+      accessibilityRole="link"
+      accessible={true}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "backgroundColor": "transparent",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+      suppressHighlighting={true}
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Learn more.
+      </Text>
+    </Text>
   </Text>
   <TouchableOpacity
     accessibilityRole="button"
@@ -116,10 +114,10 @@ exports[`EmptyStateCta renders correctly 1`] = `
         "alignSelf": "stretch",
         "backgroundColor": "transparent",
         "borderColor": "#4459ff",
-        "borderRadius": 24,
+        "borderRadius": 12,
         "borderWidth": 1,
         "flexDirection": "row",
-        "height": 48,
+        "height": 40,
         "justifyContent": "center",
         "paddingHorizontal": 16,
       }
@@ -138,7 +136,7 @@ exports[`EmptyStateCta renders correctly 1`] = `
         }
       }
     >
-      Start earning
+      Earn
     </Text>
   </TouchableOpacity>
 </View>

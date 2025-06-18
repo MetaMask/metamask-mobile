@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { SnapUITooltip } from './SnapUITooltip';
-import { Text, TouchableOpacity } from 'react-native';
+import { Text } from 'react-native';
 import ApprovalModal from '../../Approvals/ApprovalModal';
 
 jest.mock(
@@ -37,7 +37,8 @@ describe('SnapUITooltip', () => {
       </SnapUITooltip>,
     );
 
-    const touchable = getByText(children).parent as TouchableOpacity;
+    const touchable = getByText(children).parent;
+    if (!touchable) throw new Error('Touchable element not found');
     fireEvent.press(touchable);
 
     const modal = UNSAFE_getByType(ApprovalModal);
@@ -53,7 +54,8 @@ describe('SnapUITooltip', () => {
       </SnapUITooltip>,
     );
 
-    const touchable = getByText(children).parent as TouchableOpacity;
+    const touchable = getByText(children).parent;
+    if (!touchable) throw new Error('Touchable element not found');
     fireEvent.press(touchable);
 
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -73,7 +75,8 @@ describe('SnapUITooltip', () => {
       </SnapUITooltip>,
     );
 
-    const touchable = getByText(children).parent as TouchableOpacity;
+    const touchable = getByText(children).parent;
+    if (!touchable) throw new Error('Touchable element not found');
     fireEvent.press(touchable);
 
     const modal = UNSAFE_getByType(ApprovalModal);

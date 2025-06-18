@@ -10,8 +10,6 @@ import {
   Alert,
   BackHandler,
   ImageSourcePropType,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
@@ -51,7 +49,12 @@ import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddle
 import downloadFile from '../../../util/browser/downloadFile';
 import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
-import { getPermittedAccountsByHostname } from '../../../core/Permissions';
+import {
+  getCaip25Caveat,
+  getPermittedCaipAccountIdsByHostname,
+  getPermittedEvmAddressesByHostname,
+  sortMultichainAccountsByLastSelected,
+} from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import {
   selectIpfsGateway,
@@ -75,8 +78,6 @@ import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAs
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { isTest } from '../../../util/test/utils.js';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
-import { PermissionKeys } from '../../../core/Permissions/specifications';
-import { CaveatTypes } from '../../../core/Permissions/constants';
 import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
@@ -112,16 +113,20 @@ import UrlAutocomplete, {
   UrlAutocompleteRef,
 } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
+import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
 import {
   getPhishingTestResult,
   getPhishingTestResultAsync,
   isProductSafetyDappScanningEnabled,
 } from '../../../util/phishingDetection';
+import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
+import { toHex } from '@metamask/controller-utils';
+import { parseCaipAccountId } from '@metamask/utils';
 
 /**
  * Tab component for the in-app browser
  */
-export const BrowserTab: React.FC<BrowserTabProps> = ({
+export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
   id: tabId,
   isIpfsGatewayEnabled,
   addToWhitelist: triggerAddToWhitelist,
@@ -181,21 +186,36 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const backgroundBridgeRef = useRef<{
     url: string;
     hostname: string;
-    sendNotification: (payload: unknown) => void;
+    sendNotificationEip1193: (payload: unknown) => void;
     onDisconnect: () => void;
     onMessage: (message: Record<string, unknown>) => void;
   }>();
   const fromHomepage = useRef(false);
   const wizardScrollAdjustedRef = useRef(false);
   const searchEngine = useSelector(selectSearchEngine);
-  const permittedAccountsList = useSelector((state: RootState) => {
+
+  const permittedEvmAccountsList = useSelector((state: RootState) => {
     const permissionsControllerState = selectPermissionControllerState(state);
     const hostname = new URLParse(resolvedUrlRef.current).hostname;
-    const permittedAcc = getPermittedAccountsByHostname(
+    const permittedAcc = getPermittedEvmAddressesByHostname(
       permissionsControllerState,
       hostname,
     );
     return permittedAcc;
+  }, isEqual);
+  const permittedCaipAccountAddressesList = useSelector((state: RootState) => {
+    const permissionsControllerState = selectPermissionControllerState(state);
+    const hostname = new URLParse(resolvedUrlRef.current).hostname;
+    const permittedAccountIds = getPermittedCaipAccountIdsByHostname(
+      permissionsControllerState,
+      hostname,
+    );
+    const sortedPermittedAccountIds = sortMultichainAccountsByLastSelected(permittedAccountIds);
+    const permittedAccountAddresses = sortedPermittedAccountIds.map((accountId) => {
+      const { address } = parseCaipAccountId(accountId);
+      return address;
+    });
+    return permittedAccountAddresses;
   }, isEqual);
 
   const favicon = useFavicon(resolvedUrlRef.current);
@@ -218,7 +238,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   /**
    * Checks if a given url or the current url is the homepage
    */
-  const isHomepage = useCallback((checkUrl = null) => {
+  const isHomepage = useCallback((checkUrl?: string | null) => {
     const currentPage = checkUrl || resolvedUrlRef.current;
     const prefixedUrl = prefixUrlWithProtocol(currentPage);
     const { host: currentHost } = getUrlObj(prefixedUrl);
@@ -227,8 +247,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     );
   }, []);
 
-  const notifyAllConnections = useCallback((payload) => {
-    backgroundBridgeRef.current?.sendNotification(payload);
+  const notifyAllConnections = useCallback((payload: unknown) => {
+    backgroundBridgeRef.current?.sendNotificationEip1193(payload);
   }, []);
 
   /**
@@ -364,8 +384,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   const handleIpfsContent = useCallback(
     async (
-      fullUrl,
-      { hostname, pathname, query },
+      fullUrl: string,
+      {
+        hostname,
+        pathname,
+        query,
+      }: { hostname: string; pathname: string; query: string },
     ): Promise<IpfsContentResult | undefined | null> => {
       const { provider } =
         Engine.context.NetworkController.getProviderAndBlockTracker();
@@ -378,7 +402,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         });
         if (type === 'ipfs-ns') {
           gatewayUrl = `${ipfsGateway}${hash}${pathname || '/'}${query || ''}`;
-          const response = await fetch(gatewayUrl);
+          const response = await fetch(gatewayUrl, {
+            headers: {
+              'User-Agent': 'MetaMask Mobile Browser',
+            }
+          });
           const statusCode = response.status;
           if (statusCode >= 400) {
             Logger.log('Status code ', statusCode, gatewayUrl);
@@ -442,7 +470,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     const permissionsControllerState =
       Engine.context.PermissionController.state;
     const hostname = new URLParse(urlToTrigger).hostname;
-    const connectedAccounts = getPermittedAccountsByHostname(
+    const connectedAccounts = getPermittedCaipAccountIdsByHostname(
       permissionsControllerState,
       hostname,
     );
@@ -628,6 +656,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   );
 
   const checkTabPermissions = useCallback(() => {
+    if (isPerDappSelectedNetworkEnabled()) {
+      return;
+    }
+
     if (!(isFocused && !isInTabsView && isTabActive)) {
       return;
     }
@@ -635,7 +667,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     const hostname = new URLParse(resolvedUrlRef.current).hostname;
     const permissionsControllerState =
       Engine.context.PermissionController.state;
-    const permittedAccounts = getPermittedAccountsByHostname(
+    const permittedAccounts = getPermittedCaipAccountIdsByHostname(
       permissionsControllerState,
       hostname,
     );
@@ -645,14 +677,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     if (isConnected) {
       let permittedChains = [];
       try {
-        const caveat = Engine.context.PermissionController.getCaveat(
-          hostname,
-          PermissionKeys.permittedChains,
-          CaveatTypes.restrictNetworkSwitching,
-        );
-        permittedChains = Array.isArray(caveat?.value) ? caveat.value : [];
+        const caveat = getCaip25Caveat(hostname);
+        permittedChains = caveat ? getPermittedEthChainIds(caveat.value) : [];
 
-        const currentChainId = activeChainId;
+        const currentChainId = toHex(activeChainId);
         const isCurrentChainIdAlreadyPermitted =
           permittedChains.includes(currentChainId);
 
@@ -720,7 +748,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
       });
 
-      checkTabPermissions();
+      if (!isPerDappSelectedNetworkEnabled()) {
+        checkTabPermissions();
+      }
     },
     [
       isUrlBarFocused,
@@ -939,10 +969,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const sendActiveAccount = useCallback(async () => {
     notifyAllConnections({
       method: NOTIFICATION_NAMES.accountsChanged,
-      params: permittedAccountsList,
+      params: permittedEvmAccountsList,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notifyAllConnections, permittedAccountsList]);
+  }, [notifyAllConnections, permittedEvmAccountsList]);
 
   /**
    * Website started to load
@@ -990,7 +1020,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   useEffect(() => {
     sendActiveAccount();
-  }, [sendActiveAccount, permittedAccountsList]);
+  }, [sendActiveAccount, permittedEvmAccountsList]);
 
   /**
    * Check when the ipfs gateway is enabled to hide the banner
@@ -1046,7 +1076,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   );
 
   useEffect(() => {
-    checkTabPermissions();
+    if (!isPerDappSelectedNetworkEnabled()) {
+      checkTabPermissions();
+    }
   }, [checkTabPermissions, isFocused, isInTabsView, isTabActive]);
 
   const handleEnsUrl = useCallback(
@@ -1160,7 +1192,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   };
 
   const handleOnFileDownload = useCallback(
-    async ({ nativeEvent: { downloadUrl } }) => {
+    async ({
+      nativeEvent: { downloadUrl },
+    }: {
+      nativeEvent: { downloadUrl: string };
+    }) => {
       const downloadResponse = await downloadFile(downloadUrl);
       if (downloadResponse) {
         reload();
@@ -1203,7 +1239,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     (item: AutocompleteSearchResult) => {
       // Unfocus the url bar and hide the autocomplete results
       urlBarRef.current?.hide();
-
       if (item.category === 'tokens') {
         navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
           chainId: item.chainId,
@@ -1345,8 +1380,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   return (
     <ErrorBoundary navigation={navigation} view="BrowserTab">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <View
         style={[styles.wrapper, !isTabActive && styles.hide]}
       >
         <View
@@ -1361,7 +1395,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
             onFocus={onFocusUrlBar}
             onBlur={hideAutocomplete}
             onChangeText={onChangeUrlBar}
-            connectedAccounts={permittedAccountsList}
+            connectedAccounts={permittedCaipAccountAddressesList}
             activeUrl={resolvedUrlRef.current}
             setIsUrlBarFocused={setIsUrlBarFocused}
             isUrlBarFocused={isUrlBarFocused}
@@ -1444,7 +1478,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
               activeUrl={resolvedUrlRef.current}
               isHomepage={isHomepage}
               getMaskedUrl={getMaskedUrl}
-              onSubmitEditing={onSubmitEditing}
               title={titleRef}
               reload={reload}
               sessionENSNames={sessionENSNamesRef.current}
@@ -1456,16 +1489,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           {renderBottomBar()}
           {isTabActive && renderOnboardingWizard()}
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </ErrorBoundary>
   );
-};
+});
 
 const mapStateToProps = (state: RootState) => ({
   bookmarks: state.bookmarks,
   ipfsGateway: selectIpfsGateway(state),
-  selectedAddress:
-    selectSelectedInternalAccountFormattedAddress(state)?.toLowerCase(),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
   wizardStep: state.wizard.step,
   activeChainId: selectEvmChainId(state),

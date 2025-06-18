@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -60,9 +60,7 @@ import {
 
 // Internal dependencies
 import createStyles from './NetworkSelector.styles';
-import {
-  InfuraNetworkType,
-} from '@metamask/controller-utils';
+import { InfuraNetworkType } from '@metamask/controller-utils';
 import InfoModal from '../../../../app/components/UI/Swaps/components/InfoModal';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
@@ -86,6 +84,7 @@ import RpcSelectionModal from './RpcSelectionModal/RpcSelectionModal';
 import {
   TraceName,
   TraceOperation,
+  endTrace,
   trace,
 } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
@@ -104,6 +103,8 @@ import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import { useSwitchNetworks } from './useSwitchNetworks';
+import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
+import { MetaMetrics } from '../../../core/Analytics';
 
 interface infuraNetwork {
   name: string;
@@ -127,6 +128,10 @@ interface NetworkSelectorRouteParams {
 }
 
 const NetworkSelector = () => {
+  trace({
+    name: TraceName.NetworkSwitch,
+    op: TraceOperation.NetworkSwitch,
+  });
   const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
   const [popularNetwork, setPopularNetwork] = useState<ExtendedNetwork>();
   const [showWarningModal, setShowWarningModal] = useState(false);
@@ -233,14 +238,17 @@ const NetworkSelector = () => {
         networkConfiguration.rpcEndpoints.length > 1,
     );
 
-  const openRpcModal = useCallback(({ chainId, networkName }) => {
-    setShowMultiRpcSelectModal({
-      isVisible: true,
-      chainId,
-      networkName,
-    });
-    rpcMenuSheetRef.current?.onOpenBottomSheet();
-  }, []);
+  const openRpcModal = useCallback(
+    ({ chainId, networkName }: { chainId: Hex; networkName: string }) => {
+      setShowMultiRpcSelectModal({
+        isVisible: true,
+        chainId,
+        networkName,
+      });
+      rpcMenuSheetRef.current?.onOpenBottomSheet();
+    },
+    [],
+  );
 
   const closeRpcModal = useCallback(() => {
     setShowMultiRpcSelectModal({
@@ -252,7 +260,12 @@ const NetworkSelector = () => {
   }, []);
 
   const openModal = useCallback(
-    (chainId, displayEdit, networkTypeOrRpcUrl, isReadOnly) => {
+    (
+      chainId: Hex,
+      displayEdit: boolean,
+      networkTypeOrRpcUrl: string,
+      isReadOnly: boolean,
+    ) => {
       setNetworkMenuModal({
         isVisible: true,
         chainId,
@@ -359,6 +372,10 @@ const NetworkSelector = () => {
     closeRpcModal,
     parentSpan,
   });
+
+  useEffect(() => {
+    endTrace({ name: TraceName.NetworkSwitch });
+  }, []);
 
   const renderMainnet = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
@@ -518,7 +535,6 @@ const NetworkSelector = () => {
 
       if (isNetworkUiRedesignEnabled() && isNoSearchResults(name)) return null;
 
-      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
       const image = getNetworkImageSource({ chainId: chainId?.toString() });
 
       if (isNetworkUiRedesignEnabled()) {
@@ -809,6 +825,10 @@ const NetworkSelector = () => {
       const { chainId } = showConfirmDeleteModal;
       const { NetworkController } = Engine.context;
       NetworkController.removeNetwork(chainId);
+
+      MetaMetrics.getInstance().addTraitsToUser(
+        removeItemFromChainIdList(chainId),
+      );
 
       // set tokenNetworkFilter
       if (isPortfolioViewEnabled()) {

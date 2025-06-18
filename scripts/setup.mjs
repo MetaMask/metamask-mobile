@@ -213,17 +213,6 @@ const buildInpageBridgeTask = {
   },
 };
 
-const nodeifyTask = {
-  // TODO: find a saner alternative to bring node modules into react native bundler. See ReactNativify
-  title: 'Nodeify npm packages',
-  task: async (_, task) => {
-    if (IS_NODE) {
-      return task.skip('Skipping nodeifying npm packages.');
-    }
-    await $`node_modules/.bin/rn-nodeify --install crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs --hack`;
-  },
-};
-
 const jetifyTask = {
   title: 'Jetify npm packages for Android',
   task: async (_, task) => {
@@ -244,6 +233,36 @@ const patchPackageTask = {
   },
 };
 
+const installFoundryTask = {
+  title: 'Install Foundry',
+  task: (_, task) =>
+    task.newListr(
+      [
+        {
+          title: 'Install Foundry binary',
+          task: async () => {
+            await $`yarn install:foundryup`;
+          },
+        },
+        {
+          title: 'Verify installation',
+          task: async () => {
+            const anvilPath = 'node_modules/.bin/anvil';
+            if (!fs.existsSync(anvilPath)) {
+              await $`rm -rf .metamask/cache`;
+              await $`yarn install:foundryup`;
+            }
+          },
+        },
+      ],
+      {
+        concurrent: false,
+        exitOnError: true,
+        rendererOptions,
+      },
+    ),
+};
+
 const expoBuildLinks = {
   title: 'Try EXPO!',
   task: async () => {
@@ -252,10 +271,11 @@ const expoBuildLinks = {
     }
 
     console.log(`
-     Setup complete! Consider getting started with EXPO on MetaMask. Here are the 3 easy steps to get up and running. 
+     Setup complete! Consider getting started with EXPO on MetaMask. Here are the 3 easy steps to get up and running.
 
      Step 1: Install EXPO Executable
-      📱 ${hyperlink('iOS .ipa (physical devices) Note: it requires Apple Registration with MetaMask', 'https://app.runway.team/bucket/MV2BJmn6D5_O7nqGw8jHpATpEA4jkPrBB4EcWXC6wV7z8jgwIbAsDhE5Ncl7KwF32qRQQD9YrahAIaxdFVvLT4v3UvBcViMtT3zJdMMfkXDPjSdqVGw=')}     
+      📱 ${hyperlink('iOS .ipa (physical devices) Note: it requires Apple Registration with MetaMask', 'https://app.runway.team/bucket/MV2BJmn6D5_O7nqGw8jHpATpEA4jkPrBB4EcWXC6wV7z8jgwIbAsDhE5Ncl7KwF32qRQQD9YrahAIaxdFVvLT4v3UvBcViMtT3zJdMMfkXDPjSdqVGw=')}
+      🤖 ${hyperlink('iOS .app (iOS simulator unzip the file and drag in simulator)', 'https://app.runway.team/bucket/aCddXOkg1p_nDryri-FMyvkC9KRqQeVT_12sf6Nw0u6iGygGo6BlNzjD6bOt-zma260EzAxdpXmlp2GQphp3TN1s6AJE4i6d_9V0Tv5h4pHISU49dFk=')}
       🤖 ${hyperlink('Android .apk (physical devices & emulators)', 'https://app.runway.team/bucket/hykQxdZCEGgoyyZ9sBtkhli8wupv9PiTA6uRJf3Lh65FTECF1oy8vzkeXdmuJKhm7xGLeV35GzIT1Un7J5XkBADm5OhknlBXzA0CzqB767V36gi1F3yg3Uss')}
      Step 2: 👀 yarn watch or yarn watch:clean
      Step 3: 🚀 launch app on emulator or scan QR code in terminal
@@ -344,10 +364,10 @@ const prepareDependenciesTask = {
         updateGitSubmodulesTask,
         // Inpage bridge must generate before node modules are altered
         buildInpageBridgeTask,
-        nodeifyTask,
         jetifyTask,
         runLavamoatAllowScriptsTask,
         patchPackageTask,
+        installFoundryTask,
         expoBuildLinks,
       ],
       {

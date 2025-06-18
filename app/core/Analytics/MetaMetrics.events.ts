@@ -81,6 +81,8 @@ enum EVENT_NAME {
   COLLECTIBLE_DETAILS_OPENED = 'Collectible Details Opened',
   COLLECTIBLE_REMOVED = 'Collectible Removed',
   TOKEN_LIST_ITEM_PRESSED = 'Token List Item Pressed',
+  DEFI_TAB_SELECTED = 'DeFi Tab Selected',
+  DEFI_PROTOCOL_DETAILS_OPENED = 'DeFi Protocol Details Opened',
 
   // Network
   NETWORK_SWITCHED = 'Network Switched',
@@ -387,6 +389,10 @@ enum EVENT_NAME {
   ACCOUNT_REMOVE_FAILED = 'Account remove failed',
   // Account added
   ACCOUNT_ADDED = 'Account Added',
+  // Multi SRP
+  IMPORT_SECRET_RECOVERY_PHRASE_CLICKED = 'Import Secret Recovery Phrase Clicked',
+  IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED = 'Import Secret Recovery Phrase Completed',
+  SECRET_RECOVERY_PHRASE_PICKER_CLICKED = 'Secret Recovery Phrase Picker Clicked',
 
   //Notifications
   ALL_NOTIFICATIONS = 'All Notifications',
@@ -403,6 +409,9 @@ enum EVENT_NAME {
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
 
+  // Dismiss smart account upgrade suggestion
+  DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED = 'Dismiss smart account suggestion enabled',
+
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED = 'Incomplete Asset Displayed',
 
@@ -414,7 +423,7 @@ enum EVENT_NAME {
   PRIMARY_CURRENCY_TOGGLE = 'primary_currency_toggle',
   LOGIN_DOWNLOAD_LOGS = 'Download State Logs Button Clicked',
 
-  // Profile Syncing
+  // Backup and sync
   ACCOUNTS_SYNC_ADDED = 'Accounts Sync Added',
   ACCOUNTS_SYNC_NAME_UPDATED = 'Accounts Sync Name Updated',
   ACCOUNTS_SYNC_ERRONEOUS_SITUATION = 'Accounts Sync Erroneous Situation',
@@ -427,6 +436,10 @@ enum EVENT_NAME {
 
   // Tooltip
   TOOLTIP_OPENED = 'Tooltip Opened',
+
+  // RPC Failover
+  RPC_SERVICE_UNAVAILABLE = 'RPC Service Unavailable',
+  RPC_SERVICE_DEGRADED = 'RPC Service Degraded',
 }
 
 enum ACTIONS {
@@ -507,6 +520,10 @@ const events = {
     EVENT_NAME.COLLECTIBLE_DETAILS_OPENED,
   ),
   COLLECTIBLE_REMOVED: generateOpt(EVENT_NAME.COLLECTIBLE_REMOVED),
+  DEFI_TAB_SELECTED: generateOpt(EVENT_NAME.DEFI_TAB_SELECTED),
+  DEFI_PROTOCOL_DETAILS_OPENED: generateOpt(
+    EVENT_NAME.DEFI_PROTOCOL_DETAILS_OPENED,
+  ),
   CURRENCY_CHANGED: generateOpt(EVENT_NAME.CURRENCY_CHANGED),
   NETWORK_SWITCHED: generateOpt(EVENT_NAME.NETWORK_SWITCHED),
   NETWORK_SWITCH_REQUESTED_AND_MODAL_SHOWN: generateOpt(
@@ -872,6 +889,11 @@ const events = {
   // Smart transactions
   SMART_TRANSACTION_OPT_IN: generateOpt(EVENT_NAME.SMART_TRANSACTION_OPT_IN),
 
+  // Dismiss smart account upgrade suggestion
+  DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED: generateOpt(
+    EVENT_NAME.DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED,
+  ),
+
   // Notifications
   ALL_NOTIFICATIONS: generateOpt(
     EVENT_NAME.ALL_NOTIFICATIONS,
@@ -920,7 +942,7 @@ const events = {
   ),
   PRIMARY_CURRENCY_TOGGLE: generateOpt(EVENT_NAME.PRIMARY_CURRENCY_TOGGLE),
   LOGIN_DOWNLOAD_LOGS: generateOpt(EVENT_NAME.LOGIN_DOWNLOAD_LOGS),
-  // Profile Syncing
+  // Backup and sync
   ACCOUNTS_SYNC_ADDED: generateOpt(EVENT_NAME.ACCOUNTS_SYNC_ADDED),
   ACCOUNTS_SYNC_NAME_UPDATED: generateOpt(
     EVENT_NAME.ACCOUNTS_SYNC_NAME_UPDATED,
@@ -1025,6 +1047,21 @@ const events = {
   // Bridge
   BRIDGE_PAGE_VIEWED: generateOpt(EVENT_NAME.BRIDGE_PAGE_VIEWED),
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
+
+  // RPC Failover
+  RPC_SERVICE_UNAVAILABLE: generateOpt(EVENT_NAME.RPC_SERVICE_UNAVAILABLE),
+  RPC_SERVICE_DEGRADED: generateOpt(EVENT_NAME.RPC_SERVICE_DEGRADED),
+
+  // Multi SRP
+  IMPORT_SECRET_RECOVERY_PHRASE_CLICKED: generateOpt(
+    EVENT_NAME.IMPORT_SECRET_RECOVERY_PHRASE_CLICKED,
+  ),
+  IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED: generateOpt(
+    EVENT_NAME.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
+  ),
+  SECRET_RECOVERY_PHRASE_PICKER_CLICKED: generateOpt(
+    EVENT_NAME.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
+  ),
 };
 
 /**
@@ -1048,7 +1085,6 @@ enum DESCRIPTION {
   DAPP_BROWSER_OPTIONS = 'More Browser Options',
   DAPP_HOME = 'Home',
   DAPP_ADD_TO_FAVORITE = 'Add to Favorites',
-  DAPP_GO_TO_FAVORITES = 'Go to Favorites',
   DAPP_OPEN_IN_BROWSER = 'Open in Browser',
   // Wallet
   WALLET_TOKENS = 'Tokens',
@@ -1071,6 +1107,7 @@ enum DESCRIPTION {
   SETTINGS_GENERAL = 'General',
   SETTINGS_ADVANCED = 'Advanced',
   SETTINGS_NOTIFICATIONS = 'Notifications',
+  SETTINGS_BACKUP_AND_SYNC = 'Backup & Sync',
   SETTINGS_SECURITY_AND_PRIVACY = 'Security & Privacy',
   SETTINGS_ABOUT = 'About MetaMask',
   SETTINGS_EXPERIMENTAL = 'Experimental',
@@ -1169,11 +1206,6 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.DAPP_VIEW,
     ACTIONS.DAPP_VIEW,
     DESCRIPTION.DAPP_OPEN_IN_BROWSER,
-  ),
-  DAPP_GO_TO_FAVORITES: generateOpt(
-    EVENT_NAME.DAPP_VIEW,
-    ACTIONS.DAPP_VIEW,
-    DESCRIPTION.DAPP_GO_TO_FAVORITES,
   ),
   // Wallet
   WALLET_TOKENS: generateOpt(
@@ -1274,6 +1306,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.SETTINGS,
     ACTIONS.SETTINGS,
     DESCRIPTION.SETTINGS_NOTIFICATIONS,
+  ),
+  SETTINGS_BACKUP_AND_SYNC: generateOpt(
+    EVENT_NAME.SETTINGS,
+    ACTIONS.SETTINGS,
+    DESCRIPTION.SETTINGS_BACKUP_AND_SYNC,
   ),
   // Receive Options
   RECEIVE_OPTIONS_SHARE_ADDRESS: generateOpt(

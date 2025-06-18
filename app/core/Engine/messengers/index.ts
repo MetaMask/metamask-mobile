@@ -1,8 +1,13 @@
 import { noop } from 'lodash';
 import { getAccountsControllerMessenger } from './accounts-controller-messenger';
+import { getAccountTreeControllerMessenger } from '../../../multichain-accounts/messengers/account-tree-controller-messenger';
 import { getMultichainNetworkControllerMessenger } from './multichain-network-controller-messenger/multichain-network-controller-messenger';
 import { getCurrencyRateControllerMessenger } from './currency-rate-controller-messenger/currency-rate-controller-messenger';
 import { getAppMetadataControllerMessenger } from './app-metadata-controller-messenger';
+import {
+  getDeFiPositionsControllerInitMessenger,
+  getDeFiPositionsControllerMessenger,
+} from './defi-positions-controller-messenger/defi-positions-controller-messenger';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   getCronjobControllerMessenger,
@@ -35,6 +40,10 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getAccountsControllerMessenger,
     getInitMessenger: noop,
   },
+  AccountTreeController: {
+    getMessenger: getAccountTreeControllerMessenger,
+    getInitMessenger: noop,
+  },
   TransactionController: {
     getMessenger: getTransactionControllerMessenger,
     getInitMessenger: getTransactionControllerInitMessenger,
@@ -58,6 +67,10 @@ export const CONTROLLER_MESSENGERS = {
   SignatureController: {
     getMessenger: getSignatureControllerMessenger,
     getInitMessenger: noop,
+  },
+  DeFiPositionsController: {
+    getMessenger: getDeFiPositionsControllerMessenger,
+    getInitMessenger: getDeFiPositionsControllerInitMessenger,
   },
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   CronjobController: {

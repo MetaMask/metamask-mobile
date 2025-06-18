@@ -1,12 +1,15 @@
-import React, { useCallback, useMemo } from 'react';
-import StyledButton from '../StyledButton';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ImageSourcePropType,
   SafeAreaView,
   TouchableOpacity,
   View,
 } from 'react-native';
+import ScrollableTabView from 'react-native-scrollable-tab-view';
+import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { useNavigation } from '@react-navigation/native';
+import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
+import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
@@ -30,7 +33,6 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { getHost } from '../../../util/browser';
 import WebsiteIcon from '../WebsiteIcon';
-import useSelectedAccount from '../Tabs/TabThumbnail/useSelectedAccount';
 import styleSheet from './PermissionsSummary.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { PermissionsSummaryProps } from './PermissionsSummary.types';
@@ -39,7 +41,10 @@ import Routes from '../../../constants/navigation/Routes';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
-import { getNetworkImageSource } from '../../../util/networks';
+import {
+  getNetworkImageSource,
+  isPerDappSelectedNetworkEnabled,
+} from '../../../util/networks';
 import Engine from '../../../core/Engine';
 import { SDKSelectorsIDs } from '../../../../e2e/selectors/Settings/SDK.selectors';
 import { useSelector } from 'react-redux';
@@ -51,6 +56,26 @@ import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+import AccountsConnectedList from '../../Views/AccountConnect/AccountsConnectedList';
+import { selectPrivacyMode } from '../../../selectors/preferencesController';
+import {
+  BOTTOM_SHEET_BASE_HEIGHT,
+  ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT,
+  MAX_VISIBLE_ITEMS,
+  SCALE_FACTOR,
+} from './PermissionSummary.constants';
+import { isCaipAccountIdInPermittedAccountIds } from '@metamask/chain-agnostic-permission';
+import { CaipChainId, parseCaipAccountId } from '@metamask/utils';
+import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
+import Badge, {
+  BadgeVariant,
+} from '../../../component-library/components/Badges/Badge';
+import AvatarFavicon from '../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
+import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import AccountConnectCreateInitialAccount from '../../Views/AccountConnect/AccountConnectCreateInitialAccount';
+import { SolScope } from '@metamask/keyring-api';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -61,6 +86,7 @@ const PermissionsSummary = ({
   onCancel,
   onConfirm,
   onUserAction,
+  onCreateAccount,
   showActionButtons = true,
   isAlreadyConnected = true,
   isRenderedAsBottomSheet = true,
@@ -70,28 +96,42 @@ const PermissionsSummary = ({
   accountAddresses = [],
   accounts = [],
   networkAvatars = [],
+  ensByAccountAddress = {},
   onAddNetwork = () => undefined,
   onChooseFromPermittedNetworks = () => undefined,
+  setTabIndex = () => undefined,
+  tabIndex = 0,
+  showAccountsOnly = false,
+  showPermissionsOnly = false,
+  promptToCreateSolanaAccount = false,
 }: PermissionsSummaryProps) => {
+  const nonTabView = showAccountsOnly || showPermissionsOnly;
+  const fullNonTabView = showAccountsOnly && showPermissionsOnly;
+
   const { colors } = useTheme();
-  const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
-  const { navigate } = useNavigation();
-  const selectedAccount = useSelectedAccount();
+  const { styles } = useStyles(styleSheet, {
+    isRenderedAsBottomSheet,
+    nonTabView,
+    fullNonTabView,
+  });
+  const navigation = useNavigation();
+  const { navigate } = navigation;
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectEvmChainId);
+  const privacyMode = useSelector(selectPrivacyMode);
+  const [bottomSheetHeight, setBottomSheetHeight] = useState(0);
 
   const hostname = useMemo(
     () => new URL(currentPageInformation.url).hostname,
     [currentPageInformation.url],
   );
-  const networkInfo = useNetworkInfo(hostname);
+  const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
   // if network switch, we get the chain name from the customNetworkInformation
   let chainName = '';
   let chainImage: ImageSourcePropType;
   if (isNetworkSwitch && customNetworkInformation?.chainId) {
     chainName = customNetworkInformation?.chainName;
-    // @ts-expect-error getNetworkImageSource is not implemented in typescript
     chainImage = getNetworkImageSource({
       chainId: customNetworkInformation?.chainId,
     });
@@ -107,20 +147,60 @@ const PermissionsSummary = ({
     onCancel?.();
   };
 
-  const handleEditAccountsButtonPress = () => {
+  const handleEditAccountsButtonPress = useCallback(() => {
     onEdit?.();
-  };
+  }, [onEdit]);
 
   const handleEditNetworksButtonPress = () => {
     onEditNetworks?.();
   };
+
+  const switchNetwork = useCallback(() => {
+    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.NETWORK_SELECTOR,
+    });
+  }, [navigate]);
 
   const renderTopIcon = () => {
     const { currentEnsName, icon } = currentPageInformation;
     const url = currentPageInformation.url;
     const iconTitle = getHost(currentEnsName || url);
 
-    return (
+    return isPerDappSelectedNetworkEnabled() &&
+      isAlreadyConnected &&
+      !showPermissionsOnly ? (
+      <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
+        <TouchableOpacity
+          onPress={switchNetwork}
+          testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
+        >
+          <BadgeWrapper
+            badgeElement={
+              <Badge
+                variant={BadgeVariant.Network}
+                name={networkName}
+                imageSource={networkImageSource}
+              />
+            }
+          >
+            {icon ? (
+              <AvatarFavicon
+                imageSource={{
+                  uri: typeof icon === 'string' ? icon : icon?.uri,
+                }}
+                size={AvatarSize.Md}
+              />
+            ) : (
+              <AvatarToken
+                name={iconTitle}
+                isHaloEnabled
+                size={AvatarSize.Md}
+              />
+            )}
+          </BadgeWrapper>
+        </TouchableOpacity>
+      </View>
+    ) : (
       <WebsiteIcon
         style={styles.domainLogoContainer}
         viewStyle={styles.assetLogoContainer}
@@ -137,6 +217,7 @@ const PermissionsSummary = ({
         <View style={styles.startAccessory}>
           {onBack && !isNonDappNetworkSwitch && (
             <ButtonIcon
+              testID={PermissionSummaryBottomSheetSelectorsIDs.BACK_BUTTON}
               size={ButtonIconSizes.Sm}
               iconColor={IconColor.Default}
               onPress={onBack}
@@ -205,6 +286,7 @@ const PermissionsSummary = ({
   }, [hostname, navigate]);
 
   const toggleRevokeAllPermissionsModal = useCallback(() => {
+    trace({ name: TraceName.DisconnectAllAccountPermissions });
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
       params: {
@@ -216,18 +298,20 @@ const PermissionsSummary = ({
         onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
       },
     });
-  }, [navigate, isRenderedAsBottomSheet, onRevokeAllHandler, hostname]);
+    endTrace({ name: TraceName.DisconnectAllAccountPermissions });
+  }, [isRenderedAsBottomSheet, onRevokeAllHandler, hostname, navigate]);
 
   const getAccountLabel = useCallback(() => {
     if (isAlreadyConnected) {
-      if (accountAddresses.length === 0 && selectedAccount) {
-        return `${strings('permissions.connected_to')} ${selectedAccount.name}`;
-      }
       if (accountAddresses.length === 1) {
-        const matchedConnectedAccount = accounts.find(
-          (account) => account.address === accountAddresses[0],
+        const matchedConnectedAccount = accounts.find((account) =>
+          isCaipAccountIdInPermittedAccountIds(account.caipAccountId, [
+            accountAddresses[0],
+          ]),
         );
-        return matchedConnectedAccount?.name;
+        return `${strings('permissions.connected_to')} ${
+          matchedConnectedAccount?.name
+        }`;
       }
 
       return `${accountAddresses.length} ${strings(
@@ -235,9 +319,11 @@ const PermissionsSummary = ({
       )}`;
     }
 
-    if (accountAddresses.length === 1 && accounts?.length >= 1) {
-      const matchedAccount = accounts.find(
-        (account) => account.address === accountAddresses[0],
+    if (accountAddresses.length === 1 && accounts.length >= 1) {
+      const matchedAccount = accounts.find((account) =>
+        isCaipAccountIdInPermittedAccountIds(account.caipAccountId, [
+          accountAddresses[0],
+        ]),
       );
 
       return `${strings('permissions.requesting_for')}${
@@ -245,18 +331,10 @@ const PermissionsSummary = ({
       }`;
     }
 
-    if (accountAddresses.length === 0 && selectedAccount) {
-      return `${strings('permissions.requesting_for')}${selectedAccount?.name}`;
-    }
-
-    if (!selectedAccount) {
-      return `${strings('permissions.connect_an_account')}`;
-    }
-
     return strings('permissions.requesting_for_accounts', {
       numberOfAccounts: accountAddresses.length,
     });
-  }, [accountAddresses, isAlreadyConnected, selectedAccount, accounts]);
+  }, [accountAddresses, isAlreadyConnected, accounts]);
 
   const getNetworkLabel = useCallback(() => {
     if (isAlreadyConnected) {
@@ -313,23 +391,16 @@ const PermissionsSummary = ({
                 </TextComponent>
               </View>
               <View style={styles.avatarGroup}>
-                {accountAddresses.length > 0 ? (
-                  <AvatarGroup
-                    avatarPropsList={accountAddresses.map((address) => ({
+                <AvatarGroup
+                  avatarPropsList={accountAddresses.map((caipAccountId) => {
+                    const { address } = parseCaipAccountId(caipAccountId);
+                    return {
                       variant: AvatarVariant.Account,
                       accountAddress: address,
                       size: AvatarSize.Xs,
-                    }))}
-                  />
-                ) : (
-                  selectedAccount?.address && (
-                    <Avatar
-                      size={AvatarSize.Xs}
-                      variant={AvatarVariant.Account}
-                      accountAddress={selectedAccount.address}
-                    />
-                  )
-                )}
+                    };
+                  })}
+                />
               </View>
             </View>
           </View>
@@ -370,7 +441,7 @@ const PermissionsSummary = ({
                       </TextComponent>
                       <TextComponent variant={TextVariant.BodySMMedium}>
                         {isNonDappNetworkSwitch
-                          ? networkInfo?.networkName || providerConfig.nickname
+                          ? networkName || providerConfig.nickname
                           : chainName}
                       </TextComponent>
                     </TextComponent>
@@ -380,13 +451,12 @@ const PermissionsSummary = ({
                     size={AvatarSize.Xs}
                     name={
                       isNonDappNetworkSwitch
-                        ? networkInfo?.networkName || providerConfig.nickname
+                        ? networkName || providerConfig.nickname
                         : chainName
                     }
                     imageSource={
                       isNonDappNetworkSwitch
-                        ? // @ts-expect-error getNetworkImageSource is not implemented in typescript
-                          getNetworkImageSource({
+                        ? getNetworkImageSource({
                             chainId,
                           })
                         : chainImage
@@ -405,7 +475,6 @@ const PermissionsSummary = ({
                   </View>
                   <View style={styles.avatarGroup}>
                     <AvatarGroup
-                      // @ts-expect-error - AvatarGroup is not typed
                       avatarPropsList={networkAvatars.map((avatar) => ({
                         ...avatar,
                         variant: AvatarVariant.Network,
@@ -422,10 +491,147 @@ const PermissionsSummary = ({
     );
   }
 
+  const calculatedBottomSheetHeight = useMemo(() => {
+    let currentBaseHeight = BOTTOM_SHEET_BASE_HEIGHT;
+    if (isNonDappNetworkSwitch) {
+      currentBaseHeight += 150;
+    }
+
+    if (accountAddresses.length <= 2) {
+      return currentBaseHeight;
+    }
+
+    const visibleItems =
+      accountAddresses.length >= MAX_VISIBLE_ITEMS
+        ? MAX_VISIBLE_ITEMS
+        : accountAddresses.length;
+    const listHeight =
+      currentBaseHeight + ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT * visibleItems;
+    return listHeight * SCALE_FACTOR;
+  }, [accountAddresses.length, isNonDappNetworkSwitch]);
+
+  const onChangeTab = useCallback(
+    (tabInfo: { i: number; ref: unknown }) => {
+      setTabIndex?.(tabInfo.i);
+      setBottomSheetHeight(calculatedBottomSheetHeight);
+    },
+    [setTabIndex, calculatedBottomSheetHeight],
+  );
+
+  const accountsConnectedTabProps = useMemo(
+    () => ({
+      key: 'account-connected-tab',
+      tabLabel: 'Accounts',
+      navigation,
+    }),
+    [navigation],
+  );
+
+  const permissionsTabProps = useMemo(
+    () => ({
+      key: 'permissions-tab',
+      tabLabel: 'Permissions',
+      navigation,
+    }),
+    [navigation],
+  );
+
+  const renderTabBar = useCallback(
+    (props: Record<string, unknown>) => (
+      <View style={styles.base}>
+        <DefaultTabBar
+          underlineStyle={styles.tabUnderlineStyle}
+          activeTextColor={colors.primary.default}
+          inactiveUnderlineStyle={styles.tabUnderlineStyleInactive}
+          inactiveTextColor={colors.text.muted}
+          backgroundColor={colors.background.alternative}
+          tabStyle={styles.tabStyle}
+          textStyle={styles.textStyle}
+          tabPadding={16}
+          style={styles.tabBar}
+          {...props}
+        />
+      </View>
+    ),
+    [styles, colors],
+  );
+
+  const filteredAccountAddresses = useMemo(
+    () =>
+      accountAddresses.filter((address) => {
+        const { chainId: caipChainId } = parseCaipAccountId(address);
+        return !NON_EVM_TESTNET_IDS.includes(caipChainId as CaipChainId);
+      }),
+    [accountAddresses],
+  );
+  const renderAccountsConnectedList = useCallback(
+    (
+      accountsConnectedTabKey: string,
+      restAccountsConnectedTabProps: Record<string, unknown>,
+    ) =>
+      promptToCreateSolanaAccount ? (
+        <AccountConnectCreateInitialAccount
+          key={accountsConnectedTabKey}
+          onCreateAccount={() => {
+            onCreateAccount?.(WalletClientType.Solana, SolScope.Mainnet);
+          }}
+          {...restAccountsConnectedTabProps}
+        />
+      ) : (
+        <AccountsConnectedList
+          key={accountsConnectedTabKey}
+          selectedAddresses={filteredAccountAddresses}
+          ensByAccountAddress={ensByAccountAddress}
+          accounts={accounts}
+          privacyMode={privacyMode}
+          networkAvatars={networkAvatars}
+          handleEditAccountsButtonPress={handleEditAccountsButtonPress}
+          {...restAccountsConnectedTabProps}
+        />
+      ),
+    [
+      ensByAccountAddress,
+      privacyMode,
+      networkAvatars,
+      handleEditAccountsButtonPress,
+      promptToCreateSolanaAccount,
+      onCreateAccount,
+      accounts,
+      filteredAccountAddresses,
+    ],
+  );
+
+  const renderTabsContent = () => {
+    const { key: accountsConnectedTabKey, ...restAccountsConnectedTabProps } =
+      accountsConnectedTabProps;
+    const { key: permissionsTabKey, ...restPermissionsTabProps } =
+      permissionsTabProps;
+    return (
+      <ScrollableTabView
+        initialPage={tabIndex}
+        renderTabBar={renderTabBar}
+        onChangeTab={onChangeTab}
+      >
+        {renderAccountsConnectedList(
+          accountsConnectedTabKey,
+          restAccountsConnectedTabProps,
+        )}
+        <View
+          key={permissionsTabKey}
+          style={styles.permissionsManagementContainer}
+          {...restPermissionsTabProps}
+        >
+          {!isNetworkSwitch && renderAccountPermissionsRequestInfoCard()}
+          {renderNetworkPermissionsRequestInfoCard()}
+        </View>
+      </ScrollableTabView>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.mainContainer}>
-        <View>
+      <View style={[styles.mainContainer, { minHeight: bottomSheetHeight }]}>
+        <View style={styles.contentContainer}>
           {renderHeader()}
           <View
             style={styles.title}
@@ -433,16 +639,20 @@ const PermissionsSummary = ({
               PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER
             }
           >
-            <TextComponent variant={TextVariant.HeadingSM}>
+            <TextComponent
+              style={styles.connectionTitle}
+              variant={TextVariant.HeadingMD}
+            >
               {isNonDappNetworkSwitch
                 ? strings('permissions.title_add_network_permission')
                 : !isAlreadyConnected || isNetworkSwitch
-                ? strings('permissions.title_dapp_url_wants_to', {
-                    dappUrl: hostname,
-                  })
+                ? hostname
                 : strings('permissions.title_dapp_url_has_approval_to', {
                     dappUrl: hostname,
                   })}
+            </TextComponent>
+            <TextComponent variant={TextVariant.BodyMD}>
+              {strings('account_dapp_connections.account_summary_header')}
             </TextComponent>
           </View>
           {isNonDappNetworkSwitch && (
@@ -453,8 +663,14 @@ const PermissionsSummary = ({
               {strings('permissions.non_permitted_network_description')}
             </TextComponent>
           )}
-          {!isNetworkSwitch && renderAccountPermissionsRequestInfoCard()}
-          {renderNetworkPermissionsRequestInfoCard()}
+          {!nonTabView ? (
+            <View style={styles.tabsContainer}>{renderTabsContent()}</View>
+          ) : (
+            <View style={styles.container}>
+              {showAccountsOnly && renderAccountPermissionsRequestInfoCard()}
+              {showPermissionsOnly && renderNetworkPermissionsRequestInfoCard()}
+            </View>
+          )}
         </View>
         <View style={styles.bottomButtonsContainer}>
           {isAlreadyConnected && isDisconnectAllShown && (
@@ -488,7 +704,10 @@ const PermissionsSummary = ({
               <StyledButton
                 type={'confirm'}
                 onPress={confirm}
-                disabled={!selectedAccount && accountAddresses.length === 0}
+                disabled={
+                  !isNetworkSwitch &&
+                  (accountAddresses.length === 0 || networkAvatars.length === 0)
+                }
                 containerStyle={[
                   styles.buttonPositioning,
                   styles.confirmButton,

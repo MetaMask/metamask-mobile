@@ -22,7 +22,7 @@ export interface MarketDetails {
 interface FormatMarketDetailsOptions {
   locale: string;
   currentCurrency: string;
-  isEvmNetworkSelected: boolean;
+  isEvmAssetSelected: boolean;
   conversionRate: number;
 }
 
@@ -33,13 +33,13 @@ export const formatMarketDetails = (
   marketData: MarketData,
   options: FormatMarketDetailsOptions,
 ): MarketDetails => {
-  const { locale, currentCurrency, isEvmNetworkSelected, conversionRate } =
+  const { locale, currentCurrency, isEvmAssetSelected, conversionRate } =
     options;
 
   const marketCap =
     marketData.marketCap && marketData.marketCap > 0
       ? formatWithThreshold(
-          isEvmNetworkSelected
+          isEvmAssetSelected
             ? marketData.marketCap * conversionRate
             : marketData.marketCap,
           0.01,
@@ -57,7 +57,7 @@ export const formatMarketDetails = (
   const totalVolume =
     marketData.totalVolume && marketData.totalVolume > 0
       ? formatWithThreshold(
-          isEvmNetworkSelected
+          isEvmAssetSelected
             ? marketData.totalVolume * conversionRate
             : marketData.totalVolume,
           0.01,
@@ -99,7 +99,7 @@ export const formatMarketDetails = (
   const allTimeHigh =
     marketData.allTimeHigh && marketData.allTimeHigh > 0
       ? formatWithThreshold(
-          isEvmNetworkSelected
+          isEvmAssetSelected
             ? marketData.allTimeHigh * conversionRate
             : marketData.allTimeHigh,
           0.01,
@@ -114,7 +114,7 @@ export const formatMarketDetails = (
   const allTimeLow =
     marketData.allTimeLow && marketData.allTimeLow > 0
       ? formatWithThreshold(
-          isEvmNetworkSelected
+          isEvmAssetSelected
             ? marketData.allTimeLow * conversionRate
             : marketData.allTimeLow,
           0.01,
@@ -129,7 +129,7 @@ export const formatMarketDetails = (
   const fullyDiluted =
     marketData.dilutedMarketCap && marketData.dilutedMarketCap > 0
       ? formatWithThreshold(
-          isEvmNetworkSelected
+          isEvmAssetSelected
             ? marketData.dilutedMarketCap * conversionRate
             : marketData.dilutedMarketCap,
           0.01,

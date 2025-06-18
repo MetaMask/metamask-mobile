@@ -97,6 +97,8 @@ const slice = createSlice({
 
       if (activeTrace) {
         const duration = Date.now() - activeTrace.startTime;
+        // eslint-disable-next-line no-console
+        console.debug(`-- ! perf: ${eventName} took ${duration.toFixed(2)}ms`);
         state.metrics.push({
           eventName,
           timestamp: activeTrace.startTime,

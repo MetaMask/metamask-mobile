@@ -150,7 +150,13 @@ exports[`Network Selector renders correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`Network Selector renders correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -440,6 +447,7 @@ exports[`Network Selector renders correctly 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -456,7 +464,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   ]
                                 }
                               >
-                                
+                                
                               </Text>
                               <TextInput
                                 onChangeText={[Function]}
@@ -1199,7 +1207,7 @@ exports[`Network Selector renders correctly 1`] = `
                                             }
                                             testID="cellbase-avatar-title"
                                           >
-                                            Solana Mainnet
+                                            Solana
                                           </Text>
                                         </View>
                                       </View>
@@ -1272,7 +1280,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   "alignSelf": "stretch",
                                   "backgroundColor": "transparent",
                                   "borderColor": "#4459ff",
-                                  "borderRadius": 24,
+                                  "borderRadius": 12,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
                                   "height": 48,
@@ -1466,7 +1474,13 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1474,6 +1488,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -1756,6 +1771,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -1772,7 +1788,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   ]
                                 }
                               >
-                                
+                                
                               </Text>
                               <TextInput
                                 onBlur={[Function]}
@@ -2002,6 +2018,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               </Text>
                                               <SvgMock
                                                 color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -2077,6 +2094,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -2248,6 +2266,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               </Text>
                                               <SvgMock
                                                 color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -2295,6 +2314,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -2466,6 +2486,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               </Text>
                                               <SvgMock
                                                 color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -2513,6 +2534,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -2684,6 +2706,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               </Text>
                                               <SvgMock
                                                 color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -2731,6 +2754,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -2902,6 +2926,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               </Text>
                                               <SvgMock
                                                 color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -2949,6 +2974,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -3124,6 +3150,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               </Text>
                                               <SvgMock
                                                 color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -3171,6 +3198,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -3274,7 +3302,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             }
                                             testID="cellbase-avatar-title"
                                           >
-                                            Solana Mainnet
+                                            Solana
                                           </Text>
                                         </View>
                                       </View>
@@ -3326,6 +3354,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   >
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -3344,7 +3373,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                         ]
                                       }
                                     >
-                                      
+                                      󰋼
                                     </Text>
                                   </TouchableOpacity>
                                 </View>
@@ -4157,7 +4186,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   "alignSelf": "stretch",
                                   "backgroundColor": "transparent",
                                   "borderColor": "#4459ff",
-                                  "borderRadius": 24,
+                                  "borderRadius": 12,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
                                   "height": 48,

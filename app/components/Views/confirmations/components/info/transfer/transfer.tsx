@@ -1,36 +1,59 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
+
 import { strings } from '../../../../../../../locales/i18n';
-import { useStyles } from '../../../../../../component-library/hooks';
 import { SimulationDetails } from '../../../../../UI/SimulationDetails/SimulationDetails';
+import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import useNavbar from '../../../hooks/ui/useNavbar';
-import GasFeesDetails from '../../rows/transactions/gas-fee-details';
-import TokenHero from '../../rows/transactions/token-hero';
-import styleSheet from './transfer.styles';
+import { MMM_ORIGIN } from '../../../constants/confirmations';
+import { useMaxValueRefresher } from '../../../hooks/useMaxValueRefresher';
+import { useTokenAmount } from '../../../hooks/useTokenAmount';
+import { useTransferAssetType } from '../../../hooks/useTransferAssetType';
+import { HeroRow } from '../../rows/transactions/hero-row';
+import { NetworkAndOriginRow } from '../../rows/transactions/network-and-origin-row';
+import FromToRow from '../../rows/transactions/from-to-row';
+import GasFeesDetailsRow from '../../rows/transactions/gas-fee-details-row';
+import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row';
 
 const Transfer = () => {
-  const transactionMetadata = useTransactionMetadataRequest();
-  const { styles } = useStyles(styleSheet, {});
-  const { trackPageViewedEvent } = useConfirmationMetricEvents();
-
+  // Set navbar as first to prevent Android navigation flickering
   useNavbar(strings('confirm.review'));
-
+  const transactionMetadata = useTransactionMetadataRequest();
+  const isDappTransfer = transactionMetadata?.origin !== MMM_ORIGIN;
+  const { usdValue } = useTokenAmount();
+  const { assetType } = useTransferAssetType();
+  const { trackPageViewedEvent, setConfirmationMetric } =
+    useConfirmationMetricEvents();
+  useClearConfirmationOnBackSwipe();
+  useMaxValueRefresher();
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
+
+  useEffect(() => {
+    setConfirmationMetric({
+      properties: {
+        transaction_transfer_usd_value: usdValue,
+        asset_type: assetType,
+      },
+    });
+  }, [assetType, usdValue, setConfirmationMetric]);
 
   return (
     <View>
-      <TokenHero />
-      <View style={styles.simulationsDetailsContainer}>
+      <HeroRow />
+      <FromToRow />
+      <NetworkAndOriginRow />
+      {isDappTransfer && (
         <SimulationDetails
           transaction={transactionMetadata as TransactionMeta}
           enableMetrics
           isTransactionsRedesign
         />
-      </View>
-      <GasFeesDetails />
+      )}
+      <GasFeesDetailsRow />
+      <AdvancedDetailsRow />
     </View>
   );
 };

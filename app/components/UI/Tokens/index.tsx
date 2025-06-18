@@ -1,11 +1,4 @@
-import React, {
-  useRef,
-  useState,
-  LegacyRef,
-  useMemo,
-  memo,
-  useCallback,
-} from 'react';
+import React, { useRef, useState, LegacyRef, memo, useCallback } from 'react';
 import { View } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
@@ -22,32 +15,15 @@ import { TokenList } from './TokenList';
 import { TokenI } from './types';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
-import { selectTokenSortConfig } from '../../../selectors/preferencesController';
-import {
-  refreshTokens,
-  sortAssets,
-  removeEvmToken,
-  goToAddEvmToken,
-} from './util';
+import { refreshTokens, removeEvmToken, goToAddEvmToken } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import {
-  selectEvmTokenFiatBalances,
-  selectEvmTokens,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  selectMultichainTokenListForAccountId,
-  ///: END:ONLY_INCLUDE_IF
-} from '../../../selectors/multichain';
-import { TraceName, endTrace, trace } from '../../../util/trace';
-import { getTraceTags } from '../../../util/sentry/tags';
-import { store } from '../../../store';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { TokenListControlBar } from './TokenListControlBar';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { RootState } from '../../../reducers';
-///: END:ONLY_INCLUDE_IF
+import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
+import { ScamWarningModal } from './TokenList/ScamWarningModal';
+import { selectSortedTokenKeys } from '../../../selectors/tokenList';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -61,7 +37,6 @@ const Tokens = memo(() => {
     >();
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const tokenSortConfig = useSelector(selectTokenSortConfig);
 
   // evm
   const evmNetworkConfigurationsByChainId = useSelector(
@@ -70,51 +45,18 @@ const Tokens = memo(() => {
   const currentChainId = useSelector(selectChainId);
   const nativeCurrencies = useSelector(selectNativeNetworkCurrencies);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-  const evmTokens = useSelector(selectEvmTokens);
-  const tokenFiatBalances = useSelector(selectEvmTokenFiatBalances);
 
   const actionSheet = useRef<typeof ActionSheet>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [refreshing, setRefreshing] = useState(false);
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const selectedAccountId = useSelector(selectSelectedInternalAccountId);
 
-  // non-evm
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
- const nonEvmTokens = useSelector((state: RootState) =>
-  selectMultichainTokenListForAccountId(state, selectedAccount?.id),
-);
-  ///: END:ONLY_INCLUDE_IF
-
-
-  const tokenListData = isEvmSelected ? evmTokens : nonEvmTokens;
+  const [showScamWarningModal, setShowScamWarningModal] = useState(false);
 
   const styles = createStyles(colors);
 
-  // we need to calculate fiat balances here in order to sort by descending fiat amount
-  const tokensWithBalances = useMemo(
-    () =>
-      tokenListData.map((token, i) => ({
-        ...token,
-        tokenFiatAmount: isEvmSelected
-          ? tokenFiatBalances[i]
-          : token.balanceFiat,
-      })),
-    [tokenListData, tokenFiatBalances, isEvmSelected],
-  );
-
-  const tokensList = useMemo((): TokenI[] => {
-    trace({
-      name: TraceName.Tokens,
-      tags: getTraceTags(store.getState()),
-    });
-
-    const tokensSorted = sortAssets(tokensWithBalances, tokenSortConfig);
-    endTrace({
-      name: TraceName.Tokens,
-    });
-    return tokensSorted;
-  }, [tokenSortConfig, tokensWithBalances]);
+  const sortedTokenKeys = useSelector(selectSortedTokenKeys);
 
   const showRemoveMenu = useCallback(
     (token: TokenI) => {
@@ -134,7 +76,7 @@ const Tokens = memo(() => {
         isEvmSelected,
         evmNetworkConfigurationsByChainId,
         nativeCurrencies,
-        selectedAccount,
+        selectedAccountId,
       });
       setRefreshing(false);
     });
@@ -142,7 +84,7 @@ const Tokens = memo(() => {
     isEvmSelected,
     evmNetworkConfigurationsByChainId,
     nativeCurrencies,
-    selectedAccount,
+    selectedAccountId,
   ]);
 
   const removeToken = useCallback(async () => {
@@ -194,6 +136,10 @@ const Tokens = memo(() => {
     [removeToken],
   );
 
+  const handleScamWarningModal = () => {
+    setShowScamWarningModal(!showScamWarningModal);
+  };
+
   return (
     <View
       style={styles.wrapper}
@@ -201,16 +147,31 @@ const Tokens = memo(() => {
     >
       <AssetPollingProvider />
       <TokenListControlBar goToAddToken={goToAddToken} />
-      {tokensList && (
+      {sortedTokenKeys && (
         <TokenList
-          tokens={tokensList}
+          tokenKeys={sortedTokenKeys}
           refreshing={refreshing}
           isAddTokenEnabled={isAddTokenEnabled}
           onRefresh={onRefresh}
           showRemoveMenu={showRemoveMenu}
           goToAddToken={goToAddToken}
+          setShowScamWarningModal={handleScamWarningModal}
         />
       )}
+      {showScamWarningModal && (
+        <ScamWarningModal
+          showScamWarningModal={showScamWarningModal}
+          setShowScamWarningModal={setShowScamWarningModal}
+        />
+      )}
+      <ActionSheet
+        ref={actionSheet as LegacyRef<typeof ActionSheet>}
+        title={strings('wallet.remove_token_title')}
+        options={[strings('wallet.remove'), strings('wallet.cancel')]}
+        cancelButtonIndex={1}
+        destructiveButtonIndex={0}
+        onPress={onActionSheetPress}
+      />
       <ActionSheet
         ref={actionSheet as LegacyRef<typeof ActionSheet>}
         title={strings('wallet.remove_token_title')}
@@ -223,4 +184,6 @@ const Tokens = memo(() => {
   );
 });
 
-export default React.memo(Tokens);
+Tokens.displayName = 'Tokens';
+
+export default Tokens;

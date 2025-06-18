@@ -1,14 +1,16 @@
+import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
 import { Image } from 'react-native';
-import Balance from '.';
-import { render, fireEvent } from '@testing-library/react-native';
-import { selectNetworkName } from '../../../../selectors/networkInfos';
-import { selectChainId } from '../../../../selectors/networkController';
 import { Provider, useSelector } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
+import Balance from '.';
+import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
+import { selectChainId } from '../../../../selectors/networkController';
+import { selectNetworkName } from '../../../../selectors/networkInfos';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { NetworkBadgeSource } from './Balance';
 import { MOCK_VAULT_APY_AVERAGES } from '../../Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
+import { TokenI } from '../../Tokens/types';
+import { NetworkBadgeSource } from './Balance';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -21,6 +23,14 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
+  }),
+}));
+
+jest.mock('../../Stake/hooks/useBalance', () => ({
+  __esModule: true,
+  default: () => ({
+    currentCurrency: 'usd',
+    conversionRate: 1,
   }),
 }));
 
@@ -112,12 +122,31 @@ jest.mock('../../Stake/hooks/useStakingEligibility', () => ({
   __esModule: true,
   default: () => ({
     isEligible: true,
+    isLoadingEligibility: false,
+  }),
+}));
+
+jest.mock('../../Earn/hooks/useEarnTokens', () => ({
+  __esModule: true,
+  default: () => ({
+    getPairedEarnTokens: (token: TokenI) => ({
+      earnToken: token,
+      outputToken: token,
+    }),
+    getEarnToken: jest.fn(),
+    getOutputToken: jest.fn(),
   }),
 }));
 
 const mockInitialState = {
   engine: {
-    backgroundState,
+    backgroundState: {
+      ...backgroundState,
+      MultichainNetworkController: {
+        ...backgroundState.MultichainNetworkController,
+        isEvmSelected: true,
+      },
+    },
   },
 };
 
@@ -125,9 +154,22 @@ describe('Balance', () => {
   const mockStore = configureMockStore();
   const store = mockStore(mockInitialState);
 
-  Image.getSize = jest.fn((_uri, success) => {
-    success(100, 100); // Mock successful response for ETH native Icon Image
-  });
+  interface ImageSize {
+    width: number;
+    height: number;
+  }
+  Image.getSize = jest.fn(
+    (
+      _uri: string,
+      success?: (width: number, height: number) => void,
+      _failure?: (error: Error) => void,
+    ) => {
+      if (success) {
+        success(100, 100);
+      }
+      return Promise.resolve<ImageSize>({ width: 100, height: 100 });
+    },
+  );
 
   beforeEach(() => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
@@ -136,6 +178,8 @@ describe('Balance', () => {
           return {};
         case selectChainId:
           return '1';
+        case selectIsEvmNetworkSelected:
+          return true;
         default:
           return undefined;
       }
@@ -165,10 +209,10 @@ describe('Balance', () => {
   });
 
   it('should fire navigation event for non native tokens', () => {
-    const { queryByTestId } = render(
+    const { getByTestId } = render(
       <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />,
     );
-    const assetElement = queryByTestId('asset-DAI');
+    const assetElement = getByTestId('asset-DAI');
     fireEvent.press(assetElement);
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });

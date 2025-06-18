@@ -74,7 +74,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          Protect your wallet
+          Wallet recovery
         </Text>
         <Text
           accessibilityRole="text"
@@ -152,6 +152,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           >
             <SvgMock
               color="#ca3542"
+              fill="currentColor"
               height={24}
               name="Danger"
               style={
@@ -199,7 +200,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               "alignItems": "center",
               "alignSelf": "stretch",
               "backgroundColor": "#4459ff",
-              "borderRadius": 24,
+              "borderRadius": 12,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
@@ -275,10 +276,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "stretch",
-              "backgroundColor": "transparent",
-              "borderColor": "#4459ff",
-              "borderRadius": 24,
-              "borderWidth": 1,
+              "backgroundColor": "#4459ff",
+              "borderRadius": 12,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
@@ -292,7 +291,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#4459ff",
+                "color": "#ffffff",
                 "fontFamily": "CentraNo1-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
@@ -396,6 +395,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   />
                   <Text
                     allowFontScaling={false}
+                    selectable={false}
                     style={
                       [
                         {
@@ -422,33 +422,6 @@ exports[`SecuritySettings should render correctly 1`] = `
                   </Text>
                 </View>
               </TouchableOpacity>
-              <Modal
-                animationType="none"
-                deviceHeight={null}
-                deviceWidth={null}
-                hardwareAccelerated={false}
-                hideModalContentWhileAnimating={false}
-                onBackdropPress={[Function]}
-                onModalHide={[Function]}
-                onModalWillHide={[Function]}
-                onModalWillShow={[Function]}
-                onRequestClose={[Function]}
-                panResponderThreshold={4}
-                scrollHorizontal={false}
-                scrollOffset={0}
-                scrollOffsetMax={0}
-                scrollTo={null}
-                statusBarTranslucent={false}
-                supportedOrientations={
-                  [
-                    "portrait",
-                    "landscape",
-                  ]
-                }
-                swipeThreshold={100}
-                transparent={true}
-                visible={false}
-              />
             </View>
           </View>
         </View>
@@ -463,7 +436,13 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        <View>
+        <View
+          style={
+            {
+              "width": "100%",
+            }
+          }
+        >
           <View
             style={
               {
@@ -594,7 +573,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               "alignItems": "center",
               "alignSelf": "stretch",
               "backgroundColor": "#4459ff",
-              "borderRadius": 24,
+              "borderRadius": 12,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
@@ -842,123 +821,6 @@ exports[`SecuritySettings should render correctly 1`] = `
           </Text>
         </View>
       </View>
-      <View
-        style={
-          {
-            "marginVertical": 16,
-          }
-        }
-      >
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "justifyContent": "space-between",
-              "paddingBottom": 8,
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "CentraNo1-Bold",
-                "fontSize": 16,
-                "fontWeight": "700",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Profile Sync
-          </Text>
-          <RCTSwitch
-            accessibilityRole="switch"
-            disabled={false}
-            onChange={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            onTintColor="#4459ff"
-            style={
-              [
-                {
-                  "height": 31,
-                  "width": 51,
-                },
-                {
-                  "backgroundColor": "#b7bbc866",
-                  "borderRadius": 16,
-                },
-              ]
-            }
-            thumbTintColor="#ffffff"
-            tintColor="#b7bbc866"
-            value={false}
-          />
-        </View>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
-              "fontSize": 16,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. 
-          <Text
-            accessibilityRole="text"
-            onPress={[Function]}
-            style={
-              {
-                "color": "#4459ff",
-                "fontFamily": "CentraNo1-Book",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Learn how we protect your privacy
-          </Text>
-        </Text>
-        <Modal
-          animationType="none"
-          deviceHeight={null}
-          deviceWidth={null}
-          hardwareAccelerated={false}
-          hideModalContentWhileAnimating={false}
-          onBackdropPress={[Function]}
-          onModalHide={[Function]}
-          onModalWillHide={[Function]}
-          onModalWillShow={[Function]}
-          onRequestClose={[Function]}
-          onSwipeComplete={[Function]}
-          panResponderThreshold={4}
-          scrollHorizontal={false}
-          scrollOffset={0}
-          scrollOffsetMax={0}
-          scrollTo={null}
-          statusBarTranslucent={false}
-          supportedOrientations={
-            [
-              "portrait",
-              "landscape",
-            ]
-          }
-          swipeDirection="down"
-          swipeThreshold={100}
-          transparent={true}
-          visible={false}
-        />
-      </View>
       <Text
         accessibilityRole="text"
         style={
@@ -1034,7 +896,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
                 "borderColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
@@ -1122,7 +984,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
                 "borderColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
@@ -1149,35 +1011,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             </Text>
           </TouchableOpacity>
         </View>
-        <Modal
-          animationType="none"
-          deviceHeight={null}
-          deviceWidth={null}
-          hardwareAccelerated={false}
-          hideModalContentWhileAnimating={false}
-          onBackdropPress={[Function]}
-          onModalHide={[Function]}
-          onModalWillHide={[Function]}
-          onModalWillShow={[Function]}
-          onRequestClose={[Function]}
-          onSwipeComplete={[Function]}
-          panResponderThreshold={4}
-          scrollHorizontal={false}
-          scrollOffset={0}
-          scrollOffsetMax={0}
-          scrollTo={null}
-          statusBarTranslucent={false}
-          supportedOrientations={
-            [
-              "portrait",
-              "landscape",
-            ]
-          }
-          swipeDirection="down"
-          swipeThreshold={100}
-          transparent={true}
-          visible={false}
-        />
       </View>
       <View
         style={
@@ -1239,7 +1072,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
                 "borderColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
@@ -1326,7 +1159,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
                 "borderColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
@@ -1354,35 +1187,6 @@ exports[`SecuritySettings should render correctly 1`] = `
           </TouchableOpacity>
         </View>
       </View>
-      <Modal
-        animationType="none"
-        deviceHeight={null}
-        deviceWidth={null}
-        hardwareAccelerated={false}
-        hideModalContentWhileAnimating={false}
-        onBackdropPress={[Function]}
-        onModalHide={[Function]}
-        onModalWillHide={[Function]}
-        onModalWillShow={[Function]}
-        onRequestClose={[Function]}
-        onSwipeComplete={[Function]}
-        panResponderThreshold={4}
-        scrollHorizontal={false}
-        scrollOffset={0}
-        scrollOffsetMax={0}
-        scrollTo={null}
-        statusBarTranslucent={false}
-        supportedOrientations={
-          [
-            "portrait",
-            "landscape",
-          ]
-        }
-        swipeDirection="down"
-        swipeThreshold={100}
-        transparent={true}
-        visible={false}
-      />
       <Text
         accessibilityRole="text"
         style={
@@ -1895,7 +1699,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             avatarProps={
               {
                 "imageSource": 1,
-                "name": "Solana Mainnet",
+                "name": "Base Mainnet",
                 "variant": "Network",
               }
             }
@@ -1909,7 +1713,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
             testID="celldisplay"
-            title="Solana Mainnet"
+            title="Base Mainnet"
           >
             <View
               style={
@@ -1969,7 +1773,126 @@ exports[`SecuritySettings should render correctly 1`] = `
                   }
                   testID="cellbase-avatar-title"
                 >
-                  Solana Mainnet
+                  Base Mainnet
+                </Text>
+              </View>
+              <View
+                style={
+                  {
+                    "marginLeft": 16,
+                  }
+                }
+              >
+                <RCTSwitch
+                  accessibilityRole="switch"
+                  onChange={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  onTintColor="#4459ff"
+                  style={
+                    [
+                      {
+                        "height": 31,
+                        "width": 51,
+                      },
+                      [
+                        {
+                          "alignSelf": "flex-start",
+                        },
+                        {
+                          "backgroundColor": "#b7bbc866",
+                          "borderRadius": 16,
+                        },
+                      ],
+                    ]
+                  }
+                  testID=""
+                  thumbTintColor="#ffffff"
+                  tintColor="#b7bbc866"
+                  value={false}
+                />
+              </View>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            avatarProps={
+              {
+                "imageSource": 1,
+                "name": "Solana",
+                "variant": "Network",
+              }
+            }
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "#b7bbc8",
+                "borderRadius": 4,
+                "borderWidth": 0,
+                "padding": 16,
+              }
+            }
+            testID="celldisplay"
+            title="Solana"
+          >
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 8,
+                    "height": 32,
+                    "justifyContent": "center",
+                    "marginRight": 16,
+                    "overflow": "hidden",
+                    "width": 32,
+                  }
+                }
+                testID="cellbase-avatar"
+              >
+                <Image
+                  onError={[Function]}
+                  resizeMode="contain"
+                  source={1}
+                  style={
+                    {
+                      "height": 32,
+                      "width": 32,
+                    }
+                  }
+                  testID="network-avatar-image"
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flex": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                  testID="cellbase-avatar-title"
+                >
+                  Solana
                 </Text>
               </View>
               <View
@@ -2012,35 +1935,6 @@ exports[`SecuritySettings should render correctly 1`] = `
           </TouchableOpacity>
         </View>
       </View>
-      <Modal
-        animationType="none"
-        deviceHeight={null}
-        deviceWidth={null}
-        hardwareAccelerated={false}
-        hideModalContentWhileAnimating={false}
-        onBackdropPress={[Function]}
-        onModalHide={[Function]}
-        onModalWillHide={[Function]}
-        onModalWillShow={[Function]}
-        onRequestClose={[Function]}
-        onSwipeComplete={[Function]}
-        panResponderThreshold={4}
-        scrollHorizontal={false}
-        scrollOffset={0}
-        scrollOffsetMax={0}
-        scrollTo={null}
-        statusBarTranslucent={false}
-        supportedOrientations={
-          [
-            "portrait",
-            "landscape",
-          ]
-        }
-        swipeDirection="down"
-        swipeThreshold={100}
-        transparent={true}
-        visible={false}
-      />
       <View
         style={
           {
@@ -2487,108 +2381,6 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Security checks
-      </Text>
-      <View
-        style={
-          {
-            "marginTop": 16,
-          }
-        }
-      >
-        <View>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-              }
-            }
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "flex": 1,
-                  "fontFamily": "CentraNo1-Medium",
-                  "fontSize": 18,
-                  "fontWeight": "500",
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            >
-              Automatic security checks
-            </Text>
-            <View
-              style={
-                {
-                  "marginLeft": 16,
-                }
-              }
-            >
-              <RCTSwitch
-                accessibilityRole="switch"
-                onChange={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
-                onTintColor="#4459ff"
-                style={
-                  [
-                    {
-                      "height": 31,
-                      "width": 51,
-                    },
-                    [
-                      {
-                        "alignSelf": "flex-start",
-                      },
-                      {
-                        "backgroundColor": "#b7bbc866",
-                        "borderRadius": 16,
-                      },
-                    ],
-                  ]
-                }
-                thumbTintColor="#ffffff"
-                tintColor="#b7bbc866"
-                value={false}
-              />
-            </View>
-          </View>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#686e7d",
-                "fontFamily": "CentraNo1-Book",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-                "marginTop": 8,
-              }
-            }
-          >
-            Automatically checking for updates may expose your IP address to GitHub servers. This only indicates that your IP address is using MetaMask. No other information or account addresses are exposed.
-          </Text>
-        </View>
-      </View>
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#686e7d",
-            "fontFamily": "CentraNo1-Medium",
-            "fontSize": 18,
-            "fontWeight": "500",
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "marginTop": 32,
-          }
-        }
-      >
         Analytics
       </Text>
       <View
@@ -2978,7 +2770,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
                 "borderColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
@@ -3006,35 +2798,6 @@ exports[`SecuritySettings should render correctly 1`] = `
           </TouchableOpacity>
         </View>
       </View>
-      <Modal
-        animationType="none"
-        deviceHeight={null}
-        deviceWidth={null}
-        hardwareAccelerated={false}
-        hideModalContentWhileAnimating={false}
-        onBackdropPress={[Function]}
-        onModalHide={[Function]}
-        onModalWillHide={[Function]}
-        onModalWillShow={[Function]}
-        onRequestClose={[Function]}
-        onSwipeComplete={[Function]}
-        panResponderThreshold={4}
-        scrollHorizontal={false}
-        scrollOffset={0}
-        scrollOffsetMax={0}
-        scrollTo={null}
-        statusBarTranslucent={false}
-        supportedOrientations={
-          [
-            "portrait",
-            "landscape",
-          ]
-        }
-        swipeDirection="down"
-        swipeThreshold={100}
-        transparent={true}
-        visible={false}
-      />
       <View
         style={
           {
@@ -3095,7 +2858,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
                 "borderColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
@@ -3123,65 +2886,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           </TouchableOpacity>
         </View>
       </View>
-      <Modal
-        animationType="none"
-        deviceHeight={null}
-        deviceWidth={null}
-        hardwareAccelerated={false}
-        hideModalContentWhileAnimating={false}
-        onBackdropPress={[Function]}
-        onModalHide={[Function]}
-        onModalWillHide={[Function]}
-        onModalWillShow={[Function]}
-        onRequestClose={[Function]}
-        onSwipeComplete={[Function]}
-        panResponderThreshold={4}
-        scrollHorizontal={false}
-        scrollOffset={0}
-        scrollOffsetMax={0}
-        scrollTo={null}
-        statusBarTranslucent={false}
-        supportedOrientations={
-          [
-            "portrait",
-            "landscape",
-          ]
-        }
-        swipeDirection="down"
-        swipeThreshold={100}
-        transparent={true}
-        visible={false}
-      />
     </View>
-    <Modal
-      animationType="none"
-      deviceHeight={null}
-      deviceWidth={null}
-      hardwareAccelerated={false}
-      hideModalContentWhileAnimating={false}
-      onBackdropPress={[Function]}
-      onModalHide={[Function]}
-      onModalWillHide={[Function]}
-      onModalWillShow={[Function]}
-      onRequestClose={[Function]}
-      onSwipeComplete={[Function]}
-      panResponderThreshold={4}
-      scrollHorizontal={false}
-      scrollOffset={0}
-      scrollOffsetMax={0}
-      scrollTo={null}
-      statusBarTranslucent={false}
-      supportedOrientations={
-        [
-          "portrait",
-          "landscape",
-        ]
-      }
-      swipeDirection="down"
-      swipeThreshold={100}
-      transparent={true}
-      visible={false}
-    />
   </View>
 </RCTScrollView>
 `;

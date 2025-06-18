@@ -3,27 +3,38 @@ import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   generateContractInteractionState,
+  getAppStateForConfirmation,
   personalSignatureConfirmationState,
   securityAlertResponse,
   stakingClaimConfirmationState,
   stakingDepositConfirmationState,
   stakingWithdrawalConfirmationState,
   typedSignV1ConfirmationState,
+  upgradeAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-// eslint-disable-next-line import/no-namespace
-import * as EditNonceHook from '../../../../../components/hooks/useEditNonce';
 // eslint-disable-next-line import/no-namespace
 import * as ConfirmationRedesignEnabled from '../../hooks/useConfirmationRedesignEnabled';
 import { Confirm } from './confirm-component';
 
-jest.mock('../../../../../selectors/featureFlagController/confirmations', () => ({
-  selectConfirmationRedesignFlags: () => ({
-    signatures: true,
-    staking_confirmations: true,
-    contract_interaction: true,
-  }),
+jest.mock('../../../../../components/hooks/useEditNonce', () => ({
+  useEditNonce: jest.fn().mockReturnValue({}),
 }));
+
+jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
+  AssetPollingProvider: () => null,
+}));
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/confirmations',
+  () => ({
+    selectConfirmationRedesignFlags: () => ({
+      signatures: true,
+      staking_confirmations: true,
+      contract_interaction: true,
+    }),
+  }),
+);
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -71,6 +82,7 @@ jest.mock('../../../../../core/Engine', () => ({
     },
     NetworkController: {
       getNetworkConfigurationByNetworkClientId: jest.fn(),
+      findNetworkClientIdByChainId: jest.fn(),
     },
     GasFeeController: {
       startPolling: jest.fn(),
@@ -86,6 +98,11 @@ jest.mock('../../../../../core/Engine', () => ({
           },
         },
       },
+    },
+    TransactionController: {
+      getTransactions: jest.fn().mockReturnValue([]),
+      getNonceLock: jest.fn().mockReturnValue({ releaseLock: jest.fn() }),
+      updateTransaction: jest.fn(),
     },
   },
   controllerMessenger: {
@@ -201,24 +218,18 @@ describe('Confirm', () => {
   });
 
   it('renders information for contract interaction', async () => {
-    jest.spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
+    jest
+      .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
       .mockReturnValue({ isRedesignedEnabled: true });
-
-    jest.spyOn(EditNonceHook, 'useEditNonce')
-      .mockReturnValue({
-        setShowNonceModal: jest.fn(),
-        setUserSelectedNonce: jest.fn(),
-        showNonceModal: false,
-        proposedNonce: 10,
-        userSelectedNonce: 10,
-      });
 
     const { getByText } = renderWithProvider(<Confirm />, {
       state: generateContractInteractionState,
     });
 
     expect(getByText('Transaction request')).toBeDefined();
-    expect(getByText('Review request details before you confirm.')).toBeDefined();
+    expect(
+      getByText('Review request details before you confirm.'),
+    ).toBeDefined();
     expect(getByText('Estimated changes')).toBeDefined();
     expect(getByText('Network Fee')).toBeDefined();
   });
@@ -237,6 +248,23 @@ describe('Confirm', () => {
 
     expect(getByText('Signature request')).toBeDefined();
     expect(getByText('This is a deceptive request')).toBeDefined();
+  });
+
+  it('renders splash page if present', async () => {
+    jest
+      .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
+      .mockReturnValue({ isRedesignedEnabled: true });
+
+    const { getByText } = renderWithProvider(<Confirm />, {
+      state: getAppStateForConfirmation(upgradeAccountConfirmation),
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(getByText('Use smart account?')).toBeTruthy();
+    expect(getByText('Request for')).toBeTruthy();
   });
 
   it('returns null if confirmation redesign is not enabled', () => {

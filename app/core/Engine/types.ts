@@ -33,6 +33,10 @@ import {
   AssetsContractController,
   AssetsContractControllerActions,
   AssetsContractControllerEvents,
+  DeFiPositionsController,
+  DeFiPositionsControllerState,
+  DeFiPositionsControllerEvents,
+  DeFiPositionsControllerActions,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesControllerState,
   MultichainBalancesController,
@@ -146,8 +150,6 @@ import {
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   SnapController,
-  AllowedActions as SnapsAllowedActions,
-  AllowedEvents as SnapsAllowedEvents,
   ExecutionService,
   PersistedSnapControllerState,
   SnapControllerEvents,
@@ -164,6 +166,7 @@ import {
   CronjobControllerEvents,
   CronjobControllerActions,
   CronjobController,
+  MultichainRouterActions,
 } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -267,6 +270,13 @@ import {
   AppMetadataControllerEvents,
   AppMetadataControllerState,
 } from '@metamask/app-metadata-controller';
+import type { ErrorReportingServiceActions } from '@metamask/error-reporting-service';
+import {
+  AccountTreeController,
+  AccountTreeControllerState,
+  AccountTreeControllerActions,
+  AccountTreeControllerEvents
+} from '@metamask/account-tree-controller';
 
 /**
  * Controllers that area always instantiated
@@ -295,14 +305,12 @@ type SnapsGlobalActions =
   | SnapControllerActions
   | SnapsRegistryActions
   | SubjectMetadataControllerActions
-  | PhishingControllerActions
-  | SnapsAllowedActions;
+  | PhishingControllerActions;
 type SnapsGlobalEvents =
   | SnapControllerEvents
   | SnapsRegistryEvents
   | SubjectMetadataControllerEvents
-  | PhishingControllerEvents
-  | SnapsAllowedEvents;
+  | PhishingControllerEvents;
 ///: END:ONLY_INCLUDE_IF
 
 type GlobalActions =
@@ -335,6 +343,7 @@ type GlobalActions =
   | MultichainTransactionsControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
+  | AccountTreeControllerActions
   | PreferencesControllerActions
   | PPOMControllerActions
   | TokenBalancesControllerActions
@@ -352,7 +361,10 @@ type GlobalActions =
   | BridgeControllerActions
   | BridgeStatusControllerActions
   | EarnControllerActions
-  | AppMetadataControllerActions;
+  | AppMetadataControllerActions
+  | MultichainRouterActions
+  | DeFiPositionsControllerActions
+  | ErrorReportingServiceActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -403,7 +415,9 @@ type GlobalEvents =
   | BridgeControllerEvents
   | BridgeStatusControllerEvents
   | EarnControllerEvents
-  | AppMetadataControllerEvents;
+  | AppMetadataControllerEvents
+  | DeFiPositionsControllerEvents
+  | AccountTreeControllerEvents
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -422,6 +436,7 @@ export type BaseControllerMessenger = ExtendedControllerMessenger<
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type Controllers = {
   AccountsController: AccountsController;
+  AccountTreeController: AccountTreeController;
   AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
   AppMetadataController: AppMetadataController;
@@ -449,6 +464,7 @@ export type Controllers = {
   TokenRatesController: TokenRatesController;
   TokenSearchDiscoveryController: TokenSearchDiscoveryController;
   TokensController: TokensController;
+  DeFiPositionsController: DeFiPositionsController;
   TransactionController: TransactionController;
   SmartTransactionsController: SmartTransactionsController;
   SignatureController: SignatureController;
@@ -510,6 +526,7 @@ export type EngineState = {
   SwapsController: SwapsControllerState;
   GasFeeController: GasFeeState;
   TokensController: TokensControllerState;
+  DeFiPositionsController: DeFiPositionsControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SnapController: PersistedSnapControllerState;
   SnapsRegistry: SnapsRegistryState;
@@ -526,6 +543,7 @@ export type EngineState = {
   LoggingController: LoggingControllerState;
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
+  AccountTreeController: AccountTreeControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
   SignatureController: SignatureControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -586,12 +604,14 @@ export type ControllersToInitialize =
   | 'MultichainBalancesController'
   | 'MultichainTransactionsController'
   ///: END:ONLY_INCLUDE_IF
+  | 'AccountTreeController'
   | 'CurrencyRateController'
   | 'AccountsController'
   | 'MultichainNetworkController'
   | 'TransactionController'
   | 'GasFeeController'
-  | 'SignatureController';
+  | 'SignatureController'
+  | 'DeFiPositionsController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

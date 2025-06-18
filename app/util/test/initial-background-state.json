@@ -1,8 +1,7 @@
 {
   "KeyringController": {
     "isUnlocked": false,
-    "keyrings": [],
-    "keyringsMetadata": []
+    "keyrings": []
   },
   "LoggingController": {
     "logs": {}
@@ -18,14 +17,13 @@
       "selectedAccount": ""
     }
   },
+  "AccountTreeController": {
+    "accountTree": {
+      "wallets": {}
+    }
+  },
   "AddressBookController": {
     "addressBook": {}
-  },
-  "AppMetadataController": {
-    "currentAppVersion": "",
-    "currentMigrationVersion": 0,
-    "previousAppVersion": "",
-    "previousMigrationVersion": 0
   },
   "NftController": {
     "allNftContracts": {},
@@ -90,6 +88,22 @@
           }
         ]
       },
+      "0x279f": {
+        "blockExplorerUrls": ["https://testnet.monadexplorer.com"],
+        "chainId": "0x279f",
+        "defaultBlockExplorerUrlIndex": 0,
+        "defaultRpcEndpointIndex": 0,
+        "name": "Monad Testnet",
+        "nativeCurrency": "MON",
+        "rpcEndpoints": [
+          {
+            "failoverUrls": [],
+            "networkClientId": "monad-testnet",
+            "type": "custom",
+            "url": "https://testnet-rpc.monad.xyz"
+          }
+        ]
+      },
       "0xaa36a7": {
         "blockExplorerUrls": [],
         "chainId": "0xaa36a7",
@@ -134,6 +148,21 @@
             "failoverUrls": []
           }
         ]
+      },
+      "0x2105": {
+        "blockExplorerUrls": [],
+        "chainId": "0x2105",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Base Mainnet",
+        "nativeCurrency": "ETH",
+        "rpcEndpoints": [
+          {
+            "failoverUrls": [],
+            "networkClientId": "base-mainnet",
+            "type": "infura",
+            "url": "https://base-mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
       }
     }
   },
@@ -155,6 +184,7 @@
     "useNftDetection": true,
     "useSafeChainsListValidation": true,
     "displayNftMedia": true,
+    "dismissSmartAccountSuggestionEnabled": false,
     "securityAlertsEnabled": true,
     "isMultiAccountBalancesEnabled": true,
     "showMultiRpcModal": false,
@@ -210,7 +240,8 @@
     "lastFetchedBlockNumbers": {},
     "methodData": {},
     "submitHistory": [],
-    "transactions": []
+    "transactions": [],
+    "transactionBatches": []
   },
   "SmartTransactionsController": {
     "smartTransactionsState": {
@@ -361,8 +392,8 @@
     "hasAccountSyncingSyncedAtLeastOnce": false,
     "isAccountSyncingReadyToBeDispatched": false,
     "isAccountSyncingInProgress": false,
-    "isProfileSyncingEnabled": true,
-    "isProfileSyncingUpdateLoading": false,
+    "isBackupAndSyncEnabled": true,
+    "isBackupAndSyncUpdateLoading": false,
     "isAccountSyncingEnabled": true
   },
   "MultichainBalancesController": {
@@ -384,19 +415,44 @@
   },
   "MultichainNetworkController": {
     "isEvmSelected": true,
+    "networksWithTransactionActivity": {},
     "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
     "multichainNetworkConfigurationsByChainId": {
       "bip122:000000000019d6689c085ae165831e93": {
         "chainId": "bip122:000000000019d6689c085ae165831e93",
-        "name": "Bitcoin Mainnet",
+        "name": "Bitcoin",
         "nativeCurrency": "bip122:000000000019d6689c085ae165831e93/slip44:0",
         "isEvm": false
       },
+      "bip122:000000000933ea01ad0ee984209779ba": {
+        "chainId": "bip122:000000000933ea01ad0ee984209779ba",
+        "isEvm": false,
+        "name": "Bitcoin Testnet",
+        "nativeCurrency": "bip122:000000000933ea01ad0ee984209779ba/slip44:0"
+      },
+      "bip122:00000008819873e925422c1ff0f99f7c": {
+        "chainId": "bip122:00000008819873e925422c1ff0f99f7c",
+        "isEvm": false,
+        "name": "Bitcoin Signet",
+        "nativeCurrency": "bip122:00000008819873e925422c1ff0f99f7c/slip44:0"
+      },
       "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": {
         "chainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-        "name": "Solana Mainnet",
-        "nativeCurrency": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "name": "Solana",
+        "nativeCurrency": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501",
         "isEvm": false
+      },
+      "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z": {
+        "chainId": "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z",
+        "isEvm": false,
+        "name": "Solana Testnet",
+        "nativeCurrency": "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z/slip44:501"
+      },
+      "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1": {
+        "chainId": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
+        "isEvm": false,
+        "name": "Solana Devnet",
+        "nativeCurrency": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/slip44:501"
       }
     }
   },
@@ -409,20 +465,7 @@
   },
   "BridgeController": {
     "assetExchangeRates": {},
-    "bridgeFeatureFlags": {
-      "extensionConfig": {
-        "chains": {},
-        "maxRefreshCount": 5,
-        "refreshRate": 30000,
-        "support": false
-      },
-      "mobileConfig": {
-        "chains": {},
-        "maxRefreshCount": 5,
-        "refreshRate": 30000,
-        "support": false
-      }
-    },
+    "minimumBalanceForRentExemptionInLamports": "0",
     "quoteFetchError": null,
     "quoteRequest": {
       "srcTokenAddress": "0x0000000000000000000000000000000000000000"
@@ -441,50 +484,58 @@
     "historicalPrices": {}
   },
   "CronjobController": {
-    "events": {},
-    "jobs": {}
+    "events": {}
   },
   "EarnController": {
     "lastUpdated": 0,
     "pooled_staking": {
-      "exchangeRate": "1",
-      "isEligible": false,
-      "pooledStakes": {
-        "account": "",
-        "assets": "0",
-        "exitRequests": [],
-        "lifetimeRewards": "0"
-      },
-      "vaultMetadata": {
-        "apy": "0",
-        "capacity": "0",
-        "feePercent": 0,
-        "totalAssets": "0",
-        "vaultAddress": "0x0000000000000000000000000000000000000000"
-      },
-      "vaultDailyApys": [],
-      "vaultApyAverages": {
-        "oneDay": "0",
-        "oneWeek": "0",
-        "oneMonth": "0",
-        "threeMonths": "0",
-        "sixMonths": "0",
-        "oneYear": "0"
-      }
+      "isEligible": false
     },
-    "stablecoin_lending": {
-      "vaults": [
+    "lending": {
+      "markets": [
         {
-          "symbol": "",
-          "name": "",
+          "id": "",
           "chainId": 0,
-          "tokenAddress": "",
-          "vaultAddress": "",
-          "currentAPY": "0",
-          "supply": "0",
-          "liquidity": "0"
+          "protocol": "",
+          "name": "",
+          "address": "",
+          "tvlUnderlying": "0",
+          "netSupplyRate": 0,
+          "totalSupplyRate": 0,
+          "underlying": {
+            "address": "",
+            "chainId": 0
+          },
+          "outputToken": {
+            "address": "",
+            "chainId": 0
+          },
+          "rewards": [
+            {
+              "token": {
+                "address": "",
+                "chainId": 0
+              },
+              "rate": 0
+            }
+          ]
         }
-      ]
+      ],
+      "positions": [
+        {
+          "id": "",
+          "chainId": 0,
+          "assets": "0",
+          "marketId": "",
+          "marketAddress": "",
+          "protocol": ""
+        }
+      ],
+      "isEligible": false
     }
+  },
+  "DeFiPositionsController": {
+    "allDeFiPositions": {},
+    "allDeFiPositionsCount": {}
   }
 }

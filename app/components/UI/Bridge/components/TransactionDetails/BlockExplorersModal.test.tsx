@@ -1,19 +1,17 @@
-import React from 'react';
-import BlockExplorersModal from './BlockExplorersModal';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import {
   TransactionMeta,
   TransactionStatus,
 } from '@metamask/transaction-controller';
-import {
-  BridgeFeatureFlagsKey,
-  formatChainIdToCaip,
-} from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import { ethers } from 'ethers';
+import React from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
 import { BridgeState } from '../../../../../core/redux/slices/bridge';
-import { ethers } from 'ethers';
+import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import '../../_mocks_/initialState';
+import BlockExplorersModal from './BlockExplorersModal';
 
 describe('BlockExplorersModal', () => {
   const mockTx = {
@@ -50,6 +48,11 @@ describe('BlockExplorersModal', () => {
     engine: {
       backgroundState: {
         ...initialBackgroundState,
+        EarnController: {
+          lending: {
+            markets: [],
+          },
+        },
         RatesController: {
           rates: {},
           fiatCurrency: 'usd',
@@ -99,8 +102,16 @@ describe('BlockExplorersModal', () => {
           },
         },
         BridgeController: {
-          bridgeFeatureFlags: {
-            [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
+          quoteRequest: {
+            slippage: 0.5,
+          },
+        },
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            bridgeConfig: {
+              maxRefreshCount: 5,
+              refreshRate: 30000,
+              support: true,
               chains: {
                 [formatChainIdToCaip(mockChainId)]: {
                   isActiveSrc: true,
@@ -112,9 +123,6 @@ describe('BlockExplorersModal', () => {
                 },
               },
             },
-          },
-          quoteRequest: {
-            slippage: 0.5,
           },
         },
         TokenBalancesController: {

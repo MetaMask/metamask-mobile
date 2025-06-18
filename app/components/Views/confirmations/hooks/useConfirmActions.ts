@@ -1,17 +1,19 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
-import PPOMUtil from '../../../../lib/ppom/ppom-util';
+import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import Routes from '../../../../constants/navigation/Routes';
+import PPOMUtil from '../../../../lib/ppom/ppom-util';
+import { RootState } from '../../../../reducers';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
-import { isSignatureRequest, isStakingConfirmation } from '../utils/confirm';
+import { isSignatureRequest } from '../utils/confirm';
 import { useLedgerContext } from '../context/ledger-context';
 import { useQRHardwareContext } from '../context/qr-hardware-context';
 import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
-import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
-import { useSelector } from 'react-redux';
+import { useFullScreenConfirmation } from './ui/useFullScreenConfirmation';
 
 export const useConfirmActions = () => {
   const {
@@ -28,31 +30,32 @@ export const useConfirmActions = () => {
   const { ledgerSigningInProgress, openLedgerSignModal } = useLedgerContext();
   const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
-  const shouldUseSmartTransaction = useSelector(
-    selectShouldUseSmartTransaction,
+  const shouldUseSmartTransaction = useSelector((state: RootState) =>
+    selectShouldUseSmartTransaction(state, transactionMetadata?.chainId),
   );
-  const isOneOfTheStakingConfirmations = isStakingConfirmation(
-    transactionMetadata?.type as string,
-  );
+  const { isFullScreenConfirmation } = useFullScreenConfirmation();
 
   const isSignatureReq =
     approvalRequest?.type && isSignatureRequest(approvalRequest?.type);
 
-  const onReject = useCallback(async () => {
-    await cancelQRScanRequestIfPresent();
-    onRequestReject();
-    navigation.goBack();
-    if (isSignatureReq) {
-      captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_REJECTED);
-      PPOMUtil.clearSignatureSecurityAlertResponse();
-    }
-  }, [
-    cancelQRScanRequestIfPresent,
-    captureSignatureMetrics,
-    navigation,
-    onRequestReject,
-    isSignatureReq,
-  ]);
+  const onReject = useCallback(
+    async (error?: Error) => {
+      await cancelQRScanRequestIfPresent();
+      onRequestReject(error);
+      navigation.goBack();
+      if (isSignatureReq) {
+        captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_REJECTED);
+        PPOMUtil.clearSignatureSecurityAlertResponse();
+      }
+    },
+    [
+      cancelQRScanRequestIfPresent,
+      captureSignatureMetrics,
+      navigation,
+      onRequestReject,
+      isSignatureReq,
+    ],
+  );
 
   const onConfirm = useCallback(async () => {
     if (ledgerSigningInProgress) {
@@ -69,7 +72,7 @@ export const useConfirmActions = () => {
       handleErrors: false,
     });
 
-    if (isOneOfTheStakingConfirmations) {
+    if (isFullScreenConfirmation) {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } else {
       navigation.goBack();
@@ -88,7 +91,7 @@ export const useConfirmActions = () => {
     captureSignatureMetrics,
     onRequestConfirm,
     isSignatureReq,
-    isOneOfTheStakingConfirmations,
+    isFullScreenConfirmation,
     shouldUseSmartTransaction,
   ]);
 

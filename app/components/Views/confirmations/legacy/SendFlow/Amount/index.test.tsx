@@ -1256,7 +1256,7 @@ describe('Amount', () => {
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith('SendFlowView', {
-      screen: Routes.STANDALONE_CONFIRMATIONS.TRANSFER,
+      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
     });
     expect(addTransaction).toHaveBeenCalledTimes(1);
     expect(addTransaction).toHaveBeenCalledWith(
@@ -1267,7 +1267,7 @@ describe('Amount', () => {
         data: '0x',
       }),
       {
-        origin: 'Metamask Mobile',
+        origin: 'metamask',
         networkClientId: 'sepolia',
       },
     );

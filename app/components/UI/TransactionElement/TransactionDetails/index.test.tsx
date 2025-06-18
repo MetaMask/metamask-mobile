@@ -87,6 +87,7 @@ const renderComponent = ({
   txParams,
   status = 'confirmed',
   networkId = '0x1',
+  transactionObj = {},
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state?: any;
@@ -96,13 +97,13 @@ const renderComponent = ({
   status?: string;
   shouldUseSmartTransaction?: boolean;
   networkId?: string;
+  transactionObj?: Record<string, unknown>;
 }) =>
   renderWithProvider(
     <Stack.Navigator>
       <Stack.Screen name="Amount" options={{}}>
         {() => (
           <TransactionDetails
-            // @ts-expect-error - TransactionDetails needs to be converted to typescript
             transactionObject={{
               networkID: '1',
               status,
@@ -111,8 +112,8 @@ const renderComponent = ({
               },
               chainId: networkId,
               ...(txParams ? { txParams } : {}),
+              ...transactionObj,
             }}
-            //@ts-expect-error - TransactionDetails needs to be converted to typescript
             transactionDetails={{
               renderFrom: '0x0',
               renderTo: networkId,
@@ -126,9 +127,7 @@ const renderComponent = ({
               hash: '0x3',
               ...(hash ? { hash } : {}),
             }}
-            //@ts-expect-error - navigation is not typed
             navigation={navigationMock}
-            // @ts-expect-error - chainId is not typed
             chainId={networkId}
           />
         )}
@@ -378,5 +377,14 @@ describe('TransactionDetails', () => {
       fireEvent.press(speedUpButton);
       fireEvent.press(cancelButton);
     });
+  });
+
+  it('should render `Batched transactions` tag if there are nested transactions', async () => {
+    const { getByText } = renderComponent({
+      state: initialState,
+      transactionObj: { nestedTransactions: [{}, {}] },
+    });
+
+    expect(getByText('Batched transactions')).toBeTruthy();
   });
 });

@@ -1,41 +1,567 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ChoosePassword should render correctly 1`] = `
-<ContextProvider
-  value={
+exports[`ChoosePassword render matches snapshot 1`] = `
+<RCTSafeAreaView
+  style={
     {
-      "getServerState": undefined,
-      "noopCheck": "once",
-      "stabilityCheck": "once",
-      "store": {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
+      "backgroundColor": "#ffffff",
+      "flex": 1,
     }
   }
 >
-  <Component
-    route={
+  <RCTScrollView
+    automaticallyAdjustContentInsets={false}
+    contentContainerStyle={
       {
-        "params": [
-          "onboarding",
-          "protect",
-        ],
+        "flex": 1,
+        "paddingHorizontal": 16,
       }
     }
-  />
-</ContextProvider>
+    contentInset={
+      {
+        "bottom": 0,
+      }
+    }
+    enableAutomaticScroll={true}
+    enableOnAndroid={false}
+    enableResetScrollToCoords={true}
+    extraHeight={75}
+    extraScrollHeight={0}
+    getScrollResponder={[Function]}
+    handleOnScroll={[Function]}
+    keyboardDismissMode="interactive"
+    keyboardOpeningTime={250}
+    keyboardSpace={0}
+    onScroll={[Function]}
+    resetKeyboardSpace={[Function]}
+    resetScrollToCoords={
+      {
+        "x": 0,
+        "y": 0,
+      }
+    }
+    scrollEventThrottle={1}
+    scrollForExtraHeightOnAndroid={[Function]}
+    scrollIntoView={[Function]}
+    scrollToEnd={[Function]}
+    scrollToFocusedInput={[Function]}
+    scrollToPosition={[Function]}
+    showsVerticalScrollIndicator={true}
+    update={[Function]}
+    viewIsInsideTabBar={false}
+  >
+    <View>
+      <View
+        style={
+          {
+            "flex": 1,
+            "flexDirection": "column",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Step 1 of 3
+        </Text>
+        <View
+          style={
+            {
+              "flexDirection": "column",
+              "flexGrow": 1,
+              "rowGap": 16,
+            }
+          }
+          testID="create-password-screen"
+        >
+          <View
+            style={
+              {
+                "flexDirection": "column",
+                "rowGap": 4,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Bold",
+                  "fontSize": 32,
+                  "fontWeight": "700",
+                  "letterSpacing": 0,
+                  "lineHeight": 40,
+                }
+              }
+            >
+              MetaMask password
+            </Text>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Unlocks MetaMask on this device only.
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "flexDirection": "column",
+                "gap": 8,
+                "position": "relative",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "marginBottom": -4,
+                }
+              }
+              testID="label"
+            >
+              Create new password
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "opacity": 1,
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="textfield"
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <TextInput
+                  autoCapitalize="none"
+                  autoComplete="new-password"
+                  autoFocus={false}
+                  editable={true}
+                  keyboardAppearance="light"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onFocus={[Function]}
+                  onSubmitEditing={[Function]}
+                  placeholder="Enter a strong password"
+                  placeholderTextColor="#9ca1af"
+                  returnKeyType="next"
+                  secureTextEntry={true}
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "transparent",
+                      "borderWidth": 1,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "height": 24,
+                      "letterSpacing": 0,
+                      "opacity": 1,
+                      "paddingVertical": 0,
+                    }
+                  }
+                  testID="create-password-first-input-field"
+                  value=""
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "marginLeft": 8,
+                  }
+                }
+                testID="textfield-endacccessory"
+              >
+                <SvgMock
+                  color="#686e7d"
+                  fill="currentColor"
+                  height={24}
+                  name="Eye"
+                  onPress={[Function]}
+                  style={
+                    {
+                      "height": 24,
+                      "width": 24,
+                    }
+                  }
+                  width={24}
+                />
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "flexDirection": "column",
+                "gap": 8,
+                "position": "relative",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "marginBottom": -4,
+                }
+              }
+              testID="label"
+            >
+              Confirm password
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "opacity": 0.5,
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="textfield"
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <TextInput
+                  accessibilityLabel="create-password-second-input-field"
+                  autoCapitalize="none"
+                  autoComplete="new-password"
+                  autoFocus={false}
+                  editable={false}
+                  keyboardAppearance="light"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onFocus={[Function]}
+                  onSubmitEditing={[Function]}
+                  placeholder="Re-enter your password"
+                  placeholderTextColor="#9ca1af"
+                  returnKeyType="done"
+                  secureTextEntry={true}
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "transparent",
+                      "borderWidth": 1,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "height": 24,
+                      "letterSpacing": 0,
+                      "opacity": 1,
+                      "paddingVertical": 0,
+                    }
+                  }
+                  testID="create-password-second-input-field"
+                  value=""
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "marginLeft": 8,
+                  }
+                }
+                testID="textfield-endacccessory"
+              >
+                <SvgMock
+                  color="#686e7d"
+                  fill="currentColor"
+                  height={24}
+                  name="Eye"
+                  onPress={[Function]}
+                  style={
+                    {
+                      "height": 24,
+                      "width": 24,
+                    }
+                  }
+                  width={24}
+                />
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "gap": 8,
+                "justifyContent": "flex-start",
+                "marginBottom": 16,
+                "marginTop": 8,
+              }
+            }
+          >
+            <TouchableOpacity
+              accessibilityLabel="password-understand-box"
+              disabled={false}
+              onPress={[Function]}
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flexDirection": "row",
+                  "height": 24,
+                  "opacity": 1,
+                }
+              }
+              testID="password-understand-box"
+            >
+              <View
+                accessibilityRole="checkbox"
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#121314",
+                    "borderRadius": 4,
+                    "borderWidth": 2,
+                    "height": 20,
+                    "justifyContent": "center",
+                    "width": 20,
+                  }
+                }
+              />
+            </TouchableOpacity>
+            <Text
+              accessibilityRole="link"
+              accessible={true}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "backgroundColor": "transparent",
+                  "color": "#121314",
+                  "flexDirection": "row",
+                  "flexWrap": "wrap",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "gap": 1,
+                  "justifyContent": "flex-start",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "width": "95%",
+                }
+              }
+              suppressHighlighting={true}
+              testID="checkbox-text"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me.
+                <Text
+                  accessibilityRole="text"
+                  onPress={[Function]}
+                  style={
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                  testID="learn-more-link"
+                >
+                   Learn more.
+                </Text>
+              </Text>
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "flexDirection": "column",
+                "marginBottom": 0,
+                "marginTop": "auto",
+                "rowGap": 18,
+                "width": "100%",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "width": "100%",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "flex": 1,
+                      "fontFamily": "CentraNo1-Medium",
+                      "fontSize": 18,
+                      "fontWeight": "500",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Unlock with Face ID?
+                </Text>
+                <View
+                  style={
+                    {
+                      "marginLeft": 16,
+                    }
+                  }
+                >
+                  <RCTSwitch
+                    accessibilityRole="switch"
+                    onChange={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    onTintColor="#4459ff"
+                    style={
+                      [
+                        {
+                          "height": 31,
+                          "width": 51,
+                        },
+                        [
+                          {
+                            "alignSelf": "flex-start",
+                          },
+                          {
+                            "backgroundColor": "#b7bbc866",
+                            "borderRadius": 16,
+                          },
+                        ],
+                      ]
+                    }
+                    thumbTintColor="#ffffff"
+                    tintColor="#b7bbc866"
+                    value={true}
+                  />
+                </View>
+              </View>
+            </View>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              disabled={true}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#4459ff",
+                  "borderRadius": 12,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "opacity": 0.5,
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="submit-button"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 16,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Create password
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </View>
+  </RCTScrollView>
+</RCTSafeAreaView>
 `;

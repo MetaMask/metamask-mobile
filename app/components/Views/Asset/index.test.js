@@ -1,10 +1,104 @@
 import React from 'react';
 import { TransactionType } from '@metamask/transaction-controller';
 import { swapsUtils } from '@metamask/swaps-controller/';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  renderScreen,
+} from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Asset from './';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
+
+// Mock Solana transactions for testing
+const mockSolanaTransactions = [
+  // Native SOL transaction
+  {
+    id: 'sol-tx-1',
+    time: 1000000,
+    from: [
+      {
+        address: '8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC',
+        asset: {
+          amount: '0.1',
+          fungible: true,
+          type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          unit: 'SOL',
+        },
+      },
+    ],
+    to: [
+      {
+        address: 'EMmTjuHsYCYX7vgPcQ2QVbNwYAwcvGoSMCEaHKc19DdE',
+        asset: {
+          amount: '0.1',
+          fungible: true,
+          type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          unit: 'SOL',
+        },
+      },
+    ],
+  },
+  // SPL token transaction (USDC)
+  {
+    id: 'spl-tx-1',
+    time: 2000000,
+    from: [
+      {
+        address: '8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC',
+        asset: {
+          amount: '100',
+          fungible: true,
+          type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          unit: 'USDC',
+        },
+      },
+    ],
+    to: [
+      {
+        address: 'EMmTjuHsYCYX7vgPcQ2QVbNwYAwcvGoSMCEaHKc19DdE',
+        asset: {
+          amount: '100',
+          fungible: true,
+          type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          unit: 'USDC',
+        },
+      },
+    ],
+  },
+  // Mixed transaction (swap with SOL + token)
+  {
+    id: 'mixed-tx-1',
+    time: 3000000,
+    from: [
+      {
+        address: 'FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6',
+        asset: {
+          amount: '1',
+          fungible: true,
+          type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:BQX1cjcRHXmrqNtoFWwmE5bZj7RPneTmqXB979b2pump',
+          unit: 'ITALIANROT',
+        },
+      },
+      {
+        address: 'FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6',
+        asset: {
+          amount: '0.00203928',
+          fungible: true,
+          type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          unit: 'SOL',
+        },
+      },
+    ],
+    to: [],
+  },
+  // Transaction with no asset data
+  {
+    id: 'empty-tx-1',
+    time: 4000000,
+    from: [],
+    to: [],
+  },
+];
 
 const mockInitialState = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
@@ -72,11 +166,66 @@ const mockInitialState = {
           },
         ],
       },
+      MultichainTransactionsController: {
+        nonEvmTransactions: {},
+      },
     },
   },
 };
 
+// Helper to create state with different account types
+const createMockStateWithAccount = (accountType = EthAccountType.Eoa) => ({
+  ...mockInitialState,
+  engine: {
+    ...mockInitialState.engine,
+    backgroundState: {
+      ...mockInitialState.engine.backgroundState,
+      AccountsController: {
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+        internalAccounts: {
+          ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+          selectedAccount: 'test-selected-account-id',
+          accounts: {
+            'test-selected-account-id': {
+              id: 'test-selected-account-id',
+              address: '8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC',
+              type: accountType,
+              options: {},
+              methods: [],
+              metadata: {
+                name: 'Test Account',
+                keyring: { type: 'HD Key Tree' },
+              },
+            },
+          },
+        },
+      },
+      MultichainTransactionsController: {
+        nonEvmTransactions: {
+          'test-selected-account-id': {
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+              transactions: mockSolanaTransactions,
+              next: null,
+              lastUpdated: Date.now(),
+            },
+          },
+        },
+      },
+    },
+  },
+});
+
 jest.unmock('react-native/Libraries/Interaction/InteractionManager');
+
+jest.mock('../../../util/networks', () => ({
+  ...jest.requireActual('../../../util/networks'),
+  isPortfolioViewEnabled: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('1.0.0'),
+  getBuildNumber: jest.fn().mockReturnValue(1),
+}));
 
 jest.mock('../../../core/Engine', () => {
   const {
@@ -98,9 +247,55 @@ jest.mock('../../../core/Engine', () => {
     },
     controllerMessenger: {
       subscribe: jest.fn(),
+      unsubscribe: jest.fn(),
     },
   };
 });
+
+jest.mock('../../../components/UI/Stake/sdk/stakeSdkProvider', () => ({
+  earnApiService: {
+    pooledStaking: {
+      getStakingBalance: jest.fn().mockResolvedValue('0'),
+      getStakingPositions: jest.fn().mockResolvedValue([]),
+    },
+    lending: {
+      getLendingBalance: jest.fn().mockResolvedValue('0'),
+      getLendingPositions: jest.fn().mockResolvedValue([]),
+    },
+  },
+  stakingApiService: {
+    getStakingBalance: jest.fn().mockResolvedValue('0'),
+    getStakingPositions: jest.fn().mockResolvedValue([]),
+  },
+  lendingApiService: {
+    getLendingBalance: jest.fn().mockResolvedValue('0'),
+    getLendingPositions: jest.fn().mockResolvedValue([]),
+  },
+}));
+
+jest.mock('../../../selectors/earnController/earn', () => ({
+  selectLendingMarketsByChainIdAndTokenAddress: jest.fn().mockReturnValue({}),
+  selectLendingMarketsByChainIdAndOutputTokenAddress: jest
+    .fn()
+    .mockReturnValue({}),
+  selectStakingMarketsByChainIdAndTokenAddress: jest.fn().mockReturnValue({}),
+  selectStakingMarketsByChainIdAndOutputTokenAddress: jest
+    .fn()
+    .mockReturnValue({}),
+  selectEarnState: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock('../../../components/UI/Earn/hooks/useEarnTokens', () => ({
+  __esModule: true,
+  default: () => ({
+    getEarnToken: jest.fn().mockReturnValue(undefined),
+    getOutputToken: jest.fn().mockReturnValue(undefined),
+    getPairedEarnTokens: jest.fn().mockReturnValue({
+      earnToken: undefined,
+      outputToken: undefined,
+    }),
+  }),
+}));
 
 describe('Asset', () => {
   it('should render correctly', () => {
@@ -146,6 +341,27 @@ describe('Asset', () => {
     expect(mockSetOptions).toHaveBeenCalled();
   });
 
+  it('should display swaps button if the asset is allowed', () => {
+    const { toJSON } = renderWithProvider(
+      <Asset
+        navigation={{ setOptions: jest.fn() }}
+        route={{
+          params: {
+            symbol: 'ETH',
+            address: 'something',
+            isETH: true,
+            chainId: '0x1',
+          },
+        }}
+      />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('should not display swaps button if the asset is not allowed', () => {
     jest.spyOn(swapsUtils, 'fetchSwapsFeatureFlags').mockRejectedValue('error');
     const { toJSON } = renderWithProvider(
@@ -166,5 +382,360 @@ describe('Asset', () => {
     );
 
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  describe('Multichain Functionality', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should render EVM assets with Transactions component', () => {
+      const { toJSON } = renderScreen(
+        (props) => (
+          <Asset
+            {...props}
+            route={{
+              params: {
+                symbol: 'ETH',
+                address: '0x0000000000000000000000000000000000000000',
+                isETH: true,
+                chainId: '0x1', // EVM chain
+              },
+            }}
+          />
+        ),
+        {
+          name: 'Asset',
+        },
+        {
+          state: createMockStateWithAccount(EthAccountType.Eoa),
+        },
+        {
+          symbol: 'ETH',
+          address: '0x0000000000000000000000000000000000000000',
+          isETH: true,
+          chainId: '0x1',
+        },
+      );
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should render non-EVM assets with MultichainTransactionsView', () => {
+      const { toJSON } = renderScreen(
+        (props) => (
+          <Asset
+            {...props}
+            route={{
+              params: {
+                symbol: 'SOL',
+                address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+                isNative: true,
+                chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp', // Solana chain
+              },
+            }}
+          />
+        ),
+        {
+          name: 'Asset',
+        },
+        {
+          state: createMockStateWithAccount(SolAccountType.DataAccount),
+        },
+        {
+          symbol: 'SOL',
+          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          isNative: true,
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        },
+      );
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should filter native SOL transactions correctly', () => {
+      const testState = createMockStateWithAccount(SolAccountType.DataAccount);
+
+      const { toJSON } = renderScreen(
+        (props) => (
+          <Asset
+            {...props}
+            route={{
+              params: {
+                symbol: 'SOL',
+                address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+                isNative: true,
+                chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+              },
+            }}
+          />
+        ),
+        {
+          name: 'Asset',
+        },
+        { state: testState },
+        {
+          symbol: 'SOL',
+          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          isNative: true,
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        },
+      );
+
+      // Should render only pure SOL transactions, not mixed ones
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should filter SPL token transactions correctly', () => {
+      const testState = createMockStateWithAccount(SolAccountType.DataAccount);
+
+      const { toJSON } = renderScreen(
+        (props) => (
+          <Asset
+            {...props}
+            route={{
+              params: {
+                symbol: 'USDC',
+                address:
+                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                isNative: false,
+                chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+              },
+            }}
+          />
+        ),
+        {
+          name: 'Asset',
+        },
+        { state: testState },
+        {
+          symbol: 'USDC',
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          isNative: false,
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        },
+      );
+
+      // Should render only USDC transactions
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should exclude transactions with empty asset data', () => {
+      const testState = createMockStateWithAccount(SolAccountType.DataAccount);
+
+      const { toJSON } = renderScreen(
+        (props) => (
+          <Asset
+            {...props}
+            route={{
+              params: {
+                symbol: 'SOL',
+                address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+                isNative: true,
+                chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+              },
+            }}
+          />
+        ),
+        {
+          name: 'Asset',
+        },
+        { state: testState },
+        {
+          symbol: 'SOL',
+          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          isNative: true,
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        },
+      );
+
+      // Should not include empty transactions (empty-tx-1)
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should exclude mixed token/SOL transactions from native SOL view', () => {
+      const testState = createMockStateWithAccount(SolAccountType.DataAccount);
+
+      const { toJSON } = renderScreen(
+        (props) => (
+          <Asset
+            {...props}
+            route={{
+              params: {
+                symbol: 'SOL',
+                address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+                isNative: true,
+                chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+              },
+            }}
+          />
+        ),
+        {
+          name: 'Asset',
+        },
+        { state: testState },
+        {
+          symbol: 'SOL',
+          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          isNative: true,
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        },
+      );
+
+      // Should not include mixed-tx-1 (ITALIANROT + SOL)
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should handle unknown SPL token filtering gracefully', () => {
+      const testState = createMockStateWithAccount(SolAccountType.DataAccount);
+
+      const { toJSON } = renderScreen(
+        (props) => (
+          <Asset
+            {...props}
+            route={{
+              params: {
+                symbol: 'UNKNOWN',
+                address:
+                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:UnknownTokenAddress',
+                isNative: false,
+                chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+              },
+            }}
+          />
+        ),
+        {
+          name: 'Asset',
+        },
+        { state: testState },
+        {
+          symbol: 'UNKNOWN',
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:UnknownTokenAddress',
+          isNative: false,
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        },
+      );
+
+      // Should render empty state for unknown tokens
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should sort filtered transactions by time descending', () => {
+      const testState = createMockStateWithAccount(SolAccountType.DataAccount);
+
+      const { toJSON } = renderScreen(
+        (props) => (
+          <Asset
+            {...props}
+            route={{
+              params: {
+                symbol: 'SOL',
+                address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+                isNative: true,
+                chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+              },
+            }}
+          />
+        ),
+        {
+          name: 'Asset',
+        },
+        { state: testState },
+        {
+          symbol: 'SOL',
+          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          isNative: true,
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        },
+      );
+
+      // Transactions should be sorted by time (newest first)
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should use EVM transactions for EVM account types', () => {
+      const testState = createMockStateWithAccount(EthAccountType.Eoa);
+
+      const { toJSON } = renderScreen(
+        (props) => (
+          <Asset
+            {...props}
+            route={{
+              params: {
+                symbol: 'ETH',
+                address: '0x0000000000000000000000000000000000000000',
+                isETH: true,
+                chainId: '0x1',
+              },
+            }}
+          />
+        ),
+        {
+          name: 'Asset',
+        },
+        { state: testState },
+        {
+          symbol: 'ETH',
+          address: '0x0000000000000000000000000000000000000000',
+          isETH: true,
+          chainId: '0x1',
+        },
+      );
+
+      // Should use EVM transactions even if multichain data exists
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should handle state with no multichain transactions', () => {
+      const stateWithoutMultichain = {
+        ...createMockStateWithAccount(SolAccountType.DataAccount),
+        engine: {
+          ...createMockStateWithAccount(SolAccountType.DataAccount).engine,
+          backgroundState: {
+            ...createMockStateWithAccount(SolAccountType.DataAccount).engine
+              .backgroundState,
+            MultichainTransactionsController: {
+              nonEvmTransactions: {
+                'test-selected-account-id': {
+                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                    transactions: [],
+                    next: null,
+                    lastUpdated: Date.now(),
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const { toJSON } = renderScreen(
+        (props) => (
+          <Asset
+            {...props}
+            route={{
+              params: {
+                symbol: 'SOL',
+                address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+                isNative: true,
+                chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+              },
+            }}
+          />
+        ),
+        {
+          name: 'Asset',
+        },
+        { state: stateWithoutMultichain },
+        {
+          symbol: 'SOL',
+          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          isNative: true,
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        },
+      );
+
+      expect(toJSON()).toMatchSnapshot();
+    });
   });
 });

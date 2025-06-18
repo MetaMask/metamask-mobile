@@ -1,6 +1,5 @@
 import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionMeta } from '@metamask/transaction-controller';
-
 import { useSelector } from 'react-redux';
 
 import { selectTransactionMetadataById } from '../../../../../selectors/transactionController';

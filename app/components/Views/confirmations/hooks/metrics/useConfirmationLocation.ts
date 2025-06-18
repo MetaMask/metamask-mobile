@@ -12,35 +12,42 @@ import useApprovalRequest, {
 } from '../useApprovalRequest';
 
 const ConfirmationLocationMap = {
-    [TransactionType.personalSign]: () =>
-      CONFIRMATION_EVENT_LOCATIONS.PERSONAL_SIGN,
-    [TransactionType.signTypedData]: ({
-      signatureRequestVersion,
-    }: {
-      signatureRequestVersion: string;
-    }) => {
-      if (signatureRequestVersion === 'V1')
-        return CONFIRMATION_EVENT_LOCATIONS.TYPED_SIGN_V1;
-      return CONFIRMATION_EVENT_LOCATIONS.TYPED_SIGN_V3_V4;
-    },
-    [ApprovalType.Transaction]: ({
-      transactionType,
-    }: {
-      transactionType?: TransactionType;
-    }) => {
-      switch (transactionType) {
-        case TransactionType.stakingDeposit:
-          return CONFIRMATION_EVENT_LOCATIONS.STAKING_DEPOSIT;
-        case TransactionType.stakingUnstake:
-          return CONFIRMATION_EVENT_LOCATIONS.STAKING_WITHDRAWAL;
-        case TransactionType.stakingClaim:
-          return CONFIRMATION_EVENT_LOCATIONS.STAKING_CLAIM;
-        default:
-          return undefined;
-      }
-    },
-  };
-
+  [TransactionType.personalSign]: () =>
+    CONFIRMATION_EVENT_LOCATIONS.PERSONAL_SIGN,
+  [TransactionType.signTypedData]: ({
+    signatureRequestVersion,
+  }: {
+    signatureRequestVersion: string;
+  }) => {
+    if (signatureRequestVersion === 'V1')
+      return CONFIRMATION_EVENT_LOCATIONS.TYPED_SIGN_V1;
+    return CONFIRMATION_EVENT_LOCATIONS.TYPED_SIGN_V3_V4;
+  },
+  [ApprovalType.Transaction]: ({
+    transactionType,
+  }: {
+    transactionType?: TransactionType;
+  }) => {
+    switch (transactionType) {
+      case TransactionType.stakingDeposit:
+        return CONFIRMATION_EVENT_LOCATIONS.STAKING_DEPOSIT;
+      case TransactionType.stakingUnstake:
+        return CONFIRMATION_EVENT_LOCATIONS.STAKING_WITHDRAWAL;
+      case TransactionType.stakingClaim:
+        return CONFIRMATION_EVENT_LOCATIONS.STAKING_CLAIM;
+      case TransactionType.simpleSend:
+      case TransactionType.tokenMethodTransfer:
+      case TransactionType.tokenMethodTransferFrom:
+        return CONFIRMATION_EVENT_LOCATIONS.TRANSFER;
+      case TransactionType.tokenMethodApprove:
+      case TransactionType.tokenMethodIncreaseAllowance:
+      case TransactionType.tokenMethodSetApprovalForAll:
+        return CONFIRMATION_EVENT_LOCATIONS.APPROVE;
+      default:
+        return undefined;
+    }
+  },
+};
 
 const determineConfirmationLocation = ({
   approvalRequest,
@@ -100,4 +107,3 @@ export const useConfirmationLocation = ():
 
   return location;
 };
-

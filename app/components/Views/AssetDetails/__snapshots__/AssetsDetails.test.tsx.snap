@@ -231,6 +231,7 @@ exports[`AssetDetails renders correctly 1`] = `
       </Text>
       <Text
         allowFontScaling={false}
+        selectable={false}
         style={
           [
             {
@@ -250,7 +251,7 @@ exports[`AssetDetails renders correctly 1`] = `
           ]
         }
       >
-        
+        
       </Text>
     </TouchableOpacity>
     <Text

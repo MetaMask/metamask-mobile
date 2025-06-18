@@ -31,12 +31,12 @@ import TransactionTypes from '../../../core/TransactionTypes';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { query } from '@metamask/controller-utils';
 import BigNumber from 'bignumber.js';
-import { toLowerCaseEquals } from '../../../util/general';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   getAddressAccountType,
   isHardwareAccount,
+  areAddressesEqual,
 } from '../../../util/address';
 
 import {
@@ -411,7 +411,7 @@ const RootRPCMethodsUI = (props) => {
             TOKEN_METHOD_TRANSFER
         ) {
           let asset = props.tokens.find(({ address }) =>
-            toLowerCaseEquals(address, to),
+            areAddressesEqual(address, to),
           );
           if (!asset) {
             // try to lookup contract by lowercased address `to`
@@ -510,8 +510,8 @@ const RootRPCMethodsUI = (props) => {
     initializeWalletConnect();
 
     return function cleanup() {
-      Engine.context.TokensController.hub.removeAllListeners();
-      WalletConnect.hub.removeAllListeners();
+      Engine.context.TokensController?.hub?.removeAllListeners();
+      WalletConnect?.hub?.removeAllListeners();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -588,7 +588,10 @@ const mapStateToProps = (state) => ({
   chainId: selectEvmChainId(state),
   tokens: selectTokens(state),
   providerType: selectProviderType(state),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(
+    state,
+    selectEvmChainId(state),
+  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({

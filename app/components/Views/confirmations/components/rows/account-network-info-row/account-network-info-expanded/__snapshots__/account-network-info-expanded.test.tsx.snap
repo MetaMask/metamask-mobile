@@ -63,7 +63,7 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 14,
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -121,7 +121,7 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 14,
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -201,7 +201,7 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
             {
               "alignItems": "center",
               "backgroundColor": "#ffffff",
-              "borderRadius": 8,
+              "borderRadius": 4,
               "height": 16,
               "justifyContent": "center",
               "overflow": "hidden",
@@ -228,7 +228,7 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
             {
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
-              "fontSize": 14,
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,

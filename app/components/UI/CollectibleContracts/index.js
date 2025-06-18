@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 import PropTypes from 'prop-types';
 import {
   TouchableOpacity,
@@ -24,7 +30,7 @@ import {
 } from '../../../reducers/collectibles';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import AppConstants from '../../../core/AppConstants';
-import { toLowerCaseEquals } from '../../../util/general';
+import { areAddressesEqual } from '../../../util/address';
 import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import { useTheme } from '../../../util/theme';
@@ -34,10 +40,12 @@ import {
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectProviderType,
+  selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import {
   selectDisplayNftMedia,
   selectIsIpfsGatewayEnabled,
+  selectTokenNetworkFilter,
   selectUseNftDetection,
 } from '../../../selectors/preferencesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
@@ -54,6 +62,7 @@ import { createTokenBottomSheetFilterNavDetails } from '../Tokens/TokensBottomSh
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { prepareNftDetectionEvents } from '../../../util/assets';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -96,6 +105,7 @@ const createStyles = (colors) =>
       marginRight: 5,
       maxWidth: '60%',
       opacity: 0.5,
+      borderRadius: 20,
     },
     controlButton: {
       backgroundColor: colors.background.default,
@@ -105,6 +115,7 @@ const createStyles = (colors) =>
       marginLeft: 5,
       marginRight: 5,
       maxWidth: '60%',
+      borderRadius: 20,
     },
     emptyView: {
       justifyContent: 'center',
@@ -167,23 +178,48 @@ const CollectibleContracts = ({
   isIpfsGatewayEnabled,
   displayNftMedia,
 }) => {
+  // Start tracing component loading
+  const isFirstRender = useRef(true);
+
+  if (isFirstRender.current) {
+    trace({ name: TraceName.CollectibleContractsComponent });
+  }
+
   const isAllNetworks = useSelector(selectIsAllNetworks);
+  const allNetworks = useSelector(selectNetworkConfigurations);
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
 
-  const filteredCollectibleContracts = useMemo(
+  const allNetworkClientIds = useMemo(
     () =>
-      isAllNetworks
-        ? Object.values(collectibleContracts).flat()
-        : collectibleContracts[chainId] || [],
-    [collectibleContracts, chainId, isAllNetworks],
+      Object.keys(tokenNetworkFilter).flatMap((chainId) => {
+        const entry = allNetworks[chainId];
+        if (!entry) {
+          return [];
+        }
+        const index = entry.defaultRpcEndpointIndex;
+        const endpoint = entry.rpcEndpoints[index];
+        return endpoint?.networkClientId ? [endpoint.networkClientId] : [];
+      }),
+    [tokenNetworkFilter, allNetworks],
   );
 
-  const filteredCollectibles = useMemo(
-    () =>
-      isAllNetworks
-        ? Object.values(allCollectibles).flat()
-        : allCollectibles[chainId] || [],
-    [allCollectibles, chainId, isAllNetworks],
-  );
+  const filteredCollectibleContracts = useMemo(() => {
+    trace({ name: TraceName.LoadCollectibles, id: 'contracts' });
+    const contracts = isAllNetworks
+      ? Object.values(collectibleContracts).flat()
+      : collectibleContracts[chainId] || [];
+    endTrace({ name: TraceName.LoadCollectibles, id: 'contracts' });
+    return contracts;
+  }, [collectibleContracts, chainId, isAllNetworks]);
+
+  const filteredCollectibles = useMemo(() => {
+    trace({ name: TraceName.LoadCollectibles });
+    const collectibles = isAllNetworks
+      ? Object.values(allCollectibles).flat()
+      : allCollectibles[chainId] || [];
+    endTrace({ name: TraceName.LoadCollectibles });
+    return collectibles;
+  }, [allCollectibles, chainId, isAllNetworks]);
 
   const collectibles = filteredCollectibles.filter(
     (singleCollectible) => singleCollectible.isCurrentlyOwned === true,
@@ -337,7 +373,7 @@ const CollectibleContracts = ({
   const renderCollectibleContract = useCallback(
     (item, index) => {
       const contractCollectibles = collectibles?.filter((collectible) =>
-        toLowerCaseEquals(collectible.address, item.address),
+        areAddressesEqual(collectible.address, item.address),
       );
       return (
         <CollectibleContractElement
@@ -395,15 +431,22 @@ const CollectibleContracts = ({
       const previousNfts = cloneDeep(
         NftController.state.allNfts[selectedAddress.toLowerCase()],
       );
+      trace({ name: TraceName.DetectNfts });
 
       setRefreshing(true);
 
       const actions = [
         NftDetectionController.detectNfts(chainIdsToDetectNftsFor),
-        NftController.checkAndUpdateAllNftsOwnershipStatus(),
       ];
+      allNetworkClientIds.forEach((networkClientId) => {
+        actions.push(
+          NftController.checkAndUpdateAllNftsOwnershipStatus(networkClientId),
+        );
+      });
+
       await Promise.allSettled(actions);
       setRefreshing(false);
+      endTrace({ name: TraceName.DetectNfts });
 
       // Get updated state after refresh
       const newNfts = cloneDeep(
@@ -429,6 +472,7 @@ const CollectibleContracts = ({
     getNftDetectionAnalyticsParams,
     selectedAddress,
     trackEvent,
+    allNetworkClientIds,
   ]);
 
   const goToLearnMore = useCallback(
@@ -503,6 +547,12 @@ const CollectibleContracts = ({
     ],
   );
 
+  // End trace when component has finished initial loading
+  useEffect(() => {
+    endTrace({ name: TraceName.CollectibleContractsComponent });
+    isFirstRender.current = false;
+  }, []);
+
   return (
     <View
       style={styles.BarWrapper}
@@ -515,9 +565,7 @@ const CollectibleContracts = ({
             label={
               <Text style={styles.controlButtonText} numberOfLines={1}>
                 {isAllNetworks && isPopularNetwork && isEvmSelected
-                  ? `${strings('app_settings.popular')} ${strings(
-                      'app_settings.networks',
-                    )}`
+                  ? strings('wallet.popular_networks')
                   : networkName ?? strings('wallet.current_network')}
               </Text>
             }

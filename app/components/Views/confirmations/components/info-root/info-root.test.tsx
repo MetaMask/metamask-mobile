@@ -2,10 +2,21 @@ import React from 'react';
 import { Text } from 'react-native';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { personalSignatureConfirmationState } from '../../../../../util/test/confirm-data-helpers';
+import {
+  downgradeAccountConfirmation,
+  getAppStateForConfirmation,
+  personalSignatureConfirmationState,
+  upgradeAccountConfirmation,
+  upgradeOnlyAccountConfirmation,
+} from '../../../../../util/test/confirm-data-helpers';
+import { approveERC20TransactionStateMock } from '../../__mocks__/approve-transaction-mock';
 // eslint-disable-next-line import/no-namespace
 import * as QRHardwareHook from '../../context/qr-hardware-context/qr-hardware-context';
 import Info from './info-root';
+
+jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
+  AssetPollingProvider: () => null,
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -32,6 +43,7 @@ jest.mock('../../../../../core/Engine', () => ({
     },
     NetworkController: {
       getNetworkConfigurationByNetworkClientId: jest.fn(),
+      findNetworkClientIdByChainId: jest.fn(),
     },
     AccountsController: {
       state: {
@@ -43,6 +55,11 @@ jest.mock('../../../../../core/Engine', () => ({
           },
         },
       },
+    },
+    TransactionController: {
+      getTransactions: jest.fn().mockReturnValue([]),
+      getNonceLock: jest.fn().mockReturnValue({ releaseLock: jest.fn() }),
+      updateTransaction: jest.fn(),
     },
   },
   controllerMessenger: {
@@ -67,5 +84,38 @@ describe('Info', () => {
       state: personalSignatureConfirmationState,
     });
     expect(getByText('QR Scanning Component')).toBeTruthy();
+  });
+
+  it('renders SwitchAccountType for smart account type - downgrade confirmations', () => {
+    const { getByText } = renderWithProvider(<Info />, {
+      state: getAppStateForConfirmation(downgradeAccountConfirmation),
+    });
+    expect(getByText('Switching To')).toBeTruthy();
+    expect(getByText('Standard Account')).toBeTruthy();
+  });
+
+  it('renders SwitchAccountType for smart account type - upgrade confirmations', () => {
+    const { getByText } = renderWithProvider(<Info />, {
+      state: getAppStateForConfirmation(upgradeOnlyAccountConfirmation),
+    });
+    expect(getByText('Switching To')).toBeTruthy();
+    expect(getByText('Smart Account')).toBeTruthy();
+  });
+
+  it('renders correctly for smart account type - upgrade + batched confirmations', () => {
+    const { getByText } = renderWithProvider(<Info />, {
+      state: getAppStateForConfirmation(upgradeAccountConfirmation),
+    });
+    expect(getByText('Estimated changes')).toBeTruthy();
+    expect(getByText('Switching To')).toBeTruthy();
+    expect(getByText('Smart Account')).toBeTruthy();
+  });
+
+  it('renders expected elements for approve', () => {
+    const { getByText } = renderWithProvider(<Info />, {
+      state: approveERC20TransactionStateMock,
+    });
+    expect(getByText('Network Fee')).toBeTruthy();
+    expect(getByText('Advanced details')).toBeTruthy();
   });
 });
