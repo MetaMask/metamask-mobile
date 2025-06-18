@@ -343,7 +343,11 @@ describe('Trace', () => {
 
     it('send buffered trace after if consent is given', async () => {
       const spanEndMock = jest.fn();
-      const spanMock = { end: spanEndMock } as unknown as Span;
+      const mockSetAttribute = jest.fn();
+      const spanMock = {
+        end: spanEndMock,
+        setAttribute: mockSetAttribute,
+      } as unknown as Span;
 
       startSpanManualMock.mockImplementation((_, fn) =>
         fn(spanMock, () => {
@@ -359,7 +363,11 @@ describe('Trace', () => {
         parentContext: PARENT_CONTEXT_MOCK,
       });
 
-      bufferedEndTrace({ name: NAME_MOCK, id: ID_MOCK });
+      bufferedEndTrace({
+        name: NAME_MOCK,
+        id: ID_MOCK,
+        data: { test: 'test' },
+      });
 
       jest
         .spyOn(storageWrapper, 'getItem')
@@ -371,6 +379,7 @@ describe('Trace', () => {
 
       // called twice because of the buffer trace and buffered end trace
       expect(spanEndMock).toHaveBeenCalledTimes(2);
+      expect(mockSetAttribute).toHaveBeenCalled();
     });
 
     it('discard buffered trace if consent is not given', async () => {
@@ -379,7 +388,6 @@ describe('Trace', () => {
       const spanEndMock = jest.fn();
       const spanMock = {
         end: spanEndMock,
-        setAttribute: jest.fn(),
       } as unknown as Span;
 
       startSpanManualMock.mockImplementation((_, fn) =>
@@ -404,15 +412,14 @@ describe('Trace', () => {
       bufferedEndTrace({
         name: NAME_MOCK,
         id: ID_MOCK,
-        data: { test: 'test' },
       });
 
       await flushBufferedTraces();
 
       jest.advanceTimersByTime(TRACES_CLEANUP_INTERVAL + 1000);
 
-      // will be called once because bufferedEndTrace will be call endTrace
-      expect(spanEndMock).toHaveBeenCalledTimes(1);
+      // will not be called due to consent not given and not start trace
+      expect(spanEndMock).toHaveBeenCalledTimes(0);
     });
   });
 });
