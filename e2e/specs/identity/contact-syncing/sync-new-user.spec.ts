@@ -20,6 +20,7 @@ import {
 } from '../utils/user-storage/userStorageMockttpController';
 import { MockttpServer } from 'mockttp';
 import ContactsView from '../../../pages/Settings/Contacts/ContactsView';
+import AddContactView from '../../../pages/Settings/Contacts/AddContactView';
 
 describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
   const NEW_CONTACT_NAME = 'New Test Contact';
@@ -63,11 +64,10 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
       password: IDENTITY_TEAM_PASSWORD,
     });
 
-    await TabBarComponent.tapContacts();
-    await Assertions.checkIfVisible(
-      ContactsView.container,
-      'Contacts view should be visible',
-    );
+    await TabBarComponent.tapSettings();
+    await TestHelpers.delay(1000);
+    await ContactsView.tapAddContactButton();
+    await Assertions.checkIfVisible(AddContactView.container);
     await TestHelpers.delay(4000);
 
     const { prepareEventsEmittedCounter, waitUntilSyncedContactsNumberEquals } =
@@ -76,23 +76,15 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
       UserStorageMockttpControllerEvents.PUT_SINGLE,
     );
 
-    await ContactsView.tapAddContactButton();
-    await Assertions.checkIfVisible(
-      AddContactView.container,
-      'Add contact view should be visible',
-    );
-    await AddContactView.typeContactName(NEW_CONTACT_NAME);
-    await AddContactView.typeContactAddress(NEW_CONTACT_ADDRESS);
-    await AddContactView.tapSaveButton();
+    await AddContactView.typeInName(NEW_CONTACT_NAME);
+    await AddContactView.typeInAddress(NEW_CONTACT_ADDRESS);
+    await AddContactView.tapAddContactButton();
     await TestHelpers.delay(2000);
 
     await waitUntilEventsEmittedNumberEquals(1);
     await waitUntilSyncedContactsNumberEquals(1);
 
-    await Assertions.checkIfVisible(
-      ContactsView.getContactElementByContactName(NEW_CONTACT_NAME),
-      `Contact "${NEW_CONTACT_NAME}" should be visible in the list`,
-    );
+    await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
 
     await TestHelpers.launchApp({
       newInstance: true,
@@ -105,16 +97,12 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
       password: IDENTITY_TEAM_PASSWORD,
     });
 
-    await TabBarComponent.tapContacts();
-    await Assertions.checkIfVisible(
-      ContactsView.container,
-      'Contacts view should be visible',
-    );
+    await TabBarComponent.tapSettings();
+    await TestHelpers.delay(1000);
+    await ContactsView.tapAddContactButton();
+    await Assertions.checkIfVisible(AddContactView.container);
     await TestHelpers.delay(4000);
 
-    await Assertions.checkIfVisible(
-      ContactsView.getContactElementByContactName(NEW_CONTACT_NAME),
-      `Contact "${NEW_CONTACT_NAME}" should be visible in the list after app restart`,
-    );
+    await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
   });
 });

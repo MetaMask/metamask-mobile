@@ -22,11 +22,10 @@ export const arrangeTestUtils = (
       expectedNumber: number,
     ) => {
       const maxAttempts = 10;
-      let attempts = 0;
 
-      while (eventsEmitted < expectedNumber && attempts < maxAttempts) {
+      // eslint-disable-next-line no-unmodified-loop-condition
+      for (let i = 0; i < maxAttempts && eventsEmitted < expectedNumber; i++) {
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        attempts += 1;
       }
 
       if (eventsEmitted !== expectedNumber) {

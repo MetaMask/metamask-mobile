@@ -1022,10 +1022,12 @@ export class Engine {
           onContactUpdated: (profileId) => {
             MetaMetrics.getInstance().trackEvent(
               MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.CONTACTS_SYNC_UPDATED,
+                MetaMetricsEvents.IDENTITY_EVENT,
               )
                 .addProperties({
                   profile_id: profileId,
+                  feature_name: 'Contacts Sync',
+                  action: 'Contacts Sync Contact Updated',
                 })
                 .build(),
             );
@@ -1033,10 +1035,12 @@ export class Engine {
           onContactDeleted: (profileId) => {
             MetaMetrics.getInstance().trackEvent(
               MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.CONTACTS_SYNC_DELETED,
+                MetaMetricsEvents.IDENTITY_EVENT,
               )
                 .addProperties({
                   profile_id: profileId,
+                  feature_name: 'Contacts Sync',
+                  action: 'Contacts Sync Contact Deleted',
                 })
                 .build(),
             );
@@ -1044,11 +1048,13 @@ export class Engine {
           onContactSyncErroneousSituation(profileId, situationMessage) {
             MetaMetrics.getInstance().trackEvent(
               MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.CONTACTS_SYNC_ERRONEOUS_SITUATION,
+                MetaMetricsEvents.IDENTITY_EVENT,
               )
                 .addProperties({
                   profile_id: profileId,
-                  situation_message: situationMessage,
+                  feature_name: 'Contacts Sync',
+                  action: 'Contacts Sync Erroneous Situation',
+                  additional_description: situationMessage,
                 })
                 .build(),
             );
