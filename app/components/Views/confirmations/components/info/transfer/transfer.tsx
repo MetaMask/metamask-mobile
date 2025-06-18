@@ -7,6 +7,7 @@ import { SimulationDetails } from '../../../../../UI/SimulationDetails/Simulatio
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { ConfirmationInfoComponentIDs } from '../../../constants/test';
 import useNavbar from '../../../hooks/ui/useNavbar';
 import { MMM_ORIGIN } from '../../../constants/confirmations';
 import { useMaxValueRefresher } from '../../../hooks/useMaxValueRefresher';
@@ -41,7 +42,7 @@ const Transfer = () => {
   }, [assetType, usdValue, setConfirmationMetric]);
 
   return (
-    <View>
+    <View testID={ConfirmationInfoComponentIDs.TRANSFER}>
       <HeroRow />
       <FromToRow />
       <NetworkAndOriginRow />

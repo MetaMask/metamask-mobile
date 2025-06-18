@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
 
+import { ConfirmationInfoComponentIDs } from '../../../constants/test';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import GasFeesDetailsRow from '../../rows/transactions/gas-fee-details-row';
 import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row';
@@ -12,7 +13,7 @@ const Approve = () => {
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
 
   return (
-    <View>
+    <View testID={ConfirmationInfoComponentIDs.APPROVE}>
       <AccountNetworkInfoRow />
       <GasFeesDetailsRow />
       <AdvancedDetailsRow />
