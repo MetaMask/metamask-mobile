@@ -686,25 +686,22 @@ const AccountConnect = (props: AccountConnectProps) => {
     [sheetRef],
   );
 
-  const handleUpdateNetworkPermissions = useCallback(async () => {
-    let hasPermittedChains = false;
-    let chainsToPermit = selectedChainIds.length > 0 ? selectedChainIds : [];
-    if (chainId && chainsToPermit.length === 0) {
-      //This chainId is in format 0x1 but now we have caip25 format, eip155:1
-      chainsToPermit = [
-        formatChainIdToCaip(chainId)
-      ];
-    }
-
+  const hasPermittedChains = useMemo(() => {
     try {
-      hasPermittedChains = Engine.context.PermissionController.hasCaveat(
+      return Engine.context.PermissionController.hasCaveat(
         channelIdOrHostname,
         PermissionKeys.permittedChains,
         CaveatTypes.restrictNetworkSwitching,
       );
     } catch {
-      // noop
+      return false;
     }
+  }, [channelIdOrHostname]);
+
+  const handleUpdateNetworkPermissions = useCallback(async () => {
+    const chainsToPermit = selectedChainIds.length > 0 ?
+      selectedChainIds :
+      [formatChainIdToCaip(chainId)];
 
     if (hasPermittedChains) {
       Engine.context.PermissionController.updateCaveat(
@@ -730,7 +727,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         },
       });
     }
-  }, [selectedChainIds, chainId, hostname]);
+  }, [selectedChainIds, chainId, hostname, hasPermittedChains]);
 
   const handleConfirm = useCallback(async () => {
     hideSheet();
