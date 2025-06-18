@@ -1,6 +1,5 @@
 import {
   Encryption,
-  UserStoragePathWithFeatureAndKey,
   createSHA256Hash,
   getFeatureAndKeyFromPath,
 } from '@metamask/profile-sync-controller/sdk';
@@ -13,7 +12,7 @@ import { MOCK_SRP_E2E_IDENTIFIER_BASE_KEY } from '../mocks';
  * @param storageKey - The key used for encryption.
  * @returns A promise that resolves to the encrypted string.
  */
-const encryptData = async (data, storageKey) =>
+const encryptData = async (data: unknown, storageKey: string) =>
   await Encryption.encryptString(JSON.stringify(data), storageKey);
 
 /**
@@ -23,7 +22,10 @@ const encryptData = async (data, storageKey) =>
  * @param storageKey - The storage key to be used in the hash generation.
  * @returns The generated SHA-256 hash as a string.
  */
-const generateEncryptedHash = (path, storageKey) => {
+const generateEncryptedHash = (
+  path: `${string}.${string}`,
+  storageKey: string,
+) => {
   const { key: featureKey } = getFeatureAndKeyFromPath(path);
   return createSHA256Hash(featureKey + storageKey);
 };
@@ -39,7 +41,12 @@ const generateEncryptedHash = (path, storageKey) => {
  * @param options.srpIdentifierNumber - Optional identifier number for SRP. Used to determine which SRP storage space to use.
  * @returns A promise that resolves to an object containing the hashed key and encrypted data.
  */
-export const createEncryptedResponse = async (options) => {
+export const createEncryptedResponse = async (options: {
+  data: unknown;
+  storageKey: string;
+  path: `${string}.${string}`;
+  srpIdentifierNumber?: number;
+}) => {
   const { data, storageKey: key, path, srpIdentifierNumber = 1 } = options;
   return {
     HashedKey: generateEncryptedHash(path, key),
