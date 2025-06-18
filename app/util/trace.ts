@@ -336,10 +336,12 @@ export function bufferedEndTrace(request: EndTraceRequest): void {
 export async function flushBufferedTraces(): Promise<void> {
   const canFlush = await updateIsConsentGivenForSentry();
   if (!canFlush) {
+    log('Consent not given, cannot flush buffered traces.');
     preConsentCallBuffer.length = 0;
     return;
   }
 
+  log('Flushing buffered traces. Count:', preConsentCallBuffer.length);
   const bufferToProcess = [...preConsentCallBuffer];
   preConsentCallBuffer.length = 0;
 
@@ -544,7 +546,6 @@ function tryCatchMaybePromise<T>(
 
 async function updateIsConsentGivenForSentry(): Promise<boolean> {
   const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
-  console.log('metricsOptIn', metricsOptIn);
   consentCache = metricsOptIn === AGREED;
   return consentCache;
 }

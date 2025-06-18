@@ -377,7 +377,10 @@ describe('Trace', () => {
       jest.spyOn(storageWrapper, 'getItem').mockClear();
 
       const spanEndMock = jest.fn();
-      const spanMock = { end: spanEndMock } as unknown as Span;
+      const spanMock = {
+        end: spanEndMock,
+        setAttribute: jest.fn(),
+      } as unknown as Span;
 
       startSpanManualMock.mockImplementation((_, fn) =>
         fn(spanMock, () => {
@@ -385,15 +388,24 @@ describe('Trace', () => {
         }),
       );
 
-      bufferedTrace({
+      bufferedTrace(
+        {
+          name: NAME_MOCK,
+          id: ID_MOCK,
+          tags: TAGS_MOCK,
+          data: DATA_MOCK,
+          parentContext: PARENT_CONTEXT_MOCK,
+        },
+        () => {
+          // Intentionally empty
+        },
+      );
+
+      bufferedEndTrace({
         name: NAME_MOCK,
         id: ID_MOCK,
-        tags: TAGS_MOCK,
-        data: DATA_MOCK,
-        parentContext: PARENT_CONTEXT_MOCK,
+        data: { test: 'test' },
       });
-
-      bufferedEndTrace({ name: NAME_MOCK, id: ID_MOCK });
 
       await flushBufferedTraces();
 
