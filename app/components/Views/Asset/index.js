@@ -662,8 +662,8 @@ const mapStateToProps = (state, { route }) => {
   const selectedInternalAccount = selectSelectedInternalAccount(state);
   const evmTransactions = selectTransactions(state);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   let allTransactions = evmTransactions;
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   if (
     selectedInternalAccount &&
     !isEvmAccountType(selectedInternalAccount.type) &&
