@@ -1,8 +1,6 @@
-import { SDK } from '@metamask/profile-sync-controller';
 import {
   IDENTITY_TEAM_PASSWORD,
   IDENTITY_TEAM_SEED_PHRASE,
-  IDENTITY_TEAM_STORAGE_KEY,
 } from '../utils/constants';
 import {
   startMockServer,
@@ -11,7 +9,6 @@ import {
 import { getContactsSyncMockResponse } from './mock-data';
 import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
 import TestHelpers from '../../../helpers';
-import WalletView from '../../../pages/wallet/WalletView';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import Assertions from '../../../utils/Assertions';
 import { mockIdentityServices } from '../utils/mocks';
@@ -20,8 +17,9 @@ import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sd
 import SettingsView from '../../../pages/Settings/SettingsView';
 import BackupAndSyncView from '../../../pages/Settings/BackupAndSyncView';
 import CommonView from '../../../pages/CommonView';
-import ContactsView from '../../../pages/contacts/ContactsView';
-import AddContactView from '../../../pages/contacts/AddContactView';
+import { MockttpServer } from 'mockttp';
+import ContactsView from '../../../pages/Settings/Contacts/ContactsView';
+import AddContactView from '../../../pages/Settings/Contacts/AddContactView';
 
 describe(
   SmokeWalletPlatform('Contact syncing - backup and sync settings'),
@@ -29,7 +27,7 @@ describe(
     const NEW_CONTACT_NAME = 'New Test Contact';
     const NEW_CONTACT_ADDRESS = '0x1234567890123456789012345678901234567890';
     const TEST_SPECIFIC_MOCK_SERVER_PORT = 8007;
-    let mockServer;
+    let mockServer: MockttpServer;
 
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
@@ -42,7 +40,7 @@ describe(
         await mockIdentityServices(mockServer);
 
       await userStorageMockttpControllerInstance.setupPath(
-        USER_STORAGE_FEATURE_NAMES.contacts,
+        USER_STORAGE_FEATURE_NAMES.addressBook,
         mockServer,
         {
           getResponse: contactsSyncMockResponse,
@@ -69,26 +67,44 @@ describe(
       });
 
       await TabBarComponent.tapContacts();
-      await Assertions.checkIfVisible(ContactsView.container, 'Contacts view should be visible');
+      await Assertions.checkIfVisible(
+        ContactsView.container,
+        'Contacts view should be visible',
+      );
       await TestHelpers.delay(4000);
 
       await TabBarComponent.tapSettings();
-      await Assertions.checkIfVisible(SettingsView.backupAndSyncSectionButton, 'Backup and sync section should be visible');
+      await Assertions.checkIfVisible(
+        SettingsView.backupAndSyncSectionButton,
+        'Backup and sync section should be visible',
+      );
       await SettingsView.tapBackupAndSync();
       await TestHelpers.delay(2000);
 
-      await Assertions.checkIfVisible(BackupAndSyncView.backupAndSyncToggle, 'Backup and sync toggle should be visible');
+      await Assertions.checkIfVisible(
+        BackupAndSyncView.backupAndSyncToggle,
+        'Backup and sync toggle should be visible',
+      );
       await BackupAndSyncView.toggleContactSync();
       await TestHelpers.delay(2000);
 
       await CommonView.tapBackButton();
-      await Assertions.checkIfVisible(SettingsView.backupAndSyncSectionButton, 'Backup and sync section should be visible after going back');
+      await Assertions.checkIfVisible(
+        SettingsView.backupAndSyncSectionButton,
+        'Backup and sync section should be visible after going back',
+      );
       await TabBarComponent.tapContacts();
-      await Assertions.checkIfVisible(ContactsView.container, 'Contacts view should be visible');
+      await Assertions.checkIfVisible(
+        ContactsView.container,
+        'Contacts view should be visible',
+      );
       await TestHelpers.delay(2000);
 
       await ContactsView.tapAddContactButton();
-      await Assertions.checkIfVisible(AddContactView.container, 'Add contact view should be visible');
+      await Assertions.checkIfVisible(
+        AddContactView.container,
+        'Add contact view should be visible',
+      );
       await AddContactView.typeContactName(NEW_CONTACT_NAME);
       await AddContactView.typeContactAddress(NEW_CONTACT_ADDRESS);
       await AddContactView.tapSaveButton();
@@ -111,7 +127,10 @@ describe(
       });
 
       await TabBarComponent.tapContacts();
-      await Assertions.checkIfVisible(ContactsView.container, 'Contacts view should be visible');
+      await Assertions.checkIfVisible(
+        ContactsView.container,
+        'Contacts view should be visible',
+      );
       await TestHelpers.delay(4000);
 
       await Assertions.checkIfNotVisible(
@@ -122,22 +141,37 @@ describe(
 
     it('should sync new contacts when contacts sync toggle is on', async () => {
       await TabBarComponent.tapSettings();
-      await Assertions.checkIfVisible(SettingsView.backupAndSyncSectionButton, 'Backup and sync section should be visible');
+      await Assertions.checkIfVisible(
+        SettingsView.backupAndSyncSectionButton,
+        'Backup and sync section should be visible',
+      );
       await SettingsView.tapBackupAndSync();
       await TestHelpers.delay(2000);
 
-      await Assertions.checkIfVisible(BackupAndSyncView.backupAndSyncToggle, 'Backup and sync toggle should be visible');
+      await Assertions.checkIfVisible(
+        BackupAndSyncView.backupAndSyncToggle,
+        'Backup and sync toggle should be visible',
+      );
       await BackupAndSyncView.toggleContactSync();
       await TestHelpers.delay(2000);
 
       await CommonView.tapBackButton();
-      await Assertions.checkIfVisible(SettingsView.backupAndSyncSectionButton, 'Backup and sync section should be visible after going back');
+      await Assertions.checkIfVisible(
+        SettingsView.backupAndSyncSectionButton,
+        'Backup and sync section should be visible after going back',
+      );
       await TabBarComponent.tapContacts();
-      await Assertions.checkIfVisible(ContactsView.container, 'Contacts view should be visible');
+      await Assertions.checkIfVisible(
+        ContactsView.container,
+        'Contacts view should be visible',
+      );
       await TestHelpers.delay(2000);
 
       await ContactsView.tapAddContactButton();
-      await Assertions.checkIfVisible(AddContactView.container, 'Add contact view should be visible');
+      await Assertions.checkIfVisible(
+        AddContactView.container,
+        'Add contact view should be visible',
+      );
       await AddContactView.typeContactName(NEW_CONTACT_NAME);
       await AddContactView.typeContactAddress(NEW_CONTACT_ADDRESS);
       await AddContactView.tapSaveButton();
@@ -160,7 +194,10 @@ describe(
       });
 
       await TabBarComponent.tapContacts();
-      await Assertions.checkIfVisible(ContactsView.container, 'Contacts view should be visible');
+      await Assertions.checkIfVisible(
+        ContactsView.container,
+        'Contacts view should be visible',
+      );
       await TestHelpers.delay(4000);
 
       await Assertions.checkIfVisible(
@@ -169,4 +206,4 @@ describe(
       );
     });
   },
-); 
+);

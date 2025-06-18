@@ -11,7 +11,6 @@ import {
 import { getContactsSyncMockResponse } from './mock-data';
 import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
 import TestHelpers from '../../../helpers';
-import WalletView from '../../../pages/wallet/WalletView';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import Assertions from '../../../utils/Assertions';
 import { mockIdentityServices } from '../utils/mocks';
@@ -20,20 +19,24 @@ import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sd
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { getEventsPayloads } from '../../analytics/helpers';
 import { EVENT_NAME } from '../../../../app/core/Analytics/MetaMetrics.events';
-import ContactsView from '../../../pages/contacts/ContactsView';
+import { MockttpServer } from 'mockttp';
+import ContactsView from '../../../pages/Settings/Contacts/ContactsView';
 
 describe(
   SmokeWalletPlatform('Contact syncing - syncs previously synced contacts'),
   () => {
     const TEST_SPECIFIC_MOCK_SERVER_PORT = 8005;
-    let mockServer;
+    let mockServer: MockttpServer;
 
     beforeAll(async () => {
       const segmentMock = {
         POST: [mockEvents.POST.segmentTrack],
       };
 
-      mockServer = await startMockServer(segmentMock, TEST_SPECIFIC_MOCK_SERVER_PORT);
+      mockServer = await startMockServer(
+        segmentMock,
+        TEST_SPECIFIC_MOCK_SERVER_PORT,
+      );
 
       const contactsSyncMockResponse = await getContactsSyncMockResponse();
 
@@ -41,7 +44,7 @@ describe(
         await mockIdentityServices(mockServer);
 
       await userStorageMockttpControllerInstance.setupPath(
-        USER_STORAGE_FEATURE_NAMES.contacts,
+        USER_STORAGE_FEATURE_NAMES.addressBook,
         mockServer,
         {
           getResponse: contactsSyncMockResponse,
@@ -53,7 +56,10 @@ describe(
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
-        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT), sendMetaMetricsinE2E: true },
+        launchArgs: {
+          mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT),
+          sendMetaMetricsinE2E: true,
+        },
       });
     });
 
@@ -76,15 +82,16 @@ describe(
         }),
       );
 
-      await importWalletWithRecoveryPhrase(
-        {
-          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
-          password: IDENTITY_TEAM_PASSWORD,
-        },
-      );
+      await importWalletWithRecoveryPhrase({
+        seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+        password: IDENTITY_TEAM_PASSWORD,
+      });
 
       await TabBarComponent.tapContacts();
-      await Assertions.checkIfVisible(ContactsView.container, 'Contacts view should be visible');
+      await Assertions.checkIfVisible(
+        ContactsView.container,
+        'Contacts view should be visible',
+      );
       await TestHelpers.delay(4000);
 
       for (const contactName of decryptedContactNames) {
@@ -97,13 +104,10 @@ describe(
       /**
        * TEST SEGMENT/METAMETRICS EVENTS
        */
-      const events = await getEventsPayloads(
-        mockServer,
-        [
-          EVENT_NAME.CONTACTS_SYNC_ADDED,
-          EVENT_NAME.CONTACTS_SYNC_NAME_UPDATED,
-        ],
-      );
+      const events = await getEventsPayloads(mockServer, [
+        EVENT_NAME.CONTACTS_SYNC_ADDED,
+        EVENT_NAME.CONTACTS_SYNC_NAME_UPDATED,
+      ]);
 
       // There should be 2 events for updating the names (from user storage)
       const updatedContactEvents = events.filter(
@@ -135,4 +139,4 @@ describe(
       }
     });
   },
-); 
+);

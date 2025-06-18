@@ -44,10 +44,10 @@ export const getContactsSyncMockResponse = async () => {
       createEncryptedResponse({
         data: contact,
         storageKey: IDENTITY_TEAM_STORAGE_KEY,
-        path: `${USER_STORAGE_FEATURE_NAMES.contacts}.${contact.a}`,
+        path: `${USER_STORAGE_FEATURE_NAMES.addressBook}.${contact.a}`,
       }),
     ),
   );
 
   return encryptedResponse;
-}; 
+};
