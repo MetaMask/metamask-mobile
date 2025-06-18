@@ -152,7 +152,7 @@
   },
   "onboarding_success": {
     "title": "Keep your Secret Recovery Phrase safe!",
-    "description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
+    "description": "This Secret Recovery Phrase can help you regain access if you ever forget your password or lose access to your login.",
     "description_bold": "Settings > Security & Privacy.",
     "description_continued": " you can keep this phrase safe so you never lose access to your money.",
     "learn_more": "Learn more",
