@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ScreenshotDeterrent with isSRP = true Component props handling render matches snapshot when enabled = false, isSRP = true, hasNavigation = true 1`] = `<View />`;
+
+exports[`ScreenshotDeterrent with isSRP = true Component props handling render matches snapshot when enabled = true, isSRP = true, hasNavigation = true 1`] = `<View />`;
+
+exports[`ScreenshotDeterrent with isSRP = true Component props handling should handle enabled prop changes 1`] = `<View />`;
+
+exports[`ScreenshotDeterrent with isSRP = true Component props handling should handle isSRP prop correctly in modal params 1`] = `<View />`;
