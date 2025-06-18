@@ -1,5 +1,4 @@
 import { LendingMarketWithPosition } from '@metamask/earn-controller';
-import { LendingProtocol } from '@metamask/stake-sdk';
 import { useRoute } from '@react-navigation/native';
 import React from 'react';
 import EarnLendingWithdrawalConfirmationView, {
@@ -10,7 +9,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
-import { EarnTokenDetails } from '../../types/lending.types';
+import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import { AAVE_WITHDRAWAL_RISKS } from '../../utils/tempLending';
 // eslint-disable-next-line import/no-namespace
 import * as NavbarUtils from '../../../Navbar';
@@ -192,6 +191,29 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('displays advanced details section when user has detected borrow positions', () => {
+    (useRoute as jest.MockedFunction<typeof useRoute>).mockReturnValue({
+      ...defaultRouteParams,
+      params: {
+        ...defaultRouteParams.params,
+        healthFactorSimulation: {
+          after: '14.2',
+          before: '15.1',
+          risk: AAVE_WITHDRAWAL_RISKS.LOW,
+        },
+      },
+    });
+
+    const { getByText } = renderWithProvider(
+      <EarnLendingWithdrawalConfirmationView />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(getByText(strings('stake.advanced_details'))).toBeTruthy();
+  });
+
   it('navigates back when cancel button is pressed', async () => {
     const { getByTestId } = renderWithProvider(
       <EarnLendingWithdrawalConfirmationView />,
@@ -310,7 +332,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     });
 
     expect(Linking.openURL).toHaveBeenLastCalledWith(
-      AppConstants.URLS.STAKING_RISK_DISCLOSURE,
+      AppConstants.URLS.EARN_RISK_DISCLOSURE,
     );
   });
 });

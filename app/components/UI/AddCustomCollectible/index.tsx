@@ -12,7 +12,10 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { useTheme } from '../../../util/theme';
 import { NFTImportScreenSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportNFTView.selectors';
-import { selectChainId, selectSelectedNetworkClientId } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectSelectedNetworkClientId,
+} from '../../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';

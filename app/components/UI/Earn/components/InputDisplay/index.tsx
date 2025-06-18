@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -23,6 +23,11 @@ import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags
 import CurrencyToggle from '../CurrencySwitch';
 import FadeInView from '../FadeInView';
 
+export const INPUT_DISPLAY_TEST_IDS = {
+  LENDING_MAX_SAFE_WITHDRAWAL_TOOLTIP_ICON:
+    'LendingMaxSafeWithdrawalTooltipIcon',
+};
+
 export interface InputDisplayProps {
   isOverMaximum: {
     isOverMaximumEth: boolean;
@@ -30,7 +35,6 @@ export interface InputDisplayProps {
   };
   balanceText: string;
   balanceValue: string;
-  isNonZeroAmount: boolean;
   asset: TokenI;
   isFiat: boolean;
   amountToken: string;
@@ -118,30 +122,20 @@ const InputDisplay = ({
     selectStablecoinLendingEnabledFlag,
   );
 
-  const { getEarnToken, getOutputToken } = useEarnTokens();
+  const { getOutputToken } = useEarnTokens();
   const outputToken = getOutputToken(asset);
-  const earnToken = getEarnToken(asset);
 
   const shouldShowLendingMaxSafeWithdrawalMessage = useMemo(() => {
-    if (earnToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING) {
+    if (
+      outputToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING ||
+      !outputToken?.chainId ||
+      !maxWithdrawalAmount
+    ) {
       return false;
     }
-
-    if (!earnToken?.chainId) return false;
-
-    if (!outputToken) {
-      return false;
-    }
-
-    if (!maxWithdrawalAmount) return false;
 
     return true;
-  }, [
-    earnToken?.chainId,
-    earnToken?.experience?.type,
-    maxWithdrawalAmount,
-    outputToken,
-  ]);
+  }, [maxWithdrawalAmount, outputToken]);
 
   const styles = createStyles(colors, {
     isStablecoinLendingEnabled,
@@ -172,7 +166,7 @@ const InputDisplay = ({
     blinkAnimation.start();
   }, [cursorOpacity]);
 
-  const getBalanceText = useCallback(() => {
+  const balanceInfo = useMemo(() => {
     if (error) return error;
 
     if (isOverMaximum.isOverMaximumToken) {
@@ -181,6 +175,7 @@ const InputDisplay = ({
     if (isOverMaximum.isOverMaximumEth) {
       return strings('stake.not_enough_eth');
     }
+
     if (isStablecoinLendingEnabled) return '\u00A0';
     return `${balanceText}: ${balanceValue}`;
   }, [
@@ -192,8 +187,6 @@ const InputDisplay = ({
     isStablecoinLendingEnabled,
     ticker,
   ]);
-
-  const balanceInfo = getBalanceText();
 
   const onNavigateToLendingMaxWithdrawModal = () => {
     navigation.navigate(Routes.EARN.MODALS.ROOT, {
@@ -219,6 +212,9 @@ const InputDisplay = ({
               iconColor={IconColor.Alternative}
               iconName={IconName.Question}
               onPress={onNavigateToLendingMaxWithdrawModal}
+              testID={
+                INPUT_DISPLAY_TEST_IDS.LENDING_MAX_SAFE_WITHDRAWAL_TOOLTIP_ICON
+              }
             />
           </View>
         </FadeInView>
