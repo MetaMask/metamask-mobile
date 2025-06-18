@@ -453,7 +453,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-0"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"
@@ -828,7 +828,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-1"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"
@@ -1271,7 +1271,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-0"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"
@@ -1608,7 +1608,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-1"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"
@@ -2089,7 +2089,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-0"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"
@@ -2464,7 +2464,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-1"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"
@@ -2945,7 +2945,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-0"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"
@@ -3320,7 +3320,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-1"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"

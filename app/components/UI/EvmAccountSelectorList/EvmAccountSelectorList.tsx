@@ -394,7 +394,7 @@ const EvmAccountSelectorList = ({
 
       const buttonProps = {
         onButtonClick: handleButtonClick,
-        buttonTestId: `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${index}`,
+        buttonTestId: WalletViewSelectorsIDs.ACCOUNT_ACTIONS,
       };
 
       const avatarProps = {
