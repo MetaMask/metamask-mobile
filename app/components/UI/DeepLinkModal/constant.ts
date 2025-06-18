@@ -6,20 +6,22 @@ import { ImageStyle, TextStyle, ViewStyle } from 'react-native';
 export const foxLogo = require('../../../images/branding/fox.png');
 export const pageNotFound = require('images/page-not-found.png');
 export const createDeepLinkModalNavDetails = createNavigationDetails(
-    Routes.MODAL.ROOT_MODAL_FLOW,
-    Routes.MODAL.DEEP_LINK_MODAL,
+  Routes.MODAL.ROOT_MODAL_FLOW,
+  Routes.MODAL.DEEP_LINK_MODAL,
 );
-export type DeepLinkModalProps = {
-    linkType: 'public' | 'private';
-    onContinue: () => void;
-    onBack?: () => void;
-    pageTitle: string;
-} | {
-    linkType: 'invalid';
-    onContinue?: () => void;
-    onBack?: () => void;
-}
+export type DeepLinkModalProps =
+  | {
+      linkType: 'public' | 'private';
+      onContinue: () => void;
+      onBack: () => void;
+      pageTitle: string;
+    }
+  | {
+      linkType: 'invalid';
+      onContinue?: () => void;
+      onBack: () => void;
+    };
 export interface ModalImageProps {
-    linkType: DeepLinkModalProps['linkType'];
-    styles: Record<string, ImageStyle & ViewStyle & TextStyle>;
+  linkType: DeepLinkModalProps['linkType'];
+  styles: Record<string, ImageStyle & ViewStyle & TextStyle>;
 }
