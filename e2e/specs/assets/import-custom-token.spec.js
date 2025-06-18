@@ -54,6 +54,7 @@ describe(Regression('Import Custom token'), () => {
         //await ImportTokensView.tapTokenSymbolText();
 
         // await ImportTokensView.scrollDownOnImportCustomTokens();
+        await TestHelpers.delay(500);
 
         await ImportTokensView.tapOnNextButton();
 

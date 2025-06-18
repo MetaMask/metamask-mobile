@@ -309,7 +309,6 @@ class AddCustomToken extends PureComponent {
           address.toLowerCase()
         ];
 
-      console.log('token ***********', token);
       if (token) {
         this.setState({
           symbol: token.symbol,
