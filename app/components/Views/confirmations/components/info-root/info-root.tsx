@@ -58,7 +58,7 @@ const ConfirmationInfoComponentMap = {
         return ContractInteraction;
     }
   },
-  transaction_batch: () => TransactionBatch,
+  [ApprovalType.TransactionBatch]: () => TransactionBatch,
 };
 
 interface InfoProps {
