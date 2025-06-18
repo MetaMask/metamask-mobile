@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { TransactionMeta } from '@metamask/transaction-controller';
-
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import Icon, {
   IconSize,
@@ -21,6 +19,8 @@ import AlertRow from '../../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import { GasSpeed } from '../../../gas/gas-speed';
 import styleSheet from './gas-fee-details-row.styles';
+import { useTransactionBatchesMetadata } from '../../../../hooks/transactions/useTransactionBatchesMetadata';
+import { useFeeCalculationsTransactionBatch } from '../../../../hooks/gas/useFeeCalculationsTransactionBatch';
 
 
 const EstimationInfo = ({
@@ -74,9 +74,15 @@ const ClickableEstimationInfo = ({
 const GasFeesDetailsRow = ({ disableUpdate = false }) => {
   const [gasModalVisible, setGasModalVisible] = useState(false);
   const { styles } = useStyles(styleSheet, {});
+
   const transactionMetadata = useTransactionMetadataRequest();
+  const transactionBatchesMetadata = useTransactionBatchesMetadata();
+
   const feeCalculations = useFeeCalculations(
-    transactionMetadata as TransactionMeta,
+    transactionMetadata,
+  );
+  const feeCalculationsTransactionBatch = useFeeCalculationsTransactionBatch(
+    transactionBatchesMetadata,
   );
   const hideFiatForTestnet = useHideFiatForTestnet(
     transactionMetadata?.chainId,
@@ -104,13 +110,13 @@ const GasFeesDetailsRow = ({ disableUpdate = false }) => {
             {disableUpdate ? (
               <EstimationInfo
                 hideFiatForTestnet={hideFiatForTestnet}
-                feeCalculations={feeCalculations}
+                feeCalculations={transactionBatchesMetadata ? feeCalculationsTransactionBatch : feeCalculations}
               />
             ) : (
               <ClickableEstimationInfo
                 onPress={() => setGasModalVisible(true)}
                 hideFiatForTestnet={hideFiatForTestnet}
-                feeCalculations={feeCalculations}
+                feeCalculations={transactionBatchesMetadata ? feeCalculationsTransactionBatch : feeCalculations}
               />
             )}
           </View>
