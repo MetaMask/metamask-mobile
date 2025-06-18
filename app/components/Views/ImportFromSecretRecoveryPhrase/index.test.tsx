@@ -11,6 +11,7 @@ import { MIN_PASSWORD_LENGTH } from '../../../util/password';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { TraceName } from '../../../util/trace';
+import { InteractionManager } from 'react-native';
 
 // Mock the clipboard
 jest.mock('@react-native-clipboard/clipboard', () => ({
@@ -48,6 +49,19 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('ImportFromSecretRecoveryPhrase', () => {
+  jest
+    .spyOn(InteractionManager, 'runAfterInteractions')
+    .mockImplementation((cb) => {
+      if (cb && typeof cb === 'function') {
+        cb();
+      }
+      return {
+        then: jest.fn(),
+        done: jest.fn(),
+        cancel: jest.fn(),
+      };
+    });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });

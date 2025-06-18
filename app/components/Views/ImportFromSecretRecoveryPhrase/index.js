@@ -118,7 +118,6 @@ const ImportFromSecretRecoveryPhrase = ({
   seedphraseBackedUp,
   saveOnboardingEvent,
   setOnboardingWizardStep,
-  dispatchSaveOnboardingEvent,
 }) => {
   const route = useRoute();
   const { colors, themeAppearance } = useTheme();
@@ -1110,10 +1109,6 @@ ImportFromSecretRecoveryPhrase.propTypes = {
    * Action to set onboarding wizard step
    */
   setOnboardingWizardStep: PropTypes.func,
-  /**
-   * Action to save onboarding event
-   */
-  dispatchSaveOnboardingEvent: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({
