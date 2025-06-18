@@ -44,6 +44,7 @@ export const createStyles = (theme: Theme) =>
     },
     rowWrapper: {
       padding: 20,
+      flex: 1,
     },
     tabContentContainer: {
       flexGrow: 1,
@@ -134,7 +135,5 @@ export const createStyles = (theme: Theme) =>
     tabBar: {
       borderColor: theme.colors.border.muted,
     },
-    stretch: {
-      flex: 1,
-    },
+    stretch: {},
   });
