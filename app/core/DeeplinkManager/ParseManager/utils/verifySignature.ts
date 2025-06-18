@@ -3,6 +3,7 @@ import {
   CryptoKey,
   SubtleAlgorithm,
 } from 'react-native-quick-crypto/lib/typescript/src/keys';
+import AppConstants from '../../../../core/AppConstants';
 
 function base64StringToBytes(unpaddedBase64: string) {
   let standardB64 = unpaddedBase64.replace(/-/gu, '+').replace(/_/gu, '/');
@@ -15,6 +16,17 @@ function base64StringToBytes(unpaddedBase64: string) {
 
   const buffer = Buffer.from(standardB64, 'base64');
   return new Uint8Array(buffer);
+}
+
+function getKeyData() {
+  return {
+    crv: 'P-256' as const,
+    ext: true,
+    key_ops: ['verify' as const],
+    kty: 'EC' as const,
+    x: AppConstants.MM_DEEP_LINK_PUBLIC_KEY_X,
+    y: AppConstants.MM_DEEP_LINK_PUBLIC_KEY_Y,
+  };
 }
 
 function canonicalize(url: URL): string {
@@ -48,19 +60,16 @@ async function lazyGetTools() {
   if (tools) {
     return tools;
   }
-  const curve = 'P-256';
-  const algorithm = { name: 'ECDSA', hash: 'SHA-256' } as const;
+
+  const algorithm = {
+    name: 'ECDSA',
+    hash: 'SHA-256',
+    namedCurve: 'P-256',
+  } as const;
 
   const key = await QuickCrypto.webcrypto.subtle.importKey(
     'jwk',
-    {
-      crv: curve,
-      ext: true,
-      key_ops: ['verify'],
-      kty: 'EC',
-      x: 'nFiE3X_J5n5OJJSlLK95kSByhfLrSJmRxjEtBaP3TD8',
-      y: 'RBeepuE1D3or2SdzjsFcHU-l2rrNb46ZW_4wCXCLSaY',
-    },
+    getKeyData(),
     algorithm,
     false,
     ['verify'],
@@ -101,7 +110,6 @@ export const verifyDeeplinkSignature = async (
       signature,
       data,
     );
-
     return ok ? VALID : INVALID;
   } catch (error) {
     return INVALID;
