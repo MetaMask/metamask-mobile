@@ -20,111 +20,97 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
     jest.setTimeout(150000);
   });
 
-  describe('Connect to Solana test dapp', () => {
-    describe('Connect & disconnect from Solana test dapp', () => {
-      it('Should connect & disconnect', async () => {
-        await withSolanaAccountSnap({}, async () => {
-          await navigateToSolanaTestDApp();
+  it('Should connect & disconnect from Solana test dapp', async () => {
+    await withSolanaAccountSnap({}, async () => {
+      await navigateToSolanaTestDApp();
 
-          await connectSolanaTestDapp();
+      await connectSolanaTestDapp();
 
-          const header = SolanaTestDApp.getHeader();
+      const header = SolanaTestDApp.getHeader();
 
-          // Check we're connected
-          const account = await header.getAccount();
-          await Assertions.checkIfTextMatches(account, account1Short);
-          const connectionStatus = await header.getConnectionStatus();
-          await Assertions.checkIfTextMatches(connectionStatus, 'Connected');
+      // Check we're connected
+      const account = await header.getAccount();
+      await Assertions.checkIfTextMatches(account, account1Short);
+      const connectionStatus = await header.getConnectionStatus();
+      await Assertions.checkIfTextMatches(connectionStatus, 'Connected');
 
-          await header.disconnect();
+      await header.disconnect();
 
-          // Check we're disconnected
-          const connectionStatusAfterDisconnect =
-            await header.getConnectionStatus();
-          await Assertions.checkIfTextMatches(
-            connectionStatusAfterDisconnect,
-            'Not connected',
-          );
-        });
-      });
-    });
-
-    it('Should be able to cancel connection and connect again', async () => {
-      await withSolanaAccountSnap({}, async () => {
-        await navigateToSolanaTestDApp();
-
-        const header = SolanaTestDApp.getHeader();
-        await header.connect();
-        await header.selectMetaMask();
-
-        // Click connect button
-        await ConnectBottomSheet.tapCancelButton();
-
-        await TestHelpers.delay(1000);
-        const connectionStatus = await header.getConnectionStatus();
-        await Assertions.checkIfTextMatches(connectionStatus, 'Not connected');
-
-        await connectSolanaTestDapp();
-
-        const account = await header.getAccount();
-        await Assertions.checkIfTextMatches(account, account1Short);
-      });
+      // Check we're disconnected
+      const connectionStatusAfterDisconnect =
+        await header.getConnectionStatus();
+      await Assertions.checkIfTextMatches(
+        connectionStatusAfterDisconnect,
+        'Not connected',
+      );
     });
   });
 
-  describe('Switch account', () => {
-    it('Switching between 2 accounts should reflect in the dapp', async () => {
-      await withSolanaAccountSnap(
-        {
-          numberOfAccounts: 2,
-        },
-        async () => {
-          await navigateToSolanaTestDApp();
-          await connectSolanaTestDapp({ selectAllAccounts: true });
+  it('Should be able to cancel connection and connect again', async () => {
+    await withSolanaAccountSnap({}, async () => {
+      await navigateToSolanaTestDApp();
 
-          const header = SolanaTestDApp.getHeader();
-          const account = await header.getAccount();
-          await Assertions.checkIfTextMatches(account, account2Short);
+      const header = SolanaTestDApp.getHeader();
+      await header.connect();
+      await header.selectMetaMask();
 
-          await TabBarComponent.tapWallet();
-          await WalletView.tapCurrentMainWalletAccountActions();
+      // Click connect button
+      await ConnectBottomSheet.tapCancelButton();
 
-          await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
-          await TabBarComponent.tapBrowser();
+      await TestHelpers.delay(1000);
+      const connectionStatus = await header.getConnectionStatus();
+      await Assertions.checkIfTextMatches(connectionStatus, 'Not connected');
 
-          const accountAfterSwitch = await header.getAccount();
-          await Assertions.checkIfTextMatches(
-            accountAfterSwitch,
-            account1Short,
-          );
-        },
-      );
+      await connectSolanaTestDapp();
+
+      const account = await header.getAccount();
+      await Assertions.checkIfTextMatches(account, account1Short);
     });
+  });
 
-    describe('Page refresh', () => {
-      it('Should not disconnect the dapp', async () => {
-        await withSolanaAccountSnap({}, async () => {
-          await navigateToSolanaTestDApp();
+  it('Switching between 2 accounts should reflect in the dapp', async () => {
+    await withSolanaAccountSnap(
+      {
+        numberOfAccounts: 2,
+      },
+      async () => {
+        await navigateToSolanaTestDApp();
+        await connectSolanaTestDapp({ selectAllAccounts: true });
 
-          await connectSolanaTestDapp();
+        const header = SolanaTestDApp.getHeader();
+        const account = await header.getAccount();
+        await Assertions.checkIfTextMatches(account, account2Short);
 
-          // Should be connected
-          const header = SolanaTestDApp.getHeader();
-          const account = await header.getAccount();
-          await Assertions.checkIfTextMatches(account, account1Short);
+        await TabBarComponent.tapWallet();
+        await WalletView.tapCurrentMainWalletAccountActions();
 
-          // Refresh the page
-          await SolanaTestDApp.reloadSolanaTestDApp();
-          await TestHelpers.delay(4000);
+        await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
+        await TabBarComponent.tapBrowser();
 
-          // Should still be connected after refresh
-          const headerAfterRefresh = SolanaTestDApp.getHeader();
-          const accountAfterRefresh = await headerAfterRefresh.getAccount();
-          await Assertions.checkIfTextMatches(
-            accountAfterRefresh,
-            account1Short,
-          );
-        });
+        const accountAfterSwitch = await header.getAccount();
+        await Assertions.checkIfTextMatches(accountAfterSwitch, account1Short);
+      },
+    );
+
+    it('Should stay connected after page refresh', async () => {
+      await withSolanaAccountSnap({}, async () => {
+        await navigateToSolanaTestDApp();
+
+        await connectSolanaTestDapp();
+
+        // Should be connected
+        const header = SolanaTestDApp.getHeader();
+        const account = await header.getAccount();
+        await Assertions.checkIfTextMatches(account, account1Short);
+
+        // Refresh the page
+        await SolanaTestDApp.reloadSolanaTestDApp();
+        await TestHelpers.delay(4000);
+
+        // Should still be connected after refresh
+        const headerAfterRefresh = SolanaTestDApp.getHeader();
+        const accountAfterRefresh = await headerAfterRefresh.getAccount();
+        await Assertions.checkIfTextMatches(accountAfterRefresh, account1Short);
       });
     });
   });
