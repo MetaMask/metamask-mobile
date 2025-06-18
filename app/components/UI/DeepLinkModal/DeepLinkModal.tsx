@@ -122,7 +122,7 @@ const DeepLinkModal = () => {
                     createEventBuilder(LINK_TYPE_MAP[linkType].eventContinue)
                         .addProperties({
                             ...generateDeviceAnalyticsMetaData(),
-                            pageTitle: pageTitle ?? '',
+                            pageTitle,
                         })
                         .build(),
                 );
