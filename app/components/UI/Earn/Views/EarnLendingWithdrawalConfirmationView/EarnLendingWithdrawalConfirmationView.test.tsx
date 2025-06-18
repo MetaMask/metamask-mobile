@@ -1,23 +1,24 @@
 import { LendingMarketWithPosition } from '@metamask/earn-controller';
 import { useRoute } from '@react-navigation/native';
+import { act, fireEvent } from '@testing-library/react-native';
 import React from 'react';
+import { Linking } from 'react-native';
 import EarnLendingWithdrawalConfirmationView, {
   EarnWithdrawalConfirmationViewProps,
 } from '.';
+import { strings } from '../../../../../../locales/i18n';
+import AppConstants from '../../../../../core/AppConstants';
+import Engine from '../../../../../core/Engine';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import { AAVE_WITHDRAWAL_RISKS } from '../../utils/tempLending';
-import { act, fireEvent } from '@testing-library/react-native';
-import { Linking } from 'react-native';
-import { strings } from '../../../../../../locales/i18n';
-import AppConstants from '../../../../../core/AppConstants';
-import Engine from '../../../../../core/Engine';
 // eslint-disable-next-line import/no-namespace
 import * as NavbarUtils from '../../../Navbar';
 import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
+import useEarnToken from '../../hooks/useEarnToken';
 import {
   CONFIRMATION_FOOTER_BUTTON_TEST_IDS,
   CONFIRMATION_FOOTER_LINK_TEST_IDS,
@@ -84,6 +85,9 @@ jest.mock('../../../../../core/Engine', () => ({
     EarnController: {
       executeLendingWithdraw: jest.fn(),
     },
+    TokensController: {
+      addToken: jest.fn().mockResolvedValue([]),
+    },
   },
 }));
 
@@ -127,11 +131,11 @@ const mockLineaAUsdc = {
 
 jest.mock('../../hooks/useEarnToken', () => ({
   __esModule: true,
-  default: () => ({
+  default: jest.fn().mockImplementation(() => ({
     outputToken: mockLineaAUsdc,
     earnToken: MOCK_USDC_MAINNET_ASSET,
     getTokenSnapshot: jest.fn(),
-  }),
+  })),
 }));
 
 describe('EarnLendingWithdrawalConfirmationView', () => {
@@ -334,5 +338,74 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     expect(Linking.openURL).toHaveBeenLastCalledWith(
       AppConstants.URLS.EARN_RISK_DISCLOSURE,
     );
+  });
+
+  it('handles token import and confirmation via subscription listener when no earnToken is present', async () => {
+    // Update the mock to return no earnToken
+    (useEarnToken as jest.Mock).mockReturnValueOnce({
+      outputToken: mockLineaAUsdc,
+      earnToken: null,
+      getTokenSnapshot: jest.fn(),
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingWithdrawalConfirmationView />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const footerConfirmationButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
+
+    // Mock the subscription callback
+    let subscriptionCallback:
+      | ((event: { transaction: { hash: string; status: string } }) => void)
+      | undefined;
+    (
+      Engine.controllerMessenger.subscribeOnceIf as jest.Mock
+    ).mockImplementation((event, callback) => {
+      if (event === 'TransactionController:transactionConfirmed') {
+        subscriptionCallback = callback;
+      }
+      return () => {
+        // Cleanup function
+      };
+    });
+
+    await act(async () => {
+      fireEvent.press(footerConfirmationButton);
+    });
+
+    // Simulate transaction submission
+    await act(async () => {
+      if (subscriptionCallback) {
+        subscriptionCallback({
+          transaction: {
+            hash: '0x123',
+            status: 'submitted',
+          },
+        });
+      }
+    });
+
+    // Verify the transaction was executed
+    expect(
+      Engine.context.EarnController.executeLendingWithdraw,
+    ).toHaveBeenCalledWith({
+      amount: '1000000',
+      gasOptions: {},
+      protocol: LendingProtocol.AAVE,
+      txOptions: {
+        deviceConfirmedOn: 'metamask_mobile',
+        networkClientId: 'linea-mainnet',
+        origin: 'metamask',
+        type: 'lendingWithdraw',
+      },
+      underlyingTokenAddress: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
+    });
+
+    expect(Engine.context.TokensController.addToken).toHaveBeenCalledTimes(1);
   });
 });
