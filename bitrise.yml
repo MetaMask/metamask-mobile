@@ -249,6 +249,7 @@ stages:
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
+      - run_tag_smoke_multichain_api_ios: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
@@ -275,6 +276,8 @@ stages:
       - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_upgrade_android: {}
       - run_android_app_launch_times_appium_test: {}
+      - run_tag_smoke_multichain_api_ios: {}
+
   report_results_stage:
     workflows:
       - run_testrail_update_automated_test_results: {}
@@ -826,6 +829,12 @@ workflows:
       - wdio_ios_e2e_test
 
   ### Separating workflows so they run concurrently during smoke runs
+  run_tag_smoke_multichain_api_ios:
+    envs:
+      - TEST_SUITE_TAG: '.*SmokeMultiChainAPI.*'
+    after_run:
+      - ios_e2e_test
+
   run_network_expansion_swimlane_ios_smoke:
     envs:
       - TEST_SUITE_TAG: '.*NetworkExpansion.*'
