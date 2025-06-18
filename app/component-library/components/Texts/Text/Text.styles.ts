@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleSheet, TextStyle } from 'react-native';
+import { StyleSheet, TextStyle, Platform } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
@@ -63,11 +63,13 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
   const { fontWeight, ...variantObject } =
     theme.typography[variant as TextVariant];
   const finalFontWeight = style?.fontWeight || fontWeight;
+
   const fontObject = {
     ...variantObject,
     color: textColor,
     fontFamily: getFontFamily(variant, style?.fontWeight, style?.fontStyle),
-    fontWeight: finalFontWeight,
+    // Only apply fontWeight on iOS, since Android uses weight-specific font family names
+    ...(Platform.OS === 'ios' && { fontWeight: finalFontWeight }),
   };
 
   return StyleSheet.create({
