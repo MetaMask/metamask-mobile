@@ -18,6 +18,7 @@ import { MockttpServer } from 'mockttp';
 import ContactsView from '../../../pages/Settings/Contacts/ContactsView';
 import AddContactView from '../../../pages/Settings/Contacts/AddContactView';
 import SettingsView from '../../../pages/Settings/SettingsView';
+import { arrangeTestUtils } from '../utils/helpers';
 
 describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
   const NEW_CONTACT_NAME = 'New Test Contact';
@@ -65,7 +66,12 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
     });
 
     await TabBarComponent.tapSettings();
-    await TestHelpers.delay(1000);
+    await TestHelpers.delay(2000);
+
+    const { waitUntilSyncedContactsNumberEquals } = arrangeTestUtils(
+      userStorageMockttpController,
+    );
+
     await SettingsView.tapContacts();
     await Assertions.checkIfVisible(ContactsView.container);
     await ContactsView.tapAddContactButton();
@@ -74,8 +80,9 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
     await AddContactView.typeInName(NEW_CONTACT_NAME);
     await AddContactView.typeInAddress(NEW_CONTACT_ADDRESS);
     await AddContactView.tapAddContactButton();
-    await TestHelpers.delay(5000);
     await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
+
+    await waitUntilSyncedContactsNumberEquals(1);
 
     await TestHelpers.launchApp({
       newInstance: true,
@@ -89,7 +96,7 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
     });
 
     await TabBarComponent.tapSettings();
-    await TestHelpers.delay(1000);
+    await TestHelpers.delay(2000);
     await SettingsView.tapContacts();
     await Assertions.checkIfVisible(ContactsView.container);
     await TestHelpers.delay(4000);

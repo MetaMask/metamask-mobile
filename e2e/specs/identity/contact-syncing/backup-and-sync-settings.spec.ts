@@ -108,38 +108,5 @@ describe(
 
       await ContactsView.isContactAliasNotVisible(NEW_CONTACT_NAME);
     });
-
-    it('should sync new contacts when contacts sync toggle is on', async () => {
-      await TabBarComponent.tapSettings();
-      await Assertions.checkIfVisible(SettingsView.backupAndSyncSectionButton);
-      await SettingsView.tapContacts();
-      await Assertions.checkIfVisible(ContactsView.container);
-      await ContactsView.tapAddContactButton();
-      await Assertions.checkIfVisible(AddContactView.container);
-      await AddContactView.typeInName(NEW_CONTACT_NAME);
-      await AddContactView.typeInAddress(NEW_CONTACT_ADDRESS);
-      await AddContactView.tapAddContactButton();
-      await TestHelpers.delay(4000);
-
-      await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
-
-      await TestHelpers.launchApp({
-        newInstance: true,
-        delete: true,
-        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
-      });
-
-      await importWalletWithRecoveryPhrase({
-        seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
-        password: IDENTITY_TEAM_PASSWORD,
-      });
-
-      await TabBarComponent.tapSettings();
-      await TestHelpers.delay(2000);
-      await SettingsView.tapContacts();
-      await Assertions.checkIfVisible(ContactsView.container);
-      await TestHelpers.delay(4000);
-      await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
-    });
   },
 );
