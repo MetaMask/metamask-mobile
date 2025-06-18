@@ -180,6 +180,7 @@ const Routes = {
       QUOTE_INFO_MODAL: 'QuoteInfoModal',
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
       QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
+      BLOCKAID_MODAL: 'BlockaidModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },

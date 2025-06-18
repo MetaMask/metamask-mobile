@@ -74,6 +74,7 @@ import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
 import AppConstants from '../../../../../core/AppConstants';
+import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx.ts';
 
 export interface BridgeRouteParams {
   token?: BridgeToken;
@@ -92,6 +93,7 @@ const BridgeView = () => {
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const { colors } = useTheme();
   const { submitBridgeTx } = useSubmitBridgeTx();
+  const { validateBridgeTx } = useValidateBridgeTx();
   const { trackEvent, createEventBuilder } = useMetrics();
 
   // Needed to get gas fee estimates
@@ -277,9 +279,23 @@ const BridgeView = () => {
     try {
       if (activeQuote) {
         dispatch(setIsSubmittingTx(true));
-        // TEMPORARY: If tx originates from Solana, navigate to transactions view BEFORE submitting the tx
-        // Necessary because snaps prevents navigation after tx is submitted
         if (isSolanaSwap || isSolanaToEvm) {
+          const validationResult = await validateBridgeTx({
+            quoteResponse: activeQuote,
+          });
+          if (validationResult.error || validationResult.result.validation.reason) {
+            const isValidationError = !!validationResult.result.validation.reason;
+            navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+              screen: Routes.BRIDGE.MODALS.BLOCKAID_MODAL,
+              params: {
+                errorType: isValidationError ? 'validation' : 'simulation',
+                errorMessage: isValidationError ? validationResult.result.validation.reason : validationResult.error,
+              },
+            });
+            return;
+          }
+          // TEMPORARY: If tx originates from Solana, navigate to transactions view BEFORE submitting the tx
+          // Necessary because snaps prevents navigation after tx is submitted
           navigation.navigate(Routes.TRANSACTIONS_VIEW);
         }
         await submitBridgeTx({
