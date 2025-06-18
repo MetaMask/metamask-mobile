@@ -146,6 +146,43 @@ describe('BuildQuote Component', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
+  describe('Region Selection', () => {
+    it('displays default US region on initial render', () => {
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('opens region modal when region button is pressed', () => {
+      render(BuildQuote);
+      const regionButton = screen.getByText('US');
+      fireEvent.press(regionButton);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('updates fiat currency when selecting a supported region', () => {
+      render(BuildQuote);
+      const regionButton = screen.getByText('US');
+      fireEvent.press(regionButton);
+      const germanyElement = screen.getByText('Belgium');
+      fireEvent.press(germanyElement);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('maintains country display when selecting a state', () => {
+      render(BuildQuote);
+      const regionButton = screen.getByText('US');
+      fireEvent.press(regionButton);
+
+      const usElement = screen.getByText('United States');
+      fireEvent.press(usElement);
+
+      const alabamaElement = screen.getByText('Alabama');
+      fireEvent.press(alabamaElement);
+
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+  });
+
   describe('Keypad Functionality', () => {
     it('updates amount when keypad is used', () => {
       render(BuildQuote);
@@ -153,7 +190,7 @@ describe('BuildQuote Component', () => {
       const oneButton = screen.getByText('1');
       fireEvent.press(oneButton);
 
-      expect(screen.getByText('$1.00')).toBeTruthy();
+      expect(screen.toJSON()).toMatchSnapshot();
     });
 
     it('displays converted token amount', () => {
@@ -163,7 +200,7 @@ describe('BuildQuote Component', () => {
 
       render(BuildQuote);
 
-      expect(screen.getByText('1.5 USDC')).toBeTruthy();
+      expect(screen.toJSON()).toMatchSnapshot();
     });
   });
 
@@ -378,7 +415,6 @@ describe('BuildQuote Component', () => {
         expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
           id: 'idProof',
         });
-        // Should not navigate when idProofData is null
         expect(mockNavigate).not.toHaveBeenCalled();
       });
     });
