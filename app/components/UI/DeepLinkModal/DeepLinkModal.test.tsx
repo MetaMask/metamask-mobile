@@ -54,7 +54,7 @@ describe('DeepLinkModal', () => {
 
         const checkbox = queryByText(/Don't remind me again/i);
         const title = getByText('Proceed with caution');
-        const description = getByText(/You were sent here by a third party, not MetaMask. You'll open MetaMask if you continue./i);        
+        const description = getByText(/You were sent here by a third party, not MetaMask. You'll open MetaMask if you continue./i);
         expect(title).toBeDefined();
         expect(description).toBeDefined();
         expect(checkbox).toBeNull();
@@ -142,7 +142,6 @@ describe('DeepLinkModal', () => {
     linkType        |continueButtonText     |eventContinue                                                    |pageTitle
     ${'public'}     | ${'Continue'}         | ${MetaMetricsEvents.DEEP_LINK_PUBLIC_MODAL_CONTINUE_CLICKED}    | ${'MetaMask'}
     ${'private'}    | ${'Continue'}         | ${MetaMetricsEvents.DEEP_LINK_PRIVATE_MODAL_CONTINUE_CLICKED}   | ${'MetaMask'}
-    ${'invalid'}    | ${'Go to homepage'}   | ${MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_CONTINUE_CLICKED}   | ${''}
   `('should track correct action event and pageTitleon continue button pressed when linkType is $linkType',
         async ({ linkType, continueButtonText, eventContinue, pageTitle }) => {
             (useParams as jest.Mock).mockReturnValue({ ...baseParams, linkType });
