@@ -1,5 +1,5 @@
 import '../_mocks_/initialState';
-import { getBridgeTxActivityTitle } from './transaction-history';
+import { getSwapBridgeTxActivityTitle } from './transaction-history';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { ChainId, StatusTypes } from '@metamask/bridge-controller';
 
@@ -72,7 +72,7 @@ describe('getBridgeTxActivityTitle', () => {
       hasApprovalTx: false,
     };
 
-    const result = getBridgeTxActivityTitle(bridgeHistoryItem);
+    const result = getSwapBridgeTxActivityTitle(bridgeHistoryItem);
     expect(result).toBeUndefined();
   });
 
@@ -136,7 +136,7 @@ describe('getBridgeTxActivityTitle', () => {
       hasApprovalTx: false,
     };
 
-    const result = getBridgeTxActivityTitle(bridgeHistoryItem);
+    const result = getSwapBridgeTxActivityTitle(bridgeHistoryItem);
     expect(result).toBe('bridge_to_Optimism');
   });
 
@@ -200,7 +200,7 @@ describe('getBridgeTxActivityTitle', () => {
       hasApprovalTx: false,
     };
 
-    const result = getBridgeTxActivityTitle(bridgeHistoryItem);
+    const result = getSwapBridgeTxActivityTitle(bridgeHistoryItem);
     expect(result).toBe('bridge_to_Solana');
   });
 });
