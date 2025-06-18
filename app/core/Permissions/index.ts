@@ -203,24 +203,6 @@ function getDataFromSubject<T>(
 }
 
 /**
- * Generic function to get permitted data for a given hostname using a provided extractor.
- *
- * @param state - The state object containing subjects.
- * @param hostname - The hostname to get permitted data for.
- * @param extractor - A function that extracts data from a subject.
- * @returns An array of permitted data for the specified hostname.
- */
-function getPermittedDataByHostname<T>(
-  state: { subjects: Record<string, unknown> },
-  hostname: string,
-  extractor: (subject: unknown) => T[],
-): T[] {
-  const { subjects } = state;
-  const subject = subjects[hostname];
-  return subject ? extractor(subject) : [];
-}
-
-/**
  * Helper function to extract CAIP account IDs from a subject.
  *
  * @param subject - The subject object containing permissions and caveats.
@@ -264,20 +246,34 @@ export const getPermittedCaipAccountIdsByHostname = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: any,
   hostname: string,
-): CaipAccountId[] =>
-  getPermittedDataByHostname(state, hostname, getCaipAccountIdsFromSubject);
-
+): CaipAccountId[] => {
+  const subject = state.subjects?.[hostname];
+  if (!subject) {
+    return [];
+  }
+  return getCaipAccountIdsFromSubject(subject);
+};
 
 export const getPermittedEvmAddressesByHostname = (
   state: { subjects: Record<string, unknown> },
   hostname: string,
-): Hex[] => getPermittedDataByHostname(state, hostname, getEvmAddessesFromSubject);
+): Hex[] => {
+  const subject = state.subjects[hostname];
+  if (!subject) {
+    return [];
+  }
+  return getEvmAddessesFromSubject(subject);
+};
 
 export const getPermittedCaipChainIdsByHostname = (
   state: { subjects: Record<string, unknown> },
   hostname: string,
 ): CaipChainId[] => {
-  const permittedScopes = getPermittedDataByHostname(state, hostname, getPermittedScopesFromSubject);
+  const subject = state.subjects?.[hostname];
+  if (!subject) {
+    return [];
+  }
+  const permittedScopes = getPermittedScopesFromSubject(subject);
   // our `endowment:caip25` permission can include a special class of `wallet` scopes,
   // see https://github.com/ChainAgnostic/namespaces/tree/main/wallet &
   // https://github.com/ChainAgnostic/namespaces/blob/main/wallet/caip2.md
@@ -571,7 +567,7 @@ export const removePermittedChain = (
  * array if no accounts are permitted or the wallet is locked. Returns any permitted
  * accounts if the wallet is locked and `ignoreLock` is true. This lock bypass is needed
  * for the `eth_requestAccounts` & `wallet_getPermission` handlers both of which
- * return permissioned accounts to the dapp when the wallet is locked.
+ * return permitted accounts to the dapp when the wallet is locked.
  *
  * @param {string} origin - The origin whose exposed accounts to retrieve.
  * @param {object} [options] - The options object
