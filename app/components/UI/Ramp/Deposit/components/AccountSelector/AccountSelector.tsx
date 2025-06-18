@@ -37,10 +37,6 @@ const stylesheet = (params: { theme: Theme }) => {
       borderColor: theme.colors.border.muted,
       alignSelf: 'flex-start',
     },
-    accountText: {
-      fontSize: 16,
-      fontWeight: 500,
-    },
   });
 };
 
@@ -85,7 +81,6 @@ const AccountSelector = () => {
           />
           <Text
             variant={TextVariant.BodyMD}
-            style={styles.accountText}
             numberOfLines={1}
             ellipsizeMode="middle"
           >
