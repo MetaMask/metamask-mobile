@@ -85,10 +85,6 @@ class AccountListBottomSheet {
   }
 
   async tapEditAccountActionsAtIndex(index) {
-    await Gestures.scrollToElement(
-      Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS, index),
-      by.id(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
-    );
     await Gestures.tapAtIndex(Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS), index);
   }
 
