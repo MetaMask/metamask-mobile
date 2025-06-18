@@ -57,6 +57,9 @@ export enum TraceName {
   LoadCollectibles = 'Load Collectibles',
   DetectNfts = 'Detect Nfts',
   CollectibleContractsComponent = 'Collectible Contracts Component',
+  DisconnectAllAccountPermissions = 'Disconnect All Account Permissions',
+  OnboardingCreateWallet = 'Onboarding Create Wallet',
+  QRTabSwitcher = 'QR Tab Switcher',
 }
 
 export enum TraceOperation {
