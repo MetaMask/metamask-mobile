@@ -45,10 +45,7 @@ import {
   EVENT_PROVIDERS,
 } from '../../../Stake/constants/events';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
-import {
-  withMetaMetrics,
-  WithMetaMetricsEvent,
-} from '../../../Stake/utils/metaMetrics/withMetaMetrics';
+import { withMetaMetrics } from '../../../Stake/utils/metaMetrics/withMetaMetrics';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
 import InputDisplay from '../../components/InputDisplay';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
@@ -219,6 +216,50 @@ const EarnInputView = () => {
       earnToken?.symbol,
       network?.name,
       balanceValue,
+    ],
+  );
+
+  const handleQuickAmountPressWithTracking = useCallback(
+    ({ value }: { value: number }) => {
+      // call the original handler first
+      handleQuickAmountPress({ value });
+
+      // track events based on flow type
+      if (shouldLogStablecoinEvent()) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED)
+            .addProperties({
+              action_type: 'deposit',
+              input_value: `${value * 100}%`,
+              token: earnToken?.symbol,
+              network: network?.name,
+              user_token_balance: balanceValue,
+            })
+            .build(),
+        );
+      } else if (shouldLogStakingEvent()) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.STAKE_INPUT_QUICK_AMOUNT_CLICKED)
+            .addProperties({
+              location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
+              amount: value,
+              is_max: false,
+              mode: !isFiat ? 'native' : 'fiat',
+            })
+            .build(),
+        );
+      }
+    },
+    [
+      shouldLogStablecoinEvent,
+      shouldLogStakingEvent,
+      handleQuickAmountPress,
+      trackEvent,
+      createEventBuilder,
+      earnToken?.symbol,
+      network?.name,
+      balanceValue,
+      isFiat,
     ],
   );
 
@@ -529,6 +570,46 @@ const EarnInputView = () => {
     }
   };
 
+  const handleMaxPressWithTracking = useCallback(() => {
+    // call the original handler first
+    handleMaxButtonPress();
+
+    // track events based on flow type
+    if (shouldLogStablecoinEvent()) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED)
+          .addProperties({
+            action_type: 'deposit',
+            input_value: 'Max',
+            token: earnToken?.symbol,
+            network: network?.name,
+            user_token_balance: balanceValue,
+          })
+          .build(),
+      );
+    } else if (shouldLogStakingEvent()) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.STAKE_INPUT_QUICK_AMOUNT_CLICKED)
+          .addProperties({
+            location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
+            is_max: true,
+            mode: !isFiat ? 'native' : 'fiat',
+          })
+          .build(),
+      );
+    }
+  }, [
+    shouldLogStablecoinEvent,
+    shouldLogStakingEvent,
+    handleMaxButtonPress,
+    trackEvent,
+    createEventBuilder,
+    earnToken?.symbol,
+    network?.name,
+    balanceValue,
+    isFiat,
+  ]);
+
   const getButtonLabel = () => {
     if (!isNonZeroAmount) {
       return strings('stake.enter_amount');
@@ -665,61 +746,8 @@ const EarnInputView = () => {
       </View>
       <QuickAmounts
         amounts={percentageOptions}
-        onAmountPress={({ value }: { value: number }) => {
-          const metrics: WithMetaMetricsEvent[] = [];
-
-          if (shouldLogStablecoinEvent()) {
-            metrics.push({
-              event: MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED,
-              properties: {
-                action_type: 'deposit',
-                input_value: `${value * 100}%`,
-                token: earnToken?.symbol,
-                network: network?.name,
-                user_token_balance: balanceValue,
-              },
-            });
-          } else if (shouldLogStakingEvent()) {
-            metrics.push({
-              event: MetaMetricsEvents.STAKE_INPUT_QUICK_AMOUNT_CLICKED,
-              properties: {
-                location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
-                amount: value,
-                is_max: false,
-                mode: !isFiat ? 'native' : 'fiat',
-              },
-            });
-          }
-
-          withMetaMetrics(handleQuickAmountPress, metrics)({ value });
-        }}
-        onMaxPress={() => {
-          const metrics: WithMetaMetricsEvent[] = [];
-
-          if (shouldLogStablecoinEvent()) {
-            metrics.push({
-              event: MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED,
-              properties: {
-                action_type: 'deposit',
-                input_value: 'Max',
-                token: earnToken?.symbol,
-                network: network?.name,
-                user_token_balance: balanceValue,
-              },
-            });
-          } else if (shouldLogStakingEvent()) {
-            metrics.push({
-              event: MetaMetricsEvents.STAKE_INPUT_QUICK_AMOUNT_CLICKED,
-              properties: {
-                location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
-                is_max: true,
-                mode: !isFiat ? 'native' : 'fiat',
-              },
-            });
-          }
-
-          withMetaMetrics(handleMaxButtonPress, metrics)();
-        }}
+        onAmountPress={handleQuickAmountPressWithTracking}
+        onMaxPress={handleMaxPressWithTracking}
       />
       <Keypad
         value={!isFiat ? amountToken : amountFiatNumber}
