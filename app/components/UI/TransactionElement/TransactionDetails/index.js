@@ -35,6 +35,7 @@ import {
   selectEvmTicker,
   selectProviderConfig,
   selectTickerByChainId,
+  selectChainId,
 } from '../../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -68,7 +69,6 @@ import {
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Tag from '../../../../component-library/components/Tags/Tag';
 import TagBase from '../../../../component-library/base-components/TagBase';
-import { selectChainId } from '../../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
