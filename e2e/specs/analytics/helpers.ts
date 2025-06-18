@@ -15,8 +15,9 @@ export interface EventPayload {
 export const getEventsPayloads = async (
   mockServer: MockttpServer,
   events: string[] = [],
+  timeout = 5000
 ): Promise<EventPayload[]> => {
-  const waitForPendingEndpoints = async (timeout = 30000): Promise<ServerMockedEndpoint[]> => {
+  const waitForPendingEndpoints = async (): Promise<ServerMockedEndpoint[]> => {
     const startTime = Date.now();
 
     const checkPendingEndpoints = async (): Promise<ServerMockedEndpoint[]> => {
@@ -36,7 +37,7 @@ export const getEventsPayloads = async (
         }
         // eslint-disable-next-line no-console
         console.log('Waiting for pending endpoints...');
-        await new Promise((resolve) => setTimeout(resolve, 2500));
+        await new Promise((resolve) => setTimeout(resolve, timeout / 4));
         return checkPendingEndpoints();
       }
 

@@ -70,6 +70,7 @@ class Gestures {
       await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.
     }
     await Utilities.waitForElementToBeEnabled(elementToTap);
+    await Utilities.waitForElementToStopMoving(elementToTap, timeout);
     await (await elementToTap).tap();
   }
 
