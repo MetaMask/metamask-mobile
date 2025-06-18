@@ -1,6 +1,5 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
 import BlockaidModal from './BlockaidModal';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
