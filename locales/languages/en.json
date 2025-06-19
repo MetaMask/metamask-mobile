@@ -409,7 +409,7 @@
     "re_enter_password": "Re-enter your password",
     "use_at_least_8_characters": "Use at least 8 characters",
     "unlock_with_face_id": "Unlock with Face ID?",
-    "learn_more": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me.",
+    "learn_more": "If I forget this password, MetaMask can't recover it for me.",
     "seed_phrase_length_error": "Secret Recovery Phrase must be 12, 15, 18, 21, or 24 words",
     "continue": "Continue",
     "clear_all": "Clear all",
@@ -471,6 +471,8 @@
   },
   "deposit": {
     "title": "Deposit",
+    "selectRegion": "Select Region",
+    "chooseYourRegionToContinue": "Choose your region to continue",
     "buildQuote": {
       "payWith": "Pay with",
       "unexpectedError": "An unexpected error occurred.",
