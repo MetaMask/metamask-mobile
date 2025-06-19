@@ -274,23 +274,6 @@ describe('decodeSwapsTx', () => {
           from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
           gasUsed: '0x316f7',
           logs: [
-            {
-              address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-              blockHash:
-                '0x3b46a982921214b2d6e7d939d37a73c1e45293ba049fdbc8c58f91c03d71d9eb',
-              blockNumber: '0x15afabf',
-              data: '0x00000000000000000000000000000000000000000000000000000000004c4b40',
-              logIndex: '0x4e',
-              removed: false,
-              topics: [
-                '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
-                '0x000000000000000000000000c5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
-                '0x00000000000000000000000074de5d4fcbf63e00296fd95d33236b9794016631',
-              ],
-              transactionHash:
-                '0xac561978ed01a8828e30c193c8368b0baec0f8c8c85c933c324c06352a16aeb6',
-              transactionIndex: '0xb',
-            },
           ],
           logsBloom:
             '0x00200000000000001000000080000002004000000800000000000000000000000000010000000000000010000000000002000080080008000000000000000000000000000000080008020008000000200000000000400000000004000000000000000000000000000000000000000001000000000000040000000010000000080000021000000000000000000000000000000000810000084020004000000000000000000000200000000040000004000000000000000000000200000000200000000002000000000000000000000000000000000000001000000002080000000020200000020000000400800000000000000000000000000401000000001000',
@@ -418,18 +401,7 @@ describe('decodeSwapsTx', () => {
               occurrences: 100,
               iconUrl:
                 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-              metadata: {
-                honeypotStatus: {},
-                isContractVerified: false,
-                erc20Permit: false,
-                description: {
-                  en: 'Ethereum is a global, open-source platform for decentralized applications. In other words, the vision is to create a world computer that anyone can build applications in a decentralized manner; while all states and data are distributed and publicly accessible. Ethereum supports smart contracts in which developers can write code in order to program digital value. Examples of decentralized apps (dapps) that are built on Ethereum includes tokens, non-fungible tokens, decentralized finance apps, lending protocol, decentralized exchanges, and much more.On Ethereum, all transactions and smart contract executions require a small fee to be paid. This fee is called Gas. In technical terms, Gas refers to the unit of measure on the amount of computational effort required to execute an operation or a smart contract. The more complex the execution operation is, the more gas is required to fulfill that operation. Gas fees are paid entirely in Ether (ETH), which is the native coin of the blockchain. The price of gas can fluctuate from time to time depending on the network demand.',
-                  ko: '이더리움(Ethereum/ETH)은 블록체인 기술에 기반한 클라우드 컴퓨팅 플랫폼 또는 프로그래밍 언어이다. 비탈릭 부테린이 개발하였다.비탈릭 부테린은 가상화폐인 비트코인에 사용된 핵심 기술인 블록체인(blockchain)에 화폐 거래 기록뿐 아니라 계약서 등의 추가 정보를 기록할 수 있다는 점에 착안하여, 전 세계 수많은 사용자들이 보유하고 있는 컴퓨팅 자원을 활용해 분산 네트워크를 구성하고, 이 플랫폼을 이용하여 SNS, 이메일, 전자투표 등 다양한 정보를 기록하는 시스템을 창안했다. 이더리움은 C++, 자바, 파이썬, GO 등 주요 프로그래밍 언어를 지원한다.이더리움을 사물 인터넷(IoT)에 적용하면 기계 간 금융 거래도 가능해진다. 예를 들어 고장난 청소로봇이 정비로봇에 돈을 내고 정비를 받고, 청소로봇은 돈을 벌기 위해 정비로봇의 집을 청소하는 것도 가능해진다.',
-                  zh: 'Ethereum（以太坊）是一个平台和一种编程语言，使开发人员能够建立和发布下一代分布式应用。Ethereum 是使用甲醚作为燃料，以激励其网络的第一个图灵完备cryptocurrency。Ethereum（以太坊） 是由Vitalik Buterin的创建。该项目于2014年8月获得了美国1800万$比特币的价值及其crowdsale期间。在2016年，Ethereum（以太坊）的价格上涨超过50倍。',
-                  ja: 'イーサリアム (Ethereum, ETH)・プロジェクトにより開発が進められている、分散型アプリケーション（DApps）やスマート・コントラクトを構築するためのプラットフォームの名称、及び関連するオープンソース・ソフトウェア・プロジェクトの総称である。イーサリアムでは、イーサリアム・ネットワークと呼ばれるP2Pのネットワーク上でスマート・コントラクトの履行履歴をブロックチェーンに記録していく。またイーサリアムは、スマート・コントラクトを記述するチューリング完全なプログラミング言語を持ち、ネットワーク参加者はこのネットワーク上のブロックチェーンに任意のDAppsやスマート・コントラクトを記述しそれを実行することが可能になる。ネットワーク参加者が「Ether」と呼ばれるイーサリアム内部通貨の報酬を目当てに、採掘と呼ばれるブロックチェーンへのスマート・コントラクトの履行結果の記録を行うことで、その正統性を保証していく。このような仕組みにより特定の中央管理組織に依拠せず、P2P全体を実行環境としてプログラムの実行とその結果を共有することが可能になった。',
-                },
-                createdAt: '2023-10-31T22:41:58.553Z',
-              },
+              metadata: {},
             },
             destTokenAmount: '1967600601227999',
             walletAddress: '0xC5FE6EF47965741f6f7A4734Bf784bf3ae3f2452',
@@ -449,18 +421,7 @@ describe('decodeSwapsTx', () => {
                   occurrences: 100,
                   iconUrl:
                     'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-                  metadata: {
-                    honeypotStatus: {},
-                    isContractVerified: false,
-                    erc20Permit: false,
-                    description: {
-                      en: 'Ethereum is a global, open-source platform for decentralized applications. In other words, the vision is to create a world computer that anyone can build applications in a decentralized manner; while all states and data are distributed and publicly accessible. Ethereum supports smart contracts in which developers can write code in order to program digital value. Examples of decentralized apps (dapps) that are built on Ethereum includes tokens, non-fungible tokens, decentralized finance apps, lending protocol, decentralized exchanges, and much more.On Ethereum, all transactions and smart contract executions require a small fee to be paid. This fee is called Gas. In technical terms, Gas refers to the unit of measure on the amount of computational effort required to execute an operation or a smart contract. The more complex the execution operation is, the more gas is required to fulfill that operation. Gas fees are paid entirely in Ether (ETH), which is the native coin of the blockchain. The price of gas can fluctuate from time to time depending on the network demand.',
-                      ko: '이더리움(Ethereum/ETH)은 블록체인 기술에 기반한 클라우드 컴퓨팅 플랫폼 또는 프로그래밍 언어이다. 비탈릭 부테린이 개발하였다.비탈릭 부테린은 가상화폐인 비트코인에 사용된 핵심 기술인 블록체인(blockchain)에 화폐 거래 기록뿐 아니라 계약서 등의 추가 정보를 기록할 수 있다는 점에 착안하여, 전 세계 수많은 사용자들이 보유하고 있는 컴퓨팅 자원을 활용해 분산 네트워크를 구성하고, 이 플랫폼을 이용하여 SNS, 이메일, 전자투표 등 다양한 정보를 기록하는 시스템을 창안했다. 이더리움은 C++, 자바, 파이썬, GO 등 주요 프로그래밍 언어를 지원한다.이더리움을 사물 인터넷(IoT)에 적용하면 기계 간 금융 거래도 가능해진다. 예를 들어 고장난 청소로봇이 정비로봇에 돈을 내고 정비를 받고, 청소로봇은 돈을 벌기 위해 정비로봇의 집을 청소하는 것도 가능해진다.',
-                      zh: 'Ethereum（以太坊）是一个平台和一种编程语言，使开发人员能够建立和发布下一代分布式应用。Ethereum 是使用甲醚作为燃料，以激励其网络的第一个图灵完备cryptocurrency。Ethereum（以太坊） 是由Vitalik Buterin的创建。该项目于2014年8月获得了美国1800万$比特币的价值及其crowdsale期间。在2016年，Ethereum（以太坊）的价格上涨超过50倍。',
-                      ja: 'イーサリアム (Ethereum, ETH)・プロジェクトにより開発が進められている、分散型アプリケーション（DApps）やスマート・コントラクトを構築するためのプラットフォームの名称、及び関連するオープンソース・ソフトウェア・プロジェクトの総称である。イーサリアムでは、イーサリアム・ネットワークと呼ばれるP2Pのネットワーク上でスマート・コントラクトの履行履歴をブロックチェーンに記録していく。またイーサリアムは、スマート・コントラクトを記述するチューリング完全なプログラミング言語を持ち、ネットワーク参加者はこのネットワーク上のブロックチェーンに任意のDAppsやスマート・コントラクトを記述しそれを実行することが可能になる。ネットワーク参加者が「Ether」と呼ばれるイーサリアム内部通貨の報酬を目当てに、採掘と呼ばれるブロックチェーンへのスマート・コントラクトの履行結果の記録を行うことで、その正統性を保証していく。このような仕組みにより特定の中央管理組織に依拠せず、P2P全体を実行環境としてプログラムの実行とその結果を共有することが可能になった。',
-                    },
-                    createdAt: '2023-10-31T22:41:58.553Z',
-                  },
+                  metadata: {},
                 },
               },
             },
@@ -499,7 +460,7 @@ describe('decodeSwapsTx', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const res = decodeSwapsTx(args as unknown as any);
-    expect(res).toEqual( [
+    expect(res).toEqual([
       {
         renderTo: '0x881d40237659c251811cec9c364ef91dc08d300c',
         renderFrom: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
@@ -507,7 +468,7 @@ describe('decodeSwapsTx', () => {
         notificationKey: 'Swap complete (USDC to ETH)',
         value: '-5.0 USDC',
         fiatValue: '$5.01',
-        transactionType: 'transaction_site_interaction'
+        transactionType: 'transaction_site_interaction',
       },
       {
         renderFrom: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
@@ -521,8 +482,8 @@ describe('decodeSwapsTx', () => {
         summaryAmount: '5.0 USDC',
         summaryFee: '0.00053 ETH',
         summaryTotalAmount: '5.00053 ETH',
-        summarySecondaryTotalAmount: '$6.33'
-      }
+        summarySecondaryTotalAmount: '$6.33',
+      },
     ]);
   });
 });
