@@ -214,6 +214,7 @@ const main = async () => {
         'eth_getEncryptionPublicKey',
         'wallet_watchAsset',
         'personal_sign',
+        'eth_signTypedData_v4',
       ];
 
       const results = await rpcCoverageTool({
