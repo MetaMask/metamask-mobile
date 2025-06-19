@@ -62,8 +62,10 @@ export const decodeSwapsTx = (args: {
     contractExchangeRates,
     conversionRate,
     primaryCurrency,
+    bridgeTxHistoryData,
   } = args;
-  const { bridgeTxHistoryItem } = args.bridgeTxHistoryData;
+
+  const { bridgeTxHistoryItem } = bridgeTxHistoryData;
   const { quote } = bridgeTxHistoryItem;
 
   const sourceTokenSymbol = quote.srcAsset?.symbol;
