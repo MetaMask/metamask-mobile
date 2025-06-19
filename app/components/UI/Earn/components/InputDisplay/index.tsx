@@ -23,6 +23,11 @@ import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags
 import CurrencyToggle from '../CurrencySwitch';
 import FadeInView from '../FadeInView';
 
+export const INPUT_DISPLAY_TEST_IDS = {
+  LENDING_MAX_SAFE_WITHDRAWAL_TOOLTIP_ICON:
+    'LendingMaxSafeWithdrawalTooltipIcon',
+};
+
 export interface InputDisplayProps {
   isOverMaximum: {
     isOverMaximumEth: boolean;
@@ -117,30 +122,20 @@ const InputDisplay = ({
     selectStablecoinLendingEnabledFlag,
   );
 
-  const { getEarnToken, getOutputToken } = useEarnTokens();
+  const { getOutputToken } = useEarnTokens();
   const outputToken = getOutputToken(asset);
-  const earnToken = getEarnToken(asset);
 
   const shouldShowLendingMaxSafeWithdrawalMessage = useMemo(() => {
-    if (earnToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING) {
+    if (
+      outputToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING ||
+      !outputToken?.chainId ||
+      !maxWithdrawalAmount
+    ) {
       return false;
     }
-
-    if (!earnToken?.chainId) return false;
-
-    if (!outputToken) {
-      return false;
-    }
-
-    if (!maxWithdrawalAmount) return false;
 
     return true;
-  }, [
-    earnToken?.chainId,
-    earnToken?.experience?.type,
-    maxWithdrawalAmount,
-    outputToken,
-  ]);
+  }, [maxWithdrawalAmount, outputToken]);
 
   const styles = createStyles(colors, {
     isStablecoinLendingEnabled,
@@ -217,6 +212,9 @@ const InputDisplay = ({
               iconColor={IconColor.Alternative}
               iconName={IconName.Question}
               onPress={onNavigateToLendingMaxWithdrawModal}
+              testID={
+                INPUT_DISPLAY_TEST_IDS.LENDING_MAX_SAFE_WITHDRAWAL_TOOLTIP_ICON
+              }
             />
           </View>
         </FadeInView>

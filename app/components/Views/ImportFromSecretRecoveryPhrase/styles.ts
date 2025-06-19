@@ -15,6 +15,10 @@ const createStyles = (colors: any) =>
       paddingHorizontal: 16,
     },
     container: {
+      flex: 1,
+      flexDirection: 'column',
+    },
+    importSrpContainer: {
       marginTop: 6,
     },
     description: {
@@ -156,7 +160,12 @@ const createStyles = (colors: any) =>
     },
     passwordContainer: {
       flexDirection: 'column',
-      gap: 16,
+      rowGap: 16,
+      flexGrow: 1,
+    },
+    passwordContainerTitle: {
+      flexDirection: 'column',
+      rowGap: 4,
     },
     learnMoreContainer: {
       flexDirection: 'row',
@@ -172,7 +181,7 @@ const createStyles = (colors: any) =>
       justifyContent: 'flex-start',
       gap: 1,
       flexWrap: 'wrap',
-      width: '95%',
+      width: '90%',
     },
     headerLeft: {
       marginLeft: 16,
@@ -191,6 +200,17 @@ const createStyles = (colors: any) =>
     },
     inputPadding: {
       padding: Platform.OS === 'ios' ? 4 : 3,
+    },
+    createPasswordCtaContainer: {
+      width: '100%',
+      flexDirection: 'column',
+      rowGap: 18,
+      marginTop: 'auto',
+      marginBottom: Platform.select({
+        ios: 16,
+        android: 24,
+        default: 16,
+      }),
     },
   });
 

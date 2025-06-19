@@ -7,6 +7,7 @@ import {
   BackHandler,
   Image,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
@@ -18,6 +19,7 @@ import scaling from '../../../util/scaling';
 import Engine from '../../../core/Engine';
 import { ONBOARDING_WIZARD } from '../../../constants/storage';
 import { connect } from 'react-redux';
+import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -40,7 +42,8 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import { saveOnboardingEvent } from '../../../actions/onboarding';
+import { CommonActions, useNavigation } from '@react-navigation/native';
+import { useMetrics } from '../../hooks/useMetrics';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 
 const createStyles = (colors) =>
@@ -86,7 +89,11 @@ const createStyles = (colors) =>
       justifyContent: 'flex-end',
       flexDirection: 'column',
       rowGap: 16,
-      marginBottom: 16,
+      marginBottom: Platform.select({
+        ios: 16,
+        android: 24,
+        default: 16,
+      }),
     },
     srpDesign: {
       width: 250,
@@ -103,7 +110,7 @@ const createStyles = (colors) =>
  * the backup seed phrase flow
  */
 const AccountBackupStep1 = (props) => {
-  const { navigation, route, dispatchSaveOnboardingEvent } = props;
+  const { route } = props;
   const [hasFunds, setHasFunds] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -111,8 +118,10 @@ const AccountBackupStep1 = (props) => {
   const track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
-    trackOnboarding(eventBuilder.build(), dispatchSaveOnboardingEvent);
+    trackOnboarding(eventBuilder.build(), props.saveOnboardingEvent);
   };
+
+  const navigation = useNavigation();
 
   const headerLeft = useCallback(
     () => (
@@ -162,39 +171,64 @@ const AccountBackupStep1 = (props) => {
   );
 
   const goNext = () => {
-    props.navigation.navigate('ManualBackupStep1', { ...props.route.params });
+    navigation.navigate('ManualBackupStep1', { ...props.route.params });
     track(MetaMetricsEvents.WALLET_SECURITY_STARTED);
   };
 
+  const { isEnabled: isMetricsEnabled } = useMetrics();
   const skip = async () => {
     track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
     // Get onboarding wizard state
     const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     !onboardingWizard && props.setOnboardingWizardStep(1);
-    props.navigation.navigate(Routes.ONBOARDING.SUCCESS_FLOW, {
-      screen: Routes.ONBOARDING.SUCCESS,
-      params: {
-        ...props.route.params,
-        successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
-      },
+
+    const resetAction = CommonActions.reset({
+      index: 1,
+      routes: [
+        {
+          name: Routes.ONBOARDING.SUCCESS_FLOW,
+          params: {
+            screen: Routes.ONBOARDING.SUCCESS,
+            params: {
+              ...props.route.params,
+              successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+            },
+          },
+        },
+      ],
     });
+    if (isMetricsEnabled()) {
+      navigation.dispatch(resetAction);
+    } else {
+      navigation.navigate('OptinMetrics', {
+        onContinue: () => {
+          navigation.dispatch(resetAction);
+        },
+      });
+    }
   };
 
   const showRemindLater = () => {
     if (hasFunds) return;
 
-    props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
       params: {
         onConfirm: skip,
-        onCancel: goNext,
+        onCancel: () => {
+          track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CANCELED);
+          goNext();
+        },
       },
     });
     track(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
   };
 
   const showWhatIsSeedphrase = () => {
-    props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+    track(MetaMetricsEvents.SRP_DEFINITION_CLICKED, {
+      location: 'account_backup_step_1',
+    });
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SEEDPHRASE_MODAL,
     });
   };
@@ -276,10 +310,6 @@ const AccountBackupStep1 = (props) => {
 
 AccountBackupStep1.propTypes = {
   /**
-  /* navigation object required to push and pop other views
-  */
-  navigation: PropTypes.object,
-  /**
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
@@ -290,12 +320,12 @@ AccountBackupStep1.propTypes = {
   /**
    * Action to save onboarding event
    */
-  dispatchSaveOnboardingEvent: PropTypes.func,
+  saveOnboardingEvent: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
-  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
+  saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
 });
 
 export default connect(null, mapDispatchToProps)(AccountBackupStep1);
