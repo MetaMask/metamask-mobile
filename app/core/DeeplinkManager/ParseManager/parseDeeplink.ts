@@ -18,10 +18,9 @@ import {
   INVALID,
   MISSING,
 } from './utils/verifySignature';
-import NavigationService from '../../../core/NavigationService';
-import Routes from '../../../constants/navigation/Routes';
 import { ACTIONS } from '../../../constants/deeplinks';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
+import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
 
 async function parseDeeplink({
   deeplinkManager: instance,
@@ -87,12 +86,12 @@ async function parseDeeplink({
 
     const linkType = () => {
       if (isInvalidLink) {
-        return 'invalid';
+        return DeepLinkModalLinkType.INVALID;
       }
       if (isPrivateLink) {
-        return 'private';
+        return DeepLinkModalLinkType.PRIVATE;
       }
-      return 'public';
+      return DeepLinkModalLinkType.PUBLIC;
     };
 
     const shouldProceed = await new Promise<boolean>((resolve) => {

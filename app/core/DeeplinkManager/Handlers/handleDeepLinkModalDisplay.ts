@@ -1,23 +1,22 @@
-import { InteractionManager } from 'react-native';
 import {
   createDeepLinkModalNavDetails,
-  DeepLinkModalProps,
-} from '../../../components/UI/DeepLinkModal/constant';
+  DeepLinkModalParams,
+} from '../../../components/UI/DeepLinkModal';
 import { selectDeepLinkModalDisabled } from '../../../selectors/settings';
 import { store } from '../../../store';
 import NavigationService from '../../../core/NavigationService';
 
-const handleDeepLinkModalDisplay = (props: DeepLinkModalProps) => {
+const handleDeepLinkModalDisplay = (params: DeepLinkModalParams) => {
   // TODO: Update name since this is meant to remove interstitial if don't remind me again was toggled
   const deepLinkModalDisabled = selectDeepLinkModalDisabled(store.getState());
 
-  if (props.linkType === 'private' && deepLinkModalDisabled) {
+  if (params.linkType === 'private' && deepLinkModalDisabled) {
     // Skip interstitial if don't remind me again was toggled
-    props.onContinue();
+    params.onContinue();
     return;
   }
   NavigationService.navigation.navigate(
-    ...createDeepLinkModalNavDetails(props),
+    ...createDeepLinkModalNavDetails(params),
   );
 };
 
