@@ -10,6 +10,14 @@ import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleUniversalLink from './handleUniversalLink';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  verifyDeeplinkSignature,
+  hasSignature,
+  VALID,
+  INVALID,
+  MISSING,
+} from './utils/verifySignature';
+import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
 
 jest.mock('../../../core/SDKConnect/handlers/handleDeeplink');
 jest.mock('../../../core/AppConstants');
@@ -20,6 +28,8 @@ jest.mock('../../../core/NativeModules', () => ({
     goBack: jest.fn(),
   },
 }));
+jest.mock('./utils/verifySignature');
+jest.mock('../Handlers/handleDeepLinkModalDisplay');
 
 describe('handleUniversalLinks', () => {
   const mockParse = jest.fn();
@@ -65,6 +75,19 @@ describe('handleUniversalLinks', () => {
   let wcURL = '';
   let url = '';
 
+  const mockHasSignature = hasSignature as jest.MockedFunction<
+    typeof hasSignature
+  >;
+  const mockVerifyDeeplinkSignature =
+    verifyDeeplinkSignature as jest.MockedFunction<
+      typeof verifyDeeplinkSignature
+    >;
+
+  const mockHandleDeepLinkModalDisplay =
+    handleDeepLinkModalDisplay as jest.MockedFunction<
+      typeof handleDeepLinkModalDisplay
+    >;
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -94,6 +117,15 @@ describe('handleUniversalLinks', () => {
     origin = 'test-origin';
     wcURL = 'test-wc-url';
     url = 'test-url';
+
+    // Default mock implementation that resolves with true
+    // mockHandleDeepLinkModalDisplay.mockImplementation((params) => {
+    //   if ('onContinue' in params) {
+    //     params.onContinue();
+    //   } else {
+    //     params.onBack();
+    //   }
+    // });
   });
 
   describe('ACTIONS.ANDROID_SDK', () => {
@@ -493,4 +525,78 @@ describe('handleUniversalLinks', () => {
       });
     });
   });
+
+  // TODO: Update these tests to work for handleUniversalLink
+  // describe('signature verification', () => {
+  //   it('should return true for valid signature', async () => {
+  //     const url = 'https://example.com?param1=value1&sig=validSignature';
+  //     mockHasSignature.mockReturnValue(true);
+  //     mockVerifyDeeplinkSignature.mockResolvedValue(VALID);
+
+  //     const result = await parseDeeplink({
+  //       deeplinkManager: instance,
+  //       url,
+  //       origin: 'testOrigin',
+  //       browserCallBack: mockBrowserCallBack,
+  //       onHandled: mockOnHandled,
+  //     });
+
+  //     expect(result).toBe(true);
+  //     expect(mockHasSignature).toHaveBeenCalled();
+  //     expect(mockVerifyDeeplinkSignature).toHaveBeenCalled();
+  //   });
+
+  //   it('should return false for invalid signature', async () => {
+  //     const url = 'https://example.com?param1=value1&sig=invalidSignature';
+  //     mockHasSignature.mockReturnValue(true);
+  //     mockVerifyDeeplinkSignature.mockResolvedValue(INVALID);
+
+  //     const result = await parseDeeplink({
+  //       deeplinkManager: instance,
+  //       url,
+  //       origin: 'testOrigin',
+  //       browserCallBack: mockBrowserCallBack,
+  //       onHandled: mockOnHandled,
+  //     });
+
+  //     expect(result).toBe(false);
+  //     expect(mockHasSignature).toHaveBeenCalled();
+  //     expect(mockVerifyDeeplinkSignature).toHaveBeenCalled();
+  //   });
+
+  //   it('should return false for missing signature', async () => {
+  //     const url = 'https://example.com?param1=value1';
+  //     mockHasSignature.mockReturnValue(true);
+  //     mockVerifyDeeplinkSignature.mockResolvedValue(MISSING);
+
+  //     const result = await parseDeeplink({
+  //       deeplinkManager: instance,
+  //       url,
+  //       origin: 'testOrigin',
+  //       browserCallBack: mockBrowserCallBack,
+  //       onHandled: mockOnHandled,
+  //     });
+
+  //     expect(result).toBe(false);
+  //     expect(mockHasSignature).toHaveBeenCalled();
+  //     expect(mockVerifyDeeplinkSignature).toHaveBeenCalled();
+  //   });
+
+  //   it('should continue normal processing when no signature is present', async () => {
+  //     const url = 'https://example.com?param1=value1';
+  //     mockHasSignature.mockReturnValue(false);
+
+  //     await parseDeeplink({
+  //       deeplinkManager: instance,
+  //       url,
+  //       origin: 'testOrigin',
+  //       browserCallBack: mockBrowserCallBack,
+  //       onHandled: mockOnHandled,
+  //     });
+
+  //     expect(mockHasSignature).toHaveBeenCalled();
+  //     expect(mockVerifyDeeplinkSignature).not.toHaveBeenCalled();
+  //     expect(mockHandleUniversalLinks).toHaveBeenCalled();
+  //   });
+  // });
 });
