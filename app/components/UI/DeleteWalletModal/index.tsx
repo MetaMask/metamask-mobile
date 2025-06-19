@@ -108,7 +108,7 @@ const DeleteWalletModal: React.FC = () => {
     triggerClose();
     await resetWalletState();
     await deleteUser();
-    track(MetaMetricsEvents.WALLET_RESTORED, {});
+    track(MetaMetricsEvents.RESET_WALLET_CONFIRMED, {});
     InteractionManager.runAfterInteractions(() => {
       navigateOnboardingRoot();
     });
