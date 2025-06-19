@@ -60,7 +60,7 @@ describe(
       }
     });
 
-    it('should not sync new contacts when contacts sync toggle is off', async () => {
+    it('does not sync new contacts when contacts sync toggle is off', async () => {
       await importWalletWithRecoveryPhrase({
         seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
         password: IDENTITY_TEAM_PASSWORD,
