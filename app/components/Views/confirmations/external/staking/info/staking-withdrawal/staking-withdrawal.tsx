@@ -1,7 +1,10 @@
 import React, { useEffect } from 'react';
+import { View } from 'react-native';
+
 import { strings } from '../../../../../../../../locales/i18n';
 import { UnstakeConfirmationViewProps } from '../../../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
+import { ConfirmationInfoComponentIDs } from '../../../../constants/info-ids';
 import useClearConfirmationOnBackSwipe from '../../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
 import useNavbar from '../../../../hooks/ui/useNavbar';
@@ -38,14 +41,14 @@ const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
 
   return (
-    <>
+    <View testID={ConfirmationInfoComponentIDs.STAKING_WITHDRAWAL}>
       <HeroRow amountWei={amountWei} />
       <UnstakingTimeSection />
       <InfoSection>
         <StakingContractInteractionDetails />
       </InfoSection>
       <GasFeesDetailsRow disableUpdate />
-    </>
+    </View>
   );
 };
 export default StakingWithdrawal;
