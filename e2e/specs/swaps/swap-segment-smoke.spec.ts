@@ -106,16 +106,18 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
     await QuoteView.tapOnSelectDestToken();
     await QuoteView.tapSearchToken();
     await QuoteView.typeSearchToken('DAI');
-    await TestHelpers.delay(3000); 
+    await TestHelpers.delay(3000);
     await QuoteView.selectToken('DAI');
     await QuoteView.enterSwapAmount('0.01');
     await QuoteView.tapOnGetQuotes();
     await Assertions.checkIfVisible(SwapView.quoteSummary);
     await SwapView.tapIUnderstandPriceWarning();
+    await device.disableSynchronization();
     await SwapView.tapViewDetailsAllQuotes();
     await Assertions.checkIfVisible(QuotesModal.header);
     await QuotesModal.close();
     await Assertions.checkIfNotVisible(QuotesModal.header);
+    await device.enableSynchronization();
   });
 
   it('should validate segment/metametric events for a cancel and viewing all available quotes', async () => {
@@ -142,19 +144,19 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
 
     await softAssert.checkAndCollect(
       async () => Assertions.checkIfObjectContains(
-        allAvailableQuotesOpenedEvent.properties,
-        {
-          action: 'Quote',
-          name: 'Swaps',
-          token_from: 'ETH',
-          token_to: 'DAI',
-          request_type: 'Order',
-          slippage: 2,
-          custom_slippage: false,
-          chain_id: '1',
-          token_from_amount: '0.01',
-        },
-      ),
+          allAvailableQuotesOpenedEvent.properties,
+          {
+            action: 'Quote',
+            name: 'Swaps',
+            token_from: 'ETH',
+            token_to: 'DAI',
+            request_type: 'Order',
+            slippage: 2,
+            custom_slippage: false,
+            chain_id: '1',
+            token_from_amount: '0.01',
+          },
+        ),
       'All Available Quotes Opened: Check main properties',
     );
 
@@ -212,18 +214,18 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
 
     await softAssert.checkAndCollect(
       async () => Assertions.checkIfObjectContains(
-        quotesRequestCancelledEvent.properties,
-        {
-          action: 'Quote',
-          name: 'Swaps',
-          token_from: 'ETH',
-          token_to: 'DAI',
-          request_type: 'Order',
-          custom_slippage: false,
-          chain_id: '1',
-          token_from_amount: '0.01',
-        },
-      ),
+          quotesRequestCancelledEvent.properties,
+          {
+            action: 'Quote',
+            name: 'Swaps',
+            token_from: 'ETH',
+            token_to: 'DAI',
+            request_type: 'Order',
+            custom_slippage: false,
+            chain_id: '1',
+            token_from_amount: '0.01',
+          },
+        ),
       'Quotes Request Cancelled: Check properties',
     );
 
