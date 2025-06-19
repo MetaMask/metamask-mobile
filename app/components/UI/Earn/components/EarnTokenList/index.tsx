@@ -220,8 +220,8 @@ const EarnTokenList = () => {
 
     tokens?.forEach((token) => {
       const hasTokenBalance = new BN4(token.balanceMinimalUnit).gt(new BN4(0));
-
-      if (hasTokenBalance) {
+      // show at least ETH if no other tokens have balance
+      if (hasTokenBalance || token.isETH) {
         tokensWithBalance.push(token);
       }
     });
