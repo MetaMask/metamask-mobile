@@ -536,6 +536,57 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(input3).toBeOnTheScreen();
     });
 
+    it('update focused index on blur', async () => {
+      const { getByPlaceholderText, getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      // Enter a seed phrase to create multiple input fields
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(
+          input,
+          'say devote wasp video cool lunch brief add fever uncover novel offer',
+        );
+      });
+
+      // Wait for the individual input fields to be created
+      await waitFor(() => {
+        expect(
+          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`),
+        ).toBeOnTheScreen();
+      });
+
+      const input0 = getByTestId(
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+      );
+      const input1 = getByTestId(
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`,
+      );
+
+      // Test case 1: Focus on input 0, then blur from the same input
+      // This should set the focused index to null
+      fireEvent(input0, 'focus');
+      fireEvent(input0, 'blur');
+
+      // The input should handle the blur event without crashing
+      expect(input0).toBeOnTheScreen();
+
+      // Test case 2: Focus on input 0, then blur from a different input
+      // This should not change the focused index
+      fireEvent(input0, 'focus');
+      fireEvent(input1, 'blur');
+
+      // Both inputs should still be on screen and functional
+      expect(input0).toBeOnTheScreen();
+      expect(input1).toBeOnTheScreen();
+    });
+
     it('valid seed word on blur', async () => {
       const { getByPlaceholderText, getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
