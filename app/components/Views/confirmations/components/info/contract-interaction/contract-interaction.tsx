@@ -7,6 +7,7 @@ import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmat
 import { use7702TransactionType } from '../../../hooks/7702/use7702TransactionType';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { ConfirmationInfoComponentIDs } from '../../../constants/info-ids';
+import { MMM_ORIGIN } from '../../../constants/confirmations';
 import AccountNetworkInfoRow from '../../rows/account-network-info-row';
 import OriginRow from '../../rows/origin-row';
 import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row/advanced-details-row';
@@ -15,11 +16,12 @@ import SwitchAccountTypeInfoRow from '../../rows/switch-account-type-info-row';
 
 const ContractInteraction = () => {
   const transactionMetadata = useTransactionMetadataRequest();
-
   const { trackPageViewedEvent } = useConfirmationMetricEvents();
   const { isBatchedUpgrade } = use7702TransactionType();
 
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
+
+  const isDappContractInteraction = transactionMetadata?.origin !== MMM_ORIGIN;
 
   return (
     <View testID={ConfirmationInfoComponentIDs.CONTRACT_INTERACTION}>
@@ -30,7 +32,7 @@ const ContractInteraction = () => {
         enableMetrics={false}
         isTransactionsRedesign
       />
-      <OriginRow isSignatureRequest={false} />
+      {isDappContractInteraction && <OriginRow isSignatureRequest={false} />}
       <GasFeesDetailsRow />
       <AdvancedDetailsRow />
     </View>
