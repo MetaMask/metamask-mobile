@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import QuickCrypto from 'react-native-quick-crypto';
 import { ACTIONS } from '../../../constants/deeplinks';
 import Device from '../../../util/device';
 import AppConstants from '../../AppConstants';
@@ -10,14 +11,8 @@ import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleUniversalLink from './handleUniversalLink';
 import Routes from '../../../constants/navigation/Routes';
-import {
-  verifyDeeplinkSignature,
-  hasSignature,
-  VALID,
-  INVALID,
-  MISSING,
-} from './utils/verifySignature';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
+import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
 
 jest.mock('../../../core/SDKConnect/handlers/handleDeeplink');
 jest.mock('../../../core/AppConstants');
@@ -28,8 +23,21 @@ jest.mock('../../../core/NativeModules', () => ({
     goBack: jest.fn(),
   },
 }));
-jest.mock('./utils/verifySignature');
 jest.mock('../Handlers/handleDeepLinkModalDisplay');
+jest.mock('react-native-quick-crypto', () => ({
+  webcrypto: {
+    subtle: {
+      importKey: jest.fn(),
+      verify: jest.fn(),
+    },
+  },
+}));
+
+const mockSubtle = QuickCrypto.webcrypto.subtle as jest.Mocked<
+  typeof QuickCrypto.webcrypto.subtle
+> & {
+  verify: jest.Mock<Promise<boolean>>;
+};
 
 describe('handleUniversalLinks', () => {
   const mockParse = jest.fn();
@@ -75,14 +83,6 @@ describe('handleUniversalLinks', () => {
   let wcURL = '';
   let url = '';
 
-  const mockHasSignature = hasSignature as jest.MockedFunction<
-    typeof hasSignature
-  >;
-  const mockVerifyDeeplinkSignature =
-    verifyDeeplinkSignature as jest.MockedFunction<
-      typeof verifyDeeplinkSignature
-    >;
-
   const mockHandleDeepLinkModalDisplay =
     handleDeepLinkModalDisplay as jest.MockedFunction<
       typeof handleDeepLinkModalDisplay
@@ -116,7 +116,7 @@ describe('handleUniversalLinks', () => {
 
     origin = 'test-origin';
     wcURL = 'test-wc-url';
-    url = 'https://example.com';
+    url = 'https://metamask.app.link';
 
     // Default mock implementation that resolves with true
     mockHandleDeepLinkModalDisplay.mockImplementation((params) => {
@@ -126,6 +126,7 @@ describe('handleUniversalLinks', () => {
         params.onBack();
       }
     });
+
   });
 
   describe('ACTIONS.ANDROID_SDK', () => {
@@ -136,6 +137,8 @@ describe('handleUniversalLinks', () => {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/${ACTIONS.ANDROID_SDK}/additional/path`,
       } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.ANDROID_SDK}/additional/path`;
 
       await handleUniversalLink({
         instance,
@@ -179,6 +182,8 @@ describe('handleUniversalLinks', () => {
         pathname: `/${ACTIONS.CONNECT}/additional/path`,
       } as ReturnType<typeof extractURLParams>['urlObj'];
 
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.CONNECT}/additional/path/additional/path`;
+
       await handleUniversalLink({
         instance,
         handled,
@@ -209,6 +214,8 @@ describe('handleUniversalLinks', () => {
         pathname: `/${ACTIONS.CONNECT}/additional/path`,
       } as ReturnType<typeof extractURLParams>['urlObj'];
 
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.CONNECT}/additional/path/additional/path`;
+
       await handleUniversalLink({
         instance,
         handled,
@@ -225,7 +232,7 @@ describe('handleUniversalLinks', () => {
         channelId: 'test-channel-id',
         origin: 'test-origin',
         context: 'deeplink_universal',
-        url: 'https://example.com',
+        url,
         protocolVersion: 1,
         otherPublicKey: '',
         sdkConnect: {
@@ -245,7 +252,7 @@ describe('handleUniversalLinks', () => {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/${ACTIONS.WC}/additional/path`,
       } as ReturnType<typeof extractURLParams>['urlObj'];
-
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WC}/additional/path/additional/path`;
       wcURL = 'test-wc-url';
 
       await handleUniversalLink({
@@ -272,7 +279,7 @@ describe('handleUniversalLinks', () => {
       } as ReturnType<typeof extractURLParams>['urlObj'];
 
       wcURL = '';
-
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WC}/additional/path/additional/path`;
       await handleUniversalLink({
         instance,
         handled,
@@ -296,6 +303,8 @@ describe('handleUniversalLinks', () => {
         pathname: `/${ACTIONS.SEND}/additional/path`,
         href: 'test-href',
       } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SEND}/additional/path/additional/path`;
 
       await handleUniversalLink({
         instance,
@@ -324,6 +333,8 @@ describe('handleUniversalLinks', () => {
         href: 'test-href',
       } as ReturnType<typeof extractURLParams>['urlObj'];
 
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.BUY_CRYPTO}/additional/path/additional/path`;
+
       await handleUniversalLink({
         instance,
         handled,
@@ -348,6 +359,8 @@ describe('handleUniversalLinks', () => {
         href: 'test-href',
       } as ReturnType<typeof extractURLParams>['urlObj'];
 
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SELL_CRYPTO}/additional/path/additional/path`;
+
       await handleUniversalLink({
         instance,
         handled,
@@ -371,6 +384,8 @@ describe('handleUniversalLinks', () => {
         pathname: `/other-action/additional/path`,
         href: 'test-href',
       } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/other-action/additional/path`;
 
       await handleUniversalLink({
         instance,
@@ -405,7 +420,7 @@ describe('handleUniversalLinks', () => {
           ...urlObj,
           pathname: `/${ACTIONS.HOME}/additional/path`,
         };
-
+        url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.HOME}/additional/path`;
         await handleUniversalLink({
           instance,
           handled,
@@ -430,6 +445,7 @@ describe('handleUniversalLinks', () => {
           href: swapUrl,
           pathname: `/${ACTIONS.SWAP}/some-swap-path`,
         };
+        url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}/some-swap-path`;
 
         await handleUniversalLink({
           instance,
@@ -457,6 +473,7 @@ describe('handleUniversalLinks', () => {
           href: buyUrl,
           pathname: `/${ACTIONS.BUY}/some-buy-path`,
         };
+        url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.BUY}/some-buy-path`;
 
         await handleUniversalLink({
           instance,
@@ -482,6 +499,7 @@ describe('handleUniversalLinks', () => {
           href: buyUrl,
           pathname: `/${ACTIONS.BUY_CRYPTO}/some-buy-path`,
         };
+        url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.BUY_CRYPTO}/some-buy-path`;
 
         await handleUniversalLink({
           instance,
@@ -507,6 +525,7 @@ describe('handleUniversalLinks', () => {
           ...urlObj,
           pathname: '/unknown-action/path',
         };
+        url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/unknown-action/path`;
 
         await handleUniversalLink({
           instance,
@@ -525,22 +544,17 @@ describe('handleUniversalLinks', () => {
     });
   });
 
-  // TODO: Update these tests to work for handleUniversalLink
-  // Will probably need to mock deepLinkModalDisabled from the store
-  // If you need to control if continue or back is called, look at re-mocking for each tests
-  // mockHandleDeepLinkModalDisplay.mockImplementation((params) => {
-  //   if ('onContinue' in params) {
-  //     params.onContinue();
-  //   } else {
-  //     params.onBack();
-  //   }
-  // });
   describe('signature verification', () => {
-    it.only('should successfully verify a valid signature', async () => {
-      const url = 'https://example.com?param1=value1&sig=validSignature';
-      // DO NOT MOCK THE VERIFICATION FUNCTIONS SINCE WE'RE TESTING THEM
-      // mockHasSignature.mockReturnValue(true);
-      // mockVerifyDeeplinkSignature.mockResolvedValue(VALID);
+    beforeEach(() => {
+      DevLogger.log = jest.fn();
+      mockSubtle.verify.mockResolvedValue(true);
+    });
+
+    it('should correctly identify a valid signature and call handleDeepLinkModalDisplay with correct params', async () => {
+      const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+        'base64',
+      );
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}?param1=value1&sig=${validSignature}`;
 
       await handleUniversalLink({
         instance,
@@ -553,65 +567,93 @@ describe('handleUniversalLinks', () => {
         url,
       });
 
-      expect(mockHasSignature).toHaveBeenCalled();
-      expect(mockHasSignature.mock.results[0].value).toBe(true);
-      expect(mockVerifyDeeplinkSignature).toHaveBeenCalled();
-      expect(mockVerifyDeeplinkSignature.mock.results[0].value).resolves.toBe(
-        VALID,
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DeepLinkManager:parse Verified signature for deeplink', url
       );
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+        linkType: DeepLinkModalLinkType.PRIVATE,
+        pageTitle: 'Dapp',
+        onContinue: expect.any(Function),
+        onBack: expect.any(Function),
+      });
+      expect(handled).toHaveBeenCalled();
     });
 
-    // it('should return false for invalid signature', async () => {
-    //   const url = 'https://example.com?param1=value1&sig=invalidSignature';
-    //   mockHasSignature.mockReturnValue(true);
-    //   mockVerifyDeeplinkSignature.mockResolvedValue(INVALID);
+    it('should correctly identify an invalid signature', async () => {
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}?param1=value1&sig=invalidSignature`;
 
-    //   const result = await parseDeeplink({
-    //     deeplinkManager: instance,
-    //     url,
-    //     origin: 'testOrigin',
-    //     browserCallBack: mockBrowserCallBack,
-    //     onHandled: mockOnHandled,
-    //   });
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        params,
+        browserCallBack: mockBrowserCallBack,
+        origin,
+        wcURL,
+        url,
+      });
 
-    //   expect(result).toBe(false);
-    //   expect(mockHasSignature).toHaveBeenCalled();
-    //   expect(mockVerifyDeeplinkSignature).toHaveBeenCalled();
-    // });
 
-    // it('should return false for missing signature', async () => {
-    //   const url = 'https://example.com?param1=value1';
-    //   mockHasSignature.mockReturnValue(true);
-    //   mockVerifyDeeplinkSignature.mockResolvedValue(MISSING);
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DeepLinkManager:parse Invalid/Missing signature, ignoring deeplink', url
+      );
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+        linkType: DeepLinkModalLinkType.PUBLIC,
+        pageTitle: 'Dapp',
+        onContinue: expect.any(Function),
+        onBack: expect.any(Function),
+      });
+      expect(handled).toHaveBeenCalled();
+    });
 
-    //   const result = await parseDeeplink({
-    //     deeplinkManager: instance,
-    //     url,
-    //     origin: 'testOrigin',
-    //     browserCallBack: mockBrowserCallBack,
-    //     onHandled: mockOnHandled,
-    //   });
+    it('should correctly identify a link with missing signature', async () => {
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}?param1=value1&sig=`;
 
-    //   expect(result).toBe(false);
-    //   expect(mockHasSignature).toHaveBeenCalled();
-    //   expect(mockVerifyDeeplinkSignature).toHaveBeenCalled();
-    // });
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        params,
+        browserCallBack: mockBrowserCallBack,
+        origin,
+        wcURL,
+        url,
+      });
 
-    // it('should continue normal processing when no signature is present', async () => {
-    //   const url = 'https://example.com?param1=value1';
-    //   mockHasSignature.mockReturnValue(false);
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DeepLinkManager:parse Invalid/Missing signature, ignoring deeplink', url
+      );
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+        linkType: DeepLinkModalLinkType.PUBLIC,
+        pageTitle: 'Dapp',
+        onContinue: expect.any(Function),
+        onBack: expect.any(Function),
+      });
+      expect(handled).toHaveBeenCalled();
+    });
 
-    //   await parseDeeplink({
-    //     deeplinkManager: instance,
-    //     url,
-    //     origin: 'testOrigin',
-    //     browserCallBack: mockBrowserCallBack,
-    //     onHandled: mockOnHandled,
-    //   });
+    it('should correctly identify a public link without signature', async () => {
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}`;
 
-    //   expect(mockHasSignature).toHaveBeenCalled();
-    //   expect(mockVerifyDeeplinkSignature).not.toHaveBeenCalled();
-    //   expect(mockHandleUniversalLinks).toHaveBeenCalled();
-    // });
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        params,
+        browserCallBack: mockBrowserCallBack,
+        origin,
+        wcURL,
+        url,
+      });
+
+      expect(DevLogger.log).not.toHaveBeenCalled();
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+        linkType: DeepLinkModalLinkType.PUBLIC,
+        pageTitle: 'Dapp',
+        onContinue: expect.any(Function),
+        onBack: expect.any(Function),
+      });
+      expect(handled).toHaveBeenCalled();
+    });
   });
 });
