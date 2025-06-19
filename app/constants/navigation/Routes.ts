@@ -31,6 +31,7 @@ const Routes = {
     BASIC_INFO: 'BasicInfo',
     ENTER_ADDRESS: 'EnterAddress',
     KYC_PROCESSING: 'KycProcessing',
+    KYC_WEBVIEW: 'KycWebview',
     PROVIDER_WEBVIEW: 'ProviderWebview',
   },
   HW: {
@@ -60,6 +61,7 @@ const Routes = {
     NFT_AUTO_DETECTION_MODAL: 'NFTAutoDetectionModal',
     MULTI_RPC_MIGRATION_MODAL: 'MultiRPcMigrationModal',
     MAX_BROWSER_TABS_MODAL: 'MaxBrowserTabsModal',
+    DEEP_LINK_MODAL: 'DeepLinkModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
