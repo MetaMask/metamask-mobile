@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Fuse from 'fuse.js';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { FlashList } from '@shopify/flash-list';
 import { isSmartContractAddress } from '../../../../../../util/transactions';
 import { strings } from '../../../../../../../locales/i18n';
 import AddressElement from '../AddressElement';
@@ -12,7 +13,7 @@ import Text from '../../../../../../component-library/components/Texts/Text/Text
 import { TextVariant } from '../../../../../../component-library/components/Texts/Text';
 import { regex } from '../../../../../../util/regex';
 import { SendViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/SendView.selectors';
-import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
+import { selectInternalEvmAccounts } from '../../../../../../selectors/accountsController';
 import styleSheet from './AddressList.styles';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
@@ -38,7 +39,7 @@ const AddressList = ({
   const styles = styleSheet(colors);
   const [contactElements, setContactElements] = useState([]);
   const [fuse, setFuse] = useState(undefined);
-  const internalAccounts = useSelector(selectInternalAccounts);
+  const internalAccounts = useSelector(selectInternalEvmAccounts);
   const addressBook = useSelector(selectAddressBook);
   const ambiguousAddressEntries = useSelector(
     (state) => state.user.ambiguousAddressEntries,
@@ -159,18 +160,23 @@ const AddressList = ({
         >
           {strings('onboarding_wizard.step2.title')}
         </Text>
-        {internalAccounts.map((account) => (
-          <AddressElement
-            key={account.id}
-            address={toChecksumHexAddress(account.address)}
-            name={account.metadata.name}
-            onAccountPress={onAccountPress}
-            onIconPress={onIconPress}
-            onAccountLongPress={onAccountLongPress}
-            testID={SendViewSelectorsIDs.MY_ACCOUNT_ELEMENT}
-            chainId={chainId}
-          />
-        ))}
+        <FlashList
+          data={internalAccounts}
+          renderItem={({ item: account }) => (
+            <AddressElement
+              key={account.id}
+              address={toChecksumHexAddress(account.address)}
+              name={account.metadata.name}
+              onAccountPress={onAccountPress}
+              onIconPress={onIconPress}
+              onAccountLongPress={onAccountLongPress}
+              testID={SendViewSelectorsIDs.MY_ACCOUNT_ELEMENT}
+              chainId={chainId}
+            />
+          )}
+          estimatedItemSize={80}
+          keyExtractor={(item) => item.id}
+        />
       </View>
     );
   };

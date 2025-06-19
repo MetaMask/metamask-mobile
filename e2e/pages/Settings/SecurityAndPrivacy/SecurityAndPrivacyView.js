@@ -170,6 +170,17 @@ class SecurityAndPrivacy {
     );
   }
 
+  async scrollToChangePassword() {
+    await Gestures.scrollToElement(
+      this.changePasswordButton,
+      this.scrollViewIdentifier,
+    );
+  }
+
+  async tapChangePassword() {
+    await Gestures.waitAndTap(this.changePasswordButton);
+  }
+
   async tapAutoLock30Seconds() {
     await Gestures.waitAndTap(this.autoLockDefault30Seconds);
   }

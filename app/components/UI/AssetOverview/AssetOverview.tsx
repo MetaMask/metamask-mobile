@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   Hex,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  CaipAssetId,
+  CaipAssetType,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
 import I18n, { strings } from '../../../../locales/i18n';
@@ -26,7 +26,7 @@ import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
 import {
-  selectSelectedInternalAccountAddress,
+  selectSelectedInternalAccount,
   selectSelectedInternalAccountFormattedAddress,
 } from '../../../selectors/accountsController';
 import Logger from '../../../util/Logger';
@@ -61,7 +61,6 @@ import {
   isAssetFromSearch,
   selectTokenDisplayData,
 } from '../../../selectors/tokenSearchDiscoveryDataController';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { formatWithThreshold } from '../../../util/assets';
 import {
   useSwapBridgeNavigation,
@@ -73,6 +72,8 @@ import { TraceName, endTrace } from '../../../util/trace';
 import { selectMultichainAssetsRates } from '../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { isEvmAccountType, KeyringAccountType } from '@metamask/keyring-api';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -91,11 +92,15 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   swapsIsLive,
   networkName,
 }: AssetOverviewProps) => {
+  // For non evm assets, the resultChainId is equal to the asset.chainId; while for evm assets; the resultChainId === "eip155:1" !== asset.chainId
+  const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
+  const isNonEvmAsset = resultChainId === asset.chainId ;
   const navigation = useNavigation();
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
-  const selectedInternalAccountAddress = useSelector(
-    selectSelectedInternalAccountAddress,
+  const selectedInternalAccount = useSelector(
+    selectSelectedInternalAccount,
   );
+  const selectedInternalAccountAddress = selectedInternalAccount?.address;
   const conversionRateByTicker = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const accountsByChainId = useSelector(selectAccountsByChainId);
@@ -111,10 +116,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   );
 
   const multiChainTokenBalance = useSelector(selectTokensBalances);
+
   const chainId = asset.chainId as Hex;
   const ticker = nativeCurrency;
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const tokenResult = useSelector((state: RootState) =>
     selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
   );
@@ -122,7 +127,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
 
   const multichainAssetRates =
-    multichainAssetsRates?.[asset.address as CaipAssetId];
+    multichainAssetsRates?.[asset.address as CaipAssetType];
   ///: END:ONLY_INCLUDE_IF
 
   const currentAddress = asset.address as Hex;
@@ -262,10 +267,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   const chartNavigationButtons: TimePeriod[] = useMemo(
     () =>
-      isEvmSelected
+      !isNonEvmAsset
         ? ['1d', '1w', '1m', '3m', '1y', '3y']
         : ['1d', '1w', '1m', '3m', '1y'],
-    [isEvmSelected],
+    [isNonEvmAsset],
   );
 
   const handleSelectTimePeriod = useCallback((_timePeriod: TimePeriod) => {
@@ -287,7 +292,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     [handleSelectTimePeriod, timePeriod, chartNavigationButtons],
   );
 
-  const itemAddress = isEvmSelected
+  const itemAddress = !isNonEvmAsset
     ? safeToChecksumAddress(asset.address)
     : asset.address;
 
@@ -298,34 +303,39 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   let balance;
   const minimumDisplayThreshold = 0.00001;
 
-  const isMultichainAsset = !isEvmSelected;
+  const isMultichainAsset = isNonEvmAsset;
   const isEthOrNative = asset.isETH || asset.isNative;
 
   if (isMultichainAsset) {
-    balance = formatWithThreshold(
+    balance = asset.balance ? formatWithThreshold(
       parseFloat(asset.balance),
       minimumDisplayThreshold,
       I18n.locale,
       { minimumFractionDigits: 0, maximumFractionDigits: 5 },
-    );
+    ) : 0;
   } else if (isEthOrNative) {
     balance = renderFromWei(
       // @ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
       accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance,
     );
   } else {
+
     const multiChainTokenBalanceHex =
       itemAddress &&
       multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
         chainId as Hex
       ]?.[itemAddress as Hex];
-
     const tokenBalanceHex = multiChainTokenBalanceHex;
-
-    balance =
+    if(!isEvmAccountType(selectedInternalAccount?.type as KeyringAccountType)) {
+      balance = asset.balance || 0;
+    }else {
+      balance =
       itemAddress && tokenBalanceHex
         ? renderFromTokenMinimalUnit(tokenBalanceHex, asset.decimals)
         : 0;
+    }
+
+
   }
 
   const mainBalance = asset.balanceFiat || '';
@@ -334,7 +344,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }`;
 
   const convertedMultichainAssetRates =
-    !isEvmSelected && multichainAssetRates
+    isNonEvmAsset && multichainAssetRates
       ? {
           rate: Number(multichainAssetRates.rate),
           marketData: undefined,
@@ -354,7 +364,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       comparePrice: calculatedComparePrice,
     } = calculateAssetPrice({
       _asset: asset,
-      isEvmNetworkSelected: isEvmSelected,
+      isEvmAssetSelected: !isNonEvmAsset,
       exchangeRate,
       tickerConversionRate:
         conversionRateByTicker?.[nativeCurrency]?.conversionRate ?? undefined,
@@ -385,7 +395,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
             multichainAssetsRates={multichainAssetsRates}
             ///: END:ONLY_INCLUDE_IF
-            isEvmNetworkSelected={isEvmSelected}
+            isEvmAssetSelected={!isNonEvmAsset}
           />
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}

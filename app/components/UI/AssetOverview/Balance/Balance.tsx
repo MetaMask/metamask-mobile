@@ -1,6 +1,6 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
-import { Hex, isCaipChainId } from '@metamask/utils';
+import { CaipAssetId, Hex, isCaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './Balance.styles';
@@ -91,10 +91,10 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
         <NetworkAssetLogo
           chainId={asset.chainId as Hex}
           style={styles.ethLogo}
-          ticker={asset.symbol}
+          ticker={asset.ticker ?? asset.symbol}
           big={false}
           biggest={false}
-          testID={'PLACE HOLDER'}
+          testID={asset.name}
         />
       );
     }
@@ -106,13 +106,22 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
         size={AvatarSize.Md}
       />
     );
-  }, [
-    asset.image,
-    asset.symbol,
-    asset.isNative,
-    asset.chainId,
-    styles.ethLogo,
-  ]);
+  }, [asset, styles.ethLogo]);
+
+  const isDisabled = useMemo(
+    () => asset.isNative || isCaipChainId(asset.chainId as CaipAssetId),
+    [asset.chainId, asset.isNative],
+  );
+
+  const handlePress = useCallback(
+    () =>
+      !asset.isNative &&
+      navigation.navigate('AssetDetails', {
+        chainId: asset.chainId,
+        address: asset.address,
+      }),
+    [asset.address, asset.chainId, asset.isNative, navigation],
+  );
 
   return (
     <View style={styles.wrapper}>
@@ -120,17 +129,11 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
         {strings('asset_overview.your_balance')}
       </Text>
       <AssetElement
+        disabled={isDisabled}
         asset={asset}
         balance={mainBalance}
         secondaryBalance={secondaryBalance}
-        onPress={() =>
-          !asset.isETH &&
-          !asset.isNative &&
-          navigation.navigate('AssetDetails', {
-            chainId: asset.chainId,
-            address: asset.address,
-          })
-        }
+        onPress={handlePress}
       >
         <BadgeWrapper
           style={styles.badgeWrapper}

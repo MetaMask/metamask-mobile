@@ -57,11 +57,8 @@ import { forgetLedger } from '../../../core/Ledger/Ledger';
 import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
-import { Hex } from '@metamask/utils';
-///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-import { selectKeyrings } from '../../../selectors/keyringController';
-///: END:ONLY_INCLUDE_IF
 import { isEvmAccountType } from '@metamask/keyring-api';
+import { toHex } from '@metamask/controller-utils';
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -85,14 +82,10 @@ const AccountActions = () => {
   }, []);
 
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-  const existingKeyrings = useSelector(selectKeyrings);
-
-  const keyringId = useMemo(() => {
-    const keyring = existingKeyrings.find((kr) =>
-      kr.accounts.includes(selectedAccount.address.toLowerCase()),
-    );
-    return keyring?.metadata.id;
-  }, [existingKeyrings, selectedAccount.address]);
+  const keyringId = useMemo(
+    () => selectedAccount.options.entropySource,
+    [selectedAccount.options.entropySource],
+  );
   ///: END:ONLY_INCLUDE_IF
 
   const providerConfig = useSelector(selectProviderConfig);
@@ -220,6 +213,15 @@ const AccountActions = () => {
     });
   };
 
+  const goToSwitchAccountType = () => {
+    navigate(Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE, {
+      screen: Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE,
+      params: {
+        address: selectedAddress,
+      },
+    });
+  };
+
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const goToExportSRP = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
@@ -257,8 +259,9 @@ const AccountActions = () => {
    */
   const removeHardwareAccount = useCallback(async () => {
     if (selectedAddress) {
-      await controllers.KeyringController.removeAccount(selectedAddress as Hex);
-      await removeAccountsFromPermissions([selectedAddress]);
+      const hexSelectedAddress = toHex(selectedAddress);
+      await removeAccountsFromPermissions([hexSelectedAddress]);
+      await controllers.KeyringController.removeAccount(hexSelectedAddress);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
           .addProperties({
@@ -293,8 +296,9 @@ const AccountActions = () => {
    */
   const removeSnapAccount = useCallback(async () => {
     if (selectedAddress) {
-      await controllers.KeyringController.removeAccount(selectedAddress as Hex);
-      await removeAccountsFromPermissions([selectedAddress]);
+      const hexSelectedAddress = toHex(selectedAddress);
+      await removeAccountsFromPermissions([hexSelectedAddress]);
+      await controllers.KeyringController.removeAccount(hexSelectedAddress);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
           .addProperties({
@@ -492,6 +496,13 @@ const AccountActions = () => {
           )
           ///: END:ONLY_INCLUDE_IF
         }
+        {process.env.MM_SMART_ACCOUNT_UI_ENABLED && (
+          <AccountAction
+            actionTitle={strings('account_actions.switch_to_smart_account')}
+            iconName={IconName.SwapHorizontal}
+            onPress={goToSwitchAccountType}
+          />
+        )}
       </View>
       <BlockingActionModal
         modalVisible={blockingModalVisible}

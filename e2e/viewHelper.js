@@ -29,6 +29,7 @@ import Assertions from './utils/Assertions';
 import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
+import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
@@ -67,6 +68,15 @@ have to have all these workarounds in the tests
     /* eslint-disable no-undef */
 
     console.log('The marketing toast is not visible');
+  }
+
+  // Handle Solana New feature sheet
+  try {
+    await SolanaNewFeatureSheet.swipeWithCarouselLogo();
+  } catch {
+    /* eslint-disable no-console */
+
+    console.log('The new Solana feature modal is not visible');
   }
 };
 
@@ -245,15 +255,15 @@ export const loginToApp = async () => {
 export const waitForTestDappToLoad = async () => {
   const MAX_RETRIES = 3;
   const RETRY_DELAY = 5000;
-  
+
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
       await Assertions.webViewElementExists(TestDApp.testDappFoxLogo);
       await Assertions.webViewElementExists(TestDApp.testDappPageTitle);
-      
+
       await Assertions.webViewElementExists(TestDApp.DappConnectButton);
       return; // Success - page is fully loaded and interactive
-      
+
     } catch (error) {
       if (attempt === MAX_RETRIES) {
         throw new Error(`Test dapp failed to load after ${MAX_RETRIES} attempts: ${error.message}`);
@@ -261,6 +271,6 @@ export const waitForTestDappToLoad = async () => {
       await TestHelpers.delay(RETRY_DELAY);
     }
   }
-  
+
   throw new Error('Test dapp failed to become fully interactive');
 };

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, TouchableWithoutFeedback, View } from 'react-native';
+import { TouchableWithoutFeedback, View } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './SRPListItem.styles';
 import { SRPListItemProps } from './SRPListItem.type';
@@ -12,13 +13,24 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
 import { getInternalAccountByAddress } from '../../../util/address';
-import Jazzicon from 'react-native-jazzicon';
 import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
 import { SRPListItemSelectorsIDs } from '../../../../e2e/selectors/MultiSRP/SRPListItem.selectors';
+import Avatar, {
+  AvatarAccountType,
+  AvatarSize,
+  AvatarVariant,
+} from '../../../component-library/components/Avatars/Avatar';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../reducers';
 
-const SRPListItem = ({ name, keyring, onActionComplete }: SRPListItemProps) => {
+const SRPListItem = ({
+  name,
+  keyring,
+  onActionComplete,
+  testID,
+}: SRPListItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const [showAccounts, setShowAccounts] = useState(false);
   const accountsToBeShown = useMemo(
@@ -28,11 +40,19 @@ const SRPListItem = ({ name, keyring, onActionComplete }: SRPListItemProps) => {
       ),
     [keyring],
   );
+  const accountAvatarType = useSelector((state: RootState) =>
+    state.settings.useBlockieIcon
+      ? AvatarAccountType.Blockies
+      : AvatarAccountType.JazzIcon,
+  );
 
   return (
     <TouchableWithoutFeedback
       onPress={() => onActionComplete(keyring.metadata.id)}
-      testID={`${SRPListItemSelectorsIDs.SRP_LIST_ITEM}-${keyring.metadata.id}`}
+      testID={
+        testID ??
+        `${SRPListItemSelectorsIDs.SRP_LIST_ITEM}-${keyring.metadata.id}`
+      }
     >
       <View style={styles.srpItem}>
         <View style={styles.srpItemContent}>
@@ -62,7 +82,12 @@ const SRPListItem = ({ name, keyring, onActionComplete }: SRPListItemProps) => {
                     }
                     return (
                       <View style={styles.accountItem}>
-                        <Jazzicon size={20} seed={parseInt(item.address, 16)} />
+                        <Avatar
+                          variant={AvatarVariant.Account}
+                          type={accountAvatarType}
+                          accountAddress={item.address}
+                          size={AvatarSize.Sm}
+                        />
                         <Text
                           variant={TextVariant.BodySM}
                           color={TextColor.Default}

@@ -121,6 +121,7 @@ const useAccounts = ({
       {
         displayBalance: string;
         balanceError: string | undefined;
+        isLoadingAccount: boolean;
       }
     > = {};
 
@@ -138,6 +139,7 @@ const useAccounts = ({
       balances[account.id] = {
         displayBalance,
         balanceError: typeof error === 'string' ? error : undefined,
+        isLoadingAccount: balanceForAccount.isLoadingAccount,
       };
     });
 
@@ -180,6 +182,7 @@ const useAccounts = ({
                 }
               : undefined,
           balanceError: accountBalance.balanceError,
+          isLoadingAccount: accountBalance.isLoadingAccount,
         };
         // Calculate height of the account item.
         yOffset += 78;

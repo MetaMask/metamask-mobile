@@ -164,12 +164,9 @@ export const BridgeTransactionDetails = (
 
   const submissionDate = startTime ? new Date(startTime) : null;
   const submissionDateString = submissionDate
-    ? submissionDate.toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
+    ? submissionDate.toLocaleString(undefined, {
+        dateStyle: 'medium',
+        timeStyle: 'short',
       })
     : 'N/A';
 
@@ -180,9 +177,9 @@ export const BridgeTransactionDetails = (
       )
     : null;
   const estimatedCompletionString = estimatedCompletionDate
-    ? estimatedCompletionDate.toLocaleString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
+    ? estimatedCompletionDate.toLocaleString(undefined, {
+        dateStyle: 'medium',
+        timeStyle: 'short',
       })
     : null;
 
@@ -235,30 +232,33 @@ export const BridgeTransactionDetails = (
             >
               {status.status}
             </Text>
-            {status.status === StatusTypes.PENDING &&
-              estimatedCompletionString && (
-                <>
-                  <Text variant={TextVariant.BodyMDMedium}>
-                    {strings('bridge_transaction_details.estimated_completion')}{' '}
-                    {estimatedCompletionString}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => setIsStepListExpanded(!isStepListExpanded)}
-                  >
-                    <Icon
-                      name={
-                        isStepListExpanded
-                          ? IconName.ArrowUp
-                          : IconName.ArrowDown
-                      }
-                      color={IconColor.Muted}
-                      size={IconSize.Sm}
-                    />
-                  </TouchableOpacity>
-                </>
-              )}
           </Box>
         </Box>
+        {status.status === StatusTypes.PENDING && estimatedCompletionString && (
+          <Box style={styles.detailRow}>
+            <Text variant={TextVariant.BodyMDMedium}>
+              {strings('bridge_transaction_details.estimated_completion')}{' '}
+            </Text>
+            <Box flexDirection={FlexDirection.Row} gap={4} alignItems={AlignItems.center}>
+              <Text>
+                {estimatedCompletionString}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setIsStepListExpanded(!isStepListExpanded)}
+              >
+                <Icon
+                  name={
+                    isStepListExpanded
+                      ? IconName.ArrowUp
+                      : IconName.ArrowDown
+                  }
+                  color={IconColor.Muted}
+                  size={IconSize.Sm}
+                />
+              </TouchableOpacity>
+            </Box>
+          </Box>
+        )}
         {status.status !== StatusTypes.COMPLETE && isStepListExpanded && (
           <Box style={styles.detailRow}>
             <BridgeStepList

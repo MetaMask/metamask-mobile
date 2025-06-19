@@ -28,6 +28,7 @@ import { parseWalletConnectUri } from './wc-utils';
 import { store } from '../../store';
 import { selectEvmChainId } from '../../selectors/networkController';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
+import { toFormattedAddress } from '../../util/address';
 
 const hub = new EventEmitter();
 let connectors = [];
@@ -172,8 +173,9 @@ class WalletConnect {
           // We have to implement this method here since the eth_sendTransaction in Engine is not working because we can't send correct origin
           if (payload.method === 'eth_sendTransaction') {
             try {
-              const selectedAddress =
-                Engine.context.AccountsController.getSelectedAccount().address?.toLowerCase();
+              const selectedAddress = toFormattedAddress(
+                Engine.context.AccountsController.getSelectedAccount().address,
+              );
 
               const chainId = payload.params[0].chainId;
 
@@ -213,7 +215,9 @@ class WalletConnect {
                 ],
               };
 
-              ppomUtil.validateRequest(reqObject, id);
+              ppomUtil.validateRequest(reqObject, {
+                transactionMeta: trx.transactionMeta,
+              });
 
               const hash = await trx.result;
               this.approveRequest({
@@ -313,8 +317,9 @@ class WalletConnect {
 
   startSession = async (sessionData, existing) => {
     const chainId = selectEvmChainId(store.getState());
-    const selectedAddress =
-      Engine.context.AccountsController.getSelectedAccount().address?.toLowerCase();
+    const selectedAddress = toFormattedAddress(
+      Engine.context.AccountsController.getSelectedAccount().address,
+    );
     const approveData = {
       chainId: parseInt(chainId, 10),
       accounts: [selectedAddress],

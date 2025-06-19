@@ -7,7 +7,7 @@ describe('safePromiseHandler', () => {
 
   afterEach(() => {
     jest.runOnlyPendingTimers();
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
     jest.clearAllMocks();
   });
 

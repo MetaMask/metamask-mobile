@@ -28,6 +28,7 @@ const TransactionApprovalInternal = (props: TransactionApprovalProps) => {
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
   const [modalVisible, setModalVisible] = useState(false);
   const { onComplete: propsOnComplete } = props;
+  const isQRSigning = props.isSigningQRObject && !props.transactionType;
 
   const onComplete = useCallback(() => {
     setModalVisible(false);
@@ -35,7 +36,9 @@ const TransactionApprovalInternal = (props: TransactionApprovalProps) => {
   }, [propsOnComplete]);
 
   if (
-    (approvalRequest?.type !== ApprovalTypes.TRANSACTION && !modalVisible) ||
+    (approvalRequest?.type !== ApprovalTypes.TRANSACTION &&
+      !modalVisible &&
+      !isQRSigning) ||
     isRedesignedEnabled
   ) {
     return null;
@@ -65,7 +68,7 @@ const TransactionApprovalInternal = (props: TransactionApprovalProps) => {
     );
   }
 
-  if (props.isSigningQRObject && !props.transactionType) {
+  if (isQRSigning) {
     return (
       <QRSigningModal
         isVisible

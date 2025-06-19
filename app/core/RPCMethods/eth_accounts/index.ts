@@ -21,7 +21,7 @@ const ethAccountsHandler: HandlerMiddlewareFunction<
   JsonRpcParams,
   Json
 > = async (_req, res, _next, end, { getAccounts }) => {
-  const permittedAccounts = await getAccounts();
+  const permittedAccounts = getAccounts();
   res.result = permittedAccounts;
   return end();
 };

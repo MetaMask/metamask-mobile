@@ -24,7 +24,11 @@ const ClipboardManager = {
 
         if (!string) return;
 
-        await Clipboard.clearString();
+        try {
+          await Clipboard.clearString();
+        } catch (_) {
+          //Fail silently
+        }
       }, EXPIRE_TIME_MS);
     }
   },

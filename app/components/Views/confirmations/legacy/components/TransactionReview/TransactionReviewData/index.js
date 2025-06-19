@@ -135,7 +135,7 @@ class TransactionReviewData extends PureComponent {
         <View style={styles.dataHeader}>
           <TouchableOpacity onPress={toggleDataView}>
             <IonicIcon
-              name={'ios-arrow-back'}
+              name={'arrow-back'}
               size={24}
               color={colors.text.default}
             />
@@ -144,7 +144,7 @@ class TransactionReviewData extends PureComponent {
             {strings('transaction.data')}
           </Text>
           <IonicIcon
-            name={'ios-arrow-back'}
+            name={'arrow-back'}
             size={24}
             color={colors.background.default}
           />

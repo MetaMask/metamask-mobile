@@ -2,7 +2,7 @@ import React from 'react';
 import { ConnectedComponent } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { merge } from 'lodash';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, act, waitFor } from '@testing-library/react-native';
 
 import QuotesView from './QuotesView';
 import {
@@ -21,6 +21,7 @@ import { RpcEndpointType } from '@metamask/network-controller';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { useSwapsSmartTransaction } from './utils/useSwapsSmartTransaction';
 import { query } from '@metamask/controller-utils';
+import { TransactionStatus } from '@metamask/transaction-controller';
 
 jest.mock('../../../util/networks/global-network', () => ({
   ...jest.requireActual('../../../util/networks/global-network'),
@@ -68,6 +69,7 @@ jest.mock('../../../core/Engine', () => ({
       estimateGasFee: jest.fn(),
       approveTransactionsWithSameNonce: jest.fn(() => ['asd']),
       update: jest.fn(),
+      addTransaction: jest.fn(),
     },
     KeyringController: {
       state: {
@@ -85,6 +87,14 @@ jest.mock('../../../core/Engine', () => ({
     },
     GasFeeController: {
       getGasFeeEstimatesAndStartPolling: jest.fn(),
+    },
+    TokensController: {
+      addToken: jest.fn(),
+      state: {
+        allTokens: {
+          '0x1': {},
+        },
+      },
     },
   },
 }));
@@ -414,6 +424,47 @@ describe('QuotesView', () => {
 
       // Verify submitSwapsSmartTransaction was not called
       expect(mockSubmitSwapsSmartTransaction).not.toHaveBeenCalled();
+    });
+  });
+
+  it('should call addToken in TokensController', async () => {
+    const state = merge({}, mockInitialState);
+    jest.mocked(query).mockResolvedValueOnce(123).mockResolvedValueOnce({
+      timestamp: 1234,
+    });
+    jest
+      .spyOn(Engine.context.TransactionController, 'addTransaction')
+      .mockResolvedValue({
+        result: Promise.resolve('mock-tx-hash'),
+        transactionMeta: {
+          id: 'mock-id',
+          networkClientId: 'mock-network-id',
+          time: Date.now(),
+          chainId: '0x1',
+          status: 'submitted' as TransactionStatus,
+          txParams: {
+            from: '0x0',
+            to: '0x1',
+            value: '0x0',
+            gas: '0x0',
+            gasPrice: '0x0',
+          },
+        },
+      });
+    const spy = jest.spyOn(Engine.context.TokensController, 'addToken');
+
+    const wrapper = render(QuotesView, state);
+
+    const swapButton = await wrapper.findByTestId(
+      SwapsViewSelectors.SWAP_BUTTON,
+    );
+
+    act(() => {
+      fireEvent.press(swapButton);
+    });
+
+    await waitFor(() => {
+      expect(spy).toHaveBeenCalled();
     });
   });
 });

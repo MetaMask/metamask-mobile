@@ -10,7 +10,9 @@ export const ToastContext = React.createContext<ToastContextParams>({
   toastRef: undefined,
 });
 
-export const ToastContextWrapper: React.FC = ({ children }) => {
+export const ToastContextWrapper: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const toastRef = useRef<ToastRef | null>(null);
   return (
     <ToastContext.Provider value={{ toastRef }}>

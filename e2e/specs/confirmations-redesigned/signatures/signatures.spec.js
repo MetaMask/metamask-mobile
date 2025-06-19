@@ -15,6 +15,7 @@ import {
 } from '../../../fixtures/fixture-helper.js';
 import { SmokeConfirmationsRedesigned } from '../../../tags.js';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
+import { buildPermissions } from '../../../fixtures/utils.js';
 
 const SIGNATURE_LIST = [
   {
@@ -69,7 +70,7 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
           dapp: true,
           fixture: new FixtureBuilder()
             .withGanacheNetwork()
-            .withPermissionControllerConnectedToTestDapp()
+            .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
             .build(),
           restartDevice: true,
           ganacheOptions: defaultGanacheOptions,
