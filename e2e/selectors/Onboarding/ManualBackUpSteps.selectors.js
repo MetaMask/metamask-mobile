@@ -14,4 +14,6 @@ export const ManualBackUpStepsSelectorsIDs = {
   MISSING_WORDS: 'missing-words',
   WORD_ITEM_MISSING: 'word-item-missing',
   WORD_ITEM_USED: 'word-item-used',
+  SEEDPHRASE_LINK: 'seedphrase-link',
+  GRID_ITEM_EMPTY: 'grid-item-empty',
 };

@@ -8,7 +8,10 @@ import Row from '../../../Aggregator/components/Row';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './BasicInfo.styles';
-import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import DepositTextField from '../../components/DepositTextField';
@@ -17,10 +20,15 @@ import DepositPhoneField from '../../components/DepositPhoneField';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 
-export const createBasicInfoNavDetails = createNavigationDetails(
-  Routes.DEPOSIT.BASIC_INFO,
-);
+export interface BasicInfoParams {
+  quote: BuyQuote;
+  kycUrl?: string;
+}
+
+export const createBasicInfoNavDetails =
+  createNavigationDetails<BasicInfoParams>(Routes.DEPOSIT.BASIC_INFO);
 
 export interface BasicInfoFormData {
   firstName: string;
@@ -36,6 +44,7 @@ const COUNTRY_CODE = '1';
 const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
+  const { quote, kycUrl } = useParams<BasicInfoParams>();
 
   const initialFormData: BasicInfoFormData = {
     firstName: '',
@@ -103,10 +112,14 @@ const BasicInfo = (): JSX.Element => {
       };
 
       navigation.navigate(
-        ...createEnterAddressNavDetails({ formData: formattedFormData }),
+        ...createEnterAddressNavDetails({
+          formData: formattedFormData,
+          quote,
+          kycUrl,
+        }),
       );
     }
-  }, [navigation, validateFormData, formData]);
+  }, [navigation, validateFormData, formData, quote, kycUrl]);
 
   return (
     <ScreenLayout>
