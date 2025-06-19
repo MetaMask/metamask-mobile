@@ -100,19 +100,27 @@ const EarnInputView = () => {
     selectStablecoinLendingEnabledFlag,
   );
 
-  // if token is ETH, use 1 as the exchange rate
-  // otherwise, use the contract exchange rate or 0 if undefined
-  const exchangeRate = token.isETH
-    ? 1
-    : contractExchangeRates?.[token.address as Hex]?.price ?? 0;
-
   // other hooks
   const { styles, theme } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
   const { attemptDepositTransaction } = usePoolStakedDeposit();
   const { getEarnToken } = useEarnTokens();
   const earnToken = getEarnToken(token);
+
+  // if token is ETH, use 1 as the exchange rate
+  // otherwise, use the contract exchange rate or 0 if undefined
+  const exchangeRate = token.isETH
+    ? 1
+    : earnToken?.tokenUsdExchangeRate ??
+      contractExchangeRates?.[token.address as Hex]?.price ??
+      0;
+
   const networkClientId = useSelector(selectNetworkClientId);
+  
+  // For stablecoins, use conversionRate of 1 since they're already pegged to USD
+  // For ETH and other tokens, use the ETH to USD conversion rate
+  const effectiveConversionRate = token.isETH ? conversionRate : 1;
+  
   const {
     isFiat,
     currentCurrency,
@@ -140,7 +148,7 @@ const EarnInputView = () => {
     isLoadingEarnGasFee,
   } = useEarnInputHandlers({
     earnToken: earnToken as EarnTokenDetails,
-    conversionRate,
+    conversionRate: effectiveConversionRate,
     exchangeRate,
   });
 

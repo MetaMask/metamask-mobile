@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import {
+  addCurrencySymbol,
   balanceToFiatNumber,
   fiatNumberToTokenMinimalUnit,
   fromTokenMinimalUnit,
@@ -183,16 +184,9 @@ const useInputHandler = ({
   );
 
   const currencyToggleValue = useMemo(() => {
-    const upperCaseCurrentCurrency = currentCurrency.toUpperCase();
-    let currencySymbol = '';
-    let currencyTicker = ` ${currentCurrency.toUpperCase()}`;
-    if (upperCaseCurrentCurrency === 'USD') {
-      currencySymbol = '$';
-      currencyTicker = '';
-    }
     const amountTokenText = `${amountToken} ${ticker}`;
     const amountFiatText = isStablecoinLendingEnabled
-      ? `${currencySymbol}${amountFiatNumber}${currencyTicker}`
+      ? addCurrencySymbol(amountFiatNumber, currentCurrency.toLowerCase())
       : `${amountFiatNumber} ${currentCurrency.toUpperCase()}`;
     return isFiat ? amountTokenText : amountFiatText;
   }, [
