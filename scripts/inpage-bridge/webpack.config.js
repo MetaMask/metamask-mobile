@@ -39,11 +39,11 @@ const config = {
     fallback: {
       buffer: require.resolve('buffer'),
       stream: require.resolve('stream-browserify'),
-      _stream_transform: require.resolve('readable-stream/transform'),
-      _stream_readable: require.resolve('readable-stream/readable'),
-      _stream_writable: require.resolve('readable-stream/writable'),
-      _stream_duplex: require.resolve('readable-stream/duplex'),
-      _stream_passthrough: require.resolve('readable-stream/passthrough'),
+      _stream_transform: require.resolve('readable-stream/lib/_stream_transform'),
+      _stream_readable: require.resolve('readable-stream/lib/_stream_readable'),
+      _stream_writable: require.resolve('readable-stream/lib/_stream_writable'),
+      _stream_duplex: require.resolve('readable-stream/lib/_stream_duplex'),
+      _stream_passthrough: require.resolve('readable-stream/lib/_stream_passthrough'),
     },
   },
   plugins: [
