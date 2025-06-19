@@ -10,11 +10,29 @@ import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import parseOriginatorInfo from '../parseOriginatorInfo';
 import extractURLParams from './extractURLParams';
+import {
+  hasSignature,
+  verifyDeeplinkSignature,
+  INVALID,
+  MISSING,
+  VALID,
+} from './utils/verifySignature';
+import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
+import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
 
-function handleUniversalLink({
+const {
+  MM_UNIVERSAL_LINK_HOST,
+  MM_DEEP_ITMS_APP_LINK,
+  MM_IO_UNIVERSAL_LINK_HOST,
+  MM_IO_UNIVERSAL_LINK_TEST_HOST,
+} = AppConstants;
+const DEEP_LINK_BASE = `${PROTOCOLS.HTTPS}://${MM_UNIVERSAL_LINK_HOST}`;
+
+async function handleUniversalLink({
   instance,
   handled,
   urlObj,
+  validatedUrl,
   params,
   browserCallBack,
   origin,
@@ -24,19 +42,76 @@ function handleUniversalLink({
   instance: DeeplinkManager;
   handled: () => void;
   urlObj: ReturnType<typeof extractURLParams>['urlObj'];
+  validatedUrl: URL;
   params: ReturnType<typeof extractURLParams>['params'];
   browserCallBack?: (url: string) => void;
   origin: string;
   wcURL: string;
   url: string;
 }) {
-  const {
-    MM_UNIVERSAL_LINK_HOST,
-    MM_DEEP_ITMS_APP_LINK,
-    MM_IO_UNIVERSAL_LINK_HOST,
-    MM_IO_UNIVERSAL_LINK_TEST_HOST,
-  } = AppConstants;
-  const DEEP_LINK_BASE = `${PROTOCOLS.HTTPS}://${MM_UNIVERSAL_LINK_HOST}`;
+  if (
+    !validatedUrl.hostname ||
+    validatedUrl.hostname.includes('?') ||
+    validatedUrl.hostname.includes('&')
+  ) {
+    throw new Error('Invalid hostname');
+  }
+
+  let isPrivateLink = false;
+  let isInvalidLink = false;
+
+  const pathname: ACTIONS = validatedUrl.pathname.split('/')[1] as ACTIONS;
+  if (!Object.keys(ACTIONS).includes(pathname.toUpperCase())) {
+    isInvalidLink = true;
+  }
+
+  if (hasSignature(validatedUrl)) {
+    const signatureResult = await verifyDeeplinkSignature(validatedUrl);
+    switch (signatureResult) {
+      case VALID:
+        DevLogger.log(
+          'DeepLinkManager:parse Verified signature for deeplink',
+          url,
+        );
+        isPrivateLink = true;
+        break;
+      case INVALID:
+      case MISSING:
+        DevLogger.log(
+          'DeepLinkManager:parse Invalid/Missing signature, ignoring deeplink',
+          url,
+        );
+        isPrivateLink = false;
+        break;
+      default:
+        isPrivateLink = false;
+        break;
+    }
+  }
+
+  const linkType = () => {
+    if (isInvalidLink) {
+      return DeepLinkModalLinkType.INVALID;
+    }
+    if (isPrivateLink) {
+      return DeepLinkModalLinkType.PRIVATE;
+    }
+    return DeepLinkModalLinkType.PUBLIC;
+  };
+
+  const shouldProceed = await new Promise<boolean>((resolve) => {
+    const pageTitle: ACTIONS = urlObj.pathname.split('/')[1] as ACTIONS;
+    handleDeepLinkModalDisplay({
+      linkType: linkType(),
+      pageTitle: pageTitle.charAt(0).toUpperCase() + pageTitle.slice(1),
+      onContinue: () => resolve(true),
+      onBack: () => resolve(false),
+    });
+  });
+
+  if (!shouldProceed) {
+    return false;
+  }
 
   // Universal links
   handled();
@@ -58,10 +133,16 @@ function handleUniversalLink({
     }
 
     if (action === ACTIONS.CONNECT) {
-      if (params.redirect && origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
-        SDKConnect.getInstance().state.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-        });
+      if (
+        params.redirect &&
+        origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
+      ) {
+        SDKConnect.getInstance().state.navigation?.navigate(
+          Routes.MODAL.ROOT_MODAL_FLOW,
+          {
+            screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+          },
+        );
       } else if (params.channelId) {
         const protocolVersion = parseInt(params.v ?? '1', 10);
 
@@ -150,7 +231,10 @@ function handleUniversalLink({
       // Normal links (same as dapp)
       instance._handleBrowserUrl(urlObj.href, browserCallBack);
     }
-  } else if (urlObj.hostname === MM_IO_UNIVERSAL_LINK_HOST || urlObj.hostname === MM_IO_UNIVERSAL_LINK_TEST_HOST) {
+  } else if (
+    urlObj.hostname === MM_IO_UNIVERSAL_LINK_HOST ||
+    urlObj.hostname === MM_IO_UNIVERSAL_LINK_TEST_HOST
+  ) {
     // TODO: handle private links with signature verification https://github.com/MetaMask/metamask-mobile/issues/16040
     // TODO: add interstitial modal for public links https://github.com/MetaMask/metamask-mobile/issues/15491
     switch (action) {
