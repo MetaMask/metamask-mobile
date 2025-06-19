@@ -9,6 +9,7 @@ export enum DeepLinkModalLinkType {
   INVALID = 'invalid',
 }
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type CommonLinkParams = {
   linkType: DeepLinkModalLinkType;
   onBack: () => void;
@@ -41,6 +42,7 @@ export type DeepLinkModalParams =
 /**
  * Modal Image Props
  */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ModalImageProps = {
   linkType: DeepLinkModalLinkType;
   styles: Record<string, ImageStyle & ViewStyle & TextStyle>;

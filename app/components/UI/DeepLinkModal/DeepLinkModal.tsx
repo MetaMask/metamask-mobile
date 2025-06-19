@@ -61,13 +61,6 @@ const ModalImage = memo<ModalImageProps>(({ linkType, styles }) => {
 const DeepLinkModal = () => {
   const params = useParams<DeepLinkModalParams>();
   const { linkType, onBack } = params;
-  let onContinue = () => {};
-  if (
-    linkType === DeepLinkModalLinkType.PUBLIC ||
-    linkType === DeepLinkModalLinkType.PRIVATE
-  ) {
-    onContinue = params.onContinue;
-  }
 
   const pageTitle =
     params.linkType !== DeepLinkModalLinkType.INVALID
@@ -115,8 +108,6 @@ const DeepLinkModal = () => {
         title: strings('deep_link_modal.invalid.title'),
         description: strings('deep_link_modal.invalid.description'),
         event: MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_VIEWED,
-        eventContinue:
-          MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_CONTINUE_CLICKED,
         eventDismiss: MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_DISMISSED,
       },
     }),
@@ -151,6 +142,9 @@ const DeepLinkModal = () => {
   }, [trackEvent, createEventBuilder, linkType, LINK_TYPE_MAP, onBack]);
 
   const onContinuePressed = useCallback(() => {
+    if (linkType === DeepLinkModalLinkType.INVALID) {
+      return;
+    }
     dismissModal(() => {
       const eventContinue = LINK_TYPE_MAP[linkType].eventContinue;
       if (eventContinue) {
@@ -163,16 +157,9 @@ const DeepLinkModal = () => {
             .build(),
         );
       }
-      onContinue?.();
+      params.onContinue();
     });
-  }, [
-    trackEvent,
-    createEventBuilder,
-    linkType,
-    onContinue,
-    pageTitle,
-    LINK_TYPE_MAP,
-  ]);
+  }, [trackEvent, createEventBuilder, linkType, pageTitle, LINK_TYPE_MAP]);
 
   const onDontRemindMeAgainPressed = useCallback(() => {
     const event = isChecked

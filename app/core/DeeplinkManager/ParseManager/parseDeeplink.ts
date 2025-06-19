@@ -1,4 +1,4 @@
-import { PROTOCOLS } from '../../../constants/deeplinks';
+import { PROTOCOLS, ACTIONS } from '../../../constants/deeplinks';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import Logger from '../../../util/Logger';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
@@ -18,7 +18,6 @@ import {
   INVALID,
   MISSING,
 } from './utils/verifySignature';
-import { ACTIONS } from '../../../constants/deeplinks';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
 import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
 
