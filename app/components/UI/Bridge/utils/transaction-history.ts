@@ -68,7 +68,10 @@ export const decodeSwapsTx = (args: {
 
   const sourceTokenSymbol = quote.srcAsset?.symbol;
   const destTokenSymbol = quote.destAsset?.symbol;
-  const sourceAmountSent = bridgeTxHistoryItem.pricingData?.amountSent;
+  const sourceAmountSent = ethers.utils.formatUnits(
+    bridgeTxHistoryItem.quote.srcTokenAmount,
+    quote.srcAsset.decimals,
+  );
   const renderTo = tx.txParams.to;
   const renderFrom = tx.txParams.from;
 
