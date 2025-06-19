@@ -199,29 +199,4 @@ describe('useAutoSignIn', () => {
 
     expect(mockPerformSignInAction).toHaveBeenCalled();
   });
-
-  it('does not throw if KeyringControllerState.keyrings is undefined', async () => {
-    const stateOverrides = {
-      isUnlocked: true,
-      useExternalServices: true,
-      isSignedIn: false,
-      completedOnboarding: true,
-      isBackupAndSyncEnabled: true,
-      participateInMetaMetrics: false,
-      isNotificationServicesEnabled: false,
-    };
-    const { state } = arrangeMocks(stateOverrides);
-    // Set keyrings to undefined as this was discovered to be a point of failure
-    // https://github.com/MetaMask/mobile-planning/issues/2214
-    state.engine.backgroundState.KeyringController.keyrings =
-      undefined as unknown as never;
-
-    const hook = renderHookWithProvider(() => useAutoSignIn(), { state });
-
-    expect(() => {
-      act(() => {
-        hook.result.current.autoSignIn();
-      });
-    }).not.toThrow();
-  });
 });
