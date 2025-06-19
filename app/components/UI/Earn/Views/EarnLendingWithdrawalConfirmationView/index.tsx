@@ -316,18 +316,20 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
       if (!transactionId) return;
 
-      const emitDepositTxMetaMetric = emitTxMetaMetric(
+      const emitWithdrawalTxMetaMetric = emitTxMetaMetric(
         TransactionType.lendingWithdraw,
       )(transactionId);
 
-      emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_INITIATED);
+      emitWithdrawalTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_INITIATED);
 
       // Transaction Event Listeners
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionDropped',
         () => {
           setIsConfirmButtonDisabled(false);
-          emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_DROPPED);
+          emitWithdrawalTxMetaMetric(
+            MetaMetricsEvents.EARN_TRANSACTION_DROPPED,
+          );
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
@@ -336,7 +338,9 @@ const EarnLendingWithdrawalConfirmationView = () => {
         'TransactionController:transactionRejected',
         () => {
           setIsConfirmButtonDisabled(false);
-          emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_REJECTED);
+          emitWithdrawalTxMetaMetric(
+            MetaMetricsEvents.EARN_TRANSACTION_REJECTED,
+          );
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
@@ -345,7 +349,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
         'TransactionController:transactionFailed',
         () => {
           setIsConfirmButtonDisabled(false);
-          emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_FAILED);
+          emitWithdrawalTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_FAILED);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
@@ -353,7 +357,9 @@ const EarnLendingWithdrawalConfirmationView = () => {
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionSubmitted',
         () => {
-          emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED);
+          emitWithdrawalTxMetaMetric(
+            MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED,
+          );
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
@@ -361,7 +367,9 @@ const EarnLendingWithdrawalConfirmationView = () => {
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionConfirmed',
         () => {
-          emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED);
+          emitWithdrawalTxMetaMetric(
+            MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED,
+          );
           navigation.navigate(Routes.TRANSACTIONS_VIEW);
         },
         (transactionMeta) => transactionMeta.id === transactionId,
