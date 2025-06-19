@@ -834,6 +834,7 @@ const App: React.FC = () => {
       const deeplink = params?.['+non_branch_link'] || uri || null;
       try {
         if (deeplink && typeof deeplink === 'string') {
+          console.log('XXXXXX - DEEPLINK APP', deeplink);
           AppStateEventProcessor.setCurrentDeeplink(deeplink);
         }
       } catch (e) {
@@ -843,6 +844,8 @@ const App: React.FC = () => {
     [],
   );
 
+  // https://link.metamask.io/swap?from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7&value=0x38d7ea4c68000
+
   // on Android devices, this creates a listener
   // to deeplinks used to open the app
   // when it is in background (so not closed)
@@ -851,6 +854,7 @@ const App: React.FC = () => {
     if (Device.isAndroid())
       Linking.addEventListener('url', (params) => {
         const { url } = params;
+        window.alert(url);
         if (url) {
           handleDeeplink({ uri: url });
         }

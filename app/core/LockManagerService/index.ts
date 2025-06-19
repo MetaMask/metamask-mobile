@@ -53,6 +53,8 @@ export class LockManagerService {
       ) {
         // Lets other services know that the lock manager app state event is resolved while active
         if (nextAppState === 'active') {
+          window.alert(`XXXXXX - RESOLVE LOCK MANAGER`);
+          // console.log('XXXXXX - RESOLVE LOCK MANAGER');
           ReduxService.store.dispatch(resolveLockManager());
         }
         this.#appState = nextAppState;

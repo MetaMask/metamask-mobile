@@ -97,7 +97,8 @@ async function handleUniversalLink({
     }
     return DeepLinkModalLinkType.PUBLIC;
   };
-
+  window.alert(`XXXXXX - DEEPLINK PATHNAME ${validatedUrl.pathname}`);
+  // console.log('XXXXXX - DEEPLINK PATHNAME', validatedUrl.pathname);
   const shouldProceed = await new Promise<boolean>((resolve) => {
     const pageTitle: ACTIONS = validatedUrl.pathname.split('/')[1] as ACTIONS;
     handleDeepLinkModalDisplay({
