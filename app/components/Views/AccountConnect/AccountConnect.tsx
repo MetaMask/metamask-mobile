@@ -727,12 +727,12 @@ const AccountConnect = (props: AccountConnectProps) => {
         },
       });
     }
-  }, [selectedChainIds, chainId, hostname, hasPermittedChains]);
+  }, [channelIdOrHostname, selectedChainIds, chainId, hasPermittedChains]);
 
   const handleConfirm = useCallback(async () => {
-    hideSheet();
-    await handleUpdateNetworkPermissions();
     await handleConnect();
+    await handleUpdateNetworkPermissions();
+    hideSheet();
   }, [handleUpdateNetworkPermissions, hideSheet, handleConnect]);
 
   /**
