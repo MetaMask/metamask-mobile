@@ -44,9 +44,9 @@ export const createStyles = (theme: Theme) =>
     },
     rowWrapper: {
       padding: 20,
-      flex: 1,
     },
     tabContentContainer: {
+      minHeight: 320,
       flexGrow: 1,
       flexShrink: 0,
       marginBottom: Platform.OS === 'android' ? 20 : 0,
@@ -135,5 +135,7 @@ export const createStyles = (theme: Theme) =>
     tabBar: {
       borderColor: theme.colors.border.muted,
     },
-    stretch: {},
+    stretch: {
+      flex: 1,
+    },
   });

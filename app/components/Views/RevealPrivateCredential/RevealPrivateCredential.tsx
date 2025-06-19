@@ -647,7 +647,7 @@ const RevealPrivateCredential = ({
         // The cancel button here is not named correctly. When it is unlocked, the button is shown as "Done"
         showCancelButton={Boolean(showCancelButton || unlocked)}
       >
-        <>
+        <ScrollView>
           <View style={[styles.rowWrapper, styles.normalText]}>
             {isPrivateKey && account ? (
               <>
@@ -669,7 +669,6 @@ const RevealPrivateCredential = ({
               </>
             )}
           </View>
-
           {unlocked ? (
             renderTabView(credentialSlug)
           ) : (
@@ -677,7 +676,7 @@ const RevealPrivateCredential = ({
               {renderPasswordEntry()}
             </View>
           )}
-        </>
+        </ScrollView>
       </ActionView>
       {renderModal(isPrivateKey)}
 
