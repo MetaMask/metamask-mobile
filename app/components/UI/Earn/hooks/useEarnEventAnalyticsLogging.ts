@@ -25,7 +25,7 @@ export const useEarnAnalyticsEventLogging = ({
   const getEventLoggingStrategy =
     useCallback((): EventAnalyticsLoggingStrategy => {
       if (
-        earnToken?.experience.type === EARN_EXPERIENCES.STABLECOIN_LENDING &&
+        earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING &&
         isStablecoinLendingEnabled
       ) {
         return actionType === 'deposit'

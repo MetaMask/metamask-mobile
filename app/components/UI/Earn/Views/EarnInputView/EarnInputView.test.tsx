@@ -1,45 +1,32 @@
-import { BNToHex } from '@metamask/controller-utils';
-import type { InternalAccount } from '@metamask/keyring-internal-api';
-import {
-  ChainId,
-  LendingProvider,
-  PooledStakingContract,
-} from '@metamask/stake-sdk';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import { BigNumber } from 'bignumber.js';
+import {BNToHex} from '@metamask/controller-utils';
+import type {InternalAccount} from '@metamask/keyring-internal-api';
+import {ChainId, LendingProvider, PooledStakingContract,} from '@metamask/stake-sdk';
+import {CHAIN_IDS} from '@metamask/transaction-controller';
+import {act, fireEvent, waitFor} from '@testing-library/react-native';
+import {BigNumber} from 'bignumber.js';
 import BN4 from 'bnjs4';
-import { Contract, BigNumber as EthersBigNumber } from 'ethers';
+import {BigNumber as EthersBigNumber, Contract} from 'ethers';
 import React from 'react';
-import { strings } from '../../../../../../locales/i18n';
+import {strings} from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
-import { RootState } from '../../../../../reducers';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import {MetricsEventBuilder} from '../../../../../core/Analytics/MetricsEventBuilder';
+import {RootState} from '../../../../../reducers';
+import {selectSelectedInternalAccount} from '../../../../../selectors/accountsController';
 // eslint-disable-next-line import/no-namespace
 import {
   ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
 } from '../../../../../selectors/featureFlagController/confirmations';
-import { toWei, weiToFiatNumber } from '../../../../../util/number';
-import {
-  MOCK_ACCOUNTS_CONTROLLER_STATE,
-  MOCK_ADDRESS_2,
-} from '../../../../../util/test/accountsControllerTestUtils';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import {
-  DeepPartial,
-  renderScreen,
-} from '../../../../../util/test/renderWithProvider';
-import { flushPromises } from '../../../../../util/test/utils';
+import {toWei, weiToFiatNumber} from '../../../../../util/number';
+import {MOCK_ACCOUNTS_CONTROLLER_STATE, MOCK_ADDRESS_2,} from '../../../../../util/test/accountsControllerTestUtils';
+import {backgroundState} from '../../../../../util/test/initial-root-state';
+import {DeepPartial, renderScreen,} from '../../../../../util/test/renderWithProvider';
+import {flushPromises} from '../../../../../util/test/utils';
 import useMetrics from '../../../../hooks/useMetrics/useMetrics';
-import { getStakingNavbar } from '../../../Navbar';
-import {
-  MOCK_ETH_MAINNET_ASSET,
-  MOCK_GET_VAULT_RESPONSE,
-} from '../../../Stake/__mocks__/stakeMockData';
-import { MOCK_VAULT_APY_AVERAGES } from '../../../Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
-import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
+import {getStakingNavbar} from '../../../Navbar';
+import {MOCK_ETH_MAINNET_ASSET, MOCK_GET_VAULT_RESPONSE,} from '../../../Stake/__mocks__/stakeMockData';
+import {MOCK_VAULT_APY_AVERAGES} from '../../../Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
+import {EVENT_PROVIDERS} from '../../../Stake/constants/events';
 // eslint-disable-next-line import/no-namespace
 import * as useBalance from '../../../Stake/hooks/useBalance';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
@@ -47,22 +34,18 @@ import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
 import Engine from '../../../../../core/Engine';
 // eslint-disable-next-line import/no-namespace
 import * as useEarnGasFee from '../../../Earn/hooks/useEarnGasFee';
-import {
-  createMockToken,
-  getCreateMockTokenOptions,
-} from '../../../Stake/testUtils';
-import { TOKENS_WITH_DEFAULT_OPTIONS } from '../../../Stake/testUtils/testUtils.types';
-import { EARN_EXPERIENCES } from '../../constants/experiences';
-import { useEarnMetadata } from '../../hooks/useEarnMetadata';
+import {createMockToken, getCreateMockTokenOptions,} from '../../../Stake/testUtils';
+import {TOKENS_WITH_DEFAULT_OPTIONS} from '../../../Stake/testUtils/testUtils.types';
+import {EARN_EXPERIENCES} from '../../constants/experiences';
+import {useEarnMetadata} from '../../hooks/useEarnMetadata';
 import useEarnTokens from '../../hooks/useEarnTokens';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import {selectStablecoinLendingEnabledFlag} from '../../selectors/featureFlags';
 import EarnInputView from './EarnInputView';
-import { EarnInputViewProps } from './EarnInputView.types';
-import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
+import {EarnInputViewProps} from './EarnInputView.types';
+import {Stake} from '../../../Stake/sdk/stakeSdkProvider';
+import {getIsRedesignedStablecoinLendingScreenEnabled} from './utils';
 
 jest.mock('./utils');
-
-import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 
 jest.mock('lodash', () => {
   const actual = jest.requireActual('lodash');
@@ -997,165 +980,373 @@ describe('EarnInputView', () => {
   });
 
   describe('Analytics', () => {
-    it('should track EARN_INPUT_OPENED on render', () => {
-      renderComponent();
-
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'Earn input opened',
-          properties: {
-            action_type: 'deposit',
-            token: 'Ethereum',
-            network: 'Ethereum Mainnet',
-            user_token_balance: '1.5 ETH',
-          },
-        }),
-      );
-    });
-
-    it('should track EARN_INPUT_VALUE_CHANGED on keypad input', async () => {
-      const { getByText } = renderComponent();
-
-      // Clear previous calls from the initial render
-      mockTrackEvent.mockClear();
-
-      await act(async () => {
-        fireEvent.press(getByText('2'));
-      });
-
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'Input value changed',
-          properties: {
-            action_type: 'deposit',
-            input_value: '2',
-            token: 'Ethereum',
-            network: 'Ethereum Mainnet',
-            user_token_balance: '1.5 ETH',
-          },
-        }),
-      );
-    });
-
-    it('should track EARN_REVIEW_BUTTON_CLICKED on review button press', async () => {
+    it('should track EARN_INPUT_OPENED on render for stablecoin lending', () => {
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
-      const getErc20SpendingLimitSpy = jest
-        .spyOn(tempLendingUtils, 'getErc20SpendingLimit')
-        .mockResolvedValue('0');
 
-      // Create a USDC token with a higher balance to avoid "Not enough USDC" error
-      const usdcTokenWithHighBalance = {
-        ...MOCK_USDC_MAINNET_ASSET,
-        balance: '10000000', // 10 USDC in minimal units (6 decimals)
-        balanceMinimalUnit: '10000000', // Add this property for validation
-        balanceFiat: '$10',
-        decimals: 6, // USDC has 6 decimals
-        price: 1, // 1 USDC = $1
-        experience: EARN_EXPERIENCES.STABLECOIN_LENDING, // Add this for lending flow
-      };
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          balance: '100',
+          balanceFiat: '$100',
+          balanceMinimalUnit: '100000000',
+          balanceFormatted: '100 USDC',
+          balanceFiatNumber: 100,
+          symbol: 'USDC',
+          experience: {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '4.5%',
+          },
+        })),
+        getOutputToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          name: 'aUSDC',
+          symbol: 'aUSDC',
+        })),
+      });
 
       const routeParamsWithUSDC: EarnInputViewProps['route'] = {
         params: {
-          token: usdcTokenWithHighBalance,
+          token: MOCK_USDC_MAINNET_ASSET,
         },
         key: Routes.STAKING.STAKE,
         name: 'params',
       };
 
-      // Mock the token balance in the state
-      const customState = {
-        ...mockInitialState,
-        engine: {
-          backgroundState: {
-            ...backgroundState,
-            AccountTrackerController: {
-              accountsByChainId: {
-                [CHAIN_IDS.MAINNET]: {
-                  [MOCK_ADDRESS_2.toLowerCase()]: {
-                    balance: BNToHex(new BigNumber('1000000000000000000')), // 1 ETH for gas fees
-                  },
-                },
-              },
-            },
-            TokenBalancesController: {
-              tokenBalances: {
-                [MOCK_ADDRESS_2.toLowerCase()]: {
-                  [CHAIN_IDS.MAINNET]: {
-                    [MOCK_USDC_MAINNET_ASSET.address]: BNToHex(
-                      new BigNumber('10000000'), // 10 USDC
-                    ),
-                  },
-                },
-              },
-            },
-            TokenRatesController: {
-              marketData: {
-                [CHAIN_IDS.MAINNET]: {
-                  [MOCK_USDC_MAINNET_ASSET.address]: { price: 1 }, // 1 USDC = $1
-                },
+      render(EarnInputView, routeParamsWithUSDC);
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn input opened',
+          properties: expect.objectContaining({
+            action_type: 'deposit',
+            token: 'USDC',
+            network: 'Ethereum Mainnet',
+            user_token_balance: '100 USDC',
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          }),
+        }),
+      );
+    });
+
+    it('should not track EARN_INPUT_OPENED for staking flows', () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(false);
+      mockTrackEvent.mockClear();
+
+      renderComponent();
+
+      // Should not call stablecoin lending events
+      expect(mockTrackEvent).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn input opened',
+        }),
+      );
+    });
+
+    it('should track EARN_REVIEW_BUTTON_CLICKED for stablecoin lending deposits', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      const getErc20SpendingLimitSpy = jest
+        .spyOn(Engine.context.EarnController, 'getLendingTokenAllowance')
+        .mockResolvedValue(EthersBigNumber.from('1000000000'));
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          chainId: CHAIN_IDS.MAINNET,
+          address: '0x123232',
+          balance: '100',
+          balanceFiat: '$100',
+          balanceWei: new BN4('250000'),
+          balanceMinimalUnit: '250000',
+          balanceFiatNumber: 100,
+          experience: {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '2.5%',
+            market: {
+              protocol: 'AAVE v3',
+              underlying: {
+                address: MOCK_USDC_MAINNET_ASSET.address,
               },
             },
           },
+        })),
+        getOutputToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          chainId: CHAIN_IDS.MAINNET,
+        })),
+      });
+
+      const routeParamsWithUSDC: EarnInputViewProps['route'] = {
+        params: {
+          token: MOCK_USDC_MAINNET_ASSET,
         },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
       };
 
-      const { getByText, getAllByText } = render(
-        EarnInputView,
-        routeParamsWithUSDC,
-        customState
-      );
+      const { getByText } = render(EarnInputView, routeParamsWithUSDC);
 
-      // Clear previous calls from the initial render
       mockTrackEvent.mockClear();
 
-      // Enter 0.5 USDC (which is less than the 10 USDC balance)
-      // Use getAllByText and select the keypad button (usually the last one)
       await act(async () => {
-        const zeroButtons = getAllByText('0');
-        fireEvent.press(zeroButtons[zeroButtons.length - 1]); // Press the keypad 0
-      });
-      await act(async () => {
-        fireEvent.press(getByText('.'));
-      });
-      await act(async () => {
-        const fiveButtons = getAllByText('5');
-        fireEvent.press(fiveButtons[fiveButtons.length - 1]); // Press the keypad 5
+        fireEvent.press(getByText('25%'));
       });
 
-      // Wait for the state to update and button to show "Review"
-      await waitFor(() => {
-        expect(getByText(strings('stake.review'))).toBeTruthy();
-      });
-
-      // Now press the review button
       await act(async () => {
         fireEvent.press(getByText(strings('stake.review')));
       });
 
-      // Wait for navigation and tracking
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.EARN.ROOT,
+        expect(mockTrackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
-            screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
-          })
+            name: 'Earn Review button clicked',
+            properties: expect.objectContaining({
+              action_type: 'deposit',
+              token: 'USDC',
+              network: 'Ethereum Mainnet',
+              transaction_value: expect.stringContaining('USDC'),
+              location: 'EarnInputView',
+              experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            }),
+          }),
         );
+      });
+
+      getErc20SpendingLimitSpy.mockRestore();
+    });
+
+    it('should track EARN_INPUT_VALUE_CHANGED for quick amount button press', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          balance: '100',
+          balanceFiat: '$100',
+          balanceMinimalUnit: '100000000',
+          balanceFormatted: '100 USDC',
+          balanceFiatNumber: 100,
+          symbol: 'USDC',
+          experience: {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '4.5%',
+          },
+        })),
+        getOutputToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          name: 'aUSDC',
+          symbol: 'aUSDC',
+        })),
+      });
+
+      const routeParamsWithUSDC: EarnInputViewProps['route'] = {
+        params: {
+          token: {
+            ...MOCK_USDC_MAINNET_ASSET,
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          } as any,
+        },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      };
+
+      const { getByText } = render(EarnInputView, routeParamsWithUSDC);
+
+      mockTrackEvent.mockClear();
+
+      await act(async () => {
+        fireEvent.press(getByText('25%'));
       });
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'Earn Review button clicked',
-          properties: {
+          name: 'Input value changed',
+          properties: expect.objectContaining({
             action_type: 'deposit',
+            input_value: '25%',
             token: 'USDC',
             network: 'Ethereum Mainnet',
-            user_token_balance: '10 USDC',
-            transaction_value: '0.5',
-          },
+            user_token_balance: '100 USDC',
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          }),
         }),
       );
+    });
 
-      getErc20SpendingLimitSpy.mockRestore();
+    it('should track EARN_INPUT_VALUE_CHANGED for max button press', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          balance: '100',
+          balanceFiat: '$100',
+          balanceMinimalUnit: '100000000',
+          balanceFormatted: '100 USDC',
+          balanceFiatNumber: 100,
+          symbol: 'USDC',
+          experience: {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '4.5%',
+          },
+        })),
+        getOutputToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          name: 'aUSDC',
+          symbol: 'aUSDC',
+        })),
+      });
+
+      const routeParamsWithUSDC: EarnInputViewProps['route'] = {
+        params: {
+          token: {
+            ...MOCK_USDC_MAINNET_ASSET,
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          } as any,
+        },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      };
+
+      const { getByText } = render(EarnInputView, routeParamsWithUSDC);
+
+      mockTrackEvent.mockClear();
+
+      await act(async () => {
+        fireEvent.press(getByText('Max'));
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Input value changed',
+          properties: expect.objectContaining({
+            action_type: 'deposit',
+            input_value: 'Max',
+            token: 'USDC',
+            network: 'Ethereum Mainnet',
+            user_token_balance: '100 USDC',
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          }),
+        }),
+      );
+    });
+
+    it('should track EARN_INPUT_CURRENCY_SWITCH_CLICKED for stablecoin lending', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          balance: '100',
+          balanceFiat: '$100',
+          balanceMinimalUnit: '100000000',
+          balanceFormatted: '100 USDC',
+          balanceFiatNumber: 100,
+          symbol: 'USDC',
+          experience: {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '4.5%',
+          },
+        })),
+        getOutputToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          name: 'aUSDC',
+          symbol: 'aUSDC',
+        })),
+      });
+
+      const routeParamsWithUSDC: EarnInputViewProps['route'] = {
+        params: {
+          token: {
+            ...MOCK_USDC_MAINNET_ASSET,
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          } as any,
+        },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      };
+
+      const { getByText } = render(EarnInputView, routeParamsWithUSDC);
+
+      mockTrackEvent.mockClear();
+
+      await act(async () => {
+        fireEvent.press(getByText('$0'));
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn Input Currency Switch Clicked',
+          properties: expect.objectContaining({
+            selected_provider: 'consensys',
+            text: 'Currency Switch Clicked',
+            location: 'EarnInputView',
+            currency_type: 'fiat',
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          }),
+        }),
+      );
+    });
+
+    it('should track EARN_INPUT_INSUFFICIENT_BALANCE when balance is exceeded', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          balance: '1',
+          balanceFiat: '$1',
+          balanceMinimalUnit: '1000000',
+          balanceFormatted: '1 USDC',
+          balanceFiatNumber: 1,
+          symbol: 'USDC',
+          experience: {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '4.5%',
+          },
+        })),
+        getOutputToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          name: 'aUSDC',
+          symbol: 'aUSDC',
+        })),
+      });
+
+      const routeParamsWithUSDC: EarnInputViewProps['route'] = {
+        params: {
+          token: {
+            ...MOCK_USDC_MAINNET_ASSET,
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          } as any,
+        },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      };
+
+      const { getByText } = render(EarnInputView, routeParamsWithUSDC);
+
+      mockTrackEvent.mockClear();
+
+      // Enter an amount greater than balance
+      await act(async () => {
+        fireEvent.press(getByText('5'));
+      });
+
+      // Allow time for effects to run
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'Earn Input Insufficient Balance',
+            properties: expect.objectContaining({
+              provider: 'consensys',
+              location: 'EarnInputView',
+              token_name: 'USDC',
+              token: 'USDC',
+              network: 'Ethereum Mainnet',
+              experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            }),
+          }),
+        );
+      });
     });
   });
 });

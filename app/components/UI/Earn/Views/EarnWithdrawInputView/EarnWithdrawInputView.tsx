@@ -298,18 +298,20 @@ const EarnWithdrawInputView = () => {
   );
 
   const handleLendingWithdrawalFlow = useCallback(async () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.EARN_REVIEW_BUTTON_CLICKED)
-        .addProperties({
-          action_type: 'withdrawal',
-          token: earnToken?.symbol,
-          network: network?.name,
-          user_token_balance: earnBalanceValue,
-          transaction_value: amountToken,
-          experience: receiptToken?.experience?.type,
-        })
-        .build(),
-    );
+    if (shouldLogStablecoinEvent()) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EARN_REVIEW_BUTTON_CLICKED)
+          .addProperties({
+            action_type: 'withdrawal',
+            token: earnToken?.symbol,
+            network: network?.name,
+            user_token_balance: earnBalanceValue,
+            transaction_value: amountToken,
+            experience: receiptToken?.experience?.type,
+          })
+          .build(),
+      );
+    }
 
     // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-1044
     // We likely want to inform the user if this data is missing and the withdrawal fails.
@@ -351,6 +353,7 @@ const EarnWithdrawInputView = () => {
       setIsSubmittingStakeWithdrawalTransaction(false);
     }
   }, [
+    shouldLogStablecoinEvent,
     activeAccount?.address,
     amountFiatNumber,
     amountToken,

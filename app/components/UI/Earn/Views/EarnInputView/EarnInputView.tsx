@@ -243,22 +243,24 @@ const EarnInputView = () => {
     )
       return;
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.EARN_REVIEW_BUTTON_CLICKED)
-        .addProperties({
-          action_type: 'deposit',
-          token: earnToken?.symbol,
-          network: network?.name,
-          user_token_balance: balanceValue,
-          transaction_value: `${amountToken} ${earnToken?.symbol}`,
-          lastQuickAmountButtonPressed: lastQuickAmountButtonPressed.current,
-          location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
-          is_max: Boolean(lastQuickAmountButtonPressed.current === 'MAX'),
-          mode: !isFiat ? 'native' : 'fiat',
-          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
-        })
-        .build(),
-    );
+    if (shouldLogStablecoinEvent()) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EARN_REVIEW_BUTTON_CLICKED)
+          .addProperties({
+            action_type: 'deposit',
+            token: earnToken?.symbol,
+            network: network?.name,
+            user_token_balance: balanceValue,
+            transaction_value: `${amountToken} ${earnToken?.symbol}`,
+            lastQuickAmountButtonPressed: lastQuickAmountButtonPressed.current,
+            location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+            is_max: Boolean(lastQuickAmountButtonPressed.current === 'MAX'),
+            mode: !isFiat ? 'native' : 'fiat',
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          })
+          .build(),
+      );
+    }
 
     // TODO: Add GasCostImpact for lending deposit flow after launch.
     const amountTokenMinimalUnitString = amountTokenMinimalUnit.toString();
@@ -387,6 +389,7 @@ const EarnInputView = () => {
   }, [
     activeAccount,
     earnToken,
+    shouldLogStablecoinEvent,
     trackEvent,
     createEventBuilder,
     network?.name,

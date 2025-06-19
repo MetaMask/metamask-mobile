@@ -40,14 +40,18 @@ describe('useEarnAnalyticsEventLogging', () => {
   };
 
   const mockEarnTokenStablecoin = {
-    experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+    experience: {
+      type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+    },
     symbol: 'USDC',
-  };
+  } as any;
 
   const mockEarnTokenStaking = {
-    experience: 'STAKING',
+    experience: {
+      type: 'STAKING',
+    },
     symbol: 'ETH',
-  };
+  } as any;
 
   describe('Stablecoin Lending scenarios', () => {
     it('should return shouldLogStablecoinEvent=true for stablecoin lending deposit', () => {
@@ -155,7 +159,7 @@ describe('useEarnAnalyticsEventLogging', () => {
     it('should handle earnToken without experience', () => {
       const { result } = renderHook(() =>
         useEarnAnalyticsEventLogging({
-          earnToken: {},
+          earnToken: {} as any,
           isStablecoinLendingEnabled: true,
           token: mockStablecoinToken,
           actionType: 'deposit',
@@ -169,7 +173,7 @@ describe('useEarnAnalyticsEventLogging', () => {
     it('should skip logging for unsupported experience when stablecoin lending is enabled', () => {
       const { result } = renderHook(() =>
         useEarnAnalyticsEventLogging({
-          earnToken: { experience: 'UNSUPPORTED_EXPERIENCE' },
+          earnToken: { experience: { type: 'UNSUPPORTED_EXPERIENCE' } } as any,
           isStablecoinLendingEnabled: true,
           token: mockStablecoinToken,
           actionType: 'deposit',
@@ -183,7 +187,7 @@ describe('useEarnAnalyticsEventLogging', () => {
     it('should return staking event for non-ETH token when stablecoin lending is disabled', () => {
       const { result } = renderHook(() =>
         useEarnAnalyticsEventLogging({
-          earnToken: { experience: 'UNSUPPORTED_EXPERIENCE' },
+          earnToken: { experience: { type: 'UNSUPPORTED_EXPERIENCE' } } as any,
           isStablecoinLendingEnabled: false,
           token: mockStablecoinToken,
           actionType: 'deposit',
