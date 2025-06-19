@@ -11,6 +11,7 @@ import Assertions from '../../utils/Assertions';
 import Matchers from '../../utils/Matchers';
 import WalletView from '../../pages/wallet/WalletView';
 import TestHelpers from '../../helpers';
+import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 
 const deleteAccount = async () => {
   await AccountDetails.tapDeleteAccountLink();
@@ -25,6 +26,7 @@ describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
 
   it('deletes the account', async () => {
     await withMultichainAccountDetailsEnabled(async () => {
+      await AccountListBottomSheet.scrollToBottomOfAccountList();
       await goToAccountDetails(SIMPLE_KEYPAIR_ACCOUNT);
       await deleteAccount();
       // Go back to account list

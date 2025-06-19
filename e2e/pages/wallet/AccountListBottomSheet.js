@@ -129,6 +129,10 @@ class AccountListBottomSheet {
   async tapConnectAccountsButton() {
     await Gestures.waitAndTap(this.connectAccountsButton);
   }
+
+  async scrollToBottomOfAccountList() {
+    await Gestures.swipe(this.accountList, 'up', 'slow');
+  }
 }
 
 export default new AccountListBottomSheet();
