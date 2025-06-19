@@ -1,8 +1,7 @@
 import React from 'react';
-import styleSheet from './DepositInfoSection.styles';
-import { useStyles } from '../../../../../../hooks/useStyles';
-import InfoSection from '../../../../../../Views/confirmations/components/UI/info-row/info-section';
 import { View } from 'react-native';
+import { useSelector } from 'react-redux';
+import { strings } from '../../../../../../../../locales/i18n';
 import KeyValueRow, {
   TooltipSizes,
 } from '../../../../../../../component-library/components-temp/KeyValueRow';
@@ -10,12 +9,13 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
-import ContractTag from '../../../../../Stake/components/StakingConfirmation/ContractTag/ContractTag';
-import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../../../reducers';
+import { useStyles } from '../../../../../../hooks/useStyles';
+import InfoSection from '../../../../../../Views/confirmations/components/UI/info-row/info-section';
+import ContractTag from '../../../../../Stake/components/StakingConfirmation/ContractTag/ContractTag';
 import { TokenI } from '../../../../../Tokens/types';
-import { strings } from '../../../../../../../../locales/i18n';
-import useEarnTokens from '../../../../hooks/useEarnTokens';
+import useEarnToken from '../../../../hooks/useEarnToken';
+import styleSheet from './DepositInfoSection.styles';
 
 export const DEPOSIT_DETAILS_SECTION_TEST_ID = 'depositDetailsSection';
 
@@ -40,8 +40,7 @@ const DepositInfoSection = ({
     (state: RootState) => state.settings.useBlockieIcon,
   );
 
-  const { getEarnToken, getEstimatedAnnualRewardsForAmount } = useEarnTokens();
-  const earnToken = getEarnToken(token);
+  const { earnToken, getEstimatedAnnualRewardsForAmount } = useEarnToken(token);
 
   if (!earnToken) return null;
 
