@@ -308,7 +308,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
           networkClientId,
           origin: ORIGIN_METAMASK,
-          type: 'lendingWithdraw' as TransactionType,
+          type: TransactionType.lendingWithdraw,
         },
       });
 
