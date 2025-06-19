@@ -42,6 +42,11 @@ import Engine from '../../../core/Engine';
 import { selectCurrentCurrency, selectUsdConversionRate } from '../../../selectors/currencyRateController';
 import { mapMoralisTokenToResult } from '../../../util/search-discovery/map-moralis-token-to-result';
 import { SearchDiscoveryResult } from '../SearchDiscoveryResult';
+import { isAddress } from 'viem';
+import { createSearchUrl, processUrlForBrowser, testUrl } from '../../../util/browser';
+import { selectSearchEngine } from '../../../reducers/browser/selectors';
+import { hasProtocol } from '../../../util/regex';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 
 export * from './types';
 
@@ -213,7 +218,7 @@ const UrlAutocomplete = forwardRef<
     <View style={searchDiscoveryStyles.categoryWrapper}>
       <Text style={searchDiscoveryStyles.categoryTitle}>{strings(`autocomplete.${category}`)}</Text>
       {category === SearchDiscoveryCategory.Tokens && isTokenSearchLoading && (
-        <ActivityIndicator testID="loading-indicator" size="small" />
+        <ActivityIndicator testID="loading-indicator" size="small" style={searchDiscoveryStyles.categoryLoadingIcon} />
       )}
     </View>
   ), [searchDiscoveryStyles, isTokenSearchLoading]);
@@ -232,11 +237,53 @@ const UrlAutocomplete = forwardRef<
     />
   ), [onItemSelect]);
 
+  const searchEngine = useSelector(selectSearchEngine);
+
+  const renderNoResults = useCallback(() => {
+    if (!latestSearchTerm.current) {
+      return null;
+    }
+    if (isAddress(latestSearchTerm.current)) {
+      return (
+        <Text style={searchDiscoveryStyles.noResultsText}>{strings('autocomplete.tokenNotFound')}</Text>
+      );
+    }
+
+      return (
+        <>
+          {testUrl(latestSearchTerm.current) && (
+            <SearchDiscoveryResult
+              result={{
+                category: SearchDiscoveryCategory.Sites,
+                name: strings('autocomplete.goToUrl'),
+                url: processUrlForBrowser(latestSearchTerm.current, searchEngine),
+              }}
+              onSelect={onItemSelect}
+              iconName={IconName.Global}
+            />
+          )}
+          {!hasProtocol(latestSearchTerm.current) && (
+            <SearchDiscoveryResult
+              result={{
+                category: SearchDiscoveryCategory.Sites,
+                name: strings('autocomplete.search', { search_term: latestSearchTerm.current }),
+                url: createSearchUrl(latestSearchTerm.current, searchEngine),
+              }}
+              onSelect={onItemSelect}
+              iconName={IconName.Search}
+            />
+          )}
+        </>
+      );
+  }, [searchEngine, onItemSelect]);
+
   if (!hasResults && !isTokenSearchLoading) {
     return (
       <View ref={resultsRef} style={styles.wrapper}>
         <TouchableWithoutFeedback style={styles.bg} onPress={dismissAutocomplete}>
-          <View style={styles.bg} />
+          <View style={styles.bg}>
+            {renderNoResults()}
+          </View>
         </TouchableWithoutFeedback>
       </View>
     );

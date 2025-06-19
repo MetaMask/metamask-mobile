@@ -17,7 +17,7 @@ export const useTokenSearch = () => {
   const [results, setResults] = useState<MoralisTokenResponseItem[]>([]);
   const latestRequestId = useRef<number>(0);
   const tokenSearchEnabled = useSelector(tokenSearchDiscoveryEnabled);
-
+  const latestSearchTermWithoutResults = useRef<string | null>(null);
 
   const searchTokens = useMemo(
     () =>
@@ -25,7 +25,14 @@ export const useTokenSearch = () => {
         setIsLoading(true);
         setError(null);
 
-        if (query.length < MINIMUM_QUERY_LENGTH || !tokenSearchEnabled) {
+        if (
+          query.length < MINIMUM_QUERY_LENGTH ||
+          !tokenSearchEnabled ||
+          query.trim() === '' ||
+          query.match(/^https?:\/\//) ||
+          query.startsWith('www.') ||
+          latestSearchTermWithoutResults.current && query.startsWith(latestSearchTermWithoutResults.current)
+        ) {
           setResults([]);
           setIsLoading(false);
           return;
@@ -42,6 +49,11 @@ export const useTokenSearch = () => {
           });
           if (requestId === latestRequestId.current) {
             setResults(result);
+            if (result.length === 0) {
+              latestSearchTermWithoutResults.current = query;
+            } else {
+              latestSearchTermWithoutResults.current = null;
+            }
           }
         } catch (err) {
           if (requestId === latestRequestId.current) {

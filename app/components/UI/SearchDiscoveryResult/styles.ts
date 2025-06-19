@@ -37,6 +37,15 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
       ...typography.sBodyMD,
       fontFamily: getFontFamily(TextVariant.BodyMD),
     } as TextStyle,
+    categoryLoadingIcon: {
+      marginLeft: 10,
+    },
+    noResultsText: {
+      color: colors.text.alternative,
+      ...typography.sBodyMD,
+      fontFamily: getFontFamily(TextVariant.BodyMD),
+      margin: 10,
+    } as TextStyle,
     item: {
       paddingVertical: 8,
       marginBottom: 8,

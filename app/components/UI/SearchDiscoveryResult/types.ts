@@ -1,8 +1,10 @@
 import { Hex } from '@metamask/utils';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 
 export interface SearchDiscoveryResultProps {
   result: SearchDiscoveryResultItem;
   onSelect: (item: SearchDiscoveryResultItem) => void;
+  iconName?: IconName;
 }
 
 

@@ -5,7 +5,7 @@ import { getHost } from '../../../util/browser';
 import WebsiteIcon from '../WebsiteIcon';
 import ButtonIcon, { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
 import { deleteFavoriteTestId } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/UrlAutocomplete.testIds';
-import { IconName } from '../../../component-library/components/Icons/Icon';
+import Icon, { IconName, IconSize } from '../../../component-library/components/Icons/Icon';
 import { useDispatch, useSelector } from 'react-redux';
 import { removeBookmark } from '../../../actions/bookmarks';
 import stylesheet from './styles';
@@ -22,7 +22,7 @@ import PercentageChange from '../../../component-library/components-temp/Price/P
 import { SwapBridgeNavigationLocation, useSwapBridgeNavigation } from '../Bridge/hooks/useSwapBridgeNavigation';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 
-export const SearchDiscoveryResult: React.FC<SearchDiscoveryResultProps> = memo(({ result, onSelect }) => {
+export const SearchDiscoveryResult: React.FC<SearchDiscoveryResultProps> = memo(({ result, onSelect, iconName }) => {
     const theme = useTheme();
     const styles = stylesheet({theme});
 
@@ -59,30 +59,34 @@ export const SearchDiscoveryResult: React.FC<SearchDiscoveryResultProps> = memo(
           onPress={() => onSelect(result)}
         >
           <View style={styles.itemWrapper}>
-            {result.category === SearchDiscoveryCategory.Tokens ? (
-              <BadgeWrapper
-                badgeElement={(
-                  <Badge
-                    variant={BadgeVariant.Network}
-                    imageSource={NetworkBadgeSource(result.chainId)}
+            {
+              iconName ? (
+                <Icon name={iconName} size={IconSize.Xl} />
+              ) : result.category === SearchDiscoveryCategory.Tokens ? (
+                <BadgeWrapper
+                  badgeElement={(
+                    <Badge
+                      variant={BadgeVariant.Network}
+                      imageSource={NetworkBadgeSource(result.chainId)}
+                    />
+                  )}
+                  badgePosition={BadgePosition.BottomRight}
+                >
+                  <AvatarToken
+                    imageSource={result.logoUrl ? {uri: result.logoUrl} : undefined}
+                    name={result.name}
+                    size={AvatarSize.Lg}
                   />
-                )}
-                badgePosition={BadgePosition.BottomRight}
-              >
-                <AvatarToken
-                  imageSource={result.logoUrl ? {uri: result.logoUrl} : undefined}
-                  name={result.name}
-                  size={AvatarSize.Lg}
+                </BadgeWrapper>
+              ) : (
+                <WebsiteIcon
+                  style={styles.bookmarkIco}
+                  url={result.url}
+                  title={name}
+                  textStyle={styles.fallbackTextStyle}
                 />
-              </BadgeWrapper>
-            ) : (
-              <WebsiteIcon
-                style={styles.bookmarkIco}
-                url={result.url}
-                title={name}
-                textStyle={styles.fallbackTextStyle}
-              />
-            )}
+              )
+            }
             <View style={styles.textContent}>
               <Text style={styles.name} numberOfLines={1}>
                 {result.name}
