@@ -5705,10 +5705,10 @@
     fast-json-patch "^3.1.0"
     lodash "^4.17.21"
 
-"@metamask/snaps-controllers@^13.1.0":
-  version "13.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-13.1.0.tgz#c0c51a444bc47adf6ba990fca36d78a69bc10133"
-  integrity sha512-PhKNxVKeH0YwKc4Wh9SxkJXmUgsDlnQEXrZ5hUw8FbSiWVOFFwf/isH5K7ynL1CVUcTwt34eEn3ZKpHsCdt3EA==
+"@metamask/snaps-controllers@^13.1.1":
+  version "13.1.1"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-13.1.1.tgz#88297e2f000ff159f792784dcf72b9fd0f05fa75"
+  integrity sha512-cjw6voIuMghNn2F1OHjP7qU0Z8hOvz9ZhFqVyKXLwWRaBmeXVBzwYPWtgmf9zWN9cpiofDZtcCy8F7swTkfB5w==
   dependencies:
     "@metamask/approval-controller" "^7.1.3"
     "@metamask/base-controller" "^8.0.1"
