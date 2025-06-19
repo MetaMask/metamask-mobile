@@ -95,15 +95,8 @@ import ConcealingFox from '../../../animations/Concealing_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import {
-  IMetaMetricsEvent,
-  ITrackingEvent,
-} from '../../../core/Analytics/MetaMetrics.types';
+import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-
-interface LoginProps {
-  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
-}
 
 interface LoginRouteParams {
   locked: boolean;
@@ -114,7 +107,7 @@ interface LoginRouteParams {
 /**
  * View where returning users can authenticate
  */
-const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
+const Login: React.FC = () => {
   const fieldRef = useRef<TextInput>(null);
 
   const [password, setPassword] = useState('');
@@ -149,7 +142,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       MetricsEventBuilder.createEventBuilder(event)
         .addProperties(properties)
         .build(),
-      saveOnboardingEvent,
     );
   };
 
