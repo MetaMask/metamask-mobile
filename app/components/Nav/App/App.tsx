@@ -26,7 +26,6 @@ import OptinMetrics from '../../UI/OptinMetrics';
 import SimpleWebview from '../../Views/SimpleWebview';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import branch from 'react-native-branch';
-import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { useDispatch, useSelector } from 'react-redux';
 import {
