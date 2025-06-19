@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useEarnAnalyticsEventLogging } from './useEarnEventAnalyticsLogging';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { TokenI } from '../../Tokens/types';
+import { EarnTokenDetails } from '../types/lending.types';
 
 // mock the EARN_EXPERIENCES constant
 jest.mock('../constants/experiences', () => ({
@@ -44,14 +45,14 @@ describe('useEarnAnalyticsEventLogging', () => {
       type: EARN_EXPERIENCES.STABLECOIN_LENDING,
     },
     symbol: 'USDC',
-  } as any;
+  } as unknown as EarnTokenDetails;
 
   const mockEarnTokenStaking = {
     experience: {
       type: 'STAKING',
     },
     symbol: 'ETH',
-  } as any;
+  } as unknown as EarnTokenDetails;
 
   describe('Stablecoin Lending scenarios', () => {
     it('should return shouldLogStablecoinEvent=true for stablecoin lending deposit', () => {
@@ -159,7 +160,7 @@ describe('useEarnAnalyticsEventLogging', () => {
     it('should handle earnToken without experience', () => {
       const { result } = renderHook(() =>
         useEarnAnalyticsEventLogging({
-          earnToken: {} as any,
+          earnToken: {} as unknown as EarnTokenDetails,
           isStablecoinLendingEnabled: true,
           token: mockStablecoinToken,
           actionType: 'deposit',
@@ -173,7 +174,9 @@ describe('useEarnAnalyticsEventLogging', () => {
     it('should skip logging for unsupported experience when stablecoin lending is enabled', () => {
       const { result } = renderHook(() =>
         useEarnAnalyticsEventLogging({
-          earnToken: { experience: { type: 'UNSUPPORTED_EXPERIENCE' } } as any,
+          earnToken: {
+            experience: { type: 'UNSUPPORTED_EXPERIENCE' },
+          } as unknown as EarnTokenDetails,
           isStablecoinLendingEnabled: true,
           token: mockStablecoinToken,
           actionType: 'deposit',
@@ -187,7 +190,9 @@ describe('useEarnAnalyticsEventLogging', () => {
     it('should return staking event for non-ETH token when stablecoin lending is disabled', () => {
       const { result } = renderHook(() =>
         useEarnAnalyticsEventLogging({
-          earnToken: { experience: { type: 'UNSUPPORTED_EXPERIENCE' } } as any,
+          earnToken: {
+            experience: { type: 'UNSUPPORTED_EXPERIENCE' },
+          } as unknown as EarnTokenDetails,
           isStablecoinLendingEnabled: false,
           token: mockStablecoinToken,
           actionType: 'deposit',
