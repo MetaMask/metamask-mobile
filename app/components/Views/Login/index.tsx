@@ -88,6 +88,10 @@ import ConcealingFox from '../../../animations/Concealing_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
 
+// In android, having {} will cause the styles to update state
+// using a constant will prevent this
+const EmptyRecordConstant = {};
+
 /**
  * View where returning users can authenticate
  */
@@ -116,7 +120,7 @@ const Login: React.FC = () => {
   const {
     styles,
     theme: { colors, themeAppearance },
-  } = useStyles(stylesheet, {});
+  } = useStyles(stylesheet, EmptyRecordConstant);
   const { trackEvent, createEventBuilder } = useMetrics();
   const dispatch = useDispatch();
   const setOnboardingWizardStep = (step: number) =>
