@@ -143,6 +143,7 @@ import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
+import AppConstants from '../../../core/AppConstants';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -836,6 +837,11 @@ const App: React.FC = () => {
         if (deeplink && typeof deeplink === 'string') {
           console.log('XXXXXX - DEEPLINK APP', deeplink);
           AppStateEventProcessor.setCurrentDeeplink(deeplink);
+          // FRANK: put this back in and try again
+
+          SharedDeeplinkManager.parse(deeplink, {
+            origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+          });
         }
       } catch (e) {
         Logger.error(e as Error, `Deeplink: Error parsing deeplink`);
