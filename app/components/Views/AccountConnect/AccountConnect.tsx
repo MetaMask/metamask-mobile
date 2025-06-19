@@ -17,14 +17,13 @@ import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import { IconName } from '../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
 import { ToastOptions } from '../../../component-library/components/Toast/Toast.types';
 import { USER_INTENT } from '../../../constants/permissions';
-import { MetaMetricsEvents, store } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import Engine from '../../../core/Engine';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import {
@@ -45,7 +44,6 @@ import { useAccounts } from '../../hooks/useAccounts';
 
 // Internal dependencies.
 import { PermissionsRequest } from '@metamask/permission-controller';
-import { ImageURISource } from 'react-native';
 import PhishingModal from '../../../components/UI/PhishingModal';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
@@ -75,7 +73,7 @@ import {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
-import { selectEvmNetworkConfigurationsByChainId, selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import {
@@ -293,7 +291,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     ],
   );
 
-  const dappIconUrl = sdkConnection?.originatorInfo?.icon;
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
 
   // If it is undefined, it will enter the regular eth account creation flow.
@@ -343,7 +340,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       ? prefixUrlWithProtocol(getHost(hostname))
       : domainTitle;
 
-  const { hostname: hostnameFromUrlObj, protocol: protocolFromUrlObj } =
+  const { hostname: hostnameFromUrlObj } =
     getUrlObj(urlWithProtocol);
 
   useEffect(() => {
@@ -367,31 +364,6 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const faviconSource = useFavicon(
     channelIdOrHostname || (!isChannelId ? channelIdOrHostname : ''),
-  );
-
-  const actualIcon = useMemo(() => {
-    // Priority to dappIconUrl
-    if (dappIconUrl) {
-      return { uri: dappIconUrl };
-    }
-
-    if (isOriginWalletConnect) {
-      // fetch icon from store
-      return { uri: wc2Metadata?.icon ?? '' };
-    }
-
-    const favicon = faviconSource as ImageURISource;
-    if ('uri' in favicon) {
-      return faviconSource;
-    }
-
-    return { uri: '' };
-  }, [dappIconUrl, wc2Metadata, faviconSource, isOriginWalletConnect]);
-
-  const secureIcon = useMemo(
-    () =>
-      protocolFromUrlObj === 'https:' ? IconName.Lock : IconName.LockSlash,
-    [protocolFromUrlObj],
   );
 
   const eventSource = useOriginSource({ origin: channelIdOrHostname });
@@ -795,7 +767,8 @@ const AccountConnect = (props: AccountConnectProps) => {
     cancelPermissionRequest,
     permissionRequestId,
     handleCreateAccount,
-    handleConnect,
+    handleConfirm,
+    hideSheet,
     trackEvent,
     createEventBuilder,
   ]);
@@ -1007,6 +980,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     renderMultiConnectSelectorScreen,
     renderMultiConnectNetworkSelectorScreen,
     renderAddNewAccount,
+    isSdkUrlUnknown
   ]);
 
   return (
