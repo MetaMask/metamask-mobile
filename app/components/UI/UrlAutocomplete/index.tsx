@@ -243,41 +243,42 @@ const UrlAutocomplete = forwardRef<
     if (!latestSearchTerm.current) {
       return null;
     }
+
     if (isAddress(latestSearchTerm.current)) {
       return (
         <Text style={searchDiscoveryStyles.noResultsText}>{strings('autocomplete.tokenNotFound')}</Text>
       );
     }
 
-      return (
-        <>
-          {testUrl(latestSearchTerm.current) && (
-            <SearchDiscoveryResult
-              result={{
-                category: SearchDiscoveryCategory.Sites,
-                name: strings('autocomplete.goToUrl'),
-                url: processUrlForBrowser(latestSearchTerm.current, searchEngine),
-              }}
-              onSelect={onItemSelect}
-              iconName={IconName.Global}
-            />
-          )}
-          {!hasProtocol(latestSearchTerm.current) && (
-            <SearchDiscoveryResult
-              result={{
-                category: SearchDiscoveryCategory.Sites,
-                name: strings('autocomplete.search', { search_term: latestSearchTerm.current }),
-                url: createSearchUrl(latestSearchTerm.current, searchEngine),
-              }}
-              onSelect={onItemSelect}
-              iconName={IconName.Search}
-            />
-          )}
-        </>
-      );
-  }, [searchEngine, onItemSelect]);
+    return (
+      <>
+        {testUrl(latestSearchTerm.current) && (
+          <SearchDiscoveryResult
+            result={{
+              category: SearchDiscoveryCategory.Sites,
+              name: strings('autocomplete.goToUrl'),
+              url: processUrlForBrowser(latestSearchTerm.current, searchEngine),
+            }}
+            onSelect={onItemSelect}
+            iconName={IconName.Global}
+          />
+        )}
+        {!hasProtocol(latestSearchTerm.current) && (
+          <SearchDiscoveryResult
+            result={{
+              category: SearchDiscoveryCategory.Sites,
+              name: strings('autocomplete.search', { search_term: latestSearchTerm.current }),
+              url: createSearchUrl(latestSearchTerm.current, searchEngine),
+            }}
+            onSelect={onItemSelect}
+            iconName={IconName.Search}
+          />
+        )}
+      </>
+    );
+  }, [searchEngine, onItemSelect, searchDiscoveryStyles.noResultsText]);
 
-  if (!hasResults && !isTokenSearchLoading) {
+  if (!hasResults) {
     return (
       <View ref={resultsRef} style={styles.wrapper}>
         <TouchableWithoutFeedback style={styles.bg} onPress={dismissAutocomplete}>
