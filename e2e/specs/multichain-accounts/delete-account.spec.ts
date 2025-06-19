@@ -11,7 +11,6 @@ import Assertions from '../../utils/Assertions';
 import Matchers from '../../utils/Matchers';
 import WalletView from '../../pages/wallet/WalletView';
 import TestHelpers from '../../helpers';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 
 const deleteAccount = async () => {
   await AccountDetails.tapDeleteAccountLink();
