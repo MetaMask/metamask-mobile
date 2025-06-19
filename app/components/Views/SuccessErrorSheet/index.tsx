@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useRef } from 'react';
 import { View } from 'react-native';
 import Text from '../../../component-library/components/Texts/Text';
 import {
@@ -20,6 +20,7 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { useNavigation } from '@react-navigation/native';
+import SuccessIcon from '../../../images/circle-check.svg';
 
 export interface SuccessErrorSheetParams {
   onClose?: () => void;
@@ -28,7 +29,6 @@ export interface SuccessErrorSheetParams {
   description: string | React.ReactNode;
   customButton: React.ReactNode;
   type: 'success' | 'error';
-  icon: IconName;
   secondaryButtonLabel?: string;
   onSecondaryButtonPress?: () => void;
   primaryButtonLabel?: string;
@@ -48,7 +48,6 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     description,
     customButton,
     type = 'success',
-    icon,
     secondaryButtonLabel,
     onSecondaryButtonPress,
     primaryButtonLabel,
@@ -67,13 +66,6 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     }
   };
 
-  const currentIcon = useMemo(() => {
-    if (icon) {
-      return icon;
-    }
-    return type === 'success' ? IconName.CheckBold : IconName.CircleX;
-  }, [icon, type]);
-
   const handleSecondaryButtonPress = () => {
     navigation.goBack();
     if (onSecondaryButtonPress) {
@@ -91,13 +83,15 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
   return (
     <BottomSheet ref={bottomSheetRef} onClose={handleClose}>
       <View style={styles.statusContainer}>
-        <Icon
-          name={currentIcon}
-          size={IconSize.Xl}
-          color={
-            type === 'success' ? colors.success.default : colors.error.default
-          }
-        />
+        {type === 'success' ? (
+          <SuccessIcon name="success" width={32} height={32} />
+        ) : (
+          <Icon
+            name={IconName.CircleX}
+            size={IconSize.Xl}
+            color={colors.error.default}
+          />
+        )}
 
         {typeof title === 'string' ? (
           <Text

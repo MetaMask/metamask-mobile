@@ -80,7 +80,7 @@ describe('useShouldDispatchContactSyncing()', () => {
     return { successTestCase, failureStateCases };
   })();
 
-  it('should return true if all conditions are met', () => {
+  it('returns true if all conditions are met', () => {
     const { state } = arrangeMockState(testCases.successTestCase.state);
     const hook = renderHookWithProvider(
       () => useShouldDispatchContactSyncing(),
@@ -89,14 +89,10 @@ describe('useShouldDispatchContactSyncing()', () => {
     expect(hook.result.current).toBe(true);
   });
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
   it.each(testCases.failureStateCases)(
-    'should return false if not all conditions are met [%s = false]',
-    ({
-      state: failureState,
-    }: (typeof testCases)['failureStateCases'][number]) => {
-      const { state } = arrangeMockState(failureState);
+    'returns false if not all conditions are met [%s = false]',
+    (testCase: { state: ArrangeMocksMetamaskStateOverrides; failingField: string }) => {
+      const { state } = arrangeMockState(testCase.state);
       const hook = renderHookWithProvider(
         () => useShouldDispatchContactSyncing(),
         { state },
@@ -132,7 +128,7 @@ describe('useContactSyncing', () => {
     return { mocks, dispatchContactSyncing, shouldDispatchContactSyncing };
   };
 
-  it('should dispatch if conditions are met', async () => {
+  it('dispatches if conditions are met', async () => {
     const { mocks, dispatchContactSyncing, shouldDispatchContactSyncing } =
       arrangeAndAct({
         completedOnboarding: true,
