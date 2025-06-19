@@ -8,6 +8,7 @@ import { ConnectAccountBottomSheetSelectorsIDs } from '../../selectors/Browser/C
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import TestHelpers from '../../helpers';
+import Assertions from '../../utils/Assertions';
 
 class AccountListBottomSheet {
   get accountList() {
@@ -85,6 +86,7 @@ class AccountListBottomSheet {
   }
 
   async tapEditAccountActionsAtIndex(index) {
+    await Assertions.checkIfVisible(Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS, index));
     await Gestures.tapAtIndex(Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS), index);
   }
 
