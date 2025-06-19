@@ -538,8 +538,9 @@ describe('handleUniversalLinks', () => {
   describe('signature verification', () => {
     it.only('should successfully verify a valid signature', async () => {
       const url = 'https://example.com?param1=value1&sig=validSignature';
-      mockHasSignature.mockReturnValue(true);
-      mockVerifyDeeplinkSignature.mockResolvedValue(VALID);
+      // DO NOT MOCK THE VERIFICATION FUNCTIONS SINCE WE'RE TESTING THEM
+      // mockHasSignature.mockReturnValue(true);
+      // mockVerifyDeeplinkSignature.mockResolvedValue(VALID);
 
       await handleUniversalLink({
         instance,
