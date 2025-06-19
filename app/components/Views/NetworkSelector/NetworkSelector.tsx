@@ -179,7 +179,7 @@ const NetworkSelector = () => {
   // const globalChainId = useSelector(selectChainId);
   const contextualChainId = useSelector(selectSendFlowContextualChainId);
 
-  console.log('>>> NetworkSelector contextualChainId', contextualChainId);
+  // console.log('>>> NetworkSelector contextualChainId', contextualChainId);
   const {
     chainId: perDappChainId,
     rpcUrl: selectedRpcUrl,
@@ -187,8 +187,8 @@ const NetworkSelector = () => {
     networkName: selectedNetworkName,
   } = useNetworkInfo(origin);
 
-  console.log('>>> NetworkSelector route.params?.source', route.params?.source);
-  console.log('>>> NetworkSelector contextualChainId', contextualChainId);
+  // console.log('>>> NetworkSelector route.params?.source', route.params?.source);
+  // console.log('>>> NetworkSelector contextualChainId', contextualChainId);
   const selectedChainId =
     route.params?.source === 'SendFlow' && contextualChainId
       ? contextualChainId

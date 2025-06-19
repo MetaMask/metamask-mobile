@@ -582,7 +582,7 @@ class Amount extends PureComponent {
   };
 
   componentDidMount = async () => {
-    console.log(">>> Amount componentDidMount");
+    // console.log(">>> Amount componentDidMount");
     const {
       ticker,
       transactionState: { readableValue },
@@ -596,7 +596,7 @@ class Amount extends PureComponent {
     } = this.props;
     // For analytics
 
-    console.log(">>> Amount componentDidMount sendFlowContextualChainId", this.props.sendFlowContextualChainId);
+    // console.log(">>> Amount componentDidMount sendFlowContextualChainId", this.props.sendFlowContextualChainId);
     this.updateNavBar();
     navigation.setParams({ providerType, isPaymentRequest });
 
@@ -611,7 +611,7 @@ class Amount extends PureComponent {
     //   chainId: this.props.sendFlowContextualChainId,
     // });
 
-    console.log(">>> Amount allTokens", this.props.allTokens);
+    // console.log(">>> Amount allTokens", this.props.allTokens);
     const allTokensFilteredByChainId =
       this.props.allTokens?.[this.props.sendFlowContextualChainId]?.[
         this.props.selectedAddress?.toLowerCase()
@@ -799,7 +799,7 @@ class Amount extends PureComponent {
         const effectiveNetworkClientId =
           sendFlowContextualNetworkClientId || globalNetworkClientId;
 
-        console.log('>>> Amount addTransaction effectiveNetworkClientId', effectiveNetworkClientId);
+        // console.log('>>> Amount addTransaction effectiveNetworkClientId', effectiveNetworkClientId);
         await addTransaction(transactionParams, {
           origin: MMM_ORIGIN,
           networkClientId: effectiveNetworkClientId,
@@ -1697,13 +1697,13 @@ const mapStateToProps = (state, ownProps) => {
   const globalChainId = selectEvmChainId(state);
   const globalNetworkClientId = selectNetworkClientId(state);
   const sendFlowContextualChainId = selectSendFlowContextualChainId(state);
-  console.log('>>> Amount sendFlowContextualChainId', sendFlowContextualChainId);
+  // console.log('>>> Amount sendFlowContextualChainId', sendFlowContextualChainId);
   const sendFlowContextualNetworkConfiguration =
     selectNetworkConfigurationByChainId(
       state,
       toHexadecimal(selectSendFlowContextualChainId(state)),
     );
-  console.log('>>> Amount sendFlowContextualNetworkConfiguration', sendFlowContextualNetworkConfiguration);
+  // console.log('>>> Amount sendFlowContextualNetworkConfiguration', sendFlowContextualNetworkConfiguration);
   // TODO: double check all mapped state is used in the component
   return {
     accounts: selectAccounts(state),
