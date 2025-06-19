@@ -40,7 +40,7 @@ const ManualBackupStep2 = ({
   navigation,
   seedphraseBackedUp,
   route,
-  dispatchSaveOnboardingEvent,
+  saveOnboardingEvent,
 }) => {
   const words = route?.params?.words;
   const backupFlow = route?.params?.backupFlow;
@@ -150,7 +150,7 @@ const ManualBackupStep2 = ({
           MetricsEventBuilder.createEventBuilder(
             MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
           ).build(),
-          dispatchSaveOnboardingEvent,
+          saveOnboardingEvent,
         );
       });
     } else {
@@ -471,7 +471,7 @@ ManualBackupStep2.propTypes = {
   /**
    * Action to save onboarding event
    */
-  dispatchSaveOnboardingEvent: PropTypes.func,
+  saveOnboardingEvent: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({
