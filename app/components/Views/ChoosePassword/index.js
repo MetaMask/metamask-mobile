@@ -155,7 +155,7 @@ const createStyles = (colors) =>
       justifyContent: 'flex-start',
       gap: 1,
       flexWrap: 'wrap',
-      width: '95%',
+      width: '90%',
     },
     headerLeft: {
       marginLeft: 16,
