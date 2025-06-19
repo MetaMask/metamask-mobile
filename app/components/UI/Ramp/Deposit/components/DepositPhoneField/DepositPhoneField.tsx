@@ -1,5 +1,5 @@
-import React, { forwardRef, useMemo, useState } from 'react';
-import { View, StyleSheet, TextInput } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, StyleSheet } from 'react-native';
 
 import Label from '../../../../../../component-library/components/Form/Label';
 import Text, {
@@ -88,15 +88,14 @@ const DepositPhoneField: React.FC<PhoneFieldProps> = ({
       const parsed = parsePhoneNumber(exampleNumber);
       if (!parsed) return '';
       return parsed.formatNational();
-    } else {
-      const exampleNumber = `+${callingCode}${'2'.repeat(
-        region?.phoneDigitCount || 9,
-      )}`;
-      const parsed = parsePhoneNumber(exampleNumber);
-      if (!parsed) return '';
-      const formatted = parsed.formatInternational();
-      return formatted.replace(`+${callingCode} `, '');
     }
+    const exampleNumber = `+${callingCode}${'2'.repeat(
+      region?.phoneDigitCount || 9,
+    )}`;
+    const parsed = parsePhoneNumber(exampleNumber);
+    if (!parsed) return '';
+    const formatted = parsed.formatInternational();
+    return formatted.replace(`+${callingCode} `, '');
   }, [region?.code, region?.phoneDigitCount]);
 
   return (
@@ -110,8 +109,10 @@ const DepositPhoneField: React.FC<PhoneFieldProps> = ({
           international={region?.code !== 'US'}
           value={value}
           onChange={handlePhoneNumberChange}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           inputComponent={(props: any) => (
             <TextField
+              testID="deposit-phone-field-test-id"
               autoFocus
               startAccessory={
                 <View style={styles.countryPrefix}>

@@ -2,12 +2,11 @@ import {
   AsYouType,
   CountryCode,
   getCountryCallingCode,
-  parsePhoneNumberFromString,
 } from 'libphonenumber-js';
 
 export const formatPhoneNumber = (text: string, countryCode: CountryCode) => {
-  const formatter = new AsYouType('US');
-  const callingCode = getCountryCallingCode('US');
+  const formatter = new AsYouType(countryCode);
+  const callingCode = getCountryCallingCode(countryCode);
   const maxLength = 10;
 
   if (text.length === 0) {

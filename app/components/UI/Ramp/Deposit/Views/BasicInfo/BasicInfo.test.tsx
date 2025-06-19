@@ -72,7 +72,7 @@ describe('BasicInfo Component', () => {
     fireEvent.changeText(screen.getByTestId('first-name-input'), 'John');
     fireEvent.changeText(screen.getByTestId('last-name-input'), 'Smith');
     fireEvent.changeText(
-      screen.getByPlaceholderText('(234) 567-8910'),
+      screen.getByPlaceholderText('22 222 2222'),
       '1234567890',
     );
     fireEvent.changeText(
@@ -92,9 +92,10 @@ describe('BasicInfo Component', () => {
           dob: '01/01/1990',
           firstName: 'John',
           lastName: 'Smith',
-          mobileNumber: '+11234567890',
+          mobileNumber: '+361234567890',
           ssn: '123456789',
         },
+        kycUrl: undefined,
         quote: mockQuote,
       }),
     );

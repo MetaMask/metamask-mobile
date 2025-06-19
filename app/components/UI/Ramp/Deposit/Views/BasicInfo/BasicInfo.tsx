@@ -39,9 +39,6 @@ export interface BasicInfoFormData {
   ssn: string;
 }
 
-// TODO: Country Code must be dynamic and not hardcoded to USA
-const COUNTRY_CODE = '1';
-
 const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
@@ -107,14 +104,9 @@ const BasicInfo = (): JSX.Element => {
 
   const handleOnPressContinue = useCallback(() => {
     if (validateFormData()) {
-      const formattedFormData = {
-        ...formData,
-        mobileNumber: `+${COUNTRY_CODE}${formData.mobileNumber}`,
-      };
-
       navigation.navigate(
         ...createEnterAddressNavDetails({
-          formData: formattedFormData,
+          formData,
           quote,
           kycUrl,
         }),

@@ -1,3 +1,6 @@
+import { CaipChainId } from '@metamask/utils';
+import { CountryCode } from 'libphonenumber-js';
+
 export const FIAT_CURRENCIES = ['USD', 'EUR'];
 
 export interface DepositCryptoCurrency {
@@ -22,6 +25,17 @@ export interface DepositFiatCurrency {
   name: string;
   symbol: string;
   emoji: string;
+}
+
+export interface DepositRegion {
+  code: CountryCode;
+  flag: string;
+  name: string;
+  phonePrefix: string;
+  currency: string;
+  phoneDigitCount: number;
+  recommended?: boolean;
+  supported: boolean;
 }
 
 export const USDC_TOKEN: DepositCryptoCurrency = {
@@ -73,37 +87,20 @@ export const EUR_CURRENCY: DepositFiatCurrency = {
   emoji: '🇪🇺',
 };
 
-import { CaipChainId } from '@metamask/utils';
-
 export const TRANSAK_NETWORKS: Record<string, CaipChainId> = {
   ethereum: 'eip155:1',
 };
 
-import { CountryCode } from 'libphonenumber-js';
-
-export interface DepositState {
-  code: string;
-  name: string;
-}
-
-export interface DepositRegion {
-  code: CountryCode;
-  flag: string;
-  name: string;
-  phonePrefix: string;
-  currency: string;
-  states?: DepositState[];
-  phoneDigitCount: number;
-}
-
 export const DEPOSIT_REGIONS: DepositRegion[] = [
+  // Europe - Supported
   {
-    code: 'US',
-    flag: '🇺🇸',
-    name: 'United States',
-    phonePrefix: '+1',
-    currency: 'USD',
-    phoneDigitCount: 10,
+    code: 'AD',
+    flag: '🇦🇩',
+    name: 'Andorra',
+    phonePrefix: '+376',
+    currency: 'EUR',
+    phoneDigitCount: 6,
+    supported: true,
   },
   {
     code: 'AT',
@@ -112,6 +109,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+43',
     currency: 'EUR',
     phoneDigitCount: 10,
+    supported: true,
   },
   {
     code: 'BE',
@@ -120,30 +118,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+32',
     currency: 'EUR',
     phoneDigitCount: 9,
-  },
-  {
-    code: 'BG',
-    flag: '🇧🇬',
-    name: 'Bulgaria',
-    phonePrefix: '+359',
-    currency: 'BGN',
-    phoneDigitCount: 9,
-  },
-  {
-    code: 'HR',
-    flag: '🇭🇷',
-    name: 'Croatia',
-    phonePrefix: '+385',
-    currency: 'HRK',
-    phoneDigitCount: 9,
-  },
-  {
-    code: 'CY',
-    flag: '🇨🇾',
-    name: 'Cyprus',
-    phonePrefix: '+357',
-    currency: 'EUR',
-    phoneDigitCount: 8,
+    supported: true,
   },
   {
     code: 'CZ',
@@ -152,6 +127,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+420',
     currency: 'CZK',
     phoneDigitCount: 9,
+    supported: true,
   },
   {
     code: 'DK',
@@ -160,6 +136,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+45',
     currency: 'DKK',
     phoneDigitCount: 8,
+    supported: true,
   },
   {
     code: 'EE',
@@ -168,6 +145,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+372',
     currency: 'EUR',
     phoneDigitCount: 8,
+    supported: true,
   },
   {
     code: 'FI',
@@ -176,6 +154,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+358',
     currency: 'EUR',
     phoneDigitCount: 9,
+    supported: true,
   },
   {
     code: 'FR',
@@ -184,6 +163,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+33',
     currency: 'EUR',
     phoneDigitCount: 9,
+    supported: true,
   },
   {
     code: 'DE',
@@ -192,6 +172,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+49',
     currency: 'EUR',
     phoneDigitCount: 10,
+    supported: true,
   },
   {
     code: 'GR',
@@ -200,6 +181,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+30',
     currency: 'EUR',
     phoneDigitCount: 10,
+    supported: true,
   },
   {
     code: 'HU',
@@ -208,6 +190,16 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+36',
     currency: 'HUF',
     phoneDigitCount: 9,
+    supported: true,
+  },
+  {
+    code: 'IS',
+    flag: '🇮🇸',
+    name: 'Iceland',
+    phonePrefix: '+354',
+    currency: 'ISK',
+    phoneDigitCount: 7,
+    supported: true,
   },
   {
     code: 'IE',
@@ -216,6 +208,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+353',
     currency: 'EUR',
     phoneDigitCount: 9,
+    supported: true,
   },
   {
     code: 'IT',
@@ -224,6 +217,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+39',
     currency: 'EUR',
     phoneDigitCount: 10,
+    supported: true,
   },
   {
     code: 'LV',
@@ -232,6 +226,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+371',
     currency: 'EUR',
     phoneDigitCount: 8,
+    supported: true,
   },
   {
     code: 'LT',
@@ -240,6 +235,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+370',
     currency: 'EUR',
     phoneDigitCount: 8,
+    supported: true,
   },
   {
     code: 'LU',
@@ -248,6 +244,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+352',
     currency: 'EUR',
     phoneDigitCount: 9,
+    supported: true,
   },
   {
     code: 'MT',
@@ -256,6 +253,16 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+356',
     currency: 'EUR',
     phoneDigitCount: 8,
+    supported: true,
+  },
+  {
+    code: 'ME',
+    flag: '🇲🇪',
+    name: 'Montenegro',
+    phonePrefix: '+382',
+    currency: 'EUR',
+    phoneDigitCount: 8,
+    supported: true,
   },
   {
     code: 'NL',
@@ -264,6 +271,16 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+31',
     currency: 'EUR',
     phoneDigitCount: 9,
+    supported: true,
+  },
+  {
+    code: 'NO',
+    flag: '🇳🇴',
+    name: 'Norway',
+    phonePrefix: '+47',
+    currency: 'NOK',
+    phoneDigitCount: 8,
+    supported: true,
   },
   {
     code: 'PL',
@@ -272,6 +289,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+48',
     currency: 'PLN',
     phoneDigitCount: 9,
+    supported: true,
   },
   {
     code: 'PT',
@@ -280,6 +298,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+351',
     currency: 'EUR',
     phoneDigitCount: 9,
+    supported: true,
   },
   {
     code: 'RO',
@@ -288,6 +307,16 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+40',
     currency: 'RON',
     phoneDigitCount: 9,
+    supported: true,
+  },
+  {
+    code: 'RS',
+    flag: '🇷🇸',
+    name: 'Serbia',
+    phonePrefix: '+381',
+    currency: 'RSD',
+    phoneDigitCount: 8,
+    supported: true,
   },
   {
     code: 'SK',
@@ -296,6 +325,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+421',
     currency: 'EUR',
     phoneDigitCount: 9,
+    supported: true,
   },
   {
     code: 'SI',
@@ -304,6 +334,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+386',
     currency: 'EUR',
     phoneDigitCount: 8,
+    supported: true,
   },
   {
     code: 'ES',
@@ -312,6 +343,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+34',
     currency: 'EUR',
     phoneDigitCount: 9,
+    supported: true,
   },
   {
     code: 'SE',
@@ -320,5 +352,253 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phonePrefix: '+46',
     currency: 'SEK',
     phoneDigitCount: 9,
+    supported: true,
+  },
+  {
+    code: 'CH',
+    flag: '🇨🇭',
+    name: 'Switzerland',
+    phonePrefix: '+41',
+    currency: 'CHF',
+    phoneDigitCount: 9,
+    supported: true,
+  },
+  {
+    code: 'GB',
+    flag: '🇬🇧',
+    name: 'United Kingdom',
+    phonePrefix: '+44',
+    currency: 'GBP',
+    phoneDigitCount: 10,
+    supported: true,
+  },
+  {
+    code: 'AX',
+    flag: '🇦🇽',
+    name: 'Åland Islands',
+    phonePrefix: '+358',
+    currency: 'EUR',
+    phoneDigitCount: 9,
+    supported: true,
+  },
+
+  // North America - Mixed Support
+  {
+    code: 'BM',
+    flag: '🇧🇲',
+    name: 'Bermuda',
+    phonePrefix: '+1',
+    currency: 'BMD',
+    phoneDigitCount: 10,
+    supported: false,
+  },
+  {
+    code: 'CA',
+    flag: '🇨🇦',
+    name: 'Canada',
+    phonePrefix: '+1',
+    currency: 'CAD',
+    phoneDigitCount: 10,
+    supported: false,
+  },
+  {
+    code: 'GP',
+    flag: '🇬🇵',
+    name: 'Guadeloupe',
+    phonePrefix: '+590',
+    currency: 'EUR',
+    phoneDigitCount: 9,
+    supported: false,
+  },
+  {
+    code: 'MQ',
+    flag: '🇲🇶',
+    name: 'Martinique',
+    phonePrefix: '+596',
+    currency: 'EUR',
+    phoneDigitCount: 9,
+    supported: false,
+  },
+  {
+    code: 'MX',
+    flag: '🇲🇽',
+    name: 'Mexico',
+    phonePrefix: '+52',
+    currency: 'MXN',
+    phoneDigitCount: 10,
+    supported: false,
+  },
+  {
+    code: 'PR',
+    flag: '🇵🇷',
+    name: 'Puerto Rico',
+    phonePrefix: '+1',
+    currency: 'USD',
+    phoneDigitCount: 10,
+    supported: false,
+  },
+  {
+    code: 'MF',
+    flag: '🇲🇫',
+    name: 'Saint Martin',
+    phonePrefix: '+590',
+    currency: 'EUR',
+    phoneDigitCount: 9,
+    supported: false,
+  },
+
+  // United States - Supported
+  {
+    code: 'US',
+    flag: '🇺🇸',
+    name: 'United States',
+    phonePrefix: '+1',
+    currency: 'USD',
+    phoneDigitCount: 10,
+    recommended: true,
+    supported: true,
+  },
+
+  // Asia - Not Supported
+  {
+    code: 'CY',
+    flag: '🇨🇾',
+    name: 'Cyprus',
+    phonePrefix: '+357',
+    currency: 'EUR',
+    phoneDigitCount: 8,
+    supported: false,
+  },
+  {
+    code: 'GE',
+    flag: '🇬🇪',
+    name: 'Georgia',
+    phonePrefix: '+995',
+    currency: 'GEL',
+    phoneDigitCount: 9,
+    supported: false,
+  },
+  {
+    code: 'HK',
+    flag: '🇭🇰',
+    name: 'Hong Kong',
+    phonePrefix: '+852',
+    currency: 'HKD',
+    phoneDigitCount: 8,
+    supported: false,
+  },
+  {
+    code: 'IN',
+    flag: '🇮🇳',
+    name: 'India',
+    phonePrefix: '+91',
+    currency: 'INR',
+    phoneDigitCount: 10,
+    supported: false,
+  },
+  {
+    code: 'IL',
+    flag: '🇮🇱',
+    name: 'Israel',
+    phonePrefix: '+972',
+    currency: 'ILS',
+    phoneDigitCount: 9,
+    supported: false,
+  },
+  {
+    code: 'KW',
+    flag: '🇰🇼',
+    name: 'Kuwait',
+    phonePrefix: '+965',
+    currency: 'KWD',
+    phoneDigitCount: 8,
+    supported: false,
+  },
+  {
+    code: 'MY',
+    flag: '🇲🇾',
+    name: 'Malaysia',
+    phonePrefix: '+60',
+    currency: 'MYR',
+    phoneDigitCount: 9,
+    supported: false,
+  },
+  {
+    code: 'PH',
+    flag: '🇵🇭',
+    name: 'Philippines',
+    phonePrefix: '+63',
+    currency: 'PHP',
+    phoneDigitCount: 9,
+    supported: false,
+  },
+
+  // South America - Not Supported
+  {
+    code: 'BR',
+    flag: '🇧🇷',
+    name: 'Brazil',
+    phonePrefix: '+55',
+    currency: 'BRL',
+    phoneDigitCount: 11,
+    supported: false,
+  },
+  {
+    code: 'GF',
+    flag: '🇬🇫',
+    name: 'French Guiana',
+    phonePrefix: '+594',
+    currency: 'EUR',
+    phoneDigitCount: 9,
+    supported: false,
+  },
+
+  // Oceania - Not Supported
+  {
+    code: 'AU',
+    flag: '🇦🇺',
+    name: 'Australia',
+    phonePrefix: '+61',
+    currency: 'AUD',
+    phoneDigitCount: 9,
+    supported: false,
+  },
+  {
+    code: 'GU',
+    flag: '🇬🇺',
+    name: 'Guam',
+    phonePrefix: '+1',
+    currency: 'USD',
+    phoneDigitCount: 10,
+    supported: false,
+  },
+  {
+    code: 'NZ',
+    flag: '🇳🇿',
+    name: 'New Zealand',
+    phonePrefix: '+64',
+    currency: 'NZD',
+    phoneDigitCount: 9,
+    supported: false,
+  },
+
+  // Africa - Not Supported
+  {
+    code: 'YT',
+    flag: '🇾🇹',
+    name: 'Mayotte',
+    phonePrefix: '+262',
+    currency: 'EUR',
+    phoneDigitCount: 9,
+    supported: false,
+  },
+  {
+    code: 'RE',
+    flag: '🇷🇪',
+    name: 'Réunion',
+    phonePrefix: '+262',
+    currency: 'EUR',
+    phoneDigitCount: 9,
+    supported: false,
   },
 ];
