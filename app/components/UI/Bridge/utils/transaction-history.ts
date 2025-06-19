@@ -25,7 +25,6 @@ export const getSwapBridgeTxActivityTitle = (
 ): string | undefined => {
   const { quote } = bridgeTxHistoryItem;
 
-  // For cross-chain bridges, use the existing logic
   const destChainId = isSolanaChainId(quote.destChainId)
     ? formatChainIdToCaip(quote.destChainId)
     : formatChainIdToHex(quote.destChainId);
@@ -37,8 +36,57 @@ export const getSwapBridgeTxActivityTitle = (
     : undefined;
 };
 
-export const decodeBridgeTx = () => {
-  const transactionElement = {};
+export const decodeBridgeTx = (args: {
+  tx: TransactionMeta;
+  currentCurrency: string;
+  conversionRate: number; // gas token to current currency rate
+  bridgeTxHistoryData: { bridgeTxHistoryItem: BridgeHistoryItem };
+  contractExchangeRates: Record<string, { price: number }>; // token to gas token rate
+}) => {
+  const {
+    tx,
+    currentCurrency,
+    contractExchangeRates,
+    conversionRate,
+    bridgeTxHistoryData,
+  } = args;
+
+  const { bridgeTxHistoryItem } = bridgeTxHistoryData;
+  const { quote } = bridgeTxHistoryItem;
+
+  const sourceTokenSymbol = quote.srcAsset?.symbol;
+  const sourceAmountSent = ethers.utils.formatUnits(
+    bridgeTxHistoryItem.quote.srcTokenAmount,
+    quote.srcAsset.decimals,
+  );
+  const renderTo = tx.txParams.to;
+  const renderFrom = tx.txParams.from;
+
+  const isNativeAsset = quote.srcAsset.address === ethers.constants.AddressZero;
+  const sourceExchangeRate = isNativeAsset
+    ? 1
+    : contractExchangeRates?.[toFormattedAddress(quote.srcAsset.address)]
+        ?.price;
+  const sourceAmountFiatNumber = balanceToFiatNumber(
+    Number(sourceAmountSent),
+    conversionRate,
+    sourceExchangeRate,
+  );
+  const sourceAmountFiatValue = addCurrencySymbol(
+    sourceAmountFiatNumber,
+    currentCurrency,
+  );
+
+  const transactionElement = {
+    renderTo,
+    renderFrom,
+    actionKey: getSwapBridgeTxActivityTitle(bridgeTxHistoryItem),
+    notificationKey: undefined,
+    value: `-${sourceAmountSent} ${sourceTokenSymbol}`,
+    fiatValue: sourceAmountFiatValue,
+    transactionType: TRANSACTION_TYPES.SITE_INTERACTION,
+  };
+
   const transactionDetails = {};
 
   return [transactionElement, transactionDetails];
