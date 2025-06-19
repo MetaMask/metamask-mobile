@@ -1,5 +1,6 @@
 import '../_mocks_/initialState';
 import {
+  decodeBridgeTx,
   decodeSwapsTx,
   getSwapBridgeTxActivityTitle,
 } from './transaction-history';
@@ -273,8 +274,7 @@ describe('decodeSwapsTx', () => {
           effectiveGasPrice: '0xfdc2f6db',
           from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
           gasUsed: '0x316f7',
-          logs: [
-          ],
+          logs: [],
           logsBloom:
             '0x00200000000000001000000080000002004000000800000000000000000000000000010000000000000010000000000002000080080008000000000000000000000000000000080008020008000000200000000000400000000004000000000000000000000000000000000000000001000000000000040000000010000000080000021000000000000000000000000000000000810000084020004000000000000000000000200000000040000004000000000000000000000200000000200000000002000000000000000000000000000000000000001000000002080000000020200000020000000400800000000000000000000000000401000000001000',
           status: '0x1',
@@ -468,7 +468,7 @@ describe('decodeSwapsTx', () => {
         notificationKey: 'Swap complete (USDC to ETH)',
         value: '-5.0 USDC',
         fiatValue: '$5.01',
-        transactionType: 'transaction_site_interaction',
+        transactionType: 'swaps_transaction',
       },
       {
         renderFrom: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
@@ -484,6 +484,351 @@ describe('decodeSwapsTx', () => {
         summaryTotalAmount: '5.00053 ETH',
         summarySecondaryTotalAmount: '$6.33',
       },
+    ]);
+  });
+});
+
+describe('decodeBridgeTx', () => {
+  it('should return transaction element and details', () => {
+    const args = {
+      tx: {
+        actionId: '1750370771969.0476',
+        chainId: '0x1',
+        id: '9c931b80-4d59-11f0-ad4f-2591c68e24b1',
+        networkClientId: 'mainnet',
+        origin: 'metamask',
+        status: 'confirmed',
+        time: 1750370772280,
+        txParams: {
+          from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+          data: '0x3ce33bff0000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000038d7ea4c6800000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000000d6c6966694164617074657256320000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001e000000000000000000000000021a786957c69424a4353afe743242bd9db3cc07b00000000000000000000000021a786957c69424a4353afe743242bd9db3cc07b000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000038589602234000000000000000000000000000000000000000000000000000000000000000140000000000000000000000000000000000000000000000000000007f544a44c00000000000000000000000000e6b738da243e8fa2a0ed5915645789add5de5152000000000000000000000000000000000000000000000000000000000000008cdf834e154a9ca644d41a9dcec5fe6ef47965741f6f7a4734bf784bf3ae3f2452c5fe6ef47965741f6f7a4734bf784bf3ae3f24520000000a42000000000000000000000000000000000000060000000000000000000000000000000000000000000000000003854f51f3c8380000000000000000000000000000000000000000685488d76854acf70000000000000000000000000000000000000000000000004404b840bc3737784220324b740d6aa57a13f00ce656fc50d163cd267775b6db389acbe19aac5dcc475ca45a428529a6c8c4335b7b0026a8325b332d26f0e4051b',
+          gas: '0x26c67',
+          gasLimit: '0x26c67',
+          nonce: '0x5c6',
+          to: '0x0439e60f02a8900a951603950d8d4527f400c3f1',
+          value: '0x38d7ea4c68000',
+          maxFeePerGas: '0xd0929e94',
+          maxPriorityFeePerGas: '0x77359400',
+          type: '0x2',
+        },
+        type: 'bridge',
+        userEditedGasLimit: false,
+        verifiedOnBlockchain: true,
+        gasLimitNoBuffer: '0x26c67',
+        defaultGasEstimates: {
+          gas: '0x26c67',
+          maxFeePerGas: '0xd0929e94',
+          maxPriorityFeePerGas: '0x77359400',
+          estimateType: 'medium',
+        },
+        userFeeLevel: 'medium',
+        gasFeeEstimates: {
+          type: 'fee-market',
+          low: {
+            maxFeePerGas: '0x26dc10ca',
+            maxPriorityFeePerGas: '0x186a0',
+          },
+          medium: {
+            maxFeePerGas: '0x555cf242',
+            maxPriorityFeePerGas: '0x1dcd6500',
+          },
+          high: {
+            maxFeePerGas: '0xd0929e94',
+            maxPriorityFeePerGas: '0x77359400',
+          },
+        },
+        gasFeeEstimatesLoaded: true,
+        r: '0x905706b97b52614a31e670bc9c4315883accd362b65af070a06964055db393ae',
+        s: '0x4374cb79abb1c6b62cf2c3ffd97d73a38512b5753b31b0337b2f41dcdef3ac12',
+        v: '0x1',
+        rawTx:
+          '0x02f9037b018205c6847735940084d0929e9483026c67940439e60f02a8900a951603950d8d4527f400c3f187038d7ea4c68000b903053ce33bff0000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000038d7ea4c6800000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000000d6c6966694164617074657256320000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001e000000000000000000000000021a786957c69424a4353afe743242bd9db3cc07b00000000000000000000000021a786957c69424a4353afe743242bd9db3cc07b000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000038589602234000000000000000000000000000000000000000000000000000000000000000140000000000000000000000000000000000000000000000000000007f544a44c00000000000000000000000000e6b738da243e8fa2a0ed5915645789add5de5152000000000000000000000000000000000000000000000000000000000000008cdf834e154a9ca644d41a9dcec5fe6ef47965741f6f7a4734bf784bf3ae3f2452c5fe6ef47965741f6f7a4734bf784bf3ae3f24520000000a42000000000000000000000000000000000000060000000000000000000000000000000000000000000000000003854f51f3c8380000000000000000000000000000000000000000685488d76854acf70000000000000000000000000000000000000000000000004404b840bc3737784220324b740d6aa57a13f00ce656fc50d163cd267775b6db389acbe19aac5dcc475ca45a428529a6c8c4335b7b0026a8325b332d26f0e4051bc001a0905706b97b52614a31e670bc9c4315883accd362b65af070a06964055db393aea04374cb79abb1c6b62cf2c3ffd97d73a38512b5753b31b0337b2f41dcdef3ac12',
+        hash: '0x423c2fdcb339d575a494f9db7131963fa6848ed55e76f24a85b344a2622abf1c',
+        submittedTime: 1750370774155,
+        baseFeePerGas: '0x2769a25e',
+        blockTimestamp: '0x685489df',
+        txReceipt: {
+          blockHash:
+            '0xc122a59bdbc0a4b59ee1ecee294802bdb2b2c0fc82a11af4ff6b5dd274795241',
+          blockNumber: '0x15b019a',
+          contractAddress: null,
+          cumulativeGasUsed: '0x7acf7a',
+          effectiveGasPrice: '0x9e9f365e',
+          from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+          gasUsed: '0x2153d',
+          logs: [
+          ],
+          logsBloom:
+            '0x000100000000000000008000000000000040020000000000000000000000000000000000800000008000000000000404030000000c0000000020000000000000000000000000002000000100004000800000000000000000000000008000000004000000000000000000000000002001000100002000000000000000000000080000000800000008010000000000000000000001200000800000000000000000000000000000000000000040000100000000400000000000004000000400000008000020000000000000000000000000000000000000002000810000000220000002200000000000000000800000000004000000000000400400000000000000',
+          status: '0x1',
+          to: '0x0439e60f02a8900a951603950d8d4527f400c3f1',
+          transactionHash:
+            '0x423c2fdcb339d575a494f9db7131963fa6848ed55e76f24a85b344a2622abf1c',
+          transactionIndex: '0x1b',
+          type: '0x2',
+        },
+      },
+      currentCurrency: 'usd',
+      contractExchangeRates: {
+        '0x0000000000000000000000000000000000000000': {
+          tokenAddress: '0x0000000000000000000000000000000000000000',
+          currency: 'ETH',
+          id: 'ethereum',
+          price: 0.999970810346375,
+          marketCap: 120673195.33884919,
+          allTimeHigh: 1.9426759557951547,
+          allTimeLow: 0.0001724258019589424,
+          totalVolume: 4183022.775041145,
+          high1d: 1.012144742028708,
+          low1d: 0.9910504286098928,
+          circulatingSupply: 120720493.4555326,
+          dilutedMarketCap: 120673195.33884919,
+          marketCapPercentChange1d: -0.78606,
+          priceChange1d: -19.752422608984034,
+          pricePercentChange1h: 0.09393421241268282,
+          pricePercentChange1d: -0.7804880771025575,
+          pricePercentChange7d: -4.8340500245085405,
+          pricePercentChange14d: 3.428026281919885,
+          pricePercentChange30d: -0.003875015288539112,
+          pricePercentChange200d: -32.00409232031946,
+          pricePercentChange1y: -29.20842621968737,
+        },
+      },
+      conversionRate: 2514.87,
+      bridgeTxHistoryData: {
+        bridgeTxHistoryItem: {
+          txMetaId: '9c931b80-4d59-11f0-ad4f-2591c68e24b1',
+          quote: {
+            bridgeId: 'lifi',
+            requestId:
+              '0x16b2218808e54d1b0c01c49ef8ee886e20e1a7051a2ce438b72473e54da0a14c',
+            aggregator: 'lifi',
+            srcChainId: 1,
+            srcTokenAmount: '991250000000000',
+            srcAsset: {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: 1,
+              assetId: 'eip155:1/slip44:60',
+              symbol: 'ETH',
+              decimals: 18,
+              name: 'Ethereum',
+              coingeckoId: 'ethereum',
+              aggregators: [],
+              occurrences: 100,
+              iconUrl:
+                'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+              metadata: {
+              },
+              price: '2508.40719604',
+            },
+            destChainId: 10,
+            destTokenAmount: '991000653973560',
+            destAsset: {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: 10,
+              assetId: 'eip155:10/slip44:614',
+              symbol: 'ETH',
+              decimals: 18,
+              name: 'Ether',
+              coingeckoId: 'ethereum',
+              aggregators: [],
+              occurrences: 100,
+              iconUrl:
+                'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/10/slip44/614.png',
+              metadata: {
+              },
+              price: '2508.40719604',
+            },
+            feeData: {
+              metabridge: {
+                amount: '8750000000000',
+                asset: {
+                  address: '0x0000000000000000000000000000000000000000',
+                  chainId: 1,
+                  assetId: 'eip155:1/slip44:60',
+                  symbol: 'ETH',
+                  decimals: 18,
+                  name: 'Ethereum',
+                  coingeckoId: 'ethereum',
+                  aggregators: [],
+                  occurrences: 100,
+                  iconUrl:
+                    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+                  metadata: {
+                  },
+                  price: '2508.40719604',
+                },
+              },
+            },
+            bridges: ['across (via LiFi)'],
+            protocols: ['across (via LiFi)'],
+            steps: [
+              {
+                action: 'bridge',
+                srcChainId: 1,
+                destChainId: 10,
+                protocol: {
+                  name: 'across',
+                  displayName: 'AcrossV3',
+                  icon: 'https://raw.githubusercontent.com/lifinance/types/main/src/assets/icons/bridges/across.svg',
+                },
+                srcAsset: {
+                  address: '0x0000000000000000000000000000000000000000',
+                  chainId: 1,
+                  assetId: 'eip155:1/slip44:60',
+                  symbol: 'ETH',
+                  decimals: 18,
+                  name: 'Ethereum',
+                  coingeckoId: 'ethereum',
+                  aggregators: [],
+                  occurrences: 100,
+                  iconUrl:
+                    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+                  metadata: {
+                    honeypotStatus: {},
+                    isContractVerified: false,
+                    erc20Permit: false,
+                    description: {
+                      en: 'Ethereum is a global, open-source platform for decentralized applications. In other words, the vision is to create a world computer that anyone can build applications in a decentralized manner; while all states and data are distributed and publicly accessible. Ethereum supports smart contracts in which developers can write code in order to program digital value. Examples of decentralized apps (dapps) that are built on Ethereum includes tokens, non-fungible tokens, decentralized finance apps, lending protocol, decentralized exchanges, and much more.On Ethereum, all transactions and smart contract executions require a small fee to be paid. This fee is called Gas. In technical terms, Gas refers to the unit of measure on the amount of computational effort required to execute an operation or a smart contract. The more complex the execution operation is, the more gas is required to fulfill that operation. Gas fees are paid entirely in Ether (ETH), which is the native coin of the blockchain. The price of gas can fluctuate from time to time depending on the network demand.',
+                      ko: '이더리움(Ethereum/ETH)은 블록체인 기술에 기반한 클라우드 컴퓨팅 플랫폼 또는 프로그래밍 언어이다. 비탈릭 부테린이 개발하였다.비탈릭 부테린은 가상화폐인 비트코인에 사용된 핵심 기술인 블록체인(blockchain)에 화폐 거래 기록뿐 아니라 계약서 등의 추가 정보를 기록할 수 있다는 점에 착안하여, 전 세계 수많은 사용자들이 보유하고 있는 컴퓨팅 자원을 활용해 분산 네트워크를 구성하고, 이 플랫폼을 이용하여 SNS, 이메일, 전자투표 등 다양한 정보를 기록하는 시스템을 창안했다. 이더리움은 C++, 자바, 파이썬, GO 등 주요 프로그래밍 언어를 지원한다.이더리움을 사물 인터넷(IoT)에 적용하면 기계 간 금융 거래도 가능해진다. 예를 들어 고장난 청소로봇이 정비로봇에 돈을 내고 정비를 받고, 청소로봇은 돈을 벌기 위해 정비로봇의 집을 청소하는 것도 가능해진다.',
+                      zh: 'Ethereum（以太坊）是一个平台和一种编程语言，使开发人员能够建立和发布下一代分布式应用。Ethereum 是使用甲醚作为燃料，以激励其网络的第一个图灵完备cryptocurrency。Ethereum（以太坊） 是由Vitalik Buterin的创建。该项目于2014年8月获得了美国1800万$比特币的价值及其crowdsale期间。在2016年，Ethereum（以太坊）的价格上涨超过50倍。',
+                      ja: 'イーサリアム (Ethereum, ETH)・プロジェクトにより開発が進められている、分散型アプリケーション（DApps）やスマート・コントラクトを構築するためのプラットフォームの名称、及び関連するオープンソース・ソフトウェア・プロジェクトの総称である。イーサリアムでは、イーサリアム・ネットワークと呼ばれるP2Pのネットワーク上でスマート・コントラクトの履行履歴をブロックチェーンに記録していく。またイーサリアムは、スマート・コントラクトを記述するチューリング完全なプログラミング言語を持ち、ネットワーク参加者はこのネットワーク上のブロックチェーンに任意のDAppsやスマート・コントラクトを記述しそれを実行することが可能になる。ネットワーク参加者が「Ether」と呼ばれるイーサリアム内部通貨の報酬を目当てに、採掘と呼ばれるブロックチェーンへのスマート・コントラクトの履行結果の記録を行うことで、その正統性を保証していく。このような仕組みにより特定の中央管理組織に依拠せず、P2P全体を実行環境としてプログラムの実行とその結果を共有することが可能になった。',
+                    },
+                    createdAt: '2023-10-31T22:41:58.553Z',
+                  },
+                },
+                destAsset: {
+                  address: '0x0000000000000000000000000000000000000000',
+                  chainId: 10,
+                  assetId: 'eip155:10/slip44:614',
+                  symbol: 'ETH',
+                  decimals: 18,
+                  name: 'Ether',
+                  coingeckoId: 'ethereum',
+                  aggregators: [],
+                  occurrences: 100,
+                  iconUrl:
+                    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/10/slip44/614.png',
+                  metadata: {
+                    honeypotStatus: {},
+                    isContractVerified: false,
+                    erc20Permit: false,
+                    description: {
+                      en: 'Ethereum is a global, open-source platform for decentralized applications. In other words, the vision is to create a world computer that anyone can build applications in a decentralized manner; while all states and data are distributed and publicly accessible. Ethereum supports smart contracts in which developers can write code in order to program digital value. Examples of decentralized apps (dapps) that are built on Ethereum includes tokens, non-fungible tokens, decentralized finance apps, lending protocol, decentralized exchanges, and much more.On Ethereum, all transactions and smart contract executions require a small fee to be paid. This fee is called Gas. In technical terms, Gas refers to the unit of measure on the amount of computational effort required to execute an operation or a smart contract. The more complex the execution operation is, the more gas is required to fulfill that operation. Gas fees are paid entirely in Ether (ETH), which is the native coin of the blockchain. The price of gas can fluctuate from time to time depending on the network demand.',
+                      ko: '이더리움(Ethereum/ETH)은 블록체인 기술에 기반한 클라우드 컴퓨팅 플랫폼 또는 프로그래밍 언어이다. 비탈릭 부테린이 개발하였다.비탈릭 부테린은 가상화폐인 비트코인에 사용된 핵심 기술인 블록체인(blockchain)에 화폐 거래 기록뿐 아니라 계약서 등의 추가 정보를 기록할 수 있다는 점에 착안하여, 전 세계 수많은 사용자들이 보유하고 있는 컴퓨팅 자원을 활용해 분산 네트워크를 구성하고, 이 플랫폼을 이용하여 SNS, 이메일, 전자투표 등 다양한 정보를 기록하는 시스템을 창안했다. 이더리움은 C++, 자바, 파이썬, GO 등 주요 프로그래밍 언어를 지원한다.이더리움을 사물 인터넷(IoT)에 적용하면 기계 간 금융 거래도 가능해진다. 예를 들어 고장난 청소로봇이 정비로봇에 돈을 내고 정비를 받고, 청소로봇은 돈을 벌기 위해 정비로봇의 집을 청소하는 것도 가능해진다.',
+                      zh: 'Ethereum（以太坊）是一个平台和一种编程语言，使开发人员能够建立和发布下一代分布式应用。Ethereum 是使用甲醚作为燃料，以激励其网络的第一个图灵完备cryptocurrency。Ethereum（以太坊） 是由Vitalik Buterin的创建。该项目于2014年8月获得了美国1800万$比特币的价值及其crowdsale期间。在2016年，Ethereum（以太坊）的价格上涨超过50倍。',
+                      ja: 'イーサリアム (Ethereum, ETH)・プロジェクトにより開発が進められている、分散型アプリケーション（DApps）やスマート・コントラクトを構築するためのプラットフォームの名称、及び関連するオープンソース・ソフトウェア・プロジェクトの総称である。イーサリアムでは、イーサリアム・ネットワークと呼ばれるP2Pのネットワーク上でスマート・コントラクトの履行履歴をブロックチェーンに記録していく。またイーサリアムは、スマート・コントラクトを記述するチューリング完全なプログラミング言語を持ち、ネットワーク参加者はこのネットワーク上のブロックチェーンに任意のDAppsやスマート・コントラクトを記述しそれを実行することが可能になる。ネットワーク参加者が「Ether」と呼ばれるイーサリアム内部通貨の報酬を目当てに、採掘と呼ばれるブロックチェーンへのスマート・コントラクトの履行結果の記録を行うことで、その正統性を保証していく。このような仕組みにより特定の中央管理組織に依拠せず、P2P全体を実行環境としてプログラムの実行とその結果を共有することが可能になった。',
+                    },
+                    createdAt: '2023-10-31T22:16:37.494Z',
+                  },
+                },
+                srcAmount: '991250000000000',
+                destAmount: '991000653973560',
+              },
+            ],
+            priceData: {
+              totalFromAmountUsd: '2.51158',
+              totalToAmountUsd: '0.0005574021918365844',
+              priceImpact: '0.9997780671163824',
+            },
+          },
+          startTime: 1750370772486,
+          estimatedProcessingTimeInSeconds: 8,
+          slippagePercentage: 0,
+          pricingData: {
+            amountSent: '0.001',
+            amountSentInUsd: '2.51487',
+            quotedGasInUsd: '1.05920236691058491226',
+            quotedReturnInUsd: '2.4922378146584868372',
+          },
+          account: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+          status: {
+            status: 'COMPLETE',
+            isExpectedToken: true,
+            bridge: 'across',
+            srcChain: {
+              chainId: 1,
+              txHash:
+                '0x423c2fdcb339d575a494f9db7131963fa6848ed55e76f24a85b344a2622abf1c',
+              amount: '991250000000000',
+              token: {
+                address: '0x0000000000000000000000000000000000000000',
+                chainId: 1,
+                assetId: 'eip155:1/slip44:60',
+                symbol: 'ETH',
+                decimals: 18,
+                name: 'Ethereum',
+                coingeckoId: 'ethereum',
+                aggregators: [],
+                occurrences: 100,
+                iconUrl:
+                  'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+                metadata: {
+                  honeypotStatus: {},
+                  isContractVerified: false,
+                  erc20Permit: false,
+                  description: {
+                    en: 'Ethereum is a global, open-source platform for decentralized applications. In other words, the vision is to create a world computer that anyone can build applications in a decentralized manner; while all states and data are distributed and publicly accessible. Ethereum supports smart contracts in which developers can write code in order to program digital value. Examples of decentralized apps (dapps) that are built on Ethereum includes tokens, non-fungible tokens, decentralized finance apps, lending protocol, decentralized exchanges, and much more.On Ethereum, all transactions and smart contract executions require a small fee to be paid. This fee is called Gas. In technical terms, Gas refers to the unit of measure on the amount of computational effort required to execute an operation or a smart contract. The more complex the execution operation is, the more gas is required to fulfill that operation. Gas fees are paid entirely in Ether (ETH), which is the native coin of the blockchain. The price of gas can fluctuate from time to time depending on the network demand.',
+                    ko: '이더리움(Ethereum/ETH)은 블록체인 기술에 기반한 클라우드 컴퓨팅 플랫폼 또는 프로그래밍 언어이다. 비탈릭 부테린이 개발하였다.비탈릭 부테린은 가상화폐인 비트코인에 사용된 핵심 기술인 블록체인(blockchain)에 화폐 거래 기록뿐 아니라 계약서 등의 추가 정보를 기록할 수 있다는 점에 착안하여, 전 세계 수많은 사용자들이 보유하고 있는 컴퓨팅 자원을 활용해 분산 네트워크를 구성하고, 이 플랫폼을 이용하여 SNS, 이메일, 전자투표 등 다양한 정보를 기록하는 시스템을 창안했다. 이더리움은 C++, 자바, 파이썬, GO 등 주요 프로그래밍 언어를 지원한다.이더리움을 사물 인터넷(IoT)에 적용하면 기계 간 금융 거래도 가능해진다. 예를 들어 고장난 청소로봇이 정비로봇에 돈을 내고 정비를 받고, 청소로봇은 돈을 벌기 위해 정비로봇의 집을 청소하는 것도 가능해진다.',
+                    zh: 'Ethereum（以太坊）是一个平台和一种编程语言，使开发人员能够建立和发布下一代分布式应用。Ethereum 是使用甲醚作为燃料，以激励其网络的第一个图灵完备cryptocurrency。Ethereum（以太坊） 是由Vitalik Buterin的创建。该项目于2014年8月获得了美国1800万$比特币的价值及其crowdsale期间。在2016年，Ethereum（以太坊）的价格上涨超过50倍。',
+                    ja: 'イーサリアム (Ethereum, ETH)・プロジェクトにより開発が進められている、分散型アプリケーション（DApps）やスマート・コントラクトを構築するためのプラットフォームの名称、及び関連するオープンソース・ソフトウェア・プロジェクトの総称である。イーサリアムでは、イーサリアム・ネットワークと呼ばれるP2Pのネットワーク上でスマート・コントラクトの履行履歴をブロックチェーンに記録していく。またイーサリアムは、スマート・コントラクトを記述するチューリング完全なプログラミング言語を持ち、ネットワーク参加者はこのネットワーク上のブロックチェーンに任意のDAppsやスマート・コントラクトを記述しそれを実行することが可能になる。ネットワーク参加者が「Ether」と呼ばれるイーサリアム内部通貨の報酬を目当てに、採掘と呼ばれるブロックチェーンへのスマート・コントラクトの履行結果の記録を行うことで、その正統性を保証していく。このような仕組みにより特定の中央管理組織に依拠せず、P2P全体を実行環境としてプログラムの実行とその結果を共有することが可能になった。',
+                  },
+                  createdAt: '2023-10-31T22:41:58.553Z',
+                },
+              },
+            },
+            destChain: {
+              chainId: 10,
+              txHash:
+                '0xd47f87fd0df561ece589faacfb0bc29812bccc979dbb00674ca16290bf60f3de',
+              amount: '991000653973560',
+              token: {
+                address: '0x0000000000000000000000000000000000000000',
+                chainId: 10,
+                assetId: 'eip155:10/slip44:614',
+                symbol: 'ETH',
+                decimals: 18,
+                name: 'Ether',
+                coingeckoId: 'ethereum',
+                aggregators: [],
+                occurrences: 100,
+                iconUrl:
+                  'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/10/slip44/614.png',
+                metadata: {
+                  honeypotStatus: {},
+                  isContractVerified: false,
+                  erc20Permit: false,
+                  description: {
+                    en: 'Ethereum is a global, open-source platform for decentralized applications. In other words, the vision is to create a world computer that anyone can build applications in a decentralized manner; while all states and data are distributed and publicly accessible. Ethereum supports smart contracts in which developers can write code in order to program digital value. Examples of decentralized apps (dapps) that are built on Ethereum includes tokens, non-fungible tokens, decentralized finance apps, lending protocol, decentralized exchanges, and much more.On Ethereum, all transactions and smart contract executions require a small fee to be paid. This fee is called Gas. In technical terms, Gas refers to the unit of measure on the amount of computational effort required to execute an operation or a smart contract. The more complex the execution operation is, the more gas is required to fulfill that operation. Gas fees are paid entirely in Ether (ETH), which is the native coin of the blockchain. The price of gas can fluctuate from time to time depending on the network demand.',
+                    ko: '이더리움(Ethereum/ETH)은 블록체인 기술에 기반한 클라우드 컴퓨팅 플랫폼 또는 프로그래밍 언어이다. 비탈릭 부테린이 개발하였다.비탈릭 부테린은 가상화폐인 비트코인에 사용된 핵심 기술인 블록체인(blockchain)에 화폐 거래 기록뿐 아니라 계약서 등의 추가 정보를 기록할 수 있다는 점에 착안하여, 전 세계 수많은 사용자들이 보유하고 있는 컴퓨팅 자원을 활용해 분산 네트워크를 구성하고, 이 플랫폼을 이용하여 SNS, 이메일, 전자투표 등 다양한 정보를 기록하는 시스템을 창안했다. 이더리움은 C++, 자바, 파이썬, GO 등 주요 프로그래밍 언어를 지원한다.이더리움을 사물 인터넷(IoT)에 적용하면 기계 간 금융 거래도 가능해진다. 예를 들어 고장난 청소로봇이 정비로봇에 돈을 내고 정비를 받고, 청소로봇은 돈을 벌기 위해 정비로봇의 집을 청소하는 것도 가능해진다.',
+                    zh: 'Ethereum（以太坊）是一个平台和一种编程语言，使开发人员能够建立和发布下一代分布式应用。Ethereum 是使用甲醚作为燃料，以激励其网络的第一个图灵完备cryptocurrency。Ethereum（以太坊） 是由Vitalik Buterin的创建。该项目于2014年8月获得了美国1800万$比特币的价值及其crowdsale期间。在2016年，Ethereum（以太坊）的价格上涨超过50倍。',
+                    ja: 'イーサリアム (Ethereum, ETH)・プロジェクトにより開発が進められている、分散型アプリケーション（DApps）やスマート・コントラクトを構築するためのプラットフォームの名称、及び関連するオープンソース・ソフトウェア・プロジェクトの総称である。イーサリアムでは、イーサリアム・ネットワークと呼ばれるP2Pのネットワーク上でスマート・コントラクトの履行履歴をブロックチェーンに記録していく。またイーサリアムは、スマート・コントラクトを記述するチューリング完全なプログラミング言語を持ち、ネットワーク参加者はこのネットワーク上のブロックチェーンに任意のDAppsやスマート・コントラクトを記述しそれを実行することが可能になる。ネットワーク参加者が「Ether」と呼ばれるイーサリアム内部通貨の報酬を目当てに、採掘と呼ばれるブロックチェーンへのスマート・コントラクトの履行結果の記録を行うことで、その正統性を保証していく。このような仕組みにより特定の中央管理組織に依拠せず、P2P全体を実行環境としてプログラムの実行とその結果を共有することが可能になった。',
+                  },
+                  createdAt: '2023-10-31T22:16:37.494Z',
+                },
+              },
+            },
+          },
+          hasApprovalTx: false,
+          isStxEnabled: true,
+          completionTime: 1750370794608,
+        },
+        isBridgeComplete: true,
+      },
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const res = decodeBridgeTx(args as unknown as any);
+    expect(res).toEqual([
+      {
+        renderTo: '0x0439e60f02a8900a951603950d8d4527f400c3f1',
+        renderFrom: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+        actionKey: 'Bridge to Optimism',
+        value: '-0.00099125 ETH',
+        fiatValue: '$2.49',
+        transactionType: 'bridge_transaction',
+      },
+      {},
     ]);
   });
 });
