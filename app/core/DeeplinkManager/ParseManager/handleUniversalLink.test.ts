@@ -87,6 +87,15 @@ describe('handleUniversalLinks', () => {
     handleDeepLinkModalDisplay as jest.MockedFunction<
       typeof handleDeepLinkModalDisplay
     >;
+  // Default mock implementation that resolves with true
+  mockHandleDeepLinkModalDisplay.mockImplementation((callbackParams) => {
+    if ('onContinue' in callbackParams) {
+      callbackParams.onContinue();
+    } else {
+      callbackParams.onBack();
+    }
+  });
+
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -117,15 +126,6 @@ describe('handleUniversalLinks', () => {
     origin = 'test-origin';
     wcURL = 'test-wc-url';
     url = 'https://metamask.app.link';
-
-    // Default mock implementation that resolves with true
-    mockHandleDeepLinkModalDisplay.mockImplementation((params) => {
-      if ('onContinue' in params) {
-        params.onContinue();
-      } else {
-        params.onBack();
-      }
-    });
 
   });
 
