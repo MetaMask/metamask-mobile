@@ -38,10 +38,8 @@ const ProviderWebview = () => {
     selectSelectedInternalAccountFormattedAddress,
   );
 
-  const [{ error: ottError, data: ottResponse }] = useDepositSdkMethod({
-    method: 'requestOtt',
-    onMount: true,
-  });
+  const [{ error: ottError, data: ottResponse }] =
+    useDepositSdkMethod('requestOtt');
 
   const [{ error: paymentUrlError, data: paymentUrl }, generatePaymentUrl] =
     useDepositSdkMethod({
