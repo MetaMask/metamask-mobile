@@ -1,4 +1,3 @@
-import { LaunchArguments } from 'react-native-launch-arguments';
 import { ITrackingEvent } from './MetaMetrics.types';
 import { E2E_METAMETRICS_TRACK_URL } from '../../util/test/utils';
 
@@ -26,20 +25,11 @@ export default class MetaMetricsTestUtils {
      * This class is used to send test events to the E2E test mock server.
      * It is initialized with the `sendMetaMetricsinE2E` flag from the launch arguments.
      * To enable sending events, ensure you launch the app with the appropriate
-     * You should also ensure you have the IS_TEST test env variable set to `true`.
-     * launch arguments, as shown below:
-     *
-     * ```typescript
-     * await TestHelpers.launchApp({
-     *   launchArgs: {
-     *     sendMetaMetricsinE2E: true,
-     *   }
-     * });
-     * ```
+     * You should also ensure you have the IS_TEST test env variable set to `true`
+     * as this is the main safeguard to prevent sending events to the real server.
      */
-     this.sendMetaMetricsinE2E =
-     LaunchArguments.value<{ sendMetaMetricsinE2E?: boolean }>?.()
-       ?.sendMetaMetricsinE2E ?? false;  }
+     this.sendMetaMetricsinE2E = true;
+    }
 
   /**
    * Sends an event to the test server

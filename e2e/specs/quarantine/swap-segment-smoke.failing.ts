@@ -59,7 +59,6 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
       permissions: { notifications: 'YES' },
       launchArgs: {
         fixtureServerPort: `${getFixturesServerPort()}`,
-        sendMetaMetricsinE2E: true,
       },
     });
     await loginToApp();

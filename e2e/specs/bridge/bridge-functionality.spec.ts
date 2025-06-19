@@ -68,7 +68,6 @@ describe(SmokeTrade('Bridge functionality'), () => {
       launchArgs: {
         fixtureServerPort: `${getFixturesServerPort()}`,
         mockServerPort: `${mockServerPort}`,
-        sendMetaMetricsinE2E: true,
       },
     });
 

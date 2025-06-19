@@ -58,7 +58,6 @@ describe(
         delete: true,
         launchArgs: {
           mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT),
-          sendMetaMetricsinE2E: true,
         },
       });
     });

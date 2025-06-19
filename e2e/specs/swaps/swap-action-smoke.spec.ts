@@ -68,7 +68,6 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
       permissions: { notifications: 'YES' },
       launchArgs: {
         fixtureServerPort: `${getFixturesServerPort()}`,
-        sendMetaMetricsinE2E: true,
       },
     });
     await loginToApp();
