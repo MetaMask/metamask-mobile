@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeWalletPlatform, SmokeWalletPlatform } from '../../tags.js';
+import { SmokeWalletPlatform } from '../../tags.js';
 import {
   HD_ACCOUNT,
   goToAccountDetails,
