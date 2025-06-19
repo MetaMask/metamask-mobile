@@ -159,7 +159,14 @@ const DeepLinkModal = () => {
       }
       params.onContinue();
     });
-  }, [trackEvent, createEventBuilder, linkType, pageTitle, LINK_TYPE_MAP]);
+  }, [
+    trackEvent,
+    createEventBuilder,
+    linkType,
+    pageTitle,
+    LINK_TYPE_MAP,
+    params,
+  ]);
 
   const onDontRemindMeAgainPressed = useCallback(() => {
     const event = isChecked
