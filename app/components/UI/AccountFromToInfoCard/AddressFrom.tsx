@@ -19,9 +19,11 @@ import {
 import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import stylesheet from './AddressFrom.styles';
 import { selectInternalEvmAccounts } from '../../../selectors/accountsController';
-import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { getNetworkImageSource } from '../../../util/networks';
+import { selectEvmNetworkName } from '../../../selectors/networkInfos';
+import { selectEvmNetworkImageSource } from '../../../selectors/networkInfos';
 
 interface Asset {
   isETH?: boolean;
@@ -66,6 +68,9 @@ const AddressFrom = ({
 
   const internalAccounts = useSelector(selectInternalEvmAccounts);
   const activeAddress = toChecksumAddress(from);
+  
+  const globalNetworkName = useSelector(selectEvmNetworkName);
+  const globalNetworkImage = useSelector(selectEvmNetworkImageSource);
 
   let perDappNetworkName, perDappNetworkImageSource;
   if(origin) {
@@ -76,11 +81,11 @@ const AddressFrom = ({
 
   let sendFlowNetworkName, sendFlowNetworkImageSource;
 
-  if (networkConfiguration) {
+  if (isRemoveGlobalNetworkSelectorEnabled() && networkConfiguration) {
     sendFlowNetworkName = networkConfiguration.name;
   }
 
-  if (chainId) {
+  if (isRemoveGlobalNetworkSelectorEnabled() && chainId) {
     // @ts-expect-error The utils/network file is still JS and this function expects a networkType, which should be optional
     const sendFlowChainImage = getNetworkImageSource({ chainId: toHex(chainId) });
     if (sendFlowChainImage) {
@@ -107,11 +112,11 @@ const AddressFrom = ({
 
   const displayNetworkName = origin 
     ? perDappNetworkName 
-    : sendFlowNetworkName;
+    : isRemoveGlobalNetworkSelectorEnabled() ? sendFlowNetworkName : globalNetworkName;
   
   const displayNetworkImage = origin 
     ? perDappNetworkImageSource
-    : sendFlowNetworkImageSource;
+    : isRemoveGlobalNetworkSelectorEnabled() ? sendFlowNetworkImageSource : globalNetworkImage;
 
   const accountTypeLabel = getLabelTextByAddress(activeAddress);
 
