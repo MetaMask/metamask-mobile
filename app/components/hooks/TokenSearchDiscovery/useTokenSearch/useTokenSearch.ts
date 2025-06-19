@@ -64,7 +64,7 @@ export const useTokenSearch = () => {
             setIsLoading(false);
           }
         }
-      }, SEARCH_DEBOUNCE_DELAY),
+      }, SEARCH_DEBOUNCE_DELAY, {leading: true}),
     [tokenSearchEnabled],
   );
 

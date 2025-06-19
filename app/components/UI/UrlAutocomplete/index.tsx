@@ -278,12 +278,15 @@ const UrlAutocomplete = forwardRef<
     );
   }, [searchEngine, onItemSelect, searchDiscoveryStyles.noResultsText]);
 
-  if (!hasResults && !isTokenSearchLoading) {
+  if (!hasResults) {
     return (
       <View ref={resultsRef} style={styles.wrapper}>
         <TouchableWithoutFeedback style={styles.bg} onPress={dismissAutocomplete}>
           <View style={styles.bg}>
             {renderNoResults()}
+            {isTokenSearchLoading && (
+              <ActivityIndicator testID="loading-indicator" size="large" style={styles.centeredLoading} />
+            )}
           </View>
         </TouchableWithoutFeedback>
       </View>
