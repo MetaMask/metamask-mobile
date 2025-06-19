@@ -4,6 +4,7 @@ import ProviderWebview from './ProviderWebview';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
+import { OttResponse } from '@consensys/native-ramps-sdk';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -40,28 +41,34 @@ function render(Component: React.ComponentType) {
 
 // Helper function to set up useDepositSdkMethod mocks
 function setupDepositSdkMocks(
-  ottData: any = null,
+  ottData: OttResponse | null = null,
   ottError: string | null = null,
   ottIsFetching: boolean = false,
-  paymentUrlData: any = null,
+  paymentUrlData: string | null = null,
   paymentUrlError: string | null = null,
   paymentUrlIsFetching: boolean = false,
 ) {
-  (useDepositSdkMethod as jest.Mock).mockImplementation((options: { method: string }) => {
-    if (options.method === 'requestOtt') {
-      return [
-        { data: ottData, error: ottError, isFetching: ottIsFetching },
-        jest.fn(),
-      ];
-    }
-    if (options.method === 'generatePaymentWidgetUrl') {
-      return [
-        { data: paymentUrlData, error: paymentUrlError, isFetching: paymentUrlIsFetching },
-        mockGeneratePaymentUrl,
-      ];
-    }
-    return [{ data: null, error: null, isFetching: false }, jest.fn()];
-  });
+  (useDepositSdkMethod as jest.Mock).mockImplementation(
+    (options: { method: string }) => {
+      if (options.method === 'requestOtt') {
+        return [
+          { data: ottData, error: ottError, isFetching: ottIsFetching },
+          jest.fn(),
+        ];
+      }
+      if (options.method === 'generatePaymentWidgetUrl') {
+        return [
+          {
+            data: paymentUrlData,
+            error: paymentUrlError,
+            isFetching: paymentUrlIsFetching,
+          },
+          mockGeneratePaymentUrl,
+        ];
+      }
+      return [{ data: null, error: null, isFetching: false }, jest.fn()];
+    },
+  );
 }
 
 describe('ProviderWebview Component', () => {
