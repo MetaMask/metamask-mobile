@@ -122,9 +122,7 @@ const PermissionsSummary = ({
   const privacyMode = useSelector(selectPrivacyMode);
   const [bottomSheetHeight, setBottomSheetHeight] = useState(0);
 
-  const hostname = useMemo(() => {
-    return getHostname(currentPageInformation.url);
-  }, [currentPageInformation.url]);
+  const hostname = useMemo(() => getHostname(currentPageInformation.url), [currentPageInformation.url]);
 
   const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
