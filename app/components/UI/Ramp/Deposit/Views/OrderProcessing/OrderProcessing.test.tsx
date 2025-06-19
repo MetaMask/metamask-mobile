@@ -58,7 +58,7 @@ describe('OrderProcessing Component', () => {
 
   it('displays the quote ID', () => {
     render(OrderProcessing);
-    expect(screen.getByText(`Quote ID: ${mockQuoteId}`)).toBeTruthy();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('navigates to wallet home on button press', async () => {
