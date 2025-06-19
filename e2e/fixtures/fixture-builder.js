@@ -679,9 +679,6 @@ class FixtureBuilder {
         },
         security: {
           allowLoginWithRememberMe: false,
-          automaticSecurityChecksEnabled: false,
-          hasUserSelectedAutomaticSecurityCheckOption: true,
-          isAutomaticSecurityChecksModalOpen: false,
         },
         experimentalSettings: {
           securityAlertsEnabled: true,
