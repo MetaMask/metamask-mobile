@@ -1,255 +1,32 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SamplePetNamesForm matches rendered snapshot 1`] = `
+exports[`SamplePetNames matches rendered snapshot 1`] = `
 <RCTSafeAreaView
-  style={
-    {
-      "backgroundColor": "#ffffff",
-      "flex": 1,
-      "marginTop": 16,
-    }
-  }
+  style={{}}
 >
   <View
     onLayout={[Function]}
     style={
       [
-        {
-          "alignSelf": "center",
-          "flex": 1,
-          "flexDirection": "row",
-        },
+        {},
         {
           "paddingBottom": 0,
         },
       ]
     }
   >
-    <TouchableOpacity
-      style={
-        {
-          "backgroundColor": "#ffffff",
-          "borderColor": "#b7bbc8",
-          "borderRadius": 4,
-          "borderWidth": 1,
-          "padding": 16,
-          "width": "100%",
-        }
-      }
-    >
+    <TouchableOpacity>
       <Text
         accessibilityRole="text"
-        style={
-          {
-            "color": "#121314",
-            "fontFamily": "CentraNo1-Bold",
-            "fontSize": 16,
-            "fontWeight": "700",
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
       >
         Pet Names on this network
       </Text>
-      <View />
       <View
-        style={
-          {
-            "marginTop": 24,
-            "paddingBottom": 24,
-          }
-        }
-      >
-        <View
-          style={
-            {
-              "marginBottom": 16,
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-            testID="label"
-          >
-            Address
-          </Text>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderColor": "#b7bbc8",
-                "borderRadius": 8,
-                "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 40,
-                "opacity": 1,
-                "paddingHorizontal": 16,
-              }
-            }
-            testID="textfield"
-          >
-            <View
-              style={
-                {
-                  "flex": 1,
-                }
-              }
-            >
-              <TextInput
-                autoCapitalize="none"
-                autoFocus={false}
-                editable={true}
-                onBlur={[Function]}
-                onChangeText={[Function]}
-                onFocus={[Function]}
-                placeholder="0x..."
-                style={
-                  {
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "transparent",
-                    "borderWidth": 1,
-                    "color": "#121314",
-                    "fontFamily": "CentraNo1-Book",
-                    "fontSize": 16,
-                    "fontWeight": "400",
-                    "height": 24,
-                    "letterSpacing": 0,
-                    "opacity": 1,
-                    "paddingVertical": 0,
-                  }
-                }
-                testID="pet-name-address-input"
-                value=""
-              />
-            </View>
-          </View>
-        </View>
-        <View
-          style={
-            {
-              "marginBottom": 16,
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-            testID="label"
-          >
-            Name
-          </Text>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderColor": "#b7bbc8",
-                "borderRadius": 8,
-                "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 40,
-                "opacity": 1,
-                "paddingHorizontal": 16,
-              }
-            }
-            testID="textfield"
-          >
-            <View
-              style={
-                {
-                  "flex": 1,
-                }
-              }
-            >
-              <TextInput
-                autoFocus={false}
-                editable={true}
-                onBlur={[Function]}
-                onChangeText={[Function]}
-                onFocus={[Function]}
-                placeholder="Name"
-                style={
-                  {
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "transparent",
-                    "borderWidth": 1,
-                    "color": "#121314",
-                    "fontFamily": "CentraNo1-Book",
-                    "fontSize": 16,
-                    "fontWeight": "400",
-                    "height": 24,
-                    "letterSpacing": 0,
-                    "opacity": 1,
-                    "paddingVertical": 0,
-                  }
-                }
-                testID="pet-name-name-input"
-                value=""
-              />
-            </View>
-          </View>
-        </View>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessible={true}
-          activeOpacity={1}
-          disabled={true}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
-          style={
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#4459ff",
-              "borderRadius": 12,
-              "flexDirection": "row",
-              "height": 40,
-              "justifyContent": "center",
-              "paddingHorizontal": 16,
-              "width": "100%",
-            }
-          }
-          testID="add-pet-name-button"
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#ffffff",
-                "fontFamily": "CentraNo1-Medium",
-                "fontSize": 16,
-                "fontWeight": "500",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Add Pet Name
-          </Text>
-        </TouchableOpacity>
-      </View>
+        testID="mocked-sample-pet-names-list"
+      />
+      <View
+        testID="mocked-sample-pet-names-form"
+      />
     </TouchableOpacity>
   </View>
 </RCTSafeAreaView>

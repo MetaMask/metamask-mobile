@@ -3,6 +3,9 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { SampleCounterPane } from './SampleCounterPane';
 import { strings } from '../../../../../../locales/i18n';
+import useMetrics from '../../../../../components/hooks/useMetrics/useMetrics';
+import { SAMPLE_FEATURE_EVENTS } from '../../../analytics/events';
+import {MetricsEventBuilder} from '../../../../../core/Analytics/MetricsEventBuilder.ts';
 
 /**
  * Mock implementation for react-native Linking module
@@ -30,6 +33,10 @@ jest.mock('../../hooks/useSampleCounter/useSampleCounter', () => ({
   }),
 }));
 
+jest.mock('../../../../../components/hooks/useMetrics/useMetrics');
+
+const mockTrackEvent = jest.fn();
+
 /**
  * Test suite for SampleCounterPane component
  *
@@ -39,6 +46,19 @@ jest.mock('../../hooks/useSampleCounter/useSampleCounter', () => ({
 describe('SampleCounterPane', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+      enable: jest.fn(),
+      addTraitsToUser: jest.fn(),
+      createDataDeletionTask: jest.fn(),
+      checkDataDeleteStatus: jest.fn(),
+      getDeleteRegulationCreationDate: jest.fn(),
+      getDeleteRegulationId: jest.fn(),
+      isDataRecorded: jest.fn(),
+      isEnabled: jest.fn(),
+      getMetaMetricsId: jest.fn(),
+    });
   });
 
   /**
@@ -59,6 +79,7 @@ describe('SampleCounterPane', () => {
   it('displays counter value', () => {
     const { getByTestId } = renderWithProvider(<SampleCounterPane />);
     const valueElement = getByTestId('sample-counter-pane-value');
+    
     expect(valueElement).toBeDefined();
     expect(valueElement.props.children).toBe(
       strings('sample_feature.counter.value', { value: 42 }),
@@ -70,13 +91,27 @@ describe('SampleCounterPane', () => {
    *
    * @test
    */
-  it('increments counter value', async () => {
+  it('calls incrementCount when increment button is pressed', async () => {
     const { getByTestId } = renderWithProvider(<SampleCounterPane />);
 
     fireEvent.press(getByTestId('sample-counter-pane-increment-button'));
 
     await waitFor(() => {
       expect(mockIncrement).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('calls trackEvent when increment button is pressed', async () => {
+    const { getByTestId } = renderWithProvider(<SampleCounterPane />);
+
+    fireEvent.press(getByTestId('sample-counter-pane-increment-button'));
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: SAMPLE_FEATURE_EVENTS.COUNTER_INCREMENTED.category,
+        })
+      );
     });
   });
 });
