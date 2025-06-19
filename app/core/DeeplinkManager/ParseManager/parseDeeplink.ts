@@ -1,4 +1,4 @@
-import { PROTOCOLS, ACTIONS } from '../../../constants/deeplinks';
+import { PROTOCOLS } from '../../../constants/deeplinks';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import Logger from '../../../util/Logger';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
@@ -11,15 +11,6 @@ import connectWithWC from './connectWithWC';
 import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import {
-  verifyDeeplinkSignature,
-  hasSignature,
-  VALID,
-  INVALID,
-  MISSING,
-} from './utils/verifySignature';
-import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
-import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
 
 async function parseDeeplink({
   deeplinkManager: instance,
@@ -40,72 +31,9 @@ async function parseDeeplink({
       throw new Error('Invalid URL format');
     }
     const validatedUrl = new URL(url);
-
-    if (
-      !validatedUrl.hostname ||
-      validatedUrl.hostname.includes('?') ||
-      validatedUrl.hostname.includes('&')
-    ) {
-      throw new Error('Invalid hostname');
-    }
-
-    let isPrivateLink = false;
-    let isInvalidLink = false;
-
-    const pathname: ACTIONS = validatedUrl.pathname.split('/')[1] as ACTIONS;
-    if (!Object.keys(ACTIONS).includes(pathname.toUpperCase())) {
-      isInvalidLink = true;
-    }
-
-    if (hasSignature(validatedUrl)) {
-      const signatureResult = await verifyDeeplinkSignature(validatedUrl);
-      switch (signatureResult) {
-        case VALID:
-          DevLogger.log(
-            'DeepLinkManager:parse Verified signature for deeplink',
-            url,
-          );
-          isPrivateLink = true;
-          break;
-        case INVALID:
-        case MISSING:
-          DevLogger.log(
-            'DeepLinkManager:parse Invalid/Missing signature, ignoring deeplink',
-            url,
-          );
-          isPrivateLink = false;
-          break;
-        default:
-          isPrivateLink = false;
-          break;
-      }
-    }
+    DevLogger.log(`DeepLinkManager:parse validatedUrl=${validatedUrl}`);
 
     const { urlObj, params } = extractURLParams(url);
-
-    const linkType = () => {
-      if (isInvalidLink) {
-        return DeepLinkModalLinkType.INVALID;
-      }
-      if (isPrivateLink) {
-        return DeepLinkModalLinkType.PRIVATE;
-      }
-      return DeepLinkModalLinkType.PUBLIC;
-    };
-
-    const shouldProceed = await new Promise<boolean>((resolve) => {
-      const pageTitle: ACTIONS = urlObj.pathname.split('/')[1] as ACTIONS;
-      handleDeepLinkModalDisplay({
-        linkType: linkType(),
-        pageTitle: pageTitle.charAt(0).toUpperCase() + pageTitle.slice(1),
-        onContinue: () => resolve(true),
-        onBack: () => resolve(false),
-      });
-    });
-
-    if (!shouldProceed) {
-      return false;
-    }
 
     const sdkConnect = SDKConnect.getInstance();
 
