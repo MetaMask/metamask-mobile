@@ -526,6 +526,14 @@ describe('handleUniversalLinks', () => {
   });
 
   // TODO: Update these tests to work for handleUniversalLink
+  // If you need to control if continue or back is called, look at re-mocking for each tests
+  // mockHandleDeepLinkModalDisplay.mockImplementation((params) => {
+  //   if ('onContinue' in params) {
+  //     params.onContinue();
+  //   } else {
+  //     params.onBack();
+  //   }
+  // });
   // describe('signature verification', () => {
   //   it('should return true for valid signature', async () => {
   //     const url = 'https://example.com?param1=value1&sig=validSignature';
