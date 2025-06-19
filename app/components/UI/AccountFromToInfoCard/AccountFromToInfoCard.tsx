@@ -21,7 +21,7 @@ import { AccountFromToInfoCardProps } from './AccountFromToInfoCard.types';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { RootState } from '../../../reducers';
 import AddressFrom from './AddressFrom';
-import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
+import { isPerDappSelectedNetworkEnabled, isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 
 const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const { internalAccounts, ticker, transactionState, origin } = props;
@@ -31,9 +31,9 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     transactionFromName,
     selectedAsset,
     ensRecipient,
-    chainId,
   } = transactionState;
 
+  let chainId = isRemoveGlobalNetworkSelectorEnabled() ? transactionState?.chainId : props.chainId;
   const fromAddress = toFormattedAddress(rawFromAddress);
 
   const [toAddress, setToAddress] = useState(transactionTo || to);
