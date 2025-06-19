@@ -168,11 +168,12 @@
     "success": "Success",
     "your_wallet": "Your wallet was successfully reset",
     "delete_current": "Reset current wallet",
-    "have_existing_wallet": "I have an existing wallet"
+    "have_existing_wallet": "I have an existing wallet",
+    "import_using_srp": "Import using Secret Recovery Phrase"
   },
   "onboarding_success": {
     "title": "Keep your Secret Recovery Phrase safe!",
-    "description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
+    "description": "This Secret Recovery Phrase can help you regain access if you ever forget your password or lose access to your login.",
     "description_bold": "Settings > Security & Privacy.",
     "description_continued": " you can keep this phrase safe so you never lose access to your money.",
     "learn_more": "Learn more",
@@ -339,7 +340,6 @@
     "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
     "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
     "reset_wallet_desc_srp": "To restore your wallet, you can use your Secret Recovery Phrase. MetaMask doesn’t have this information."
-   
   },
   "connect_hardware": {
     "title_select_hardware": "Connect a hardware wallet",
@@ -430,7 +430,7 @@
     "re_enter_password": "Re-enter your password",
     "use_at_least_8_characters": "Use at least 8 characters",
     "unlock_with_face_id": "Unlock with Face ID?",
-    "learn_more": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me.",
+    "learn_more": "If I forget this password, MetaMask can't recover it for me.",
     "seed_phrase_length_error": "Secret Recovery Phrase must be 12, 15, 18, 21, or 24 words",
     "continue": "Continue",
     "clear_all": "Clear all",
@@ -492,6 +492,12 @@
   },
   "deposit": {
     "title": "Deposit",
+    "buildQuote": {
+      "payWith": "Pay with",
+      "unexpectedError": "An unexpected error occurred.",
+      "quoteFetchError": "Failed to fetch quote.",
+      "kycFormsFetchError": "Failed to fetch KYC forms."
+    },
     "get_started": {
       "title": "Top up your wallet with USDC",
       "bullet_1_title": "Value-backed by the US dollar",
@@ -552,6 +558,10 @@
       "success_heading": "Identity successfully verified!",
       "success_description": "You can now enter your payment info and complete your deposit.",
       "success_button": "Complete your order"
+    },
+    "kyc_webview": {
+      "title": "Verifying your identity",
+      "webview_received_error": "WebView received error status code: {{code}}"
     }
   },
   "receive": {
@@ -603,17 +613,9 @@
       "title": "Add multiple Secret Recovery Phrases",
       "subtitle": "Import and use multiple wallets in MetaMask"
     },
-    "backupAndSync": {
-      "title": "Introducing backup and sync",
-      "subtitle": "Back up your accounts and sync settings."
-    },
     "solana": {
       "title": "Solana is now supported",
       "subtitle": "Create a Solana account to get started"
-    },
-    "backupAndSync": {
-      "title": "Introducing backup and sync",
-      "subtitle": "Back up your accounts and sync settings."
     }
   },
   "wallet": {
@@ -990,7 +992,8 @@
     },
     "account_connect_create_initial_account": {
       "description": "A Solana account is required to connect to this site.",
-      "button": "Create Solana account"}
+      "button": "Create Solana account"
+    }
   },
   "toast": {
     "connected_and_active": "connected and active.",
@@ -2363,7 +2366,7 @@
     "info_text_1_2": "Secret Recovery Phrase",
     "info_text_1_3": "in a place you trust.",
     "info_text_1_4": "It’s the only way to recover your wallet if you get locked out of the app or get a new device.",
-    "cta_text": "Get Started",
+    "cta_text": "Get started",
     "cta_subText": "Highly recommended",
     "skip_button_cancel": "Secure now",
     "skip_button_confirm": "Skip",
@@ -2496,8 +2499,8 @@
     "error-description": "Double-check your Secret Recovery Phrase and try again.",
     "success-title": "Perfect!",
     "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
-    "success-button": "Got It",
-    "error-button": "Try Again",
+    "success-button": "Got it",
+    "error-button": "Try again",
     "continue": "Continue"
   },
   "manual_backup_step_3": {
@@ -3898,7 +3901,15 @@
       "withdraw_whenever_you_want": "Withdraw whenever you want",
       "get_asset_back_in_your_wallet_instantly": "Get {{tokenSymbol}} back in your wallet instantly."
     },
-    "amount_exceeds_safe_withdrawal_limit": "Amount exceeds safe withdrawal limit"
+    "amount_exceeds_safe_withdrawal_limit": "Amount exceeds safe withdrawal limit",
+    "view_earnings_history": {
+      "lending": "View position history",
+      "staking": "View earnings history"
+    },
+    "earnings_history_list_title": {
+      "lending": "Position history",
+      "staking": "Payout history"
+    }
   },
   "stake": {
     "stake": "Stake",
@@ -4003,9 +4014,7 @@
     "per_year_on_your_tokens": "per year on your tokens",
     "deposit": "Deposit",
     "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than {{percentOverDeposit}}% of your deposit.",
-    "view_earnings_history": "View earnings history",
     "earnings_history_title": "{{ticker}} earnings",
-    "earnings_history_list_title": "Payout history",
     "apr": "APR",
     "interactive_chart": {
       "timespan_buttons": {
@@ -4315,7 +4324,8 @@
     },
     "privacyLink": "Learn how we protect your privacy",
     "features": {
-      "accounts": "Accounts"
+      "accounts": "Accounts",
+      "contacts": "Contacts"
     },
     "manageWhatYouSync": {
       "title": "Manage what you sync",
@@ -4398,5 +4408,22 @@
       "get_started": "Get started",
       "learn_more": "Learn more"
     }
+  },
+  "deep_link_modal": {
+    "private_link": {
+      "title": "Redirecting you to MetaMask",
+      "description": "You'll open {{pageTitle}} if you continue.",
+      "checkbox_label": "Don't remind me again"
+    },
+    "public_link": {
+      "title": "Proceed with caution",
+      "description": "You were sent here by a third party, not MetaMask. You'll open {{pageTitle}} if you continue."
+    },
+    "invalid": {
+      "title": "This page doesn't exist",
+      "description": "We can't find the page you're looking for."
+    },
+    "back_button": "Back",
+    "continue_button": "Continue"
   }
 }

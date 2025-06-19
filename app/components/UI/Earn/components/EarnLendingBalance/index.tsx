@@ -23,14 +23,15 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RootState } from '../../../../../reducers';
+import { earnSelectors } from '../../../../../selectors/earnController';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { useStyles } from '../../../../hooks/useStyles';
 import AssetElement from '../../../AssetElement';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import { TokenI } from '../../../Tokens/types';
-import useEarnTokens from '../../hooks/useEarnTokens';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import Earnings from '../Earnings';
 import EarnEmptyStateCta from '../EmptyStateCta';
 import styleSheet from './EarnLendingBalance.styles';
 
@@ -45,6 +46,7 @@ export interface EarnLendingBalanceProps {
   asset: TokenI;
 }
 
+const { selectEarnTokenPair, selectEarnOutputToken } = earnSelectors;
 const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -58,10 +60,12 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
 
   const navigation = useNavigation();
 
-  const { getPairedEarnTokens, getOutputToken } = useEarnTokens();
-  const { outputToken: receiptToken, earnToken } = getPairedEarnTokens(asset);
-  const isAssetReceiptToken = getOutputToken(asset);
-
+  const { outputToken: receiptToken, earnToken } = useSelector(
+    (state: RootState) => selectEarnTokenPair(state, asset),
+  );
+  const isAssetReceiptToken = useSelector((state: RootState) =>
+    selectEarnOutputToken(state, asset),
+  );
   const pricePercentChange1d = useTokenPricePercentageChange(receiptToken);
 
   const userHasLendingPositions = useMemo(
@@ -170,6 +174,11 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
             />
           )}
       </View>
+      {isAssetReceiptToken && (
+        <View style={styles.earnings}>
+          <Earnings asset={asset} />
+        </View>
+      )}
     </View>
   );
 };

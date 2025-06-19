@@ -1019,6 +1019,48 @@ export class Engine {
             );
           },
         },
+        contactSyncing: {
+          onContactUpdated: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                  feature_name: 'Contacts Sync',
+                  action: 'Contacts Sync Contact Updated',
+                })
+                .build(),
+            );
+          },
+          onContactDeleted: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                  feature_name: 'Contacts Sync',
+                  action: 'Contacts Sync Contact Deleted',
+                })
+                .build(),
+            );
+          },
+          onContactSyncErroneousSituation(profileId, situationMessage) {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                  feature_name: 'Contacts Sync',
+                  action: 'Contacts Sync Erroneous Situation',
+                  additional_description: situationMessage,
+                })
+                .build(),
+            );
+          },
+        },
       },
     });
     ///: END:ONLY_INCLUDE_IF
