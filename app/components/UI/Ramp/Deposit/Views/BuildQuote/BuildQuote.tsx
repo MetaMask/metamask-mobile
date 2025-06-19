@@ -77,20 +77,6 @@ const BuildQuote = () => {
     DEPOSIT_REGIONS.find((region) => region.code === 'US') || null,
   );
 
-  const getDisplayRegion = useCallback(() => {
-    if (!selectedRegion) return null;
-
-    if (selectedRegion.states) {
-      return selectedRegion;
-    }
-
-    return (
-      DEPOSIT_REGIONS.find((country) =>
-        country.states?.some((state) => state.code === selectedRegion.code),
-      ) || selectedRegion
-    );
-  }, [selectedRegion]);
-
   const [{ error: quoteFetchError }, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false },
     fiatCurrency.id,
@@ -265,20 +251,9 @@ const BuildQuote = () => {
     setSelectedRegion(region);
     setIsRegionModalVisible(false);
 
-    let regionCurrency: string;
-
-    if (region.states) {
-      regionCurrency = region.currency;
-    } else {
-      const parentCountry = DEPOSIT_REGIONS.find((country) =>
-        country.states?.some((state) => state.code === region.code),
-      );
-      regionCurrency = parentCountry?.currency || region.currency;
-    }
-
-    if (regionCurrency === 'USD') {
+    if (region.currency === 'USD') {
       setFiatCurrency(USD_CURRENCY);
-    } else if (regionCurrency === 'EUR') {
+    } else if (region.currency === 'EUR') {
       setFiatCurrency(EUR_CURRENCY);
     }
   }, []);
@@ -307,10 +282,10 @@ const BuildQuote = () => {
             >
               <View style={styles.regionContent}>
                 <Text variant={TextVariant.BodyMD}>
-                  {getDisplayRegion()?.flag}
+                  {selectedRegion?.flag}
                 </Text>
                 <Text variant={TextVariant.BodyMD}>
-                  {getDisplayRegion()?.code}
+                  {selectedRegion?.code}
                 </Text>
               </View>
             </TouchableOpacity>

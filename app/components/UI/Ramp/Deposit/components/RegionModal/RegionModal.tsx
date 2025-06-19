@@ -12,7 +12,6 @@ import {
 import Modal from 'react-native-modal';
 import Fuse from 'fuse.js';
 import { strings } from '../../../../../../../locales/i18n';
-import Feather from 'react-native-vector-icons/Feather';
 import ModalDragger from '../../../../../Base/ModalDragger';
 import { DepositRegion } from '../../constants';
 import { useTheme } from '../../../../../../util/theme';
@@ -32,11 +31,6 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 
 const MAX_REGION_RESULTS = 20;
-
-enum RegionViewType {
-  COUNTRY = 'COUNTRY',
-  STATE = 'STATE',
-}
 
 const Separator = () => {
   const { colors } = useTheme();
@@ -68,34 +62,20 @@ const RegionModal: React.FC<Props> = ({
   const searchInput = useRef<TextInput>(null);
   const list = useRef<SectionList<DepositRegion>>(null);
   const [searchString, setSearchString] = useState('');
-  const [currentData, setCurrentData] = useState(data || []);
 
-  // local state variable to set the active view (countries vs. regions)
-  const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);
-  // local state variable to save the country object in transite
-  const [regionInTransit, setRegionInTransit] = useState<
-    DepositRegion | Record<string, never>
-  >({});
-
-  const fuseData = useMemo(() => {
-    const flatRegions: DepositRegion[] = currentData.reduce(
-      (acc: DepositRegion[], region: DepositRegion) => [
-        ...acc,
-        region,
-        ...((region.states as DepositRegion[]) || []),
-      ],
-      [],
-    );
-    return new Fuse(flatRegions, {
-      shouldSort: true,
-      threshold: 0.2,
-      location: 0,
-      distance: 100,
-      maxPatternLength: 32,
-      minMatchCharLength: 1,
-      keys: ['name'],
-    });
-  }, [currentData]);
+  const fuseData = useMemo(
+    () =>
+      new Fuse(data || [], {
+        shouldSort: true,
+        threshold: 0.2,
+        location: 0,
+        distance: 100,
+        maxPatternLength: 32,
+        minMatchCharLength: 1,
+        keys: ['name'],
+      }),
+    [data],
+  );
 
   const dataSearchResults = useMemo(() => {
     if (searchString.length > 0) {
@@ -114,9 +94,9 @@ const RegionModal: React.FC<Props> = ({
       return [];
     }
 
-    if (!currentData?.length) return [];
+    if (!data?.length) return [];
 
-    const popularRegions = currentData.filter((region) => region.recommended);
+    const popularRegions = data.filter((region) => region.recommended);
 
     if (popularRegions.length) {
       return [
@@ -126,7 +106,7 @@ const RegionModal: React.FC<Props> = ({
         },
         {
           title: strings('fiat_on_ramp_aggregator.region.regions'),
-          data: currentData.filter((region) => !region.recommended),
+          data: data.filter((region) => !region.recommended),
         },
       ];
     }
@@ -134,10 +114,10 @@ const RegionModal: React.FC<Props> = ({
     return [
       {
         title: null,
-        data: currentData,
+        data,
       },
     ];
-  }, [searchString, currentData, fuseData]);
+  }, [searchString, data, fuseData]);
 
   const scrollToTop = useCallback(() => {
     if (list?.current && dataSearchResults?.length) {
@@ -151,24 +131,18 @@ const RegionModal: React.FC<Props> = ({
 
   const handleOnRegionPressCallback = useCallback(
     (region: DepositRegion) => {
-      if (region.states) {
-        setActiveView(RegionViewType.STATE);
-        setRegionInTransit(region);
-        setCurrentData(region.states as DepositRegion[]);
-        setSearchString('');
-        scrollToTop();
-        return;
-      }
-
       onRegionPress(region);
     },
-    [onRegionPress, scrollToTop],
+    [onRegionPress],
   );
 
   const renderRegionItem = useCallback(
     ({ item: region }: { item: DepositRegion }) => (
       <ListItemSelect
-        style={[modalStyles.listItem, !region.supported && modalStyles.disabledItem]}
+        style={[
+          modalStyles.listItem,
+          !region.supported && modalStyles.disabledItem,
+        ]}
         isSelected={selectedRegion?.code === region.code}
         onPress={() => {
           if (region.supported) {
@@ -183,9 +157,7 @@ const RegionModal: React.FC<Props> = ({
           <View style={modalStyles.region}>
             <View style={modalStyles.emoji}>
               <Text style={!region.supported && modalStyles.disabledText}>
-                {activeView === RegionViewType.STATE
-                  ? regionInTransit?.flag
-                  : region.flag}
+                {region.flag}
               </Text>
             </View>
             <View>
@@ -198,15 +170,6 @@ const RegionModal: React.FC<Props> = ({
             </View>
           </View>
         </ListItemColumn>
-        {region.states && region.supported && (
-          <ListItemColumn>
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Md}
-              color={colors.icon.alternative}
-            />
-          </ListItemColumn>
-        )}
       </ListItemSelect>
     ),
     [
@@ -217,9 +180,6 @@ const RegionModal: React.FC<Props> = ({
       modalStyles.region,
       modalStyles.disabledItem,
       modalStyles.disabledText,
-      activeView,
-      regionInTransit,
-      colors,
     ],
   );
   const handleSearchPress = () => searchInput?.current?.focus();
@@ -250,21 +210,6 @@ const RegionModal: React.FC<Props> = ({
     );
   };
 
-  const handleRegionBackButton = useCallback(() => {
-    setActiveView(RegionViewType.COUNTRY);
-    setCurrentData(data || []);
-    setSearchString('');
-    scrollToTop();
-  }, [data, scrollToTop]);
-
-  const onBackButtonPress = useCallback(() => {
-    if (activeView === RegionViewType.STATE) {
-      handleRegionBackButton();
-    } else {
-      dismiss?.();
-    }
-  }, [activeView, dismiss, handleRegionBackButton]);
-
   const handleSearchTextChange = useCallback(
     (text: string) => {
       setSearchString(text);
@@ -280,17 +225,14 @@ const RegionModal: React.FC<Props> = ({
   }, [scrollToTop]);
 
   const onModalHide = useCallback(() => {
-    setActiveView(RegionViewType.COUNTRY);
-    setRegionInTransit({});
-    setCurrentData(data || []);
     setSearchString('');
-  }, [data]);
+  }, []);
 
   return (
     <Modal
       isVisible={isVisible}
       onBackdropPress={dismiss}
-      onBackButtonPress={onBackButtonPress}
+      onBackButtonPress={dismiss}
       swipeDirection="down"
       onSwipeComplete={dismiss}
       propagateSwipe
@@ -305,28 +247,10 @@ const RegionModal: React.FC<Props> = ({
         <ScreenLayout>
           <ScreenLayout.Header
             bold
-            title={activeView === RegionViewType.COUNTRY ? title : undefined}
-            description={
-              activeView === RegionViewType.COUNTRY ? description : undefined
-            }
+            title={title}
+            description={description}
             descriptionStyle={modalStyles.headerDescription}
           >
-            {activeView === RegionViewType.STATE ? (
-              <ScreenLayout.Content style={modalStyles.subheader}>
-                <TouchableOpacity onPress={handleRegionBackButton}>
-                  <Feather
-                    name="chevron-left"
-                    size={22}
-                    color={colors.icon.default}
-                  />
-                </TouchableOpacity>
-                <Text variant={TextVariant.BodyLGMedium}>
-                  {regionInTransit?.name}
-                </Text>
-                <View style={modalStyles.ghostSpacer} />
-              </ScreenLayout.Content>
-            ) : null}
-
             <TouchableWithoutFeedback onPress={handleSearchPress}>
               <View style={modalStyles.inputWrapper}>
                 <Icon
@@ -338,9 +262,7 @@ const RegionModal: React.FC<Props> = ({
                   ref={searchInput}
                   style={modalStyles.input}
                   placeholder={strings(
-                    activeView === RegionViewType.COUNTRY
-                      ? 'fiat_on_ramp_aggregator.region.search_by_country'
-                      : 'fiat_on_ramp_aggregator.region.search_by_state',
+                    'fiat_on_ramp_aggregator.region.search_by_country',
                   )}
                   placeholderTextColor={colors.text.muted}
                   value={searchString}

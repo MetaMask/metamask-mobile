@@ -167,20 +167,6 @@ describe('BuildQuote Component', () => {
       fireEvent.press(germanyElement);
       expect(screen.toJSON()).toMatchSnapshot();
     });
-
-    it('maintains country display when selecting a state', () => {
-      render(BuildQuote);
-      const regionButton = screen.getByText('US');
-      fireEvent.press(regionButton);
-
-      const usElement = screen.getByText('United States');
-      fireEvent.press(usElement);
-
-      const alabamaElement = screen.getByText('Alabama');
-      fireEvent.press(alabamaElement);
-
-      expect(screen.toJSON()).toMatchSnapshot();
-    });
   });
 
   describe('Keypad Functionality', () => {

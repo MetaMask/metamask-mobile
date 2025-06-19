@@ -51,6 +51,20 @@ describe('RegionModal', () => {
     );
   });
 
+  it('allows selection of United States directly', async () => {
+    render(<RegionModal {...defaultProps} />);
+
+    const usElement = screen.getByText('United States');
+
+    await act(async () => {
+      fireEvent.press(usElement);
+    });
+
+    expect(mockOnRegionPress).toHaveBeenCalledWith(
+      expect.objectContaining({ code: 'US', name: 'United States' }),
+    );
+  });
+
   it('prevents selection of unsupported regions', async () => {
     render(<RegionModal {...defaultProps} />);
 
@@ -71,46 +85,6 @@ describe('RegionModal', () => {
     });
 
     expect(mockOnRegionPress).not.toHaveBeenCalled();
-  });
-
-  it('render matches snapshot when showing states', async () => {
-    render(<RegionModal {...defaultProps} />);
-
-    const usElement = screen.getByText('United States');
-
-    await act(async () => {
-      fireEvent.press(usElement);
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Alabama')).toBeTruthy();
-    });
-
-    expect(screen.toJSON()).toMatchSnapshot();
-  });
-
-  it('allows selection of states', async () => {
-    render(<RegionModal {...defaultProps} />);
-
-    const usElement = screen.getByText('United States');
-
-    await act(async () => {
-      fireEvent.press(usElement);
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Alabama')).toBeTruthy();
-    });
-
-    const alabamaElement = screen.getByText('Alabama');
-
-    await act(async () => {
-      fireEvent.press(alabamaElement);
-    });
-
-    expect(mockOnRegionPress).toHaveBeenCalledWith(
-      expect.objectContaining({ code: 'AL', name: 'Alabama' }),
-    );
   });
 
   it('render matches snapshot with search results', async () => {

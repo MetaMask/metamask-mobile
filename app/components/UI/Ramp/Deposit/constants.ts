@@ -24,19 +24,12 @@ export interface DepositFiatCurrency {
   emoji: string;
 }
 
-export interface DepositState {
-  code: string;
-  name: string;
-  supported: boolean;
-}
-
 export interface DepositRegion {
   code: string;
   flag: string;
   name: string;
   phonePrefix: string;
   currency: string;
-  states?: DepositState[];
   phoneDigitCount: number;
   recommended?: boolean;
   supported: boolean;
@@ -453,7 +446,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     supported: false,
   },
 
-  // United States - Supported with all states
+  // United States - Supported
   {
     code: 'US',
     flag: '🇺🇸',
@@ -463,54 +456,6 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     phoneDigitCount: 10,
     recommended: true,
     supported: true,
-    states: [
-      { code: 'AL', name: 'Alabama', supported: true },
-      { code: 'AZ', name: 'Arizona', supported: true },
-      { code: 'AR', name: 'Arkansas', supported: true },
-      { code: 'CA', name: 'California', supported: true },
-      { code: 'CO', name: 'Colorado', supported: true },
-      { code: 'CT', name: 'Connecticut', supported: true },
-      { code: 'DE', name: 'Delaware', supported: true },
-      { code: 'DC', name: 'District of Columbia', supported: true },
-      { code: 'FL', name: 'Florida', supported: true },
-      { code: 'GA', name: 'Georgia', supported: true },
-      { code: 'HI', name: 'Hawaii', supported: true },
-      { code: 'ID', name: 'Idaho', supported: true },
-      { code: 'IL', name: 'Illinois', supported: true },
-      { code: 'IN', name: 'Indiana', supported: true },
-      { code: 'IA', name: 'Iowa', supported: true },
-      { code: 'KS', name: 'Kansas', supported: true },
-      { code: 'KY', name: 'Kentucky', supported: true },
-      { code: 'ME', name: 'Maine', supported: true },
-      { code: 'MD', name: 'Maryland', supported: true },
-      { code: 'MA', name: 'Massachusetts', supported: true },
-      { code: 'MI', name: 'Michigan', supported: true },
-      { code: 'MS', name: 'Mississippi', supported: true },
-      { code: 'MO', name: 'Missouri', supported: true },
-      { code: 'MT', name: 'Montana', supported: true },
-      { code: 'NE', name: 'Nebraska', supported: true },
-      { code: 'NV', name: 'Nevada', supported: true },
-      { code: 'NH', name: 'New Hampshire', supported: true },
-      { code: 'NJ', name: 'New Jersey', supported: true },
-      { code: 'NM', name: 'New Mexico', supported: true },
-      { code: 'NC', name: 'North Carolina', supported: true },
-      { code: 'OH', name: 'Ohio', supported: true },
-      { code: 'OK', name: 'Oklahoma', supported: true },
-      { code: 'OR', name: 'Oregon', supported: true },
-      { code: 'PA', name: 'Pennsylvania', supported: true },
-      { code: 'RI', name: 'Rhode Island', supported: true },
-      { code: 'SC', name: 'South Carolina', supported: true },
-      { code: 'SD', name: 'South Dakota', supported: true },
-      { code: 'TN', name: 'Tennessee', supported: true },
-      { code: 'TX', name: 'Texas', supported: true },
-      { code: 'UT', name: 'Utah', supported: true },
-      { code: 'VT', name: 'Vermont', supported: true },
-      { code: 'VA', name: 'Virginia', supported: true },
-      { code: 'WA', name: 'Washington', supported: true },
-      { code: 'WV', name: 'West Virginia', supported: true },
-      { code: 'WI', name: 'Wisconsin', supported: true },
-      { code: 'WY', name: 'Wyoming', supported: true },
-    ],
   },
 
   // Asia - Not Supported
