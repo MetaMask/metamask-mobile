@@ -10,6 +10,7 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { MIN_PASSWORD_LENGTH } from '../../../util/password';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import { InteractionManager } from 'react-native';
 
 // Mock the clipboard
 jest.mock('@react-native-clipboard/clipboard', () => ({
@@ -37,6 +38,19 @@ jest.mock('../../hooks/useMetrics', () => {
 });
 
 describe('ImportFromSecretRecoveryPhrase', () => {
+  jest
+    .spyOn(InteractionManager, 'runAfterInteractions')
+    .mockImplementation((cb) => {
+      if (cb && typeof cb === 'function') {
+        cb();
+      }
+      return {
+        then: jest.fn(),
+        done: jest.fn(),
+        cancel: jest.fn(),
+      };
+    });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -989,46 +1003,4 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.press(confirmButton);
     });
   });
-
-  // describe('handleOnBlur function', () => {
-
-  //   // it('should handle multiple blur events in sequence', async () => {
-  //   //   const { getByPlaceholderText, getByTestId } = renderScreen(
-  //   //     ImportFromSecretRecoveryPhrase,
-  //   //     { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-  //   //     { state: initialState },
-  //   //   );
-
-  //   //   // Enter a seed phrase to create multiple input fields
-  //   //   const input = getByPlaceholderText(
-  //   //     strings('import_from_seed.srp_placeholder'),
-  //   //   );
-
-  //   //   await act(async () => {
-  //   //     fireEvent.changeText(
-  //   //       input,
-  //   //       'say devote wasp video cool lunch brief add fever uncover novel offer',
-  //   //     );
-  //   //   });
-
-  //   //   await waitFor(() => {
-  //   //     expect(
-  //   //       getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`),
-  //   //     ).toBeOnTheScreen();
-  //   //   });
-
-  //   //   const input0 = getByTestId(
-  //   //     `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
-  //   //   );
-
-  //   //   // Test multiple blur events in sequence
-  //   //   fireEvent(input0, 'focus');
-  //   //   fireEvent(input0, 'blur');
-  //   //   fireEvent(input0, 'blur'); // Second blur should not crash
-  //   //   fireEvent(input0, 'blur'); // Third blur should not crash
-
-  //   //   // Should handle multiple blur events gracefully
-  //   //   expect(input0).toBeOnTheScreen();
-  //   // });
-  // });
 });
