@@ -23,6 +23,7 @@ import { AccountConnectSelectorsIDs } from '../../../../e2e/selectors/wallet/Acc
 import { AddNewAccountIds } from '../../../../e2e/selectors/MultiSRP/AddHdAccount.selectors';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { SolScope } from '@metamask/keyring-api';
+import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerStateUtil([
   mockAddress1,
@@ -133,6 +134,10 @@ jest.mock('../../../core/Engine', () => {
       },
       PermissionController: {
         rejectPermissionsRequest: jest.fn(),
+        acceptPermissionsRequest: jest.fn().mockResolvedValue(undefined),
+        updateCaveat: jest.fn(),
+        grantPermissionsIncremental: jest.fn(),
+        hasCaveat: jest.fn().mockReturnValue(false),
       },
       AccountsController: {
         state: mockAccountsState,
@@ -207,7 +212,6 @@ jest.mock('../../../core/AppConstants', () => ({
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
 }));
 
-
 // Setup test state with proper account data
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
@@ -274,6 +278,14 @@ jest.mock('../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
 // Set default mock behaviors
 mockGetConnection.mockReturnValue(undefined);
 mockIsUUID.mockReturnValue(false);
+
+// Mock Toast context
+const mockToastRef = {
+  current: {
+    showToast: jest.fn(),
+    closeToast: jest.fn(),
+  },
+};
 
 describe('AccountConnect', () => {
   it('renders correctly with base request', () => {
@@ -356,6 +368,53 @@ describe('AccountConnect', () => {
   });
 
   describe('AccountConnectMultiSelector handlers', () => {
+    it('invokes onEditNetworks and renders multiconnect network selector', async () => {
+            // Render the container component with necessary props
+            const { getByTestId, UNSAFE_getByType, findByTestId } =
+            renderWithProvider(
+              <AccountConnect
+                route={{
+                  params: {
+                    hostInfo: {
+                      metadata: {
+                        id: 'mockId',
+                        // Using a valid URL format to ensure PermissionsSummary renders first
+                        origin: 'https://example.com',
+                      },
+                      permissions: createMockCaip25Permission({
+                        'wallet:eip155': {
+                          accounts: [],
+                        },
+                      }),
+                    },
+                    permissionRequestId: 'test',
+                  },
+                }}
+              />,
+              { state: mockInitialState },
+            );
+
+          // First find and click the edit button on PermissionsSummary to show MultiSelector
+          const editNetworksButton = getByTestId(ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON);
+          fireEvent.press(editNetworksButton);
+
+          // Verify that the network selector screen is shown
+          const updateButton = await findByTestId(
+            'multiconnect-connect-network-button',
+          );
+          expect(updateButton).toBeOnTheScreen();
+
+          // Click the update button to go back to permission summary
+          fireEvent.press(updateButton);
+
+          // Verify that the screen changed back to PermissionsSummary
+          expect(
+            await findByTestId('permission-summary-container'),
+          ).toBeOnTheScreen();
+
+
+
+    })
     it('invokes onSubmit property and renders permissions summary', async () => {
       // Render the container component with necessary props
       const { getByTestId, UNSAFE_getByType, findByTestId } =
@@ -438,6 +497,75 @@ describe('AccountConnect', () => {
     });
     // Verify createEventBuilder was called
     expect(mockCreateEventBuilder).toHaveBeenCalled();
+  });
+
+  it('should handle confirm button press correctly', async () => {
+    // Mock the acceptPermissionsRequest to resolve successfully
+    const mockAcceptPermissionsRequest = jest.fn().mockResolvedValue(undefined);
+    const mockUpdateCaveat = jest.fn();
+    const mockGrantPermissionsIncremental = jest.fn();
+    const mockHasCaveat = jest.fn().mockReturnValue(false);
+
+    // Override the Engine mock for this test
+    Engine.context.PermissionController.acceptPermissionsRequest = mockAcceptPermissionsRequest;
+    Engine.context.PermissionController.updateCaveat = mockUpdateCaveat;
+    Engine.context.PermissionController.grantPermissionsIncremental = mockGrantPermissionsIncremental;
+    Engine.context.PermissionController.hasCaveat = mockHasCaveat;
+
+    const { getByTestId } = renderWithProvider(
+        <AccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'https://example.com',
+                  isEip1193Request: true,
+                },
+                permissions: createMockCaip25Permission({
+                  'wallet:eip155': {
+                    accounts: [],
+                  },
+                }),
+              },
+              permissionRequestId: 'test-confirm',
+            },
+          }}
+        />,
+      { state: mockInitialState },
+    );
+
+    // Find and click the confirm button
+    const confirmButton = getByTestId('connect-button');
+    fireEvent.press(confirmButton);
+
+    // Wait for async operations to complete
+    await waitFor(() => {
+      // Verify that acceptPermissionsRequest was called
+      expect(mockAcceptPermissionsRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          metadata: expect.objectContaining({
+            origin: 'https://example.com',
+            id: 'mockId',
+            isEip1193Request: true,
+          }),
+          permissions: expect.objectContaining({
+            [Caip25EndowmentPermissionName]: expect.any(Object),
+          }),
+        }),
+      );
+    });
+
+    // Verify network permissions were handled
+    expect(mockHasCaveat).toHaveBeenCalled();
+    expect(mockGrantPermissionsIncremental).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: expect.objectContaining({
+          origin: 'https://example.com',
+        }),
+        approvedPermissions: expect.any(Object),
+      }),
+    );
   });
 
   it('AccountConnect should not change origin if browser URL changes', () => {
