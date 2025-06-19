@@ -59,7 +59,7 @@ const ProviderWebview = () => {
 
   useEffect(() => {
     const fetchPaymentUrl = async () => {
-      if (!ottResponse) {
+      if (!ottResponse || ottError) {
         return;
       }
 
@@ -67,7 +67,7 @@ const ProviderWebview = () => {
     };
 
     fetchPaymentUrl();
-  }, [ottResponse, generatePaymentUrl, quote, selectedAddress]);
+  }, [ottResponse, ottError, generatePaymentUrl, quote, selectedAddress]);
 
   const handleNavigationStateChange = (navState: { url: string }) => {
     if (navState.url.startsWith('https://metamask.io')) {
