@@ -57,9 +57,6 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       gap: 8,
     },
-    regionFlag: {
-      fontSize: 16,
-    },
     cryptoPill: {
       flexDirection: 'row',
       alignItems: 'center',

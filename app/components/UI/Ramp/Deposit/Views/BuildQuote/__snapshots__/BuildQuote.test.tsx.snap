@@ -12523,6 +12523,7 @@ exports[`BuildQuote Component Region Selection maintains country display when se
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",
@@ -12661,6 +12662,7 @@ exports[`BuildQuote Component Region Selection maintains country display when se
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",
@@ -12772,6 +12774,7 @@ exports[`BuildQuote Component Region Selection maintains country display when se
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",
@@ -12883,6 +12886,7 @@ exports[`BuildQuote Component Region Selection maintains country display when se
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",
@@ -12994,6 +12998,7 @@ exports[`BuildQuote Component Region Selection maintains country display when se
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",
@@ -13105,6 +13110,7 @@ exports[`BuildQuote Component Region Selection maintains country display when se
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",
@@ -13216,6 +13222,7 @@ exports[`BuildQuote Component Region Selection maintains country display when se
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",
@@ -13327,6 +13334,7 @@ exports[`BuildQuote Component Region Selection maintains country display when se
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",
@@ -13438,6 +13446,7 @@ exports[`BuildQuote Component Region Selection maintains country display when se
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",
@@ -16230,6 +16239,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     },
                                                     {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                   ]
                                                 }
@@ -16265,6 +16275,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",
@@ -16429,6 +16440,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     },
                                                     {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                   ]
                                                 }
@@ -16464,6 +16476,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",
@@ -16575,6 +16588,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",
@@ -16686,6 +16700,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",
@@ -16797,6 +16812,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",
@@ -16908,6 +16924,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",
@@ -17019,6 +17036,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",
@@ -19811,6 +19829,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     },
                                                     {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                   ]
                                                 }
@@ -19846,6 +19865,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",
@@ -19983,6 +20003,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     },
                                                     {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                   ]
                                                 }
@@ -20018,6 +20039,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",
@@ -20129,6 +20151,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",
@@ -20240,6 +20263,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",
@@ -20378,6 +20402,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",
@@ -20489,6 +20514,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",
@@ -20600,6 +20626,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                   {
                                                     "0": {
                                                       "paddingHorizontal": 24,
+                                                      "paddingVertical": 24,
                                                     },
                                                     "1": false,
                                                     "backgroundColor": "#ffffff",

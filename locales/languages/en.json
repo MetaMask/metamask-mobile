@@ -471,6 +471,8 @@
   },
   "deposit": {
     "title": "Deposit",
+    "selectRegion": "Select Region",
+    "chooseYourRegionToContinue": "Choose your region to continue",
     "buildQuote": {
       "payWith": "Pay with",
       "unexpectedError": "An unexpected error occurred.",

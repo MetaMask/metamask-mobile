@@ -306,7 +306,7 @@ const BuildQuote = () => {
               onPress={handleRegionPress}
             >
               <View style={styles.regionContent}>
-                <Text variant={TextVariant.BodyMD} style={styles.regionFlag}>
+                <Text variant={TextVariant.BodyMD}>
                   {getDisplayRegion()?.flag}
                 </Text>
                 <Text variant={TextVariant.BodyMD}>
@@ -410,8 +410,8 @@ const BuildQuote = () => {
       </ScreenLayout.Footer>
       <RegionModal
         isVisible={isRegionModalVisible}
-        title="Select Region"
-        description="Choose your region to continue"
+        title={strings('deposit.selectRegion')}
+        description={strings('deposit.chooseYourRegionToContinue')}
         data={DEPOSIT_REGIONS}
         dismiss={hideRegionModal}
         onRegionPress={handleRegionSelect}

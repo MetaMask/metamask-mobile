@@ -55,6 +55,32 @@ const createModalStyles = (colors: Colors) =>
       width: '100%',
       backgroundColor: colors.border.muted,
     },
+    rowView: {
+      paddingHorizontal: 0,
+    },
+    subheader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      width: '100%',
+      paddingVertical: 10,
+    },
+    ghostSpacer: {
+      width: 20,
+    },
+    region: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    emoji: {
+      paddingRight: 16,
+    },
+    disabledItem: {
+      opacity: 0.5,
+    },
+    disabledText: {
+      color: colors.text.muted,
+    },
   });
 
 export default createModalStyles;

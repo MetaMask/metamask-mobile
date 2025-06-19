@@ -660,6 +660,7 @@ exports[`RegionModal render matches snapshot when showing states 1`] = `
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -771,6 +772,7 @@ exports[`RegionModal render matches snapshot when showing states 1`] = `
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -882,6 +884,7 @@ exports[`RegionModal render matches snapshot when showing states 1`] = `
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -993,6 +996,7 @@ exports[`RegionModal render matches snapshot when showing states 1`] = `
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -1104,6 +1108,7 @@ exports[`RegionModal render matches snapshot when showing states 1`] = `
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -1215,6 +1220,7 @@ exports[`RegionModal render matches snapshot when showing states 1`] = `
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -1326,6 +1332,7 @@ exports[`RegionModal render matches snapshot when showing states 1`] = `
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -1437,6 +1444,7 @@ exports[`RegionModal render matches snapshot when showing states 1`] = `
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -1548,6 +1556,7 @@ exports[`RegionModal render matches snapshot when showing states 1`] = `
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -2867,6 +2876,7 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                             },
                             {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                           ]
                         }
@@ -2902,6 +2912,7 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -3039,6 +3050,7 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                             },
                             {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                           ]
                         }
@@ -3074,6 +3086,7 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -3185,6 +3198,7 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -3296,6 +3310,7 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -3407,6 +3422,7 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -3518,6 +3534,7 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -3629,6 +3646,7 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -5453,6 +5471,7 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                             },
                             {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                           ]
                         }
@@ -5488,6 +5507,7 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -5625,6 +5645,7 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                             },
                             {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                           ]
                         }
@@ -5660,6 +5681,7 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -5771,6 +5793,7 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -5882,6 +5905,7 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -5993,6 +6017,7 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -6104,6 +6129,7 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -6215,6 +6241,7 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",
@@ -7068,6 +7095,7 @@ exports[`RegionModal render matches snapshot with search results 1`] = `
                           {
                             "0": {
                               "paddingHorizontal": 24,
+                              "paddingVertical": 24,
                             },
                             "1": false,
                             "backgroundColor": "#ffffff",

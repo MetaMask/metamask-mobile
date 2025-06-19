@@ -4,7 +4,6 @@ import {
   SafeAreaView,
   SectionList,
   SectionListData,
-  StyleSheet,
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
@@ -39,39 +38,6 @@ enum RegionViewType {
   STATE = 'STATE',
 }
 
-const createStyles = () =>
-  StyleSheet.create({
-    rowView: {
-      paddingHorizontal: 0,
-    },
-    subheader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      width: '100%',
-      paddingVertical: 10,
-    },
-    ghostSpacer: {
-      width: 20,
-    },
-    listItem: {
-      paddingHorizontal: 24,
-    },
-    region: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    emoji: {
-      paddingRight: 16,
-    },
-    disabledItem: {
-      opacity: 0.5,
-    },
-    disabledText: {
-      color: 'gray',
-    },
-  });
-
 const Separator = () => {
   const { colors } = useTheme();
   const styles = createModalStyles(colors);
@@ -98,7 +64,6 @@ const RegionModal: React.FC<Props> = ({
   dismiss,
 }: Props) => {
   const { colors } = useTheme();
-  const styles = createStyles();
   const modalStyles = createModalStyles(colors);
   const searchInput = useRef<TextInput>(null);
   const list = useRef<SectionList<DepositRegion>>(null);
@@ -203,7 +168,7 @@ const RegionModal: React.FC<Props> = ({
   const renderRegionItem = useCallback(
     ({ item: region }: { item: DepositRegion }) => (
       <ListItemSelect
-        style={[styles.listItem, !region.supported && styles.disabledItem]}
+        style={[modalStyles.listItem, !region.supported && modalStyles.disabledItem]}
         isSelected={selectedRegion?.code === region.code}
         onPress={() => {
           if (region.supported) {
@@ -215,9 +180,9 @@ const RegionModal: React.FC<Props> = ({
         disabled={!region.supported}
       >
         <ListItemColumn widthType={WidthType.Fill}>
-          <View style={styles.region}>
-            <View style={styles.emoji}>
-              <Text style={!region.supported && styles.disabledText}>
+          <View style={modalStyles.region}>
+            <View style={modalStyles.emoji}>
+              <Text style={!region.supported && modalStyles.disabledText}>
                 {activeView === RegionViewType.STATE
                   ? regionInTransit?.flag
                   : region.flag}
@@ -226,7 +191,7 @@ const RegionModal: React.FC<Props> = ({
             <View>
               <Text
                 variant={TextVariant.BodyLGMedium}
-                style={!region.supported && styles.disabledText}
+                style={!region.supported && modalStyles.disabledText}
               >
                 {region.name}
               </Text>
@@ -247,13 +212,14 @@ const RegionModal: React.FC<Props> = ({
     [
       handleOnRegionPressCallback,
       selectedRegion,
-      styles.emoji,
-      styles.listItem,
-      styles.region,
-      styles.disabledItem,
-      styles.disabledText,
+      modalStyles.emoji,
+      modalStyles.listItem,
+      modalStyles.region,
+      modalStyles.disabledItem,
+      modalStyles.disabledText,
       activeView,
       regionInTransit,
+      colors,
     ],
   );
   const handleSearchPress = () => searchInput?.current?.focus();
@@ -278,7 +244,7 @@ const RegionModal: React.FC<Props> = ({
   }) => {
     if (!sectionTitle) return null;
     return (
-      <ListItem style={styles.listItem}>
+      <ListItem style={modalStyles.listItem}>
         <Text variant={TextVariant.BodyLGMedium}>{sectionTitle}</Text>
       </ListItem>
     );
@@ -346,7 +312,7 @@ const RegionModal: React.FC<Props> = ({
             descriptionStyle={modalStyles.headerDescription}
           >
             {activeView === RegionViewType.STATE ? (
-              <ScreenLayout.Content style={styles.subheader}>
+              <ScreenLayout.Content style={modalStyles.subheader}>
                 <TouchableOpacity onPress={handleRegionBackButton}>
                   <Feather
                     name="chevron-left"
@@ -357,7 +323,7 @@ const RegionModal: React.FC<Props> = ({
                 <Text variant={TextVariant.BodyLGMedium}>
                   {regionInTransit?.name}
                 </Text>
-                <View style={styles.ghostSpacer} />
+                <View style={modalStyles.ghostSpacer} />
               </ScreenLayout.Content>
             ) : null}
 
@@ -398,7 +364,7 @@ const RegionModal: React.FC<Props> = ({
             <View style={modalStyles.resultsView}>
               <SectionList
                 ref={list}
-                style={styles.rowView}
+                style={modalStyles.rowView}
                 keyboardDismissMode="none"
                 keyboardShouldPersistTaps="always"
                 sections={dataSearchResults}
