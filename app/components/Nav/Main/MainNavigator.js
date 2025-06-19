@@ -52,16 +52,16 @@ import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 
-import RampRoutes from '../../UI/Ramp/routes';
-import { RampType } from '../../UI/Ramp/types';
-import RampSettings from '../../UI/Ramp/Views/Settings';
-import RampActivationKeyForm from '../../UI/Ramp/Views/Settings/ActivationKeyForm';
+import RampRoutes from '../../UI/Ramp/Aggregator/routes';
+import { RampType } from '../../UI/Ramp/Aggregator/types';
+import RampSettings from '../../UI/Ramp/Aggregator/Views/Settings';
+import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm';
 
-import DepositRoutes from '../../UI/Deposit/routes';
+import DepositRoutes from '../../UI/Ramp/Deposit/routes';
 
 import { colors as importedColors } from '../../../styles/common';
-import OrderDetails from '../../UI/Ramp/Views/OrderDetails';
-import SendTransaction from '../../UI/Ramp/Views/SendTransaction';
+import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
+import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
@@ -93,11 +93,12 @@ import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
-import { EarnScreenStack } from '../../UI/Earn/routes';
+import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
+import UnmountOnBlur from '../../Views/UnmountOnBlur';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -186,7 +187,7 @@ const WalletTabStackFlow = () => (
       options={ConfirmAddAsset.navigationOptions}
     />
     <Stack.Screen
-      name="RevealPrivateCredentialView"
+      name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
       component={RevealPrivateCredential}
     />
   </Stack.Navigator>
@@ -376,7 +377,7 @@ const SettingsFlow = () => (
       }}
     />
     <Stack.Screen
-      name="RevealPrivateCredentialView"
+      name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
       component={RevealPrivateCredential}
     />
     <Stack.Screen
@@ -508,6 +509,7 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.BROWSER_VIEW,
+      unmountOnBlur: true,
     },
     activity: {
       tabBarIconKey: TabBarIconKey.Activity,
@@ -519,6 +521,7 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
+      unmountOnBlur: true,
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
@@ -576,6 +579,7 @@ const HomeTabs = () => {
         name={Routes.TRANSACTIONS_VIEW}
         options={options.activity}
         component={TransactionsHome}
+        layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
       <Tab.Screen
         name={Routes.MODAL.WALLET_ACTIONS}
@@ -586,12 +590,14 @@ const HomeTabs = () => {
         name={Routes.BROWSER.HOME}
         options={options.browser}
         component={BrowserFlow}
+        layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
 
       <Tab.Screen
         name={Routes.SETTINGS_VIEW}
         options={options.settings}
         component={SettingsFlow}
+        layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
     </Tab.Navigator>
   );
@@ -662,7 +668,7 @@ const SendFlowView = () => (
       options={Confirm.navigationOptions}
     />
     <Stack.Screen
-      name={Routes.STANDALONE_CONFIRMATIONS.TRANSFER}
+      name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
       component={RedesignedConfirm}
     />
   </Stack.Navigator>
@@ -863,6 +869,11 @@ const MainNavigator = () => (
     />
     <Stack.Screen name="StakeScreens" component={StakeScreenStack} />
     <Stack.Screen name={Routes.EARN.ROOT} component={EarnScreenStack} />
+    <Stack.Screen
+      name={Routes.EARN.MODALS.ROOT}
+      component={EarnModalStack}
+      options={clearStackNavigatorOptions}
+    />
     <Stack.Screen
       name="StakeModals"
       component={StakeModalStack}

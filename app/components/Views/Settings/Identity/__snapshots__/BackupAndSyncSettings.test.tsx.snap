@@ -81,7 +81,7 @@ exports[`BackupAndSyncSettings renders correctly 1`] = `
           }
         }
       >
-        Backup and sync lets us store encrypted data for your custom settings and features. This keeps your MetaMask experience the same across devices and restores settings and features if you ever need to reinstall MetaMask.
+        Backup and sync lets us store encrypted data for your custom settings and features. This keeps your MetaMask experience the same across devices and restores settings and features if you ever need to reinstall MetaMask. This doesn’t back up your Secret Recovery Phrase.
         <Text
           accessibilityRole="text"
           onPress={[Function]}
@@ -216,6 +216,78 @@ exports[`BackupAndSyncSettings renders correctly 1`] = `
             ]
           }
           testID="toggle-accountSyncing"
+          thumbTintColor="#ffffff"
+          tintColor="#b7bbc866"
+          value={true}
+        />
+      </View>
+      <View
+        style={
+          {
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "marginVertical": 8,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "gap": 8,
+              "justifyContent": "flex-start",
+            }
+          }
+        >
+          <SvgMock
+            color="#121314"
+            fill="currentColor"
+            height={20}
+            name="Book"
+            style={
+              {
+                "height": 20,
+                "width": 20,
+              }
+            }
+            width={20}
+          />
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Contacts
+          </Text>
+        </View>
+        <RCTSwitch
+          accessibilityRole="switch"
+          disabled={false}
+          onChange={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          onTintColor="#4459ff"
+          style={
+            [
+              {
+                "height": 31,
+                "width": 51,
+              },
+              {
+                "backgroundColor": "#b7bbc866",
+                "borderRadius": 16,
+              },
+            ]
+          }
+          testID="toggle-contactSyncing"
           thumbTintColor="#ffffff"
           tintColor="#b7bbc866"
           value={true}

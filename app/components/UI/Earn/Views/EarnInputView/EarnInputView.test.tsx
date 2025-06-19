@@ -1,11 +1,15 @@
 import { BNToHex } from '@metamask/controller-utils';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
-import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
+import {
+  ChainId,
+  LendingProvider,
+  PooledStakingContract,
+} from '@metamask/stake-sdk';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import BigNumber from 'bignumber.js';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { BigNumber } from 'bignumber.js';
 import BN4 from 'bnjs4';
-import { Contract } from 'ethers';
+import { Contract, BigNumber as EthersBigNumber } from 'ethers';
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -13,7 +17,6 @@ import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventB
 import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 // eslint-disable-next-line import/no-namespace
-import * as tempLendingUtils from '../../utils/tempLending';
 import {
   ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
@@ -41,19 +44,42 @@ import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
 import * as useBalance from '../../../Stake/hooks/useBalance';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
 // eslint-disable-next-line import/no-namespace
-import * as useStakingGasFee from '../../../Stake/hooks/useStakingGasFee';
-import {
-  EARN_INPUT_VIEW_ACTIONS,
-  EarnInputViewProps,
-} from './EarnInputView.types';
-import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
+import Engine from '../../../../../core/Engine';
+// eslint-disable-next-line import/no-namespace
+import * as useEarnGasFee from '../../../Earn/hooks/useEarnGasFee';
 import {
   createMockToken,
   getCreateMockTokenOptions,
 } from '../../../Stake/testUtils';
 import { TOKENS_WITH_DEFAULT_OPTIONS } from '../../../Stake/testUtils/testUtils.types';
-import EarnInputView from './EarnInputView';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import { useEarnMetadata } from '../../hooks/useEarnMetadata';
+import useEarnTokens from '../../hooks/useEarnTokens';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import EarnInputView from './EarnInputView';
+import { EarnInputViewProps } from './EarnInputView.types';
+import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
+
+jest.mock('./utils');
+
+import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
+
+jest.mock('lodash', () => {
+  const actual = jest.requireActual('lodash');
+  return {
+    ...actual,
+    debounce: jest.fn((fn) => fn),
+  };
+});
+
+jest.mock('../../hooks/useEarnMetadata', () => ({
+  useEarnMetadata: jest.fn(() => ({
+    annualRewardRate: '50%',
+    annualRewardRateDecimal: 0.5,
+    annualRewardRateValue: 50,
+    isLoadingEarnMetadata: false,
+  })),
+}));
 
 const MOCK_USDC_MAINNET_ASSET = createMockToken({
   ...getCreateMockTokenOptions(
@@ -69,6 +95,25 @@ const mockNavigate = jest.fn();
 const mockReset = jest.fn();
 const mockPop = jest.fn();
 const mockConversionRate = 2000;
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    EarnController: {
+      getLendingTokenAllowance: jest.fn(),
+    },
+    TransactionController: {
+      addTransactionBatch: jest.fn().mockResolvedValue({ batchId: '0x123456789abcdef' }),
+    },
+  },
+}));
+
+jest.mock('../../hooks/useEarnTokens', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    getEarnToken: jest.fn(),
+    getOutputToken: jest.fn(),
+  })),
+}));
 
 jest.mock('../../../../hooks/useMetrics/useMetrics');
 
@@ -128,7 +173,6 @@ const mockBalanceBN = toWei('1.5'); // 1.5 ETH
 const mockGasFeeBN = new BN4('100000000000000');
 const mockPooledStakingContractService: PooledStakingContract = {
   chainId: ChainId.ETHEREUM,
-  connectSignerOrProvider: jest.fn(),
   contract: new Contract('0x0000000000000000000000000000000000000000', []),
   convertToShares: jest.fn(),
   encodeClaimExitedAssetsTransactionData: jest.fn(),
@@ -147,11 +191,28 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
 }));
 
+const mockLendingContracts = {
+  aave: {
+    '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2': {
+      estimateDepositGas: jest.fn(),
+      encodeDepositTransactionData: jest.fn(),
+      estimateWithdrawGas: jest.fn(),
+      encodeWithdrawTransactionData: jest.fn(),
+      estimateUnderlyingTokenApproveGas: jest.fn(),
+      encodeUnderlyingTokenApproveTransactionData: jest.fn(),
+      underlyingTokenAllowance: jest.fn(),
+      maxWithdraw: jest.fn(),
+      maxDeposit: jest.fn(),
+    } as unknown as LendingProvider,
+  },
+};
+
 jest.mock('../../../Stake/hooks/useStakeContext.ts', () => ({
   useStakeContext: jest.fn(() => {
     const stakeContext: Stake = {
-      setSdkType: jest.fn(),
       stakingContract: mockPooledStakingContractService,
+      lendingContracts: mockLendingContracts,
+      networkClientId: 'test network client id',
     };
     return stakeContext;
   }),
@@ -166,13 +227,14 @@ jest.mock('../../../Stake/hooks/useBalance', () => ({
   }),
 }));
 
-jest.mock('../../../Stake/hooks/useStakingGasFee', () => ({
+jest.mock('../../../Earn/hooks/useEarnGasFee', () => ({
   __esModule: true,
   default: () => ({
-    estimatedGasFeeWei: mockGasFeeBN,
-    isLoadingStakingGasFee: false,
-    isStakingGasFeeError: false,
-    refreshGasValues: jest.fn(),
+    estimatedEarnGasFeeWei: mockGasFeeBN,
+    isLoadingEarnGasFee: false,
+    isEarnGasFeeError: false,
+    refreshEarnGasValues: jest.fn(),
+    getEstimatedEarnGasFee: jest.fn(),
   }),
 }));
 
@@ -212,6 +274,30 @@ jest.mock('../../../Stake/hooks/useVaultMetadata', () => ({
 jest.mock('../../../Stake/hooks/usePoolStakedDeposit', () => ({
   __esModule: true,
   default: jest.fn(),
+}));
+
+jest.mock('./utils', () => ({
+  __esModule: true,
+  getIsRedesignedStablecoinLendingScreenEnabled: jest.fn(() => false),
+}));
+
+jest.mock('../../utils/tempLending', () => ({
+  generateLendingAllowanceIncreaseTransaction: jest.fn(() => ({
+    txParams: {
+      to: '0x123232',  // Token contract address
+      from: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+      data: '0xapprovedata',
+      value: '0x0',
+    },
+  })),
+  generateLendingDepositTransaction: jest.fn(() => ({
+    txParams: {
+      to: '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2', // AAVE pool contract
+      from: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+      data: '0xdepositdata',
+      value: '0x0',
+    },
+  })),
 }));
 
 const mockInitialState: DeepPartial<RootState> = {
@@ -263,7 +349,6 @@ describe('EarnInputView', () => {
   const baseProps: EarnInputViewProps = {
     route: {
       params: {
-        action: EARN_INPUT_VIEW_ACTIONS.STAKE,
         token: MOCK_ETH_MAINNET_ASSET,
       },
       key: Routes.STAKING.STAKE,
@@ -277,6 +362,10 @@ describe('EarnInputView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+
+    // Reset the mocked function to default value
+    (getIsRedesignedStablecoinLendingScreenEnabled as jest.Mock).mockReturnValue(false);
+
     selectSelectedInternalAccountMock.mockImplementation(
       () =>
         ({
@@ -295,6 +384,74 @@ describe('EarnInputView', () => {
     } as unknown as ReturnType<typeof useMetrics>);
 
     selectStablecoinLendingEnabledFlagMock.mockReturnValue(false);
+
+    (useEarnTokens as jest.Mock).mockReturnValue({
+      getEarnToken: jest.fn(() => ({
+        ...MOCK_ETH_MAINNET_ASSET,
+        balance: '1.5',
+        balanceFiat: '$3000',
+        balanceWei: mockBalanceBN,
+        balanceMinimalUnit: mockBalanceBN,
+        balanceFiatNumber: 6000,
+        isStaked: false,
+        isNative: true,
+        isETH: true,
+        experiences: [
+          {
+            type: 'POOLED_STAKING',
+            apr: '50',
+            estimatedAnnualRewardsFormatted: '0.00946 ETH',
+            estimatedAnnualRewardsFiatNumber: 0.00946,
+            estimatedAnnualRewardsTokenMinimalUnit: '0.00946',
+            estimatedAnnualRewardsTokenFormatted: '0.00946 ETH',
+          },
+        ],
+        experience: {
+          type: 'POOLED_STAKING',
+          apr: '50',
+          estimatedAnnualRewardsFormatted: '0.00946 ETH',
+          estimatedAnnualRewardsFiatNumber: 0.00946,
+          estimatedAnnualRewardsTokenMinimalUnit: '0.00946',
+          estimatedAnnualRewardsTokenFormatted: '0.00946 ETH',
+        },
+      })),
+      getOutputToken: jest.fn(() => ({
+        ...MOCK_ETH_MAINNET_ASSET,
+        name: 'Staked ETH',
+        symbol: 'stETH',
+        decimals: 18,
+        balance: '1.5',
+        balanceFiat: '$3000',
+        balanceWei: mockBalanceBN,
+        balanceMinimalUnit: mockBalanceBN,
+        balanceFiatNumber: 6000,
+        isStaked: true,
+        isNative: true,
+        isETH: true,
+        experiences: [
+          {
+            type: 'STABLECOIN_LENDING',
+            apr: '2.5%',
+            estimatedAnnualRewardsFormatted: '0.00946 ETH',
+            estimatedAnnualRewardsFiatNumber: 0.00946,
+            estimatedAnnualRewardsTokenMinimalUnit: '0.00946',
+            estimatedAnnualRewardsTokenFormatted: '0.00946 ETH',
+          },
+        ],
+        experience: {
+          type: 'STABLECOIN_LENDING',
+          apr: '2.5%',
+          estimatedAnnualRewardsFormatted: '0.00946 ETH',
+          estimatedAnnualRewardsFiatNumber: 0.00946,
+          estimatedAnnualRewardsTokenMinimalUnit: '0.00946',
+          estimatedAnnualRewardsTokenFormatted: '0.00946 ETH',
+        },
+      })),
+    });
+  });
+
+  afterEach(() => {
+    (getIsRedesignedStablecoinLendingScreenEnabled as jest.Mock).mockClear();
   });
 
   function render(
@@ -325,10 +482,42 @@ describe('EarnInputView', () => {
     it('renders the correct USDC token', async () => {
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
 
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          balance: '100',
+          balanceFiat: '$100',
+          balanceMinimalUnit: '1000000',
+          balanceFormatted: '1 USDC',
+          experience: {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '4.5%',
+            estimatedAnnualRewardsFormatted: '0.00946 USDC',
+            estimatedAnnualRewardsFiatNumber: 0.00946,
+            estimatedAnnualRewardsTokenMinimalUnit: '0.00946',
+            estimatedAnnualRewardsTokenFormatted: '0.00946 USDC',
+          },
+        })),
+        getOutputToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          name: 'aUSDC',
+          symbol: 'aUSDC',
+          balance: '3',
+          balanceFiat: '$3',
+          experience: {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '4.5%',
+            estimatedAnnualRewardsFormatted: '0.00946 USDC',
+            estimatedAnnualRewardsFiatNumber: 0.00946,
+            estimatedAnnualRewardsTokenMinimalUnit: '0.00946',
+            estimatedAnnualRewardsTokenFormatted: '0.00946 USDC',
+          },
+        })),
+      });
+
       const { getByText, getAllByText } = render(EarnInputView, {
         params: {
           ...baseProps.route.params,
-          action: EARN_INPUT_VIEW_ACTIONS.LEND,
           token: MOCK_USDC_MAINNET_ASSET,
         },
         key: Routes.STAKING.STAKE,
@@ -399,9 +588,9 @@ describe('EarnInputView', () => {
     it('calculates estimated annual rewards based on input', () => {
       const { getByText } = renderComponent();
 
-      fireEvent.press(getByText('2'));
+      fireEvent.press(getByText('1'));
 
-      expect(getByText('0.05044 ETH')).toBeTruthy();
+      expect(getByText('0.5 ETH')).toBeTruthy();
     });
   });
 
@@ -441,13 +630,16 @@ describe('EarnInputView', () => {
       fireEvent.press(getByLabelText('Learn More'));
       expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
         screen: Routes.STAKING.MODALS.LEARN_MORE,
+        params: {
+          chainId: CHAIN_IDS.MAINNET,
+        },
       });
     });
   });
 
   describe('navigates to ', () => {
     it('gas impact modal when gas cost is 30% or more of deposit amount', async () => {
-      const mockUseStakingGasFee = jest.spyOn(useStakingGasFee, 'default');
+      const mockUseStakingGasFee = jest.spyOn(useEarnGasFee, 'default');
       const mockUseBalance = jest.spyOn(useBalance, 'default');
       const useBalanceMockData = {
         balanceFiatNumber: weiToFiatNumber(
@@ -460,10 +652,11 @@ describe('EarnInputView', () => {
       } as ReturnType<(typeof useBalance)['default']>;
       mockUseBalance.mockImplementation(() => useBalanceMockData);
       mockUseStakingGasFee.mockImplementation(() => ({
-        estimatedGasFeeWei: toWei('0.25'),
-        isLoadingStakingGasFee: false,
-        isStakingGasFeeError: false,
-        refreshGasValues: jest.fn(),
+        estimatedEarnGasFeeWei: toWei('0.25'),
+        isLoadingEarnGasFee: false,
+        isEarnGasFeeError: false,
+        refreshEarnGasValues: jest.fn(),
+        getEstimatedEarnGasFee: jest.fn(),
       }));
 
       const { getByText } = renderComponent();
@@ -479,11 +672,12 @@ describe('EarnInputView', () => {
         params: {
           amountFiat: '750',
           amountWei: '375000000000000000',
-          annualRewardRate: '2.5%',
-          annualRewardsToken: '0.00946 ETH',
-          annualRewardsFiat: '18.92 USD',
+          annualRewardRate: '50%',
+          annualRewardsFiat: '375 USD',
+          annualRewardsToken: '0.1875 ETH',
           estimatedGasFee: '0.25',
           estimatedGasFeePercentage: '66%',
+          chainId: CHAIN_IDS.MAINNET,
         },
       });
     });
@@ -511,7 +705,7 @@ describe('EarnInputView', () => {
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenLastCalledWith('StakeScreens', {
-        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
       });
 
       expect(attemptDepositTransactionMock).toHaveBeenCalledTimes(1);
@@ -544,13 +738,13 @@ describe('EarnInputView', () => {
 
       const { getByText } = renderComponent();
 
-      fireEvent.press(getByText('25%'));
+      await act(async () => {
+        fireEvent.press(getByText('25%'));
+      });
 
-      fireEvent.press(getByText(strings('stake.review')));
-
-      jest.useRealTimers();
-
-      await new Promise(process.nextTick);
+      await act(async () => {
+        fireEvent.press(getByText(strings('stake.review')));
+      });
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenLastCalledWith('StakeScreens', {
@@ -558,9 +752,10 @@ describe('EarnInputView', () => {
         params: {
           amountFiat: '750',
           amountWei: '375000000000000000',
-          annualRewardRate: '2.5%',
-          annualRewardsToken: '0.00946 ETH',
-          annualRewardsFiat: '18.92 USD',
+          annualRewardRate: '50%',
+          annualRewardsFiat: '375 USD',
+          annualRewardsToken: '0.1875 ETH',
+          chainId: CHAIN_IDS.MAINNET,
         },
       });
     });
@@ -568,12 +763,46 @@ describe('EarnInputView', () => {
     it('earn lending deposit view', async () => {
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
       const getErc20SpendingLimitSpy = jest
-        .spyOn(tempLendingUtils, 'getErc20SpendingLimit')
-        .mockResolvedValue('0');
+        .spyOn(Engine.context.EarnController, 'getLendingTokenAllowance')
+        .mockResolvedValue(EthersBigNumber.from('0'));
+      (useEarnMetadata as jest.Mock).mockReturnValue({
+        annualRewardRate: '50%',
+        annualRewardRateDecimal: 50,
+        isLoadingEarnMetadata: false,
+      });
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          chainId: CHAIN_IDS.MAINNET,
+          address: '0x123232',
+          balance: '100',
+          balanceFiat: '$100',
+          balanceWei: new BN4('250000'),
+          balanceMinimalUnit: '250000',
+          balanceFiatNumber: 100,
+          experience: {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '2.5%',
+            estimatedAnnualRewardsFormatted: '$3.00',
+            estimatedAnnualRewardsFiatNumber: 3,
+            estimatedAnnualRewardsTokenMinimalUnit: '3000000',
+            estimatedAnnualRewardsTokenFormatted: '3 USDC',
+            market: {
+              protocol: 'AAVE v3',
+              underlying: {
+                address: MOCK_USDC_MAINNET_ASSET.address,
+              },
+            },
+          },
+        })),
+        getOutputToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          chainId: CHAIN_IDS.MAINNET,
+        })),
+      });
 
       const routeParamsWithUSDC: EarnInputViewProps['route'] = {
         params: {
-          action: EARN_INPUT_VIEW_ACTIONS.STAKE,
           token: MOCK_USDC_MAINNET_ASSET,
         },
         key: Routes.STAKING.STAKE,
@@ -597,17 +826,17 @@ describe('EarnInputView', () => {
           screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
           params: {
             action: 'ALLOWANCE_INCREASE',
-            amountFiat: '0.25',
-            amountTokenMinimalUnit: '250000',
-            annualRewardRate: '2.5%',
-            annualRewardsFiat: '0.01 USD',
-            annualRewardsToken: '0.00631 ETH',
+            amountFiat: '0.06',
+            amountTokenMinimalUnit: '62500',
+            annualRewardRate: '50%',
+            annualRewardsFiat: '3 USD',
+            annualRewardsToken: '3.125 USDC',
             lendingContractAddress:
               '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2',
             lendingProtocol: 'AAVE v3',
             token: {
               address: '0x123232',
-              aggregators: expect.any(Array),
+              aggregators: [],
               balance: '',
               balanceFiat: '$33.23',
               chainId: '0x1',
@@ -624,6 +853,145 @@ describe('EarnInputView', () => {
           },
         });
       });
+    });
+
+    it('navigates to redesigned lending deposit confirmation', async () => {
+      // Enable stablecoin lending feature flag
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      // Mock the function to return true for this test
+      (getIsRedesignedStablecoinLendingScreenEnabled as jest.Mock).mockReturnValue(true);
+
+      const getErc20SpendingLimitSpy = jest
+        .spyOn(Engine.context.EarnController, 'getLendingTokenAllowance')
+        .mockResolvedValue(EthersBigNumber.from('0'));
+
+      try {
+        (useEarnMetadata as jest.Mock).mockReturnValue({
+          annualRewardRate: '50%',
+          annualRewardRateDecimal: 50,
+          isLoadingEarnMetadata: false,
+        });
+
+        (useEarnTokens as jest.Mock).mockReturnValue({
+          getEarnToken: jest.fn(() => ({
+            ...MOCK_USDC_MAINNET_ASSET,
+            chainId: CHAIN_IDS.MAINNET,
+            address: '0x123232',
+            balance: '100',
+            balanceFiat: '$100',
+            balanceWei: new BN4('250000'),
+            balanceMinimalUnit: '250000',
+            balanceFiatNumber: 100,
+            experience: {
+              type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+              apr: '2.5%',
+              estimatedAnnualRewardsFormatted: '$3.00',
+              estimatedAnnualRewardsFiatNumber: 3,
+              estimatedAnnualRewardsTokenMinimalUnit: '3000000',
+              estimatedAnnualRewardsTokenFormatted: '3 USDC',
+              market: {
+                protocol: 'AAVE v3',
+                underlying: {
+                  address: MOCK_USDC_MAINNET_ASSET.address,
+                },
+              },
+            },
+          })),
+          getOutputToken: jest.fn(() => ({
+            ...MOCK_USDC_MAINNET_ASSET,
+            chainId: CHAIN_IDS.MAINNET,
+          })),
+        });
+
+        const routeParamsWithUSDC: EarnInputViewProps['route'] = {
+          params: {
+            token: MOCK_USDC_MAINNET_ASSET,
+          },
+          key: Routes.STAKING.STAKE,
+          name: 'params',
+        };
+
+        const { getByText } = render(EarnInputView, routeParamsWithUSDC);
+
+        await act(async () => {
+          fireEvent.press(getByText('25%'));
+        });
+
+        await act(async () => {
+          fireEvent.press(getByText(strings('stake.review')));
+        });
+
+        expect(getErc20SpendingLimitSpy).toHaveBeenCalledTimes(1);
+
+        await waitFor(() => {
+          // Should call addTransactionBatch instead of navigating to legacy flow
+          expect(Engine.context.TransactionController.addTransactionBatch).toHaveBeenCalledTimes(1);
+          expect(Engine.context.TransactionController.addTransactionBatch).toHaveBeenCalledWith({
+            from: MOCK_ADDRESS_2,
+            networkClientId: 'mainnet',
+            origin: 'metamask',
+            transactions: [
+              {
+                params: {
+                  to: '0x123232',  // Token contract address
+                  from: MOCK_ADDRESS_2,
+                  data: '0xapprovedata',
+                  value: '0x0',
+                },
+                type: 'approve',
+              },
+              {
+                params: {
+                  to: '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2', // AAVE pool contract (mixed case)
+                  from: MOCK_ADDRESS_2,
+                  data: '0xdepositdata',
+                  value: '0x0',
+                },
+                type: 'lendingDeposit',
+              },
+            ],
+            disable7702: true,
+            disableHook: true,
+            disableSequential: false,
+            requireApproval: true,
+          });
+
+          // Should navigate to redesigned confirmations instead of legacy lending deposit confirmation
+          expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+            screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          });
+
+          // Should NOT navigate to legacy lending deposit confirmation
+          expect(mockNavigate).not.toHaveBeenCalledWith(Routes.EARN.ROOT, expect.any(Object));
+        });
+      } finally {
+        // Clean up the spy to prevent interference with other tests
+        getErc20SpendingLimitSpy.mockRestore();
+      }
+    });
+  });
+
+  describe('title bar', () => {
+    it('displays "deposit" for all assets', () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      render(EarnInputView, {
+        params: {
+          ...baseProps.route.params,
+          token: MOCK_USDC_MAINNET_ASSET,
+        },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      });
+
+      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
+        'Deposit',
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
     });
   });
 });

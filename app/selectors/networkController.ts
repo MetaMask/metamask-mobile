@@ -1,5 +1,5 @@
 import { CaipChainId, Hex } from '@metamask/utils';
-import { createSelector } from 'reselect';
+import { createSelector, weakMapMemoize } from 'reselect';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 import {
   BuiltInNetworkClientId,
@@ -209,22 +209,24 @@ export const selectNetworkConfigurations = createDeepEqualSelector(
  *
  * @returns network configurations keyed by CaipChainId.
  */
-// Uncomment relevant lines when ready for non-evm support
 export const getNetworkConfigurationsByCaipChainId = (
   evmNetworkConfigurationsByChainId: Record<Hex, NetworkConfiguration>,
-  // nonEvmNetworkConfigurationsByChainId,
-): Record<
-  CaipChainId,
-  EvmAndMultichainNetworkConfigurationsWithCaipChainId
-> => {
-  const networkConfigurationsByCaipChainId: Record<
-    CaipChainId,
-    EvmAndMultichainNetworkConfigurationsWithCaipChainId
-  > = {};
+  nonEvmNetworkConfigurationsByChainId: Record<Hex, MultichainNetworkConfiguration>,
+): Record<CaipChainId, EvmAndMultichainNetworkConfigurationsWithCaipChainId> => {
+  const networkConfigurationsByCaipChainId: Record<CaipChainId, EvmAndMultichainNetworkConfigurationsWithCaipChainId> = {
+  };
 
-  Object.entries(evmNetworkConfigurationsByChainId).forEach(
-    ([chainId, networkConfiguration]) => {
-      const caipChainId: CaipChainId = `eip155:${parseInt(chainId, 16)}`;
+  Object.entries(evmNetworkConfigurationsByChainId).forEach(([chainId, networkConfiguration]) => {
+    const caipChainId: CaipChainId = `eip155:${parseInt(chainId, 16)}`;
+    networkConfigurationsByCaipChainId[caipChainId] = {
+      ...networkConfiguration,
+      caipChainId
+    };
+  });
+
+  Object.entries(nonEvmNetworkConfigurationsByChainId || {}).forEach(
+    ([_caipChainId, networkConfiguration]) => {
+      const caipChainId = _caipChainId as CaipChainId;
       networkConfigurationsByCaipChainId[caipChainId] = {
         ...networkConfiguration,
         caipChainId,
@@ -232,33 +234,20 @@ export const getNetworkConfigurationsByCaipChainId = (
     },
   );
 
-  // for use in the near future when we want to include nonEvm configurations in what's returned
-  // Object.entries(nonEvmNetworkConfigurationsByChainId).forEach(([_caipChainId, networkConfiguration]) => {
-  //   const caipChainId = _caipChainId as CaipChainId;
-  //   networkConfigurationsByCaipChainId[caipChainId] = {
-  //     ...networkConfiguration,
-  //     caipChainId
-  //   }
-  // })
-
   return networkConfigurationsByCaipChainId;
 };
 
-// Uncomment relevant lines when ready for non-evm support
 export const selectNetworkConfigurationsByCaipChainId = createSelector(
   selectEvmNetworkConfigurationsByChainId,
-  // selectNonEvmNetworkConfigurationsByChainId,
+  selectNonEvmNetworkConfigurationsByChainId,
   (
     evmNetworkConfigurationsByChainId,
-    // nonEvmNetworkConfigurationsByChainId,
-  ): Record<
-    CaipChainId,
-    EvmAndMultichainNetworkConfigurationsWithCaipChainId
-  > =>
+    nonEvmNetworkConfigurationsByChainId,
+  ): Record<CaipChainId, EvmAndMultichainNetworkConfigurationsWithCaipChainId> =>
     getNetworkConfigurationsByCaipChainId(
       evmNetworkConfigurationsByChainId,
-      // nonEvmNetworkConfigurationsByChainId,
-    ),
+      nonEvmNetworkConfigurationsByChainId,
+    )
 );
 
 export const selectNativeNetworkCurrencies = createDeepEqualSelector(
@@ -336,6 +325,10 @@ export const selectIsAllNetworks = createSelector(
 export const selectNetworkConfigurationByChainId = createSelector(
   [selectNetworkConfigurations, (_state: RootState, chainId) => chainId],
   (networkConfigurations, chainId) => networkConfigurations?.[chainId] || null,
+  {
+    argsMemoize: weakMapMemoize,
+    memoize: weakMapMemoize
+  }
 );
 
 export const selectNativeCurrencyByChainId = createSelector(

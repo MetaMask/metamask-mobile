@@ -360,9 +360,8 @@ export function getPaymentRequestOptionsTitle(
   const goBack = route.params?.dispatch;
   const innerStyles = StyleSheet.create({
     headerTitleStyle: {
-      fontSize: 20,
-      color: themeColors.text.default,
-      ...fontStyles.normal,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     headerIcon: {
       color: themeColors.primary.default,
@@ -372,11 +371,18 @@ export function getPaymentRequestOptionsTitle(
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
+    headerCloseButton: {
+      marginRight: 16,
+    },
   });
 
   return {
-    title,
-    headerTitleStyle: innerStyles.headerTitleStyle,
+    headerTitleAlign: 'center',
+    headerTitle: () => (
+      <View>
+        <MorphText variant={TextVariant.BodyMDBold}>{title}</MorphText>
+      </View>
+    ),
     headerLeft: () =>
       goBack ? (
         // eslint-disable-next-line react/jsx-no-bind
@@ -395,17 +401,13 @@ export function getPaymentRequestOptionsTitle(
         <View />
       ),
     headerRight: () => (
-      // eslint-disable-next-line react/jsx-no-bind
-      <TouchableOpacity
+      <ButtonIcon
+        iconName={IconName.Close}
+        size={ButtonIconSizes.Md}
         onPress={() => navigation.pop()}
-        style={styles.closeButton}
-      >
-        <IonicIcon
-          name={'close'}
-          size={38}
-          style={[innerStyles.headerIcon, styles.backIconIOS]}
-        />
-      </TouchableOpacity>
+        style={innerStyles.headerCloseButton}
+        testID={RequestPaymentViewSelectors.BACK_BUTTON_ID}
+      />
     ),
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
@@ -647,10 +649,14 @@ export function getModalNavbarOptions(title) {
  */
 export function getOnboardingNavbarOptions(
   route,
-  { headerLeft } = {},
+  { headerLeft, headerRight },
   themeColors,
+  showLogo = true,
 ) {
-  const headerLeftHide = headerLeft || route.params?.headerLeft;
+  const headerLeftHide =
+    headerLeft || route.params?.headerLeft || (() => <View />);
+  const headerRightHide =
+    headerRight || route.params?.headerRight || (() => <View />);
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor: themeColors.background.default,
@@ -666,17 +672,18 @@ export function getOnboardingNavbarOptions(
 
   return {
     headerStyle: innerStyles.headerStyle,
-    headerTitle: () => (
-      <View style={styles.metamaskNameTransparentWrapper}>
-        <Image
-          source={metamask_name}
-          style={innerStyles.metamaskName}
-          resizeMethod={'auto'}
-        />
-      </View>
-    ),
-    headerBackTitle: strings('navigation.back'),
-    headerRight: () => <View />,
+    headerTitle: showLogo
+      ? () => (
+          <View style={styles.metamaskNameTransparentWrapper}>
+            <Image
+              source={metamask_name}
+              style={innerStyles.metamaskName}
+              resizeMethod={'auto'}
+            />
+          </View>
+        )
+      : null,
+    headerRight: headerRightHide,
     headerLeft: headerLeftHide,
     headerTintColor: themeColors.primary.default,
   };
@@ -686,18 +693,62 @@ export function getOnboardingNavbarOptions(
  * Function that returns a transparent navigation options for our onboarding screens.
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle
+ * @param {Object} themeColors - The theme colors object
+ * @param {string} backgroundColor - The color to overwrite the background color
+ * @param {boolean} showLogo - Whether to show the logo
+ * @param {string} logoColor - The color to overwrite the logo color
  */
-export function getTransparentOnboardingNavbarOptions(themeColors) {
+export function getTransparentOnboardingNavbarOptions(
+  themeColors,
+  backgroundColor = undefined,
+  showLogo = true,
+  logoColor = undefined,
+) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
-      backgroundColor: themeColors.background.default,
+      backgroundColor: backgroundColor || themeColors.background.default,
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
     metamaskName: {
       width: 70,
       height: 35,
-      tintColor: themeColors.text.default,
+      tintColor: logoColor || themeColors.text.default,
+    },
+  });
+  return {
+    headerTitle: () =>
+      showLogo ? (
+        <View style={styles.metamaskNameTransparentWrapper}>
+          <Image
+            source={metamask_name}
+            style={innerStyles.metamaskName}
+            resizeMethod={'auto'}
+          />
+        </View>
+      ) : null,
+    headerLeft: () => <View />,
+    headerRight: () => <View />,
+    headerStyle: innerStyles.headerStyle,
+  };
+}
+
+/**
+ * Function that returns a Carousel navigation options for our onboarding screens.
+ *
+ * @returns {Object} - Corresponding navbar options containing headerTitle
+ * @param {string} currentTabColor - The color of the current tab
+ */
+export function getOnboardingCarouselNavbarOptions(currentTabColor) {
+  const innerStyles = StyleSheet.create({
+    headerStyle: {
+      backgroundColor: currentTabColor,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+    metamaskName: {
+      width: 70,
+      height: 35,
     },
   });
   return {
@@ -720,6 +771,7 @@ export function getTransparentOnboardingNavbarOptions(themeColors) {
  * Function that returns a transparent navigation options for our onboarding screens.
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle and a back button
+ * @param {Object} themeColors - The theme colors object
  */
 export function getTransparentBackOnboardingNavbarOptions(themeColors) {
   const innerStyles = StyleSheet.create({
@@ -757,7 +809,7 @@ export function getTransparentBackOnboardingNavbarOptions(themeColors) {
  *
  * @returns {Object} - Corresponding navbar options containing headerLeft
  */
-export function getOptinMetricsNavbarOptions(themeColors) {
+export function getOptinMetricsNavbarOptions(themeColors, showLogo = true) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor: themeColors.background.default,
@@ -771,17 +823,19 @@ export function getOptinMetricsNavbarOptions(themeColors) {
     },
   });
   return {
-    headerTitle: () => (
-      <View style={styles.metamaskNameTransparentWrapper}>
-        <Image
-          source={metamask_name}
-          style={innerStyles.metamaskName}
-          resizeMethod={'auto'}
-        />
-      </View>
-    ),
+    headerTitle: () =>
+      showLogo ? (
+        <View style={styles.metamaskNameTransparentWrapper}>
+          <Image
+            source={metamask_name}
+            style={innerStyles.metamaskName}
+            resizeMethod={'auto'}
+          />
+        </View>
+      ) : null,
     headerBackTitle: strings('navigation.back'),
     headerRight: () => <View />,
+    headerLeft: () => <View />,
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
   };
@@ -1053,7 +1107,7 @@ export function getWalletNavbarOptions(
           testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
           style={styles.addressCopyWrapper}
         >
-          <AddressCopy />
+          <AddressCopy account={selectedInternalAccount} />
         </View>
         {isNotificationsFeatureEnabled() && (
           <View>
@@ -1806,6 +1860,68 @@ export function getBridgeTransactionDetailsNavbar(navigation) {
         <Icon name={IconName.ArrowLeft} />
       </TouchableOpacity>
     ),
+  };
+}
+
+/**
+ * Function that returns navigation options for deposit flow screens
+ *
+ * @param {string} title - Title to display in the header
+ * @param {Object} navigation - Navigation object required to navigate between screens
+ * @param {Object} theme - Theme object containing colors
+ * @param {Function} onClose - Optional custom close function
+ * @returns {Object} - Navigation options object
+ */
+export function getDepositNavbarOptions(
+  navigation,
+  { title, showBack = true, showClose = true },
+  theme,
+  onClose = undefined,
+) {
+  const leftAction = () => navigation.pop();
+
+  return {
+    title,
+    headerStyle: {
+      backgroundColor: theme.colors.background.default,
+      elevation: 0,
+      shadowOpacity: 0,
+    },
+    headerTitleStyle: {
+      fontWeight: '600',
+      fontSize: 18,
+      color: theme.colors.text.default,
+    },
+    headerTitle: () => (
+      <NavbarTitle
+        title={title}
+        disableNetwork
+        showSelectedNetwork={false}
+        translate={false}
+      />
+    ),
+    headerLeft: showBack
+      ? () => (
+          <TouchableOpacity onPress={leftAction} style={styles.backButton}>
+            <Icon name={IconName.ArrowLeft} />
+          </TouchableOpacity>
+        )
+      : null,
+    headerRight: showClose
+      ? () => (
+          <TouchableOpacity style={styles.closeButton}>
+            <ButtonIcon
+              iconName={IconName.Close}
+              size={ButtonIconSizes.Lg}
+              onPress={
+                onClose
+                  ? () => onClose()
+                  : () => navigation.navigate(Routes.WALLET.HOME)
+              }
+            />
+          </TouchableOpacity>
+        )
+      : null,
   };
 }
 

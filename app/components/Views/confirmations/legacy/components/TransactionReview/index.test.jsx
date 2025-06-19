@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import TransactionReview from '.';
 import { TESTID_ACCORDION_CONTENT } from '../../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
+// eslint-disable-next-line import/no-namespace
 import * as BlockaidUtils from '../../../../../../util/blockaid';
 import { createMockAccountsControllerState } from '../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
@@ -57,6 +58,15 @@ jest.mock('../../../../../../reducers/swaps', () => ({
   }),
 }));
 
+jest.mock('../../../../../Views/confirmations/hooks/useNetworkInfo', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+      networkImage: 1,
+      networkName: 'Ethereum Main Network',
+      networkNativeCurrency: 'ETH',
+  })),
+}));
+
 const MOCK_ADDRESS_1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const MOCK_ADDRESS_2 = '0xB374Ca013934e498e5baD3409147F34E6c462389';
 const MOCK_ADDRESS_3 = '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -81,12 +91,10 @@ jest.mock('../../../../../../core/Engine', () => {
             {
               type: KeyringTypes.hd,
               accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
-            },
-          ],
-          keyringsMetadata: [
-            {
-              id: '01JNG71B7GTWH0J1TSJY9891S0',
-              name: '',
+              metadata: {
+                id: '01JNG71B7GTWH0J1TSJY9891S0',
+                name: '',
+              }
             },
           ],
         },

@@ -1,3 +1,4 @@
+import '../../_mocks_/initialState';
 import React from 'react';
 import { BridgeTransactionDetails } from './TransactionDetails';
 import {
@@ -198,6 +199,11 @@ describe('BridgeTransactionDetails', () => {
               chainId: optimismChainId,
             },
           ],
+        },
+        EarnController: {
+          lending: {
+            markets: [],
+          },
         },
         NetworkController: {
           selectedNetworkClientId: 'selectedNetworkClientId',

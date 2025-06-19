@@ -12,6 +12,7 @@ import {
 import {
   isEIP1559Transaction,
   TransactionType,
+  TransactionEnvelopeType,
 } from '@metamask/transaction-controller';
 import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '../../core/Engine';
@@ -143,6 +144,12 @@ const reviewActionKeys = {
   [TransactionType.stakingUnstake]: strings(
     'transactions.tx_review_staking_unstake',
   ),
+  [TransactionType.lendingDeposit]: strings(
+    'transactions.tx_review_lending_deposit',
+  ),
+  [TransactionType.lendingWithdraw]: strings(
+    'transactions.tx_review_lending_withdraw',
+  ),
 };
 
 /**
@@ -177,7 +184,24 @@ const actionKeys = {
   [TransactionType.stakingUnstake]: strings(
     'transactions.tx_review_staking_unstake',
   ),
+  [TransactionType.lendingDeposit]: strings(
+    'transactions.tx_review_lending_deposit',
+  ),
+  [TransactionType.lendingWithdraw]: strings(
+    'transactions.tx_review_lending_withdraw',
+  ),
 };
+
+/**
+ * Checks if a transaction is a legacy transaction by examining its type.
+ * Legacy transactions are identified by the TransactionEnvelopeType.legacy type.
+ *
+ * @param {object} transactionMeta - The transaction metadata to check
+ * @returns {boolean} true if the transaction is a legacy transaction, false otherwise
+ */
+export function isLegacyTransaction(transactionMeta) {
+  return transactionMeta?.txParams?.type === TransactionEnvelopeType.legacy;
+}
 
 /**
  * Generates transfer data for specified method
@@ -455,6 +479,8 @@ export async function getTransactionActionKey(transaction, chainId) {
       TransactionType.stakingClaim,
       TransactionType.stakingDeposit,
       TransactionType.stakingUnstake,
+      TransactionType.lendingDeposit,
+      TransactionType.lendingWithdraw,
     ].includes(type)
   ) {
     return type;
@@ -481,7 +507,7 @@ export async function getTransactionActionKey(transaction, chainId) {
   const toSmartContract =
     transaction.toSmartContract !== undefined
       ? transaction.toSmartContract
-      : await isSmartContractAddress(to, chainId, networkClientId);
+      : await isSmartContractAddress(to, chainId);
 
   const authorizationAddress = authorizationList?.[0]?.address;
   const isDowngrade =

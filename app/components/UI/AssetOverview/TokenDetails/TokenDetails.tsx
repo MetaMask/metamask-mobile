@@ -21,15 +21,10 @@ import Logger from '../../../../util/Logger';
 import TokenDetailsList from './TokenDetailsList';
 import MarketDetailsList from './MarketDetailsList';
 import { TokenI } from '../../Tokens/types';
-import StakingEarnings from '../../Stake/components/StakingEarnings';
 import {
   isAssetFromSearch,
   selectTokenDisplayData,
 } from '../../../../selectors/tokenSearchDiscoveryDataController';
-import { isSupportedLendingTokenByChainId } from '../../Earn/utils/token';
-import EarnEmptyStateCta from '../../Earn/components/EmptyStateCta';
-import { parseFloatSafe } from '../../Earn/utils';
-import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
 import { selectEvmTokenMarketData } from '../../../../selectors/multichain/evm';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
@@ -69,9 +64,6 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
   const isNonEvmAsset = resultChainId === asset.chainId;
   const { styles } = useStyles(styleSheet, {});
-  const isStablecoinLendingEnabled = useSelector(
-    selectStablecoinLendingEnabledFlag,
-  );
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
@@ -131,9 +123,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     tokenMetadata = tokenSearchResult.token;
   } else {
     tokenMetadata = !isNonEvmAsset ? evmMarketData?.metadata : null;
-    marketData = !isNonEvmAsset
-      ? evmMarketData?.marketData
-      : nonEvmMarketData;
+    marketData = !isNonEvmAsset ? evmMarketData?.marketData : nonEvmMarketData;
   }
   const tokenDetails = useMemo(
     () =>
@@ -184,15 +174,8 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     );
   }, [marketData, currentCurrency, isNonEvmAsset, conversionRate]);
 
-  const hasAssetBalance =
-    asset.balanceFiat && parseFloatSafe(asset.balanceFiat) > 0;
-
   return (
     <View style={styles.tokenDetailsContainer}>
-      {asset.isETH && <StakingEarnings asset={asset} />}
-      {isStablecoinLendingEnabled &&
-        isSupportedLendingTokenByChainId(asset.symbol, asset.chainId ?? '') &&
-        hasAssetBalance && <EarnEmptyStateCta token={asset} />}
       {(asset.isETH || tokenMetadata || isNonEvmAsset) && (
         <TokenDetailsList tokenDetails={tokenDetails} />
       )}

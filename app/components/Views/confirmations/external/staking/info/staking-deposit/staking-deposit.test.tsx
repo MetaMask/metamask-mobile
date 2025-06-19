@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { stakingDepositConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
@@ -8,6 +8,10 @@ import { useConfirmActions } from '../../../../hooks/useConfirmActions';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
 import { getNavbar } from '../../../../components/UI/navbar/navbar';
 import StakingDeposit from './staking-deposit';
+
+jest.mock('../../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
+  AssetPollingProvider: () => null,
+}));
 
 jest.mock('../../../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
@@ -18,9 +22,6 @@ jest.mock('../../../../../../../core/Engine', () => ({
     GasFeeController: {
       startPolling: jest.fn(),
       stopPollingByPollingToken: jest.fn(),
-    },
-    TokenListController: {
-      fetchTokenList: jest.fn(),
     },
   },
 }));
@@ -100,30 +101,33 @@ describe('StakingDeposit', () => {
     });
   });
 
-  it('tracks metrics events', () => {
+  it('tracks metrics events', async () => {
     const { getByText } = renderWithProvider(<StakingDeposit />, {
       state: stakingDepositConfirmationState,
     });
 
     expect(mockTrackPageViewedEvent).toHaveBeenCalledTimes(1);
-    // 2 calls here, 1st call is for the setting transaction_amount_eth
-    // 2nd call is for the setting advanced_details_viewed
-    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(2);
-    expect(mockSetConfirmationMetric).toHaveBeenCalledWith(
-      expect.objectContaining({
-        properties: expect.objectContaining({
-          transaction_amount_eth: '0.0001',
-          selected_provider: EVENT_PROVIDERS.CONSENSYS,
+
+    await waitFor(() => {
+      // 2 calls here, 1st call is for the setting transaction_amount_eth
+      // 2nd call is for the setting advanced_details_viewed
+      expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(2);
+      expect(mockSetConfirmationMetric).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            transaction_amount_eth: '0.0001',
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+          }),
         }),
-      }),
-    );
-    expect(mockSetConfirmationMetric).toHaveBeenCalledWith(
-      expect.objectContaining({
-        properties: expect.objectContaining({
-          advanced_details_viewed: false,
+      );
+      expect(mockSetConfirmationMetric).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            advanced_details_viewed: false,
+          }),
         }),
-      }),
-    );
+      );
+    });
 
     fireEvent.press(getByText('Advanced details'));
     expect(mockTrackAdvancedDetailsToggledEvent).toHaveBeenCalledTimes(1);

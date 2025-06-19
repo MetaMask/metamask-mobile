@@ -142,7 +142,7 @@ export const INFURA_TESTNET_CHAIN_IDS = {
   GOERLI: '0x5',
   LINEA_GOERLI: '0xe704',
   SEPOLIA: '0xaa36a7',
-  HOLESKY: '0x4268',
+  HOODI: '0x88bb0',
   LINEA_SEPOLIA: '0xe705',
   AMOY: '0x13882',
   BASE_SEPOLIA: '0x14a34',
@@ -163,7 +163,7 @@ export const infuraChainIdsTestNets: string[] = [
   INFURA_TESTNET_CHAIN_IDS.GOERLI,
   INFURA_TESTNET_CHAIN_IDS.LINEA_GOERLI,
   INFURA_TESTNET_CHAIN_IDS.SEPOLIA,
-  INFURA_TESTNET_CHAIN_IDS.HOLESKY,
+  INFURA_TESTNET_CHAIN_IDS.HOODI,
   INFURA_TESTNET_CHAIN_IDS.LINEA_SEPOLIA,
   INFURA_TESTNET_CHAIN_IDS.AMOY,
   INFURA_TESTNET_CHAIN_IDS.BASE_SEPOLIA,
@@ -248,8 +248,8 @@ export const UnpopularNetworkList = [
 export const NETWORK_CHAIN_ID: {
   readonly FLARE_MAINNET: '0xe';
   readonly SONGBIRD_TESTNET: '0x13';
-  readonly APE_CHAIN_TESTNET: '0x8157';
-  readonly APE_CHAIN_MAINNET: '0x8173';
+  readonly APECHAIN_TESTNET: '0x8157';
+  readonly APECHAIN_MAINNET: '0x8173';
   readonly GRAVITY_ALPHA_MAINNET: '0x659';
   readonly KAIA_MAINNET: '0x2019';
   readonly KAIA_KAIROS_TESTNET: '0x3e9';
@@ -261,12 +261,17 @@ export const NETWORK_CHAIN_ID: {
   readonly FLOW_MAINNET: '0x2eb';
   readonly LENS: '0xe8';
   readonly PLUME: '0x18232';
-
+  readonly GENESYS: '0x407b';
+  readonly KATANA: '0xb67d2';
+  readonly SOPHON: '0xc3b8';
+  readonly SOPHON_TESTNET: '0x1fa72e78';
+  readonly BERACHAIN: '0x138de';
+  readonly EDU: '0xa3c3';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
-  APE_CHAIN_TESTNET: '0x8157',
-  APE_CHAIN_MAINNET: '0x8173',
+  APECHAIN_TESTNET: '0x8157',
+  APECHAIN_MAINNET: '0x8173',
   GRAVITY_ALPHA_MAINNET: '0x659',
   KAIA_MAINNET: '0x2019',
   KAIA_KAIROS_TESTNET: '0x3e9',
@@ -278,6 +283,12 @@ export const NETWORK_CHAIN_ID: {
   FLOW_MAINNET: '0x2eb',
   LENS: '0xe8',
   PLUME: '0x18232',
+  GENESYS: '0x407b',
+  KATANA: '0xb67d2',
+  SOPHON: '0xc3b8',
+  SOPHON_TESTNET: '0x1fa72e78',
+  BERACHAIN: '0x138de',
+  EDU: '0xa3c3',
   ...CHAIN_IDS,
 };
 
@@ -285,8 +296,8 @@ export const NETWORK_CHAIN_ID: {
 export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.FLARE_MAINNET]: require('../../images/flare-mainnet.png'),
   [NETWORK_CHAIN_ID.SONGBIRD_TESTNET]: require('../../images/songbird.png'),
-  [NETWORK_CHAIN_ID.APE_CHAIN_TESTNET]: require('../../images/ape-network.png'),
-  [NETWORK_CHAIN_ID.APE_CHAIN_MAINNET]: require('../../images/ape-network.png'),
+  [NETWORK_CHAIN_ID.APECHAIN_TESTNET]: require('../../images/apechain.png'),
+  [NETWORK_CHAIN_ID.APECHAIN_MAINNET]: require('../../images/apechain.png'),
   [NETWORK_CHAIN_ID.GRAVITY_ALPHA_MAINNET]: require('../../images/gravity.png'),
   [NETWORK_CHAIN_ID.LINEA_MAINNET]: require('../../images/linea-mainnet-logo.png'),
   [NETWORK_CHAIN_ID.KAIA_MAINNET]: require('../../images/kaia.png'),
@@ -299,4 +310,10 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.FLOW_MAINNET]: require('../../images/flow.png'),
   [NETWORK_CHAIN_ID.LENS]: require('../../images/lens.png'),
   [NETWORK_CHAIN_ID.PLUME]: require('../../images/plume.png'),
+  [NETWORK_CHAIN_ID.GENESYS]: require('../../images/genesys.png'),
+  [NETWORK_CHAIN_ID.KATANA]: require('../../images/katana.png'),
+  [NETWORK_CHAIN_ID.SOPHON]: require('../../images/sophon.png'),
+  [NETWORK_CHAIN_ID.SOPHON_TESTNET]: require('../../images/sophon-testnet.png'),
+  [NETWORK_CHAIN_ID.BERACHAIN]: require('../../images/berachain.png'),
+  [NETWORK_CHAIN_ID.EDU]: require('../../images/edu.png'),
 };

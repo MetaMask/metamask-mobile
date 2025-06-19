@@ -61,7 +61,11 @@ import {
 } from '../../selectors/multichainNetworkController';
 import { formatBlockExplorerAddressUrl } from '../../core/Multichain/networks';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { isCaipChainId, KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
+import {
+  isCaipChainId,
+  KnownCaipNamespace,
+  parseCaipChainId,
+} from '@metamask/utils';
 
 /**
  * List of the supported networks
@@ -173,7 +177,7 @@ export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.OPBNB]: 'opBNB',
   [NETWORKS_CHAIN_ID.ZKSYNC_ERA]: 'zkSync Era Mainnet',
   [NETWORKS_CHAIN_ID.SCROLL]: 'Scroll',
-  [NETWORKS_CHAIN_ID.BERACHAIN]: 'Berachain Artio',
+  [NETWORKS_CHAIN_ID.BERACHAIN]: 'Berachain',
   [NETWORKS_CHAIN_ID.METACHAIN_ONE]: 'Metachain One Mainnet',
 };
 
@@ -555,14 +559,14 @@ const getEvmNetworkImageSource = ({ networkType, chainId }) => {
 export const getNetworkImageSource = ({ networkType, chainId }) => {
   let hexChainId = chainId;
   if (isCaipChainId(chainId)) {
-    const {namespace, reference} = parseCaipChainId(chainId);
+    const { namespace, reference } = parseCaipChainId(chainId);
     if (namespace !== KnownCaipNamespace.Eip155) {
       return getNonEvmNetworkImageSourceByChainId(chainId);
     }
-    hexChainId = toHex(reference);
+    hexChainId = toHex(reference === '0' ? '1' : reference); // default to mainnet if chainId is 0
   }
 
-  return getEvmNetworkImageSource({ networkType, chainId: hexChainId});
+  return getEvmNetworkImageSource({ networkType, chainId: hexChainId });
 };
 
 /**
@@ -628,18 +632,16 @@ export const getBlockExplorerTxUrl = (
 export const getIsNetworkOnboarded = (chainId, networkOnboardedState) =>
   networkOnboardedState[chainId];
 
-export const isChainPermissionsFeatureEnabled = true;
-
 export const isPermissionsSettingsV1Enabled =
   process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';
 
-export const isPerDappSelectedNetworkEnabled = () =>
-  process.env.MM_PER_DAPP_SELECTED_NETWORK === 'true';
+export const isPerDappSelectedNetworkEnabled = () => true;
 
 export const isPortfolioViewEnabled = () =>
   process.env.PORTFOLIO_VIEW === 'true';
 
-export const isMultichainV1Enabled = () => process.env.MULTICHAIN_V1 === 'true';
+export const isRemoveGlobalNetworkSelectorEnabled = () =>
+  process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
 
 // The whitelisted network names for the given chain IDs to prevent showing warnings on Network Settings.
 export const WHILELIST_NETWORK_NAME = {

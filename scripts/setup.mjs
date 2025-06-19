@@ -213,17 +213,6 @@ const buildInpageBridgeTask = {
   },
 };
 
-const nodeifyTask = {
-  // TODO: find a saner alternative to bring node modules into react native bundler. See ReactNativify
-  title: 'Nodeify npm packages',
-  task: async (_, task) => {
-    if (IS_NODE) {
-      return task.skip('Skipping nodeifying npm packages.');
-    }
-    await $`node_modules/.bin/rn-nodeify --install crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs --hack`;
-  },
-};
-
 const jetifyTask = {
   title: 'Jetify npm packages for Android',
   task: async (_, task) => {
@@ -242,6 +231,36 @@ const patchPackageTask = {
   task: async () => {
     await $`yarn patch-package --error-on-fail`;
   },
+};
+
+const installFoundryTask = {
+  title: 'Install Foundry',
+  task: (_, task) =>
+    task.newListr(
+      [
+        {
+          title: 'Install Foundry binary',
+          task: async () => {
+            await $`yarn install:foundryup`;
+          },
+        },
+        {
+          title: 'Verify installation',
+          task: async () => {
+            const anvilPath = 'node_modules/.bin/anvil';
+            if (!fs.existsSync(anvilPath)) {
+              await $`rm -rf .metamask/cache`;
+              await $`yarn install:foundryup`;
+            }
+          },
+        },
+      ],
+      {
+        concurrent: false,
+        exitOnError: true,
+        rendererOptions,
+      },
+    ),
 };
 
 const expoBuildLinks = {
@@ -345,10 +364,10 @@ const prepareDependenciesTask = {
         updateGitSubmodulesTask,
         // Inpage bridge must generate before node modules are altered
         buildInpageBridgeTask,
-        nodeifyTask,
         jetifyTask,
         runLavamoatAllowScriptsTask,
         patchPackageTask,
+        installFoundryTask,
         expoBuildLinks,
       ],
       {

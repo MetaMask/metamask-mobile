@@ -57,6 +57,14 @@ export enum TraceName {
   RevealPrivateKey = 'Reveal Private Key',
   EvmDiscoverAccounts = 'EVM Discover Accounts',
   SnapDiscoverAccounts = 'Snap Discover Accounts',
+  FetchHistoricalPrices = 'Fetch Historical Prices',
+  TransactionConfirmed = 'Transaction Confirmed',
+  LoadCollectibles = 'Load Collectibles',
+  DetectNfts = 'Detect Nfts',
+  CollectibleContractsComponent = 'Collectible Contracts Component',
+  DisconnectAllAccountPermissions = 'Disconnect All Account Permissions',
+  OnboardingCreateWallet = 'Onboarding Create Wallet',
+  QRTabSwitcher = 'QR Tab Switcher',
 }
 
 export enum TraceOperation {
