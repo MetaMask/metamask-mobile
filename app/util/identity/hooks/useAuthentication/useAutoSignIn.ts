@@ -44,11 +44,15 @@ export function useAutoSignIn(): {
   const previousKeyringsLength = useRef(keyrings.length);
 
   useEffect(() => {
+    if (!keyrings || !Array.isArray(keyrings)) {
+      return;
+    }
+
     if (keyrings.length !== previousKeyringsLength.current) {
       previousKeyringsLength.current = keyrings.length;
       setHasNewKeyrings(true);
     }
-  }, [keyrings.length]);
+  }, [keyrings]);
 
   const areBasePrerequisitesMet = useMemo(
     () =>
