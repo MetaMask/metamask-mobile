@@ -702,9 +702,10 @@ const AccountConnect = (props: AccountConnectProps) => {
   }, [channelIdOrHostname, selectedChainIds, chainId, hasPermittedChains]);
 
   const handleConfirm = useCallback(async () => {
+    hideSheet();
     await handleConnect();
     await handleUpdateNetworkPermissions();
-    hideSheet();
+
   }, [handleUpdateNetworkPermissions, hideSheet, handleConnect]);
 
   /**
@@ -960,9 +961,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const renderConnectScreens = useCallback(() => {
     switch (screen) {
       case AccountConnectScreens.SingleConnect:
-        return isSdkUrlUnknown
-          ? renderPermissionsSummaryScreen()
-          : renderPermissionsSummaryScreen();
+        return renderPermissionsSummaryScreen();
       case AccountConnectScreens.SingleConnectSelector:
         return renderSingleConnectSelectorScreen();
       case AccountConnectScreens.MultiConnectSelector:
