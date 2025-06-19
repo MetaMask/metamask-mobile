@@ -1,32 +1,45 @@
-import {BNToHex} from '@metamask/controller-utils';
-import type {InternalAccount} from '@metamask/keyring-internal-api';
-import {ChainId, LendingProvider, PooledStakingContract,} from '@metamask/stake-sdk';
-import {CHAIN_IDS} from '@metamask/transaction-controller';
-import {act, fireEvent, waitFor} from '@testing-library/react-native';
-import {BigNumber} from 'bignumber.js';
+import { BNToHex } from '@metamask/controller-utils';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
+import {
+  ChainId,
+  LendingProvider,
+  PooledStakingContract,
+} from '@metamask/stake-sdk';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { BigNumber } from 'bignumber.js';
 import BN4 from 'bnjs4';
-import {BigNumber as EthersBigNumber, Contract} from 'ethers';
+import { BigNumber as EthersBigNumber, Contract } from 'ethers';
 import React from 'react';
-import {strings} from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import {MetricsEventBuilder} from '../../../../../core/Analytics/MetricsEventBuilder';
-import {RootState} from '../../../../../reducers';
-import {selectSelectedInternalAccount} from '../../../../../selectors/accountsController';
+import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import { RootState } from '../../../../../reducers';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 // eslint-disable-next-line import/no-namespace
 import {
   ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
 } from '../../../../../selectors/featureFlagController/confirmations';
-import {toWei, weiToFiatNumber} from '../../../../../util/number';
-import {MOCK_ACCOUNTS_CONTROLLER_STATE, MOCK_ADDRESS_2,} from '../../../../../util/test/accountsControllerTestUtils';
-import {backgroundState} from '../../../../../util/test/initial-root-state';
-import {DeepPartial, renderScreen,} from '../../../../../util/test/renderWithProvider';
-import {flushPromises} from '../../../../../util/test/utils';
+import { toWei, weiToFiatNumber } from '../../../../../util/number';
+import {
+  MOCK_ACCOUNTS_CONTROLLER_STATE,
+  MOCK_ADDRESS_2,
+} from '../../../../../util/test/accountsControllerTestUtils';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import {
+  DeepPartial,
+  renderScreen,
+} from '../../../../../util/test/renderWithProvider';
+import { flushPromises } from '../../../../../util/test/utils';
 import useMetrics from '../../../../hooks/useMetrics/useMetrics';
-import {getStakingNavbar} from '../../../Navbar';
-import {MOCK_ETH_MAINNET_ASSET, MOCK_GET_VAULT_RESPONSE,} from '../../../Stake/__mocks__/stakeMockData';
-import {MOCK_VAULT_APY_AVERAGES} from '../../../Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
-import {EVENT_PROVIDERS} from '../../../Stake/constants/events';
+import { getStakingNavbar } from '../../../Navbar';
+import {
+  MOCK_ETH_MAINNET_ASSET,
+  MOCK_GET_VAULT_RESPONSE,
+} from '../../../Stake/__mocks__/stakeMockData';
+import { MOCK_VAULT_APY_AVERAGES } from '../../../Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
+import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
 // eslint-disable-next-line import/no-namespace
 import * as useBalance from '../../../Stake/hooks/useBalance';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
@@ -34,16 +47,19 @@ import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
 import Engine from '../../../../../core/Engine';
 // eslint-disable-next-line import/no-namespace
 import * as useEarnGasFee from '../../../Earn/hooks/useEarnGasFee';
-import {createMockToken, getCreateMockTokenOptions,} from '../../../Stake/testUtils';
-import {TOKENS_WITH_DEFAULT_OPTIONS} from '../../../Stake/testUtils/testUtils.types';
-import {EARN_EXPERIENCES} from '../../constants/experiences';
-import {useEarnMetadata} from '../../hooks/useEarnMetadata';
+import {
+  createMockToken,
+  getCreateMockTokenOptions,
+} from '../../../Stake/testUtils';
+import { TOKENS_WITH_DEFAULT_OPTIONS } from '../../../Stake/testUtils/testUtils.types';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import { useEarnMetadata } from '../../hooks/useEarnMetadata';
 import useEarnTokens from '../../hooks/useEarnTokens';
-import {selectStablecoinLendingEnabledFlag} from '../../selectors/featureFlags';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import EarnInputView from './EarnInputView';
-import {EarnInputViewProps} from './EarnInputView.types';
-import {Stake} from '../../../Stake/sdk/stakeSdkProvider';
-import {getIsRedesignedStablecoinLendingScreenEnabled} from './utils';
+import { EarnInputViewProps } from './EarnInputView.types';
+import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
+import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 
 jest.mock('./utils');
 
@@ -85,7 +101,9 @@ jest.mock('../../../../../core/Engine', () => ({
       getLendingTokenAllowance: jest.fn(),
     },
     TransactionController: {
-      addTransactionBatch: jest.fn().mockResolvedValue({ batchId: '0x123456789abcdef' }),
+      addTransactionBatch: jest
+        .fn()
+        .mockResolvedValue({ batchId: '0x123456789abcdef' }),
     },
   },
 }));
@@ -267,7 +285,7 @@ jest.mock('./utils', () => ({
 jest.mock('../../utils/tempLending', () => ({
   generateLendingAllowanceIncreaseTransaction: jest.fn(() => ({
     txParams: {
-      to: '0x123232',  // Token contract address
+      to: '0x123232', // Token contract address
       from: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
       data: '0xapprovedata',
       value: '0x0',
@@ -347,7 +365,9 @@ describe('EarnInputView', () => {
     jest.useFakeTimers();
 
     // Reset the mocked function to default value
-    (getIsRedesignedStablecoinLendingScreenEnabled as jest.Mock).mockReturnValue(false);
+    (
+      getIsRedesignedStablecoinLendingScreenEnabled as jest.Mock
+    ).mockReturnValue(false);
 
     selectSelectedInternalAccountMock.mockImplementation(
       () =>
@@ -844,7 +864,9 @@ describe('EarnInputView', () => {
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
 
       // Mock the function to return true for this test
-      (getIsRedesignedStablecoinLendingScreenEnabled as jest.Mock).mockReturnValue(true);
+      (
+        getIsRedesignedStablecoinLendingScreenEnabled as jest.Mock
+      ).mockReturnValue(true);
 
       const getErc20SpendingLimitSpy = jest
         .spyOn(Engine.context.EarnController, 'getLendingTokenAllowance')
@@ -910,15 +932,19 @@ describe('EarnInputView', () => {
 
         await waitFor(() => {
           // Should call addTransactionBatch instead of navigating to legacy flow
-          expect(Engine.context.TransactionController.addTransactionBatch).toHaveBeenCalledTimes(1);
-          expect(Engine.context.TransactionController.addTransactionBatch).toHaveBeenCalledWith({
+          expect(
+            Engine.context.TransactionController.addTransactionBatch,
+          ).toHaveBeenCalledTimes(1);
+          expect(
+            Engine.context.TransactionController.addTransactionBatch,
+          ).toHaveBeenCalledWith({
             from: MOCK_ADDRESS_2,
             networkClientId: 'mainnet',
             origin: 'metamask',
             transactions: [
               {
                 params: {
-                  to: '0x123232',  // Token contract address
+                  to: '0x123232', // Token contract address
                   from: MOCK_ADDRESS_2,
                   data: '0xapprovedata',
                   value: '0x0',
@@ -947,7 +973,10 @@ describe('EarnInputView', () => {
           });
 
           // Should NOT navigate to legacy lending deposit confirmation
-          expect(mockNavigate).not.toHaveBeenCalledWith(Routes.EARN.ROOT, expect.any(Object));
+          expect(mockNavigate).not.toHaveBeenCalledWith(
+            Routes.EARN.ROOT,
+            expect.any(Object),
+          );
         });
       } finally {
         // Clean up the spy to prevent interference with other tests

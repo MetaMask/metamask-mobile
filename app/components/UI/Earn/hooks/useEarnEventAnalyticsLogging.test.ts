@@ -284,11 +284,17 @@ describe('useEarnAnalyticsEventLogging', () => {
       );
 
       // Both should log stablecoin events but internal strategy should be different
-      expect(depositResult.result.current.shouldLogStablecoinEvent()).toBe(true);
-      expect(withdrawalResult.result.current.shouldLogStablecoinEvent()).toBe(true);
+      expect(depositResult.result.current.shouldLogStablecoinEvent()).toBe(
+        true,
+      );
+      expect(withdrawalResult.result.current.shouldLogStablecoinEvent()).toBe(
+        true,
+      );
 
       expect(depositResult.result.current.shouldLogStakingEvent()).toBe(false);
-      expect(withdrawalResult.result.current.shouldLogStakingEvent()).toBe(false);
+      expect(withdrawalResult.result.current.shouldLogStakingEvent()).toBe(
+        false,
+      );
     });
   });
 });

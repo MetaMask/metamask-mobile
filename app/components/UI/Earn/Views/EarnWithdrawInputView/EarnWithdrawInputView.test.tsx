@@ -780,7 +780,6 @@ describe('EarnWithdrawInputView', () => {
   });
 
   describe('Analytics', () => {
-
     it('should track EARN_INPUT_OPENED on render for stablecoin lending withdrawal', () => {
       (
         selectStablecoinLendingEnabledFlag as jest.MockedFunction<
@@ -1243,7 +1242,7 @@ describe('EarnWithdrawInputView', () => {
 
       // Give time for the useEffect to trigger with isOverMaximum.isOverMaximumToken = true
       await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
       // Allow time for effects to run

@@ -5,7 +5,13 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -28,16 +34,9 @@ import useEarnWithdrawInput from '../../../Earn/hooks/useEarnWithdrawInput';
 import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
-import {
-  EVENT_LOCATIONS,
-  EVENT_PROVIDERS,
-} from '../../constants/events';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import usePoolStakedUnstake from '../../../Stake/hooks/usePoolStakedUnstake';
 import { StakeNavigationParamsList } from '../../../Stake/types';
-import {
-  withMetaMetrics,
-  WithMetaMetricsEvent,
-} from '../../../Stake/utils/metaMetrics/withMetaMetrics';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
 import InputDisplay from '../../components/InputDisplay';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
@@ -368,7 +367,6 @@ const EarnWithdrawInputView = () => {
   ]);
 
   const handleUnstakeWithdrawalFlow = useCallback(async () => {
-
     const isStakingDepositRedesignedEnabled =
       confirmationRedesignFlags?.staking_confirmations;
 
@@ -550,7 +548,9 @@ const EarnWithdrawInputView = () => {
       );
     } else if (shouldLogStakingEvent()) {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.UNSTAKE_INPUT_CURRENCY_SWITCH_CLICKED)
+        createEventBuilder(
+          MetaMetricsEvents.UNSTAKE_INPUT_CURRENCY_SWITCH_CLICKED,
+        )
           .addProperties({
             selected_provider: EVENT_PROVIDERS.CONSENSYS,
             text: 'Currency Switch Trigger',
@@ -593,7 +593,9 @@ const EarnWithdrawInputView = () => {
         );
       } else if (shouldLogStakingEvent()) {
         trackEvent(
-          createEventBuilder(MetaMetricsEvents.UNSTAKE_INPUT_QUICK_AMOUNT_CLICKED)
+          createEventBuilder(
+            MetaMetricsEvents.UNSTAKE_INPUT_QUICK_AMOUNT_CLICKED,
+          )
             .addProperties({
               location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
               amount: value,
