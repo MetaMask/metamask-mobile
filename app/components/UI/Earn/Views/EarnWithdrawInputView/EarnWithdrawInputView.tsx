@@ -65,7 +65,7 @@ const EarnWithdrawInputView = () => {
     selectStablecoinLendingEnabledFlag,
   );
   const { getPairedEarnTokens } = useEarnTokens();
-  const { earnToken, outputToken: receiptToken } = getPairedEarnTokens(token);
+  const { outputToken: receiptToken } = getPairedEarnTokens(token);
 
   const navigation =
     useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
@@ -84,6 +84,9 @@ const EarnWithdrawInputView = () => {
     selectNetworkConfigurationByChainId(state, token.chainId as Hex),
   );
   const exchangeRate = contractExchangeRates?.[token.address as Hex]?.price;
+
+  // We want to keep track of the last quick amount pressed before navigating to review.
+  const lastQuickAmountButtonPressed = useRef<string | null>(null);
 
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -117,19 +120,18 @@ const EarnWithdrawInputView = () => {
   });
 
   useEffect(() => {
-    if (shouldLogStablecoinEvent()) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.EARN_INPUT_OPENED)
-          .addProperties({
-            action_type: 'withdrawal',
-            token: earnToken?.symbol,
-            network: network?.name,
-            user_token_balance: earnBalanceValue,
-            experience: receiptToken?.experience?.type,
-          })
-          .build(),
-      );
-    }
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EARN_INPUT_OPENED)
+        .addProperties({
+          action_type: 'withdrawal',
+          token: receiptToken?.symbol,
+          token_name: receiptToken?.name,
+          network: network?.name,
+          user_token_balance: receiptToken?.balanceFormatted,
+          experience: receiptToken?.experience?.type,
+        })
+        .build(),
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -302,10 +304,11 @@ const EarnWithdrawInputView = () => {
         createEventBuilder(MetaMetricsEvents.EARN_REVIEW_BUTTON_CLICKED)
           .addProperties({
             action_type: 'withdrawal',
-            token: earnToken?.symbol,
+            token: receiptToken?.symbol,
             network: network?.name,
-            user_token_balance: earnBalanceValue,
-            transaction_value: amountToken,
+            user_token_balance: receiptToken?.balanceFormatted,
+            transaction_value: `${amountToken} ${receiptToken?.symbol}`,
+            lastQuickAmountButtonPressed: lastQuickAmountButtonPressed.current,
             experience: receiptToken?.experience?.type,
           })
           .build(),
@@ -358,8 +361,6 @@ const EarnWithdrawInputView = () => {
     amountToken,
     amountTokenMinimalUnit,
     createEventBuilder,
-    earnBalanceValue,
-    earnToken?.symbol,
     navigation,
     network?.name,
     receiptToken,
@@ -374,6 +375,8 @@ const EarnWithdrawInputView = () => {
       selected_provider: EVENT_PROVIDERS.CONSENSYS,
       tokens_to_stake_native_value: amountToken,
       tokens_to_stake_usd_value: amountFiatNumber,
+      lastQuickAmountButtonPressed: lastQuickAmountButtonPressed.current,
+      network: network?.name,
       experience: EARN_EXPERIENCES.POOLED_STAKING,
     };
 
@@ -434,8 +437,6 @@ const EarnWithdrawInputView = () => {
     attemptUnstakeTransaction,
     confirmationRedesignFlags?.staking_confirmations,
     createEventBuilder,
-    earnBalanceValue,
-    earnToken?.symbol,
     navigation,
     network?.name,
     trackEvent,
@@ -570,23 +571,28 @@ const EarnWithdrawInputView = () => {
     createEventBuilder,
     isFiat,
     receiptToken?.experience?.type,
-    earnToken?.symbol,
-    network?.name,
   ]);
 
   const handleQuickAmountPressWithTracking = useCallback(
     ({ value }: { value: number }) => {
+      lastQuickAmountButtonPressed.current =
+        value === 1 ? 'MAX' : `${value * 100}%`;
+
+      // call the original handler first
       handleQuickAmountPress({ value });
 
+      // track events based on flow type
       if (shouldLogStablecoinEvent()) {
+        const isMax = Boolean(lastQuickAmountButtonPressed.current === 'MAX');
         trackEvent(
           createEventBuilder(MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED)
             .addProperties({
               action_type: 'withdrawal',
-              input_value: value === 1 ? 'Max' : `${value * 100}%`,
-              token: earnToken?.symbol,
+              input_value: isMax ? 'MAX' : `${value * 100}%`,
+              is_max: isMax,
+              token: receiptToken?.symbol,
               network: network?.name,
-              user_token_balance: earnBalanceValue,
+              user_token_balance: receiptToken?.balanceFormatted,
               experience: receiptToken?.experience?.type,
             })
             .build(),
@@ -602,20 +608,24 @@ const EarnWithdrawInputView = () => {
               is_max: value === 1,
               mode: isFiat ? 'fiat' : 'native',
               experience: EARN_EXPERIENCES.POOLED_STAKING,
+              user_token_balance: receiptToken?.balanceFormatted,
+              token: receiptToken?.symbol,
+              network: network?.name,
             })
             .build(),
         );
       }
     },
     [
+      handleQuickAmountPress,
       shouldLogStablecoinEvent,
       shouldLogStakingEvent,
-      handleQuickAmountPress,
       trackEvent,
       createEventBuilder,
-      earnToken?.symbol,
+      receiptToken?.symbol,
+      receiptToken?.balanceFormatted,
+      receiptToken?.experience?.type,
       network?.name,
-      earnBalanceValue,
       isFiat,
     ],
   );

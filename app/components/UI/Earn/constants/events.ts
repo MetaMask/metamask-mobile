@@ -12,4 +12,6 @@ export const EVENT_LOCATIONS = {
   EARN_INPUT_VIEW: 'EarnInputView',
   EARN_WITHDRAWAL_INPUT_VIEW: 'EarnWithdrawalInputView',
   EARN_LENDING_DEPOSIT_CONFIRMATION_VIEW: 'EarnLendingDepositConfirmationView',
+  EARN_LENDING_WITHDRAW_CONFIRMATION_VIEW:
+    'EarnLendingWithdrawConfirmationView',
 };
