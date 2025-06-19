@@ -3,19 +3,13 @@ import {
   TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { capitalize } from 'lodash';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import styleSheet from './EarnLendingWithdrawalConfirmationView.styles';
-import { useStyles } from '../../../../hooks/useStyles';
-import Erc20TokenHero from '../EarnLendingDepositConfirmationView/components/Erc20TokenHero';
-import { TokenI } from '../../../Tokens/types';
-import InfoSection from '../../../../Views/confirmations/components/UI/info-row/info-section';
-import InfoSectionAccordion from '../../../../Views/confirmations/components/UI/info-section-accordion';
 import KeyValueRow, {
   TooltipSizes,
 } from '../../../../../component-library/components-temp/KeyValueRow';
@@ -24,31 +18,32 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
+import { IMetaMetricsEvent } from '../../../../../core/Analytics';
 import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { getNetworkImageSource } from '../../../../../util/networks';
+import { renderFromTokenMinimalUnit } from '../../../../../util/number';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useStyles } from '../../../../hooks/useStyles';
 import InfoRowDivider from '../../../../Views/confirmations/components/UI/info-row-divider';
+import InfoSection from '../../../../Views/confirmations/components/UI/info-row/info-section';
 import { getStakingNavbar } from '../../../Navbar';
 import AccountTag from '../../../Stake/components/StakingConfirmation/AccountTag/AccountTag';
 import ContractTag from '../../../Stake/components/StakingConfirmation/ContractTag/ContractTag';
+import { TokenI } from '../../../Tokens/types';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
 import useEarnToken from '../../hooks/useEarnToken';
 import { EarnTokenDetails } from '../../types/lending.types';
-import {
-  AAVE_V3_INFINITE_HEALTH_FACTOR,
-  AAVE_WITHDRAWAL_RISKS,
-  SimulatedAaveV3HealthFactorAfterWithdrawal,
-} from '../../utils/tempLending';
-import { Hex } from '@metamask/utils';
-import { IMetaMetricsEvent } from '../../../../../core/Analytics';
-import { EARN_EXPERIENCES } from '../../constants/experiences';
-import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
-import { renderFromTokenMinimalUnit } from '../../../../../util/number';
+import { SimulatedAaveV3HealthFactorAfterWithdrawal } from '../../utils/tempLending';
 import ConfirmationFooter from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
+import Erc20TokenHero from '../EarnLendingDepositConfirmationView/components/Erc20TokenHero';
+import styleSheet from './EarnLendingWithdrawalConfirmationView.styles';
+import { ethers } from 'ethers';
 
 interface EarnWithdrawalConfirmationViewRouteParams {
   token: TokenI | EarnTokenDetails;
@@ -80,7 +75,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
     amountFiat,
     lendingContractAddress,
     lendingProtocol,
-    healthFactorSimulation,
+    // healthFactorSimulation,
   } = params;
 
   const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
@@ -134,40 +129,40 @@ const EarnLendingWithdrawalConfirmationView = () => {
     token.symbol,
   ]);
 
-  const riskTextColor = useMemo(() => {
-    const riskLabel = healthFactorSimulation?.risk;
+  // const riskTextColor = useMemo(() => {
+  //   const riskLabel = healthFactorSimulation?.risk;
 
-    switch (riskLabel) {
-      case AAVE_WITHDRAWAL_RISKS.VERY_HIGH:
-      case AAVE_WITHDRAWAL_RISKS.HIGH:
-        return TextColor.Error;
-      case AAVE_WITHDRAWAL_RISKS.MEDIUM:
-        return TextColor.Warning;
-      case AAVE_WITHDRAWAL_RISKS.LOW:
-        return TextColor.Success;
-      case AAVE_WITHDRAWAL_RISKS.UNKNOWN:
-      default:
-        return TextColor.Default;
-    }
-  }, [healthFactorSimulation.risk]);
+  //   switch (riskLabel) {
+  //     case AAVE_WITHDRAWAL_RISKS.VERY_HIGH:
+  //     case AAVE_WITHDRAWAL_RISKS.HIGH:
+  //       return TextColor.Error;
+  //     case AAVE_WITHDRAWAL_RISKS.MEDIUM:
+  //       return TextColor.Warning;
+  //     case AAVE_WITHDRAWAL_RISKS.LOW:
+  //       return TextColor.Success;
+  //     case AAVE_WITHDRAWAL_RISKS.UNKNOWN:
+  //     default:
+  //       return TextColor.Default;
+  //   }
+  // }, [healthFactorSimulation.risk]);
 
-  const getHealthFactorValueColor = (value: string) => {
-    const parsedValue = parseFloat(value);
+  // const getHealthFactorValueColor = (value: string) => {
+  //   const parsedValue = parseFloat(value);
 
-    if (isNaN(parsedValue)) return TextColor.Default;
+  //   if (isNaN(parsedValue)) return TextColor.Default;
 
-    if (parsedValue >= 2.0) return TextColor.Success;
-    else if (parsedValue >= 1.5) return TextColor.Warning;
-    else if (parsedValue >= 1.25) return TextColor.Error;
-  };
+  //   if (parsedValue >= 2.0) return TextColor.Success;
+  //   else if (parsedValue >= 1.5) return TextColor.Warning;
+  //   else if (parsedValue >= 1.25) return TextColor.Error;
+  // };
 
-  const getHealthFactorLabel = (healthFactor: string) => {
-    if (healthFactor === AAVE_V3_INFINITE_HEALTH_FACTOR) {
-      return '∞';
-    }
+  // const getHealthFactorLabel = (healthFactor: string) => {
+  //   if (healthFactor === AAVE_V3_INFINITE_HEALTH_FACTOR) {
+  //     return '∞';
+  //   }
 
-    return parseFloat(healthFactor).toFixed(2);
-  };
+  //   return parseFloat(healthFactor).toFixed(2);
+  // };
 
   useEffect(() => {
     if (!earnToken) {
@@ -298,8 +293,17 @@ const EarnLendingWithdrawalConfirmationView = () => {
           .build(),
       );
 
+      // if sending max amount, send max uint256 (aave specific)
+      // TODO: STAKE-1044 move this logic to earn controller and sdk.
+      let amountTokenMinimalUnitToSend: string;
+      if (amountTokenMinimalUnit === outputToken.balanceMinimalUnit) {
+        amountTokenMinimalUnitToSend = ethers.constants.MaxUint256.toString();
+      } else {
+        amountTokenMinimalUnitToSend = amountTokenMinimalUnit;
+      }
+
       const txRes = await Engine.context.EarnController.executeLendingWithdraw({
-        amount: amountTokenMinimalUnit.toString(),
+        amount: amountTokenMinimalUnitToSend,
         protocol: outputToken.experience?.market?.protocol,
         underlyingTokenAddress:
           outputToken.experience?.market?.underlying?.address,
