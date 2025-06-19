@@ -264,7 +264,6 @@ import { Hex } from '@metamask/utils';
 import {
   SamplePetnamesController,
   SamplePetnamesControllerState,
-  SamplePetnamesControllerMessenger,
 } from '@metamask/sample-controllers';
 
 import { CONTROLLER_MESSENGERS } from './messengers';
