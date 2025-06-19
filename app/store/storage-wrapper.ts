@@ -155,7 +155,4 @@ class StorageWrapper {
   }
 }
 
-// Get the singleton instance
-const storageWrapperInstance = StorageWrapper.getInstance();
-
-export default storageWrapperInstance;
+export default StorageWrapper.getInstance();
