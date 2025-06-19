@@ -1,17 +1,23 @@
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../../../util/theme/models';
 
 /**
  * StyleSheet for the SampleNetworkDisplay component
  *
- * Defines the layout and styling for the network display container and text.
- * The styles create a horizontal layout with centered alignment and proper spacing.
+ * @param params - The parameters object containing the theme
+ * @param params.theme - The theme object containing color definitions and other theme properties
+ * @returns StyleSheet object containing styles for the network display container and text
  *
- * @returns {StyleSheet} A StyleSheet object containing the following styles:
- * - container: Styles for the main container with flex row layout and spacing
- * - text: Styles for the network name text (currently empty, can be customized as needed)
+ * @sampleFeature do not use in production code
  */
-const styleSheet = () =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors } = theme;
+  
+  return StyleSheet.create({
+    /**
+     * Main container with horizontal layout for network display
+     */
     container: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -20,9 +26,13 @@ const styleSheet = () =>
       padding: 16,
       justifyContent: 'center',
     },
+    /**
+     * Network name text style (placeholder for future customization)
+     */
     text: {
       // Add any text styling here if needed
     },
   });
+};
 
 export default styleSheet;
