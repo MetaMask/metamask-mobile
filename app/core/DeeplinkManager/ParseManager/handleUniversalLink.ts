@@ -32,7 +32,6 @@ async function handleUniversalLink({
   instance,
   handled,
   urlObj,
-  validatedUrl,
   params,
   browserCallBack,
   origin,
@@ -42,13 +41,13 @@ async function handleUniversalLink({
   instance: DeeplinkManager;
   handled: () => void;
   urlObj: ReturnType<typeof extractURLParams>['urlObj'];
-  validatedUrl: URL;
   params: ReturnType<typeof extractURLParams>['params'];
   browserCallBack?: (url: string) => void;
   origin: string;
   wcURL: string;
   url: string;
 }) {
+  const validatedUrl = new URL(url);
   if (
     !validatedUrl.hostname ||
     validatedUrl.hostname.includes('?') ||
