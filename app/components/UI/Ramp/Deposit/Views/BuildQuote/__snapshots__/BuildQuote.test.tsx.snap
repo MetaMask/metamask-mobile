@@ -14159,7 +14159,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                       }
                                     }
                                   >
-                                    🇧🇪
+                                    🇺🇸
                                   </Text>
                                   <Text
                                     accessibilityRole="text"
@@ -14174,7 +14174,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                       }
                                     }
                                   >
-                                    BE
+                                    US
                                   </Text>
                                 </View>
                               </TouchableOpacity>
@@ -16273,6 +16273,33 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     </View>
                                                   </View>
                                                 </View>
+                                                <View
+                                                  accessibilityRole="checkbox"
+                                                  accessible={true}
+                                                  style={
+                                                    {
+                                                      "backgroundColor": "#4459ff1a",
+                                                      "bottom": 0,
+                                                      "flexDirection": "row",
+                                                      "left": 0,
+                                                      "position": "absolute",
+                                                      "right": 0,
+                                                      "top": 0,
+                                                    }
+                                                  }
+                                                >
+                                                  <View
+                                                    style={
+                                                      {
+                                                        "backgroundColor": "#4459ff",
+                                                        "borderRadius": 2,
+                                                        "marginLeft": 4,
+                                                        "marginVertical": 4,
+                                                        "width": 4,
+                                                      }
+                                                    }
+                                                  />
+                                                </View>
                                               </TouchableOpacity>
                                             </View>
                                             <View
@@ -16639,33 +16666,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                       </View>
                                                     </View>
                                                   </View>
-                                                </View>
-                                                <View
-                                                  accessibilityRole="checkbox"
-                                                  accessible={true}
-                                                  style={
-                                                    {
-                                                      "backgroundColor": "#4459ff1a",
-                                                      "bottom": 0,
-                                                      "flexDirection": "row",
-                                                      "left": 0,
-                                                      "position": "absolute",
-                                                      "right": 0,
-                                                      "top": 0,
-                                                    }
-                                                  }
-                                                >
-                                                  <View
-                                                    style={
-                                                      {
-                                                        "backgroundColor": "#4459ff",
-                                                        "borderRadius": 2,
-                                                        "marginLeft": 4,
-                                                        "marginVertical": 4,
-                                                        "width": 4,
-                                                      }
-                                                    }
-                                                  />
                                                 </View>
                                               </TouchableOpacity>
                                               <View

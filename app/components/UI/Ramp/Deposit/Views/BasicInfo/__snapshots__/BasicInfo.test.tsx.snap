@@ -803,31 +803,42 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                     }
                                     testID="textfield-startacccessory"
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      accessibilityRole="button"
+                                      accessible={true}
+                                      onPress={[Function]}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "padding": 4,
                                         }
                                       }
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <View
                                         style={
                                           {
-                                            "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 16,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                            "marginRight": 4,
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
                                           }
                                         }
                                       >
-                                        🇭🇺
-                                      </Text>
-                                    </View>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                              "marginRight": 4,
+                                            }
+                                          }
+                                        >
+                                          🇺🇸
+                                        </Text>
+                                      </View>
+                                    </TouchableOpacity>
                                   </View>
                                   <View
                                     style={
@@ -846,7 +857,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                       onChangeText={[Function]}
                                       onFocus={[Function]}
                                       onKeyDown={[Function]}
-                                      placeholder="22 222 2222"
+                                      placeholder="(222) 222-2222"
                                       placeholderTextColor="#9ca1af"
                                       style={
                                         {
@@ -864,7 +875,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                         }
                                       }
                                       testID="deposit-phone-field-test-id"
-                                      value="1234567890"
+                                      value="1 (234) 567-890"
                                     />
                                   </View>
                                 </View>
@@ -1968,31 +1979,42 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                     }
                                     testID="textfield-startacccessory"
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      accessibilityRole="button"
+                                      accessible={true}
+                                      onPress={[Function]}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "padding": 4,
                                         }
                                       }
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <View
                                         style={
                                           {
-                                            "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 16,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                            "marginRight": 4,
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
                                           }
                                         }
                                       >
-                                        🇭🇺
-                                      </Text>
-                                    </View>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                              "marginRight": 4,
+                                            }
+                                          }
+                                        >
+                                          🇺🇸
+                                        </Text>
+                                      </View>
+                                    </TouchableOpacity>
                                   </View>
                                   <View
                                     style={
@@ -2011,7 +2033,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                       onChangeText={[Function]}
                                       onFocus={[Function]}
                                       onKeyDown={[Function]}
-                                      placeholder="22 222 2222"
+                                      placeholder="(222) 222-2222"
                                       placeholderTextColor="#9ca1af"
                                       style={
                                         {
@@ -3165,31 +3187,42 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     }
                                     testID="textfield-startacccessory"
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      accessibilityRole="button"
+                                      accessible={true}
+                                      onPress={[Function]}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "padding": 4,
                                         }
                                       }
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <View
                                         style={
                                           {
-                                            "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 16,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                            "marginRight": 4,
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
                                           }
                                         }
                                       >
-                                        🇭🇺
-                                      </Text>
-                                    </View>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                              "marginRight": 4,
+                                            }
+                                          }
+                                        >
+                                          🇺🇸
+                                        </Text>
+                                      </View>
+                                    </TouchableOpacity>
                                   </View>
                                   <View
                                     style={
@@ -3208,7 +3241,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       onChangeText={[Function]}
                                       onFocus={[Function]}
                                       onKeyDown={[Function]}
-                                      placeholder="22 222 2222"
+                                      placeholder="(222) 222-2222"
                                       placeholderTextColor="#9ca1af"
                                       style={
                                         {

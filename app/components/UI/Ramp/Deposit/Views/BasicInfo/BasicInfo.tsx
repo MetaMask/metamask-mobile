@@ -21,7 +21,7 @@ import DepositProgressBar from '../../components/DepositProgressBar';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-import { DEPOSIT_REGIONS } from '../../constants';
+import { useDepositSDK } from '../../sdk';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
@@ -43,6 +43,7 @@ const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { quote, kycUrl } = useParams<BasicInfoParams>();
+  const { selectedRegion } = useDepositSDK();
 
   const initialFormData: BasicInfoFormData = {
     firstName: '',
@@ -103,7 +104,7 @@ const BasicInfo = (): JSX.Element => {
   }, [navigation, theme]);
 
   const handleOnPressContinue = useCallback(() => {
-    if (validateFormData()) {
+    if (validateFormData() && selectedRegion) {
       navigation.navigate(
         ...createEnterAddressNavDetails({
           formData,
@@ -112,7 +113,7 @@ const BasicInfo = (): JSX.Element => {
         }),
       );
     }
-  }, [navigation, validateFormData, formData, quote, kycUrl]);
+  }, [navigation, validateFormData, formData, quote, kycUrl, selectedRegion]);
 
   return (
     <ScreenLayout>
@@ -151,7 +152,7 @@ const BasicInfo = (): JSX.Element => {
             onChangeText={handleFormDataChange('mobileNumber')}
             error={errors.mobileNumber}
             testID="phone-number-input"
-            region={DEPOSIT_REGIONS[10]}
+            region={selectedRegion}
           />
 
           <DepositTextField

@@ -1,17 +1,14 @@
 import React from 'react';
-import {
-  render,
-  // , fireEvent
-} from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import DepositPhoneField from './DepositPhoneField';
-// import { formatUSPhoneNumber } from '../../utils';
-import { DepositRegion } from '../../constants';
+import { DepositRegion, DEPOSIT_REGIONS } from '../../constants';
 
-jest.mock('../../utils', () => ({
-  formatUSPhoneNumber: jest.fn(),
+const mockSetSelectedRegion = jest.fn();
+const mockUseDepositSDK = jest.fn();
+
+jest.mock('../../sdk', () => ({
+  useDepositSDK: () => mockUseDepositSDK(),
 }));
-
-// const DEPOSIT_PHONE_FIELD_TEST_ID = 'deposit-phone-field-test-id';
 
 describe('DepositPhoneField', () => {
   const mockOnChangeText = jest.fn();
@@ -30,33 +27,18 @@ describe('DepositPhoneField', () => {
   const defaultProps = {
     label: 'Phone Number',
     onChangeText: mockOnChangeText,
-    region: defaultRegion,
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseDepositSDK.mockReturnValue({
+      selectedRegion: defaultRegion,
+      setSelectedRegion: mockSetSelectedRegion,
+    });
   });
 
   it('render should match snapshot', () => {
     const { toJSON } = render(<DepositPhoneField {...defaultProps} />);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('custom flags and country codes should match snapshot', () => {
-    const customRegion: DepositRegion = {
-      code: 'GB',
-      flag: '🇬🇧',
-      name: 'United Kingdom',
-      phonePrefix: '+44',
-      currency: 'GBP',
-      phoneDigitCount: 10,
-      supported: true,
-    };
-    const customProps = {
-      ...defaultProps,
-      region: customRegion,
-    };
-    const { toJSON } = render(<DepositPhoneField {...customProps} />);
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -80,20 +62,47 @@ describe('DepositPhoneField', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  // it('should call onChangeText when text input changes', () => {
-  //   const { getByTestId } = render(<DepositPhoneField {...defaultProps} />);
-  //   const textField = getByTestId(DEPOSIT_PHONE_FIELD_TEST_ID);
-  //   const phoneNumber = '5551234567';
-  //   fireEvent.changeText(textField, phoneNumber);
-  //   expect(mockOnChangeText).toHaveBeenCalledWith(phoneNumber);
-  // });
+  it('should open region modal when flag is pressed', () => {
+    const { toJSON, getByRole } = render(
+      <DepositPhoneField {...defaultProps} />,
+    );
 
-  // it('should call formatUSPhoneNumber and pass raw value to onChangeText', () => {
-  //   const { getByTestId } = render(<DepositPhoneField {...defaultProps} />);
-  //   const textField = getByTestId(DEPOSIT_PHONE_FIELD_TEST_ID);
-  //   const inputPhoneNumber = '1234567890';
-  //   fireEvent.changeText(textField, inputPhoneNumber);
-  //   expect(formatUSPhoneNumber).toHaveBeenCalledWith(inputPhoneNumber);
-  //   expect(mockOnChangeText).toHaveBeenCalledWith(inputPhoneNumber);
-  // });
+    const flagButton = getByRole('button');
+    fireEvent.press(flagButton);
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should update selected region when a region is selected from modal', () => {
+    const { getByRole, getByText } = render(
+      <DepositPhoneField {...defaultProps} />,
+    );
+
+    const flagButton = getByRole('button');
+    fireEvent.press(flagButton);
+    const selectRegionButton = getByText(DEPOSIT_REGIONS[1].name);
+    fireEvent.press(selectRegionButton);
+    expect(mockSetSelectedRegion).toHaveBeenCalledWith(DEPOSIT_REGIONS[1]);
+  });
+
+  it('should use selectedRegion from context when available', () => {
+    const contextRegion: DepositRegion = {
+      code: 'DE',
+      flag: '🇩🇪',
+      name: 'Germany',
+      phonePrefix: '+49',
+      currency: 'EUR',
+      phoneDigitCount: 10,
+      supported: true,
+    };
+
+    mockUseDepositSDK.mockReturnValue({
+      selectedRegion: contextRegion,
+      setSelectedRegion: mockSetSelectedRegion,
+    });
+
+    const { toJSON } = render(<DepositPhoneField {...defaultProps} />);
+
+    expect(toJSON()).toMatchSnapshot();
+  });
 });

@@ -7,6 +7,8 @@ import {
   DepositCryptoCurrency,
   DepositFiatCurrency,
   DepositPaymentMethod,
+  DEPOSIT_REGIONS,
+  DepositRegion,
 } from '../../constants';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 
@@ -23,6 +25,9 @@ const mockGetTransakFiatCurrencyId = jest.fn();
 const mockGetTransakCryptoCurrencyId = jest.fn();
 const mockGetTransakChainId = jest.fn();
 const mockGetTransakPaymentMethodId = jest.fn();
+const mockSelectedRegion = DEPOSIT_REGIONS.find(
+  (region) => region.code === 'US',
+) as DepositRegion;
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -131,6 +136,8 @@ describe('BuildQuote Component', () => {
     jest.clearAllMocks();
     mockUseDepositSDK.mockReturnValue({
       isAuthenticated: false,
+      selectedRegion: mockSelectedRegion,
+      setSelectedRegion: jest.fn(),
     });
     mockUseDepositTokenExchange.mockReturnValue({
       tokenAmount: '0.00',
@@ -195,7 +202,11 @@ describe('BuildQuote Component', () => {
       const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
       const mockForms = { forms: [] };
 
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: false });
+      mockUseDepositSDK.mockReturnValue({
+        isAuthenticated: false,
+        selectedRegion: mockSelectedRegion,
+        setSelectedRegion: jest.fn(),
+      });
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
 
@@ -258,7 +269,11 @@ describe('BuildQuote Component', () => {
       const mockForms = { forms: [] };
       const mockUserDetails = { kyc: { l1: { status: 'APPROVED' } } };
 
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: true });
+      mockUseDepositSDK.mockReturnValue({
+        isAuthenticated: true,
+        selectedRegion: mockSelectedRegion,
+        setSelectedRegion: jest.fn(),
+      });
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
       mockFetchUserDetails.mockResolvedValue(mockUserDetails);
@@ -281,7 +296,11 @@ describe('BuildQuote Component', () => {
       const mockForms = { forms: [] };
       const mockUserDetails = { kyc: { l1: { status: 'PENDING' } } };
 
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: true });
+      mockUseDepositSDK.mockReturnValue({
+        isAuthenticated: true,
+        selectedRegion: mockSelectedRegion,
+        setSelectedRegion: jest.fn(),
+      });
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
       mockFetchUserDetails.mockResolvedValue(mockUserDetails);

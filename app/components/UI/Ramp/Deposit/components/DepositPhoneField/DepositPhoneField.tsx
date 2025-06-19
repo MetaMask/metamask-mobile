@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useMemo, useState, useCallback } from 'react';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 
 import Label from '../../../../../../component-library/components/Form/Label';
 import Text, {
@@ -17,14 +17,15 @@ import {
   getCountryCallingCode,
   parsePhoneNumber,
 } from 'react-phone-number-input';
-import { DepositRegion } from '../../constants';
+import { DepositRegion, DEPOSIT_REGIONS } from '../../constants';
+import RegionModal from '../RegionModal/RegionModal';
+import { useDepositSDK } from '../../sdk';
 
 interface PhoneFieldProps
   extends Omit<TextFieldProps, 'size' | 'onChangeText'> {
   label: string;
   onChangeText: (text: string) => void;
   error?: string;
-  region: DepositRegion;
 }
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -61,6 +62,9 @@ const styleSheet = (params: { theme: Theme }) => {
       fontSize: 12,
       marginTop: 4,
     },
+    flagButton: {
+      padding: 4,
+    },
   });
 };
 
@@ -68,70 +72,110 @@ const DepositPhoneField: React.FC<PhoneFieldProps> = ({
   label,
   onChangeText,
   error,
-  region,
   value,
 }) => {
   const { styles, theme } = useStyles(styleSheet, {});
+  const { selectedRegion, setSelectedRegion } = useDepositSDK();
+  const [isRegionModalVisible, setIsRegionModalVisible] = useState(false);
 
   const handlePhoneNumberChange = (newValue: E164Number) => {
     onChangeText(newValue);
   };
 
+  const handleFlagPress = useCallback(() => {
+    setIsRegionModalVisible(true);
+  }, []);
+
+  const handleRegionSelect = useCallback(
+    (newRegion: DepositRegion) => {
+      if (!newRegion.supported) {
+        return;
+      }
+      setSelectedRegion(newRegion);
+      setIsRegionModalVisible(false);
+    },
+    [setSelectedRegion],
+  );
+
+  const hideRegionModal = useCallback(() => {
+    setIsRegionModalVisible(false);
+  }, []);
+
   const placeholder = useMemo(() => {
-    const countryCode = region?.code || 'US';
+    const countryCode = selectedRegion?.code || 'US';
     const callingCode = getCountryCallingCode(countryCode);
 
     if (countryCode === 'US') {
       const exampleNumber = `+${callingCode}${'2'.repeat(
-        region?.phoneDigitCount || 10,
+        selectedRegion?.phoneDigitCount || 10,
       )}`;
       const parsed = parsePhoneNumber(exampleNumber);
       if (!parsed) return '';
       return parsed.formatNational();
     }
     const exampleNumber = `+${callingCode}${'2'.repeat(
-      region?.phoneDigitCount || 9,
+      selectedRegion?.phoneDigitCount || 9,
     )}`;
     const parsed = parsePhoneNumber(exampleNumber);
     if (!parsed) return '';
     const formatted = parsed.formatInternational();
     return formatted.replace(`+${callingCode} `, '');
-  }, [region?.code, region?.phoneDigitCount]);
+  }, [selectedRegion?.code, selectedRegion?.phoneDigitCount]);
 
   return (
-    <View style={styles.field}>
-      <Label variant={TextVariant.HeadingSMRegular} style={styles.label}>
-        {label}
-      </Label>
-      <View style={styles.phoneInputWrapper}>
-        <PhoneInput
-          country={region?.code}
-          international={region?.code !== 'US'}
-          value={value}
-          onChange={handlePhoneNumberChange}
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          inputComponent={(props: any) => (
-            <TextField
-              testID="deposit-phone-field-test-id"
-              autoFocus
-              startAccessory={
-                <View style={styles.countryPrefix}>
-                  <Text style={styles.countryFlag}>{region?.flag}</Text>
-                </View>
-              }
-              size={TextFieldSize.Lg}
-              placeholderTextColor={theme.colors.text.muted}
-              keyboardAppearance={theme.themeAppearance}
-              placeholder={placeholder}
-              keyboardType="phone-pad"
-              style={styles.phoneInput}
-              {...props}
-            />
-          )}
-        />
+    <>
+      <View style={styles.field}>
+        <Label variant={TextVariant.HeadingSMRegular} style={styles.label}>
+          {label}
+        </Label>
+        <View style={styles.phoneInputWrapper}>
+          <PhoneInput
+            country={selectedRegion?.code}
+            international={selectedRegion?.code !== 'US'}
+            value={value}
+            onChange={handlePhoneNumberChange}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            inputComponent={(props: any) => (
+              <TextField
+                testID="deposit-phone-field-test-id"
+                autoFocus
+                startAccessory={
+                  <TouchableOpacity
+                    style={styles.flagButton}
+                    onPress={handleFlagPress}
+                    accessibilityRole="button"
+                    accessible
+                  >
+                    <View style={styles.countryPrefix}>
+                      <Text style={styles.countryFlag}>
+                        {selectedRegion?.flag}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                }
+                size={TextFieldSize.Lg}
+                placeholderTextColor={theme.colors.text.muted}
+                keyboardAppearance={theme.themeAppearance}
+                placeholder={placeholder}
+                keyboardType="phone-pad"
+                style={styles.phoneInput}
+                {...props}
+              />
+            )}
+          />
+        </View>
+        {error ? <Text style={styles.error}>{error}</Text> : null}
       </View>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-    </View>
+      <RegionModal
+        isVisible={isRegionModalVisible}
+        title="Select Region"
+        description="Choose your region"
+        data={DEPOSIT_REGIONS}
+        dismiss={hideRegionModal}
+        onRegionPress={handleRegionSelect}
+        selectedRegion={selectedRegion}
+      />
+    </>
   );
 };
 

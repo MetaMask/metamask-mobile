@@ -6,14 +6,20 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { DEPOSIT_REGIONS, DepositRegion } from '../../constants';
 
 const mockQuote = {
   quoteId: 'test-quote-id',
 } as BuyQuote;
 
+const mockSelectedRegion = DEPOSIT_REGIONS.find(
+  (region) => region.code === 'US',
+) as DepositRegion;
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
+const mockUseDepositSDK = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -32,6 +38,10 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../sdk', () => ({
+  useDepositSDK: () => mockUseDepositSDK(),
+}));
+
 function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
@@ -49,6 +59,12 @@ function render(Component: React.ComponentType) {
 }
 
 describe('BasicInfo Component', () => {
+  beforeEach(() => {
+    mockUseDepositSDK.mockReturnValue({
+      selectedRegion: mockSelectedRegion,
+    });
+  });
+
   afterEach(() => {
     mockNavigate.mockClear();
     mockSetNavigationOptions.mockClear();
@@ -72,7 +88,7 @@ describe('BasicInfo Component', () => {
     fireEvent.changeText(screen.getByTestId('first-name-input'), 'John');
     fireEvent.changeText(screen.getByTestId('last-name-input'), 'Smith');
     fireEvent.changeText(
-      screen.getByPlaceholderText('22 222 2222'),
+      screen.getByTestId('deposit-phone-field-test-id'),
       '1234567890',
     );
     fireEvent.changeText(
@@ -92,7 +108,7 @@ describe('BasicInfo Component', () => {
           dob: '01/01/1990',
           firstName: 'John',
           lastName: 'Smith',
-          mobileNumber: '+361234567890',
+          mobileNumber: '+1234567890',
           ssn: '123456789',
         },
         kycUrl: undefined,
