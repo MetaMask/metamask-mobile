@@ -432,7 +432,6 @@ describe('EarnWithdrawInputView', () => {
       });
 
       await waitFor(() => {
-        screen.debug();
         expect(screen.getByText('4000 USD')).toBeTruthy();
       });
     });
