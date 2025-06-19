@@ -207,8 +207,8 @@ const createStyles = (colors: any) =>
       rowGap: 18,
       marginTop: 'auto',
       marginBottom: Platform.select({
-        ios: 0,
-        android: 16,
+        ios: 16,
+        android: 24,
         default: 16,
       }),
     },
