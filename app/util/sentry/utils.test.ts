@@ -439,6 +439,7 @@ describe('captureSentryFeedback', () => {
         customOrderIds: [],
         getStartedAgg: false,
         getStartedSell: false,
+        getStartedDeposit: false,
         networks: [],
         orders: [],
         selectedPaymentMethodAgg: null,
@@ -466,10 +467,7 @@ describe('captureSentryFeedback', () => {
       },
       security: {
         allowLoginWithRememberMe: false,
-        automaticSecurityChecksEnabled: false,
         dataCollectionForMarketing: null,
-        hasUserSelectedAutomaticSecurityCheckOption: false,
-        isAutomaticSecurityChecksModalOpen: false,
         isNFTAutoDetectionModalViewed: false,
       },
       signatureRequest: {

@@ -1,7 +1,10 @@
 import React, { useEffect } from 'react';
+import { View } from 'react-native';
+
 import { strings } from '../../../../../../../../locales/i18n';
 import { UnstakeConfirmationViewProps } from '../../../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
+import { ConfirmationInfoComponentIDs } from '../../../../constants/info-ids';
 import useClearConfirmationOnBackSwipe from '../../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
 import useNavbar from '../../../../hooks/ui/useNavbar';
@@ -10,7 +13,7 @@ import InfoSection from '../../../../components/UI/info-row/info-section';
 import StakingContractInteractionDetails from '../../components/staking-contract-interaction-details/staking-contract-interaction-details';
 import { HeroRow } from '../../../../components/rows/transactions/hero-row';
 import UnstakingTimeSection from '../../components/unstaking-time/unstaking-time';
-import GasFeesDetails from '../../../../components/rows/transactions/gas-fee-details';
+import GasFeesDetailsRow from '../../../../components/rows/transactions/gas-fee-details-row';
 
 const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
   const amountWei = route?.params?.amountWei;
@@ -38,14 +41,14 @@ const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
 
   return (
-    <>
+    <View testID={ConfirmationInfoComponentIDs.STAKING_WITHDRAWAL}>
       <HeroRow amountWei={amountWei} />
       <UnstakingTimeSection />
       <InfoSection>
         <StakingContractInteractionDetails />
       </InfoSection>
-      <GasFeesDetails disableUpdate />
-    </>
+      <GasFeesDetailsRow disableUpdate />
+    </View>
   );
 };
 export default StakingWithdrawal;

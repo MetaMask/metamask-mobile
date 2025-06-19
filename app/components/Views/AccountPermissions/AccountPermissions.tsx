@@ -10,6 +10,7 @@ import React, {
 import { useSelector } from 'react-redux';
 import { isEqual, uniq } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
+import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
 
 // External dependencies.
 import BottomSheet, {
@@ -90,6 +91,7 @@ import { NetworkAvatarProps } from '../AccountConnect/AccountConnect.types';
 import styleSheet from './AccountPermissions.styles';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import AddNewAccount from '../AddNewAccount';
+import { trace, endTrace, TraceName } from '../../../util/trace';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const { navigate } = useNavigation();
@@ -201,9 +203,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const networkAvatars: NetworkAvatarProps[] = permittedCaipChainIds.map(
     (selectedId) => {
-      const network = networks.find(
-        ({ caipChainId }) => caipChainId === selectedId,
-      );
+      const network = networks
+        .filter(
+          (currentNetwork) =>
+            !NON_EVM_TESTNET_IDS.includes(currentNetwork.caipChainId),
+        )
+        .find(({ caipChainId }) => caipChainId === selectedId);
       let imageSource = network?.imageSource;
 
       if (typeof imageSource === 'string') {
@@ -219,6 +224,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         imageSource,
         variant: AvatarVariant.Network,
         size: AvatarSize.Xs,
+        caipChainId: selectedId,
       };
     },
   );
@@ -295,6 +301,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   }, [hostname, navigate]);
 
   const toggleRevokeAllPermissionsModal = useCallback(() => {
+    trace({ name: TraceName.DisconnectAllAccountPermissions });
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
       params: {
@@ -306,6 +313,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
       },
     });
+    endTrace({ name: TraceName.DisconnectAllAccountPermissions });
   }, [navigate, urlWithProtocol, isRenderedAsBottomSheet, onRevokeAllHandler]);
 
   const handleCreateAccount = useCallback(

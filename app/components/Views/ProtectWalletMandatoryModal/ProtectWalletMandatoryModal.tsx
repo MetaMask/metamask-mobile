@@ -13,7 +13,7 @@ import {
 } from '../../../reducers/user';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
-import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
+import { selectHasAnyBalance } from '../../../selectors/tokenBalancesController';
 import { selectAllTokens } from '../../../selectors/tokensController';
 import { selectAllNfts } from '../../../selectors/nftController';
 import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
@@ -30,7 +30,7 @@ const ProtectWalletMandatoryModal = () => {
 
   const metrics = useMetrics();
 
-  const tokenBalances = useSelector(selectTokensBalances);
+  const hasAnyTokenBalance = useSelector(selectHasAnyBalance);
   const allTokens = useSelector(selectAllTokens);
   const nfts = useSelector(selectAllNfts);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
@@ -81,13 +81,13 @@ const ProtectWalletMandatoryModal = () => {
       setShowProtectWalletModal(false);
     }
     // We need to add the dependencies to trigger the effect when the wallet have ballance
-    // Dependencies added: tokenBalances, allTokens, nfts, selectedAddress
+    // Dependencies added: hasAnyTokenBalance, allTokens, nfts, selectedAddress
   }, [
     metrics,
     passwordSet,
     seedphraseBackedUp,
     dangerouslyGetState,
-    tokenBalances,
+    hasAnyTokenBalance,
     allTokens,
     nfts,
     selectedAddress,
