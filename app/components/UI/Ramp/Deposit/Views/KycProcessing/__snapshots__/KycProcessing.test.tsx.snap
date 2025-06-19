@@ -2577,6 +2577,9 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={7}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -3158,6 +3161,9 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={6}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
