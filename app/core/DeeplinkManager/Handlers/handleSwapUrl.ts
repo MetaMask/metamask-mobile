@@ -1,4 +1,3 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import {
   isCaipAssetType,
   isHexString,
@@ -16,7 +15,6 @@ interface HandleSwapUrlParams {
  *
  * @param params Object containing the swap path and navigation object
  * @param params.swapPath - The swap URL path containing the parameters
- * @param params.navigation - The navigation object
  *
  * @example
  * URL format:
