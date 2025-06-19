@@ -13,7 +13,6 @@ import TabBarComponent from '../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../fixtures/fixture-builder';
 import {
   withFixtures,
-  defaultGanacheOptions,
 } from '../fixtures/fixture-helper';
 import { loginToApp } from '../viewHelper';
 
@@ -165,7 +164,6 @@ const main = async () => {
     {
       dapp: true,
       fixture: new FixtureBuilder().withGanacheNetwork().build(),
-      ganacheOptions: defaultGanacheOptions,
       disableGanache: true,
       restartDevice: true,
       testSpecificMock,
@@ -215,6 +213,8 @@ const main = async () => {
         'wallet_registerOnboarding',
         'eth_getEncryptionPublicKey',
         'wallet_watchAsset',
+        'personal_sign', // quarantined for now due to mysterious flakiness, resolution tracked here: https://github.com/MetaMask/MetaMask-planning/issues/5207
+        'eth_signTypedData_v4', // quarantined for now due to mysterious flakiness, resolution tracked here: https://github.com/MetaMask/MetaMask-planning/issues/5207
       ];
 
       const results = await rpcCoverageTool({

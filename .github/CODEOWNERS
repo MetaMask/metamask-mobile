@@ -75,6 +75,10 @@ app/core/Engine/controllers/accounts-controller             @MetaMask/accounts-e
 app/core/Engine/messengers/accounts-controller-messenger    @MetaMask/accounts-engineers
 app/core/SnapKeyring                                        @MetaMask/accounts-engineers
 
+# Co-owned by accounts and wallet-ux
+app/components/Views/AccountSelector                        @MetaMask/accounts-engineers @MetaMask/wallet-ux
+app/components/UI/EvmAccountSelectorList                    @MetaMask/accounts-engineers @MetaMask/wallet-ux
+
 # Multichain Accounts
 **/multichain-accounts/**                                   @MetaMask/accounts-engineers
 **/MultichainAccounts/**                                    @MetaMask/accounts-engineers
@@ -164,7 +168,6 @@ app/components/Views/LockScreen @MetaMask/wallet-ux
 app/components/Views/Login @MetaMask/wallet-ux
 app/components/Views/NetworkConnect @MetaMask/wallet-ux
 app/components/Views/NetworkSelector @MetaMask/wallet-ux
-app/components/Views/Onboarding @MetaMask/wallet-ux
 app/components/Views/OnboardingCarousel @MetaMask/wallet-ux
 app/components/Views/OnboardingSuccess @MetaMask/wallet-ux
 app/components/Views/QRAccountDisplay @MetaMask/wallet-ux
@@ -174,12 +177,16 @@ app/components/Views/TermsAndConditions @MetaMask/wallet-ux
 app/reducers/experimentalSettings @MetaMask/wallet-ux
 app/reducers/modals @MetaMask/wallet-ux
 app/reducers/navigation @MetaMask/wallet-ux
-app/reducers/onboarding @MetaMask/wallet-ux
 app/reducers/privacy @MetaMask/wallet-ux
 app/reducers/settings @MetaMask/wallet-ux
 
 # Transactions Team
 app/components/Views/transactions @MetaMask/transactions
+
+# Web3auth Team
+app/components/Views/Onboarding @MetaMask/web3auth
+app/reducers/onboarding @MetaMask/web3auth
+
 
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.

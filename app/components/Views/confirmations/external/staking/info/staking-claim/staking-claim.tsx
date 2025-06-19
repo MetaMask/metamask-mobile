@@ -1,6 +1,7 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { RouteProp } from '@react-navigation/native';
 import React, { useEffect } from 'react';
+import { View } from 'react-native';
 
 import { strings } from '../../../../../../../../locales/i18n';
 import SimulationDetails from '../../../../../../UI/SimulationDetails/SimulationDetails';
@@ -13,7 +14,8 @@ import { useTransactionMetadataRequest } from '../../../../hooks/transactions/us
 import InfoSection from '../../../../components/UI/info-row/info-section';
 import StakingContractInteractionDetails from '../../components/staking-contract-interaction-details/staking-contract-interaction-details';
 import { HeroRow } from '../../../../components/rows/transactions/hero-row';
-import GasFeesDetails from '../../../../components/rows/transactions/gas-fee-details';
+import GasFeesDetailsRow from '../../../../components/rows/transactions/gas-fee-details-row';
+import { ConfirmationInfoComponentIDs } from '../../../../constants/info-ids';
 
 const StakingClaim = ({
   route,
@@ -45,7 +47,7 @@ const StakingClaim = ({
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
 
   return (
-    <>
+    <View testID={ConfirmationInfoComponentIDs.STAKING_CLAIM}>
       <HeroRow amountWei={route?.params?.amountWei} />
       <SimulationDetails
         transaction={transactionMetadata as TransactionMeta}
@@ -55,8 +57,8 @@ const StakingClaim = ({
       <InfoSection>
         <StakingContractInteractionDetails />
       </InfoSection>
-      <GasFeesDetails disableUpdate />
-    </>
+      <GasFeesDetailsRow disableUpdate />
+    </View>
   );
 };
 export default StakingClaim;

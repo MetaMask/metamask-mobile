@@ -225,7 +225,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                   }
                 }
               >
-                You could earn
+                You could earn up to
               </Text>
               <Text
                 accessibilityRole="text"
@@ -240,7 +240,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                   }
                 }
               >
-                $454
+                4%
               </Text>
               <Text
                 accessibilityRole="text"
@@ -274,11 +274,13 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                     "justifyContent": "space-between",
                   }
                 }
+                testID="earn-token-list-item"
               >
                 <View
                   style={
                     {
                       "alignItems": "center",
+                      "flex": 1,
                       "flexDirection": "row",
                       "gap": 16,
                     }
@@ -381,17 +383,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                     >
                       <View
                         onLayout={[Function]}
-                        style={
-                          {
-                            "alignItems": "center",
-                            "aspectRatio": 1,
-                            "height": "50%",
-                            "justifyContent": "center",
-                            "maxHeight": 24,
-                            "minHeight": 8,
-                            "opacity": 0,
-                          }
-                        }
+                        style={{}}
                         testID="badgenetwork"
                       >
                         <View
@@ -400,9 +392,9 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                               "alignItems": "center",
                               "backgroundColor": "#ffffff",
                               "borderColor": "#ffffff",
-                              "borderRadius": 8,
-                              "borderWidth": 2,
-                              "height": 32,
+                              "borderRadius": 4,
+                              "borderWidth": 1,
+                              "height": 16,
                               "justifyContent": "center",
                               "overflow": "hidden",
                               "shadowColor": "#0000001a",
@@ -412,12 +404,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                               },
                               "shadowOpacity": 1,
                               "shadowRadius": 4,
-                              "transform": [
-                                {
-                                  "scale": 1,
-                                },
-                              ],
-                              "width": 32,
+                              "width": 16,
                             }
                           }
                         >
@@ -427,8 +414,8 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                             source={10}
                             style={
                               {
-                                "height": 32,
-                                "width": 32,
+                                "height": 16,
+                                "width": 16,
                               }
                             }
                             testID="network-avatar-image"
@@ -437,21 +424,30 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                       </View>
                     </View>
                   </View>
-                  <Text
-                    accessibilityRole="text"
+                  <View
                     style={
                       {
-                        "color": "#121314",
-                        "fontFamily": "CentraNo1-Medium",
-                        "fontSize": 16,
-                        "fontWeight": "500",
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
+                        "flex": 1,
                       }
                     }
                   >
-                    Ethereum
-                  </Text>
+                    <Text
+                      accessibilityRole="text"
+                      numberOfLines={1}
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Medium",
+                          "fontSize": 16,
+                          "fontWeight": "500",
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
+                      }
+                    >
+                      Ethereum
+                    </Text>
+                  </View>
                 </View>
                 <View
                   style={
@@ -489,7 +485,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                       }
                     }
                   >
-                     ETH
+                    0.30235 ETH
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -510,11 +506,13 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                     "justifyContent": "space-between",
                   }
                 }
+                testID="earn-token-list-item"
               >
                 <View
                   style={
                     {
                       "alignItems": "center",
+                      "flex": 1,
                       "flexDirection": "row",
                       "gap": 16,
                     }
@@ -542,13 +540,14 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                             "width": 32,
                           }
                         }
+                        testID="earn-token-avatar-USDC"
                       >
                         <Image
                           onError={[Function]}
                           resizeMode="contain"
                           source={
                             {
-                              "uri": "",
+                              "uri": "https://static.cx.metamask.io/api/v1/tokenIcons/1/0xaf88d065e77c8cc2239327c5edb3a432268e5831.png",
                             }
                           }
                           style={
@@ -585,17 +584,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                     >
                       <View
                         onLayout={[Function]}
-                        style={
-                          {
-                            "alignItems": "center",
-                            "aspectRatio": 1,
-                            "height": "50%",
-                            "justifyContent": "center",
-                            "maxHeight": 24,
-                            "minHeight": 8,
-                            "opacity": 0,
-                          }
-                        }
+                        style={{}}
                         testID="badgenetwork"
                       >
                         <View
@@ -604,9 +593,9 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                               "alignItems": "center",
                               "backgroundColor": "#ffffff",
                               "borderColor": "#ffffff",
-                              "borderRadius": 8,
-                              "borderWidth": 2,
-                              "height": 32,
+                              "borderRadius": 4,
+                              "borderWidth": 1,
+                              "height": 16,
                               "justifyContent": "center",
                               "overflow": "hidden",
                               "shadowColor": "#0000001a",
@@ -616,12 +605,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                               },
                               "shadowOpacity": 1,
                               "shadowRadius": 4,
-                              "transform": [
-                                {
-                                  "scale": 1,
-                                },
-                              ],
-                              "width": 32,
+                              "width": 16,
                             }
                           }
                         >
@@ -631,8 +615,8 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                             source={10}
                             style={
                               {
-                                "height": 32,
-                                "width": 32,
+                                "height": 16,
+                                "width": 16,
                               }
                             }
                             testID="network-avatar-image"
@@ -641,225 +625,30 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                       </View>
                     </View>
                   </View>
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#121314",
-                        "fontFamily": "CentraNo1-Medium",
-                        "fontSize": 16,
-                        "fontWeight": "500",
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
-                    }
-                  >
-                    Dai Stablecoin
-                  </Text>
-                </View>
-                <View
-                  style={
-                    {
-                      "alignItems": "flex-end",
-                      "justifyContent": "center",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#1c7e33",
-                        "fontFamily": "CentraNo1-Medium",
-                        "fontSize": 16,
-                        "fontWeight": "500",
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
-                    }
-                  >
-                    5.0% APR
-                  </Text>
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Medium",
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    tokenBalanceLoading
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-            <View
-              style={
-                {
-                  "padding": 16,
-                }
-              }
-            >
-              <TouchableOpacity
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "justifyContent": "space-between",
-                  }
-                }
-              >
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                      "gap": 16,
-                    }
-                  }
-                >
                   <View
-                    onLayout={[Function]}
                     style={
                       {
-                        "alignSelf": "flex-start",
-                        "position": "relative",
+                        "flex": 1,
                       }
                     }
-                    testID="badge-wrapper-badge"
                   >
-                    <View>
-                      <View
-                        style={
-                          {
-                            "backgroundColor": "#ffffff",
-                            "borderRadius": 16,
-                            "flexShrink": 0,
-                            "height": 32,
-                            "overflow": "hidden",
-                            "width": 32,
-                          }
-                        }
-                      >
-                        <Image
-                          onError={[Function]}
-                          resizeMode="contain"
-                          source={
-                            {
-                              "uri": "",
-                            }
-                          }
-                          style={
-                            {
-                              "flex": 1,
-                              "height": undefined,
-                              "width": undefined,
-                            }
-                          }
-                          testID="token-avatar-image"
-                        />
-                      </View>
-                    </View>
-                    <View
+                    <Text
+                      accessibilityRole="text"
+                      numberOfLines={1}
                       style={
                         {
-                          "alignItems": "center",
-                          "aspectRatio": 1,
-                          "bottom": 0,
-                          "height": 0,
-                          "justifyContent": "center",
-                          "position": "absolute",
-                          "right": 0,
-                          "transform": [
-                            {
-                              "translateX": 0,
-                            },
-                            {
-                              "translateY": 0,
-                            },
-                          ],
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Medium",
+                          "fontSize": 16,
+                          "fontWeight": "500",
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
                         }
                       }
                     >
-                      <View
-                        onLayout={[Function]}
-                        style={
-                          {
-                            "alignItems": "center",
-                            "aspectRatio": 1,
-                            "height": "50%",
-                            "justifyContent": "center",
-                            "maxHeight": 24,
-                            "minHeight": 8,
-                            "opacity": 0,
-                          }
-                        }
-                        testID="badgenetwork"
-                      >
-                        <View
-                          style={
-                            {
-                              "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#ffffff",
-                              "borderRadius": 8,
-                              "borderWidth": 2,
-                              "height": 32,
-                              "justifyContent": "center",
-                              "overflow": "hidden",
-                              "shadowColor": "#0000001a",
-                              "shadowOffset": {
-                                "height": 2,
-                                "width": 0,
-                              },
-                              "shadowOpacity": 1,
-                              "shadowRadius": 4,
-                              "transform": [
-                                {
-                                  "scale": 1,
-                                },
-                              ],
-                              "width": 32,
-                            }
-                          }
-                        >
-                          <Image
-                            onError={[Function]}
-                            resizeMode="contain"
-                            source={10}
-                            style={
-                              {
-                                "height": 32,
-                                "width": 32,
-                              }
-                            }
-                            testID="network-avatar-image"
-                          />
-                        </View>
-                      </View>
-                    </View>
+                      USDC
+                    </Text>
                   </View>
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#121314",
-                        "fontFamily": "CentraNo1-Medium",
-                        "fontSize": 16,
-                        "fontWeight": "500",
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
-                    }
-                  >
-                    USDC
-                  </Text>
                 </View>
                 <View
                   style={
@@ -882,7 +671,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                       }
                     }
                   >
-                    4.5% APR
+                    4.0% APR
                   </Text>
                   <Text
                     accessibilityRole="text"
@@ -897,211 +686,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                       }
                     }
                   >
-                    tokenBalanceLoading
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-            <View
-              style={
-                {
-                  "padding": 16,
-                }
-              }
-            >
-              <TouchableOpacity
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "justifyContent": "space-between",
-                  }
-                }
-              >
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                      "gap": 16,
-                    }
-                  }
-                >
-                  <View
-                    onLayout={[Function]}
-                    style={
-                      {
-                        "alignSelf": "flex-start",
-                        "position": "relative",
-                      }
-                    }
-                    testID="badge-wrapper-badge"
-                  >
-                    <View>
-                      <View
-                        style={
-                          {
-                            "backgroundColor": "#ffffff",
-                            "borderRadius": 16,
-                            "flexShrink": 0,
-                            "height": 32,
-                            "overflow": "hidden",
-                            "width": 32,
-                          }
-                        }
-                      >
-                        <Image
-                          onError={[Function]}
-                          resizeMode="contain"
-                          source={
-                            {
-                              "uri": "",
-                            }
-                          }
-                          style={
-                            {
-                              "flex": 1,
-                              "height": undefined,
-                              "width": undefined,
-                            }
-                          }
-                          testID="token-avatar-image"
-                        />
-                      </View>
-                    </View>
-                    <View
-                      style={
-                        {
-                          "alignItems": "center",
-                          "aspectRatio": 1,
-                          "bottom": 0,
-                          "height": 0,
-                          "justifyContent": "center",
-                          "position": "absolute",
-                          "right": 0,
-                          "transform": [
-                            {
-                              "translateX": 0,
-                            },
-                            {
-                              "translateY": 0,
-                            },
-                          ],
-                        }
-                      }
-                    >
-                      <View
-                        onLayout={[Function]}
-                        style={
-                          {
-                            "alignItems": "center",
-                            "aspectRatio": 1,
-                            "height": "50%",
-                            "justifyContent": "center",
-                            "maxHeight": 24,
-                            "minHeight": 8,
-                            "opacity": 0,
-                          }
-                        }
-                        testID="badgenetwork"
-                      >
-                        <View
-                          style={
-                            {
-                              "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#ffffff",
-                              "borderRadius": 8,
-                              "borderWidth": 2,
-                              "height": 32,
-                              "justifyContent": "center",
-                              "overflow": "hidden",
-                              "shadowColor": "#0000001a",
-                              "shadowOffset": {
-                                "height": 2,
-                                "width": 0,
-                              },
-                              "shadowOpacity": 1,
-                              "shadowRadius": 4,
-                              "transform": [
-                                {
-                                  "scale": 1,
-                                },
-                              ],
-                              "width": 32,
-                            }
-                          }
-                        >
-                          <Image
-                            onError={[Function]}
-                            resizeMode="contain"
-                            source={10}
-                            style={
-                              {
-                                "height": 32,
-                                "width": 32,
-                              }
-                            }
-                            testID="network-avatar-image"
-                          />
-                        </View>
-                      </View>
-                    </View>
-                  </View>
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#121314",
-                        "fontFamily": "CentraNo1-Medium",
-                        "fontSize": 16,
-                        "fontWeight": "500",
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
-                    }
-                  >
-                    Tether USD
-                  </Text>
-                </View>
-                <View
-                  style={
-                    {
-                      "alignItems": "flex-end",
-                      "justifyContent": "center",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#1c7e33",
-                        "fontFamily": "CentraNo1-Medium",
-                        "fontSize": 16,
-                        "fontWeight": "500",
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
-                    }
-                  >
-                    4.1% APR
-                  </Text>
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Medium",
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    tokenBalanceLoading
+                    103.78605 USDC
                   </Text>
                 </View>
               </TouchableOpacity>

@@ -1,11 +1,13 @@
+import { CHAIN_ID_TO_AAVE_POOL_CONTRACT } from '@metamask/stake-sdk';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import React from 'react';
 import DepositInfoSection, { DepositInfoSectionProps } from '.';
+import { strings } from '../../../../../../../../locales/i18n';
+import { getDecimalChainId } from '../../../../../../../util/networks';
+import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { MOCK_USDC_MAINNET_ASSET } from '../../../../../Stake/__mocks__/stakeMockData';
-import { CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS } from '../../../../utils/tempLending';
-import { TokenI } from '../../../../../Tokens/types';
-import { backgroundState } from '../../../../../../../util/test/initial-root-state';
-import { strings } from '../../../../../../../../locales/i18n';
+import { LendingProtocol } from '../../../../types/lending.types';
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -24,15 +26,18 @@ const MOCK_APR_VALUES: { [symbol: string]: string } = {
   DAI: '5.0',
 };
 
-jest.mock('../../../../hooks/useEarnTokenDetails', () => ({
-  useEarnTokenDetails: () => ({
-    getTokenWithBalanceAndApr: (token: TokenI) => ({
-      ...token,
-      apr: MOCK_APR_VALUES[token.symbol] || '0.0',
-      balanceFormatted: token.symbol === 'USDC' ? '6.84314 USDC' : '0',
-      balanceFiat: token.symbol === 'USDC' ? '$6.84' : '$0.00',
-      balanceMinimalUnit: token.symbol === 'USDC' ? '6.84314' : '0',
-      balanceFiatNumber: token.symbol === 'USDC' ? 6.84314 : 0,
+jest.mock('../../../../hooks/useEarnToken', () => ({
+  __esModule: true,
+  default: () => ({
+    earnToken: {
+      ...MOCK_USDC_MAINNET_ASSET,
+      experience: {
+        apr: MOCK_APR_VALUES[MOCK_USDC_MAINNET_ASSET.symbol] || '0.0',
+      },
+    },
+    getEstimatedAnnualRewardsForAmount: () => ({
+      estimatedAnnualRewardsFormatted: '$5.00',
+      estimatedAnnualRewardsTokenFormatted: '5 USDC',
     }),
   }),
 }));
@@ -48,8 +53,11 @@ describe('DepositInfoSection', () => {
 
   const defaultProps: DepositInfoSectionProps = {
     token: USDC_TOKEN,
-    lendingProtocol: 'AAVE v3',
-    lendingContractAddress: CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS['0x1'],
+    lendingProtocol: LendingProtocol.AAVE,
+    lendingContractAddress:
+      CHAIN_ID_TO_AAVE_POOL_CONTRACT[getDecimalChainId(CHAIN_IDS.MAINNET)],
+    amountTokenMinimalUnit: '5.0',
+    amountFiatNumber: 5.0,
   };
 
   beforeEach(() => {
@@ -70,9 +78,8 @@ describe('DepositInfoSection', () => {
       strings('stake.reward_frequency'),
       strings('stake.withdrawal_time'),
       strings('earn.protocol'),
-      // MOCK_DATA to replace before launch
       '$5.00',
-      '5 DAI',
+      '5 USDC',
     ];
 
     expectedDefinedStrings.forEach((str) => {

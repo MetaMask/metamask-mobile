@@ -59,17 +59,19 @@ export function useMultichainTransactionDisplay({
   }
 
   const asset = {
-    [TransactionType.Send]: parseAssetWithThreshold(
+    // NOTE: We force the type to `string` here to avoid infering this `Record` with
+    // a `TransactionType` as key (since `'bridge'` is not valid for this enum).
+    [TransactionType.Send as string]: parseAssetWithThreshold(
       from?.asset ?? null,
       '0.00001',
       { locale, isNegative: true },
     ),
-    [TransactionType.Receive]: parseAssetWithThreshold(
+    [TransactionType.Receive as string]: parseAssetWithThreshold(
       to?.asset ?? null,
       '0.00001',
       { locale, isNegative: false },
     ),
-    [TransactionType.Swap]: parseAssetWithThreshold(
+    [TransactionType.Swap as string]: parseAssetWithThreshold(
       from?.asset ?? null,
       '0.00001',
       { locale, isNegative: true },
