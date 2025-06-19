@@ -5,7 +5,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -31,7 +31,7 @@ import QuickAmounts from '../../../Stake/components/QuickAmounts';
 import {
   EVENT_LOCATIONS,
   EVENT_PROVIDERS,
-} from '../../../Stake/constants/events';
+} from '../../constants/events';
 import usePoolStakedUnstake from '../../../Stake/hooks/usePoolStakedUnstake';
 import { StakeNavigationParamsList } from '../../../Stake/types';
 import {
@@ -126,7 +126,7 @@ const EarnWithdrawInputView = () => {
             token: earnToken?.symbol,
             network: network?.name,
             user_token_balance: earnBalanceValue,
-            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            experience: receiptToken?.experience?.type,
           })
           .build(),
       );
@@ -190,12 +190,26 @@ const EarnWithdrawInputView = () => {
     // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-903
     // handleIconPress: ???,
   };
+  const backButtonAnalytics = shouldLogStablecoinEvent()
+    ? {
+        event: MetaMetricsEvents.EARN_INPUT_BACK_BUTTON_CLICKED,
+        experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        location: EVENT_LOCATIONS.EARN_WITHDRAWAL_INPUT_VIEW,
+      }
+    : {
+        event: MetaMetricsEvents.UNSTAKE_CANCEL_CLICKED,
+        experience: EARN_EXPERIENCES.POOLED_STAKING,
+        location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
+      };
+
   const earnNavBarEventOptions = {
     backButtonEvent: {
-      event: MetaMetricsEvents.UNSTAKE_CANCEL_CLICKED,
+      event: backButtonAnalytics.event,
       properties: {
         selected_provider: EVENT_PROVIDERS.CONSENSYS,
-        location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
+        location: backButtonAnalytics.location,
+        experience: backButtonAnalytics.experience,
+        token: token.symbol,
       },
     },
     // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-903
@@ -228,6 +242,51 @@ const EarnWithdrawInputView = () => {
     );
   }, [navigation, theme.colors, navBarOptions, navBarEventOptions]);
 
+  // This component rerenders to recalculate gas estimate which causes duplicate events to fire.
+  // This ref will allow one insufficient funds error to fire per visit to the page.
+  const isSendingInsufficientFundsMetaMetric = useRef(false);
+
+  useEffect(() => {
+    const emitInsufficientFundsMetaMetric = () => {
+      // track insufficient balance for stablecoin lending withdrawals
+      if (shouldLogStablecoinEvent()) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.EARN_INPUT_INSUFFICIENT_BALANCE)
+            .addProperties({
+              provider: EVENT_PROVIDERS.CONSENSYS,
+              location: EVENT_LOCATIONS.EARN_WITHDRAWAL_INPUT_VIEW,
+              token_name: token.name,
+              token: token.symbol,
+              network: network?.name,
+              experience: receiptToken?.experience?.type,
+              action_type: 'withdrawal',
+            })
+            .build(),
+        );
+      }
+    };
+
+    if (
+      isOverMaximum.isOverMaximumEth ||
+      (isOverMaximum.isOverMaximumToken &&
+        !isSendingInsufficientFundsMetaMetric.current)
+    ) {
+      isSendingInsufficientFundsMetaMetric.current = true;
+      emitInsufficientFundsMetaMetric();
+    }
+  }, [
+    shouldLogStablecoinEvent,
+    createEventBuilder,
+    receiptToken?.experience?.type,
+    isOverMaximum?.isOverMaximumEth,
+    isOverMaximum?.isOverMaximumToken,
+    network?.name,
+    token.chainId,
+    token.name,
+    token.symbol,
+    trackEvent,
+  ]);
+
   const [
     isSubmittingStakeWithdrawalTransaction,
     setIsSubmittingStakeWithdrawalTransaction,
@@ -247,7 +306,7 @@ const EarnWithdrawInputView = () => {
           network: network?.name,
           user_token_balance: earnBalanceValue,
           transaction_value: amountToken,
-          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          experience: receiptToken?.experience?.type,
         })
         .build(),
     );
@@ -306,18 +365,6 @@ const EarnWithdrawInputView = () => {
   ]);
 
   const handleUnstakeWithdrawalFlow = useCallback(async () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.EARN_REVIEW_BUTTON_CLICKED)
-        .addProperties({
-          action_type: 'withdrawal',
-          token: earnToken?.symbol,
-          network: network?.name,
-          user_token_balance: earnBalanceValue,
-          transaction_value: amountToken,
-          experience: EARN_EXPERIENCES.POOLED_STAKING,
-        })
-        .build(),
-    );
 
     const isStakingDepositRedesignedEnabled =
       confirmationRedesignFlags?.staking_confirmations;
@@ -480,25 +527,76 @@ const EarnWithdrawInputView = () => {
     receiptToken?.symbol,
   ]);
 
-  const handleKeypadChangeWithTracking = useCallback(
-    (params: { value: string; pressedKey: string }) => {
-      // call the original handler first
-      handleKeypadChange(params);
+  const handleCurrencySwitchWithTracking = useCallback(() => {
+    // Call the original handler first
+    handleCurrencySwitch();
 
-      if (
-        shouldLogStablecoinEvent() &&
-        params.value !== '0' &&
-        params.value !== ''
-      ) {
+    // Track events based on flow type
+    if (shouldLogStablecoinEvent()) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EARN_INPUT_CURRENCY_SWITCH_CLICKED)
+          .addProperties({
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            text: 'Currency Switch Clicked',
+            location: EVENT_LOCATIONS.EARN_WITHDRAWAL_INPUT_VIEW,
+            // We want to track the currency switching to. Not the current currency.
+            currency_type: isFiat ? 'native' : 'fiat',
+            experience: receiptToken?.experience?.type,
+          })
+          .build(),
+      );
+    } else if (shouldLogStakingEvent()) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.UNSTAKE_INPUT_CURRENCY_SWITCH_CLICKED)
+          .addProperties({
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            text: 'Currency Switch Trigger',
+            location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
+            // We want to track the currency switching to. Not the current currency.
+            currency_type: isFiat ? 'native' : 'fiat',
+            experience: receiptToken?.experience?.type,
+          })
+          .build(),
+      );
+    }
+  }, [
+    handleCurrencySwitch,
+    shouldLogStablecoinEvent,
+    shouldLogStakingEvent,
+    trackEvent,
+    createEventBuilder,
+    isFiat,
+    receiptToken?.experience?.type,
+    earnToken?.symbol,
+    network?.name,
+  ]);
+
+  const handleQuickAmountPressWithTracking = useCallback(
+    ({ value }: { value: number }) => {
+      handleQuickAmountPress({ value });
+
+      if (shouldLogStablecoinEvent()) {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED)
             .addProperties({
               action_type: 'withdrawal',
-              input_value: params.value,
+              input_value: value === 1 ? 'Max' : `${value * 100}%`,
               token: earnToken?.symbol,
               network: network?.name,
               user_token_balance: earnBalanceValue,
-              experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+              experience: receiptToken?.experience?.type,
+            })
+            .build(),
+        );
+      } else if (shouldLogStakingEvent()) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.UNSTAKE_INPUT_QUICK_AMOUNT_CLICKED)
+            .addProperties({
+              location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
+              amount: value,
+              is_max: value === 1,
+              mode: isFiat ? 'fiat' : 'native',
+              experience: EARN_EXPERIENCES.POOLED_STAKING,
             })
             .build(),
         );
@@ -506,12 +604,14 @@ const EarnWithdrawInputView = () => {
     },
     [
       shouldLogStablecoinEvent,
-      handleKeypadChange,
+      shouldLogStakingEvent,
+      handleQuickAmountPress,
       trackEvent,
       createEventBuilder,
       earnToken?.symbol,
       network?.name,
       earnBalanceValue,
+      isFiat,
     ],
   );
 
@@ -526,16 +626,7 @@ const EarnWithdrawInputView = () => {
         isFiat={isFiat}
         asset={token}
         currentCurrency={currentCurrency}
-        handleCurrencySwitch={withMetaMetrics(handleCurrencySwitch, {
-          event: MetaMetricsEvents.UNSTAKE_INPUT_CURRENCY_SWITCH_CLICKED,
-          properties: {
-            selected_provider: EVENT_PROVIDERS.CONSENSYS,
-            text: 'Currency Switch Trigger',
-            location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
-            // We want to track the currency switching to. Not the current currency.
-            currency_type: isFiat ? 'native' : 'fiat',
-          },
-        })}
+        handleCurrencySwitch={handleCurrencySwitchWithTracking}
         currencyToggleValue={currencyToggleValue}
         maxWithdrawalAmount={maxRiskAwareWithdrawalText}
         error={
@@ -554,38 +645,11 @@ const EarnWithdrawInputView = () => {
       )}
       <QuickAmounts
         amounts={percentageOptions}
-        onAmountPress={({ value }: { value: number }) => {
-          const metrics: WithMetaMetricsEvent[] = [];
-
-          if (shouldLogStablecoinEvent()) {
-            metrics.push({
-              event: MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED,
-              properties: {
-                action_type: 'withdrawal',
-                input_value: value === 1 ? 'Max' : `${value * 100}%`,
-                token: earnToken?.symbol,
-                network: network?.name,
-                user_token_balance: earnBalanceValue,
-              },
-            });
-          } else if (shouldLogStakingEvent()) {
-            metrics.push({
-              event: MetaMetricsEvents.UNSTAKE_INPUT_QUICK_AMOUNT_CLICKED,
-              properties: {
-                location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
-                amount: value,
-                is_max: value === 1,
-                mode: isFiat ? 'fiat' : 'native',
-              },
-            });
-          }
-
-          withMetaMetrics(handleQuickAmountPress, metrics)({ value });
-        }}
+        onAmountPress={handleQuickAmountPressWithTracking}
       />
       <Keypad
         value={isFiat ? amountFiatNumber : amountToken}
-        onChange={handleKeypadChangeWithTracking}
+        onChange={handleKeypadChange}
         style={styles.keypad}
         // TODO: this should be the underlying token symbol/ticker if not ETH
         // once this data is available in the state we can use that

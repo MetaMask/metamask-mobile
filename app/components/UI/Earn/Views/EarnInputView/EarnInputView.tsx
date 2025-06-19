@@ -592,6 +592,32 @@ const EarnInputView = () => {
     isFiat,
   ]);
 
+  const handleCurrencySwitchWithTracking = useCallback(() => {
+    // Call the original handler first
+    handleCurrencySwitch();
+
+    if (shouldLogStablecoinEvent()) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EARN_INPUT_CURRENCY_SWITCH_CLICKED)
+          .addProperties({
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            text: 'Currency Switch Clicked',
+            location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+            currency_type: !isFiat ? 'fiat' : 'native',
+            experience: earnToken?.experience?.type,
+          })
+          .build(),
+      );
+    }
+  }, [
+    shouldLogStablecoinEvent,
+    handleCurrencySwitch,
+    trackEvent,
+    createEventBuilder,
+    isFiat,
+    earnToken?.experience?.type,
+  ]);
+
   const getButtonLabel = () => {
     if (!isNonZeroAmount) {
       return strings('stake.enter_amount');
@@ -694,18 +720,21 @@ const EarnInputView = () => {
 
   useEffect(() => {
     const emitInsufficientFundsMetaMetric = () => {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.EARN_INPUT_INSUFFICIENT_BALANCE)
-          .addProperties({
-            provider: EVENT_PROVIDERS.CONSENSYS,
-            location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
-            token_name: token.name,
-            token: token.symbol,
-            network: network?.name,
-            experience: earnToken?.experience.type,
-          })
-          .build(),
-      );
+      // track insufficient balance for stablecoin lending deposits
+      if (shouldLogStablecoinEvent()) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.EARN_INPUT_INSUFFICIENT_BALANCE)
+            .addProperties({
+              provider: EVENT_PROVIDERS.CONSENSYS,
+              location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+              token_name: token.name,
+              token: token.symbol,
+              network: network?.name,
+              experience: earnToken?.experience.type,
+            })
+            .build(),
+        );
+      }
     };
 
     if (
@@ -717,8 +746,8 @@ const EarnInputView = () => {
       emitInsufficientFundsMetaMetric();
     }
   }, [
+    shouldLogStablecoinEvent,
     createEventBuilder,
-    earnToken?.experience.type,
     isOverMaximum?.isOverMaximumEth,
     isOverMaximum?.isOverMaximumToken,
     network?.name,
@@ -726,6 +755,7 @@ const EarnInputView = () => {
     token.name,
     token.symbol,
     trackEvent,
+    earnToken?.experience.type,
   ]);
 
   return (
@@ -739,16 +769,7 @@ const EarnInputView = () => {
         isFiat={isFiat}
         asset={token}
         currentCurrency={currentCurrency}
-        handleCurrencySwitch={withMetaMetrics(handleCurrencySwitch, {
-          event: MetaMetricsEvents.EARN_INPUT_CURRENCY_SWITCH_CLICKED,
-          properties: {
-            selected_provider: EVENT_PROVIDERS.CONSENSYS,
-            text: 'Currency Switch Clicked',
-            location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
-            currency_type: !isFiat ? 'fiat' : 'native',
-            experience: earnToken?.experience?.type,
-          },
-        })}
+        handleCurrencySwitch={handleCurrencySwitchWithTracking}
         currencyToggleValue={currencyToggleValue}
       />
       <View style={styles.rewardsRateContainer}>

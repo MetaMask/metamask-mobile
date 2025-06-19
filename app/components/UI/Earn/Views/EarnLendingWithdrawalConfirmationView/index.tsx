@@ -186,6 +186,12 @@ const EarnLendingWithdrawalConfirmationView = () => {
   );
 
   const handleCancel = () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EARN_WITHDRAWAL_REVIEW_CANCEL_CLICKED)
+        .addProperties(getTrackEventProperties('withdrawal'))
+        .build(),
+    );
+
     navigation.goBack();
   };
 

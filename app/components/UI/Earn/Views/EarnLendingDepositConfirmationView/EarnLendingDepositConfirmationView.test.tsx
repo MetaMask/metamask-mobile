@@ -1,7 +1,7 @@
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { Result, TransactionType } from '@metamask/transaction-controller';
+import { Result, TransactionType, TransactionStatus } from '@metamask/transaction-controller';
 import { useRoute } from '@react-navigation/native';
-import { act, fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import EarnLendingDepositConfirmationView, {
   EarnLendingDepositConfirmationViewProps,
@@ -209,14 +209,20 @@ jest.mock('../../../../../hooks/useMetrics', () => ({
   },
 }));
 
+// Mock MetricsEventBuilder
+const MockMetricsEventBuilder = {
+  createEventBuilder: jest.fn().mockReturnValue({
+    addProperties: jest.fn().mockReturnThis(),
+    build: jest.fn().mockReturnValue({ name: 'test-event', properties: {} }),
+  }),
+};
+
 describe('EarnLendingDepositConfirmationView', () => {
   jest.mocked(getStakingNavbar);
   const mockAddTransaction = jest.mocked(
     Engine.context.TransactionController.addTransaction,
   );
-  const useMetricsMock = jest.mocked(useMetrics);
   const mockTrackEvent = jest.fn();
-  const useEarnTokenDetailsMock = jest.mocked(useEarnTokenDetails);
 
   const selectSelectedInternalAccountMock = jest.mocked(
     selectSelectedInternalAccount,
@@ -264,17 +270,12 @@ describe('EarnLendingDepositConfirmationView', () => {
       address: MOCK_ADDRESS_2,
     } as InternalAccount);
 
+    // Mock useMetrics hook
+    const useMetricsMock = jest.mocked(require('../../../../../hooks/useMetrics').useMetrics);
     useMetricsMock.mockReturnValue({
       trackEvent: mockTrackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
-    } as unknown as ReturnType<typeof useMetrics>);
-
-    useEarnTokenDetailsMock.mockReturnValue({
-      getTokenWithBalanceAndApr: jest.fn().mockReturnValue({
-        balanceFormatted: '1.00 USDC',
-        apr: '4.5',
-      }),
-    } as unknown as ReturnType<typeof useEarnTokenDetails>);
+      createEventBuilder: MockMetricsEventBuilder.createEventBuilder,
+    });
   });
 
   it('matches snapshot', () => {
@@ -369,7 +370,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       mockTrackEvent.mockClear();
 
       const depositButton = getByTestId(
-        LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+        CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
       );
 
       await act(async () => {
@@ -436,7 +437,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       );
 
       const depositButton = getByTestId(
-        LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+        CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
       );
 
       await act(async () => {
@@ -550,7 +551,7 @@ describe('EarnLendingDepositConfirmationView', () => {
         ...defaultRouteParams,
         params: {
           ...defaultRouteParams.params,
-          action: EARN_INPUT_VIEW_ACTIONS.ALLOWANCE_INCREASE,
+          action: EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE,
         },
       };
 
@@ -578,7 +579,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       );
 
       const depositButton = getByTestId(
-        LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+        CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
       );
 
       await act(async () => {
