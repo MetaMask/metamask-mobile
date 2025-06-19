@@ -18,6 +18,7 @@ import scaling from '../../../util/scaling';
 import Engine from '../../../core/Engine';
 import { ONBOARDING_WIZARD } from '../../../constants/storage';
 import { connect } from 'react-redux';
+import { saveOnboardingEvent as SaveEvent } from '../../../actions/onboarding';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -112,7 +113,7 @@ const AccountBackupStep1 = (props) => {
   const track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
-    trackOnboarding(eventBuilder.build());
+    trackOnboarding(eventBuilder.build(), props.saveOnboardingEvent);
   };
 
   useEffect(() => {
@@ -193,13 +194,19 @@ const AccountBackupStep1 = (props) => {
       screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
       params: {
         onConfirm: skip,
-        onCancel: goNext,
+        onCancel: () => {
+          track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CANCELED);
+          goNext();
+        },
       },
     });
     track(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
   };
 
   const showWhatIsSeedphrase = () => {
+    track(MetaMetricsEvents.SRP_DEFINITION_CLICKED, {
+      location: 'account_backup_step_1',
+    });
     props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SEEDPHRASE_MODAL,
     });
@@ -291,10 +298,16 @@ AccountBackupStep1.propTypes = {
    * Action to set onboarding wizard step
    */
   setOnboardingWizardStep: PropTypes.func,
+  /**
+   * Action to save onboarding event
+   */
+  saveOnboardingEvent: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
+  saveOnboardingEvent: (...eventArgs) =>
+    dispatch(SaveEvent(eventArgs)),
 });
 
 export default connect(null, mapDispatchToProps)(AccountBackupStep1);

@@ -67,8 +67,8 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
-import { SecurityOptionToggle } from '../../UI/SecurityOptionToggle';
 import NavigationService from '../../../core/NavigationService';
+import { MetaMetricsEvents, MetaMetrics, MetricsEventBuilder } from '../../../core/Analytics';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -452,6 +452,19 @@ class ResetPassword extends PureComponent {
 
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
       this.props.passwordSet();
+
+      // Track password changed event
+      const { biometryChoice, passwordStrength } = this.state;
+      const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
+      const eventBuilder = MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PASSWORD_CHANGED,
+      ).addProperties({
+        biometry_type: this.state.biometryType,
+        biometrics_enabled: Boolean(biometryChoice),
+        password_strength: passwordStrengthWord,
+      });
+      MetaMetrics.getInstance().trackEvent(eventBuilder.build());
+
       this.setState({ loading: false });
       InteractionManager.runAfterInteractions(() => {
         this.props.navigation.navigate('SecuritySettings');
@@ -892,4 +905,7 @@ const mapDispatchToProps = (dispatch) => ({
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(ResetPassword);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(ResetPassword);
