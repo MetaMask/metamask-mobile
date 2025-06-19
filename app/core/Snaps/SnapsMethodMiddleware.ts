@@ -138,6 +138,26 @@ const snapMethodMiddlewareBuilder = (
         }).build(),
       );
     },
+    openWebSocket: controllerMessenger.call.bind(
+      controllerMessenger,
+      'WebSocketService:open',
+      origin as SnapId,
+    ),
+    closeWebSocket: controllerMessenger.call.bind(
+      controllerMessenger,
+      'WebSocketService:close',
+      origin as SnapId,
+    ),
+    sendWebSocketMessage: controllerMessenger.call.bind(
+      controllerMessenger,
+      'WebSocketService:sendMessage',
+      origin as SnapId,
+    ),
+    getWebSockets: controllerMessenger.call.bind(
+      controllerMessenger,
+      'WebSocketService:getAll',
+      origin as SnapId,
+    ),
     updateInterfaceState: controllerMessenger.call.bind(
       controllerMessenger,
       SnapInterfaceControllerUpdateInterfaceStateAction,

@@ -219,6 +219,7 @@ import {
   MultichainRouter,
   MultichainRouterMessenger,
   MultichainRouterArgs,
+  WebSocketService,
 } from '@metamask/snaps-controllers';
 import {
   MultichainRouterGetSupportedAccountsEvent,
@@ -1327,6 +1328,7 @@ export class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    snapController.init();
     // Notification Setup
     notificationServicesController.init();
     ///: END:ONLY_INCLUDE_IF
@@ -1746,6 +1748,20 @@ export class Engine {
       withSnapKeyring:
         withSnapKeyring as MultichainRouterArgs['withSnapKeyring'],
     });
+
+    this.webSocketService = new WebSocketService({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'WebSocketService',
+        allowedActions: [
+          `SnapController:handleRequest`,
+        ],
+        allowedEvents: [
+          'SnapController:snapUpdated', 
+          'SnapController:snapUninstalled', 
+          'SnapController:snapInstalled'
+        ],
+      }),
+    })
 
     this.configureControllersOnNetworkChange();
     this.startPolling();
