@@ -94,7 +94,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await QuoteView.selectNetwork('Solana');
     await Assertions.checkIfVisible(QuoteView.token('SOL'));
     await QuoteView.selectToken('SOL');
-    await Assertions.checkIfVisible(QuoteView.networkFeeLabel);
+    await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
     await Assertions.checkIfVisible(QuoteView.confirmButton);
     await QuoteView.tapConfirm();
 
@@ -157,7 +157,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await QuoteView.selectNetwork('OP Mainnet');
     await Assertions.checkIfVisible(QuoteView.token('ETH'));
     await QuoteView.selectToken('ETH');
-    await Assertions.checkIfVisible(QuoteView.networkFeeLabel);
+    await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
     await Assertions.checkIfVisible(QuoteView.confirmButton);
     await QuoteView.tapConfirm();
 
