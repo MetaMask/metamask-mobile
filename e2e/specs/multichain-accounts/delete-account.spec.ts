@@ -4,7 +4,7 @@ import {
   SIMPLE_KEYPAIR_ACCOUNT,
   goToAccountDetails,
   withMultichainAccountDetailsEnabled,
-} from '../multichain-accounts/common';
+} from './common';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import DeleteAccount from '../../pages/MultichainAccounts/DeleteAccount';
 import Assertions from '../../utils/Assertions';
@@ -26,7 +26,6 @@ describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
 
   it('deletes the account', async () => {
     await withMultichainAccountDetailsEnabled(async () => {
-      await AccountListBottomSheet.scrollToBottomOfAccountList();
       await goToAccountDetails(SIMPLE_KEYPAIR_ACCOUNT);
       await deleteAccount();
       // Go back to account list

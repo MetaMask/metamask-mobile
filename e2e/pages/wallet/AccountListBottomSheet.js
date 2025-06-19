@@ -86,7 +86,6 @@ class AccountListBottomSheet {
   }
 
   async tapEditAccountActionsAtIndex(index) {
-    await Assertions.checkIfVisible(Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS, index));
     await Gestures.tapAtIndex(Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS), index);
   }
 
@@ -130,9 +129,13 @@ class AccountListBottomSheet {
     await Gestures.waitAndTap(this.connectAccountsButton);
   }
 
-  async scrollToBottomOfAccountList() {
-    await Gestures.swipe(this.accountList, 'up', 'slow');
+  async scrollToAccount(accountName) {
+    await Gestures.scrollToElement(
+      Matchers.getElementByText(accountName),
+      by.id(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
+    );
   }
+
 }
 
 export default new AccountListBottomSheet();

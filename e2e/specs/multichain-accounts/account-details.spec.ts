@@ -8,7 +8,7 @@ import {
   HD_ACCOUNT,
   goToAccountDetails,
   withMultichainAccountDetailsEnabled,
-} from '../multichain-accounts/common';
+} from './common';
 import TestHelpers from '../../helpers';
 
 const checkAddress = async (expectedAddress: string) => {

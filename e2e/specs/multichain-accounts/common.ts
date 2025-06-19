@@ -26,6 +26,7 @@ export const SIMPLE_KEYPAIR_ACCOUNT: Account = {
 };
 
 export const goToAccountDetails = async (account: Account) => {
+  await AccountListBottomSheet.scrollToAccount(account.name);
   await AccountListBottomSheet.tapEditAccountActionsAtIndex(account.index);
 };
 
