@@ -61,6 +61,7 @@ import {
   TraceName,
   TraceOperation,
   TraceContext,
+  endTrace,
 } from '../../../util/trace';
 import TextField, {
   TextFieldSize,
@@ -159,7 +160,6 @@ const Login: React.FC = () => {
     trace({
       name: TraceName.LoginUserInteraction,
       op: TraceOperation.Login,
-      parentContext: parentSpanRef.current,
     });
 
     const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
@@ -314,6 +314,8 @@ const Login: React.FC = () => {
   };
 
   const onLogin = async () => {
+    endTrace({ name: TraceName.LoginUserInteraction });
+
     try {
       const locked = !passwordRequirementsMet(password);
       if (locked) {
