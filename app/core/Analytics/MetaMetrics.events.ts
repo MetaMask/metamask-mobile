@@ -43,6 +43,9 @@ enum EVENT_NAME {
   ERROR = 'Error occurred',
   ERROR_SCREEN_VIEWED = 'Error Screen Viewed',
 
+  // Sample feature
+  SETTINGS_SAMPLE_FEATURE = 'Settings Sample Feature',
+
   // Approval
   APPROVAL_STARTED = 'Approval Started',
   APPROVAL_COMPLETED = 'Approval Completed',
@@ -440,8 +443,6 @@ enum EVENT_NAME {
   // RPC Failover
   RPC_SERVICE_UNAVAILABLE = 'RPC Service Unavailable',
   RPC_SERVICE_DEGRADED = 'RPC Service Degraded',
-  // Sample feature
-  SETTINGS_SAMPLE_FEATURE = 'Settings Sample Feature',
 }
 
 enum ACTIONS {
@@ -482,6 +483,11 @@ enum ACTIONS {
 const events = {
   APP_OPENED: generateOpt(EVENT_NAME.APP_OPENED),
   ERROR_SCREEN_VIEWED: generateOpt(EVENT_NAME.ERROR_SCREEN_VIEWED),
+
+  // Sample feature
+  SETTINGS_SAMPLE_FEATURE: generateOpt(EVENT_NAME.SETTINGS_SAMPLE_FEATURE),
+
+  // Approval
   APPROVAL_STARTED: generateOpt(EVENT_NAME.APPROVAL_STARTED),
   APPROVAL_COMPLETED: generateOpt(EVENT_NAME.APPROVAL_COMPLETED),
   APPROVAL_CANCELLED: generateOpt(EVENT_NAME.APPROVAL_CANCELLED),
@@ -1064,10 +1070,6 @@ const events = {
   SECRET_RECOVERY_PHRASE_PICKER_CLICKED: generateOpt(
     EVENT_NAME.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
   ),
-  /**
-   * @sampleFeature do not use in production code
-   */
-  SETTINGS_SAMPLE_FEATURE: generateOpt(EVENT_NAME.SETTINGS_SAMPLE_FEATURE),
 };
 
 /**
