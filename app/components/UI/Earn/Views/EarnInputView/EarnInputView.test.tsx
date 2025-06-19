@@ -60,6 +60,7 @@ import EarnInputView from './EarnInputView';
 import { EarnInputViewProps } from './EarnInputView.types';
 import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
 import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
+import { selectConversionRate } from '../../../../../selectors/currencyRateController';
 
 jest.mock('./utils');
 
@@ -268,7 +269,7 @@ jest.mock('../../../Stake/hooks/useVaultMetadata', () => ({
     isLoadingVaultMetadata: false,
     error: null,
     annualRewardRate: '2.5%',
-    annualRewardRateDecimal: 0.02522049624725908,
+    annualRewardRateDecimal: 0.025,
   }),
 }));
 
@@ -346,6 +347,8 @@ describe('EarnInputView', () => {
   const selectStablecoinLendingEnabledFlagMock = jest.mocked(
     selectStablecoinLendingEnabledFlag,
   );
+
+  const selectConversionRateMock = jest.mocked(selectConversionRate);
 
   const baseProps: EarnInputViewProps = {
     route: {
@@ -451,6 +454,12 @@ describe('EarnInputView', () => {
         },
       })),
     });
+
+    (useEarnMetadata as jest.Mock).mockReturnValue({
+      annualRewardRate: '50%',
+      annualRewardRateDecimal: 0.5,
+      isLoadingEarnMetadata: false,
+    });
   });
 
   afterEach(() => {
@@ -485,36 +494,38 @@ describe('EarnInputView', () => {
     it('renders the correct USDC token', async () => {
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
 
+      selectConversionRateMock.mockReturnValueOnce(1);
+
       (useEarnTokens as jest.Mock).mockReturnValue({
         getEarnToken: jest.fn(() => ({
           ...MOCK_USDC_MAINNET_ASSET,
+          chainId: CHAIN_IDS.MAINNET,
+          address: '0x123232',
           balance: '100',
           balanceFiat: '$100',
-          balanceMinimalUnit: '1000000',
-          balanceFormatted: '1 USDC',
+          balanceWei: new BN4('100000000'), // 100 USDC in minimal units (6 decimals)
+          balanceMinimalUnit: '100000000', // 100 USDC in minimal units (6 decimals)
+          balanceFiatNumber: 100,
+          balanceFormatted: '100 USDC',
+          tokenUsdExchangeRate: 1,
           experience: {
             type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-            apr: '4.5%',
-            estimatedAnnualRewardsFormatted: '0.00946 USDC',
-            estimatedAnnualRewardsFiatNumber: 0.00946,
-            estimatedAnnualRewardsTokenMinimalUnit: '0.00946',
-            estimatedAnnualRewardsTokenFormatted: '0.00946 USDC',
+            apr: '2.5%',
+            estimatedAnnualRewardsFormatted: '$3.00',
+            estimatedAnnualRewardsFiatNumber: 3,
+            estimatedAnnualRewardsTokenMinimalUnit: '3000000',
+            estimatedAnnualRewardsTokenFormatted: '3 USDC',
+            market: {
+              protocol: 'AAVE v3',
+              underlying: {
+                address: MOCK_USDC_MAINNET_ASSET.address,
+              },
+            },
           },
         })),
         getOutputToken: jest.fn(() => ({
           ...MOCK_USDC_MAINNET_ASSET,
-          name: 'aUSDC',
-          symbol: 'aUSDC',
-          balance: '3',
-          balanceFiat: '$3',
-          experience: {
-            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-            apr: '4.5%',
-            estimatedAnnualRewardsFormatted: '0.00946 USDC',
-            estimatedAnnualRewardsFiatNumber: 0.00946,
-            estimatedAnnualRewardsTokenMinimalUnit: '0.00946',
-            estimatedAnnualRewardsTokenFormatted: '0.00946 USDC',
-          },
+          chainId: CHAIN_IDS.MAINNET,
         })),
       });
 
@@ -542,8 +553,8 @@ describe('EarnInputView', () => {
       expect(getByText('$0')).toBeDefined();
 
       // Token Selector should display USDC as selected token
-      expect(getByText('4.5% APR')).toBeDefined();
-      expect(getByText('1 USDC')).toBeDefined();
+      expect(getByText('2.5% APR')).toBeDefined();
+      expect(getByText('100 USDC')).toBeDefined();
 
       await act(async () => {
         fireEvent.press(getByText('1'));
@@ -719,7 +730,7 @@ describe('EarnInputView', () => {
         true,
       );
 
-      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           properties: expect.objectContaining({
@@ -764,13 +775,14 @@ describe('EarnInputView', () => {
     });
 
     it('earn lending deposit view', async () => {
+      selectConversionRateMock.mockReturnValueOnce(1);
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
       const getErc20SpendingLimitSpy = jest
         .spyOn(Engine.context.EarnController, 'getLendingTokenAllowance')
         .mockResolvedValue(EthersBigNumber.from('0'));
       (useEarnMetadata as jest.Mock).mockReturnValue({
-        annualRewardRate: '50%',
-        annualRewardRateDecimal: 50,
+        annualRewardRate: '2.5%',
+        annualRewardRateDecimal: 0.025,
         isLoadingEarnMetadata: false,
       });
       (useEarnTokens as jest.Mock).mockReturnValue({
@@ -780,9 +792,10 @@ describe('EarnInputView', () => {
           address: '0x123232',
           balance: '100',
           balanceFiat: '$100',
-          balanceWei: new BN4('250000'),
-          balanceMinimalUnit: '250000',
+          balanceWei: new BN4('100000000'), // 100 USDC in minimal units (6 decimals)
+          balanceMinimalUnit: '100000000', // 100 USDC in minimal units (6 decimals)
           balanceFiatNumber: 100,
+          tokenUsdExchangeRate: 1,
           experience: {
             type: EARN_EXPERIENCES.STABLECOIN_LENDING,
             apr: '2.5%',
@@ -829,30 +842,16 @@ describe('EarnInputView', () => {
           screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
           params: {
             action: 'ALLOWANCE_INCREASE',
-            amountFiat: '0.06',
-            amountTokenMinimalUnit: '62500',
-            annualRewardRate: '50%',
-            annualRewardsFiat: '3 USD',
-            annualRewardsToken: '3.125 USDC',
+            amountFiat: '25',
+            amountTokenMinimalUnit: '25000000',
+            annualRewardRate: '2.5%',
+            annualRewardsFiat: '0.63 USD',
+            annualRewardsToken: '0.625 USDC',
             lendingContractAddress:
               '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2',
             lendingProtocol: 'AAVE v3',
             token: {
-              address: '0x123232',
-              aggregators: [],
-              balance: '',
-              balanceFiat: '$33.23',
-              chainId: '0x1',
-              decimals: 6,
-              image: '',
-              isETH: false,
-              isNative: false,
-              isStaked: false,
-              logo: '',
-              name: 'USDC',
-              symbol: 'USDC',
-              ticker: 'USDC',
-              experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+              ...MOCK_USDC_MAINNET_ASSET,
             },
           },
         });
@@ -874,8 +873,8 @@ describe('EarnInputView', () => {
 
       try {
         (useEarnMetadata as jest.Mock).mockReturnValue({
-          annualRewardRate: '50%',
-          annualRewardRateDecimal: 50,
+          annualRewardRate: '2.5%',
+          annualRewardRateDecimal: 0.025,
           isLoadingEarnMetadata: false,
         });
 
@@ -886,9 +885,10 @@ describe('EarnInputView', () => {
             address: '0x123232',
             balance: '100',
             balanceFiat: '$100',
-            balanceWei: new BN4('250000'),
-            balanceMinimalUnit: '250000',
+            balanceWei: new BN4('100000000'), // 100 USDC in minimal units (6 decimals)
+            balanceMinimalUnit: '100000000', // 100 USDC in minimal units (6 decimals)
             balanceFiatNumber: 100,
+            tokenUsdExchangeRate: 1,
             experience: {
               type: EARN_EXPERIENCES.STABLECOIN_LENDING,
               apr: '2.5%',
@@ -1084,8 +1084,8 @@ describe('EarnInputView', () => {
           address: '0x123232',
           balance: '100',
           balanceFiat: '$100',
-          balanceWei: new BN4('250000'),
-          balanceMinimalUnit: '250000',
+          balanceWei: new BN4('100000000'), // 100 USDC in minimal units (6 decimals)
+          balanceMinimalUnit: '100000000', // 100 USDC in minimal units (6 decimals)
           balanceFiatNumber: 100,
           experience: {
             type: EARN_EXPERIENCES.STABLECOIN_LENDING,
@@ -1171,8 +1171,7 @@ describe('EarnInputView', () => {
         params: {
           token: {
             ...MOCK_USDC_MAINNET_ASSET,
-            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
-          } as any,
+          },
         },
         key: Routes.STAKING.STAKE,
         name: 'params',
@@ -1229,8 +1228,7 @@ describe('EarnInputView', () => {
         params: {
           token: {
             ...MOCK_USDC_MAINNET_ASSET,
-            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
-          } as any,
+          },
         },
         key: Routes.STAKING.STAKE,
         name: 'params',
@@ -1287,8 +1285,7 @@ describe('EarnInputView', () => {
         params: {
           token: {
             ...MOCK_USDC_MAINNET_ASSET,
-            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
-          } as any,
+          },
         },
         key: Routes.STAKING.STAKE,
         name: 'params',
@@ -1344,8 +1341,7 @@ describe('EarnInputView', () => {
         params: {
           token: {
             ...MOCK_USDC_MAINNET_ASSET,
-            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
-          } as any,
+          },
         },
         key: Routes.STAKING.STAKE,
         name: 'params',
