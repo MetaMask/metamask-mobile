@@ -167,6 +167,7 @@ import {
   CronjobControllerActions,
   CronjobController,
   MultichainRouterActions,
+  WebSocketService,
 } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -479,6 +480,7 @@ export type Controllers = {
   NotificationServicesPushController: NotificationServicesPushController;
   SnapInterfaceController: SnapInterfaceController;
   CronjobController: CronjobController;
+  WebSocketSerivce: WebSocketService,
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)

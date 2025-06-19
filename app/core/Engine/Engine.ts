@@ -219,7 +219,6 @@ import {
   MultichainRouter,
   MultichainRouterMessenger,
   MultichainRouterArgs,
-  WebSocketService,
 } from '@metamask/snaps-controllers';
 import {
   MultichainRouterGetSupportedAccountsEvent,
@@ -227,6 +226,7 @@ import {
 } from './controllers/multichain-router/constants';
 import { ErrorReportingService } from '@metamask/error-reporting-service';
 import { captureException } from '@sentry/react-native';
+import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1255,6 +1255,7 @@ export class Engine {
         NotificationServicesController: notificationServicesControllerInit,
         NotificationServicesPushController:
           notificationServicesPushControllerInit,
+        WebSocketService: WebSocketServiceInit,
         ///: END:ONLY_INCLUDE_IF
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
         MultichainAssetsController: multichainAssetsControllerInit,
@@ -1748,20 +1749,6 @@ export class Engine {
       withSnapKeyring:
         withSnapKeyring as MultichainRouterArgs['withSnapKeyring'],
     });
-
-    this.webSocketService = new WebSocketService({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'WebSocketService',
-        allowedActions: [
-          `SnapController:handleRequest`,
-        ],
-        allowedEvents: [
-          'SnapController:snapUpdated', 
-          'SnapController:snapUninstalled', 
-          'SnapController:snapInstalled'
-        ],
-      }),
-    })
 
     this.configureControllersOnNetworkChange();
     this.startPolling();
