@@ -1291,6 +1291,7 @@ export class Engine {
     const snapController = controllersByName.SnapController;
     const snapInterfaceController = controllersByName.SnapInterfaceController;
     const snapsRegistry = controllersByName.SnapsRegistry;
+    const webSocketService = controllersByName.WebSocketService;
     const notificationServicesController =
       controllersByName.NotificationServicesController;
     const notificationServicesPushController =
@@ -1577,6 +1578,7 @@ export class Engine {
       SubjectMetadataController: this.subjectMetadataController,
       AuthenticationController: authenticationController,
       UserStorageController: userStorageController,
+      WebSocketService: webSocketService,
       NotificationServicesController: notificationServicesController,
       NotificationServicesPushController: notificationServicesPushController,
       ///: END:ONLY_INCLUDE_IF
