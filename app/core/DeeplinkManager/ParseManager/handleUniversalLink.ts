@@ -99,7 +99,7 @@ async function handleUniversalLink({
   };
 
   const shouldProceed = await new Promise<boolean>((resolve) => {
-    const pageTitle: ACTIONS = urlObj.pathname.split('/')[1] as ACTIONS;
+    const pageTitle: ACTIONS = validatedUrl.pathname.split('/')[1] as ACTIONS;
     handleDeepLinkModalDisplay({
       linkType: linkType(),
       pageTitle: pageTitle.charAt(0).toUpperCase() + pageTitle.slice(1),
@@ -108,15 +108,15 @@ async function handleUniversalLink({
     });
   });
 
+  // Universal links
+  handled();
+
   if (!shouldProceed) {
     return false;
   }
 
-  // Universal links
-  handled();
-
   // action is the first part of the pathname
-  const action: ACTIONS = urlObj.pathname.split('/')[1] as ACTIONS;
+  const action: ACTIONS = validatedUrl.pathname.split('/')[1] as ACTIONS;
 
   if (urlObj.hostname === MM_UNIVERSAL_LINK_HOST) {
     if (action === ACTIONS.ANDROID_SDK) {
