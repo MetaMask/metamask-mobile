@@ -83,10 +83,10 @@ const EarnWithdrawInputView = () => {
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, token.chainId as Hex),
   );
-  const exchangeRate = contractExchangeRates?.[token?.address as Hex]?.price;
 
   // We want to keep track of the last quick amount pressed before navigating to review.
   const lastQuickAmountButtonPressed = useRef<string | null>(null);
+  const exchangeRate = contractExchangeRates?.[token?.address as Hex]?.price;
 
   const { trackEvent, createEventBuilder } = useMetrics();
 
