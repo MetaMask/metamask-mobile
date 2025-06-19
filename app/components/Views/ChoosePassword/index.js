@@ -16,7 +16,7 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { connect } from 'react-redux';
-import { saveOnboardingEvent as SaveEvent } from '../../../actions/onboarding';
+import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import {
   passwordSet,
   passwordUnset,
@@ -885,7 +885,7 @@ const mapDispatchToProps = (dispatch) => ({
   passwordUnset: () => dispatch(passwordUnset()),
   setLockTime: (time) => dispatch(setLockTime(time)),
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
-  saveOnboardingEvent: (...eventArgs) => dispatch(SaveEvent(eventArgs)),
+  saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
 });
 
 const mapStateToProps = (state) => ({});

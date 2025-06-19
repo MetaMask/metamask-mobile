@@ -19,7 +19,7 @@ import scaling from '../../../util/scaling';
 import Engine from '../../../core/Engine';
 import { ONBOARDING_WIZARD } from '../../../constants/storage';
 import { connect } from 'react-redux';
-import { saveOnboardingEvent as SaveEvent } from '../../../actions/onboarding';
+import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -332,7 +332,7 @@ AccountBackupStep1.propTypes = {
 
 const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
-  saveOnboardingEvent: (...eventArgs) => dispatch(SaveEvent(eventArgs)),
+  saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
 });
 
 export default connect(null, mapDispatchToProps)(AccountBackupStep1);

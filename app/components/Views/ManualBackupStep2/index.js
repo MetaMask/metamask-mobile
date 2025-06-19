@@ -14,7 +14,7 @@ import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { seedphraseBackedUp } from '../../../actions/user';
-import { saveOnboardingEvent as SaveEvent } from '../../../actions/onboarding';
+import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { compareMnemonics } from '../../../util/mnemonic';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -478,7 +478,7 @@ ManualBackupStep2.propTypes = {
 
 const mapDispatchToProps = (dispatch) => ({
   seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
-  saveOnboardingEvent: (...eventArgs) => dispatch(SaveEvent(eventArgs)),
+  saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
 });
 
 export default connect(null, mapDispatchToProps)(ManualBackupStep2);

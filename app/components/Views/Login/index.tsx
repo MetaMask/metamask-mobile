@@ -23,14 +23,9 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import {
-  OnboardingActionTypes,
-  saveOnboardingEvent as SaveEvent,
-} from '../../../actions/onboarding';
 import setOnboardingWizardStepUtil from '../../../actions/wizard';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { connect, useDispatch } from 'react-redux';
-import { Dispatch } from 'redux';
+import { useDispatch } from 'react-redux';
 import {
   passcodeType,
   updateAuthTypeStorageFlags,
@@ -570,9 +565,4 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   );
 };
 
-const mapDispatchToProps = (dispatch: Dispatch<OnboardingActionTypes>) => ({
-  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) =>
-    dispatch(SaveEvent(eventArgs)),
-});
-
-export default connect(null, mapDispatchToProps)(Login);
+export default Login;

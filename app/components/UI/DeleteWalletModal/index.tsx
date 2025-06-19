@@ -14,12 +14,8 @@ import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
 import { DeleteWalletModalSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/DeleteWalletModal.selectors';
 import { IMetaMetricsEvent, MetaMetricsEvents } from '../../../core/Analytics';
-import {
-  OnboardingActionTypes,
-  saveOnboardingEvent as SaveEvent,
-  setCompletedOnboarding,
-} from '../../../actions/onboarding';
-import { connect, useDispatch, useSelector } from 'react-redux';
+import { setCompletedOnboarding } from '../../../actions/onboarding';
+import { useDispatch, useSelector } from 'react-redux';
 import { clearHistory } from '../../../actions/browser';
 import CookieManager from '@react-native-cookies/cookies';
 import { RootState } from '../../../reducers';
@@ -37,9 +33,7 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { Dispatch } from 'redux';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { useMetrics } from '../../hooks/useMetrics';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -49,13 +43,7 @@ if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-interface DeleteWalletModalProps {
-  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
-}
-
-const DeleteWalletModal: React.FC<DeleteWalletModalProps> = ({
-  saveOnboardingEvent,
-}) => {
+const DeleteWalletModal: React.FC = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const { isEnabled } = useMetrics();
@@ -107,7 +95,6 @@ const DeleteWalletModal: React.FC<DeleteWalletModalProps> = ({
       MetricsEventBuilder.createEventBuilder(event)
         .addProperties(properties)
         .build(),
-      saveOnboardingEvent,
     );
   };
 
@@ -272,9 +259,4 @@ const DeleteWalletModal: React.FC<DeleteWalletModalProps> = ({
   );
 };
 
-const mapDispatchToProps = (dispatch: Dispatch<OnboardingActionTypes>) => ({
-  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) =>
-    dispatch(SaveEvent(eventArgs)),
-});
-
-export default connect(null, mapDispatchToProps)(DeleteWalletModal);
+export default DeleteWalletModal;
