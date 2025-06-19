@@ -403,17 +403,9 @@ class TransactionElement extends PureComponent {
       bridgeTxHistoryData: { bridgeTxHistoryItem, isBridgeComplete },
     } = this.props;
     const isBridgeTransaction = type === TransactionType.bridge;
-    const isSwapTransaction = type === TransactionType.swap;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
-
-    // Check if this is a unified swap (same chain bridge transaction)
-    const isUnifiedSwap =
-      isSwapTransaction &&
-      bridgeTxHistoryItem &&
-      bridgeTxHistoryItem.quote.srcChainId ===
-        bridgeTxHistoryItem.quote.destChainId;
 
     const renderNormalActions =
       (status === 'submitted' ||
@@ -424,10 +416,8 @@ class TransactionElement extends PureComponent {
       status === 'approved' && isQRHardwareAccount;
     const renderLedgerActions = status === 'approved' && isLedgerAccount;
     const accountImportTime = selectedInternalAccount?.metadata.importTime;
-    let title = actionKey;
-    if (isBridgeTransaction && bridgeTxHistoryItem) {
-      title = getSwapBridgeTxActivityTitle(bridgeTxHistoryItem) ?? title;
-    }
+    const title = actionKey;
+
     return (
       <>
         {accountImportTime > time && this.renderImportTime()}
