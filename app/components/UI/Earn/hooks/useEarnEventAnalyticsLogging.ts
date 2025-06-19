@@ -3,6 +3,7 @@ import { EARN_EXPERIENCES } from '../constants/experiences';
 import { TokenI } from '../../Tokens/types';
 import { EarnTokenDetails } from '../types/lending.types';
 
+// Add more in the future
 export type EventAnalyticsLoggingStrategy =
   | 'LOG_STABLECOIN_LEND_EVENT'
   | 'LOG_STABLECOIN_WITHDRAWAL_EVENT'
