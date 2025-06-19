@@ -116,20 +116,20 @@ describe('handleUniversalLinks', () => {
 
     origin = 'test-origin';
     wcURL = 'test-wc-url';
-    url = 'test-url';
+    url = 'https://example.com';
 
     // Default mock implementation that resolves with true
-    // mockHandleDeepLinkModalDisplay.mockImplementation((params) => {
-    //   if ('onContinue' in params) {
-    //     params.onContinue();
-    //   } else {
-    //     params.onBack();
-    //   }
-    // });
+    mockHandleDeepLinkModalDisplay.mockImplementation((params) => {
+      if ('onContinue' in params) {
+        params.onContinue();
+      } else {
+        params.onBack();
+      }
+    });
   });
 
   describe('ACTIONS.ANDROID_SDK', () => {
-    it('calls bindAndroidSDK when action is ANDROID_SDK', () => {
+    it('calls bindAndroidSDK when action is ANDROID_SDK', async () => {
       DevLogger.log = jest.fn();
 
       urlObj = {
@@ -137,7 +137,7 @@ describe('handleUniversalLinks', () => {
         pathname: `/${ACTIONS.ANDROID_SDK}/additional/path`,
       } as ReturnType<typeof extractURLParams>['urlObj'];
 
-      handleUniversalLink({
+      await handleUniversalLink({
         instance,
         handled,
         urlObj,
@@ -157,7 +157,7 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('ACTIONS.CONNECT', () => {
-    it('displays RETURN_TO_DAPP_MODAL', () => {
+    it('displays RETURN_TO_DAPP_MODAL', async () => {
       params.redirect = 'true';
       // Mock Device.isIos() to return true
       jest.spyOn(Device, 'isIos').mockReturnValue(true);
@@ -179,7 +179,7 @@ describe('handleUniversalLinks', () => {
         pathname: `/${ACTIONS.CONNECT}/additional/path`,
       } as ReturnType<typeof extractURLParams>['urlObj'];
 
-      handleUniversalLink({
+      await handleUniversalLink({
         instance,
         handled,
         urlObj,
@@ -203,13 +203,13 @@ describe('handleUniversalLinks', () => {
       params.redirect = '';
     });
 
-    it('calls handleDeeplink', () => {
+    it('calls handleDeeplink', async () => {
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/${ACTIONS.CONNECT}/additional/path`,
       } as ReturnType<typeof extractURLParams>['urlObj'];
 
-      handleUniversalLink({
+      await handleUniversalLink({
         instance,
         handled,
         urlObj,
@@ -225,9 +225,8 @@ describe('handleUniversalLinks', () => {
         channelId: 'test-channel-id',
         origin: 'test-origin',
         context: 'deeplink_universal',
-        url: 'test-url',
+        url: 'https://example.com',
         protocolVersion: 1,
-
         otherPublicKey: '',
         sdkConnect: {
           getConnections: mockGetConnections,
@@ -241,7 +240,7 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('ACTIONS.WC with wcURL', () => {
-    it('calls WC2Manager.connect if action is WC and wcURL is truthy', () => {
+    it('calls WC2Manager.connect if action is WC and wcURL is truthy', async () => {
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/${ACTIONS.WC}/additional/path`,
@@ -249,7 +248,7 @@ describe('handleUniversalLinks', () => {
 
       wcURL = 'test-wc-url';
 
-      handleUniversalLink({
+      await handleUniversalLink({
         instance,
         handled,
         urlObj,
@@ -266,7 +265,7 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('ACTIONS.WC without wcURL', () => {
-    it('does not call WC2Manager.connect if action is WC and wcURL is falsy', () => {
+    it('does not call WC2Manager.connect if action is WC and wcURL is falsy', async () => {
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/${ACTIONS.WC}/additional/path`,
@@ -274,7 +273,7 @@ describe('handleUniversalLinks', () => {
 
       wcURL = '';
 
-      handleUniversalLink({
+      await handleUniversalLink({
         instance,
         handled,
         urlObj,
@@ -291,14 +290,14 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('PREFIXES[action]', () => {
-    it('calls instance.parse if PREFIXES[action] is truthy', () => {
+    it('calls instance.parse if PREFIXES[action] is truthy', async () => {
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/${ACTIONS.SEND}/additional/path`,
         href: 'test-href',
       } as ReturnType<typeof extractURLParams>['urlObj'];
 
-      handleUniversalLink({
+      await handleUniversalLink({
         instance,
         handled,
         urlObj,
@@ -318,14 +317,14 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('ACTIONS.BUY_CRYPTO', () => {
-    it('calls instance._handleBuyCrypto if action is ACTIONS.BUY_CRYPTO', () => {
+    it('calls instance._handleBuyCrypto if action is ACTIONS.BUY_CRYPTO', async () => {
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/${ACTIONS.BUY_CRYPTO}/additional/path`,
         href: 'test-href',
       } as ReturnType<typeof extractURLParams>['urlObj'];
 
-      handleUniversalLink({
+      await handleUniversalLink({
         instance,
         handled,
         urlObj,
@@ -342,14 +341,14 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('ACTIONS.SELL_CRYPTO', () => {
-    it('calls instance._handleSellCrypto if action is ACTIONS.SELL_CRYPTO', () => {
+    it('calls instance._handleSellCrypto if action is ACTIONS.SELL_CRYPTO', async () => {
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/${ACTIONS.SELL_CRYPTO}/additional/path`,
         href: 'test-href',
       } as ReturnType<typeof extractURLParams>['urlObj'];
 
-      handleUniversalLink({
+      await handleUniversalLink({
         instance,
         handled,
         urlObj,
@@ -366,14 +365,14 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('default condition', () => {
-    it('calls instance._handleBrowserUrl if action is not ACTIONS.BUY_CRYPTO or ACTIONS.SELL_CRYPTO', () => {
+    it('calls instance._handleBrowserUrl if action is not ACTIONS.BUY_CRYPTO or ACTIONS.SELL_CRYPTO', async () => {
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/other-action/additional/path`,
         href: 'test-href',
       } as ReturnType<typeof extractURLParams>['urlObj'];
 
-      handleUniversalLink({
+      await handleUniversalLink({
         instance,
         handled,
         urlObj,
@@ -401,13 +400,13 @@ describe('handleUniversalLinks', () => {
     });
 
     describe('ACTIONS.HOME', () => {
-      it('calls _handleOpenHome when action is HOME', () => {
+      it('calls _handleOpenHome when action is HOME', async () => {
         const homeUrlObj = {
           ...urlObj,
           pathname: `/${ACTIONS.HOME}/additional/path`,
         };
 
-        handleUniversalLink({
+        await handleUniversalLink({
           instance,
           handled,
           urlObj: homeUrlObj,
@@ -424,7 +423,7 @@ describe('handleUniversalLinks', () => {
     });
 
     describe('ACTIONS.SWAP', () => {
-      it('calls _handleSwap with correct path of "swap" when action is SWAP', () => {
+      it('calls _handleSwap with correct path of "swap" when action is SWAP', async () => {
         const swapUrl = `${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}/some-swap-path`;
         const swapUrlObj = {
           ...urlObj,
@@ -432,7 +431,7 @@ describe('handleUniversalLinks', () => {
           pathname: `/${ACTIONS.SWAP}/some-swap-path`,
         };
 
-        handleUniversalLink({
+        await handleUniversalLink({
           instance,
           handled,
           urlObj: swapUrlObj,
@@ -451,7 +450,7 @@ describe('handleUniversalLinks', () => {
     });
 
     describe('ACTIONS.BUY and ACTIONS.BUY_CRYPTO', () => {
-      it('calls _handleBuyCrypto with correct path of "buy" when action is BUY', () => {
+      it('calls _handleBuyCrypto with correct path of "buy" when action is BUY', async () => {
         const buyUrl = `${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.BUY}/some-buy-path`;
         const buyUrlObj = {
           ...urlObj,
@@ -459,7 +458,7 @@ describe('handleUniversalLinks', () => {
           pathname: `/${ACTIONS.BUY}/some-buy-path`,
         };
 
-        handleUniversalLink({
+        await handleUniversalLink({
           instance,
           handled,
           urlObj: buyUrlObj,
@@ -476,7 +475,7 @@ describe('handleUniversalLinks', () => {
         );
       });
 
-      it('calls _handleBuyCrypto with correct path of "buy-crypto" when action is BUY_CRYPTO', () => {
+      it('calls _handleBuyCrypto with correct path of "buy-crypto" when action is BUY_CRYPTO', async () => {
         const buyUrl = `${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.BUY_CRYPTO}/some-buy-path`;
         const buyUrlObj = {
           ...urlObj,
@@ -484,7 +483,7 @@ describe('handleUniversalLinks', () => {
           pathname: `/${ACTIONS.BUY_CRYPTO}/some-buy-path`,
         };
 
-        handleUniversalLink({
+        await handleUniversalLink({
           instance,
           handled,
           urlObj: buyUrlObj,
@@ -503,13 +502,13 @@ describe('handleUniversalLinks', () => {
     });
 
     describe('default case', () => {
-      it('navigates to home when action is not recognized', () => {
+      it('navigates to home when action is not recognized', async () => {
         const unknownUrlObj = {
           ...urlObj,
           pathname: '/unknown-action/path',
         };
 
-        handleUniversalLink({
+        await handleUniversalLink({
           instance,
           handled,
           urlObj: unknownUrlObj,
