@@ -535,6 +535,40 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const input3 = getInput(3);
       expect(input3).toBeOnTheScreen();
     });
+
+    it('on blur input value is not shown', async () => {
+      const { getByPlaceholderText, getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+
+      // Enter multiple words
+      await act(async () => {
+        fireEvent.changeText(
+          input,
+          'frame midnight talk absent spy release check below volume industry advance neglect',
+        );
+      });
+
+      const endInput = getByTestId(
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_11`,
+      );
+
+      fireEvent(endInput, 'blur', {
+        nativeEvent: {
+          target: endInput,
+        },
+      });
+
+      await waitFor(() => {
+        expect(endInput.props.autoFocus).toBe(true);
+      });
+    });
   });
 
   describe('Create password UI', () => {
