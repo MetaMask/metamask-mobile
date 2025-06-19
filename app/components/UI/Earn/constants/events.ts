@@ -4,4 +4,5 @@ export const EVENT_PROVIDERS = {
 
 export const EVENT_LOCATIONS = {
   TOKEN_DETAILS_SCREEN: 'TokenDetailsScreen',
+  LENDING_EARNINGS: 'LendingEarnings',
 };

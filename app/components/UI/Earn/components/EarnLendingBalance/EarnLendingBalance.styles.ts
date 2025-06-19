@@ -31,6 +31,10 @@ const styleSheet = () =>
       paddingTop: 8,
       paddingHorizontal: 16,
     },
+    earnings: {
+      paddingHorizontal: 16,
+      paddingTop: 16,
+    },
   });
 
 export default styleSheet;

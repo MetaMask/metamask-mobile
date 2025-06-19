@@ -619,6 +619,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             }
           >
             2.6%
+             APR
           </Text>
         </View>
         <View
@@ -787,7 +788,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
                 "paddingHorizontal": 16,
               }
             }
-            testID="stake-earnings-history-button"
+            testID="earn-earnings-history-button"
           >
             <Text
               accessibilityRole="text"
@@ -1431,6 +1432,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
             }
           >
             2.6%
+             APR
           </Text>
         </View>
         <View
@@ -1599,7 +1601,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
                 "paddingHorizontal": 16,
               }
             }
-            testID="stake-earnings-history-button"
+            testID="earn-earnings-history-button"
           >
             <Text
               accessibilityRole="text"

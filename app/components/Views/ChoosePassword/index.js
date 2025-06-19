@@ -124,8 +124,8 @@ const createStyles = (colors) =>
       rowGap: 18,
       marginTop: 'auto',
       marginBottom: Platform.select({
-        ios: 0,
-        android: 16,
+        ios: 16,
+        android: 24,
         default: 16,
       }),
     },
@@ -155,7 +155,7 @@ const createStyles = (colors) =>
       justifyContent: 'flex-start',
       gap: 1,
       flexWrap: 'wrap',
-      width: '95%',
+      width: '90%',
     },
     headerLeft: {
       marginLeft: 16,
@@ -255,11 +255,14 @@ class ChoosePassword extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const marginLeft = 16;
     return (
-      <TouchableOpacity onPress={() => navigation.goBack()}>
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        disabled={this.state.loading}
+      >
         <Icon
           name={IconName.ArrowLeft}
           size={IconSize.Lg}
-          color={colors.text.default}
+          color={this.state.loading ? colors.icon.muted : colors.icon.default}
           style={{ marginLeft }}
         />
       </TouchableOpacity>

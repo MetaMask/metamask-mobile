@@ -60,7 +60,6 @@ const createStyles = (colors: ThemeColors) =>
       marginBottom: 30,
     },
     walletReadyImage: {
-      marginHorizontal: 'auto',
       alignSelf: 'center',
       width: 200,
       height: 200,

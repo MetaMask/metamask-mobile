@@ -121,5 +121,76 @@ exports[`BackupAndSyncToggle renders correctly 1`] = `
       value={false}
     />
   </View>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "marginVertical": 8,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "gap": 8,
+          "justifyContent": "flex-start",
+        }
+      }
+    >
+      <SvgMock
+        color="#121314"
+        fill="currentColor"
+        height={20}
+        name="Book"
+        style={
+          {
+            "height": 20,
+            "width": 20,
+          }
+        }
+        width={20}
+      />
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Contacts
+      </Text>
+    </View>
+    <RCTSwitch
+      accessibilityRole="switch"
+      onChange={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      onTintColor="#4459ff"
+      style={
+        [
+          {
+            "height": 31,
+            "width": 51,
+          },
+          {
+            "backgroundColor": "#b7bbc866",
+            "borderRadius": 16,
+          },
+        ]
+      }
+      testID="toggle-contactSyncing"
+      thumbTintColor="#ffffff"
+      tintColor="#b7bbc866"
+      value={false}
+    />
+  </View>
 </View>
 `;

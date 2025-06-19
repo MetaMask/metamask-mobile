@@ -127,7 +127,7 @@ const getTitleAndSubTitle = (
       }
       return {};
     }
-    case 'transaction_batch': {
+    case ApprovalType.TransactionBatch: {
       const isWalletInitiated = approvalRequest?.origin === MMM_ORIGIN;
       if (!isWalletInitiated) {
         return {

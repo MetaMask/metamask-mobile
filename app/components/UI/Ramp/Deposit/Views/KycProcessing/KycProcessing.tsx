@@ -4,7 +4,9 @@ import styleSheet from './KycProcessing.styles';
 import { useNavigation } from '@react-navigation/native';
 import StyledButton from '../../../../StyledButton';
 import DepositProgressBar from '../../components/DepositProgressBar';
-import useKycPolling from '../../hooks/useKycPolling';
+import useUserDetailsPolling, {
+  KycStatus,
+} from '../../hooks/useUserDetailsPolling';
 import {
   createNavigationDetails,
   useParams,
@@ -25,6 +27,7 @@ import Icon, {
 import { createVerifyIdentityNavDetails } from '../VerifyIdentity/VerifyIdentity';
 import { createProviderWebviewNavDetails } from '../ProviderWebview/ProviderWebview';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 
 export interface KycProcessingParams {
   quote: BuyQuote;
@@ -38,12 +41,20 @@ const KycProcessing = () => {
   const { styles, theme } = useStyles(styleSheet, {});
   const { quote } = useParams<KycProcessingParams>();
 
-  const { error, kycApproved, stopPolling } = useKycPolling(
+  const [{ data: kycForms, error: kycFormsError }] = useDepositSdkMethod(
+    {
+      method: 'getKYCForms',
+      onMount: true,
+    },
     quote,
-    10000,
-    true,
-    30,
   );
+
+  const {
+    error: userDetailsError,
+    userDetails,
+    startPolling,
+    stopPolling,
+  } = useUserDetailsPolling(10000, false, 0);
 
   useEffect(() => {
     navigation.setOptions(
@@ -54,6 +65,12 @@ const KycProcessing = () => {
       ),
     );
   }, [navigation, theme]);
+
+  useEffect(() => {
+    if (kycForms?.forms.length === 0) {
+      startPolling();
+    }
+  }, [kycForms, startPolling]);
 
   const handleBrowseTokens = useCallback(() => {
     stopPolling();
@@ -68,7 +85,11 @@ const KycProcessing = () => {
     navigation.navigate(...createProviderWebviewNavDetails({ quote }));
   }, [navigation, quote]);
 
-  if (error) {
+  const error = userDetailsError || kycFormsError;
+  const hasPendingForms = kycForms && kycForms.forms.length > 0;
+  const kycStatus = userDetails?.kyc?.l1?.status;
+
+  if (error || kycStatus === KycStatus.REJECTED || hasPendingForms) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -101,7 +122,7 @@ const KycProcessing = () => {
     );
   }
 
-  if (kycApproved) {
+  if (kycStatus === KycStatus.APPROVED) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>

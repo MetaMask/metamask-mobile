@@ -6,6 +6,7 @@ import { SimulationDetails } from '../../../../../UI/SimulationDetails/Simulatio
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { use7702TransactionType } from '../../../hooks/7702/use7702TransactionType';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { ConfirmationInfoComponentIDs } from '../../../constants/info-ids';
 import AccountNetworkInfoRow from '../../rows/account-network-info-row';
 import OriginRow from '../../rows/origin-row';
 import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row/advanced-details-row';
@@ -21,7 +22,7 @@ const ContractInteraction = () => {
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
 
   return (
-    <View>
+    <View testID={ConfirmationInfoComponentIDs.CONTRACT_INTERACTION}>
       <AccountNetworkInfoRow />
       {isBatchedUpgrade && <SwitchAccountTypeInfoRow />}
       <SimulationDetails

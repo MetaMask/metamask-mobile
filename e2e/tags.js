@@ -17,6 +17,7 @@ const tags = {
   smokeNotifications: 'SmokeNotifications:',
   smokeAnalytics: 'SmokeAnalytics:',
   smokeMultiChainAPI: 'SmokeMultiChainAPI:',
+  FlaskBuildTests: 'FlaskBuildTests:',
 };
 
 const Regression = (testName) => `${tags.regression} ${testName}`;
@@ -47,8 +48,11 @@ const SmokeNetworkAbstractions = (testName) =>
   `${tags.SmokeNetworkAbstractions} ${testName}`;
 const SmokeNetworkExpansion = (testName) =>
   `${tags.SmokeNetworkExpansion} ${testName}`;
+const FlaskBuildTests = (testName) => 
+  `${tags.FlaskBuildTests} ${testName}`;
 
 export {
+  FlaskBuildTests,
   Regression,
   SmokeAccounts,
   SmokeCore,

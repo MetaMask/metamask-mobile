@@ -7,6 +7,7 @@ import {
   BackHandler,
   Image,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
@@ -88,7 +89,11 @@ const createStyles = (colors) =>
       justifyContent: 'flex-end',
       flexDirection: 'column',
       rowGap: 16,
-      marginBottom: 16,
+      marginBottom: Platform.select({
+        ios: 16,
+        android: 24,
+        default: 16,
+      }),
     },
     srpDesign: {
       width: 250,

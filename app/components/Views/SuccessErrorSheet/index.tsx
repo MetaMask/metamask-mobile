@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useRef } from 'react';
 import { View } from 'react-native';
 import Text from '../../../component-library/components/Texts/Text';
 import {
@@ -19,6 +19,8 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import { useNavigation } from '@react-navigation/native';
+import SuccessIcon from '../../../images/circle-check.svg';
 
 export interface SuccessErrorSheetParams {
   onClose?: () => void;
@@ -27,13 +29,10 @@ export interface SuccessErrorSheetParams {
   description: string | React.ReactNode;
   customButton: React.ReactNode;
   type: 'success' | 'error';
-  icon: IconName;
   secondaryButtonLabel?: string;
   onSecondaryButtonPress?: () => void;
   primaryButtonLabel?: string;
   onPrimaryButtonPress?: () => void;
-  closeOnPrimaryButtonPress?: boolean;
-  closeOnSecondaryButtonPress?: boolean;
   reverseButtonOrder?: boolean;
   descriptionAlign?: 'center' | 'left';
 }
@@ -49,19 +48,17 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     description,
     customButton,
     type = 'success',
-    icon,
     secondaryButtonLabel,
     onSecondaryButtonPress,
     primaryButtonLabel,
     onPrimaryButtonPress,
-    closeOnPrimaryButtonPress = false,
-    closeOnSecondaryButtonPress = true,
     reverseButtonOrder = false,
     descriptionAlign = 'left',
   } = route.params;
 
   const { colors } = useTheme();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation();
 
   const handleClose = () => {
     if (onClose) {
@@ -69,41 +66,32 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     }
   };
 
-  const currentIcon = useMemo(() => {
-    if (icon) {
-      return icon;
-    }
-    return type === 'success' ? IconName.CheckBold : IconName.CircleX;
-  }, [icon, type]);
-
   const handleSecondaryButtonPress = () => {
+    navigation.goBack();
     if (onSecondaryButtonPress) {
       onSecondaryButtonPress();
-    }
-    if (closeOnSecondaryButtonPress) {
-      bottomSheetRef.current?.onCloseBottomSheet();
     }
   };
 
   const handlePrimaryButtonPress = () => {
+    navigation.goBack();
     if (onPrimaryButtonPress) {
       onPrimaryButtonPress();
-    }
-    if (closeOnPrimaryButtonPress) {
-      bottomSheetRef.current?.onCloseBottomSheet();
     }
   };
 
   return (
     <BottomSheet ref={bottomSheetRef} onClose={handleClose}>
       <View style={styles.statusContainer}>
-        <Icon
-          name={currentIcon}
-          size={IconSize.Xl}
-          color={
-            type === 'success' ? colors.success.default : colors.error.default
-          }
-        />
+        {type === 'success' ? (
+          <SuccessIcon name="success" width={32} height={32} />
+        ) : (
+          <Icon
+            name={IconName.CircleX}
+            size={IconSize.Xl}
+            color={colors.error.default}
+          />
+        )}
 
         {typeof title === 'string' ? (
           <Text

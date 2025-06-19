@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useAccountSyncing } from '../useAccountSyncing';
+import { useContactSyncing } from '../useContactSyncing';
 import { useAutoSignIn, useAutoSignOut } from '../useAuthentication';
 
 /**
@@ -9,6 +10,8 @@ import { useAutoSignIn, useAutoSignOut } from '../useAuthentication';
 export const useIdentityEffects = () => {
   const { dispatchAccountSyncing, shouldDispatchAccountSyncing } =
     useAccountSyncing();
+  const { dispatchContactSyncing, shouldDispatchContactSyncing } =
+    useContactSyncing();
   const { autoSignIn, shouldAutoSignIn } = useAutoSignIn();
   const { autoSignOut, shouldAutoSignOut } = useAutoSignOut();
 
@@ -20,6 +23,12 @@ export const useIdentityEffects = () => {
       dispatchAccountSyncing();
     }
   }, [shouldDispatchAccountSyncing, dispatchAccountSyncing]);
+
+  useEffect(() => {
+    if (shouldDispatchContactSyncing) {
+      dispatchContactSyncing();
+    }
+  }, [shouldDispatchContactSyncing, dispatchContactSyncing]);
 
   /**
    * Authentication effects

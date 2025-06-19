@@ -24,6 +24,10 @@ export const pathRegexps = {
     `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.notifications}`,
     'u',
   ),
+  [USER_STORAGE_FEATURE_NAMES.addressBook]: new RegExp(
+    `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.addressBook}`,
+    'u',
+  ),
 };
 
 export interface UserStorageResponseData {

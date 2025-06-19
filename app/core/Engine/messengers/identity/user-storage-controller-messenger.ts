@@ -26,6 +26,10 @@ export function getUserStorageControllerMessenger(
       'NetworkController:addNetwork',
       'NetworkController:removeNetwork',
       'NetworkController:updateNetwork',
+      // Address Book Controller Requests
+      'AddressBookController:list',
+      'AddressBookController:set',
+      'AddressBookController:delete',
     ],
     allowedEvents: [
       // Keyring Controller Events
@@ -36,6 +40,9 @@ export function getUserStorageControllerMessenger(
       'AccountsController:accountRenamed',
       // Network Controller Events
       'NetworkController:networkRemoved',
+      // Address Book Controller Events
+      'AddressBookController:contactUpdated',
+      'AddressBookController:contactDeleted',
     ],
   });
 }

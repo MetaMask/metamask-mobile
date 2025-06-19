@@ -17,16 +17,8 @@ exports[`SuccessErrorSheet render matches snapshot 1`] = `
     }
   >
     <SvgMock
-      color="#1c7e33"
-      fill="currentColor"
       height={32}
-      name="CheckBold"
-      style={
-        {
-          "height": 32,
-          "width": 32,
-        }
-      }
+      name="success"
       width={32}
     />
     <Text

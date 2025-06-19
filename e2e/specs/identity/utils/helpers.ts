@@ -138,8 +138,52 @@ export const arrangeTestUtils = (
       })();
     });
 
+  const waitUntilSyncedContactsNumberEquals = (
+    expectedNumber: number,
+  ): Promise<void> =>
+    new Promise((resolve, reject) => {
+      const checkContacts = () => {
+        const contacts = userStorageMockttpController.paths.get(
+          USER_STORAGE_FEATURE_NAMES.addressBook,
+        )?.response;
+        return contacts?.length === expectedNumber;
+      };
+
+      if (checkContacts()) {
+        resolve();
+        return;
+      }
+
+      (() => {
+        const ids = {} as {
+          interval: NodeJS.Timeout;
+          timeout: NodeJS.Timeout;
+        };
+
+        ids.interval = setInterval(() => {
+          if (checkContacts()) {
+            clearInterval(ids.interval);
+            clearTimeout(ids.timeout);
+            resolve();
+          }
+        }, BASE_INTERVAL);
+
+        ids.timeout = setTimeout(() => {
+          clearInterval(ids.interval);
+          reject(
+            new Error(
+              `Timeout waiting for synced contacts number to be ${expectedNumber}`,
+            ),
+          );
+        }, BASE_TIMEOUT);
+
+        return ids;
+      })();
+    });
+
   return {
     prepareEventsEmittedCounter,
     waitUntilSyncedAccountsNumberEquals,
+    waitUntilSyncedContactsNumberEquals,
   };
 };

@@ -14,6 +14,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { getStakingNavbar } from '../../../Navbar';
 import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
+import useEarnToken from '../../hooks/useEarnToken';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { EARN_LENDING_ACTIONS } from '../../types/lending.types';
 import { CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS } from '../../utils/tempLending';
@@ -50,10 +51,10 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../hooks/useEarnTokens', () => ({
+jest.mock('../../hooks/useEarnToken', () => ({
   __esModule: true,
-  default: () => ({
-    getEarnToken: () => ({
+  default: jest.fn().mockImplementation(() => ({
+    earnToken: {
       ...MOCK_USDC_MAINNET_ASSET,
       experience: {
         type: 'STABLECOIN_LENDING',
@@ -72,8 +73,8 @@ jest.mock('../../hooks/useEarnTokens', () => ({
           },
         },
       },
-    }),
-    getOutputToken: () => ({
+    },
+    outputToken: {
       ...MOCK_USDC_MAINNET_ASSET,
       address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
       symbol: 'aUSDC',
@@ -96,64 +97,15 @@ jest.mock('../../hooks/useEarnTokens', () => ({
           },
         },
       },
-    }),
-    getPairedEarnTokens: () => ({
-      earnToken: {
-        ...MOCK_USDC_MAINNET_ASSET,
-        experience: {
-          type: 'STABLECOIN_LENDING',
-          apr: '4.5',
-          estimatedAnnualRewardsFormatted: '45',
-          estimatedAnnualRewardsFiatNumber: 45,
-          estimatedAnnualRewardsTokenMinimalUnit: '45000000',
-          estimatedAnnualRewardsTokenFormatted: '45',
-          market: {
-            protocol: 'AAVE v3',
-            underlying: {
-              address: MOCK_USDC_MAINNET_ASSET.address,
-            },
-            outputToken: {
-              address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
-            },
-          },
-        },
-      },
-      outputToken: {
-        ...MOCK_USDC_MAINNET_ASSET,
-        address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
-        symbol: 'aUSDC',
-        name: 'aUSDC TOKEN',
-        ticker: 'aUSDC',
-        experience: {
-          type: 'STABLECOIN_LENDING',
-          apr: '4.5',
-          estimatedAnnualRewardsFormatted: '45',
-          estimatedAnnualRewardsFiatNumber: 45,
-          estimatedAnnualRewardsTokenMinimalUnit: '45000000',
-          estimatedAnnualRewardsTokenFormatted: '45',
-          market: {
-            protocol: 'AAVE v3',
-            underlying: {
-              address: MOCK_USDC_MAINNET_ASSET.address,
-            },
-            outputToken: {
-              address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
-            },
-          },
-        },
-      },
-    }),
-    getEarnExperience: () => ({
-      type: 'STABLECOIN_LENDING',
-      apr: '0.05',
-    }),
+    },
+    getTokenSnapshot: jest.fn(),
     getEstimatedAnnualRewardsForAmount: () => ({
       estimatedAnnualRewardsFormatted: '$45.00',
       estimatedAnnualRewardsFiatNumber: 45,
       estimatedAnnualRewardsTokenMinimalUnit: '45000000',
       estimatedAnnualRewardsTokenFormatted: '45 USDC',
     }),
-  }),
+  })),
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -175,6 +127,9 @@ jest.mock('../../../../../core/Engine', () => ({
     EarnController: {
       executeLendingDeposit: jest.fn(),
       executeLendingTokenApprove: jest.fn(),
+    },
+    TokensController: {
+      addToken: jest.fn().mockResolvedValue([]),
     },
   },
   controllerMessenger: {
@@ -497,5 +452,112 @@ describe('EarnLendingDepositConfirmationView', () => {
     );
 
     expect(toJSON()).toBeNull();
+  });
+
+  it('handles token import and confirmation via subscription listener when no outputToken is present', async () => {
+    // Update the mock to return earnToken but no outputToken
+    (useEarnToken as jest.Mock).mockReturnValueOnce({
+      outputToken: undefined,
+      earnToken: {
+        ...MOCK_USDC_MAINNET_ASSET,
+        experience: {
+          type: 'STABLECOIN_LENDING',
+          apr: '4.5',
+          estimatedAnnualRewardsFormatted: '45',
+          estimatedAnnualRewardsFiatNumber: 45,
+          estimatedAnnualRewardsTokenMinimalUnit: '45000000',
+          estimatedAnnualRewardsTokenFormatted: '45',
+          market: {
+            protocol: 'AAVE v3',
+            underlying: {
+              address: MOCK_USDC_MAINNET_ASSET.address,
+            },
+            outputToken: {
+              address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
+            },
+          },
+        },
+      },
+      getTokenSnapshot: jest.fn(),
+      tokenSnapshot: {
+        token: {
+          address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
+          symbol: 'aUSDC',
+          name: 'aUSDC TOKEN',
+          decimals: 6,
+        },
+        chainId: '0x1',
+      },
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingDepositConfirmationView />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const footerConfirmationButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
+
+    // mock executeLendingDeposit to return a transaction
+    (
+      Engine.context.EarnController.executeLendingDeposit as jest.Mock
+    ).mockResolvedValueOnce({
+      transactionMeta: {
+        id: '123',
+        type: 'lendingDeposit' as TransactionType,
+      },
+    } as Result);
+
+    // Mock the subscription callback
+    let subscriptionCallback:
+      | ((event: { transaction: { hash: string; status: string } }) => void)
+      | undefined;
+    (
+      Engine.controllerMessenger.subscribeOnceIf as jest.Mock
+    ).mockImplementation((event, callback) => {
+      if (event === 'TransactionController:transactionConfirmed') {
+        subscriptionCallback = callback;
+      }
+      return () => {
+        // Cleanup function
+      };
+    });
+
+    await act(async () => {
+      fireEvent.press(footerConfirmationButton);
+    });
+
+    // Simulate transaction submission
+    await act(async () => {
+      if (subscriptionCallback) {
+        subscriptionCallback({
+          transaction: {
+            hash: '0x123',
+            status: 'submitted',
+          },
+        });
+      }
+    });
+
+    // Verify the transaction was executed
+    expect(
+      Engine.context.EarnController.executeLendingDeposit,
+    ).toHaveBeenCalledWith({
+      amount: '5000000',
+      protocol: 'AAVE v3',
+      underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
+      gasOptions: {},
+      txOptions: {
+        deviceConfirmedOn: 'metamask_mobile',
+        networkClientId: 'mainnet',
+        origin: 'metamask',
+        type: 'lendingDeposit',
+      },
+    });
+
+    expect(Engine.context.TokensController.addToken).toHaveBeenCalledTimes(1);
   });
 });

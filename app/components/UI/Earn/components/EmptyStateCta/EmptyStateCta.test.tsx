@@ -10,10 +10,14 @@ import { act, fireEvent } from '@testing-library/react-native';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../selectors/featureFlags';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import useEarnTokens from '../../hooks/useEarnTokens';
+import { earnSelectors } from '../../../../../selectors/earnController';
 
 jest.mock('../../../../hooks/useMetrics');
 jest.mock('../../hooks/useEarnTokens', () => ({
@@ -36,6 +40,14 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
+  selectPooledStakingEnabledFlag: jest.fn(),
+}));
+jest.mock('../../../../../selectors/earnController', () => ({
+  earnSelectors: {
+    selectEarnToken: jest.fn(),
+    selectEarnTokenPair: jest.fn(),
+    selectEarnOutputToken: jest.fn(),
+  },
 }));
 
 const initialState = {
@@ -138,6 +150,41 @@ const mockEarnToken: EarnTokenDetails = {
     },
   ],
 };
+const mockExperience = {
+  type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+  apr: '4.5',
+  estimatedAnnualRewardsFormatted: '5',
+  estimatedAnnualRewardsFiatNumber: 4.5,
+  estimatedAnnualRewardsTokenMinimalUnit: '4500000',
+  estimatedAnnualRewardsTokenFormatted: '4.50 USDC',
+  market: {
+    id: '0x123',
+    chainId: 1,
+    protocol: LendingProtocol.AAVE,
+    name: 'USDC Market',
+    address: '0x123',
+    netSupplyRate: 4.5,
+    totalSupplyRate: 4.5,
+    rewards: [],
+    tvlUnderlying: '1000000',
+    underlying: {
+      address: MOCK_USDC_MAINNET_ASSET.address,
+      chainId: 1,
+    },
+    outputToken: {
+      address: '0x456',
+      chainId: 1,
+    },
+    position: {
+      id: '0x123-0x456-COLLATERAL-0',
+      chainId: 1,
+      assets: '1000000',
+      marketId: '0x123',
+      marketAddress: '0x123',
+      protocol: LendingProtocol.AAVE,
+    },
+  },
+};
 
 const renderComponent = (token: TokenI, state = initialState) =>
   renderWithProvider(<EarnEmptyStateCta token={token} />, {
@@ -167,6 +214,39 @@ describe('EmptyStateCta', () => {
         typeof selectStablecoinLendingEnabledFlag
       >
     ).mockReturnValue(true);
+
+    (
+      selectPooledStakingEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    (
+      earnSelectors.selectEarnTokenPair as jest.MockedFunction<
+        typeof earnSelectors.selectEarnTokenPair
+      >
+    ).mockReturnValue({
+      earnToken: {
+        ...mockEarnToken,
+        experience: mockExperience,
+      },
+      outputToken: undefined,
+    });
+
+    (
+      earnSelectors.selectEarnToken as jest.MockedFunction<
+        typeof earnSelectors.selectEarnToken
+      >
+    ).mockReturnValue({
+      ...mockEarnToken,
+      experience: mockExperience,
+    });
+
+    (
+      earnSelectors.selectEarnOutputToken as jest.MockedFunction<
+        typeof earnSelectors.selectEarnOutputToken
+      >
+    ).mockReturnValue(undefined);
 
     (useEarnTokens as jest.Mock).mockReturnValue({
       getEarnToken: () => mockEarnToken,
