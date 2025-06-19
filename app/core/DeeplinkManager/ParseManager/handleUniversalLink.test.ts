@@ -526,6 +526,7 @@ describe('handleUniversalLinks', () => {
   });
 
   // TODO: Update these tests to work for handleUniversalLink
+  // Will probably need to mock deepLinkModalDisabled from the store
   // If you need to control if continue or back is called, look at re-mocking for each tests
   // mockHandleDeepLinkModalDisplay.mockImplementation((params) => {
   //   if ('onContinue' in params) {
