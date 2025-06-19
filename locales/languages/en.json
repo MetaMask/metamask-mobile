@@ -4392,7 +4392,11 @@
       "address": "Address",
       "address_placeholder": "0x...",
       "name": "Name",
-      "name_placeholder": "Name"
+      "name_placeholder": "Name",
+      "duplicate_title": "Address already exists",
+      "duplicate_message": "This address already has a pet name. Do you want to update it?",
+      "cancel": "Cancel",
+      "update": "Update"
     }
   }
 }

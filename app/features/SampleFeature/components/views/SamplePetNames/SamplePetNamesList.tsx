@@ -11,17 +11,14 @@ import Avatar, {
 import { renderShortAddress } from '../../../../../util/address';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './SamplePetNamesList.styles';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../../../reducers';
-import { selectAddressBookByChain } from '../../../../../selectors/addressBookController';
-import { Hex } from '@metamask/utils';
 import { SamplePetNamesListProps } from './SamplePetNamesList.types';
+import { useSamplePetNames } from '../../hooks/useSamplePetNames';
 
 /**
  * SamplePetNamesList Component
  *
- * A demonstration component that displays a list of pet names from the address book.
- * This component showcases Redux integration, list rendering, and avatar usage
+ * A demonstration component that displays a list of pet names from the SamplePetnamesController.
+ * This component showcases controller integration, list rendering, and avatar usage
  * in the MetaMask mobile app.
  *
  * @component
@@ -36,7 +33,7 @@ import { SamplePetNamesListProps } from './SamplePetNamesList.types';
  * @remarks
  * This is a sample feature and should not be used in production code.
  * It demonstrates:
- * - Redux integration
+ * - Controller integration with reactive updates
  * - List rendering
  * - Avatar component usage
  * - Address formatting
@@ -52,35 +49,32 @@ export function SamplePetNamesList({
   onAccountPress,
 }: Readonly<SamplePetNamesListProps>) {
   const { styles } = useStyles(styleSheet, {});
-
-  const addressBook = useSelector((state: RootState) =>
-    selectAddressBookByChain(state, chainId as Hex),
-  );
+  const { petNames } = useSamplePetNames(chainId);
 
   return (
     <View>
-      {Object.entries(addressBook).map(([addressBookKey, addressBookEntry]) => (
+      {petNames.map(({ address, name }) => (
         <TouchableOpacity
-          key={addressBookKey}
+          key={address}
           onPress={() =>
             onAccountPress({
-              address: addressBookEntry.address,
-              name: addressBookEntry.name,
+              address,
+              name,
             })
           }
         >
           <ListItem>
             <Avatar
               variant={AvatarVariant.Account}
-              accountAddress={addressBookEntry.address}
+              accountAddress={address}
               size={AvatarSize.Md}
             />
             <View style={styles.textStack}>
               <Text variant={TextVariant.HeadingMD}>
-                {addressBookEntry.name}
+                {name}
               </Text>
               <Text variant={TextVariant.BodySM}>
-                {renderShortAddress(addressBookEntry.address)}
+                {renderShortAddress(address)}
               </Text>
             </View>
           </ListItem>

@@ -1,0 +1,110 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# MetaMask Mobile Development Commands
+
+This file documents common commands for development in the MetaMask Mobile codebase.
+
+## Testing Commands
+
+### Running Individual Tests
+
+To run a specific test file:
+```bash
+yarn jest path/to/test/file.test.tsx
+```
+
+Example:
+```bash
+yarn jest app/features/SampleFeature/components/views/SampleCounterPane/SampleCounterPane.test.tsx
+```
+
+To run tests matching a pattern by test name:
+```bash
+yarn jest --testNamePattern="test name pattern"
+```
+
+To run all unit tests:
+```bash
+yarn test:unit
+```
+
+### Test Debugging
+
+To run tests in watch mode:
+```bash
+yarn jest --watch path/to/test/file.test.tsx
+```
+
+To run tests with coverage:
+```bash
+yarn test:unit --coverage
+```
+
+### Updating Snapshots
+
+To update a specific test file's snapshots:
+```bash
+yarn jest path/to/test/file.test.tsx -u
+```
+
+To update all snapshots:
+```bash
+yarn test:unit -u
+```
+
+## Linting Commands
+
+### TypeScript Type Checking
+```bash
+yarn lint:tsc
+```
+
+### ESLint
+```bash
+yarn lint
+```
+
+To fix auto-fixable linting issues:
+```bash
+yarn lint --fix
+```
+
+## Formatting Commands
+
+### Format the entire codebase
+```bash
+yarn format
+```
+
+### Format specific files
+```bash
+yarn prettier --write path/to/file.ts
+```
+
+## Common Development Workflow
+
+1. **Before committing**: Run linting and type checking
+   ```bash
+   yarn lint:tsc && yarn lint
+   ```
+
+2. **Format code**: 
+   ```bash
+   yarn format
+   ```
+
+3. **Run tests**: 
+   ```bash
+   yarn test:unit
+   ```
+
+## Notes
+
+- Always run tests after making changes to ensure functionality is preserved
+- Use `yarn lint:tsc` to catch TypeScript type errors
+- Use `yarn lint --fix` to automatically fix common linting issues
+- The test runner uses Jest with React Native Testing Library
+- Use `--testPathPattern` for pattern matching when you don't want to specify the full path

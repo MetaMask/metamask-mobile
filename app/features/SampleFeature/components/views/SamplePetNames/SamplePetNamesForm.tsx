@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, Alert } from 'react-native';
 import Label from '../../../../../component-library/components/Form/Label';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import Button, {
@@ -10,6 +10,13 @@ import styleSheet from './SamplePetNamesForm.styles';
 import { strings } from '../../../../../../locales/i18n';
 import { SamplePetNamesFormContentProps } from './SamplePetNamesForm.types';
 import { useSamplePetNamesForm } from '../../hooks/useSamplePetNamesForm';
+import useMetrics from '../../../../../components/hooks/useMetrics/useMetrics';
+import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import { SAMPLE_FEATURE_EVENTS } from '../../../analytics/events';
+import trackErrorAsAnalytics from '../../../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import Engine from '../../../../../core/Engine';
+import { Hex } from '@metamask/utils';
+import { useSamplePetNames } from '../../hooks/useSamplePetNames';
 
 /**
  * SamplePetNamesForm Component
@@ -36,6 +43,7 @@ import { useSamplePetNamesForm } from '../../hooks/useSamplePetNamesForm';
  * - Custom hook usage
  * - Internationalization
  * - Component composition
+ * - Reactive updates from controller state
  *
  * @sampleFeature do not use in production code
  *
@@ -49,8 +57,73 @@ export function SamplePetNamesForm({
 }: Readonly<SamplePetNamesFormContentProps>) {
   const { styles } = useStyles(styleSheet, {});
 
-  const { onSubmit, isValid, name, setName, setAddress, address } =
+  const { onSubmit: formOnSubmit, isValid, name, setName, setAddress, address } =
     useSamplePetNamesForm(chainId, initialAddress, initialName);
+  const { trackEvent } = useMetrics();
+  const { petNames } = useSamplePetNames(chainId);
+
+  const performUpdate = () => {
+    // Use the controller's assignPetname method
+    Engine.context.SamplePetnamesController.assignPetname(chainId as Hex, address as Hex, name);
+    formOnSubmit();
+  };
+
+  const submit = () => {
+    const isEditMode = initialAddress && initialAddress.toLowerCase() === address.toLowerCase();
+    const duplicate = petNames.find(
+      (entry) => entry.address.toLowerCase() === address.toLowerCase()
+    );
+    
+    if (duplicate) {
+      if (isEditMode) {
+        // User pressed existing pet name - direct update
+        trackEvent(
+          MetricsEventBuilder.createEventBuilder(SAMPLE_FEATURE_EVENTS.PETNAME_UPDATED)
+            .addProperties({ name })
+            .build()
+        );
+        performUpdate();
+      } else {
+        // User manually entered duplicate address - show alert with options
+        trackErrorAsAnalytics(
+          SAMPLE_FEATURE_EVENTS.PETNAME_VALIDATION_FAILED.category,
+          'Attempted to add duplicate address',
+          address
+        );
+        
+        Alert.alert(
+          strings('sample_feature.pet_name.duplicate_title'),
+          strings('sample_feature.pet_name.duplicate_message'),
+          [
+            {
+              text: strings('sample_feature.pet_name.cancel'),
+              style: 'cancel',
+            },
+            {
+              text: strings('sample_feature.pet_name.update'),
+              onPress: () => {
+                trackEvent(
+                  MetricsEventBuilder.createEventBuilder(SAMPLE_FEATURE_EVENTS.PETNAME_UPDATED)
+                    .addProperties({ name })
+                    .build()
+                );
+                performUpdate();
+              },
+            },
+          ]
+        );
+      }
+    } else {
+      // No duplicate - add new pet name
+      trackEvent(
+        MetricsEventBuilder.createEventBuilder(SAMPLE_FEATURE_EVENTS.PETNAME_ADDED)
+          .addProperties({ name })
+          .addSensitiveProperties({ address })
+          .build()
+      );
+      performUpdate();
+    }
+  };
 
   return (
     <View style={styles.formContainer}>
@@ -78,7 +151,7 @@ export function SamplePetNamesForm({
       <Button
         variant={ButtonVariants.Primary}
         style={styles.button}
-        onPress={() => onSubmit()}
+        onPress={submit}
         disabled={!isValid}
         testID="add-pet-name-button"
         label={strings('sample_feature.pet_name.add_pet_name_button')}

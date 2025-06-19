@@ -27,9 +27,8 @@ function useSamplePetNamesForm(
 
   const onSubmit = useCallback(() => {
     if (!isValid) return;
-    const { AddressBookController } = Engine.context;
-    // TODO implement a custom SamplePetNamesController and replace AddressBookController here
-    AddressBookController.set(toChecksumAddress(address), name, chainId as Hex);
+    const { SamplePetnamesController } = Engine.context;
+    SamplePetnamesController.assignPetname(chainId as Hex, toChecksumAddress(address) as Hex, name);
   }, [address, name, chainId, isValid]);
 
   const reset = useCallback(() => {
