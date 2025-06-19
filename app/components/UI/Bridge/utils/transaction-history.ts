@@ -84,7 +84,7 @@ export const decodeBridgeTx = (args: {
     notificationKey: undefined,
     value: `-${sourceAmountSent} ${sourceTokenSymbol}`,
     fiatValue: sourceAmountFiatValue,
-    transactionType: TRANSACTION_TYPES.SITE_INTERACTION,
+    transactionType: TRANSACTION_TYPES.BRIDGE_TRANSACTION,
   };
 
   const transactionDetails = {};
@@ -164,7 +164,7 @@ export const decodeSwapsTx = (args: {
     ),
     value: `-${sourceAmountSent} ${sourceTokenSymbol}`,
     fiatValue: sourceAmountFiatValue,
-    transactionType: TRANSACTION_TYPES.SITE_INTERACTION,
+    transactionType: TRANSACTION_TYPES.SWAPS_TRANSACTION,
   };
 
   const summaryTotalAmountNativeToken = `${
