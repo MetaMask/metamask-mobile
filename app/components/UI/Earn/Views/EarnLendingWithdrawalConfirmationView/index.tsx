@@ -3,13 +3,19 @@ import {
   TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { capitalize } from 'lodash';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import styleSheet from './EarnLendingWithdrawalConfirmationView.styles';
+import { useStyles } from '../../../../hooks/useStyles';
+import Erc20TokenHero from '../EarnLendingDepositConfirmationView/components/Erc20TokenHero';
+import { TokenI } from '../../../Tokens/types';
+import InfoSection from '../../../../Views/confirmations/components/UI/info-row/info-section';
+import InfoSectionAccordion from '../../../../Views/confirmations/components/UI/info-section-accordion';
 import KeyValueRow, {
   TooltipSizes,
 } from '../../../../../component-library/components-temp/KeyValueRow';
@@ -26,14 +32,10 @@ import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import { useStyles } from '../../../../hooks/useStyles';
 import InfoRowDivider from '../../../../Views/confirmations/components/UI/info-row-divider';
-import InfoSection from '../../../../Views/confirmations/components/UI/info-row/info-section';
-import InfoSectionAccordion from '../../../../Views/confirmations/components/UI/info-section-accordion';
 import { getStakingNavbar } from '../../../Navbar';
 import AccountTag from '../../../Stake/components/StakingConfirmation/AccountTag/AccountTag';
 import ContractTag from '../../../Stake/components/StakingConfirmation/ContractTag/ContractTag';
-import { TokenI } from '../../../Tokens/types';
 import useEarnToken from '../../hooks/useEarnToken';
 import { EarnTokenDetails } from '../../types/lending.types';
 import {
@@ -41,9 +43,12 @@ import {
   AAVE_WITHDRAWAL_RISKS,
   SimulatedAaveV3HealthFactorAfterWithdrawal,
 } from '../../utils/tempLending';
+import { Hex } from '@metamask/utils';
+import { IMetaMetricsEvent } from '../../../../../core/Analytics';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import { renderFromTokenMinimalUnit } from '../../../../../util/number';
 import ConfirmationFooter from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
-import Erc20TokenHero from '../EarnLendingDepositConfirmationView/components/Erc20TokenHero';
-import styleSheet from './EarnLendingWithdrawalConfirmationView.styles';
 
 interface EarnWithdrawalConfirmationViewRouteParams {
   token: TokenI | EarnTokenDetails;
@@ -63,6 +68,7 @@ export interface EarnWithdrawalConfirmationViewProps {
 
 const EarnLendingWithdrawalConfirmationView = () => {
   const { styles, theme } = useStyles(styleSheet, {});
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const navigation = useNavigation();
 
@@ -89,12 +95,44 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getStakingNavbar(strings('earn.withdraw'), navigation, theme.colors, {
-        hasCancelButton: false,
-        backgroundColor: theme.colors.background.alternative,
-      }),
+      getStakingNavbar(
+        strings('earn.withdraw'),
+        navigation,
+        theme.colors,
+        {
+          hasCancelButton: false,
+          backgroundColor: theme.colors.background.alternative,
+        },
+        {
+          backButtonEvent: {
+            event:
+              MetaMetricsEvents.EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED,
+            properties: {
+              selected_provider: EVENT_PROVIDERS.CONSENSYS,
+              location: EVENT_LOCATIONS.EARN_LENDING_WITHDRAW_CONFIRMATION_VIEW,
+              experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+              user_token_balance: outputToken?.balanceFormatted as string,
+              transaction_value: `${renderFromTokenMinimalUnit(
+                amountTokenMinimalUnit,
+                outputToken?.decimals as number,
+              )} ${outputToken?.symbol}`,
+              token: token.symbol,
+            },
+          },
+        },
+      ),
     );
-  }, [navigation, theme.colors]);
+  }, [
+    amountTokenMinimalUnit,
+    navigation,
+    outputToken?.balanceFormatted,
+    outputToken?.balanceMinimalUnit,
+    outputToken?.decimals,
+    outputToken?.experience.type,
+    outputToken?.symbol,
+    theme.colors,
+    token.symbol,
+  ]);
 
   const riskTextColor = useMemo(() => {
     const riskLabel = healthFactorSimulation?.risk;
@@ -140,6 +178,79 @@ const EarnLendingWithdrawalConfirmationView = () => {
     }
   }, [outputToken, getTokenSnapshot, earnToken]);
 
+  // Needed to get token's network name
+  const networkConfig =
+    Engine.context.NetworkController.getNetworkConfigurationByChainId(
+      toHex(token?.chainId as string),
+    );
+
+  const getTrackEventProperties = useCallback(
+    (actionType: string, transactionId?: string, transactionType?: string) => {
+      const properties: {
+        action_type: string;
+        token: string | undefined;
+        network: string | undefined;
+        user_token_balance: string | undefined;
+        transaction_value: string;
+        experience: EARN_EXPERIENCES;
+        transaction_id?: string;
+        transaction_type?: string;
+      } = {
+        action_type: actionType,
+        token: earnToken?.symbol,
+        network: networkConfig?.name,
+        user_token_balance: outputToken?.balanceFormatted,
+        transaction_value: `${renderFromTokenMinimalUnit(
+          amountTokenMinimalUnit,
+          outputToken?.decimals as number,
+        )} ${outputToken?.symbol}`,
+        experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+      };
+
+      if (transactionId) {
+        properties.transaction_id = transactionId;
+      }
+
+      if (transactionType) {
+        properties.transaction_type = transactionType;
+      }
+
+      return properties;
+    },
+    [
+      earnToken?.symbol,
+      networkConfig?.name,
+      outputToken?.balanceFormatted,
+      outputToken?.decimals,
+      outputToken?.symbol,
+      amountTokenMinimalUnit,
+    ],
+  );
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EARN_CONFIRMATION_PAGE_VIEWED)
+        .addProperties(getTrackEventProperties('withdrawal'))
+        .build(),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const emitTxMetaMetric = useCallback(
+    (txType: TransactionType) =>
+      (transactionId: string) =>
+      (event: IMetaMetricsEvent) => {
+        trackEvent(
+          createEventBuilder(event)
+            .addProperties(
+              getTrackEventProperties('withdrawal', transactionId, txType),
+            )
+            .build(),
+        );
+      },
+    [createEventBuilder, getTrackEventProperties, trackEvent],
+  );
+
   // Guards
   if (
     !token?.chainId ||
@@ -151,18 +262,20 @@ const EarnLendingWithdrawalConfirmationView = () => {
   )
     return null;
 
-  // Needed to get token's network name
-  const networkConfig =
-    Engine.context.NetworkController.getNetworkConfigurationByChainId(
-      toHex(token.chainId),
-    );
-
   const networkClientId =
     Engine.context.NetworkController.findNetworkClientIdByChainId(
       toHex(outputToken?.chainId as Hex),
     );
 
   const handleCancel = () => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.EARN_WITHDRAWAL_REVIEW_CANCEL_CLICKED,
+      )
+        .addProperties(getTrackEventProperties('withdrawal'))
+        .build(),
+    );
+
     navigation.goBack();
   };
 
@@ -179,6 +292,12 @@ const EarnLendingWithdrawalConfirmationView = () => {
     try {
       setIsConfirmButtonDisabled(true);
 
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EARN_ACTION_SUBMITTED)
+          .addProperties(getTrackEventProperties('withdrawal'))
+          .build(),
+      );
+
       const txRes = await Engine.context.EarnController.executeLendingWithdraw({
         amount: amountTokenMinimalUnit.toString(),
         protocol: outputToken.experience?.market?.protocol,
@@ -189,24 +308,39 @@ const EarnLendingWithdrawalConfirmationView = () => {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
           networkClientId,
           origin: ORIGIN_METAMASK,
-          type: 'lendingWithdraw' as TransactionType,
+          type: TransactionType.lendingWithdraw,
         },
       });
 
       const transactionId = txRes?.transactionMeta?.id;
+
+      if (!transactionId) return;
+
+      const emitWithdrawalTxMetaMetric = emitTxMetaMetric(
+        TransactionType.lendingWithdraw,
+      )(transactionId);
+
+      emitWithdrawalTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_INITIATED);
 
       // Transaction Event Listeners
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionDropped',
         () => {
           setIsConfirmButtonDisabled(false);
+          emitWithdrawalTxMetaMetric(
+            MetaMetricsEvents.EARN_TRANSACTION_DROPPED,
+          );
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
+
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionRejected',
         () => {
           setIsConfirmButtonDisabled(false);
+          emitWithdrawalTxMetaMetric(
+            MetaMetricsEvents.EARN_TRANSACTION_REJECTED,
+          );
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
@@ -215,15 +349,30 @@ const EarnLendingWithdrawalConfirmationView = () => {
         'TransactionController:transactionFailed',
         () => {
           setIsConfirmButtonDisabled(false);
+          emitWithdrawalTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_FAILED);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
+
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionSubmitted',
         () => {
-          navigation.navigate(Routes.TRANSACTIONS_VIEW);
+          emitWithdrawalTxMetaMetric(
+            MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED,
+          );
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
+
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionConfirmed',
+        () => {
+          emitWithdrawalTxMetaMetric(
+            MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED,
+          );
+          navigation.navigate(Routes.TRANSACTIONS_VIEW);
+        },
+        (transactionMeta) => transactionMeta.id === transactionId,
       );
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionConfirmed',
