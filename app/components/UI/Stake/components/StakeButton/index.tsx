@@ -140,7 +140,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   if (
     areEarnExperiencesDisabled ||
-    (!earnToken?.isETH && earnToken?.balanceMinimalUnit === '0')
+    (!earnToken?.isETH && earnToken?.balanceMinimalUnit === '0') ||
+    (earnToken?.isETH && !isPooledStakingEnabled)
   )
     return <></>;
 
