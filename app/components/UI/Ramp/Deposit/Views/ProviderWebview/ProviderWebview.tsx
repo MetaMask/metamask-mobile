@@ -16,6 +16,8 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './ProviderWebview.styles';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { createOrderProcessingNavDetails } from '../OrderProcessing/OrderProcessing';
+import ErrorView from '../../../Aggregator/components/ErrorView';
 
 export interface ProviderWebviewParams {
   quote: BuyQuote;
@@ -28,6 +30,7 @@ export const createProviderWebviewNavDetails =
 
 const ProviderWebview = () => {
   const [webviewError, setWebviewError] = useState('');
+  const [key, setKey] = useState(0);
   const navigation = useNavigation();
   const { quote } = useParams<ProviderWebviewParams>();
   const { theme } = useStyles(styleSheet, {});
@@ -68,13 +71,39 @@ const ProviderWebview = () => {
     fetchPaymentUrl();
   }, [ottResponse, generatePaymentUrl, quote, selectedAddress]);
 
+  const handleNavigationStateChange = (navState: { url: string }) => {
+    if (navState.url.startsWith('https://metamask.io')) {
+      try {
+        const urlObj = new URL(navState.url);
+        const orderId = urlObj.searchParams.get('orderId');
+
+        if (orderId) {
+          navigation.navigate(
+            ...createOrderProcessingNavDetails({
+              quoteId: orderId,
+            }),
+          );
+        }
+      } catch (e) {
+        console.error('Error extracting orderId from URL:', e);
+      }
+    }
+  };
+
   const error = ottError || webviewError || paymentUrlError;
 
   if (error) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <Text>Error</Text>
+          <ErrorView
+            description={error}
+            ctaOnPress={() => {
+              setKey((prevKey) => prevKey + 1);
+              setWebviewError('');
+            }}
+            location="Provider Webview"
+          />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
@@ -85,7 +114,9 @@ const ProviderWebview = () => {
       <ScreenLayout>
         <ScreenLayout.Body>
           <WebView
+            key={key}
             source={{ uri: paymentUrl }}
+            onNavigationStateChange={handleNavigationStateChange}
             onHttpError={(syntheticEvent) => {
               const { nativeEvent } = syntheticEvent;
               if (nativeEvent.url === paymentUrl) {

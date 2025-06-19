@@ -545,6 +545,10 @@
     "kyc_webview": {
       "title": "Verifying your identity",
       "webview_received_error": "WebView received error status code: {{code}}"
+    },
+    "order_processing": {
+      "title": "Processing deposit",
+      "button": "Close"
     }
   },
   "receive": {
