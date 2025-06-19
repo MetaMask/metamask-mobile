@@ -149,7 +149,7 @@ export const decodeSwapsTx = (args: {
     renderFrom,
     renderTo,
     hash: tx.hash,
-    renderValue: `${bridgeTxHistoryItem.pricingData?.amountSent} ${sourceTokenSymbol}`,
+    renderValue: `${sourceAmountSent} ${sourceTokenSymbol}`,
     renderGas: parseInt(tx.txParams.gas || '0', 16),
     renderGasPrice: tx.txParams.gasPrice,
     renderTotalGas: `${totalGasDecimalAmount} ${gasTokenSymbol}`,

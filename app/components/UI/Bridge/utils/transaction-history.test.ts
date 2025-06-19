@@ -789,7 +789,7 @@ describe('decodeSwapsTx', () => {
         renderFrom: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
         renderTo: '0x881d40237659c251811cec9c364ef91dc08d300c',
         hash: '0xac561978ed01a8828e30c193c8368b0baec0f8c8c85c933c324c06352a16aeb6',
-        renderValue: '17455763.24722 USDC',
+        renderValue: '5.0 USDC',
         renderGas: 264667,
         renderGasPrice: undefined,
         renderTotalGas: '0.00053 ETH',
