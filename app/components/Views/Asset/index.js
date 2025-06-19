@@ -35,6 +35,7 @@ import {
   areAddressesEqual,
   safeToChecksumAddress,
 } from '../../../util/address';
+import { toLowerCaseEquals } from '../../../util/general';
 import {
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
