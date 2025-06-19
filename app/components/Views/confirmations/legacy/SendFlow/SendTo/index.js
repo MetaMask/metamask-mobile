@@ -68,6 +68,7 @@ import { setTransactionSendFlowContextualChainId } from '../../../../../../actio
 import { store } from '../../../../../../store';
 import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
 import { toHexadecimal } from '../../../../../../util/number';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../../util/networks';
 
 const dummy = () => true;
 
@@ -182,9 +183,9 @@ class SendFlow extends PureComponent {
         colors,
         resetTransaction,
         null,
-        false,
-        true,
-        this.props.sendFlowContextualNetworkConfiguration?.name || '',
+        isRemoveGlobalNetworkSelectorEnabled() ? false : undefined,
+        isRemoveGlobalNetworkSelectorEnabled() ? true : undefined,
+        isRemoveGlobalNetworkSelectorEnabled() ? this.props.sendFlowContextualNetworkConfiguration?.name || '' : undefined,
       ),
     );
   };
@@ -559,7 +560,7 @@ class SendFlow extends PureComponent {
       >
         <View style={styles.imputWrapper}>
           <SendFlowAddressFrom
-            chainId={this.props?.sendFlowContextualChainId || globalChainId}
+            chainId={isRemoveGlobalNetworkSelectorEnabled() ? this.props?.sendFlowContextualChainId || globalChainId : globalChainId}
             fromAccountBalanceState={this.fromAccountBalanceState}
             setFromAddress={this.setFromAddress}
           />
