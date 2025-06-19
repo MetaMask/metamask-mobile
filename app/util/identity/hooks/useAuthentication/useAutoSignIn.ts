@@ -41,14 +41,13 @@ export function useAutoSignIn(): {
   const isSignedIn = useSelector(selectIsSignedIn);
 
   const keyrings = useSelector(selectKeyrings);
-  const previousKeyringsLength = useRef(keyrings.length);
+  const previousKeyringsLength = useRef(keyrings?.length || 0);
 
   useEffect(() => {
-    if (!keyrings || !Array.isArray(keyrings)) {
-      return;
-    }
-
-    if (keyrings.length !== previousKeyringsLength.current) {
+    if (
+      Array.isArray(keyrings) &&
+      keyrings.length !== previousKeyringsLength.current
+    ) {
       previousKeyringsLength.current = keyrings.length;
       setHasNewKeyrings(true);
     }
