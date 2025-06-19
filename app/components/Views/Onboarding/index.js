@@ -81,8 +81,8 @@ const createStyles = (colors) =>
     },
     largeFoxWrapper: {
       alignItems: 'center',
-      paddingTop: Device.isLargeDevice() ? 60 : 40,
-      paddingBottom: Device.isLargeDevice() ? 100 : 40,
+      paddingTop: 40,
+      paddingBottom: Device.isLargeDevice() ? 80 : 40,
     },
     foxImage: {
       width: 145,
@@ -105,8 +105,8 @@ const createStyles = (colors) =>
       paddingHorizontal: 20,
     },
     footer: {
-      marginTop: -40,
       marginBottom: 40,
+      marginTop: -40,
     },
     login: {
       fontSize: 18,
@@ -121,11 +121,11 @@ const createStyles = (colors) =>
       marginVertical: 16,
     },
     createWrapper: {
-      flex: 1,
       flexDirection: 'column',
       justifyContent: 'flex-end',
       rowGap: 16,
       marginBottom: 16,
+      marginTop: 'auto',
     },
     buttonWrapper: {
       flexDirection: 'column',
@@ -488,7 +488,7 @@ class Onboarding extends PureComponent {
                 variant={TextVariant.BodyMDMedium}
                 color={importedColors.btnBlack}
               >
-                {strings('onboarding.have_existing_wallet')}
+                {strings('onboarding.import_using_srp')}
               </Text>
             }
           />

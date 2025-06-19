@@ -286,7 +286,6 @@ const ManualBackupStep1 = ({
       showCancelButton={false}
       confirmButtonMode={'confirm'}
       contentContainerStyle={styles.actionView}
-      buttonContainerStyle={styles.buttonContainer}
     >
       <View
         style={styles.wrapper}
@@ -340,6 +339,10 @@ const ManualBackupStep1 = ({
                     numberOfLines={1}
                     style={styles.word}
                     testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
+                    adjustsFontSizeToFit
+                    allowFontScaling
+                    minimumFontScale={0.1}
+                    maxFontSizeMultiplier={0}
                   >
                     {item}
                   </Text>
