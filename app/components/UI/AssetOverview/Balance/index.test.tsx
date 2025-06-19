@@ -8,6 +8,9 @@ import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetw
 import { selectChainId } from '../../../../selectors/networkController';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
 import { backgroundState } from '../../../../util/test/initial-root-state';
+import { EARN_EXPERIENCES } from '../../Earn/constants/experiences';
+import { EarnTokenDetails } from '../../Earn/types/lending.types';
+import { MOCK_STAKED_ETH_MAINNET_ASSET } from '../../Stake/__mocks__/stakeMockData';
 import { MOCK_VAULT_APY_AVERAGES } from '../../Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
 import { TokenI } from '../../Tokens/types';
 import { NetworkBadgeSource } from './Balance';
@@ -126,15 +129,40 @@ jest.mock('../../Stake/hooks/useStakingEligibility', () => ({
   }),
 }));
 
-jest.mock('../../Earn/hooks/useEarnTokens', () => ({
-  __esModule: true,
-  default: () => ({
-    getPairedEarnTokens: (token: TokenI) => ({
+jest.mock('../../../../selectors/earnController', () => ({
+  ...jest.requireActual('../../../../selectors/earnController'),
+  earnSelectors: {
+    selectEarnTokenPair: jest.fn().mockImplementation((token: TokenI) => ({
       earnToken: token,
       outputToken: token,
-    }),
-    getEarnToken: jest.fn(),
-    getOutputToken: jest.fn(),
+    })),
+    selectEarnToken: jest.fn(),
+    selectOutputToken: jest.fn(),
+  },
+}));
+jest.mock('../../../../selectors/networkInfos', () => ({
+  ...jest.requireActual('../../../../selectors/networkInfos'),
+  selectNetworkName: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock('../../../../selectors/networkController', () => ({
+  ...jest.requireActual('../../../../selectors/networkController'),
+  selectChainId: jest.fn().mockReturnValue('1'),
+}));
+
+jest.mock('../../../../selectors/multichainNetworkController', () => ({
+  ...jest.requireActual('../../../../selectors/multichainNetworkController'),
+  selectIsEvmNetworkSelected: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('../../../../selectors/multichain/multichain', () => ({
+  ...jest.requireActual('../../../../selectors/multichain/multichain'),
+  selectMultichainAssetsRates: jest.fn().mockReturnValue({
+    '0x6b175474e89094c44da98b954eedeac495271d0f': {
+      marketData: {
+        pricePercentChange: { P1D: 10 },
+      },
+    },
   }),
 }));
 
@@ -173,16 +201,23 @@ describe('Balance', () => {
 
   beforeEach(() => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
-      switch (selector) {
-        case selectNetworkName:
-          return {};
-        case selectChainId:
-          return '1';
-        case selectIsEvmNetworkSelected:
-          return true;
-        default:
-          return undefined;
+      // Try to match by function name or string contents
+      if (selector === selectNetworkName) return {};
+      if (selector === selectChainId) return '1';
+      if (selector === selectIsEvmNetworkSelected) return true;
+      if (selector.toString().includes('selectEarnTokenPair')) {
+        return {
+          earnToken: mockETH,
+          outputToken: {
+            ...MOCK_STAKED_ETH_MAINNET_ASSET,
+            experience: {
+              type: EARN_EXPERIENCES.POOLED_STAKING,
+            } as EarnTokenDetails['experience'],
+          },
+        };
       }
+
+      return undefined;
     });
   });
 
