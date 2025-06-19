@@ -19,6 +19,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import { useNavigation } from '@react-navigation/native';
 
 export interface SuccessErrorSheetParams {
   onClose?: () => void;
@@ -32,8 +33,6 @@ export interface SuccessErrorSheetParams {
   onSecondaryButtonPress?: () => void;
   primaryButtonLabel?: string;
   onPrimaryButtonPress?: () => void;
-  closeOnPrimaryButtonPress?: boolean;
-  closeOnSecondaryButtonPress?: boolean;
   reverseButtonOrder?: boolean;
   descriptionAlign?: 'center' | 'left';
 }
@@ -54,14 +53,13 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     onSecondaryButtonPress,
     primaryButtonLabel,
     onPrimaryButtonPress,
-    closeOnPrimaryButtonPress = false,
-    closeOnSecondaryButtonPress = true,
     reverseButtonOrder = false,
     descriptionAlign = 'left',
   } = route.params;
 
   const { colors } = useTheme();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation();
 
   const handleClose = () => {
     if (onClose) {
@@ -77,20 +75,16 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
   }, [icon, type]);
 
   const handleSecondaryButtonPress = () => {
+    navigation.goBack();
     if (onSecondaryButtonPress) {
       onSecondaryButtonPress();
-    }
-    if (closeOnSecondaryButtonPress) {
-      bottomSheetRef.current?.onCloseBottomSheet();
     }
   };
 
   const handlePrimaryButtonPress = () => {
+    navigation.goBack();
     if (onPrimaryButtonPress) {
       onPrimaryButtonPress();
-    }
-    if (closeOnPrimaryButtonPress) {
-      bottomSheetRef.current?.onCloseBottomSheet();
     }
   };
 

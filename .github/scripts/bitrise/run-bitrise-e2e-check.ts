@@ -45,7 +45,7 @@ async function main(): Promise<void> {
   const removeAndApplyInstructions = `Remove and re-apply the "${e2eLabel}" label to trigger a E2E smoke test on Bitrise.`;
   const mergeFromMainCommitMessagePrefix = `Merge branch 'main' into`;
   const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${pullRequestNumber}`;
-  const statusCheckName = 'Bitrise E2E Status';
+  const statusCheckName = process.env.STATUS_CHECK_NAME || 'Bitrise E2E Status';
   const statusCheckTitle = 'Bitrise E2E Smoke Test Run';
 
   // Define Bitrise comment tags
@@ -102,8 +102,9 @@ async function main(): Promise<void> {
   const [shouldRun, reason] = shouldRunBitriseE2E(flags);
   console.log(`Should run: ${shouldRun}, Reason: ${reason}`);
 
-  // One of these two labels must exist for pull_request type
-  if (!mergeQueue && !flags.hasSmokeTestLabel && !flags.hasAntiLabel) {
+  // One of these two labels must exist for pull_request type (unless it's a custom Flask workflow)
+  const isFlaskWorkflow = process.env.STATUS_CHECK_NAME && process.env.STATUS_CHECK_NAME !== 'Bitrise E2E Status';
+  if (!mergeQueue && !flags.hasSmokeTestLabel && !flags.hasAntiLabel && !isFlaskWorkflow) {
 
     // Fail Status due to missing labels
     await upsertStatusCheck(statusCheckName, latestCommitHash, StatusCheckStatusType.Completed, 
