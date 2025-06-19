@@ -133,27 +133,6 @@ const EarnWithdrawInputView = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [receiptToken, activeAccount?.address]);
 
-  const buttonLabel = useMemo(() => {
-    if (!isNonZeroAmount) {
-      return strings('stake.enter_amount');
-    }
-    if (isOverMaximum.isOverMaximumToken) {
-      return strings('stake.not_enough_token', {
-        ticker: receiptToken?.ticker ?? receiptToken?.symbol ?? '',
-      });
-    }
-    if (isOverMaximum.isOverMaximumEth) {
-      return strings('stake.not_enough_eth');
-    }
-    return strings('stake.review');
-  }, [
-    receiptToken?.symbol,
-    receiptToken?.ticker,
-    isNonZeroAmount,
-    isOverMaximum.isOverMaximumEth,
-    isOverMaximum.isOverMaximumToken,
-  ]);
-
   const stakedBalanceText = strings('stake.staked_balance');
 
   const stakingNavBarOptions = {
@@ -372,6 +351,10 @@ const EarnWithdrawInputView = () => {
   const maxRiskAwareWithdrawalText = useMemo(() => {
     if (isLoadingMaxSafeWithdrawalAmount) return;
 
+    // We don't want to display the max safe withdrawal text if it isn't applicable.
+    if (maxRiskAwareWithdrawalAmount === receiptToken?.balanceMinimalUnit)
+      return;
+
     return renderFromTokenMinimalUnit(
       maxRiskAwareWithdrawalAmount,
       receiptToken?.decimals as number,
@@ -379,6 +362,7 @@ const EarnWithdrawInputView = () => {
   }, [
     isLoadingMaxSafeWithdrawalAmount,
     maxRiskAwareWithdrawalAmount,
+    receiptToken?.balanceMinimalUnit,
     receiptToken?.decimals,
   ]);
 
@@ -397,6 +381,33 @@ const EarnWithdrawInputView = () => {
     amountTokenMinimalUnit,
     receiptToken?.experience?.type,
     maxRiskAwareWithdrawalAmount,
+  ]);
+
+  const buttonLabel = useMemo(() => {
+    if (!isNonZeroAmount) {
+      return strings('stake.enter_amount');
+    }
+    if (isOverMaximum.isOverMaximumToken) {
+      return strings('stake.not_enough_token', {
+        ticker: receiptToken?.ticker ?? receiptToken?.symbol ?? '',
+      });
+    }
+    if (isOverMaximum.isOverMaximumEth) {
+      return strings('stake.not_enough_eth');
+    }
+
+    if (isWithdrawingMoreThanAvailableForLendingToken) {
+      return strings('earn.amount_exceeds_safe_withdrawal_limit');
+    }
+
+    return strings('stake.review');
+  }, [
+    isNonZeroAmount,
+    isOverMaximum.isOverMaximumToken,
+    isOverMaximum.isOverMaximumEth,
+    isWithdrawingMoreThanAvailableForLendingToken,
+    receiptToken?.ticker,
+    receiptToken?.symbol,
   ]);
 
   return (
@@ -422,6 +433,11 @@ const EarnWithdrawInputView = () => {
         })}
         currencyToggleValue={currencyToggleValue}
         maxWithdrawalAmount={maxRiskAwareWithdrawalText}
+        error={
+          isWithdrawingMoreThanAvailableForLendingToken
+            ? strings('earn.amount_exceeds_safe_withdrawal_limit')
+            : undefined
+        }
       />
       {isStablecoinLendingEnabled && (
         <View style={styles.earnTokenSelectorContainer}>
