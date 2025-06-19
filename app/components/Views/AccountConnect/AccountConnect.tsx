@@ -974,7 +974,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   }, [
     screen,
     renderPermissionsSummaryScreen,
-    renderPermissionsSummaryScreen,
     renderSingleConnectSelectorScreen,
     renderMultiConnectSelectorScreen,
     renderMultiConnectNetworkSelectorScreen,
