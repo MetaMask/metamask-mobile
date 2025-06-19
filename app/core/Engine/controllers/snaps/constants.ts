@@ -23,7 +23,7 @@ import {
   Get,
   WebSocketServiceOpenAction as WebSocketServiceOpenActionType,
   WebSocketServiceCloseAction as WebSocketServiceCloseActionType,
-  WebSocketServiceGetAction as WebSocketServiceGetActionType,
+  WebSocketServiceGetAllAction as WebSocketServiceGetAllActionType,
   WebSocketServiceSendMessageAction as WebSocketServiceSendMessageActionType,
 } from '@metamask/snaps-controllers';
 
@@ -103,7 +103,7 @@ export const WebSocketServiceOpenAction: WebSocketServiceOpenActionType['type'] 
 export const WebSocketServiceCloseAction: WebSocketServiceCloseActionType['type'] =
   'WebSocketService:close';
 
-export const WebSocketServiceGetAction: WebSocketServiceGetActionType['type'] =
+export const WebSocketServiceGetAllAction: WebSocketServiceGetAllActionType['type'] =
   'WebSocketService:getAll';
 
 export const WebSocketServiceSendMessageAction: WebSocketServiceSendMessageActionType['type'] =

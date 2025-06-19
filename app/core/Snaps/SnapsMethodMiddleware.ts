@@ -26,7 +26,7 @@ import {
   SnapInterfaceControllerUpdateInterfaceStateAction,
   WebSocketServiceOpenAction,
   WebSocketServiceCloseAction,
-  WebSocketServiceGetAction,
+  WebSocketServiceGetAllAction,
   WebSocketServiceSendMessageAction,
 } from '../Engine/controllers/snaps';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -159,7 +159,7 @@ const snapMethodMiddlewareBuilder = (
     ),
     getWebSockets: controllerMessenger.call.bind(
       controllerMessenger,
-      WebSocketServiceGetAction,
+      WebSocketServiceGetAllAction,
       origin as SnapId,
     ),
     updateInterfaceState: controllerMessenger.call.bind(
