@@ -3,6 +3,7 @@ import {
   TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { isEmpty } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -12,28 +13,27 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { capitalize } from '../../../../../util/general';
+import {
+  addCurrencySymbol,
+  renderFromTokenMinimalUnit,
+} from '../../../../../util/number';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { TokenI } from '../../../Tokens/types';
-import useEarnTokens from '../../hooks/useEarnTokens';
+import useEarnToken from '../../hooks/useEarnToken';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { EARN_LENDING_ACTIONS } from '../../types/lending.types';
+import { parseFloatSafe } from '../../utils';
 import ConfirmationFooter from './components/ConfirmationFooter';
 import DepositInfoSection from './components/DepositInfoSection';
 import DepositReceiveSection from './components/DepositReceiveSection';
 import Erc20TokenHero from './components/Erc20TokenHero';
 import styleSheet from './EarnLendingDepositConfirmationView.styles';
-import { parseFloatSafe } from '../../utils';
-import {
-  addCurrencySymbol,
-  renderFromTokenMinimalUnit,
-} from '../../../../../util/number';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-import { capitalize } from '../../../../../util/general';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { RootState } from '../../../../../reducers';
-import { Hex } from '@metamask/utils';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { IMetaMetricsEvent } from '../../../../../core/Analytics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
@@ -97,7 +97,8 @@ const EarnLendingDepositConfirmationView = () => {
     selectStablecoinLendingEnabledFlag,
   );
 
-  const { getPairedEarnTokens } = useEarnTokens();
+  const { earnToken, outputToken, getTokenSnapshot, tokenSnapshot } =
+    useEarnToken(token as TokenI);
 
   const confirmButtonText = useMemo(
     () =>
@@ -106,8 +107,6 @@ const EarnLendingDepositConfirmationView = () => {
         : strings('earn.confirm'),
     [activeStep],
   );
-
-  const { earnToken, outputToken } = getPairedEarnTokens(token as TokenI);
 
   const getTrackEventProperties = useCallback(
     (
@@ -299,8 +298,33 @@ const EarnLendingDepositConfirmationView = () => {
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
+
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionConfirmed',
+        () => {
+          if (!outputToken) {
+            const networkClientId =
+              Engine.context.NetworkController.findNetworkClientIdByChainId(
+                tokenSnapshot?.chainId as Hex,
+              );
+            Engine.context.TokensController.addToken({
+              decimals: tokenSnapshot?.token?.decimals || 0,
+              symbol: tokenSnapshot?.token?.symbol || '',
+              address: tokenSnapshot?.token?.address || '',
+              name: tokenSnapshot?.token?.name || '',
+              networkClientId,
+            }).catch((error) => {
+              console.error(
+                error,
+                'error adding counter-token on confirmation',
+              );
+            });
+          }
+        },
+        (transactionMeta) => transactionMeta.id === transactionId,
+      );
     },
-    [emitTxMetaMetric, navigation],
+    [emitTxMetaMetric, navigation, outputToken, tokenSnapshot],
   );
 
   const createTransactionEventListeners = useCallback(
@@ -337,9 +361,19 @@ const EarnLendingDepositConfirmationView = () => {
     ],
   );
 
+  useEffect(() => {
+    if (!outputToken) {
+      getTokenSnapshot(
+        earnToken?.chainId as Hex,
+        earnToken?.experience.market?.outputToken?.address as Hex,
+      );
+    }
+  }, [outputToken, getTokenSnapshot, earnToken]);
+
   // Route param guards
   if (
     isEmpty(token) ||
+    !earnToken ||
     !amountTokenMinimalUnit ||
     !amountFiat ||
     !lendingContractAddress ||
@@ -347,8 +381,6 @@ const EarnLendingDepositConfirmationView = () => {
     !action
   )
     return null;
-
-  if (!earnToken) return null;
 
   const handleCancel = () => {
     trackEvent(
@@ -454,9 +486,7 @@ const EarnLendingDepositConfirmationView = () => {
             protocol: earnToken?.experience?.market?.protocol,
             underlyingTokenAddress:
               earnToken?.experience?.market?.underlying?.address,
-            gasOptions: {
-              // gasLimit: 60000,
-            },
+            gasOptions: {},
             txOptions: {
               deviceConfirmedOn: WalletDevice.MM_MOBILE,
               networkClientId,
@@ -516,14 +546,19 @@ const EarnLendingDepositConfirmationView = () => {
         />
         <DepositReceiveSection
           token={token}
-          receiptTokenName={outputToken?.name || ''}
+          receiptTokenName={
+            outputToken?.name || tokenSnapshot?.token.name || ''
+          }
           receiptTokenAmount={
             renderFromTokenMinimalUnit(
               amountTokenMinimalUnit,
               earnToken.decimals,
             ) +
             ' ' +
-            (outputToken?.ticker || outputToken?.symbol || '')
+            (outputToken?.ticker ||
+              outputToken?.symbol ||
+              tokenSnapshot?.token.symbol ||
+              '')
           }
           receiptTokenAmountFiat={addCurrencySymbol(
             amountFiat,

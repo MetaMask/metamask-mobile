@@ -1,8 +1,14 @@
+import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
+import {
+  TransactionType,
+  WalletDevice,
+} from '@metamask/transaction-controller';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { capitalize } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
-import { getStakingNavbar } from '../../../Navbar';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import styleSheet from './EarnLendingWithdrawalConfirmationView.styles';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -13,42 +19,36 @@ import InfoSectionAccordion from '../../../../Views/confirmations/components/UI/
 import KeyValueRow, {
   TooltipSizes,
 } from '../../../../../component-library/components-temp/KeyValueRow';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import InfoRowDivider from '../../../../Views/confirmations/components/UI/info-row-divider';
-import AccountTag from '../../../Stake/components/StakingConfirmation/AccountTag/AccountTag';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../../../reducers';
-import ContractTag from '../../../Stake/components/StakingConfirmation/ContractTag/ContractTag';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
-import { getNetworkImageSource } from '../../../../../util/networks';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
+import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
-import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
-import ConfirmationFooter from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
+import { RootState } from '../../../../../reducers';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { getNetworkImageSource } from '../../../../../util/networks';
+import InfoRowDivider from '../../../../Views/confirmations/components/UI/info-row-divider';
+import { getStakingNavbar } from '../../../Navbar';
+import AccountTag from '../../../Stake/components/StakingConfirmation/AccountTag/AccountTag';
+import ContractTag from '../../../Stake/components/StakingConfirmation/ContractTag/ContractTag';
+import useEarnToken from '../../hooks/useEarnToken';
+import { EarnTokenDetails } from '../../types/lending.types';
 import {
   AAVE_V3_INFINITE_HEALTH_FACTOR,
   AAVE_WITHDRAWAL_RISKS,
   SimulatedAaveV3HealthFactorAfterWithdrawal,
 } from '../../utils/tempLending';
-import Routes from '../../../../../constants/navigation/Routes';
-import { capitalize } from 'lodash';
-import useEarnTokens from '../../hooks/useEarnTokens';
-import { EarnTokenDetails } from '../../types/lending.types';
-import {
-  TransactionType,
-  WalletDevice,
-} from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { IMetaMetricsEvent } from '../../../../../core/Analytics';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { renderFromTokenMinimalUnit } from '../../../../../util/number';
+import ConfirmationFooter from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
 
 interface EarnWithdrawalConfirmationViewRouteParams {
   token: TokenI | EarnTokenDetails;
@@ -85,9 +85,8 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
 
-  // Get lending and receipt token using either lending or receipt token to find pair.
-  const { getPairedEarnTokens } = useEarnTokens();
-  const { earnToken, outputToken: receiptToken } = getPairedEarnTokens(token);
+  const { outputToken, earnToken, getTokenSnapshot, tokenSnapshot } =
+    useEarnToken(token);
 
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const useBlockieIcon = useSelector(
@@ -112,11 +111,11 @@ const EarnLendingWithdrawalConfirmationView = () => {
               selected_provider: EVENT_PROVIDERS.CONSENSYS,
               location: EVENT_LOCATIONS.EARN_LENDING_WITHDRAW_CONFIRMATION_VIEW,
               experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
-              user_token_balance: receiptToken?.balanceFormatted as string,
+              user_token_balance: outputToken?.balanceFormatted as string,
               transaction_value: `${renderFromTokenMinimalUnit(
                 amountTokenMinimalUnit,
-                receiptToken?.decimals as number,
-              )} ${receiptToken?.symbol}`,
+                outputToken?.decimals as number,
+              )} ${outputToken?.symbol}`,
               token: token.symbol,
             },
           },
@@ -126,11 +125,11 @@ const EarnLendingWithdrawalConfirmationView = () => {
   }, [
     amountTokenMinimalUnit,
     navigation,
-    receiptToken?.balanceFormatted,
-    receiptToken?.balanceMinimalUnit,
-    receiptToken?.decimals,
-    receiptToken?.experience.type,
-    receiptToken?.symbol,
+    outputToken?.balanceFormatted,
+    outputToken?.balanceMinimalUnit,
+    outputToken?.decimals,
+    outputToken?.experience.type,
+    outputToken?.symbol,
     theme.colors,
     token.symbol,
   ]);
@@ -170,6 +169,15 @@ const EarnLendingWithdrawalConfirmationView = () => {
     return parseFloat(healthFactor).toFixed(2);
   };
 
+  useEffect(() => {
+    if (!earnToken) {
+      getTokenSnapshot(
+        outputToken?.chainId as Hex,
+        outputToken?.experience.market?.underlying?.address as Hex,
+      );
+    }
+  }, [outputToken, getTokenSnapshot, earnToken]);
+
   // Needed to get token's network name
   const networkConfig =
     Engine.context.NetworkController.getNetworkConfigurationByChainId(
@@ -191,11 +199,11 @@ const EarnLendingWithdrawalConfirmationView = () => {
         action_type: actionType,
         token: earnToken?.symbol,
         network: networkConfig?.name,
-        user_token_balance: receiptToken?.balanceFormatted,
+        user_token_balance: outputToken?.balanceFormatted,
         transaction_value: `${renderFromTokenMinimalUnit(
           amountTokenMinimalUnit,
-          receiptToken?.decimals as number,
-        )} ${receiptToken?.symbol}`,
+          outputToken?.decimals as number,
+        )} ${outputToken?.symbol}`,
         experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
       };
 
@@ -212,9 +220,9 @@ const EarnLendingWithdrawalConfirmationView = () => {
     [
       earnToken?.symbol,
       networkConfig?.name,
-      receiptToken?.balanceFormatted,
-      receiptToken?.decimals,
-      receiptToken?.symbol,
+      outputToken?.balanceFormatted,
+      outputToken?.decimals,
+      outputToken?.symbol,
       amountTokenMinimalUnit,
     ],
   );
@@ -256,7 +264,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   const networkClientId =
     Engine.context.NetworkController.findNetworkClientIdByChainId(
-      toHex(receiptToken?.chainId as Hex),
+      toHex(outputToken?.chainId as Hex),
     );
 
   const handleCancel = () => {
@@ -274,10 +282,10 @@ const EarnLendingWithdrawalConfirmationView = () => {
   const handleConfirm = async () => {
     if (
       !amountTokenMinimalUnit ||
-      !receiptToken?.address ||
-      !receiptToken?.chainId ||
-      !receiptToken?.experience?.market?.underlying.address ||
-      !receiptToken?.experience?.market?.protocol
+      !outputToken?.address ||
+      !outputToken?.chainId ||
+      !outputToken?.experience?.market?.underlying.address ||
+      !outputToken?.experience?.market?.protocol
     )
       return;
 
@@ -292,9 +300,9 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
       const txRes = await Engine.context.EarnController.executeLendingWithdraw({
         amount: amountTokenMinimalUnit.toString(),
-        protocol: receiptToken.experience?.market?.protocol,
+        protocol: outputToken.experience?.market?.protocol,
         underlyingTokenAddress:
-          receiptToken.experience?.market?.underlying?.address,
+          outputToken.experience?.market?.underlying?.address,
         gasOptions: {},
         txOptions: {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
@@ -355,6 +363,30 @@ const EarnLendingWithdrawalConfirmationView = () => {
         () => {
           emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED);
           navigation.navigate(Routes.TRANSACTIONS_VIEW);
+        },
+        (transactionMeta) => transactionMeta.id === transactionId,
+      );
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionConfirmed',
+        () => {
+          if (!earnToken) {
+            const tokenNetworkClientId =
+              Engine.context.NetworkController.findNetworkClientIdByChainId(
+                tokenSnapshot?.chainId as Hex,
+              );
+            Engine.context.TokensController.addToken({
+              decimals: tokenSnapshot?.token?.decimals || 0,
+              symbol: tokenSnapshot?.token?.symbol || '',
+              address: tokenSnapshot?.token?.address || '',
+              name: tokenSnapshot?.token?.name || '',
+              networkClientId: tokenNetworkClientId,
+            }).catch((error) => {
+              console.error(
+                error,
+                'error adding counter-token on confirmation',
+              );
+            });
+          }
         },
         (transactionMeta) => transactionMeta.id === transactionId,
       );

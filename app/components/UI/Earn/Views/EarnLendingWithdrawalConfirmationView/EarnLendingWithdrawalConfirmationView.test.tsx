@@ -1,27 +1,28 @@
 import { LendingMarketWithPosition } from '@metamask/earn-controller';
 import { useRoute } from '@react-navigation/native';
+import { act, fireEvent } from '@testing-library/react-native';
 import React from 'react';
+import { Linking } from 'react-native';
 import EarnLendingWithdrawalConfirmationView, {
   EarnWithdrawalConfirmationViewProps,
 } from '.';
+import { strings } from '../../../../../../locales/i18n';
+import AppConstants from '../../../../../core/AppConstants';
+import Engine from '../../../../../core/Engine';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import { AAVE_WITHDRAWAL_RISKS } from '../../utils/tempLending';
 // eslint-disable-next-line import/no-namespace
 import * as NavbarUtils from '../../../Navbar';
-import { strings } from '../../../../../../locales/i18n';
+import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
+import useEarnToken from '../../hooks/useEarnToken';
 import {
   CONFIRMATION_FOOTER_BUTTON_TEST_IDS,
   CONFIRMATION_FOOTER_LINK_TEST_IDS,
 } from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
-import { act, fireEvent } from '@testing-library/react-native';
-import Engine from '../../../../../core/Engine';
-import { Linking } from 'react-native';
-import AppConstants from '../../../../../core/AppConstants';
 
 expect.addSnapshotSerializer({
   // any is the expected type for the val parameter
@@ -84,6 +85,9 @@ jest.mock('../../../../../core/Engine', () => ({
     EarnController: {
       executeLendingWithdraw: jest.fn(),
     },
+    TokensController: {
+      addToken: jest.fn().mockResolvedValue([]),
+    },
   },
 }));
 
@@ -101,13 +105,51 @@ jest.mock('../../../../../hooks/useMetrics', () => ({
   },
 }));
 
-jest.mock('../../hooks/useEarnTokens', () => ({
+const mockLineaAUsdcExperience = {
+  apr: '2.099841551444753',
+  estimatedAnnualRewardsFiatNumber: 0.07599473563587163,
+  estimatedAnnualRewardsFormatted: '$0.08',
+  estimatedAnnualRewardsTokenFormatted: '0.07604 AUSDC',
+  estimatedAnnualRewardsTokenMinimalUnit: '76036',
+  market: {
+    protocol: 'aave',
+    underlying: {
+      address: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
+      chainId: 59144,
+    },
+  } as LendingMarketWithPosition,
+  type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+};
+
+const mockLineaAUsdc = {
+  address: '0x374D7860c4f2f604De0191298dD393703Cce84f3',
+  aggregators: ['Metamask', 'LineaTeam', 'LiFi'],
+  balanceFiat: '$3.62',
+  balanceFiatNumber: 3.61907,
+  balanceFormatted: '3.62106 AUSDC',
+  balanceMinimalUnit: '3621061',
+  chainId: '0xe708',
+  decimals: 6,
+  experience: mockLineaAUsdcExperience,
+  experiences: [mockLineaAUsdcExperience],
+  image:
+    'https://static.cx.metamask.io/api/v1/tokenIcons/59144/0x374d7860c4f2f604de0191298dd393703cce84f3.png',
+  isETH: false,
+  isNative: false,
+  isStaked: false,
+  name: 'Aave Linea USDC',
+  symbol: 'AUSDC',
+  token: 'Aave Linea USDC',
+  tokenUsdExchangeRate: 0.9994519022078041,
+} as EarnTokenDetails;
+
+jest.mock('../../hooks/useEarnToken', () => ({
   __esModule: true,
-  default: () => ({
-    getPairedEarnTokens: (token: TokenI) => ({
-      outputToken: token,
-    }),
-  }),
+  default: jest.fn().mockImplementation(() => ({
+    outputToken: mockLineaAUsdc,
+    earnToken: MOCK_USDC_MAINNET_ASSET,
+    getTokenSnapshot: jest.fn(),
+  })),
 }));
 
 describe('EarnLendingWithdrawalConfirmationView', () => {
@@ -122,44 +164,6 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       },
     },
   };
-
-  const mockLineaAUsdcExperience = {
-    apr: '2.099841551444753',
-    estimatedAnnualRewardsFiatNumber: 0.07599473563587163,
-    estimatedAnnualRewardsFormatted: '$0.08',
-    estimatedAnnualRewardsTokenFormatted: '0.07604 AUSDC',
-    estimatedAnnualRewardsTokenMinimalUnit: '76036',
-    market: {
-      protocol: 'aave',
-      underlying: {
-        address: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
-        chainId: 59144,
-      },
-    } as LendingMarketWithPosition,
-    type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-  };
-
-  const mockLineaAUsdc = {
-    address: '0x374D7860c4f2f604De0191298dD393703Cce84f3',
-    aggregators: ['Metamask', 'LineaTeam', 'LiFi'],
-    balanceFiat: '$3.62',
-    balanceFiatNumber: 3.61907,
-    balanceFormatted: '3.62106 AUSDC',
-    balanceMinimalUnit: '3621061',
-    chainId: '0xe708',
-    decimals: 6,
-    experience: mockLineaAUsdcExperience,
-    experiences: [mockLineaAUsdcExperience],
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/59144/0x374d7860c4f2f604de0191298dd393703cce84f3.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'Aave Linea USDC',
-    symbol: 'AUSDC',
-    token: 'Aave Linea USDC',
-    tokenUsdExchangeRate: 0.9994519022078041,
-  } as EarnTokenDetails;
 
   const defaultRouteParams: EarnWithdrawalConfirmationViewProps['route'] = {
     key: 'mock-key',
@@ -186,7 +190,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     );
 
     // Mock useMetrics hook
-    const useMetricsMock = jest.mocked(require('../../../../../hooks/useMetrics').useMetrics);
+    const useMetricsMock = jest.mocked(
+      require('../../../../../hooks/useMetrics').useMetrics,
+    );
     mockCreateEventBuilder.mockReturnValue({
       addProperties: jest.fn().mockReturnThis(),
       build: jest.fn().mockReturnValue({ name: 'test-event', properties: {} }),
@@ -364,6 +370,75 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     );
   });
 
+  it('handles token import and confirmation via subscription listener when no earnToken is present', async () => {
+    // Update the mock to return no earnToken
+    (useEarnToken as jest.Mock).mockReturnValueOnce({
+      outputToken: mockLineaAUsdc,
+      earnToken: null,
+      getTokenSnapshot: jest.fn(),
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingWithdrawalConfirmationView />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const footerConfirmationButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
+
+    // Mock the subscription callback
+    let subscriptionCallback:
+      | ((event: { transaction: { hash: string; status: string } }) => void)
+      | undefined;
+    (
+      Engine.controllerMessenger.subscribeOnceIf as jest.Mock
+    ).mockImplementation((event, callback) => {
+      if (event === 'TransactionController:transactionConfirmed') {
+        subscriptionCallback = callback;
+      }
+      return () => {
+        // Cleanup function
+      };
+    });
+
+    await act(async () => {
+      fireEvent.press(footerConfirmationButton);
+    });
+
+    // Simulate transaction submission
+    await act(async () => {
+      if (subscriptionCallback) {
+        subscriptionCallback({
+          transaction: {
+            hash: '0x123',
+            status: 'submitted',
+          },
+        });
+      }
+    });
+
+    // Verify the transaction was executed
+    expect(
+      Engine.context.EarnController.executeLendingWithdraw,
+    ).toHaveBeenCalledWith({
+      amount: '1000000',
+      gasOptions: {},
+      protocol: LendingProtocol.AAVE,
+      txOptions: {
+        deviceConfirmedOn: 'metamask_mobile',
+        networkClientId: 'linea-mainnet',
+        origin: 'metamask',
+        type: 'lendingWithdraw',
+      },
+      underlyingTokenAddress: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
+    });
+
+    expect(Engine.context.TokensController.addToken).toHaveBeenCalledTimes(1);
+  });
+
   describe('Analytics', () => {
     it('should track EARN_CONFIRMATION_PAGE_VIEWED on render', () => {
       renderWithProvider(<EarnLendingWithdrawalConfirmationView />, {
@@ -385,8 +460,11 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     });
 
     it('should track EARN_ACTION_SUBMITTED and EARN_TRANSACTION_INITIATED on confirm', async () => {
-      const mockExecuteLendingWithdraw = Engine.context.EarnController.executeLendingWithdraw as jest.MockedFunction<typeof Engine.context.EarnController.executeLendingWithdraw>;
-      
+      const mockExecuteLendingWithdraw = Engine.context.EarnController
+        .executeLendingWithdraw as jest.MockedFunction<
+        typeof Engine.context.EarnController.executeLendingWithdraw
+      >;
+
       mockExecuteLendingWithdraw.mockResolvedValue({
         transactionMeta: {
           id: '123',
@@ -441,9 +519,12 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     });
 
     it('should track EARN_TRANSACTION_DROPPED when transaction is dropped', async () => {
-      const mockExecuteLendingWithdraw = Engine.context.EarnController.executeLendingWithdraw as jest.MockedFunction<typeof Engine.context.EarnController.executeLendingWithdraw>;
+      const mockExecuteLendingWithdraw = Engine.context.EarnController
+        .executeLendingWithdraw as jest.MockedFunction<
+        typeof Engine.context.EarnController.executeLendingWithdraw
+      >;
       const transactionId = '123';
-      
+
       mockExecuteLendingWithdraw.mockResolvedValue({
         transactionMeta: {
           id: transactionId,
@@ -453,12 +534,12 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
 
       // Create a spy to capture the callback functions
       const subscribeCallbacks: { [key: string]: any } = {};
-      jest.mocked(Engine.controllerMessenger.subscribeOnceIf).mockImplementation(
-        (eventName: string, callback: any) => {
+      jest
+        .mocked(Engine.controllerMessenger.subscribeOnceIf)
+        .mockImplementation((eventName: string, callback: any) => {
           subscribeCallbacks[eventName] = callback;
           return undefined as any;
-        }
-      );
+        });
 
       const { getByTestId } = renderWithProvider(
         <EarnLendingWithdrawalConfirmationView />,
@@ -477,7 +558,8 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       mockTrackEvent.mockClear();
 
       // Simulate transaction dropped event
-      const transactionDroppedCallback = subscribeCallbacks['TransactionController:transactionDropped'];
+      const transactionDroppedCallback =
+        subscribeCallbacks['TransactionController:transactionDropped'];
       expect(transactionDroppedCallback).toBeDefined();
 
       await act(async () => {
@@ -500,9 +582,12 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     });
 
     it('should track transaction status events for withdrawal', async () => {
-      const mockExecuteLendingWithdraw = Engine.context.EarnController.executeLendingWithdraw as jest.MockedFunction<typeof Engine.context.EarnController.executeLendingWithdraw>;
+      const mockExecuteLendingWithdraw = Engine.context.EarnController
+        .executeLendingWithdraw as jest.MockedFunction<
+        typeof Engine.context.EarnController.executeLendingWithdraw
+      >;
       const transactionId = '123';
-      
+
       mockExecuteLendingWithdraw.mockResolvedValue({
         transactionMeta: {
           id: transactionId,
@@ -512,12 +597,12 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
 
       // Create a spy to capture the callback functions
       const subscribeCallbacks: { [key: string]: any } = {};
-      jest.mocked(Engine.controllerMessenger.subscribeOnceIf).mockImplementation(
-        (eventName: string, callback: any) => {
+      jest
+        .mocked(Engine.controllerMessenger.subscribeOnceIf)
+        .mockImplementation((eventName: string, callback: any) => {
           subscribeCallbacks[eventName] = callback;
           return undefined as any;
-        }
-      );
+        });
 
       const { getByTestId } = renderWithProvider(
         <EarnLendingWithdrawalConfirmationView />,
@@ -536,7 +621,8 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       mockTrackEvent.mockClear();
 
       // Test transaction rejected
-      const transactionRejectedCallback = subscribeCallbacks['TransactionController:transactionRejected'];
+      const transactionRejectedCallback =
+        subscribeCallbacks['TransactionController:transactionRejected'];
       await act(async () => {
         transactionRejectedCallback({ transactionMeta: { id: transactionId } });
       });
@@ -554,7 +640,8 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       mockTrackEvent.mockClear();
 
       // Test transaction failed
-      const transactionFailedCallback = subscribeCallbacks['TransactionController:transactionFailed'];
+      const transactionFailedCallback =
+        subscribeCallbacks['TransactionController:transactionFailed'];
       await act(async () => {
         transactionFailedCallback({ transactionMeta: { id: transactionId } });
       });
@@ -572,9 +659,12 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       mockTrackEvent.mockClear();
 
       // Test transaction submitted
-      const transactionSubmittedCallback = subscribeCallbacks['TransactionController:transactionSubmitted'];
+      const transactionSubmittedCallback =
+        subscribeCallbacks['TransactionController:transactionSubmitted'];
       await act(async () => {
-        transactionSubmittedCallback({ transactionMeta: { id: transactionId } });
+        transactionSubmittedCallback({
+          transactionMeta: { id: transactionId },
+        });
       });
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
@@ -590,7 +680,8 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       mockTrackEvent.mockClear();
 
       // Test transaction confirmed
-      const transactionConfirmedCallback = subscribeCallbacks['TransactionController:transactionConfirmed'];
+      const transactionConfirmedCallback =
+        subscribeCallbacks['TransactionController:transactionConfirmed'];
       await act(async () => {
         transactionConfirmedCallback({ id: transactionId });
       });
