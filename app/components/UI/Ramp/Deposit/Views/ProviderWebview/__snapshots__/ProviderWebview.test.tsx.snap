@@ -326,34 +326,7 @@ exports[`ProviderWebview Component renders default state correctly 1`] = `
                             undefined,
                           ]
                         }
-                      >
-                        <View
-                          style={
-                            [
-                              {
-                                "flex": 1,
-                              },
-                              undefined,
-                            ]
-                          }
-                        >
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "CentraNo1-Book",
-                                "fontSize": 16,
-                                "fontWeight": "400",
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
-                          >
-                            Loading...
-                          </Text>
-                        </View>
-                      </View>
+                      />
                     </RCTSafeAreaView>
                   </View>
                 </View>
@@ -1240,34 +1213,7 @@ exports[`ProviderWebview Component renders loading state correctly 1`] = `
                             undefined,
                           ]
                         }
-                      >
-                        <View
-                          style={
-                            [
-                              {
-                                "flex": 1,
-                              },
-                              undefined,
-                            ]
-                          }
-                        >
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "CentraNo1-Book",
-                                "fontSize": 16,
-                                "fontWeight": "400",
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
-                          >
-                            Loading...
-                          </Text>
-                        </View>
-                      </View>
+                      />
                     </RCTSafeAreaView>
                   </View>
                 </View>
@@ -1607,34 +1553,7 @@ exports[`ProviderWebview Component renders loading when no payment URL is availa
                             undefined,
                           ]
                         }
-                      >
-                        <View
-                          style={
-                            [
-                              {
-                                "flex": 1,
-                              },
-                              undefined,
-                            ]
-                          }
-                        >
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "CentraNo1-Book",
-                                "fontSize": 16,
-                                "fontWeight": "400",
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
-                          >
-                            Loading...
-                          </Text>
-                        </View>
-                      </View>
+                      />
                     </RCTSafeAreaView>
                   </View>
                 </View>

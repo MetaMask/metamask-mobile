@@ -14,7 +14,6 @@ import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './ProviderWebview.styles';
-import Text from '../../../../../../component-library/components/Texts/Text';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import { createOrderProcessingNavDetails } from '../OrderProcessing/OrderProcessing';
 import ErrorView from '../../../Aggregator/components/ErrorView';
@@ -133,13 +132,8 @@ const ProviderWebview = () => {
       </ScreenLayout>
     );
   }
-  return (
-    <ScreenLayout>
-      <ScreenLayout.Body>
-        <Text>Loading...</Text>
-      </ScreenLayout.Body>
-    </ScreenLayout>
-  );
+
+  return <ScreenLayout />;
 };
 
 export default ProviderWebview;

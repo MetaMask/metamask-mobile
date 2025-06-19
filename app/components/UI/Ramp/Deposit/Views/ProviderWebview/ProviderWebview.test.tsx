@@ -49,14 +49,16 @@ function setupDepositSdkMocks(
   paymentUrlIsFetching: boolean = false,
 ) {
   (useDepositSdkMethod as jest.Mock).mockImplementation(
-    (options: { method: string }) => {
-      if (options.method === 'requestOtt') {
+    (options: string | { method: string }) => {
+      const method = typeof options === 'string' ? options : options.method;
+
+      if (method === 'requestOtt') {
         return [
           { data: ottData, error: ottError, isFetching: ottIsFetching },
           jest.fn(),
         ];
       }
-      if (options.method === 'generatePaymentWidgetUrl') {
+      if (method === 'generatePaymentWidgetUrl') {
         return [
           {
             data: paymentUrlData,
