@@ -16,6 +16,7 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { connect } from 'react-redux';
+import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import {
   passwordSet,
   passwordUnset,
@@ -72,7 +73,6 @@ import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
-import { saveOnboardingEvent } from '../../../actions/onboarding';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -155,7 +155,7 @@ const createStyles = (colors) =>
       justifyContent: 'flex-start',
       gap: 1,
       flexWrap: 'wrap',
-      width: '95%',
+      width: '90%',
     },
     headerLeft: {
       marginLeft: 16,
@@ -211,13 +211,13 @@ class ChoosePassword extends PureComponent {
      */
     seedphraseNotBackedUp: PropTypes.func,
     /**
+     * Action to save onboarding event
+     */
+    saveOnboardingEvent: PropTypes.func,
+    /**
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
-    /**
-     * Action to save onboarding event
-     */
-    dispatchSaveOnboardingEvent: PropTypes.func,
   };
 
   state = {
@@ -244,10 +244,7 @@ class ChoosePassword extends PureComponent {
   track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
-    trackOnboarding(
-      eventBuilder.build(),
-      this.props.dispatchSaveOnboardingEvent,
-    );
+    trackOnboarding(eventBuilder.build(), this.props.saveOnboardingEvent);
   };
 
   headerLeft = () => {
@@ -362,7 +359,10 @@ class ChoosePassword extends PureComponent {
       });
       return;
     }
-    this.track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED);
+    const provider = this.props.route.params?.provider;
+    this.track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED, {
+      account_type: provider ? `metamask_${provider}` : 'metamask',
+    });
 
     try {
       this.setState({ loading: true });
@@ -391,10 +391,12 @@ class ChoosePassword extends PureComponent {
       this.props.navigation.replace('AccountBackupStep1');
       this.track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(this.state.biometryType),
+        password_strength: getPasswordStrengthWord(this.state.passwordStrength),
       });
       this.track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
         wallet_setup_type: 'new',
         new_wallet: true,
+        account_type: provider ? `metamask_${provider}` : 'metamask',
       });
     } catch (error) {
       try {
@@ -561,10 +563,17 @@ class ChoosePassword extends PureComponent {
   };
 
   learnMore = () => {
+    const learnMoreUrl =
+      'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/';
+    this.track(MetaMetricsEvents.EXTERNAL_LINK_CLICKED, {
+      text: 'Learn More',
+      location: 'choose_password',
+      url: learnMoreUrl,
+    });
     this.props.navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+        url: learnMoreUrl,
         title: 'support.metamask.io',
       },
     });
@@ -844,8 +853,7 @@ const mapDispatchToProps = (dispatch) => ({
   passwordUnset: () => dispatch(passwordUnset()),
   setLockTime: (time) => dispatch(setLockTime(time)),
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
-  dispatchSaveOnboardingEvent: (...eventArgs) =>
-    dispatch(saveOnboardingEvent(eventArgs)),
+  saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
 });
 
 const mapStateToProps = (state) => ({});
