@@ -213,6 +213,7 @@ const main = async () => {
         'wallet_registerOnboarding',
         'eth_getEncryptionPublicKey',
         'wallet_watchAsset',
+        'personal_sign',
       ];
 
       const results = await rpcCoverageTool({
