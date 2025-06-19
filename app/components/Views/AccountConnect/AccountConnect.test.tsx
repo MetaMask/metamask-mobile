@@ -158,19 +158,24 @@ jest.mock('../../../core/Engine', () => {
 });
 
 const mockRemoveChannel = jest.fn();
+const mockGetConnection = jest.fn();
 
 // Mock SDKConnect
 jest.mock('../../../core/SDKConnect/SDKConnect', () => ({
   getInstance: () => ({
-    getConnection: () => undefined,
+    getConnection: mockGetConnection,
     removeChannel: mockRemoveChannel,
   }),
 }));
 
 // Mock the isUUID function
 jest.mock('../../../core/SDKConnect/utils/isUUID', () => ({
-  isUUID: () => false,
+  isUUID: jest.fn(() => false),
 }));
+
+
+// Access the mocked function for test control
+const { isUUID: mockIsUUID } = jest.requireMock('../../../core/SDKConnect/utils/isUUID');
 
 // Mock useAccounts to return test accounts
 jest.mock('../../hooks/useAccounts', () => ({
@@ -190,6 +195,18 @@ jest.mock('../../hooks/useAccounts', () => ({
     ensByAccountAddress: {},
   })),
 }));
+
+// Mock AppConstants
+jest.mock('../../../core/AppConstants', () => ({
+  MM_SDK: {
+    SDK_REMOTE_ORIGIN: 'metamask-sdk://connect?redirect=',
+  },
+  BUNDLE_IDS: {
+    ANDROID: 'io.metamask',
+  },
+  MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
+}));
+
 
 // Setup test state with proper account data
 const mockInitialState: DeepPartial<RootState> = {
@@ -253,6 +270,10 @@ jest.mock('../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
       .mockImplementation(() => mockMultichainWalletSnapClient),
   },
 }));
+
+// Set default mock behaviors
+mockGetConnection.mockReturnValue(undefined);
+mockIsUUID.mockReturnValue(false);
 
 describe('AccountConnect', () => {
   it('renders correctly with base request', () => {
@@ -623,6 +644,165 @@ describe('AccountConnect', () => {
           entropySource: mockKeyringId,
         });
       });
+    });
+  });
+
+  describe('Domain title and hostname logic', () => {
+    beforeEach(() => {
+      // Reset mocks before each test
+      mockGetConnection.mockReset();
+      mockGetConnection.mockReturnValue(undefined); // Default behavior
+      mockIsUUID.mockReset();
+      mockIsUUID.mockReturnValue(false); // Default behavior
+      jest.clearAllMocks();
+    });
+
+    it('should handle MMSDK remote connection origin correctly', () => {
+      const mockOrigin = 'https://example-dapp.com';
+      const mockChannelId = `metamask-sdk://connect?redirect=${mockOrigin}`;
+
+      // Mock SDKConnect to return a connection (isOriginMMSDKRemoteConn = true)
+      mockGetConnection.mockReturnValue({
+        originatorInfo: { url: 'https://test.com' },
+      });
+
+      // Mock isUUID to return false for this channelId
+      mockIsUUID.mockReturnValue(false);
+
+      const mockStateWithoutWC2 = {
+        ...mockInitialState,
+        sdk: {
+          wc2Metadata: { id: '' }, // Empty to avoid WalletConnect branch
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: mockChannelId,
+                },
+                permissions: createMockCaip25Permission({
+                  'wallet:eip155': {
+                    accounts: [],
+                  },
+                }),
+              },
+              permissionRequestId: 'test',
+            },
+          }}
+        />,
+        { state: mockStateWithoutWC2 },
+      );
+
+      // Verify the component renders correctly with MMSDK remote connection
+      const permissionsContainer = getByTestId(
+        'permission-summary-container',
+      );
+      expect(permissionsContainer).toBeDefined();
+      expect(mockGetConnection).toHaveBeenCalledWith({
+        channelId: mockChannelId,
+      });
+    });
+
+    it('should handle WalletConnect origin correctly', () => {
+      const mockChannelId = 'walletconnect-origin.com';
+
+      // Mock SDKConnect to return undefined (isOriginMMSDKRemoteConn = false)
+      mockGetConnection.mockReturnValue(undefined);
+
+      // Mock isUUID to return false
+      mockIsUUID.mockReturnValue(false);
+
+      const mockStateWithWC2 = {
+        ...mockInitialState,
+        sdk: {
+          wc2Metadata: { id: 'mock-wc2-id' }, // Non-empty to trigger WalletConnect branch
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: mockChannelId,
+                },
+                permissions: createMockCaip25Permission({
+                  'wallet:eip155': {
+                    accounts: [],
+                  },
+                }),
+              },
+              permissionRequestId: 'test',
+            },
+          }}
+        />,
+        { state: mockStateWithWC2 },
+      );
+
+      // Verify the component renders correctly with WalletConnect
+      const permissionsContainer = getByTestId(
+        'permission-summary-container',
+      );
+      expect(permissionsContainer).toBeDefined();
+      expect(mockGetConnection).toHaveBeenCalledWith({
+        channelId: mockChannelId,
+      });
+    });
+
+    it('should handle unknown SDK origin correctly and set isSdkUrlUnknown to true', () => {
+      const mockChannelId = '550e8400-e29b-41d4-a716-446655440000'; // UUID format
+
+      // Mock SDKConnect to return undefined (isOriginMMSDKRemoteConn = false)
+      mockGetConnection.mockReturnValue(undefined);
+
+      // Mock isUUID to return true (isChannelId = true)
+      mockIsUUID.mockReturnValue(true);
+
+      const mockStateWithoutWC2 = {
+        ...mockInitialState,
+        sdk: {
+          wc2Metadata: { id: '' }, // Empty to avoid WalletConnect branch
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: mockChannelId,
+                },
+                permissions: createMockCaip25Permission({
+                  'wallet:eip155': {
+                    accounts: [],
+                  },
+                }),
+              },
+              permissionRequestId: 'test',
+            },
+          }}
+        />,
+        { state: mockStateWithoutWC2 },
+      );
+
+      // Verify the component renders correctly with unknown SDK
+      const permissionsContainer = getByTestId(
+        'permission-summary-container',
+      );
+      expect(permissionsContainer).toBeDefined();
+      expect(mockGetConnection).toHaveBeenCalledWith({
+        channelId: mockChannelId,
+      });
+      expect(mockIsUUID).toHaveBeenCalledWith(mockChannelId);
     });
   });
 });
