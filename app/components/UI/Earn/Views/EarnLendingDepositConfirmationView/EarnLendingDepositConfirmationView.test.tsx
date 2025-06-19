@@ -1,5 +1,9 @@
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { Result, TransactionType, TransactionStatus } from '@metamask/transaction-controller';
+import {
+  Result,
+  TransactionType,
+  TransactionStatus,
+} from '@metamask/transaction-controller';
 import { useRoute } from '@react-navigation/native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import React from 'react';
@@ -23,6 +27,7 @@ import {
 } from './components/ConfirmationFooter';
 import { DEPOSIT_DETAILS_SECTION_TEST_ID } from './components/DepositInfoSection';
 import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from './components/DepositReceiveSection';
+import { useMetrics } from '../../../../hooks/useMetrics';
 
 jest.mock('../../../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../../../selectors/accountsController'),
@@ -182,16 +187,6 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../hooks/useEarnTokenDetails', () => ({
-  useEarnTokenDetails: () => ({
-    getTokenWithBalanceAndApr: (token: any) => ({
-      ...token,
-      balanceFormatted: token.symbol === 'USDC' ? '1.00 USDC' : '1.5 ETH',
-      apr: '4.5',
-    }),
-  }),
-}));
-
 jest.mock('../../../../hooks/useMetrics/useMetrics');
 
 jest.mock('../../../../../hooks/useMetrics', () => ({
@@ -271,7 +266,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     } as InternalAccount);
 
     // Mock useMetrics hook
-    const useMetricsMock = jest.mocked(require('../../../../../hooks/useMetrics').useMetrics);
+    const useMetricsMock = jest.mocked(useMetrics);
     useMetricsMock.mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: MockMetricsEventBuilder.createEventBuilder,
@@ -416,20 +411,20 @@ describe('EarnLendingDepositConfirmationView', () => {
       const transactionMeta = {
         id: '123',
         type: 'lendingDeposit' as TransactionType,
-      } as any;
+      };
 
       mockAddTransaction.mockResolvedValue({
         transactionMeta,
       } as Result);
 
       // Mock the subscribeOnceIf to simulate transaction status callbacks
-      let transactionStatusCallback: any;
-      jest.mocked(Engine.controllerMessenger.subscribeOnceIf).mockImplementation(
-        (_eventFilter: any, callback: any) => {
+      let transactionStatusCallback;
+      jest
+        .mocked(Engine.controllerMessenger.subscribeOnceIf)
+        .mockImplementation((_eventFilter, callback) => {
           transactionStatusCallback = callback;
-          return undefined as any;
-        },
-      );
+          return undefined;
+        });
 
       const { getByTestId } = renderWithProvider(
         <EarnLendingDepositConfirmationView />,
@@ -566,12 +561,12 @@ describe('EarnLendingDepositConfirmationView', () => {
 
       // Mock the subscribeOnceIf to simulate transaction confirmed callback
       let transactionStatusCallback: any;
-      jest.mocked(Engine.controllerMessenger.subscribeOnceIf).mockImplementation(
-        (_eventFilter: any, callback: any) => {
+      jest
+        .mocked(Engine.controllerMessenger.subscribeOnceIf)
+        .mockImplementation((_eventFilter: any, callback: any) => {
           transactionStatusCallback = callback;
           return undefined as any;
-        },
-      );
+        });
 
       const { getByTestId } = renderWithProvider(
         <EarnLendingDepositConfirmationView />,
