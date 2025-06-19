@@ -240,8 +240,6 @@ const Login: React.FC = () => {
   };
 
   const onLogin = async () => {
-    endTrace({ name: TraceName.LoginUserInteraction });
-
     try {
       const locked = !passwordRequirementsMet(password);
       if (locked) {
