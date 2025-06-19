@@ -228,15 +228,10 @@ class Gestures {
     direction = 'down',
     scrollAmount = 350,
   ) {
-    device.getPlatform() === 'ios'
-      ? await waitFor(await destinationElement)
-          .toExist()
-          .whileElement(await scrollIdentifier)
-          .scroll(scrollAmount, direction)
-      : await waitFor(await destinationElement)
-          .toBeVisible()
-          .whileElement(await scrollIdentifier)
-          .scroll(scrollAmount, direction);
+    await waitFor(await destinationElement)
+      .toBeVisible()
+      .whileElement(await scrollIdentifier)
+      .scroll(scrollAmount, direction);
   }
 }
 

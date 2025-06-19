@@ -87,7 +87,6 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await TabBarComponent.tapActions();
     await TestHelpers.delay(500);
     await WalletActionsBottomSheet.tapBridgeButton();
-    await device.disableSynchronization();
     await QuoteView.enterBridgeAmount('1');
     await QuoteView.tapBridgeTo();
     await TestHelpers.delay(1000);
@@ -117,7 +116,6 @@ describe(SmokeTrade('Bridge functionality'), () => {
 
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapBridgeButton();
-    await device.disableSynchronization();
     await QuoteView.enterBridgeAmount('1');
     await QuoteView.tapBridgeTo();
     await TestHelpers.delay(1000);
@@ -150,7 +148,6 @@ describe(SmokeTrade('Bridge functionality'), () => {
 
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapBridgeButton();
-    await device.disableSynchronization();
     await QuoteView.enterBridgeAmount('1');
     await QuoteView.tapBridgeTo();
     await TestHelpers.delay(1000);
