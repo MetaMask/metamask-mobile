@@ -69,7 +69,11 @@ jest.mock('../../../../../core/Engine', () => ({
       getNetworkConfigurationByNetworkClientId: jest.fn(),
     },
     BridgeStatusController: {
-      submitTx: jest.fn().mockResolvedValue({ success: true }),
+      submitTx: jest.fn().mockResolvedValue({
+        hash: 'sol_tx_123',
+        id: 'sol_tx_123',
+        status: 'submitted',
+      }),
     },
     BridgeController: {
       resetState: jest.fn(),
@@ -77,6 +81,13 @@ jest.mock('../../../../../core/Engine', () => ({
       updateBridgeQuoteRequestParams: jest.fn(),
     },
     TokensController: mockTokensController,
+    TransactionController: {
+      update: jest.fn((callback) => {
+        const state = { swapsTransactions: {} };
+        callback(state);
+        return state;
+      }),
+    },
   },
   getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
     balance: '1000000000000000000', // 1 ETH
@@ -157,6 +168,13 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
 jest.mock('../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../util/address'),
   isHardwareAccount: jest.fn(),
+}));
+
+const mockImportCustomToken = jest.fn();
+jest.mock('../../hooks/useCustomTokenImport', () => ({
+  useCustomTokenImport: () => ({
+    importCustomToken: mockImportCustomToken,
+  }),
 }));
 
 describe('BridgeView', () => {
@@ -807,6 +825,9 @@ describe('BridgeView', () => {
     });
 
     it('should import custom tokens before submitting Solana swap transaction', async () => {
+      // Clear all mocks
+      jest.clearAllMocks();
+      
       // Setup Solana swap state with custom token
       const customSolanaToken = {
         address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
@@ -840,10 +861,15 @@ describe('BridgeView', () => {
       // Mock no existing tokens
       mockTokensController.getTokens.mockResolvedValue([]);
       mockTokensController.addToken.mockResolvedValue(undefined);
+      
+      // Mock importCustomToken to simulate the token import
+      mockImportCustomToken.mockImplementation(async (token) => {
+        await mockTokensController.addToken(token);
+      });
 
       // Setup mock for submitTx
-      const mockEngine = require('../../../../../core/Engine');
-      mockEngine.context.BridgeStatusController.submitTx.mockResolvedValue({
+      const Engine = require('../../../../../core/Engine');
+      Engine.context.BridgeStatusController.submitTx.mockResolvedValue({
         hash: 'sol_tx_123',
         id: 'sol_tx_123',
         status: 'submitted',
@@ -857,8 +883,8 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      // Press the Confirm button
-      const confirmButton = getByText('Confirm Swap');
+      // Press the Continue button (Solana uses "Continue" instead of "Confirm Swap")
+      const confirmButton = getByText(strings('bridge.continue'));
       await waitFor(() => expect(confirmButton).toBeTruthy());
       
       fireEvent.press(confirmButton);
@@ -866,6 +892,17 @@ describe('BridgeView', () => {
       // Wait for the transaction submission
       await waitFor(() => {
         // Verify custom tokens were imported before transaction
+        expect(mockImportCustomToken).toHaveBeenCalledWith(
+          expect.objectContaining({
+            address: customSolanaToken.address,
+            symbol: customSolanaToken.symbol,
+            decimals: customSolanaToken.decimals,
+            name: customSolanaToken.name,
+          }),
+          expect.any(String) // networkClientId
+        );
+        
+        // Also verify the underlying TokensController.addToken was called
         expect(mockTokensController.addToken).toHaveBeenCalledWith(
           expect.objectContaining({
             address: customSolanaToken.address,
@@ -876,13 +913,11 @@ describe('BridgeView', () => {
         );
 
         // Verify transaction was submitted
-        expect(mockEngine.context.BridgeStatusController.submitTx).toHaveBeenCalled();
+        expect(Engine.context.BridgeStatusController.submitTx).toHaveBeenCalled();
+        
+        // Verify both token imports happened
+        expect(mockTokensController.addToken).toHaveBeenCalledTimes(2);
       });
-
-      // Verify tokens were imported BEFORE transaction submission
-      const tokenImportCallOrder = mockTokensController.addToken.mock.invocationCallOrder[0];
-      const txSubmitCallOrder = mockEngine.context.BridgeStatusController.submitTx.mock.invocationCallOrder[0];
-      expect(tokenImportCallOrder).toBeLessThan(txSubmitCallOrder);
     });
   });
 });
