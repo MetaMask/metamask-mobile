@@ -241,8 +241,8 @@ class Browser {
   async reloadTab() {
     await this.tapUrlInputBox();
 
-    const element = await this.urlInputBoxID;
-    await element.typeText('\n');
+    const urlInputBox = (await this.urlInputBoxID) as IndexableNativeElement;
+    await urlInputBox.typeText('\n');
   }
 }
 
