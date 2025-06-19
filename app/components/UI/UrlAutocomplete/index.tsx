@@ -278,7 +278,7 @@ const UrlAutocomplete = forwardRef<
     );
   }, [searchEngine, onItemSelect, searchDiscoveryStyles.noResultsText]);
 
-  if (!hasResults) {
+  if (!hasResults && !isTokenSearchLoading) {
     return (
       <View ref={resultsRef} style={styles.wrapper}>
         <TouchableWithoutFeedback style={styles.bg} onPress={dismissAutocomplete}>
