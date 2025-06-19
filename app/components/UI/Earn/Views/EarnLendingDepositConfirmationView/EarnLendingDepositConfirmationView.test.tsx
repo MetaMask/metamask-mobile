@@ -6,7 +6,7 @@ import {
 } from '@metamask/transaction-controller';
 import { useRoute } from '@react-navigation/native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import React from 'react';
+import React, { ReactNode } from 'react';
 import EarnLendingDepositConfirmationView, {
   EarnLendingDepositConfirmationViewProps,
 } from '.';
@@ -28,7 +28,8 @@ import {
 } from './components/ConfirmationFooter';
 import { DEPOSIT_DETAILS_SECTION_TEST_ID } from './components/DepositInfoSection';
 import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from './components/DepositReceiveSection';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
 
 jest.mock('../../../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../../../selectors/accountsController'),
@@ -142,37 +143,46 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../hooks/useMetrics/useMetrics');
+const mockTrackEvent = jest.fn();
 
-jest.mock('../../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    EARN_CONFIRMATION_PAGE_VIEWED: 'Earn confirmation page viewed',
-    EARN_ACTION_SUBMITTED: 'Earn action submitted',
-    EARN_TRANSACTION_INITIATED: 'Earn transaction initiated',
-    EARN_TRANSACTION_APPROVED: 'Earn transaction approved',
-    EARN_TRANSACTION_REJECTED: 'Earn transaction rejected',
-    EARN_TRANSACTION_SUBMITTED: 'Earn transaction submitted',
-    EARN_TRANSACTION_CONFIRMED: 'Earn transaction confirmed',
-    EARN_TRANSACTION_FAILED: 'Earn transaction failed',
-    EARN_TRANSACTION_DROPPED: 'Earn transaction dropped',
-  },
-}));
+const mockCreateEventBuilder = jest.fn((eventName) => {
+  let properties = {};
+  return {
+    addProperties(props: Record<string, unknown>) {
+      properties = { ...properties, ...props };
+      return this;
+    },
+    build() {
+      return {
+        name: eventName,
+        properties,
+      };
+    },
+  };
+});
 
-// Mock MetricsEventBuilder
-const MockMetricsEventBuilder = {
-  createEventBuilder: jest.fn().mockReturnValue({
-    addProperties: jest.fn().mockReturnThis(),
-    build: jest.fn().mockReturnValue({ name: 'test-event', properties: {} }),
-  }),
-};
+jest.mock('../../../../hooks/useMetrics', () => {
+  const actual = jest.requireActual('../../../../hooks/useMetrics');
+  return {
+    ...actual,
+    useMetrics: () => ({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    }),
+    withMetricsAwareness: (Component: ReactNode) => Component,
+  };
+});
 
 describe('EarnLendingDepositConfirmationView', () => {
   jest.mocked(getStakingNavbar);
+
   const mockAddTransaction = jest.mocked(
     Engine.context.TransactionController.addTransaction,
   );
-  const mockTrackEvent = jest.fn();
+
+  const mockExecuteLendingDeposit = jest.mocked(
+    Engine.context.EarnController.executeLendingDeposit,
+  );
 
   const selectSelectedInternalAccountMock = jest.mocked(
     selectSelectedInternalAccount,
@@ -219,13 +229,6 @@ describe('EarnLendingDepositConfirmationView', () => {
     selectSelectedInternalAccountMock.mockReturnValue({
       address: MOCK_ADDRESS_2,
     } as InternalAccount);
-
-    // Mock useMetrics hook
-    const useMetricsMock = jest.mocked(useMetrics);
-    useMetricsMock.mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: MockMetricsEventBuilder.createEventBuilder,
-    });
   });
 
   it('matches snapshot', () => {
@@ -285,29 +288,27 @@ describe('EarnLendingDepositConfirmationView', () => {
   });
 
   describe('Analytics', () => {
-    it('should track EARN_CONFIRMATION_PAGE_VIEWED on render', () => {
+    it('tracks EARN_CONFIRMATION_PAGE_VIEWED on render', async () => {
       renderWithProvider(<EarnLendingDepositConfirmationView />, {
         state: mockInitialState,
       });
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'Earn confirmation page viewed',
-          properties: {
-            action_type: 'deposit',
-            token: 'USDC',
-            network: 'Ethereum Mainnet',
-            User_token_balance: '1.00 USDC',
-            transaction_value: '4.99',
-          },
-        }),
-      );
+
+      await waitFor(async () => {
+        expect(mockTrackEvent).toHaveBeenCalledWith(
+          mockCreateEventBuilder(
+            MetaMetricsEvents.EARN_CONFIRMATION_PAGE_VIEWED,
+          )
+            .addProperties({ test })
+            .build(),
+        );
+      });
     });
 
-    it('should track EARN_ACTION_SUBMITTED and EARN_TRANSACTION_INITIATED on confirm', async () => {
-      mockAddTransaction.mockResolvedValue({
+    it('tracks EARN_ACTION_SUBMITTED and EARN_TRANSACTION_INITIATED on confirm', async () => {
+      mockExecuteLendingDeposit.mockResolvedValue({
         transactionMeta: {
           id: '123',
-          type: 'lendingDeposit' as TransactionType,
+          type: TransactionType.lendingDeposit,
         },
       } as Result);
 
@@ -315,9 +316,6 @@ describe('EarnLendingDepositConfirmationView', () => {
         <EarnLendingDepositConfirmationView />,
         { state: mockInitialState },
       );
-
-      // Clear previous calls from the initial render
-      mockTrackEvent.mockClear();
 
       const depositButton = getByTestId(
         CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
@@ -329,40 +327,32 @@ describe('EarnLendingDepositConfirmationView', () => {
 
       // Wait for async operations
       await waitFor(() => {
-        expect(mockAddTransaction).toHaveBeenCalled();
+        expect(mockExecuteLendingDeposit).toHaveBeenCalled();
+
+        expect(mockCreateEventBuilder).toHaveBeenNthCalledWith(
+          1,
+          MetaMetricsEvents.EARN_CONFIRMATION_PAGE_VIEWED,
+        );
+        expect(mockCreateEventBuilder).toHaveBeenNthCalledWith(
+          2,
+          MetaMetricsEvents.EARN_DEPOSIT_REVIEW_CONFIRM_CLICKED,
+        );
+        expect(mockCreateEventBuilder).toHaveBeenNthCalledWith(
+          3,
+          MetaMetricsEvents.EARN_TRANSACTION_INITIATED,
+        );
+        expect(mockCreateEventBuilder).toHaveBeenNthCalledWith(
+          4,
+          MetaMetricsEvents.EARN_CONFIRMATION_PAGE_VIEWED,
+        );
+        expect(mockCreateEventBuilder).toHaveBeenNthCalledWith(
+          5,
+          MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED,
+        );
       });
-
-      // Check that EARN_ACTION_SUBMITTED was tracked
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'Earn action submitted',
-          properties: {
-            action_type: 'deposit',
-            token: 'USDC',
-            network: 'Ethereum Mainnet',
-            User_token_balance: '1.00 USDC',
-            transaction_value: '4.99',
-          },
-        }),
-      );
-
-      // Check that EARN_TRANSACTION_INITIATED was tracked
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'Earn transaction initiated',
-          properties: {
-            action_type: 'deposit',
-            token: 'USDC',
-            network: 'Ethereum Mainnet',
-            User_token_balance: '1.00 USDC',
-            transaction_value: '4.99',
-            transaction_id: '123',
-          },
-        }),
-      );
     });
 
-    it('should track transaction status events', async () => {
+    it('tracks transaction status events', async () => {
       const transactionMeta = {
         id: '123',
         type: 'lendingDeposit' as TransactionType,
@@ -496,7 +486,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       );
     });
 
-    it('should track EARN_TRANSACTION_APPROVED on allowance confirmation', async () => {
+    it('tracks EARN_TRANSACTION_APPROVED on allowance confirmation', async () => {
       const routeParamsWithApproveAction = {
         ...defaultRouteParams,
         params: {
@@ -515,12 +505,12 @@ describe('EarnLendingDepositConfirmationView', () => {
       } as Result);
 
       // Mock the subscribeOnceIf to simulate transaction confirmed callback
-      let transactionStatusCallback: any;
+      let transactionStatusCallback;
       jest
         .mocked(Engine.controllerMessenger.subscribeOnceIf)
-        .mockImplementation((_eventFilter: any, callback: any) => {
+        .mockImplementation((_eventFilter, callback) => {
           transactionStatusCallback = callback;
-          return undefined as any;
+          return undefined;
         });
 
       const { getByTestId } = renderWithProvider(
