@@ -372,8 +372,8 @@ enum EVENT_NAME {
   // Login screen
   LOGIN_SCREEN_VIEWED = 'Login Screen Viewed',
 
-  // Delete Wallet Modal
-  WALLET_RESTORED = 'Wallet Restored',
+  // Reset Wallet Confirmed Modal
+  RESET_WALLET_CONFIRMED = 'Reset Wallet Confirmed',
 
   // Tab Bar Actions
   ACTIONS_BUTTON_CLICKED = 'Global Actions Button Clicked',
@@ -871,7 +871,7 @@ const events = {
   LOGIN_SCREEN_VIEWED: generateOpt(EVENT_NAME.LOGIN_SCREEN_VIEWED),
 
   // Delete Wallet Modal
-  WALLET_RESTORED: generateOpt(EVENT_NAME.WALLET_RESTORED),
+  RESET_WALLET_CONFIRMED: generateOpt(EVENT_NAME.RESET_WALLET_CONFIRMED),
 
   ACTIONS_BUTTON_CLICKED: generateOpt(EVENT_NAME.ACTIONS_BUTTON_CLICKED),
   RECEIVE_BUTTON_CLICKED: generateOpt(EVENT_NAME.RECEIVE_BUTTON_CLICKED),
