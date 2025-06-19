@@ -1,21 +1,46 @@
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../../../util/theme/models';
 
-// TODO - implement proper styles for the SampleCounterPane component following our guidelines
-const styleSheet = () =>
-  StyleSheet.create({
+/**
+ * StyleSheet for the SamplePetNamesForm component
+ *
+ * @param params - The parameters object containing the theme
+ * @param params.theme - The theme object containing color definitions and other theme properties
+ * @returns StyleSheet object containing styles for the pet names form
+ *
+ * @sampleFeature do not use in production code
+ */
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors } = theme;
+  
+  return StyleSheet.create({
+    /**
+     * Container for the pet names form section
+     */
     formContainer: {
       marginTop: 24,
       paddingBottom: 24,
     },
+    /**
+     * Container for individual form inputs
+     */
     inputContainer: {
       marginBottom: 16,
     },
+    /**
+     * Container for the submit button
+     */
     buttonContainer: {
       marginTop: 8,
     },
+    /**
+     * Submit button styling
+     */
     button: {
       width: '100%',
     },
   });
+};
 
 export default styleSheet;

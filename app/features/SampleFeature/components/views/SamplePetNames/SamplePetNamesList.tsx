@@ -69,7 +69,7 @@ export function SamplePetNamesList({
               accountAddress={address}
               size={AvatarSize.Md}
             />
-            <View style={styles.textStack}>
+            <View style={styles.listItemTextContainer}>
               <Text variant={TextVariant.HeadingMD}>{name}</Text>
               <Text variant={TextVariant.BodySM}>
                 {renderShortAddress(address)}

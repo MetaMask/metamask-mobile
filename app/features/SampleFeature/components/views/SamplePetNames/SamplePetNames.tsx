@@ -42,7 +42,6 @@ export function SamplePetNames() {
   const { styles } = useStyles(styleSheet, {});
   const { chainId } = useSampleNetwork();
 
-  // TODO - maybe use a reducer here instead of useState
   const [selectedAddress, setSelectedAddress] = useState('');
   const [selectedName, setSelectedName] = useState('');
 
