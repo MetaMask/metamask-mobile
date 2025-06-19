@@ -20,7 +20,6 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { useNavigation } from '@react-navigation/native';
-import SuccessIcon from '../../../images/circle-check.svg';
 
 export interface SuccessErrorSheetParams {
   onClose?: () => void;
@@ -83,16 +82,13 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
   return (
     <BottomSheet ref={bottomSheetRef} onClose={handleClose}>
       <View style={styles.statusContainer}>
-        {type === 'success' ? (
-          <SuccessIcon name="success" width={32} height={32} />
-        ) : (
-          <Icon
-            name={IconName.CircleX}
-            size={IconSize.Xl}
-            color={colors.error.default}
-          />
-        )}
-
+        <Icon
+          name={type === 'success' ? IconName.Confirmation : IconName.CircleX}
+          size={IconSize.Xl}
+          color={
+            type === 'success' ? colors.success.default : colors.error.default
+          }
+        />
         {typeof title === 'string' ? (
           <Text
             variant={TextVariant.HeadingMD}
@@ -104,7 +100,6 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
         ) : (
           title
         )}
-
         {typeof description === 'string' ? (
           <Text
             variant={TextVariant.BodyMD}
@@ -120,7 +115,6 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
         ) : (
           description
         )}
-
         {secondaryButtonLabel || primaryButtonLabel ? (
           <View
             style={[
