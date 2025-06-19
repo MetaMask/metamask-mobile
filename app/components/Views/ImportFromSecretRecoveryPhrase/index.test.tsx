@@ -275,19 +275,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
     });
 
-    it('input field is autoFocused on initial render', () => {
-      const { getByPlaceholderText } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-      expect(input.props.autoFocus).toBe(true);
-    });
-
     it('on backspace key press, the input field value is updated', async () => {
       const { getByPlaceholderText, getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
