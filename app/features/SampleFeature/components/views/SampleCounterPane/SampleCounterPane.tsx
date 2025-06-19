@@ -47,7 +47,9 @@ export function SampleCounterPane() {
 
   const incrementCount = () => {
     trackEvent(
-      MetricsEventBuilder.createEventBuilder(SAMPLE_FEATURE_EVENTS.COUNTER_INCREMENTED).build()
+      MetricsEventBuilder.createEventBuilder(
+        SAMPLE_FEATURE_EVENTS.COUNTER_INCREMENTED,
+      ).build(),
     );
     counter.incrementCount();
   };

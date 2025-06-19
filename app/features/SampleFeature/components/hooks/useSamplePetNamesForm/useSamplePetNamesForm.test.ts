@@ -16,7 +16,8 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-const mockAssignPetname = Engine.context.SamplePetnamesController.assignPetname as jest.Mock;
+const mockAssignPetname = Engine.context.SamplePetnamesController
+  .assignPetname as jest.Mock;
 
 describe('useSamplePetNamesForm', () => {
   const chainId: Hex = '0x1';
@@ -68,7 +69,9 @@ describe('useSamplePetNamesForm', () => {
     ['empty name', '0x4AE1Ed9eaf935B0043536e83cB833e90e98A0E44', ''],
     ['both empty', '', ''],
   ])('is invalid when %s', (_, address, name) => {
-    const { result } = renderHook(() => useSamplePetNamesForm(chainId, address, name));
+    const { result } = renderHook(() =>
+      useSamplePetNamesForm(chainId, address, name),
+    );
 
     expect(result.current.isValid).toBe(false);
   });

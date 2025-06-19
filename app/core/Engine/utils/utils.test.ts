@@ -53,10 +53,8 @@ import { AppMetadataController } from '@metamask/app-metadata-controller';
 import { appMetadataControllerInit } from '../controllers/app-metadata-controller';
 import { AccountTreeController } from '@metamask/account-tree-controller';
 import { accountTreeControllerInit } from '../../../multichain-accounts/controllers/account-tree-controller';
-import {
-  samplePetnamesControllerInit
-} from '../../../features/SampleFeature/controllers/sample-petnames-controller-init.ts';
-import {SamplePetnamesController} from '@metamask/sample-controllers';
+import { samplePetnamesControllerInit } from '../../../features/SampleFeature/controllers/sample-petnames-controller-init.ts';
+import { SamplePetnamesController } from '@metamask/sample-controllers';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/app-metadata-controller');
@@ -135,7 +133,9 @@ describe('initModularizedControllers', () => {
     defiPositionsControllerInit,
   );
   const mockAccountTreeControllerInit = jest.mocked(accountTreeControllerInit);
-  const mockSamplePetnamesControllerInit = jest.mocked(samplePetnamesControllerInit);
+  const mockSamplePetnamesControllerInit = jest.mocked(
+    samplePetnamesControllerInit,
+  );
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
   ) {
@@ -271,7 +271,9 @@ describe('initModularizedControllers', () => {
     expect(controllers.controllersByName.TransactionController).toBeDefined();
     expect(controllers.controllersByName.GasFeeController).toBeDefined();
     expect(controllers.controllersByName.SignatureController).toBeDefined();
-    expect(controllers.controllersByName.SamplePetnamesController).toBeDefined();
+    expect(
+      controllers.controllersByName.SamplePetnamesController,
+    ).toBeDefined();
   });
 
   it('initializes function including initMessenger', () => {

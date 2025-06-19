@@ -70,9 +70,7 @@ export function SamplePetNamesList({
               size={AvatarSize.Md}
             />
             <View style={styles.textStack}>
-              <Text variant={TextVariant.HeadingMD}>
-                {name}
-              </Text>
+              <Text variant={TextVariant.HeadingMD}>{name}</Text>
               <Text variant={TextVariant.BodySM}>
                 {renderShortAddress(address)}
               </Text>

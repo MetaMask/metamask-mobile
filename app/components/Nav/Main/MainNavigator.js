@@ -798,12 +798,9 @@ const SetPasswordFlow = () => (
 );
 
 const SampleFeatureFlow = () => (
-    <Stack.Navigator>
-        <Stack.Screen
-            name={Routes.SAMPLE_FEATURE}
-            component={SampleFeature}
-        />
-    </Stack.Navigator>
+  <Stack.Navigator>
+    <Stack.Screen name={Routes.SAMPLE_FEATURE} component={SampleFeature} />
+  </Stack.Navigator>
 );
 
 const MainNavigator = () => (
@@ -928,10 +925,7 @@ const MainNavigator = () => (
         headerShown: true,
       }}
     />
-    <Stack.Screen
-      name={Routes.SAMPLE_FEATURE}
-      component={SampleFeatureFlow}
-    />
+    <Stack.Screen name={Routes.SAMPLE_FEATURE} component={SampleFeatureFlow} />
   </Stack.Navigator>
 );
 

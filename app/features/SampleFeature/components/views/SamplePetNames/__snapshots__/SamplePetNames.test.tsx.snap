@@ -2,22 +2,53 @@
 
 exports[`SamplePetNames matches rendered snapshot 1`] = `
 <RCTSafeAreaView
-  style={{}}
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+      "marginTop": 16,
+    }
+  }
 >
   <View
     onLayout={[Function]}
     style={
       [
-        {},
+        {
+          "alignSelf": "center",
+          "flex": 1,
+          "flexDirection": "row",
+        },
         {
           "paddingBottom": 0,
         },
       ]
     }
   >
-    <TouchableOpacity>
+    <TouchableOpacity
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "borderColor": "#b7bbc8",
+          "borderRadius": 4,
+          "borderWidth": 1,
+          "padding": 16,
+          "width": "100%",
+        }
+      }
+    >
       <Text
         accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Bold",
+            "fontSize": 16,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
       >
         Pet Names on this network
       </Text>

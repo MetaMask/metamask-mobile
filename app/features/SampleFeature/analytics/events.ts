@@ -1,4 +1,7 @@
-import { generateOpt, EVENT_NAME as METRICS_EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
+import {
+  generateOpt,
+  EVENT_NAME as METRICS_EVENT_NAME,
+} from '../../../core/Analytics/MetaMetrics.events';
 
 // Feature-specific event names (match EVENT_NAME style: SCREAMING_SNAKE_CASE keys, Initial Case string values with spaces)
 export enum EVENT_NAME {
@@ -18,4 +21,4 @@ export const SAMPLE_FEATURE_EVENTS = {
   PETNAME_ADDED: createEvent(EVENT_NAME.PETNAME_ADDED),
   PETNAME_UPDATED: createEvent(EVENT_NAME.PETNAME_UPDATED),
   PETNAME_VALIDATION_FAILED: createEvent(EVENT_NAME.PETNAME_VALIDATION_FAILED),
-}; 
+};

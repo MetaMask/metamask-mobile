@@ -36,17 +36,6 @@ jest.mock('../../hooks/useSampleNetwork/useSampleNetwork', () => ({
   })),
 }));
 
-jest.mock('../../../../../component-library/hooks', () => ({
-  ...jest.requireActual('../../../../../component-library/hooks'),
-  useStyles: jest.fn(() => ({
-    styles: {
-      wrapper: {},
-      keyboardAvoidingView: {},
-      card: {},
-    },
-  })),
-}));
-
 describe('SamplePetNames', () => {
   it('matches rendered snapshot', async () => {
     const { toJSON } = renderWithProvider(<SamplePetNames />, {

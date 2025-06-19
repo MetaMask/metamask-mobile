@@ -18,7 +18,9 @@ jest.mock('../../hooks/useSamplePetNames', () => ({
 
 import { useSamplePetNames } from '../../hooks/useSamplePetNames';
 
-const mockUseSamplePetNames = useSamplePetNames as jest.MockedFunction<typeof useSamplePetNames>;
+const mockUseSamplePetNames = useSamplePetNames as jest.MockedFunction<
+  typeof useSamplePetNames
+>;
 
 describe('SamplePetNamesList', () => {
   beforeEach(() => {
@@ -26,7 +28,10 @@ describe('SamplePetNamesList', () => {
     // Default mock return value
     mockUseSamplePetNames.mockReturnValue({
       petNames: [
-        { address: '0xc6893a7d6a966535F7884A4de710111986ebB132', name: 'Test Account' },
+        {
+          address: '0xc6893a7d6a966535F7884A4de710111986ebB132',
+          name: 'Test Account',
+        },
       ],
     });
   });

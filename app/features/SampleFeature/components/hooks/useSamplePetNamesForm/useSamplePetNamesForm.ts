@@ -28,7 +28,11 @@ function useSamplePetNamesForm(
   const onSubmit = useCallback(() => {
     if (!isValid) return;
     const { SamplePetnamesController } = Engine.context;
-    SamplePetnamesController.assignPetname(chainId as Hex, toChecksumAddress(address) as Hex, name);
+    SamplePetnamesController.assignPetname(
+      chainId as Hex,
+      toChecksumAddress(address) as Hex,
+      name,
+    );
   }, [address, name, chainId, isValid]);
 
   const reset = useCallback(() => {

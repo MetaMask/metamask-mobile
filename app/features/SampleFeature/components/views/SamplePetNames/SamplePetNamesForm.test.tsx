@@ -26,7 +26,9 @@ jest.mock('../../hooks/useSamplePetNames', () => ({
 
 import { useSamplePetNames } from '../../hooks/useSamplePetNames';
 
-const mockUseSamplePetNames = useSamplePetNames as jest.MockedFunction<typeof useSamplePetNames>;
+const mockUseSamplePetNames = useSamplePetNames as jest.MockedFunction<
+  typeof useSamplePetNames
+>;
 
 describe('SamplePetNamesForm', () => {
   let alertSpy: jest.SpyInstance;
@@ -64,7 +66,8 @@ describe('SamplePetNamesForm', () => {
 
   it('persists pet name using SamplePetnamesController', async () => {
     // Arrange
-    const mockAssignPetname = Engine.context.SamplePetnamesController.assignPetname as jest.Mock;
+    const mockAssignPetname = Engine.context.SamplePetnamesController
+      .assignPetname as jest.Mock;
 
     const { getByTestId } = renderWithProvider(
       <SamplePetNamesForm
@@ -93,11 +96,15 @@ describe('SamplePetNamesForm', () => {
     // Arrange
     mockUseSamplePetNames.mockReturnValue({
       petNames: [
-        { address: '0xc6893a7d6a966535F7884A4de710111986ebB132', name: 'Existing Name' },
+        {
+          address: '0xc6893a7d6a966535F7884A4de710111986ebB132',
+          name: 'Existing Name',
+        },
       ],
     });
 
-    const mockAssignPetname = Engine.context.SamplePetnamesController.assignPetname as jest.Mock;
+    const mockAssignPetname = Engine.context.SamplePetnamesController
+      .assignPetname as jest.Mock;
 
     const { getByTestId } = renderWithProvider(
       <SamplePetNamesForm
@@ -110,8 +117,11 @@ describe('SamplePetNamesForm', () => {
 
     // Act - change address to duplicate and press button
     const addressInput = getByTestId('pet-name-address-input');
-    fireEvent.changeText(addressInput, '0xc6893a7d6a966535F7884A4de710111986ebB132');
-    
+    fireEvent.changeText(
+      addressInput,
+      '0xc6893a7d6a966535F7884A4de710111986ebB132',
+    );
+
     const button = getByTestId('add-pet-name-button');
     fireEvent.press(button);
 
@@ -126,11 +136,15 @@ describe('SamplePetNamesForm', () => {
     // Arrange
     mockUseSamplePetNames.mockReturnValue({
       petNames: [
-        { address: '0xc6893a7d6a966535F7884A4de710111986ebB132', name: 'Existing Name' },
+        {
+          address: '0xc6893a7d6a966535F7884A4de710111986ebB132',
+          name: 'Existing Name',
+        },
       ],
     });
 
-    const mockAssignPetname = Engine.context.SamplePetnamesController.assignPetname as jest.Mock;
+    const mockAssignPetname = Engine.context.SamplePetnamesController
+      .assignPetname as jest.Mock;
 
     const { getByTestId } = renderWithProvider(
       <SamplePetNamesForm

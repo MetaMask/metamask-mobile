@@ -5,7 +5,7 @@ import { SampleCounterPane } from './SampleCounterPane';
 import { strings } from '../../../../../../locales/i18n';
 import useMetrics from '../../../../../components/hooks/useMetrics/useMetrics';
 import { SAMPLE_FEATURE_EVENTS } from '../../../analytics/events';
-import {MetricsEventBuilder} from '../../../../../core/Analytics/MetricsEventBuilder.ts';
+import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder.ts';
 
 /**
  * Mock implementation for react-native Linking module
@@ -79,7 +79,7 @@ describe('SampleCounterPane', () => {
   it('displays counter value', () => {
     const { getByTestId } = renderWithProvider(<SampleCounterPane />);
     const valueElement = getByTestId('sample-counter-pane-value');
-    
+
     expect(valueElement).toBeDefined();
     expect(valueElement.props.children).toBe(
       strings('sample_feature.counter.value', { value: 42 }),
@@ -110,7 +110,7 @@ describe('SampleCounterPane', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: SAMPLE_FEATURE_EVENTS.COUNTER_INCREMENTED.category,
-        })
+        }),
       );
     });
   });

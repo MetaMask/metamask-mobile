@@ -23,7 +23,9 @@ const MockView = View;
  * Mock child components to isolate SampleFeature testing
  */
 jest.mock('./SampleNetworkDisplay/SampleNetworkDisplay', () => ({
-  SampleNetworkDisplay: () => <MockView testID="mocked-sample-network-display" />,
+  SampleNetworkDisplay: () => (
+    <MockView testID="mocked-sample-network-display" />
+  ),
 }));
 
 jest.mock('./SampleCounterPane/SampleCounterPane', () => ({

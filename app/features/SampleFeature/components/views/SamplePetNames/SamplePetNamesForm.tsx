@@ -57,30 +57,43 @@ export function SamplePetNamesForm({
 }: Readonly<SamplePetNamesFormContentProps>) {
   const { styles } = useStyles(styleSheet, {});
 
-  const { onSubmit: formOnSubmit, isValid, name, setName, setAddress, address } =
-    useSamplePetNamesForm(chainId, initialAddress, initialName);
+  const {
+    onSubmit: formOnSubmit,
+    isValid,
+    name,
+    setName,
+    setAddress,
+    address,
+  } = useSamplePetNamesForm(chainId, initialAddress, initialName);
   const { trackEvent } = useMetrics();
   const { petNames } = useSamplePetNames(chainId);
 
   const performUpdate = () => {
     // Use the controller's assignPetname method
-    Engine.context.SamplePetnamesController.assignPetname(chainId as Hex, address as Hex, name);
+    Engine.context.SamplePetnamesController.assignPetname(
+      chainId as Hex,
+      address as Hex,
+      name,
+    );
     formOnSubmit();
   };
 
   const submit = () => {
-    const isEditMode = initialAddress && initialAddress.toLowerCase() === address.toLowerCase();
+    const isEditMode =
+      initialAddress && initialAddress.toLowerCase() === address.toLowerCase();
     const duplicate = petNames.find(
-      (entry) => entry.address.toLowerCase() === address.toLowerCase()
+      (entry) => entry.address.toLowerCase() === address.toLowerCase(),
     );
-    
+
     if (duplicate) {
       if (isEditMode) {
         // User pressed existing pet name - direct update
         trackEvent(
-          MetricsEventBuilder.createEventBuilder(SAMPLE_FEATURE_EVENTS.PETNAME_UPDATED)
+          MetricsEventBuilder.createEventBuilder(
+            SAMPLE_FEATURE_EVENTS.PETNAME_UPDATED,
+          )
             .addProperties({ name })
-            .build()
+            .build(),
         );
         performUpdate();
       } else {
@@ -88,9 +101,9 @@ export function SamplePetNamesForm({
         trackErrorAsAnalytics(
           SAMPLE_FEATURE_EVENTS.PETNAME_VALIDATION_FAILED.category,
           'Attempted to add duplicate address',
-          address
+          address,
         );
-        
+
         Alert.alert(
           strings('sample_feature.pet_name.duplicate_title'),
           strings('sample_feature.pet_name.duplicate_message'),
@@ -103,23 +116,27 @@ export function SamplePetNamesForm({
               text: strings('sample_feature.pet_name.update'),
               onPress: () => {
                 trackEvent(
-                  MetricsEventBuilder.createEventBuilder(SAMPLE_FEATURE_EVENTS.PETNAME_UPDATED)
+                  MetricsEventBuilder.createEventBuilder(
+                    SAMPLE_FEATURE_EVENTS.PETNAME_UPDATED,
+                  )
                     .addProperties({ name })
-                    .build()
+                    .build(),
                 );
                 performUpdate();
               },
             },
-          ]
+          ],
         );
       }
     } else {
       // No duplicate - add new pet name
       trackEvent(
-        MetricsEventBuilder.createEventBuilder(SAMPLE_FEATURE_EVENTS.PETNAME_ADDED)
+        MetricsEventBuilder.createEventBuilder(
+          SAMPLE_FEATURE_EVENTS.PETNAME_ADDED,
+        )
           .addProperties({ name })
           .addSensitiveProperties({ address })
-          .build()
+          .build(),
       );
       performUpdate();
     }
