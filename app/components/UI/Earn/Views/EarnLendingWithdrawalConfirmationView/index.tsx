@@ -356,7 +356,8 @@ const EarnLendingWithdrawalConfirmationView = () => {
               />
             </View>
           </InfoSection>
-          {healthFactorSimulation.before !== AAVE_V3_INFINITE_HEALTH_FACTOR && (
+          {/* TODO: https://consensyssoftware.atlassian.net/browse/STAKE-1044 Add back in v1.1 */}
+          {/* {healthFactorSimulation.before !== AAVE_V3_INFINITE_HEALTH_FACTOR && (
             <InfoSectionAccordion header={strings('stake.advanced_details')}>
               <View style={styles.advancedDetailsContainer}>
                 <KeyValueRow
@@ -463,7 +464,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
                 />
               </View>
             </InfoSectionAccordion>
-          )}
+          )} */}
         </View>
       </View>
       <ConfirmationFooter

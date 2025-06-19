@@ -195,7 +195,8 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('displays advanced details section when user has detected borrow positions', () => {
+  // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-1044 Add back in v1.1
+  it.skip('displays advanced details section when user has detected borrow positions', () => {
     (useRoute as jest.MockedFunction<typeof useRoute>).mockReturnValue({
       ...defaultRouteParams,
       params: {
