@@ -87,7 +87,7 @@ const DeepLinkModal = () => {
         description: string;
         checkboxLabel?: string;
         event: IMetaMetricsEvent;
-        eventContinue: IMetaMetricsEvent;
+        eventContinue?: IMetaMetricsEvent;
         eventDismiss: IMetaMetricsEvent;
       }
     > => ({
@@ -152,14 +152,17 @@ const DeepLinkModal = () => {
 
   const onContinuePressed = useCallback(() => {
     dismissModal(() => {
-      trackEvent(
-        createEventBuilder(LINK_TYPE_MAP[linkType].eventContinue)
-          .addProperties({
-            ...generateDeviceAnalyticsMetaData(),
-            pageTitle: pageTitle ?? '',
-          })
-          .build(),
-      );
+      const eventContinue = LINK_TYPE_MAP[linkType].eventContinue;
+      if (eventContinue) {
+        trackEvent(
+          createEventBuilder(eventContinue)
+            .addProperties({
+              ...generateDeviceAnalyticsMetaData(),
+              pageTitle,
+            })
+            .build(),
+        );
+      }
       onContinue?.();
     });
   }, [
@@ -186,11 +189,8 @@ const DeepLinkModal = () => {
     setIsChecked((prev) => !prev);
   }, [isChecked, trackEvent, createEventBuilder, dispatch]);
 
-  const shouldShowCheckbox = linkType === DeepLinkModalLinkType.PRIVATE;
-  const primaryButtonLabel =
-    linkType === DeepLinkModalLinkType.INVALID
-      ? strings('deep_link_modal.open_metamask_anyway')
-      : strings('deep_link_modal.continue_button');
+  const shouldShowCheckbox = linkType === 'private';
+  const shouldShowPrimaryButton = linkType !== 'invalid';
 
   return (
     <BottomSheet
@@ -229,14 +229,16 @@ const DeepLinkModal = () => {
           />
         </Box>
       )}
-      <Button
-        variant={ButtonVariants.Primary}
-        size={ButtonSize.Lg}
-        width={ButtonWidthTypes.Full}
-        label={primaryButtonLabel}
-        onPress={onContinuePressed}
-        style={styles.actionButtonMargin}
-      />
+      {shouldShowPrimaryButton && (
+        <Button
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          label={strings('deep_link_modal.continue_button')}
+          onPress={onContinuePressed}
+          style={styles.actionButtonMargin}
+        />
+      )}
     </BottomSheet>
   );
 };

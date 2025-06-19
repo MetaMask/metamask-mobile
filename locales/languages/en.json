@@ -4392,18 +4392,17 @@
   "deep_link_modal": {
     "private_link": {
       "title": "Redirecting you to MetaMask",
-      "description": "Clicking on “Continue” will direct you to this page: {{pageTitle}}.",
+      "description": "You'll open {{pageTitle}} if you continue.",
       "checkbox_label": "Don't remind me again"
     },
     "public_link": {
       "title": "Proceed with caution",
-      "description": "A third party outside of MetaMask directed you to this page: {{pageTitle}}. Only continue if you trust the source."
+      "description": "You were sent here by a third party, not MetaMask. You'll open {{pageTitle}} if you continue."
     },
     "invalid": {
       "title": "This page doesn't exist",
       "description": "We can't find the page you're looking for."
     },
-    "open_metamask_anyway": "Open MetaMask anyway",
     "back_button": "Back",
     "continue_button": "Continue"
   }
