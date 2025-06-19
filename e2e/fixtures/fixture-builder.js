@@ -324,6 +324,11 @@ class FixtureBuilder {
                 selectedAccount: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
               },
             },
+            AccountTreeController: {
+              accountTree: {
+                wallets: {},
+              },
+            },
             PreferencesController: {
               featureFlags: {},
               identities: {
@@ -674,9 +679,6 @@ class FixtureBuilder {
         },
         security: {
           allowLoginWithRememberMe: false,
-          automaticSecurityChecksEnabled: false,
-          hasUserSelectedAutomaticSecurityCheckOption: true,
-          isAutomaticSecurityChecksModalOpen: false,
         },
         experimentalSettings: {
           securityAlertsEnabled: true,

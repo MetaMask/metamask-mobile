@@ -7,7 +7,6 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { RootState } from '../../../../reducers';
-import { selectAccountTokensAcrossChains } from '../../../../selectors/multichain';
 import {
   internalAccount2,
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -23,25 +22,11 @@ import {
   MOCK_LENDING_MARKET_WETH,
 } from '../../Stake/__mocks__/earnControllerMockData';
 import {
-  MOCK_ABASUSDC_BASE_MAINNET_ASSET,
-  MOCK_ADAI_MAINNET_ASSET,
-  MOCK_AETHUSDC_MAINNET_ASSET,
-  MOCK_AUSDT_MAINNET_ASSET,
-  MOCK_DAI_MAINNET_ASSET,
-  MOCK_ETH_MAINNET_ASSET,
-  MOCK_USDC_BASE_MAINNET_ASSET,
-  MOCK_USDC_MAINNET_ASSET,
-  MOCK_USDT_MAINNET_ASSET,
-} from '../../Stake/__mocks__/stakeMockData';
-import {
   createMockToken,
   mockEarnControllerRootState,
 } from '../../Stake/testUtils';
 import { TokenI } from '../../Tokens/types';
-import useEarnTokens, { useHasSupportedStablecoin } from './useEarnTokens';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type TestMockVar = any;
+import useEarnTokens from './useEarnTokens';
 
 const mockSelectPooledStakingEnabledFlag = jest.fn();
 const mockSelectStablecoinLendingEnabledFlag = jest.fn();
@@ -547,176 +532,5 @@ describe('useEarnTokens', () => {
       expect(pairedTokens.outputToken?.symbol).toBe('aUSDC');
       expect(pairedTokens.earnToken?.symbol).toBe('USDC');
     });
-  });
-});
-
-// this is currently not in use, commenting for now as hook implementattion has changed drastically
-describe.skip('useHasSupportedStablecoin', () => {
-  let selectAccountTokensAcrossChainsSpy: jest.SpyInstance;
-  beforeEach(() => {
-    selectAccountTokensAcrossChainsSpy = jest
-      .spyOn(
-        {
-          selectAccountTokensAcrossChains,
-        },
-        'selectAccountTokensAcrossChains',
-      )
-      .mockReturnValue({
-        '0x1': [
-          MOCK_ETH_MAINNET_ASSET,
-          MOCK_USDC_MAINNET_ASSET,
-          MOCK_USDT_MAINNET_ASSET,
-          MOCK_DAI_MAINNET_ASSET,
-          MOCK_AETHUSDC_MAINNET_ASSET,
-          MOCK_AUSDT_MAINNET_ASSET,
-          MOCK_ADAI_MAINNET_ASSET,
-        ],
-        '0x2105': [
-          MOCK_USDC_BASE_MAINNET_ASSET,
-          MOCK_ABASUSDC_BASE_MAINNET_ASSET,
-        ],
-      });
-  });
-
-  const mockChainId = '0x1' as const;
-  const mockTokenSymbol = 'USDC';
-  const mockTokens = [
-    {
-      chainId: '0x1',
-      symbol: 'USDC',
-      address: '0x123',
-      decimals: 6,
-    },
-    {
-      chainId: '0x1',
-      symbol: 'USDT',
-      address: '0x456',
-      decimals: 6,
-    },
-  ];
-
-  const arrange = () => ({
-    mockSelectAccountTokensAcrossChains: selectAccountTokensAcrossChainsSpy,
-  });
-
-  const validParamsTestMatrix = [
-    {
-      description: 'token exists, symbol matches, isStaked true',
-      params: {
-        tokenChainId: mockChainId,
-        tokenSymbol: mockTokenSymbol,
-        isStaked: true,
-      },
-      mockTokensData: { [mockChainId]: mockTokens },
-      expected: true,
-    },
-    {
-      description: 'token exists, symbol matches, isStaked false',
-      params: {
-        tokenChainId: mockChainId,
-        tokenSymbol: mockTokenSymbol,
-        isStaked: false,
-      },
-      mockTokensData: { [mockChainId]: mockTokens },
-      expected: false,
-    },
-    {
-      description: 'token exists, symbol matches, isStaked undefined',
-      params: {
-        tokenChainId: mockChainId,
-        tokenSymbol: mockTokenSymbol,
-        isStaked: undefined,
-      },
-      mockTokensData: { [mockChainId]: mockTokens },
-      expected: false,
-    },
-    {
-      description: 'token exists, symbol does not match, isStaked true',
-      params: {
-        tokenChainId: mockChainId,
-        tokenSymbol: 'NONEXISTENT',
-        isStaked: true,
-      },
-      mockTokensData: { [mockChainId]: mockTokens },
-      expected: false,
-    },
-    {
-      description: 'token does not exist, isStaked true',
-      params: {
-        tokenChainId: mockChainId,
-        tokenSymbol: mockTokenSymbol,
-        isStaked: true,
-      },
-      mockTokensData: { [mockChainId]: [] },
-      expected: false,
-    },
-  ];
-
-  it.each(validParamsTestMatrix)(
-    'return $expected when $description',
-    (testcase) => {
-      const mocks = arrange();
-      mocks.mockSelectAccountTokensAcrossChains.mockReturnValue(
-        testcase.mockTokensData,
-      );
-
-      const hook = renderHookWithProvider(
-        () =>
-          useHasSupportedStablecoin(
-            testcase.params.tokenChainId,
-            testcase.params.tokenSymbol,
-            testcase.params.isStaked,
-          ),
-        {},
-      );
-
-      expect(hook.result.current).toBe(testcase.expected);
-    },
-  );
-
-  const edgeCaseMatrix = [
-    {
-      description: 'tokens selector returns empty object',
-      params: {
-        tokenChainId: mockChainId,
-        tokenSymbol: mockTokenSymbol,
-        isStaked: true,
-      },
-      mockTokensData: {},
-      expected: false,
-    },
-    {
-      description: 'tokenSymbol is undefined',
-      params: {
-        tokenChainId: mockChainId,
-        tokenSymbol: undefined,
-        isStaked: true,
-      },
-      mockTokensData: { [mockChainId]: mockTokens },
-      expected: false,
-    },
-  ];
-
-  it.each(edgeCaseMatrix)('returns $expected when $description', (testcase) => {
-    const mocks = arrange();
-    mocks.mockSelectAccountTokensAcrossChains.mockReturnValue(
-      testcase.mockTokensData as TestMockVar,
-    );
-
-    const hook = renderHookWithProvider(
-      () =>
-        useHasSupportedStablecoin(
-          testcase.params.tokenChainId,
-          testcase.params.tokenSymbol,
-          testcase.params.isStaked,
-        ),
-      {
-        state: {
-          ...mockState,
-        },
-      },
-    );
-
-    expect(hook.result.current).toBe(testcase.expected);
   });
 });

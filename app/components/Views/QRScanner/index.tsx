@@ -216,7 +216,7 @@ const QRScanner = ({
         }
 
         // Checking if it can be handled like deeplinks
-        const handledByDeeplink = SharedDeeplinkManager.parse(content, {
+        const handledByDeeplink = await SharedDeeplinkManager.parse(content, {
           origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
           // TODO: Check is pop is still valid.
           // TODO: Replace "any" with type

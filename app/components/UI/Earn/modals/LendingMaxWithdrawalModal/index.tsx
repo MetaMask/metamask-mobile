@@ -9,6 +9,7 @@ import BottomSheet, {
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { View } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
 
 const LendingMaxWithdrawalModal = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -24,14 +25,30 @@ const LendingMaxWithdrawalModal = () => {
       <View>
         <BottomSheetHeader onClose={handleClose}>
           <Text variant={TextVariant.HeadingSM}>
-            {`Why can't I withdraw my full balance?`}
+            {strings(
+              'earn.tooltip_content.lending_risk_aware_withdrawal_tooltip.why_cant_i_withdraw_full_balance',
+            )}
           </Text>
         </BottomSheetHeader>
         <View style={styles.bodyTextContainer}>
-          <Text>{`This wallet has active borrow positions made outside of this app, such as through Aave’s website.`}</Text>
-          <Text>{`To keep your position safe, we limit withdrawals to avoid lowering your health factor too much, which could put your assets at risk of liquidation.`}</Text>
+          <Text>{`${strings(
+            'earn.tooltip_content.lending_risk_aware_withdrawal_tooltip.your_withdrawal_amount_may_be_limited_by',
+          )}:`}</Text>
           <Text>
-            {`To unlock more withdrawals, repay some of your borrowed assets or increase your collateral.`}
+            <Text variant={TextVariant.BodyMDMedium}>{`• ${strings(
+              'earn.tooltip_content.lending_risk_aware_withdrawal_tooltip.pool_liquidity',
+            )}:`}</Text>{' '}
+            {`${strings(
+              'earn.tooltip_content.lending_risk_aware_withdrawal_tooltip.not_enough_funds_available_in_the_lending_pool_right_now',
+            )}`}
+          </Text>
+          <Text>
+            <Text variant={TextVariant.BodyMDMedium}>{`• ${strings(
+              'earn.tooltip_content.lending_risk_aware_withdrawal_tooltip.existing_borrow_positions',
+            )}:`}</Text>{' '}
+            {`${strings(
+              'earn.tooltip_content.lending_risk_aware_withdrawal_tooltip.withdrawing_could_put_your_existing_loans_at_risk_of_liquidation',
+            )}`}
           </Text>
         </View>
       </View>

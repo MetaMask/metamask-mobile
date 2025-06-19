@@ -1,49 +1,49 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { View } from 'react-native';
-import { getStakingNavbar } from '../../../Navbar';
-import { strings } from '../../../../../../locales/i18n';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import styleSheet from './EarnLendingWithdrawalConfirmationView.styles';
-import { useStyles } from '../../../../hooks/useStyles';
-import Erc20TokenHero from '../EarnLendingDepositConfirmationView/components/Erc20TokenHero';
-import { TokenI } from '../../../Tokens/types';
-import InfoSection from '../../../../Views/confirmations/components/UI/info-row/info-section';
-import InfoSectionAccordion from '../../../../Views/confirmations/components/UI/info-section-accordion';
-import KeyValueRow, {
-  TooltipSizes,
-} from '../../../../../component-library/components-temp/KeyValueRow';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import InfoRowDivider from '../../../../Views/confirmations/components/UI/info-row-divider';
-import AccountTag from '../../../Stake/components/StakingConfirmation/AccountTag/AccountTag';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../../../reducers';
-import ContractTag from '../../../Stake/components/StakingConfirmation/ContractTag/ContractTag';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import { getNetworkImageSource } from '../../../../../util/networks';
-import Engine from '../../../../../core/Engine';
 import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
-import ConfirmationFooter from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
-import {
-  AAVE_V3_INFINITE_HEALTH_FACTOR,
-  AAVE_WITHDRAWAL_RISKS,
-  SimulatedAaveV3HealthFactorAfterWithdrawal,
-} from '../../utils/tempLending';
-import Routes from '../../../../../constants/navigation/Routes';
-import { capitalize } from 'lodash';
-import useEarnTokens from '../../hooks/useEarnTokens';
-import { EarnTokenDetails } from '../../types/lending.types';
 import {
   TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { capitalize } from 'lodash';
+import React, { useEffect, useMemo, useState } from 'react';
+import { View } from 'react-native';
+import { useSelector } from 'react-redux';
+import { strings } from '../../../../../../locales/i18n';
+import KeyValueRow, {
+  TooltipSizes,
+} from '../../../../../component-library/components-temp/KeyValueRow';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import Badge, {
+  BadgeVariant,
+} from '../../../../../component-library/components/Badges/Badge';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
+import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
+import { RootState } from '../../../../../reducers';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { getNetworkImageSource } from '../../../../../util/networks';
+import { useStyles } from '../../../../hooks/useStyles';
+import InfoRowDivider from '../../../../Views/confirmations/components/UI/info-row-divider';
+import InfoSection from '../../../../Views/confirmations/components/UI/info-row/info-section';
+import InfoSectionAccordion from '../../../../Views/confirmations/components/UI/info-section-accordion';
+import { getStakingNavbar } from '../../../Navbar';
+import AccountTag from '../../../Stake/components/StakingConfirmation/AccountTag/AccountTag';
+import ContractTag from '../../../Stake/components/StakingConfirmation/ContractTag/ContractTag';
+import { TokenI } from '../../../Tokens/types';
+import useEarnToken from '../../hooks/useEarnToken';
+import { EarnTokenDetails } from '../../types/lending.types';
+import {
+  AAVE_V3_INFINITE_HEALTH_FACTOR,
+  AAVE_WITHDRAWAL_RISKS,
+  SimulatedAaveV3HealthFactorAfterWithdrawal,
+} from '../../utils/tempLending';
+import ConfirmationFooter from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
+import Erc20TokenHero from '../EarnLendingDepositConfirmationView/components/Erc20TokenHero';
+import styleSheet from './EarnLendingWithdrawalConfirmationView.styles';
 
 interface EarnWithdrawalConfirmationViewRouteParams {
   token: TokenI | EarnTokenDetails;
@@ -79,9 +79,8 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
 
-  // Get lending and receipt token using either lending or receipt token to find pair.
-  const { getPairedEarnTokens } = useEarnTokens();
-  const { outputToken: receiptToken } = getPairedEarnTokens(token);
+  const { outputToken, earnToken, getTokenSnapshot, tokenSnapshot } =
+    useEarnToken(token);
 
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const useBlockieIcon = useSelector(
@@ -132,6 +131,15 @@ const EarnLendingWithdrawalConfirmationView = () => {
     return parseFloat(healthFactor).toFixed(2);
   };
 
+  useEffect(() => {
+    if (!earnToken) {
+      getTokenSnapshot(
+        outputToken?.chainId as Hex,
+        outputToken?.experience.market?.underlying?.address as Hex,
+      );
+    }
+  }, [outputToken, getTokenSnapshot, earnToken]);
+
   // Guards
   if (
     !token?.chainId ||
@@ -151,7 +159,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   const networkClientId =
     Engine.context.NetworkController.findNetworkClientIdByChainId(
-      toHex(receiptToken?.chainId as Hex),
+      toHex(outputToken?.chainId as Hex),
     );
 
   const handleCancel = () => {
@@ -161,10 +169,10 @@ const EarnLendingWithdrawalConfirmationView = () => {
   const handleConfirm = async () => {
     if (
       !amountTokenMinimalUnit ||
-      !receiptToken?.address ||
-      !receiptToken?.chainId ||
-      !receiptToken?.experience?.market?.underlying.address ||
-      !receiptToken?.experience?.market?.protocol
+      !outputToken?.address ||
+      !outputToken?.chainId ||
+      !outputToken?.experience?.market?.underlying.address ||
+      !outputToken?.experience?.market?.protocol
     )
       return;
 
@@ -173,9 +181,9 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
       const txRes = await Engine.context.EarnController.executeLendingWithdraw({
         amount: amountTokenMinimalUnit.toString(),
-        protocol: receiptToken.experience?.market?.protocol,
+        protocol: outputToken.experience?.market?.protocol,
         underlyingTokenAddress:
-          receiptToken.experience?.market?.underlying?.address,
+          outputToken.experience?.market?.underlying?.address,
         gasOptions: {},
         txOptions: {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
@@ -216,6 +224,30 @@ const EarnLendingWithdrawalConfirmationView = () => {
           navigation.navigate(Routes.TRANSACTIONS_VIEW);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionConfirmed',
+        () => {
+          if (!earnToken) {
+            const tokenNetworkClientId =
+              Engine.context.NetworkController.findNetworkClientIdByChainId(
+                tokenSnapshot?.chainId as Hex,
+              );
+            Engine.context.TokensController.addToken({
+              decimals: tokenSnapshot?.token?.decimals || 0,
+              symbol: tokenSnapshot?.token?.symbol || '',
+              address: tokenSnapshot?.token?.address || '',
+              name: tokenSnapshot?.token?.name || '',
+              networkClientId: tokenNetworkClientId,
+            }).catch((error) => {
+              console.error(
+                error,
+                'error adding counter-token on confirmation',
+              );
+            });
+          }
+        },
+        (transactionMeta) => transactionMeta.id === transactionId,
       );
     } catch (e) {
       setIsConfirmButtonDisabled(false);
@@ -324,125 +356,114 @@ const EarnLendingWithdrawalConfirmationView = () => {
               />
             </View>
           </InfoSection>
-          {/* TODO: STAKE-1043: https://consensyssoftware.atlassian.net/browse/STAKE-1043 */}
-          <InfoSectionAccordion header={strings('stake.advanced_details')}>
-            <View style={styles.advancedDetailsContainer}>
-              <KeyValueRow
-                field={{
-                  label: {
-                    text: strings('earn.health_factor'),
-                    variant: TextVariant.BodyMDMedium,
-                  },
-                  tooltip: {
-                    title: strings('earn.health_factor'),
-                    content: (
-                      <View style={styles.healthFactorTooltipContainer}>
-                        <Text>
-                          {strings(
-                            'earn.tooltip_content.health_factor.your_health_factor_measures_liquidation_risk',
-                          )}
-                        </Text>
-                        <View style={styles.healthFactorTooltipContent}>
-                          <View style={styles.healthFactorTooltipRow}>
-                            <Text variant={TextVariant.BodyMDMedium}>
-                              •{' '}
-                              {strings(
-                                'earn.tooltip_content.health_factor.above_two_dot_zero',
-                              )}
-                            </Text>
-                            <Text>
-                              {strings(
-                                'earn.tooltip_content.health_factor.safe_position',
-                              )}
-                            </Text>
-                          </View>
-                          <View style={styles.healthFactorTooltipRow}>
-                            <Text variant={TextVariant.BodyMDMedium}>
-                              •{' '}
-                              {strings(
-                                'earn.tooltip_content.health_factor.between_one_dot_five_and_2_dot_zero',
-                              )}
-                            </Text>
-                            <Text>
-                              {strings(
-                                'earn.tooltip_content.health_factor.medium_liquidation_risk',
-                              )}
-                            </Text>
-                          </View>
-                          <View style={styles.healthFactorTooltipRow}>
-                            <Text variant={TextVariant.BodyMDMedium}>
-                              •{' '}
-                              {strings(
-                                'earn.tooltip_content.health_factor.below_one_dot_five',
-                              )}
-                            </Text>
-                            <Text>
-                              {strings(
-                                'earn.tooltip_content.health_factor.higher_liquidation_risk',
-                              )}
-                            </Text>
-                          </View>
-                          <View style={styles.healthFactorTooltipRow}>
-                            <Text variant={TextVariant.BodyMDMedium}>
-                              {`• ${strings(
-                                'earn.tooltip_content.health_factor.infinite',
-                              )} (∞)`}
-                            </Text>
-                            <Text>
-                              {strings(
-                                'earn.tooltip_content.health_factor.no_debt_maximum_security',
-                              )}
-                            </Text>
+          {healthFactorSimulation.before !== AAVE_V3_INFINITE_HEALTH_FACTOR && (
+            <InfoSectionAccordion header={strings('stake.advanced_details')}>
+              <View style={styles.advancedDetailsContainer}>
+                <KeyValueRow
+                  field={{
+                    label: {
+                      text: strings('earn.health_factor'),
+                      variant: TextVariant.BodyMDMedium,
+                    },
+                    tooltip: {
+                      title: strings('earn.health_factor'),
+                      content: (
+                        <View style={styles.healthFactorTooltipContainer}>
+                          <Text>
+                            {strings(
+                              'earn.tooltip_content.health_factor.your_health_factor_measures_liquidation_risk',
+                            )}
+                          </Text>
+                          <View style={styles.healthFactorTooltipContent}>
+                            <View style={styles.healthFactorTooltipRow}>
+                              <Text variant={TextVariant.BodyMDMedium}>
+                                •{' '}
+                                {strings(
+                                  'earn.tooltip_content.health_factor.above_two_dot_zero',
+                                )}
+                              </Text>
+                              <Text>
+                                {strings(
+                                  'earn.tooltip_content.health_factor.safe_position',
+                                )}
+                              </Text>
+                            </View>
+                            <View style={styles.healthFactorTooltipRow}>
+                              <Text variant={TextVariant.BodyMDMedium}>
+                                •{' '}
+                                {strings(
+                                  'earn.tooltip_content.health_factor.between_one_dot_five_and_2_dot_zero',
+                                )}
+                              </Text>
+                              <Text>
+                                {strings(
+                                  'earn.tooltip_content.health_factor.medium_liquidation_risk',
+                                )}
+                              </Text>
+                            </View>
+                            <View style={styles.healthFactorTooltipRow}>
+                              <Text variant={TextVariant.BodyMDMedium}>
+                                •{' '}
+                                {strings(
+                                  'earn.tooltip_content.health_factor.below_one_dot_five',
+                                )}
+                              </Text>
+                              <Text>
+                                {strings(
+                                  'earn.tooltip_content.health_factor.higher_liquidation_risk',
+                                )}
+                              </Text>
+                            </View>
                           </View>
                         </View>
+                      ),
+                      size: TooltipSizes.Sm,
+                    },
+                  }}
+                  value={{
+                    label: (
+                      <View style={styles.healthFactorRight}>
+                        <Text
+                          variant={TextVariant.BodyMDMedium}
+                          color={getHealthFactorValueColor(
+                            healthFactorSimulation.before,
+                          )}
+                        >
+                          {getHealthFactorLabel(healthFactorSimulation.before)}
+                        </Text>
+                        <Text>→</Text>
+                        <Text
+                          variant={TextVariant.BodyMDMedium}
+                          color={getHealthFactorValueColor(
+                            healthFactorSimulation.after,
+                          )}
+                        >
+                          {getHealthFactorLabel(healthFactorSimulation.after)}
+                        </Text>
                       </View>
                     ),
-                    size: TooltipSizes.Sm,
-                  },
-                }}
-                value={{
-                  label: (
-                    <View style={styles.healthFactorRight}>
-                      <Text
-                        variant={TextVariant.BodyMDMedium}
-                        color={getHealthFactorValueColor(
-                          healthFactorSimulation.before,
-                        )}
-                      >
-                        {getHealthFactorLabel(healthFactorSimulation.before)}
-                      </Text>
-                      <Text>→</Text>
-                      <Text
-                        variant={TextVariant.BodyMDMedium}
-                        color={getHealthFactorValueColor(
-                          healthFactorSimulation.after,
-                        )}
-                      >
-                        {getHealthFactorLabel(healthFactorSimulation.after)}
-                      </Text>
-                    </View>
-                  ),
-                }}
-              />
-              <KeyValueRow
-                field={{
-                  label: {
-                    text: strings('earn.liquidation_risk'),
-                    variant: TextVariant.BodyMDMedium,
-                  },
-                }}
-                value={{
-                  label: (
-                    <View>
-                      <Text color={riskTextColor}>
-                        {capitalize(healthFactorSimulation.risk)}
-                      </Text>
-                    </View>
-                  ),
-                }}
-              />
-            </View>
-          </InfoSectionAccordion>
+                  }}
+                />
+                <KeyValueRow
+                  field={{
+                    label: {
+                      text: strings('earn.liquidation_risk'),
+                      variant: TextVariant.BodyMDMedium,
+                    },
+                  }}
+                  value={{
+                    label: (
+                      <View>
+                        <Text color={riskTextColor}>
+                          {capitalize(healthFactorSimulation.risk)}
+                        </Text>
+                      </View>
+                    ),
+                  }}
+                />
+              </View>
+            </InfoSectionAccordion>
+          )}
         </View>
       </View>
       <ConfirmationFooter
