@@ -12,7 +12,6 @@ import RevealPrivateKey from '../../pages/Settings/SecurityAndPrivacy/RevealPriv
 import { completeSrpQuiz } from '../multisrp/utils.js';
 import { defaultOptions } from '../../seeder/anvil-manager.js';
 import TestHelpers from '../../helpers.js';
-import { beforeEach } from 'node:test';
 
 const PASSWORD = '123123123';
 
