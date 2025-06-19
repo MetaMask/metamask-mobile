@@ -24,6 +24,10 @@ import {
   SnapInterfaceControllerResolveInterfaceAction,
   SnapInterfaceControllerUpdateInterfaceAction,
   SnapInterfaceControllerUpdateInterfaceStateAction,
+  WebSocketServiceOpenAction,
+  WebSocketServiceCloseAction,
+  WebSocketServiceGetAction,
+  WebSocketServiceSendMessageAction,
 } from '../Engine/controllers/snaps';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { MetaMetrics } from '../../../app/core/Analytics';
@@ -140,22 +144,22 @@ const snapMethodMiddlewareBuilder = (
     },
     openWebSocket: controllerMessenger.call.bind(
       controllerMessenger,
-      'WebSocketService:open' as const,
+      WebSocketServiceOpenAction,
       origin as SnapId,
     ),
     closeWebSocket: controllerMessenger.call.bind(
       controllerMessenger,
-      'WebSocketService:close' as const,
+      WebSocketServiceCloseAction,
       origin as SnapId,
     ),
     sendWebSocketMessage: controllerMessenger.call.bind(
       controllerMessenger,
-      'WebSocketService:sendMessage' as const,
+      WebSocketServiceSendMessageAction,
       origin as SnapId,
     ),
     getWebSockets: controllerMessenger.call.bind(
       controllerMessenger,
-      'WebSocketService:getAll' as const,
+      WebSocketServiceGetAction,
       origin as SnapId,
     ),
     updateInterfaceState: controllerMessenger.call.bind(
