@@ -11,8 +11,15 @@ import connectWithWC from './connectWithWC';
 import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
+import {
+  verifyDeeplinkSignature,
+  hasSignature,
+  VALID,
+  INVALID,
+  MISSING,
+} from './utils/verifySignature';
 
-function parseDeeplink({
+async function parseDeeplink({
   deeplinkManager: instance,
   url,
   origin,
@@ -26,8 +33,47 @@ function parseDeeplink({
   onHandled?: () => void;
 }) {
   try {
+    // Validate URL format before creating URL object
+    if (!url || !url.includes('://') || url.split('://')[1].length === 0) {
+      throw new Error('Invalid URL format');
+    }
+
     const validatedUrl = new URL(url);
-    DevLogger.log('DeepLinkManager:parse validatedUrl', validatedUrl);
+
+    // Additional validation for hostname
+    if (
+      !validatedUrl.hostname ||
+      validatedUrl.hostname.includes('?') ||
+      validatedUrl.hostname.includes('&')
+    ) {
+      throw new Error('Invalid hostname');
+    }
+
+    let isPrivateLink = false;
+    if (hasSignature(validatedUrl)) {
+      const signatureResult = await verifyDeeplinkSignature(validatedUrl);
+      switch (signatureResult) {
+        case VALID:
+          DevLogger.log(
+            'DeepLinkManager:parse Verified signature for deeplink',
+            url,
+          );
+          isPrivateLink = true;
+          break;
+        case INVALID:
+        case MISSING:
+          DevLogger.log(
+            'DeepLinkManager:parse Invalid/Missing signature, ignoring deeplink',
+            url,
+          );
+          isPrivateLink = false;
+          break;
+        default:
+          isPrivateLink = false;
+          break;
+      }
+      return isPrivateLink;
+    }
 
     const { urlObj, params } = extractURLParams(url);
 
@@ -95,9 +141,7 @@ function parseDeeplink({
   } catch (error) {
     const isPrivateKey = url.length === 64;
     if (error && !isPrivateKey) {
-      Logger.log(
-        'DeepLinkManager:parse error parsing deeplink',
-      );
+      Logger.log('DeepLinkManager:parse error parsing deeplink');
       if (origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) {
         Alert.alert(
           strings('qr_scanner.unrecognized_address_qr_code_title'),
