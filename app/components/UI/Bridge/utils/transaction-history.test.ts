@@ -3,11 +3,6 @@ import { getSwapBridgeTxActivityTitle } from './transaction-history';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { ChainId, StatusTypes } from '@metamask/bridge-controller';
 
-// Mock the strings function
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn((_key, params) => `bridge_to_${params.chainName}`),
-}));
-
 describe('getBridgeTxActivityTitle', () => {
   it('should return undefined when destChainName is not found in NETWORK_TO_SHORT_NETWORK_NAME_MAP', () => {
     const bridgeHistoryItem: BridgeHistoryItem = {
@@ -137,7 +132,7 @@ describe('getBridgeTxActivityTitle', () => {
     };
 
     const result = getSwapBridgeTxActivityTitle(bridgeHistoryItem);
-    expect(result).toBe('bridge_to_Optimism');
+    expect(result).toBe('Bridge to Optimism');
   });
 
   it('should return formatted title for Solana chain', () => {
@@ -201,6 +196,6 @@ describe('getBridgeTxActivityTitle', () => {
     };
 
     const result = getSwapBridgeTxActivityTitle(bridgeHistoryItem);
-    expect(result).toBe('bridge_to_Solana');
+    expect(result).toBe('Bridge to Solana');
   });
 });
