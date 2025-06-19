@@ -14,7 +14,7 @@ import { selectEvmTicker, selectNetworkConfigurationByChainId, selectSelectedNet
 import { selectAccounts, selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { Asset } from './useAddressBalance.types';
-import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
+import { isPerDappSelectedNetworkEnabled, isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import { safeToChecksumAddress, getTokenDetails } from '../../../util/address';
 import {
   selectContractBalances,
@@ -149,7 +149,7 @@ const useAddressBalance = (
             fromAccBalance = await AssetsContractController.getERC20BalanceOf(
               contractAddress,
               address,
-              networkClientId,
+              isRemoveGlobalNetworkSelectorEnabled() ? networkClientId : undefined,
             );
             fromAccBalance = `${renderFromTokenMinimalUnit(
               // This is to work around incompatibility between bn.js v4/v5 - should be removed when migration to v5 is complete
