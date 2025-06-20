@@ -317,7 +317,6 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                           "paddingTop": 24,
                         }
                       }
-                      testID="meta-metrics-container"
                     >
                       <RCTScrollView
                         onContentSizeChange={[Function]}
@@ -331,6 +330,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                             "paddingTop": 24,
                           }
                         }
+                        testID="meta-metrics-container"
                       >
                         <View>
                           <View
@@ -440,7 +440,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                     }
                                   }
                                 >
-                                  clicks and views on the app are stored, but other details (like your public address) are not.
+                                  Clicks and views on the app are stored, but other details (like your public address) are not.
                                 </Text>
                               </Text>
                             </View>
@@ -509,7 +509,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                     }
                                   }
                                 >
-                                  we temporarily use your IP address to detect a general location (like your country or region), but it's never stored.
+                                  We temporarily use your IP address to detect a general location (like your country or region), but it's never stored.
                                 </Text>
                               </Text>
                             </View>
@@ -578,7 +578,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                     }
                                   }
                                 >
-                                  you decide if you want to share or delete your usage data via settings any time.
+                                  You decide if you want to share or delete your usage data via settings any time.
                                 </Text>
                               </Text>
                             </View>

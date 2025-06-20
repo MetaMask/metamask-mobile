@@ -9,16 +9,7 @@ import {
 } from '@metamask/seedless-onboarding-controller';
 import AppConstants from '../../../AppConstants';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
-import { EncryptionKey, EncryptionResult } from '../../../Encryptor/types';
-
-const web3AuthNetwork = AppConstants.SEEDLESS_ONBOARDING.WEB3AUTH_NETWORK;
-
-if (!web3AuthNetwork) {
-  throw new Error(
-    `Missing environment variables for SeedlessOnboardingController\n
-    WEB3AUTH_NETWORK: ${web3AuthNetwork}\n`,
-  );
-}
+import { EncryptionKey } from '../../../Encryptor/types';
 
 const encryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
@@ -34,6 +25,15 @@ export const seedlessOnboardingControllerInit: ControllerInitFunction<
   SeedlessOnboardingController<EncryptionKey>,
   SeedlessOnboardingControllerMessenger
 > = (request) => {
+  const web3AuthNetwork = AppConstants.SEEDLESS_ONBOARDING.WEB3AUTH_NETWORK;
+
+  if (!web3AuthNetwork) {
+    throw new Error(
+      `Missing environment variables for SeedlessOnboardingController\n
+      WEB3AUTH_NETWORK: ${web3AuthNetwork}\n`,
+    );
+  }
+
   const { controllerMessenger, persistedState } = request;
 
   const seedlessOnboardingControllerState =
@@ -46,11 +46,11 @@ export const seedlessOnboardingControllerInit: ControllerInitFunction<
       seedlessOnboardingControllerState as SeedlessOnboardingControllerState,
     encryptor: {
       ...encryptor,
-      decryptWithKey: async (key: EncryptionKey, encryptedString: string) =>
-        encryptor.decryptWithKey(
-          key,
-          encryptedString as unknown as EncryptionResult,
-        ),
+      // Typing issue
+      decryptWithKey: encryptor.decryptWithKey as unknown as (
+        key: EncryptionKey,
+        encryptedString: string,
+      ) => Promise<unknown>,
     },
     network: web3AuthNetwork as Web3AuthNetwork,
   });

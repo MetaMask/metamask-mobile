@@ -43,7 +43,7 @@ import { isTest } from '../../../util/test/utils';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { Dispatch } from 'redux';
 import {
-  saveOnboardingEvent as SaveEvent,
+  saveOnboardingEvent as saveEvent,
   OnboardingActionTypes,
 } from '../../../actions/onboarding';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
@@ -70,17 +70,18 @@ const createStyles = () =>
       flexGrow: 1,
     },
     wrapper: {
-      paddingTop: 30,
-      paddingBottom: 24,
       flex: 1,
+      flexDirection: 'column',
+      justifyContent: 'space-around',
+      paddingVertical: 24,
+      rowGap: 24,
     },
     title: {
       fontSize: 40,
       lineHeight: 40,
-      marginBottom: 28,
       justifyContent: 'center',
       textAlign: 'center',
-      paddingHorizontal: Device.isAndroid() ? 40 : 60,
+      paddingHorizontal: 40,
       fontFamily: 'MMSans-Regular',
     },
     subtitle: {
@@ -108,6 +109,13 @@ const createStyles = () =>
       alignItems: 'center',
       justifyContent: 'center',
     },
+    carouselTextWrapper: {
+      flex: 1,
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      rowGap: 24,
+    },
     bar: {
       width: 10,
       height: 2,
@@ -121,11 +129,9 @@ const createStyles = () =>
     progressContainer: {
       flexDirection: 'row',
       alignSelf: 'center',
-      marginTop: 47,
-      padding: 10,
     },
     tab: {
-      marginHorizontal: 30,
+      marginHorizontal: 16,
     },
     metricsData: {
       textAlign: 'center',
@@ -315,20 +321,22 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                         testID={`carousel-${value}-image`}
                       />
                     </View>
-                    <Text
-                      variant={TextVariant.HeadingSMRegular}
-                      style={styles.title}
-                      color={onboardingCarouselColors[value].color}
-                    >
-                      {strings(`onboarding_carousel.title${key}`)}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodyMD}
-                      color={onboardingCarouselColors[value].color}
-                      style={styles.subtitle}
-                    >
-                      {strings(`onboarding_carousel.subtitle${key}`)}
-                    </Text>
+                    <View style={styles.carouselTextWrapper}>
+                      <Text
+                        variant={TextVariant.HeadingSMRegular}
+                        style={styles.title}
+                        color={onboardingCarouselColors[value].color}
+                      >
+                        {strings(`onboarding_carousel.title${key}`)}
+                      </Text>
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={onboardingCarouselColors[value].color}
+                        style={styles.subtitle}
+                      >
+                        {strings(`onboarding_carousel.subtitle${key}`)}
+                      </Text>
+                    </View>
                   </View>
                 );
               })}
@@ -362,7 +370,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
 
 const mapDispatchToProps = (dispatch: Dispatch<OnboardingActionTypes>) => ({
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) =>
-    dispatch(SaveEvent(eventArgs)),
+    dispatch(saveEvent(eventArgs)),
 });
 
 export default connect(null, mapDispatchToProps)(OnboardingCarousel);

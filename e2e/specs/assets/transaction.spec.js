@@ -16,6 +16,7 @@ import {
 import Assertions from '../../utils/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
+import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 
 describe(Regression('Transaction'), () => {
 
@@ -34,12 +35,15 @@ describe(Regression('Transaction'), () => {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
+        testSpecificMock: {
+          GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
+        },
       },
       async () => {
         await loginToApp();
         await WalletView.tapTokenNetworkFilter();
         await WalletView.tapTokenNetworkFilterAll();
-        
+
         await WalletView.tapOnToken(ETHEREUM_NAME);
         await TokenOverview.tapSendButton();
         await NetworkEducationModal.tapGotItButton();
