@@ -35,6 +35,7 @@ import {
   areAddressesEqual,
   safeToChecksumAddress,
 } from '../../../util/address';
+import { toLowerCaseEquals } from '../../../util/general';
 import {
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
@@ -78,6 +79,7 @@ import { isEvmAccountType } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { getIsSwapsAssetAllowed, getSwapsIsLive } from './utils';
 import MultichainTransactionsView from '../MultichainTransactionsView/MultichainTransactionsView';
+import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -190,6 +192,7 @@ class Asset extends PureComponent {
      * Function to set the swaps liveness
      */
     setLiveness: PropTypes.func,
+    isUnifiedSwapsEnabled: PropTypes.bool,
   };
 
   state = {
@@ -572,12 +575,17 @@ class Asset extends PureComponent {
       swapsTokens: this.props.swapsTokens,
     });
 
+    // Check if unified swaps is enabled
+    const isUnifiedSwapsEnabled = this.props.isUnifiedSwapsEnabled;
+
     const displaySwapsButton =
       isSwapsNetworkAllowed && isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
 
-    const displayBridgeButton = isPortfolioViewEnabled()
-      ? isBridgeAllowed(asset.chainId)
-      : isBridgeAllowed(chainId);
+    const displayBridgeButton =
+      !isUnifiedSwapsEnabled &&
+      (isPortfolioViewEnabled()
+        ? isBridgeAllowed(asset.chainId)
+        : isBridgeAllowed(chainId));
 
     const displayBuyButton = asset.isETH
       ? this.props.isNetworkBuyNativeTokenSupported
@@ -789,6 +797,7 @@ const mapStateToProps = (state, { route }) => {
       getRampNetworks(state),
     ),
     networkClientId: selectNetworkClientId(state),
+    isUnifiedSwapsEnabled: selectIsUnifiedSwapsEnabled(state),
   };
 };
 
