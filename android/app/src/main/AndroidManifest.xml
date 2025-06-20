@@ -95,6 +95,21 @@
 				<category android:name="android.intent.category.BROWSABLE" />
 				<data android:scheme="expo-metamask" />
 			</intent-filter>
+			<!-- MM IO Universal Links -->
+			<intent-filter android:autoVerify="true">
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="https" />
+				<data android:host="link.metamask.io" />
+			</intent-filter>
+			<intent-filter android:autoVerify="true">
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="https" />
+				<data android:host="link-test.metamask.io" />
+			</intent-filter>
 			<!-- Branch URI Scheme -->
 			<intent-filter>
 				<data android:scheme="metamask" />
@@ -137,21 +152,6 @@
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
-			</intent-filter>
-			<!-- MM IO Universal Links -->
-			<intent-filter android:autoVerify="true">
-				<action android:name="android.intent.action.VIEW" />
-				<category android:name="android.intent.category.DEFAULT" />
-				<category android:name="android.intent.category.BROWSABLE" />
-				<data android:scheme="https" />
-				<data android:host="link.metamask.io" />
-			</intent-filter>
-			<intent-filter android:autoVerify="true">
-				<action android:name="android.intent.action.VIEW" />
-				<category android:name="android.intent.category.DEFAULT" />
-				<category android:name="android.intent.category.BROWSABLE" />
-				<data android:scheme="https" />
-				<data android:host="link-test.metamask.io" />
 			</intent-filter>
 		</activity>
 		<!-- Explicitly opt-in to safe browsing -->
