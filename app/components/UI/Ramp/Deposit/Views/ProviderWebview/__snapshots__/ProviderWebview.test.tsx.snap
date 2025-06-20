@@ -1903,20 +1903,7 @@ exports[`ProviderWebview Component renders webview when payment URL is available
                               undefined,
                             ]
                           }
-                        >
-                          <View
-                            allowsInlineMediaPlayback={true}
-                            enableApplePay={true}
-                            mediaPlaybackRequiresUserAction={false}
-                            onHttpError={[Function]}
-                            onNavigationStateChange={[Function]}
-                            source={
-                              {
-                                "uri": "https://test-payment-url.com",
-                              }
-                            }
-                          />
-                        </View>
+                        />
                       </View>
                     </RCTSafeAreaView>
                   </View>

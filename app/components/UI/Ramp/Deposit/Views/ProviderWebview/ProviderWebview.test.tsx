@@ -10,6 +10,7 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockGeneratePaymentUrl = jest.fn();
+const mockWebViewProps = { onNavigationStateChange: jest.fn() };
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -32,6 +33,20 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
 jest.mock('../../../../../UI/Navbar', () => ({
   getDepositNavbarOptions: jest.fn().mockReturnValue({
     title: 'Provider Webview',
+  }),
+}));
+
+jest.mock('../OrderProcessing/OrderProcessing', () => ({
+  createOrderProcessingNavDetails: jest.fn(({ quoteId }) => [
+    'OrderScreen',
+    { quoteId },
+  ]),
+}));
+
+jest.mock('@metamask/react-native-webview', () => ({
+  WebView: jest.fn(({ onNavigationStateChange }) => {
+    mockWebViewProps.onNavigationStateChange = onNavigationStateChange;
+    return null;
   }),
 }));
 
@@ -124,5 +139,46 @@ describe('ProviderWebview Component', () => {
     );
     render(ProviderWebview);
     expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('navigates to order processing when URL contains orderId', () => {
+    setupDepositSdkMocks(
+      { token: 'test-token' },
+      null,
+      false,
+      'https://test-payment-url.com',
+      null,
+      false,
+    );
+
+    render(ProviderWebview);
+
+    // Simulate navigation state change
+    mockWebViewProps.onNavigationStateChange({
+      url: 'https://metamask.io/checkout?orderId=abc123',
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith('OrderScreen', {
+      quoteId: 'abc123',
+    });
+  });
+
+  it('does not navigate if URL is not the redirect URL', () => {
+    setupDepositSdkMocks(
+      { token: 'test-token' },
+      null,
+      false,
+      'https://test-payment-url.com',
+      null,
+      false,
+    );
+
+    render(ProviderWebview);
+
+    mockWebViewProps.onNavigationStateChange({
+      url: 'https://test-payment-url.com',
+    });
+
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });
