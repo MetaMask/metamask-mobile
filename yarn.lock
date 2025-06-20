@@ -4656,14 +4656,14 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
-"@metamask/address-book-controller@^6.0.3":
-  version "6.0.3"
-  resolved "https://registry.yarnpkg.com/@metamask/address-book-controller/-/address-book-controller-6.0.3.tgz#5fe7b6f83702402a57cf95a1fd9fa53757685c0e"
-  integrity sha512-thN4fSeoaWgbYE9OjTdEwd/MaO+OXNHMES0yukI/J8FFCyrBpNEtbOm4gvM8mTxGO1hQ7A/PuYtsv0NekiTubQ==
+"@metamask/address-book-controller@^6.1.0":
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/address-book-controller/-/address-book-controller-6.1.0.tgz#741b2a8523e600f84eab8cf2bfd6c55367e03efc"
+  integrity sha512-KYcrLW6YOgtM0XwupA787fwxpI53xCDWqkKNlQ8knd5JDkrH9TXEq8vBCVRPxvOQ14QYXnCBY9uxU7NltFWEqw==
   dependencies:
-    "@metamask/base-controller" "^8.0.0"
-    "@metamask/controller-utils" "^11.5.0"
-    "@metamask/utils" "^11.1.0"
+    "@metamask/base-controller" "^8.0.1"
+    "@metamask/controller-utils" "^11.9.0"
+    "@metamask/utils" "^11.2.0"
 
 "@metamask/api-specs@^0.10.12":
   version "0.10.17"
@@ -5398,14 +5398,14 @@
     "@ethersproject/providers" "^5.7.2"
     async-mutex "^0.3.1"
 
-"@metamask/notification-services-controller@^10.0.0":
-  version "10.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-10.0.0.tgz#6498021ba8f7b994a63cb5814cd34d1050a30129"
-  integrity sha512-KxDWjpy6RqVDFn5HegUrly6TT/xePmqFA9LiwpDo+pbuuxypUWz0AeWRey3Ck9m6/JnKwKcdTFitJhE6BgZ//Q==
+"@metamask/notification-services-controller@^11.0.0":
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-11.0.0.tgz#b6cb08371630a5bb977a1b611ea6e28e4b3f5fa4"
+  integrity sha512-NYnoM4VK8bSyfPfX4U4XTKhhZgS6LZ3cO89ED7RyUJHdHcQPq06y05ie3QbJq7cS8UmexwfhjJPNDK5TVImjVg==
   dependencies:
     "@contentful/rich-text-html-renderer" "^16.5.2"
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.9.0"
+    "@metamask/controller-utils" "^11.10.0"
     "@metamask/utils" "^11.2.0"
     bignumber.js "^9.1.2"
     firebase "^11.2.0"
@@ -5527,10 +5527,10 @@
     "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.9.0"
 
-"@metamask/profile-sync-controller@^17.1.0":
-  version "17.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-17.1.0.tgz#774f74604c0c024a2808630fa795ad452caa2202"
-  integrity sha512-v6i2q6Jpe4Igj62fw8UoPfBWiD9qheM1yZTDAD0hdONdUsQUbjgZYlD9n0yp/IJxbC9r0BJk6PPR3iqlvkK8Dw==
+"@metamask/profile-sync-controller@^18.0.0":
+  version "18.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-18.0.0.tgz#659faf9990296271d4a7fd12b56d49ce640c2067"
+  integrity sha512-ClO1h8BNv1Cf2jlRCJb/PeLf+kMJUnw5jMni6lqNcuAmzcr9NKPEF2v2lyz83+MeCR+jNgRhLFQaGCrji4i+DA==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/snaps-sdk" "^7.1.0"
@@ -5601,10 +5601,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/react-native-search-api/-/react-native-search-api-1.0.1.tgz#b3a2069ff851b88e1fe64b86f1fab7088a4daceb"
   integrity sha512-ceCzyRZDZM0lpQSNUiFpo16nysTDIMUhkdyUcvBbkpiSUnYV+SjVMxYVn2Q+h7P9tce8wrb6zoxdlfK5BXtbAQ==
 
-"@metamask/react-native-webview@^14.0.4":
-  version "14.0.4"
-  resolved "https://registry.yarnpkg.com/@metamask/react-native-webview/-/react-native-webview-14.0.4.tgz#2bcb3300d8cd38748765063a0847c5f4ac960838"
-  integrity sha512-hECL9HTHByNb4tU/jnRmw8DGhK+x1QXbYWq5ySAiE3Z2FB67ddgD84UjELN1EG/6t2GKAtWXmfclR+MsjR/f6w==
+"@metamask/react-native-webview@^14.2.0":
+  version "14.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-webview/-/react-native-webview-14.2.0.tgz#cbb4ac9a90f3370da77b5513607860b32a0235c5"
+  integrity sha512-Yv4tI6M9CMYp5tkKWAHwok2uOwqCGmalEeczy3QmEMLeaEaNPH93yxwCMCniNvHoloeJ4izTMa6/2/0k9N7Qaw==
   dependencies:
     escape-string-regexp "^4.0.0"
     invariant "2.2.4"
