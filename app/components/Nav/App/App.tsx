@@ -813,22 +813,6 @@ const App: React.FC = () => {
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {
-          // Validate state consistency - check if existingUser flag matches actual vault state
-          const { KeyringController } = Engine.context;
-          const hasVault = !!KeyringController.state.vault;
-          
-          if (!hasVault) {
-            // State inconsistency detected - existingUser is true but no vault exists
-            // This could be due to iCloud restore, data corruption, or migration issues
-            Logger.log('State inconsistency detected: existingUser=true but no vault found. This may indicate an iCloud restore scenario.');
-            
-            // Reset to fresh install state and redirect to onboarding
-            // This ensures the user gets a proper onboarding experience
-            setOnboarded(false);
-            navigation.reset({ routes: [{ name: Routes.ONBOARDING.ROOT_NAV }] });
-            return;
-          }
-
           // This should only be called if the auth type is not password, which is not the case so consider removing it
           await trace(
             {
@@ -861,8 +845,8 @@ const App: React.FC = () => {
     appTriggeredAuth().catch((error) => {
       Logger.error(error, 'App: Error in appTriggeredAuth');
     });
-  // existingUser is not present in the dependency array because it is not needed to re-run the effect when it changes and it will cause a bug.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // existingUser is not present in the dependency array because it is not needed to re-run the effect when it changes and it will cause a bug.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigation, queueOfHandleDeeplinkFunctions]);
 
   const handleDeeplink = useCallback(

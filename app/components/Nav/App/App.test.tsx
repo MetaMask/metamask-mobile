@@ -8,9 +8,7 @@ import { MetaMetrics } from '../../../core/Analytics';
 import { waitFor } from '@testing-library/react-native';
 import { RootState } from '../../../reducers';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
-import Engine from '../../../core/Engine';
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -78,37 +76,6 @@ describe('App', () => {
       await waitFor(() => {
         expect(mockReset).toHaveBeenCalledWith({
           routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
-        });
-      });
-    });
-    it('navigates to home when user exists and logs in', async () => {
-      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(true);
-      jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
-      
-      // Mock the specific property access to simulate a vault exists
-      Object.defineProperty(Engine, 'context', {
-        get: jest.fn().mockReturnValue({
-          KeyringController: {
-            state: {
-              vault: 'mock-vault-data',
-            },
-          },
-        }),
-        configurable: true,
-      });
-      
-      renderScreen(App, { name: 'App' }, { 
-        state: {
-          ...initialState,
-          user: {
-            ...initialState.user,
-            existingUser: true,
-          },
-        } 
-      });
-      await waitFor(() => {
-        expect(mockReset).toHaveBeenCalledWith({
-          routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
         });
       });
     });
