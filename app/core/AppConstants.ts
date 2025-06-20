@@ -1,6 +1,7 @@
 import { CoreTypes } from '@walletconnect/types';
 import Device from '../util/device';
 import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
+import { getBundleId } from 'react-native-device-info';
 
 const DEVELOPMENT = 'development';
 const PORTFOLIO_URL =
@@ -236,6 +237,19 @@ export default {
     BASE_URL: 'https://client-config.api.cx.metamask.io',
     VERSION: 'v1',
     DEFAULT_FETCH_INTERVAL: 15 * 60 * 1000, // 15 minutes
+  },
+  SEEDLESS_ONBOARDING: {
+    AUTH_SERVER_URL: process.env.AUTH_SERVER_URL,
+    IOS_APPLE_CLIENT_ID: getBundleId
+      ? getBundleId()
+      : process.env.IOS_APPLE_CLIENT_ID,
+    IOS_GOOGLE_CLIENT_ID: process.env.IOS_GOOGLE_CLIENT_ID,
+    IOS_GOOGLE_REDIRECT_URI: process.env.IOS_GOOGLE_REDIRECT_URI,
+    ANDROID_WEB_GOOGLE_CLIENT_ID: process.env.ANDROID_WEB_GOOGLE_CLIENT_ID,
+    ANDROID_WEB_APPLE_CLIENT_ID: process.env.ANDROID_WEB_APPLE_CLIENT_ID,
+    AUTH_CONNECTION_ID: process.env.AUTH_CONNECTION_ID,
+    GROUPED_AUTH_CONNECTION_ID: process.env.GROUPED_AUTH_CONNECTION_ID,
+    WEB3AUTH_NETWORK: process.env.WEB3AUTH_NETWORK,
   },
   TOKEN_DISCOVERY_BROWSER_ENABLED:
     process.env.TOKEN_DISCOVERY_BROWSER_ENABLED === 'true',
