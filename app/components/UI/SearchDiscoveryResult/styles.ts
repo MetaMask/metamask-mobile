@@ -66,9 +66,6 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
     hiddenButton: {
       opacity: 0,
     },
-    loadingButton: {
-      opacity: 0.5,
-    },
     priceContainer: {
       flexDirection: 'column',
       alignItems: 'flex-end',
