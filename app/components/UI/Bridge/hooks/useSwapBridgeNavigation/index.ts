@@ -4,7 +4,7 @@ import useGoToPortfolioBridge from '../useGoToPortfolioBridge';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
-import { useSelector, useStore } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { getNativeAssetForChainId } from '@metamask/bridge-controller';
@@ -132,8 +132,6 @@ export const useSwapBridgeNavigation = ({
 
   const { addPopularNetwork, networkModal } = useAddNetwork();
 
-  const store = useStore<RootState>();
-
   // Swaps
   const handleSwapsNavigation = useCallback(
     async (currentToken?: BridgeToken) => {
@@ -154,12 +152,12 @@ export const useSwapBridgeNavigation = ({
         });
       }
 
-      if (swapToken.chainId !== selectedChainId) {
+      if (swapToken?.chainId !== selectedChainId) {
         const { NetworkController, MultichainNetworkController } =
           Engine.context;
         let networkConfiguration =
           NetworkController.getNetworkConfigurationByChainId(
-            swapToken.chainId as Hex,
+            swapToken?.chainId as Hex,
           );
 
         if (!networkConfiguration && isAssetFromSearch(swapToken)) {
@@ -182,11 +180,6 @@ export const useSwapBridgeNavigation = ({
         await MultichainNetworkController.setActiveNetwork(
           networkClientId as string,
         );
-
-        // The await isn't enough for the network to actually be set
-        while (selectChainId(store.getState()) !== swapToken.chainId) {
-          await new Promise((resolve) => setTimeout(resolve, 10));
-        }
       }
 
       // If the token was found by searching for it, it's more likely we want to swap into it than out of it
@@ -211,7 +204,7 @@ export const useSwapBridgeNavigation = ({
         });
       }
     },
-    [navigation, tokenBase, selectedChainId, sourcePage, addPopularNetwork, store],
+    [navigation, tokenBase, selectedChainId, sourcePage, addPopularNetwork],
   );
 
   const goToSwaps = useCallback(
