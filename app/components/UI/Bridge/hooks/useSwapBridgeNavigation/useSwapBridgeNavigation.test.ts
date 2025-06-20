@@ -234,8 +234,6 @@ describe('useSwapBridgeNavigation', () => {
 
     result.current.goToSwaps();
 
-    (selectChainId as unknown as jest.Mock).mockReturnValueOnce(differentChainId);
-
     await waitFor(() => {
       expect(
         Engine.context.NetworkController.getNetworkConfigurationByChainId,
