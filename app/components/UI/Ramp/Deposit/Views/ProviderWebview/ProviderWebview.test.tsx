@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { screen, act } from '@testing-library/react-native';
 import ProviderWebview from './ProviderWebview';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
@@ -10,7 +10,10 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockGeneratePaymentUrl = jest.fn();
-const mockWebViewProps = { onNavigationStateChange: jest.fn() };
+const mockWebViewProps = {
+  onNavigationStateChange: jest.fn(),
+  onHttpError: jest.fn(),
+};
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -44,8 +47,9 @@ jest.mock('../OrderProcessing/OrderProcessing', () => ({
 }));
 
 jest.mock('@metamask/react-native-webview', () => ({
-  WebView: jest.fn(({ onNavigationStateChange }) => {
+  WebView: jest.fn(({ onNavigationStateChange, onHttpError }) => {
     mockWebViewProps.onNavigationStateChange = onNavigationStateChange;
+    mockWebViewProps.onHttpError = onHttpError;
     return null;
   }),
 }));
@@ -180,5 +184,58 @@ describe('ProviderWebview Component', () => {
     });
 
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('handles webview HTTP error and shows error state', () => {
+    setupDepositSdkMocks(
+      { token: 'test-token' },
+      null,
+      false,
+      'https://test-payment-url.com',
+      null,
+      false,
+    );
+
+    render(ProviderWebview);
+
+    mockWebViewProps.onHttpError({
+      nativeEvent: {
+        url: 'https://test-payment-url.com',
+        statusCode: 500,
+      },
+    });
+
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('resets state when error view retry is triggered', () => {
+    setupDepositSdkMocks(
+      { token: 'test-token' },
+      null,
+      false,
+      'https://test-payment-url.com',
+      null,
+      false,
+    );
+
+    render(ProviderWebview);
+
+    act(() => {
+      mockWebViewProps.onHttpError({
+        nativeEvent: {
+          url: 'https://test-payment-url.com',
+          statusCode: 500,
+        },
+      });
+    });
+
+    const errorView = screen.root.findByProps({ location: 'Provider Webview' });
+    const ctaOnPress = errorView.props.ctaOnPress;
+
+    act(() => {
+      ctaOnPress();
+    });
+
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });
