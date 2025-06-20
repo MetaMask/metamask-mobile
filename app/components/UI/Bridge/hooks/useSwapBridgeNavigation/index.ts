@@ -4,7 +4,7 @@ import useGoToPortfolioBridge from '../useGoToPortfolioBridge';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
-import { useSelector } from 'react-redux';
+import { useSelector, useStore } from 'react-redux';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { getNativeAssetForChainId } from '@metamask/bridge-controller';
@@ -21,6 +21,7 @@ import { useAddNetwork } from '../../../../hooks/useAddNetwork';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { selectIsBridgeEnabledSource } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
+import { waitForCondition } from '../../utils/wait-for-condition';
 
 export enum SwapBridgeNavigationLocation {
   TabBar = 'TabBar',
@@ -132,6 +133,8 @@ export const useSwapBridgeNavigation = ({
 
   const { addPopularNetwork, networkModal } = useAddNetwork();
 
+  const store = useStore<RootState>();
+
   // Swaps
   const handleSwapsNavigation = useCallback(
     async (currentToken?: BridgeToken) => {
@@ -152,12 +155,12 @@ export const useSwapBridgeNavigation = ({
         });
       }
 
-      if (swapToken?.chainId !== selectedChainId) {
+      if (swapToken.chainId !== selectedChainId) {
         const { NetworkController, MultichainNetworkController } =
           Engine.context;
         let networkConfiguration =
           NetworkController.getNetworkConfigurationByChainId(
-            swapToken?.chainId as Hex,
+            swapToken.chainId as Hex,
           );
 
         if (!networkConfiguration && isAssetFromSearch(swapToken)) {
@@ -180,6 +183,12 @@ export const useSwapBridgeNavigation = ({
         await MultichainNetworkController.setActiveNetwork(
           networkClientId as string,
         );
+
+        // The await above isn't enough for the network to actually be set
+        await waitForCondition({
+          fn: () => selectChainId(store.getState()) === swapToken.chainId,
+          timeout: 2000,
+        });
       }
 
       // If the token was found by searching for it, it's more likely we want to swap into it than out of it
@@ -204,7 +213,7 @@ export const useSwapBridgeNavigation = ({
         });
       }
     },
-    [navigation, tokenBase, selectedChainId, sourcePage, addPopularNetwork],
+    [navigation, tokenBase, selectedChainId, sourcePage, addPopularNetwork, store],
   );
 
   const goToSwaps = useCallback(
