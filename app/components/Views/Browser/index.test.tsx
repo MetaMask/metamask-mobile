@@ -14,7 +14,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { act } from '@testing-library/react';
-import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
+import { tokenDiscoveryBrowserEnabled } from '../../../selectors/featureFlagController/tokenDiscoveryBrowser';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { useAccounts } from '../../hooks/useAccounts';
 import {
@@ -49,6 +49,11 @@ jest.mock('../BrowserTab/BrowserTab', () => ({
 jest.mock('../../UI/Tabs/TabThumbnail/TabThumbnail', () => ({
   __esModule: true,
   default: jest.fn(() => 'TabThumbnail'),
+}));
+
+jest.mock('../../../selectors/featureFlagController/tokenDiscoveryBrowser', () => ({
+  __esModule: true,
+  tokenDiscoveryBrowserEnabled: jest.fn().mockReturnValue(false),
 }));
 
 const mockTabs = [
@@ -114,11 +119,6 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 jest.mock('../../../util/phishingDetection', () => ({
   isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
   getPhishingTestResult: jest.fn().mockReturnValue({ result: false }),
-}));
-
-jest.mock('../../../util/browser', () => ({
-  ...jest.requireActual('../../../util/browser'),
-  isTokenDiscoveryBrowserEnabled: jest.fn().mockReturnValue(false),
 }));
 
 const Stack = createStackNavigator();
@@ -204,7 +204,7 @@ describe('Browser', () => {
   });
 
   it('should create a new token discovery tab when rendered with no tabs and token discovery browser is enabled', () => {
-    jest.mocked(isTokenDiscoveryBrowserEnabled).mockReturnValue(true);
+    jest.mocked(tokenDiscoveryBrowserEnabled).mockReturnValue(true);
     const mockCreateNewTab = jest.fn();
     renderWithProvider(
       <Provider store={mockStore(mockInitialState)}>
@@ -232,7 +232,7 @@ describe('Browser', () => {
     );
 
     expect(mockCreateNewTab).toHaveBeenCalledWith(undefined, undefined);
-    jest.mocked(isTokenDiscoveryBrowserEnabled).mockReturnValue(false);
+    jest.mocked(tokenDiscoveryBrowserEnabled).mockReturnValue(false);
   });
 
   it('should call navigate when route param `newTabUrl` and `timestamp` are added', () => {

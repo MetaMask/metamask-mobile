@@ -173,5 +173,3 @@ export const appendURLParams = (
 
   return url;
 };
-
-export const isTokenDiscoveryBrowserEnabled = () => AppConstants.TOKEN_DISCOVERY_BROWSER_ENABLED;
