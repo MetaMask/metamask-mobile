@@ -264,6 +264,10 @@ import {
   EarnControllerState,
 } from '@metamask/earn-controller';
 import { Hex } from '@metamask/utils';
+import {
+  SamplePetnamesController,
+  SamplePetnamesControllerState,
+} from '@metamask/sample-controllers';
 
 import { CONTROLLER_MESSENGERS } from './messengers';
 import type { RootState } from '../../reducers';
@@ -423,6 +427,7 @@ type GlobalEvents =
   | AppMetadataControllerEvents
   | DeFiPositionsControllerEvents
   | AccountTreeControllerEvents
+  | SamplePetnamesControllerEvents;
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -463,6 +468,7 @@ export type Controllers = {
   PreferencesController: PreferencesController;
   RemoteFeatureFlagController: RemoteFeatureFlagController;
   PPOMController: PPOMController;
+  SamplePetnamesController: SamplePetnamesController;
   TokenBalancesController: TokenBalancesController;
   TokenListController: TokenListController;
   TokenDetectionController: TokenDetectionController;
@@ -564,6 +570,7 @@ export type EngineState = {
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
+  SamplePetnamesController: SamplePetnamesControllerState;
 };
 
 /** Controller names */
@@ -618,7 +625,8 @@ export type ControllersToInitialize =
   | 'TransactionController'
   | 'GasFeeController'
   | 'SignatureController'
-  | 'DeFiPositionsController';
+  | 'DeFiPositionsController'
+  | 'SamplePetnamesController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
@@ -732,4 +740,10 @@ export type InitModularizedControllersFunction = (request: {
   persistedState: ControllerPersistedState;
 }) => {
   controllersByName: ControllerByName;
+};
+
+// Add event type for SamplePetnamesController
+export type SamplePetnamesControllerEvents = {
+  type: 'SamplePetnamesController:stateChange';
+  payload: [SamplePetnamesControllerState];
 };

@@ -1,0 +1,7 @@
+---
+description: when commiting files
+globs: 
+alwaysApply: false
+---
+- match https://www.conventionalcommits.org/en/v1.0.0/ specification for conventional commit.
+- always write commits taking in account all staged files

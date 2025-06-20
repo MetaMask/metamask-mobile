@@ -539,5 +539,8 @@
   "DeFiPositionsController": {
     "allDeFiPositions": {},
     "allDeFiPositionsCount": {}
+  },
+  "SamplePetnamesController": {
+    "namesByChainIdAndAddress": {}
   }
 }
