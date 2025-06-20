@@ -64,7 +64,6 @@ import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
-import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
 import { RestoreWallet } from '../../Views/RestoreWallet';
@@ -145,6 +144,8 @@ import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent';
+import { DeepLinkModal } from '../../UI/DeepLinkModal';
+import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -423,10 +424,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
     <Stack.Screen name={'NftOptions'} component={NftOptions} />
     <Stack.Screen name={Routes.MODAL.UPDATE_NEEDED} component={UpdateNeeded} />
-    <Stack.Screen
-      name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
-      component={EnableAutomaticSecurityChecksModal}
-    />
     {
       <Stack.Screen
         name={Routes.SHEET.SELECT_SRP}
@@ -477,6 +474,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={ChangeInSimulationModal}
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
+    <Stack.Screen
+      name={Routes.MODAL.DEEP_LINK_MODAL}
+      component={DeepLinkModal}
+    />
   </Stack.Navigator>
 );
 
@@ -598,6 +599,25 @@ const SolanaNewFeatureContentView = () => (
   </Stack.Navigator>
 );
 
+const MultichainWalletDetails = () => {
+  const route = useRoute();
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animationEnabled: false,
+      }}
+    >
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
+        component={WalletDetails}
+        initialParams={route?.params}
+      />
+    </Stack.Navigator>
+  );
+};
+
 const ModalConfirmationRequest = () => (
   <Stack.Navigator
     screenOptions={{
@@ -711,6 +731,10 @@ const AppFlow = () => {
         name={Routes.SOLANA_NEW_FEATURE_CONTENT}
         component={SolanaNewFeatureContentView}
         options={{ animationEnabled: true }}
+      />
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
+        component={MultichainWalletDetails}
       />
       <Stack.Screen
         options={{

@@ -177,8 +177,9 @@ export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.OPBNB]: 'opBNB',
   [NETWORKS_CHAIN_ID.ZKSYNC_ERA]: 'zkSync Era Mainnet',
   [NETWORKS_CHAIN_ID.SCROLL]: 'Scroll',
-  [NETWORKS_CHAIN_ID.BERACHAIN]: 'Berachain Artio',
+  [NETWORKS_CHAIN_ID.BERACHAIN]: 'Berachain',
   [NETWORKS_CHAIN_ID.METACHAIN_ONE]: 'Metachain One Mainnet',
+  [NETWORKS_CHAIN_ID.SEI]: 'Sei Network',
 };
 
 export default NetworkList;
@@ -631,8 +632,6 @@ export const getBlockExplorerTxUrl = (
  */
 export const getIsNetworkOnboarded = (chainId, networkOnboardedState) =>
   networkOnboardedState[chainId];
-
-export const isChainPermissionsFeatureEnabled = true;
 
 export const isPermissionsSettingsV1Enabled =
   process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';
