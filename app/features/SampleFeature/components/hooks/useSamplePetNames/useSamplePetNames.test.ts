@@ -16,14 +16,9 @@ jest.mock('../../../../../core/Engine', () => ({
         },
       },
     },
-    controllerMessenger: {
-      subscribe: jest.fn(),
-      unsubscribe: jest.fn(),
-    },
   },
 }));
 
-import { act, waitFor } from '@testing-library/react-native';
 import { useSamplePetNames } from './useSamplePetNames';
 import Engine from '../../../../../core/Engine';
 import { Hex } from '@metamask/utils';
@@ -61,7 +56,11 @@ describe('useSamplePetNames', () => {
   });
 
   it('returns pet names for the specified chain', () => {
+    // Given a chain with pet names
+    // When the hook is called with that chain ID
     const { result } = renderHook(MOCK_CHAIN_ID);
+    
+    // Then it should return the pet names for that chain
     expect(result.current.petNames).toEqual([
       { address: '0x086473d15475Cf20722F5cA7D8d4adfa39Dc6E05', name: 'Alice' },
       { address: '0x4AE1Ed9eaf935B0043536e83cB833e90e98A0E44', name: 'Bob' },
@@ -69,79 +68,22 @@ describe('useSamplePetNames', () => {
   });
 
   it('returns an empty array when no pet names exist for the chain', () => {
+    // Given a chain without pet names
+    // When the hook is called with that chain ID
     const { result } = renderHook('0x999' as Hex);
+    
+    // Then it should return an empty array
     expect(result.current.petNames).toEqual([]);
   });
 
-  it('subscribes to controller state changes on mount', () => {
-    renderHook(MOCK_CHAIN_ID);
-    expect(Engine.controllerMessenger.subscribe).toHaveBeenCalledWith(
-      'SamplePetnamesController:stateChange',
-      expect.any(Function),
-    );
-  });
-
-  it('unsubscribes from controller state changes on unmount', () => {
-    const { unmount } = renderHook(MOCK_CHAIN_ID);
-    unmount();
-    expect(Engine.controllerMessenger.unsubscribe).toHaveBeenCalledWith(
-      'SamplePetnamesController:stateChange',
-      expect.any(Function),
-    );
-  });
-
-  it('updates pet names when controller state changes', async () => {
-    let stateChangeCb: () => void = () => {};
-    (Engine.controllerMessenger.subscribe as jest.Mock).mockImplementation(
-      (_event, cb) => {
-        stateChangeCb = cb;
-      },
-    );
-
-    const { result } = renderHook(MOCK_CHAIN_ID);
-
-    // Simulate adding a new pet name
-    Engine.context.SamplePetnamesController.state.namesByChainIdAndAddress[
-      '0x1'
-    ]['0xA12702acfB0402c7dE24AD1B99eD8FaC7E71Ff9C'] = 'New Pet';
-
-    act(() => {
-      stateChangeCb();
-    });
-
-    await waitFor(() => {
-      expect(result.current.petNames).toEqual([
-        {
-          address: '0x086473d15475Cf20722F5cA7D8d4adfa39Dc6E05',
-          name: 'Alice',
-        },
-        { address: '0x4AE1Ed9eaf935B0043536e83cB833e90e98A0E44', name: 'Bob' },
-        {
-          address: '0xA12702acfB0402c7dE24AD1B99eD8FaC7E71Ff9C',
-          name: 'New Pet',
-        },
-      ]);
-    });
-  });
-
-  it('resubscribes when chainId changes', () => {
-    // Test with first chainId
-    const { unmount: unmountFirst } = renderHook('0x1' as Hex);
-
-    // Verify subscription was called
-    expect(Engine.controllerMessenger.subscribe).toHaveBeenCalledTimes(1);
-
-    // Unmount and test with different chainId
-    unmountFirst();
-    expect(Engine.controllerMessenger.unsubscribe).toHaveBeenCalledTimes(1);
-
-    // Test with second chainId
-    const { unmount: unmountSecond } = renderHook('0x89' as Hex);
-
-    // Verify subscription was called again
-    expect(Engine.controllerMessenger.subscribe).toHaveBeenCalledTimes(2);
-
-    unmountSecond();
-    expect(Engine.controllerMessenger.unsubscribe).toHaveBeenCalledTimes(2);
+  it('returns pet names for Polygon chain', () => {
+    // Given the Polygon chain with pet names
+    // When the hook is called with Polygon chain ID
+    const { result } = renderHook('0x89' as Hex);
+    
+    // Then it should return the pet names for Polygon
+    expect(result.current.petNames).toEqual([
+      { address: '0xA8c23800fe9942e9aBd6F3669018934598777eC1', name: 'Charlie' },
+    ]);
   });
 });

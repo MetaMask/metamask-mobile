@@ -2346,6 +2346,7 @@ export default {
       BridgeStatusController,
       EarnController,
       DeFiPositionsController,
+      SamplePetnamesController,
     } = instance.datamodel.state;
 
     return {
@@ -2399,6 +2400,7 @@ export default {
       BridgeStatusController,
       EarnController,
       DeFiPositionsController,
+      SamplePetnamesController,
     };
   },
 
