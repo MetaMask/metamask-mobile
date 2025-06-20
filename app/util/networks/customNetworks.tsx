@@ -126,6 +126,19 @@ export const PopularList = [
       imageSource: require('../../images/zk-sync.png'),
     },
   },
+  {
+    chainId: toHex('1329'),
+    nickname: 'Sei Network',
+    rpcUrl: `https://sei-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: [],
+    ticker: 'SEI',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://seitrace.com/',
+      imageUrl: 'SEI',
+      imageSource: require('../../images/sei.png'),
+    },
+  },
 ];
 
 export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
