@@ -2425,9 +2425,7 @@ app:
     - opts:
         is_expand: false
       MM_REMOVE_GLOBAL_NETWORK_SELECTOR: false
-    - opts:
-        is_expand: false
-      MM_CHAIN_PERMISSIONS: true
+  
     - opts:
         is_expand: false
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false

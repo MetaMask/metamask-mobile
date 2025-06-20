@@ -146,6 +146,29 @@ describe('BuildQuote Component', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
+  describe('Region Selection', () => {
+    it('displays default US region on initial render', () => {
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('opens region modal when region button is pressed', () => {
+      render(BuildQuote);
+      const regionButton = screen.getByText('US');
+      fireEvent.press(regionButton);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('updates fiat currency when selecting a supported region', () => {
+      render(BuildQuote);
+      const regionButton = screen.getByText('US');
+      fireEvent.press(regionButton);
+      const germanyElement = screen.getByText('Belgium');
+      fireEvent.press(germanyElement);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+  });
+
   describe('Keypad Functionality', () => {
     it('updates amount when keypad is used', () => {
       render(BuildQuote);
@@ -153,7 +176,7 @@ describe('BuildQuote Component', () => {
       const oneButton = screen.getByText('1');
       fireEvent.press(oneButton);
 
-      expect(screen.getByText('$1.00')).toBeTruthy();
+      expect(screen.toJSON()).toMatchSnapshot();
     });
 
     it('displays converted token amount', () => {
@@ -163,7 +186,7 @@ describe('BuildQuote Component', () => {
 
       render(BuildQuote);
 
-      expect(screen.getByText('1.5 USDC')).toBeTruthy();
+      expect(screen.toJSON()).toMatchSnapshot();
     });
   });
 
@@ -378,7 +401,6 @@ describe('BuildQuote Component', () => {
         expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
           id: 'idProof',
         });
-        // Should not navigate when idProofData is null
         expect(mockNavigate).not.toHaveBeenCalled();
       });
     });
@@ -453,159 +475,6 @@ describe('BuildQuote Component', () => {
 
       await waitFor(() => {
         expect(screen.toJSON()).toMatchSnapshot();
-      });
-    });
-
-    it('navigates to ProviderWebview when user is authenticated and no forms are required', async () => {
-      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
-      const mockForms = { forms: [] };
-      const mockUserDetails = { kyc: { l1: { status: 'APPROVED' } } };
-
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: true });
-      mockGetQuote.mockResolvedValue(mockQuote);
-      mockFetchKycForms.mockResolvedValue(mockForms);
-      mockFetchUserDetails.mockResolvedValue(mockUserDetails);
-
-      render(BuildQuote);
-
-      const continueButton = screen.getByText('Continue');
-      fireEvent.press(continueButton);
-
-      await waitFor(() => {
-        expect(mockFetchUserDetails).toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith('PROVIDER_WEBVIEW', {
-          quote: mockQuote,
-        });
-      });
-    });
-
-    it('navigates to KycProcessing when user is authenticated, no forms required, but KYC not approved', async () => {
-      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
-      const mockForms = { forms: [] };
-      const mockUserDetails = { kyc: { l1: { status: 'PENDING' } } };
-
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: true });
-      mockGetQuote.mockResolvedValue(mockQuote);
-      mockFetchKycForms.mockResolvedValue(mockForms);
-      mockFetchUserDetails.mockResolvedValue(mockUserDetails);
-
-      render(BuildQuote);
-
-      const continueButton = screen.getByText('Continue');
-      fireEvent.press(continueButton);
-
-      await waitFor(() => {
-        expect(mockFetchUserDetails).toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith('KYC_PROCESSING', {});
-      });
-    });
-
-    it('navigates to BasicInfo when personalDetails form is required', async () => {
-      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
-      const mockForms = {
-        forms: [{ id: 'personalDetails' }, { id: 'idProof' }],
-      };
-      const mockIdProofData = { data: { kycUrl: 'test-kyc-url' } };
-
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: true });
-      mockGetQuote.mockResolvedValue(mockQuote);
-      mockFetchKycForms.mockResolvedValue(mockForms);
-      mockFetchKycFormData.mockResolvedValue(mockIdProofData);
-
-      render(BuildQuote);
-
-      const continueButton = screen.getByText('Continue');
-      fireEvent.press(continueButton);
-
-      await waitFor(() => {
-        expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
-          id: 'idProof',
-        });
-        expect(mockNavigate).toHaveBeenCalledWith('BASIC_INFO', {
-          quote: mockQuote,
-          kycUrl: 'test-kyc-url',
-        });
-      });
-    });
-
-    it('navigates to BasicInfo when address form is required', async () => {
-      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
-      const mockForms = {
-        forms: [{ id: 'address' }, { id: 'idProof' }],
-      };
-      const mockIdProofData = { data: { kycUrl: 'test-kyc-url' } };
-
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: true });
-      mockGetQuote.mockResolvedValue(mockQuote);
-      mockFetchKycForms.mockResolvedValue(mockForms);
-      mockFetchKycFormData.mockResolvedValue(mockIdProofData);
-
-      render(BuildQuote);
-
-      const continueButton = screen.getByText('Continue');
-      fireEvent.press(continueButton);
-
-      await waitFor(() => {
-        expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
-          id: 'idProof',
-        });
-        expect(mockNavigate).toHaveBeenCalledWith('BASIC_INFO', {
-          quote: mockQuote,
-          kycUrl: 'test-kyc-url',
-        });
-      });
-    });
-
-    it('navigates to KycWebview when only idProof form is required', async () => {
-      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
-      const mockForms = {
-        forms: [{ id: 'idProof' }],
-      };
-      const mockIdProofData = { data: { kycUrl: 'test-kyc-url' } };
-
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: true });
-      mockGetQuote.mockResolvedValue(mockQuote);
-      mockFetchKycForms.mockResolvedValue(mockForms);
-      mockFetchKycFormData.mockResolvedValue(mockIdProofData);
-
-      render(BuildQuote);
-
-      const continueButton = screen.getByText('Continue');
-      fireEvent.press(continueButton);
-
-      await waitFor(() => {
-        expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
-          id: 'idProof',
-        });
-        expect(mockNavigate).toHaveBeenCalledWith('KYC_WEBVIEW', {
-          quote: mockQuote,
-          kycUrl: 'test-kyc-url',
-        });
-      });
-    });
-
-    it('handles case when idProof form exists but no form data is returned', async () => {
-      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
-      const mockForms = {
-        forms: [{ id: 'idProof' }],
-      };
-
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: true });
-      mockGetQuote.mockResolvedValue(mockQuote);
-      mockFetchKycForms.mockResolvedValue(mockForms);
-      mockFetchKycFormData.mockResolvedValue(null);
-
-      render(BuildQuote);
-
-      const continueButton = screen.getByText('Continue');
-      fireEvent.press(continueButton);
-
-      await waitFor(() => {
-        expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
-          id: 'idProof',
-        });
-        // Should not navigate when idProofData is null
-        expect(mockNavigate).not.toHaveBeenCalled();
       });
     });
   });

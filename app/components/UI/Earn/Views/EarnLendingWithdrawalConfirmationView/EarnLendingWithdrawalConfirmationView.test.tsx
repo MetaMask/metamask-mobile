@@ -23,6 +23,12 @@ import {
   CONFIRMATION_FOOTER_BUTTON_TEST_IDS,
   CONFIRMATION_FOOTER_LINK_TEST_IDS,
 } from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import { useMetrics } from '../../../../hooks/useMetrics';
+import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 
 expect.addSnapshotSerializer({
   // any is the expected type for the val parameter
@@ -32,17 +38,6 @@ expect.addSnapshotSerializer({
 });
 
 const getStakingNavbarSpy = jest.spyOn(NavbarUtils, 'getStakingNavbar');
-
-jest.mock('react-native', () => {
-  const actual = jest.requireActual('react-native');
-  return {
-    ...actual,
-    Linking: {
-      ...actual.Linking,
-      openUrl: jest.fn(),
-    },
-  };
-});
 
 const mockGoBack = jest.fn();
 
@@ -58,6 +53,8 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('../../../../hooks/useMetrics/useMetrics');
 
 jest.mock('../../../../../core/Engine', () => ({
   controllerMessenger: {
@@ -83,7 +80,9 @@ jest.mock('../../../../../core/Engine', () => ({
       findNetworkClientIdByChainId: jest.fn().mockReturnValue('linea-mainnet'),
     },
     EarnController: {
-      executeLendingWithdraw: jest.fn(),
+      executeLendingWithdraw: jest.fn(() => ({
+        transactionMeta: { id: '123' },
+      })),
     },
     TokensController: {
       addToken: jest.fn().mockResolvedValue([]),
@@ -165,12 +164,20 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     },
   };
 
+  const mockTrackEvent = jest.fn();
+  const useMetricsMock = jest.mocked(useMetrics);
+
   beforeEach(() => {
     jest.clearAllMocks();
 
     (useRoute as jest.MockedFunction<typeof useRoute>).mockReturnValue(
       defaultRouteParams,
     );
+
+    useMetricsMock.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+    } as unknown as ReturnType<typeof useMetrics>);
   });
 
   it('matches snapshot', () => {
@@ -189,6 +196,21 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       {
         hasCancelButton: false,
         backgroundColor: '#f3f5f9',
+      },
+      {
+        backButtonEvent: {
+          event: {
+            category: 'Earn Lending Withdraw Confirmation Back Clicked',
+          },
+          properties: {
+            experience: 'STABLECOIN_LENDING',
+            location: 'EarnLendingWithdrawConfirmationView',
+            selected_provider: 'consensys',
+            token: 'AUSDC',
+            transaction_value: '1 AUSDC',
+            user_token_balance: '3.62106 AUSDC',
+          },
+        },
       },
     );
 
@@ -407,5 +429,353 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     });
 
     expect(Engine.context.TokensController.addToken).toHaveBeenCalledTimes(1);
+  });
+
+  describe('Analytics', () => {
+    it('should track EARN_CONFIRMATION_PAGE_VIEWED on render', () => {
+      renderWithProvider(<EarnLendingWithdrawalConfirmationView />, {
+        state: mockInitialState,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn confirmation page viewed',
+          properties: {
+            action_type: 'withdrawal',
+            experience: 'STABLECOIN_LENDING',
+            network: 'Linea',
+            token: 'USDC',
+            transaction_value: '1 AUSDC',
+            user_token_balance: '3.62106 AUSDC',
+          },
+        }),
+      );
+    });
+
+    it('should track EARN_ACTION_SUBMITTED and EARN_TRANSACTION_INITIATED on confirm', async () => {
+      const mockExecuteLendingWithdraw = Engine.context.EarnController
+        .executeLendingWithdraw as jest.MockedFunction<
+        typeof Engine.context.EarnController.executeLendingWithdraw
+      >;
+
+      mockExecuteLendingWithdraw.mockResolvedValue({
+        // @ts-expect-error overriding
+        transactionMeta: {
+          id: '123',
+          type: TransactionType.lendingWithdraw,
+        },
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnLendingWithdrawalConfirmationView />,
+        { state: mockInitialState },
+      );
+
+      // Clear previous calls from the initial render
+      mockTrackEvent.mockClear();
+
+      const confirmButton = getByTestId(
+        CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      // Check that EARN_ACTION_SUBMITTED was tracked
+      expect(mockTrackEvent).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          name: 'Earn Action submitted',
+          properties: {
+            action_type: 'withdrawal',
+            experience: 'STABLECOIN_LENDING',
+            network: 'Linea',
+            token: 'USDC',
+            transaction_value: '1 AUSDC',
+            user_token_balance: '3.62106 AUSDC',
+          },
+        }),
+      );
+
+      // Check that EARN_TRANSACTION_INITIATED was tracked
+      expect(mockTrackEvent).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          name: 'Earn Transaction Initiated',
+          properties: {
+            action_type: 'withdrawal',
+            experience: 'STABLECOIN_LENDING',
+            network: 'Linea',
+            token: 'USDC',
+            transaction_id: '123',
+            transaction_type: 'lendingWithdraw',
+            transaction_value: '1 AUSDC',
+            user_token_balance: '3.62106 AUSDC',
+          },
+        }),
+      );
+    });
+
+    it('should track EARN_TRANSACTION_DROPPED when transaction is dropped', async () => {
+      const mockExecuteLendingWithdraw = Engine.context.EarnController
+        .executeLendingWithdraw as jest.MockedFunction<
+        typeof Engine.context.EarnController.executeLendingWithdraw
+      >;
+      const transactionId = '123';
+
+      mockExecuteLendingWithdraw.mockResolvedValue({
+        transactionMeta: {
+          id: transactionId,
+          type: TransactionType.lendingWithdraw,
+        } as TransactionMeta,
+        result: Promise.resolve(''),
+      });
+
+      let transactionStatusCallbackDropped:
+        | ((event: { transactionMeta: Partial<TransactionMeta> }) => void)
+        | undefined;
+      jest
+        .mocked(Engine.controllerMessenger.subscribeOnceIf)
+        .mockImplementation((eventName: string, callback: unknown) => {
+          if (eventName === 'TransactionController:transactionDropped') {
+            transactionStatusCallbackDropped = callback as (event: {
+              transactionMeta: Partial<TransactionMeta>;
+            }) => void;
+          }
+          return jest.fn();
+        });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnLendingWithdrawalConfirmationView />,
+        { state: mockInitialState },
+      );
+
+      const confirmButton = getByTestId(
+        CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      // Clear previous tracking calls
+      mockTrackEvent.mockClear();
+
+      // Simulate transaction dropped event
+      await act(async () => {
+        if (transactionStatusCallbackDropped) {
+          transactionStatusCallbackDropped({
+            transactionMeta: { id: transactionId },
+          });
+        }
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn Transaction Dropped',
+          properties: {
+            action_type: 'withdrawal',
+            experience: 'STABLECOIN_LENDING',
+            network: 'Linea',
+            token: 'USDC',
+            transaction_id: '123',
+            transaction_type: 'lendingWithdraw',
+            transaction_value: '1 AUSDC',
+            user_token_balance: '3.62106 AUSDC',
+          },
+        }),
+      );
+    });
+
+    it('should track transaction status events for withdrawal', async () => {
+      const mockExecuteLendingWithdraw = Engine.context.EarnController
+        .executeLendingWithdraw as jest.MockedFunction<
+        typeof Engine.context.EarnController.executeLendingWithdraw
+      >;
+      const transactionId = '123';
+
+      mockExecuteLendingWithdraw.mockResolvedValue({
+        transactionMeta: {
+          id: transactionId,
+          type: TransactionType.lendingWithdraw,
+        } as TransactionMeta,
+        result: Promise.resolve(''),
+      });
+
+      let transactionStatusCallbackRejected:
+        | ((event: { transactionMeta: Partial<TransactionMeta> }) => void)
+        | undefined;
+      let transactionStatusCallbackSubmitted:
+        | ((event: { transactionMeta: Partial<TransactionMeta> }) => void)
+        | undefined;
+      let transactionStatusCallbackConfirmed1:
+        | ((transactionMeta: Partial<TransactionMeta>) => void)
+        | undefined;
+      let transactionStatusCallbackConfirmed2:
+        | ((transactionMeta: Partial<TransactionMeta>) => void)
+        | undefined;
+      let transactionStatusCallbackFailed:
+        | ((event: { transactionMeta: Partial<TransactionMeta> }) => void)
+        | undefined;
+      let confirmedCallbackCount = 0;
+
+      jest
+        .mocked(Engine.controllerMessenger.subscribeOnceIf)
+        .mockImplementation((eventName: string, callback: unknown) => {
+          if (eventName === 'TransactionController:transactionRejected') {
+            transactionStatusCallbackRejected = callback as (event: {
+              transactionMeta: Partial<TransactionMeta>;
+            }) => void;
+          } else if (
+            eventName === 'TransactionController:transactionSubmitted'
+          ) {
+            transactionStatusCallbackSubmitted = callback as (event: {
+              transactionMeta: Partial<TransactionMeta>;
+            }) => void;
+          } else if (
+            eventName === 'TransactionController:transactionConfirmed'
+          ) {
+            if (confirmedCallbackCount === 0) {
+              transactionStatusCallbackConfirmed1 = callback as (
+                transactionMeta: Partial<TransactionMeta>,
+              ) => void;
+            } else {
+              transactionStatusCallbackConfirmed2 = callback as (
+                transactionMeta: Partial<TransactionMeta>,
+              ) => void;
+            }
+            confirmedCallbackCount++;
+          } else if (eventName === 'TransactionController:transactionFailed') {
+            transactionStatusCallbackFailed = callback as (event: {
+              transactionMeta: Partial<TransactionMeta>;
+            }) => void;
+          }
+          return jest.fn();
+        });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnLendingWithdrawalConfirmationView />,
+        { state: mockInitialState },
+      );
+
+      const confirmButton = getByTestId(
+        CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      // Clear previous tracking calls
+      mockTrackEvent.mockClear();
+
+      // Test transaction rejected
+      await act(async () => {
+        if (transactionStatusCallbackRejected) {
+          transactionStatusCallbackRejected({
+            transactionMeta: { id: transactionId },
+          });
+        }
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn Transaction Rejected',
+          properties: {
+            action_type: 'withdrawal',
+            experience: 'STABLECOIN_LENDING',
+            network: 'Linea',
+            token: 'USDC',
+            transaction_id: '123',
+            transaction_type: 'lendingWithdraw',
+            transaction_value: '1 AUSDC',
+            user_token_balance: '3.62106 AUSDC',
+          },
+        }),
+      );
+
+      mockTrackEvent.mockClear();
+
+      // Test transaction failed
+      await act(async () => {
+        if (transactionStatusCallbackFailed) {
+          transactionStatusCallbackFailed({
+            transactionMeta: { id: transactionId },
+          });
+        }
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn Transaction Failed',
+          properties: {
+            action_type: 'withdrawal',
+            experience: 'STABLECOIN_LENDING',
+            network: 'Linea',
+            token: 'USDC',
+            transaction_id: '123',
+            transaction_type: 'lendingWithdraw',
+            transaction_value: '1 AUSDC',
+            user_token_balance: '3.62106 AUSDC',
+          },
+        }),
+      );
+
+      mockTrackEvent.mockClear();
+
+      // Test transaction submitted
+      await act(async () => {
+        if (transactionStatusCallbackSubmitted) {
+          transactionStatusCallbackSubmitted({
+            transactionMeta: { id: transactionId },
+          });
+        }
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn Transaction Submitted',
+          properties: {
+            action_type: 'withdrawal',
+            experience: 'STABLECOIN_LENDING',
+            network: 'Linea',
+            token: 'USDC',
+            transaction_id: '123',
+            transaction_type: 'lendingWithdraw',
+            transaction_value: '1 AUSDC',
+            user_token_balance: '3.62106 AUSDC',
+          },
+        }),
+      );
+
+      mockTrackEvent.mockClear();
+
+      // Test transaction confirmed (both listeners)
+      await act(async () => {
+        if (transactionStatusCallbackConfirmed1) {
+          transactionStatusCallbackConfirmed1({ id: transactionId });
+        }
+        if (transactionStatusCallbackConfirmed2) {
+          transactionStatusCallbackConfirmed2({ id: transactionId });
+        }
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn Transaction Confirmed',
+          properties: {
+            action_type: 'withdrawal',
+            experience: 'STABLECOIN_LENDING',
+            network: 'Linea',
+            token: 'USDC',
+            transaction_id: '123',
+            transaction_type: 'lendingWithdraw',
+            transaction_value: '1 AUSDC',
+            user_token_balance: '3.62106 AUSDC',
+          },
+        }),
+      );
+    });
   });
 });

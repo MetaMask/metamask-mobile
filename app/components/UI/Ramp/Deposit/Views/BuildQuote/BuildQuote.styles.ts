@@ -52,6 +52,11 @@ const styleSheet = (params: { theme: Theme }) => {
       borderWidth: 1,
       borderColor: theme.colors.border.muted,
     },
+    regionContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
     cryptoPill: {
       flexDirection: 'row',
       alignItems: 'center',
