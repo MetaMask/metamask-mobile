@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import { TouchableOpacity, View, Text } from 'react-native';
 import { useTheme } from '../../../util/theme';
 import { getHost } from '../../../util/browser';
@@ -21,8 +21,9 @@ import { addCurrencySymbol } from '../../../util/number';
 import PercentageChange from '../../../component-library/components-temp/Price/PercentageChange';
 import { SwapBridgeNavigationLocation, useSwapBridgeNavigation } from '../Bridge/hooks/useSwapBridgeNavigation';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
+import { useTokenSearchDiscoveryMetrics } from '../../hooks/TokenSearchDiscovery/useTokenSearchDiscoveryMetrics';
 
-export const SearchDiscoveryResult: React.FC<SearchDiscoveryResultProps> = memo(({ result, onSelect }) => {
+export const SearchDiscoveryResult: React.FC<SearchDiscoveryResultProps> = memo(({ result, onSelect, searchTerm }) => {
     const theme = useTheme();
     const styles = stylesheet({theme});
 
@@ -44,11 +45,27 @@ export const SearchDiscoveryResult: React.FC<SearchDiscoveryResultProps> = memo(
         token: result.category === SearchDiscoveryCategory.Tokens ? result : undefined,
       });
 
+    const { trackItemOpened, trackSwapOpened } = useTokenSearchDiscoveryMetrics();
+    const onPress = useCallback(() => {
+      trackItemOpened(result, searchTerm);
+      onSelect(result);
+    }, [onSelect, result, searchTerm, trackItemOpened]);
+
+    const [isSwapsLoading, setIsSwapsLoading] = useState(false);
+    const onPressSwap = useCallback(async () => {
+      if (result.category === SearchDiscoveryCategory.Tokens) {
+        trackSwapOpened(result, searchTerm);
+        setIsSwapsLoading(true);
+        await goToSwaps();
+        setIsSwapsLoading(false);
+      }
+    }, [goToSwaps, result, searchTerm, trackSwapOpened, setIsSwapsLoading]);
+
     return (
       <>
         <TouchableOpacity
           style={styles.item}
-          onPress={() => onSelect(result)}
+          onPress={onPress}
         >
           <View style={styles.itemWrapper}>
             {result.category === SearchDiscoveryCategory.Tokens ? (
@@ -110,11 +127,12 @@ export const SearchDiscoveryResult: React.FC<SearchDiscoveryResultProps> = memo(
                   style={{
                     ...styles.resultActionButton,
                     ...(swapsEnabled ? {} : styles.hiddenButton),
+                    ...(isSwapsLoading && styles.loadingButton),
                   }}
                   size={ButtonIconSizes.Md}
                   iconName={IconName.SwapHorizontal}
-                  onPress={() => goToSwaps()}
-                  disabled={!swapsEnabled}
+                  onPress={onPressSwap}
+                  disabled={!swapsEnabled || isSwapsLoading}
                   testID="autocomplete-result-swap-button"
                 />
               )
