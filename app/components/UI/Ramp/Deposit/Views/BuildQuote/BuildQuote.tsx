@@ -29,7 +29,7 @@ import {
   DepositCryptoCurrency,
   DepositPaymentMethod,
   USD_CURRENCY,
-  DepositFiatCurrency, 
+  DepositFiatCurrency,
   EUR_CURRENCY,
   DEPOSIT_REGIONS,
   DepositRegion,

@@ -317,45 +317,66 @@ interface OffRampQuotesExpanded extends RampQuotesExpanded {
 
 export interface AnalyticsEvents {
   DEPOSIT_BUTTON_CLICKED: DepositButtonClicked;
+
   BUY_BUTTON_CLICKED: BuyButtonClicked;
   SELL_BUTTON_CLICKED: SellButtonClicked;
+
   RAMP_REGION_SELECTED: RampRegionSelected;
   RAMP_REGION_RESET: RampRegionReset;
+
   ONRAMP_GET_STARTED_CLICKED: RampButtonClicked;
   OFFRAMP_GET_STARTED_CLICKED: RampButtonClicked;
+
   ONRAMP_PAYMENT_METHOD_SELECTED: RampPaymentMethodSelected;
   OFFRAMP_PAYMENT_METHOD_SELECTED: RampPaymentMethodSelected;
+
   ONRAMP_CONTINUE_TO_AMOUNT_CLICKED: RampContinueToAmountClicked;
   OFFRAMP_CONTINUE_TO_AMOUNT_CLICKED: RampContinueToAmountClicked;
+
   ONRAMP_QUOTES_REQUESTED: OnRampQuoteRequested;
   OFFRAMP_QUOTES_REQUESTED: OffRampQuoteRequested;
+
   ONRAMP_CANCELED: OnrampCanceled;
   OFFRAMP_CANCELED: OfframpCanceled;
+
   ONRAMP_QUOTES_RECEIVED: OnRampQuotesReceived;
   OFFRAMP_QUOTES_RECEIVED: OffRampQuotesReceived;
+
   ONRAMP_QUOTES_EXPANDED: OnRampQuotesExpanded;
   OFFRAMP_QUOTES_EXPANDED: OffRampQuotesExpanded;
+
   ONRAMP_PROVIDER_SELECTED: OnRampProviderSelected;
   OFFRAMP_PROVIDER_SELECTED: OffRampProviderSelected;
+
   ONRAMP_PROVIDER_DETAILS_VIEWED: OnRampProviderDetailsViewed;
   OFFRAMP_PROVIDER_DETAILS_VIEWED: OffRampProviderDetailsViewed;
+
   ONRAMP_DIRECT_PROVIDER_CLICKED: OnRampDirectProviderClicked;
   OFFRAMP_DIRECT_PROVIDER_CLICKED: OffRampDirectProviderClicked;
+
   ONRAMP_PURCHASE_SUBMITTED: OnRampPurchaseSubmitted;
   OFFRAMP_PURCHASE_SUBMITTED: OffRampPurchaseSubmitted;
+
   ONRAMP_PURCHASE_COMPLETED: OnRampPurchaseCompleted;
   OFFRAMP_PURCHASE_COMPLETED: OffRampPurchaseCompleted;
+
   ONRAMP_PURCHASE_FAILED: OnRampPurchaseFailed;
   OFFRAMP_PURCHASE_FAILED: OfframpCanceled;
+
   ONRAMP_PURCHASE_CANCELLED: OnRampPurchaseCanceled;
   OFFRAMP_PURCHASE_CANCELLED: OffRampPurchaseCanceled;
+
   ONRAMP_PURCHASE_DETAILS_VIEWED: OnRampPurchaseDetailsViewed;
   OFFRAMP_PURCHASE_DETAILS_VIEWED: OffRampPurchaseDetailsViewed;
+
   ONRAMP_EXTERNAL_LINK_CLICKED: RampExternalLinkClicked;
+
   ONRAMP_QUOTE_ERROR: OnRampQuoteError;
   OFFRAMP_QUOTE_ERROR: OffRampQuoteError;
+
   ONRAMP_ERROR: RampError;
   OFFRAMP_ERROR: RampError;
+
   OFFRAMP_SEND_CRYPTO_PROMPT_VIEWED: RampTransaction;
   OFFRAMP_SEND_TRANSACTION_INVOKED: RampTransaction;
   OFFRAMP_SEND_TRANSACTION_CONFIRMED: RampTransaction;
