@@ -798,11 +798,16 @@ const AppFlow = () => {
   );
 };
 
+type DeepLinkQueuedItem = {
+  uri: string;
+  func: () => void;
+}
+
 const App: React.FC = () => {
   const userLoggedIn = useSelector(selectUserLoggedIn);
   const [onboarded, setOnboarded] = useState(false);
   const navigation = useNavigation();
-  const queueOfHandleDeeplinkFunctions = useRef<(() => void)[]>([]);
+  const queueOfHandleDeeplinkFunctions = useRef<DeepLinkQueuedItem[]>([]);
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
   const sdkInit = useRef<boolean | undefined>(undefined);
@@ -923,8 +928,19 @@ const App: React.FC = () => {
     if (Device.isAndroid())
       Linking.addEventListener('url', (params) => {
         const { url } = params;
-        if (url) {
+        if (url && sdkInit.current) {
           handleDeeplink({ uri: url });
+        } else {
+          Logger.log(`android handleDeeplink:: adding to queue`);
+          queueOfHandleDeeplinkFunctions.current =
+            queueOfHandleDeeplinkFunctions.current.concat([
+              {
+                uri: url,
+                func: () => {
+                  handleDeeplink({ uri: url });
+                },
+              },
+            ]);
         }
       });
   }, [handleDeeplink]);
@@ -952,8 +968,11 @@ const App: React.FC = () => {
       } else {
         queueOfHandleDeeplinkFunctions.current =
           queueOfHandleDeeplinkFunctions.current.concat([
-            () => {
-              handleDeeplink(opts);
+            {
+              uri: opts.params?.['+non_branch_link'] as string || opts.uri || '',
+              func: () => {
+                handleDeeplink(opts);
+              },
             },
           ]);
       }
@@ -982,9 +1001,14 @@ const App: React.FC = () => {
             navigation: NavigationService.navigation,
           });
           await SDKConnect.getInstance().postInit(() => {
-            setTimeout(() => {
-              queueOfHandleDeeplinkFunctions.current = [];
-            }, 1000);
+            const processedItems = new Set<string>();
+            queueOfHandleDeeplinkFunctions.current.forEach((item) => {
+              if (!processedItems.has(item.uri)) {
+                processedItems.add(item.uri);
+                item.func();
+              }
+            });
+            queueOfHandleDeeplinkFunctions.current = [];
           });
           sdkInit.current = true;
         } catch (err) {
@@ -995,9 +1019,6 @@ const App: React.FC = () => {
     }
 
     initSDKConnect()
-      .then(() => {
-        queueOfHandleDeeplinkFunctions.current.forEach((func) => func());
-      })
       .catch((err) => {
         Logger.error(err, 'Error initializing SDKConnect');
       });
