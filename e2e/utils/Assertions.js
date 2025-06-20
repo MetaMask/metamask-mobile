@@ -217,6 +217,11 @@ class Assertions {
    * @param {*} value - The value to check.
    */
   static async checkIfValueIsDefined(value) {
+    // 0 evaluates to false, so we need to handle it separately
+    if (typeof value === 'number') {
+      return;
+    }
+
     if (!value) {
       throw new Error(
         'Value is not present (falsy value)',

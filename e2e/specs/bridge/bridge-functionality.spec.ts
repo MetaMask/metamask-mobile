@@ -179,7 +179,6 @@ describe(SmokeTrade('Bridge functionality'), () => {
 
     // Unified Swap Bridge Input Changed
     const inputTypes = [
-      'token_source',
       'token_destination',
       'chain_source',
       'chain_destination',

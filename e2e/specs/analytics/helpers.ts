@@ -15,15 +15,31 @@ export interface EventPayload {
 export const getEventsPayloads = async (
   mockServer: MockttpServer,
   events: string[] = [],
+  timeout = 10000,
 ): Promise<EventPayload[]> => {
-  const waitForPendingEndpoints = async (timeout = 30000): Promise<ServerMockedEndpoint[]> => {
+  const waitForPendingEndpoints = async (timeout = 60000): Promise<ServerMockedEndpoint[]> => {
     const startTime = Date.now();
 
     const checkPendingEndpoints = async (): Promise<ServerMockedEndpoint[]> => {
       const mockedEndpoints = await mockServer.getMockedEndpoints();
-      const pendingEndpoints = await Promise.all(
-        mockedEndpoints.map((endpoint) => endpoint.isPending()),
+      
+      // Filter out infrastructure endpoints that are always pending
+      // Only include endpoints that have received requests (analytics endpoints)
+      const endpointChecks = await Promise.all(
+        mockedEndpoints.map(async (endpoint) => {
+          const seenRequests = await endpoint.getSeenRequests();
+          return { endpoint, hasRequests: seenRequests.length > 0 };
+        })
       );
+      
+      const analyticsEndpoints = endpointChecks
+        .filter(({ hasRequests }) => hasRequests)
+        .map(({ endpoint }) => endpoint);
+
+      const pendingEndpoints = await Promise.all(
+        analyticsEndpoints.map((endpoint) => endpoint.isPending()),
+      );
+
 
       if (pendingEndpoints.some((isPending) => isPending)) {
         if (Date.now() - startTime >= timeout) {
@@ -32,15 +48,15 @@ export const getEventsPayloads = async (
           console.warn(
             'Some of the requests set up in the mock server were not completed.',
           );
-          return mockedEndpoints;
+          return analyticsEndpoints;
         }
         // eslint-disable-next-line no-console
         console.log('Waiting for pending endpoints...');
-        await new Promise((resolve) => setTimeout(resolve, 2500));
+        await new Promise((resolve) => setTimeout(resolve, timeout / 4));
         return checkPendingEndpoints();
       }
 
-      return mockedEndpoints;
+      return analyticsEndpoints;
     };
 
     return checkPendingEndpoints();
