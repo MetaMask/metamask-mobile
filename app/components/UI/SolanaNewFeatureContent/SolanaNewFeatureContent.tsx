@@ -1,67 +1,37 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
+import React, { useEffect } from 'react';
 import { Linking, View } from 'react-native';
-import { SolScope } from '@metamask/keyring-api';
 import { useNavigation } from '@react-navigation/native';
 import { ScrollView } from 'react-native-gesture-handler';
-import {
-  fontStyles,
-  baseStyles,
-  colors as importedColors,
-} from '../../../styles/common';
+import { baseStyles, colors as importedColors } from '../../../styles/common';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-
 import Button, {
   ButtonVariants,
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-
 import LottieView from 'lottie-react-native';
-import ReusableModal, { ReusableModalRef } from '../ReusableModal';
+
 import { useTheme } from '../../../util/theme';
-import SolanaLogo from '../../../images/solana-logo-transparent.svg';
 import { strings } from '../../../../locales/i18n';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import {
-  selectHasCreatedSolanaMainnetAccount,
-  selectLastSelectedSolanaAccount,
-} from '../../../selectors/accountsController';
 import createStyles from './SolanaNewFeatureContent.styles';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
-import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
-import Engine from '../../../core/Engine';
-import {
-  CONNECTING_TO_DEPRECATED_NETWORK,
-  SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE,
-} from '../../../constants/urls';
+import { SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE } from '../../../constants/urls';
 import Routes from '../../../constants/navigation/Routes';
 import { SolanaNewFeatureSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/SolanaNewFeatureSheet.selectors';
-import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
-import HeaderBase from '../../../component-library/components/HeaderBase';
-import {
-  IconColor,
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import fox from '../../../animations/Solana_Fox.json';
 
 const SolanaNewFeatureContent = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { navigate, goBack } = useNavigation();
+  const { navigate } = useNavigation();
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const hasExistingSolanaAccount = useSelector(
-    selectHasCreatedSolanaMainnetAccount,
-  );
-  const lastSelectedSolanaAccount = useSelector(
-    selectLastSelectedSolanaAccount,
-  );
 
   useEffect(() => {
     const checkModalStatus = async () => {
@@ -102,10 +72,10 @@ const SolanaNewFeatureContent = () => {
     // goBack();
   };
 
-  const createSolanaAccount = async () => {
+  const importAccountWithSRP = async () => {
     trackEvent(
       createEventBuilder(
-        MetaMetricsEvents.FORCE_UPGRADE_REMIND_ME_LATER_CLICKED,
+        MetaMetricsEvents.SOLANA_NEW_FEATURE_CONTENT_IMPORT_ACCOUNT_CLICKED,
       )
         .addProperties({
           ...generateDeviceAnalyticsMetaData(),
@@ -121,7 +91,9 @@ const SolanaNewFeatureContent = () => {
   const navigateToLearnMoreAboutSolanaAccounts = () => {
     Linking.openURL(SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE);
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
+      createEventBuilder(
+        MetaMetricsEvents.SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE_CLICKED,
+      )
         .addProperties({
           location: 'solana_new_feature_content',
           text: 'Learn More',
@@ -130,7 +102,6 @@ const SolanaNewFeatureContent = () => {
         .build(),
     );
   };
-  
 
   return (
     <View
@@ -151,7 +122,7 @@ const SolanaNewFeatureContent = () => {
               variant={TextVariant.HeadingLG}
               color={importedColors.gettingStartedTextColor}
             >
-              {'solana is here!'}
+              {strings('solana_new_feature_content.title')}
             </Text>
 
             <Text
@@ -159,9 +130,7 @@ const SolanaNewFeatureContent = () => {
               color={importedColors.gettingStartedTextColor}
               style={styles.titleDescription}
             >
-              {
-                'Import your wallet, explore, trade, send it. Native Solana support is now live on MetaMask.'
-              }
+              {strings('solana_new_feature_content.title_description')}
             </Text>
 
             <Text
@@ -169,7 +138,7 @@ const SolanaNewFeatureContent = () => {
               style={styles.learnMoreButton}
               onPress={navigateToLearnMoreAboutSolanaAccounts}
             >
-              {'Learn more about Solana accounts'}
+              {strings('solana_new_feature_content.learn_more')}
             </Text>
 
             <View style={styles.largeFoxWrapper}>
@@ -186,14 +155,11 @@ const SolanaNewFeatureContent = () => {
             <View style={styles.createWrapper}>
               <Button
                 variant={ButtonVariants.Primary}
-                onPress={() => createSolanaAccount()}
+                onPress={() => importAccountWithSRP()}
                 testID={
                   SolanaNewFeatureSheetSelectorsIDs.SOLANA_NEW_FEATURE_SHEET
                 }
-                label={
-                  'Import your wallet'
-                  // strings('onboarding.start_exploring_now')
-                }
+                label={strings('solana_new_feature_content.import_your_wallet')}
                 width={ButtonWidthTypes.Full}
                 size={ButtonSize.Lg}
                 style={styles.createWalletButton}
@@ -212,8 +178,7 @@ const SolanaNewFeatureContent = () => {
                     variant={TextVariant.BodyMDMedium}
                     color={importedColors.gettingStartedTextColor}
                   >
-                    {'Not now'}
-                    {/* {strings('onboarding.have_existing_wallet')} */}
+                    {strings('solana_new_feature_content.not_now')}
                   </Text>
                 }
               />
