@@ -17,6 +17,11 @@
       "selectedAccount": ""
     }
   },
+  "AccountTreeController": {
+    "accountTree": {
+      "wallets": {}
+    }
+  },
   "AddressBookController": {
     "addressBook": {}
   },
@@ -392,7 +397,9 @@
     "isAccountSyncingInProgress": false,
     "isBackupAndSyncEnabled": true,
     "isBackupAndSyncUpdateLoading": false,
-    "isAccountSyncingEnabled": true
+    "isAccountSyncingEnabled": true,
+    "isContactSyncingEnabled": true,
+    "isContactSyncingInProgress": false
   },
   "MultichainBalancesController": {
     "balances": {}

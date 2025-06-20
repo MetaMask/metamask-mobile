@@ -27,6 +27,7 @@ import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
+import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../reducers/legalNotices';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
@@ -47,7 +48,7 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 
 import fox from '../../../animations/Searching_Fox.json';
-import { saveOnboardingEvent } from '../../../actions/onboarding';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -66,13 +67,13 @@ const createStyles = (colors) =>
     },
     image: {
       alignSelf: 'center',
-      width: Device.isLargeDevice() ? 200 : 175,
-      height: Device.isLargeDevice() ? 200 : 175,
+      width: Device.isLargeDevice() ? 280 : 220,
+      height: Device.isLargeDevice() ? 280 : 220,
     },
     largeFoxWrapper: {
       alignItems: 'center',
-      paddingTop: Device.isLargeDevice() ? 60 : 40,
-      paddingBottom: Device.isLargeDevice() ? 100 : 40,
+      paddingTop: 40,
+      paddingBottom: Device.isLargeDevice() ? 80 : 40,
     },
     foxImage: {
       width: 145,
@@ -95,8 +96,8 @@ const createStyles = (colors) =>
       paddingHorizontal: 20,
     },
     footer: {
-      marginTop: -40,
       marginBottom: 40,
+      marginTop: -40,
     },
     login: {
       fontSize: 18,
@@ -111,11 +112,11 @@ const createStyles = (colors) =>
       marginVertical: 16,
     },
     createWrapper: {
-      flex: 1,
       flexDirection: 'column',
       justifyContent: 'flex-end',
       rowGap: 16,
       marginBottom: 16,
+      marginTop: 'auto',
     },
     buttonWrapper: {
       flexDirection: 'column',
@@ -214,6 +215,10 @@ class Onboarding extends PureComponent {
      */
     unsetLoading: PropTypes.func,
     /**
+     * Action to save onboarding event
+     */
+    saveOnboardingEvent: PropTypes.func,
+    /**
      * loadings msg
      */
     loadingMsg: PropTypes.string,
@@ -221,10 +226,6 @@ class Onboarding extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
-    /**
-     * Function to save onboarding event prior to metrics being enabled
-     */
-    dispatchSaveOnboardingEvent: PropTypes.func,
   };
   notificationAnimated = new Animated.Value(100);
   detailsYAnimated = new Animated.Value(0);
@@ -344,14 +345,18 @@ class Onboarding extends PureComponent {
   };
 
   onPressCreate = () => {
+    trace({ name: TraceName.OnboardingCreateWallet });
     const action = () => {
       this.props.navigation.navigate('ChoosePassword', {
         [PREVIOUS_SCREEN]: ONBOARDING,
       });
-      this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
+      this.track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
+        account_type: 'metamask',
+      });
     };
 
     this.handleExistingUser(action);
+    endTrace({ name: TraceName.OnboardingCreateWallet });
   };
 
   onPressImport = () => {
@@ -362,15 +367,19 @@ class Onboarding extends PureComponent {
           [PREVIOUS_SCREEN]: ONBOARDING,
         },
       );
-      this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
+      this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
+        account_type: 'imported',
+      });
     };
     this.handleExistingUser(action);
   };
 
-  track = (event) => {
+  track = (event, properties) => {
     trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(event).build(),
-      this.props.dispatchSaveOnboardingEvent,
+      MetricsEventBuilder.createEventBuilder(event)
+        .addProperties(properties)
+        .build(),
+      this.props.saveOnboardingEvent,
     );
   };
 
@@ -447,7 +456,7 @@ class Onboarding extends PureComponent {
                 variant={TextVariant.BodyMDMedium}
                 color={importedColors.btnBlack}
               >
-                {strings('onboarding.have_existing_wallet')}
+                {strings('onboarding.import_using_srp')}
               </Text>
             }
           />
@@ -550,8 +559,7 @@ const mapDispatchToProps = (dispatch) => ({
   unsetLoading: () => dispatch(loadingUnset()),
   disableNewPrivacyPolicyToast: () =>
     dispatch(storePrivacyPolicyClickedOrClosedAction()),
-  dispatchSaveOnboardingEvent: (...eventArgs) =>
-    dispatch(saveOnboardingEvent(eventArgs)),
+  saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Onboarding);

@@ -3,7 +3,7 @@ import TestHelpers from '../../helpers';
 
 import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../fixtures/fixture-helper';
-import { SmokeRamps } from '../../tags';
+import { SmokeTrade } from '../../tags';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
@@ -16,7 +16,7 @@ import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import { PopularNetworksList } from '../../resources/networks.e2e';
 
-describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
+describe(SmokeTrade('Buy Crypto Deeplinks'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });
@@ -24,8 +24,10 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
+  const itif = (condition) => (condition ? it : it.skip);
 
-  it('should deep link to onramp to unsupported network', async () => {
+
+  itif(device.getPlatform() === 'android')('should deep link to onramp to unsupported network', async () => {
     const BuyDeepLink = 'metamask://buy?chainId=2';
 
     await withFixtures(

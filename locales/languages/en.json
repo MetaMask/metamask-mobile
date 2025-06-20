@@ -147,11 +147,12 @@
     "success": "Success",
     "your_wallet": "Your wallet was successfully reset",
     "delete_current": "Reset current wallet",
-    "have_existing_wallet": "I have an existing wallet"
+    "have_existing_wallet": "I have an existing wallet",
+    "import_using_srp": "Import using Secret Recovery Phrase"
   },
   "onboarding_success": {
     "title": "Keep your Secret Recovery Phrase safe!",
-    "description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
+    "description": "This Secret Recovery Phrase can help you regain access if you ever forget your password or lose access to your login.",
     "description_bold": "Settings > Security & Privacy.",
     "description_continued": " you can keep this phrase safe so you never lose access to your money.",
     "learn_more": "Learn more",
@@ -318,7 +319,6 @@
     "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
     "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
     "reset_wallet_desc_srp": "To restore your wallet, you can use your Secret Recovery Phrase. MetaMask doesn’t have this information."
-   
   },
   "connect_hardware": {
     "title_select_hardware": "Connect a hardware wallet",
@@ -409,7 +409,7 @@
     "re_enter_password": "Re-enter your password",
     "use_at_least_8_characters": "Use at least 8 characters",
     "unlock_with_face_id": "Unlock with Face ID?",
-    "learn_more": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me.",
+    "learn_more": "If I forget this password, MetaMask can't recover it for me.",
     "seed_phrase_length_error": "Secret Recovery Phrase must be 12, 15, 18, 21, or 24 words",
     "continue": "Continue",
     "clear_all": "Clear all",
@@ -423,7 +423,7 @@
     "pass_flow": "Continue with Flow",
     "steps": "Step {{currentStep}} of {{totalSteps}}",
     "password_error": "Passwords don’t match. Try again.",
-    "spellcheck_error": "Not quite right. Double-check your Secret Recovery Phrase and try again.",
+    "spellcheck_error": "Use only lowercase letters, check your spelling, and put the words in the original order.",
     "enter_strong_password": "Enter a strong password"
   },
   "bottom_tab_bar": {
@@ -471,6 +471,14 @@
   },
   "deposit": {
     "title": "Deposit",
+    "selectRegion": "Select Region",
+    "chooseYourRegionToContinue": "Choose your region to continue",
+    "buildQuote": {
+      "payWith": "Pay with",
+      "unexpectedError": "An unexpected error occurred.",
+      "quoteFetchError": "Failed to fetch quote.",
+      "kycFormsFetchError": "Failed to fetch KYC forms."
+    },
     "get_started": {
       "title": "Top up your wallet with USDC",
       "bullet_1_title": "Value-backed by the US dollar",
@@ -531,6 +539,18 @@
       "success_heading": "Identity successfully verified!",
       "success_description": "You can now enter your payment info and complete your deposit.",
       "success_button": "Complete your order"
+    },
+    "provider_webview": {
+      "title": "Deposit",
+      "webview_received_error": "Webview received error: %{code}"
+    },
+    "kyc_webview": {
+      "title": "Verifying your identity",
+      "webview_received_error": "WebView received error status code: {{code}}"
+    },
+    "order_processing": {
+      "title": "Processing deposit",
+      "button": "Close"
     }
   },
   "receive": {
@@ -582,17 +602,9 @@
       "title": "Add multiple Secret Recovery Phrases",
       "subtitle": "Import and use multiple wallets in MetaMask"
     },
-    "backupAndSync": {
-      "title": "Introducing backup and sync",
-      "subtitle": "Back up your accounts and sync settings."
-    },
     "solana": {
       "title": "Solana is now supported",
       "subtitle": "Create a Solana account to get started"
-    },
-    "backupAndSync": {
-      "title": "Introducing backup and sync",
-      "subtitle": "Back up your accounts and sync settings."
     }
   },
   "wallet": {
@@ -798,9 +810,9 @@
     "action_description_1_prefix": "Private:",
     "action_description_2_prefix": "General:",
     "action_description_3_prefix": "Optional:",
-    "action_description_1_description": "clicks and views on the app are stored, but other details (like your public address) are not.",
-    "action_description_2_description": "we temporarily use your IP address to detect a general location (like your country or region), but it's never stored.",
-    "action_description_3_description": "you decide if you want to share or delete your usage data via settings any time.",
+    "action_description_1_description": "Clicks and views on the app are stored, but other details (like your public address) are not.",
+    "action_description_2_description": "We temporarily use your IP address to detect a general location (like your country or region), but it's never stored.",
+    "action_description_3_description": "You decide if you want to share or delete your usage data via settings any time.",
     "cta_no_thanks": "No thanks",
     "cta_i_agree": "I agree",
     "fine_print_1_legacy": "This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679.",
@@ -969,7 +981,8 @@
     },
     "account_connect_create_initial_account": {
       "description": "A Solana account is required to connect to this site.",
-      "button": "Create Solana account"}
+      "button": "Create Solana account"
+    }
   },
   "toast": {
     "connected_and_active": "connected and active.",
@@ -1075,9 +1088,9 @@
     "clear_browser_cookies_desc": "Clear browser cookies",
     "clear": "CLEAR",
     "protect_cta": "Protect",
-    "protect_title": "Protect your wallet",
+    "protect_title": "Wallet recovery",
     "video_failed": "Video Failed to Load.",
-    "protect_desc": "Protect your wallet by saving your Secret Recovery Phrase in a place only you can access and that you will not forget. Be sure to keep it offline for optimal safety.",
+    "protect_desc": "Back up your Secret Recovery Phrase so you never lose access to your wallet. Be sure to store it in a safe place that only you can access and won’t forget.",
     "protect_desc_no_backup": "This is your wallet’s 12 word phrase. This phrase can be used to take control of all your current and future accounts, including the ability to send away funds in your wallet. Keep this phrase stored safely, DO NOT share it with anyone. MetaMask cannot help you recover this key.",
     "learn_more": "Learn more.",
     "seedphrase_not_backed_up": "Important! Secret Recovery Phrase not backed up",
@@ -1138,7 +1151,7 @@
     "no_permissions_desc": "If you connect an account to a site or an app, you’ll see it here.",
     "security_title": "Security & Privacy",
     "back": "Back",
-    "security_desc": "Privacy settings, MetaMetrics, private key and wallet Secret Recovery Phrase",
+    "security_desc": "Privacy settings, MetaMetrics, private key, and Secret Recovery Phrase.",
     "networks_title": "Networks",
     "networks_default_title": "Default Network",
     "network_delete": "If you delete this network, you will need to add it again to view your assets in this network",
@@ -2340,7 +2353,7 @@
     "info_text_1_2": "Secret Recovery Phrase",
     "info_text_1_3": "in a place you trust.",
     "info_text_1_4": "It’s the only way to recover your wallet if you get locked out of the app or get a new device.",
-    "cta_text": "Get Started",
+    "cta_text": "Get started",
     "cta_subText": "Highly recommended",
     "skip_button_cancel": "Secure now",
     "skip_button_confirm": "Skip",
@@ -2473,8 +2486,8 @@
     "error-description": "Double-check your Secret Recovery Phrase and try again.",
     "success-title": "Perfect!",
     "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
-    "success-button": "Got It",
-    "error-button": "Try Again",
+    "success-button": "Got it",
+    "error-button": "Try again",
     "continue": "Continue"
   },
   "manual_backup_step_3": {
@@ -3846,9 +3859,15 @@
         "between_one_dot_five_and_2_dot_zero": "Between 1.5-2.0",
         "medium_liquidation_risk": "Medium Liquidation risk",
         "below_one_dot_five": "Below 1.5",
-        "higher_liquidation_risk": "Higher liquidation risk",
-        "infinite": "Infinite",
-        "no_debt_maximum_security": "No debt, maximum safety"
+        "higher_liquidation_risk": "Higher liquidation risk"
+      },
+      "lending_risk_aware_withdrawal_tooltip": {
+        "why_cant_i_withdraw_full_balance": "Why can't I withdraw my full balance?",
+        "your_withdrawal_amount_may_be_limited_by": "Your withdrawal amount may be limited by",
+        "pool_liquidity": "Pool Liquidity",
+        "not_enough_funds_available_in_the_lending_pool_right_now": "Not enough funds available in the lending pool right now.",
+        "existing_borrow_positions": "Existing Borrow Positions",
+        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "Withdrawing could put your existing loan positions at risk of liquidation."
       }
     },
     "withdraw": "Withdraw",
@@ -3861,7 +3880,23 @@
     "liquidation_risk": "Liquidation risk",
     "insufficient_pool_liquidity": "Insufficient Pool Liquidity",
     "available_to_withdraw": "available to withdraw",
-    "unknown": "unknown"
+    "unknown": "unknown",
+    "how_it_works": "How it works",
+    "market_historic_apr_modal": {
+      "earn_rewards_on_your_token": "Earn rewards on your {{tokenSymbol}}",
+      "lend_and_earn_daily_rewards": "Lend your {{tokenSymbol}} with {{protocol}} and earn daily rewards. Rewards grow over time and APR varies.",
+      "withdraw_whenever_you_want": "Withdraw whenever you want",
+      "get_asset_back_in_your_wallet_instantly": "Get {{tokenSymbol}} back in your wallet instantly."
+    },
+    "amount_exceeds_safe_withdrawal_limit": "Amount exceeds safe withdrawal limit",
+    "view_earnings_history": {
+      "lending": "View position history",
+      "staking": "View earnings history"
+    },
+    "earnings_history_list_title": {
+      "lending": "Position history",
+      "staking": "Payout history"
+    }
   },
   "stake": {
     "stake": "Stake",
@@ -3966,9 +4001,7 @@
     "per_year_on_your_tokens": "per year on your tokens",
     "deposit": "Deposit",
     "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than {{percentOverDeposit}}% of your deposit.",
-    "view_earnings_history": "View earnings history",
     "earnings_history_title": "{{ticker}} earnings",
-    "earnings_history_list_title": "Payout history",
     "apr": "APR",
     "interactive_chart": {
       "timespan_buttons": {
@@ -4099,7 +4132,8 @@
       "signature_siwe": "Sign-in request",
       "contract_interaction": "Transaction request",
       "transfer": "Transfer request",
-      "switch_account_type": "Account update"
+      "switch_account_type": "Account update",
+      "approve": "Approve request"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -4186,7 +4220,8 @@
     "data": "Data",
     "review": "Review",
     "transferRequest": "Transfer request",
-    "nested_transaction_heading": "Transaction {{index}}"
+    "nested_transaction_heading": "Transaction {{index}}",
+    "transaction": "Transaction"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
@@ -4276,7 +4311,8 @@
     },
     "privacyLink": "Learn how we protect your privacy",
     "features": {
-      "accounts": "Accounts"
+      "accounts": "Accounts",
+      "contacts": "Contacts"
     },
     "manageWhatYouSync": {
       "title": "Manage what you sync",
@@ -4307,9 +4343,17 @@
       "wallet": "Wallet",
       "private_key": "Private key"
     },
+    "accounts_list": {
+      "details": "Details"
+    },
+    "wallet_details": {
+      "wallet_name": "Wallet Name",
+      "balance": "Balance",
+      "add_account": "Add account"
+    },
     "smart_account": {
       "title": "Enable Smart Account",
-      "description": "You can enable smart account features on supported networks. {{learnMore}}",
+      "description": "You can enable smart account features on supported networks.",
       "learn_more": "Learn more"
     },
     "edit_account_name": {
@@ -4356,5 +4400,22 @@
       "get_started": "Get started",
       "learn_more": "Learn more"
     }
+  },
+  "deep_link_modal": {
+    "private_link": {
+      "title": "Redirecting you to MetaMask",
+      "description": "You'll open {{pageTitle}} if you continue.",
+      "checkbox_label": "Don't remind me again"
+    },
+    "public_link": {
+      "title": "Proceed with caution",
+      "description": "You were sent here by a third party, not MetaMask. You'll open {{pageTitle}} if you continue."
+    },
+    "invalid": {
+      "title": "This page doesn't exist",
+      "description": "We can't find the page you're looking for."
+    },
+    "back_button": "Back",
+    "continue_button": "Continue"
   }
 }

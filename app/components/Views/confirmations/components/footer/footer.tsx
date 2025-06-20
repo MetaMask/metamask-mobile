@@ -6,8 +6,6 @@ import { ConfirmationFooterSelectorIDs } from '../../../../../../e2e/selectors/C
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonsAlignment } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.types';
-import AppConstants from '../../../../../core/AppConstants';
-import { useStyles } from '../../../../../component-library/hooks';
 import {
   ButtonSize,
   ButtonVariants,
@@ -16,17 +14,19 @@ import { IconName } from '../../../../../component-library/components/Icons/Icon
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { useAlerts } from '../../context/alert-system-context';
+import { useStyles } from '../../../../../component-library/hooks';
+import AppConstants from '../../../../../core/AppConstants';
 import ConfirmAlertModal from '../../components/modals/confirm-alert-modal';
-import { useConfirmActions } from '../../hooks/useConfirmActions';
-import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
-import { useStandaloneConfirmation } from '../../hooks/ui/useStandaloneConfirmation';
+import { ResultType } from '../../constants/signatures';
+import { useAlerts } from '../../context/alert-system-context';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useQRHardwareContext } from '../../context/qr-hardware-context/qr-hardware-context';
 import { useSecurityAlertResponse } from '../../hooks/alerts/useSecurityAlertResponse';
+import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
+import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { isStakingConfirmation } from '../../utils/confirm';
-import { ResultType } from '../../constants/signatures';
 import styleSheet from './footer.styles';
 
 export const Footer = () => {
@@ -44,7 +44,7 @@ export const Footer = () => {
   const confirmDisabled = needsCameraPermission;
   const transactionMetadata = useTransactionMetadataRequest();
   const { trackAlertMetrics } = useConfirmationAlertMetrics();
-  const { isStandaloneConfirmation } = useStandaloneConfirmation();
+  const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const isStakingConfirmationBool = isStakingConfirmation(
     transactionMetadata?.type as string,
   );
@@ -86,7 +86,7 @@ export const Footer = () => {
   const { styles } = useStyles(styleSheet, {
     confirmDisabled,
     isStakingConfirmationBool,
-    isStandaloneConfirmation,
+    isFullScreenConfirmation,
   });
   const confirmButtonLabel = () => {
     if (isQRSigningInProgress) {
