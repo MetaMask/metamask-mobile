@@ -57,7 +57,7 @@ describe(Regression('change password'), () => {
     await ChangePasswordView.typeInConfirmPasswordInputBox(NEWPASSWORD);
     await ChangePasswordView.reEnterPassword(NEWPASSWORD);
     await ChangePasswordView.tapIUnderstandCheckBox();
-    await Gestures.waitAndTap(ChangePasswordView.submitButton);
+    await ChangePasswordView.tapSubmitButton();
 
     await TabBarComponent.tapWallet();
     await WalletView.tapIdenticon();
