@@ -40,10 +40,7 @@ import URL from 'url-parse';
 import { useMetrics } from '../../hooks/useMetrics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import {
-  appendURLParams,
-  isTokenDiscoveryBrowserEnabled,
-} from '../../../util/browser';
+import { appendURLParams } from '../../../util/browser';
 import {
   THUMB_WIDTH,
   THUMB_HEIGHT,
@@ -55,6 +52,7 @@ import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import DiscoveryTab from '../DiscoveryTab/DiscoveryTab';
+import { tokenDiscoveryBrowserEnabled } from '../../../selectors/featureFlagController/tokenDiscoveryBrowser';
 ///: END:ONLY_INCLUDE_IF
 
 const MAX_BROWSER_TABS = 5;
@@ -106,20 +104,22 @@ export const Browser = (props) => {
     [isEnabled, isDataCollectionForMarketingEnabled],
   );
 
+  const isTokenDiscoveryBrowserEnabled = useSelector(tokenDiscoveryBrowserEnabled);
+
   const newTab = useCallback(
     (url, linkType) => {
       // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
       if (tabs.length >= MAX_BROWSER_TABS) {
         navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
       } else {
-        const newTabUrl = isTokenDiscoveryBrowserEnabled()
+        const newTabUrl = isTokenDiscoveryBrowserEnabled
           ? undefined
           : url || homePageUrl();
         // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
         createNewTab(newTabUrl, linkType);
       }
     },
-    [tabs, navigation, createNewTab, homePageUrl],
+    [tabs, navigation, createNewTab, homePageUrl, isTokenDiscoveryBrowserEnabled],
   );
 
   const [currentUrl, setCurrentUrl] = useState(browserUrl || homePageUrl());
@@ -413,7 +413,7 @@ export const Browser = (props) => {
           if (activeTabId !== tab.id) return null;
 
           // If the tab is the active tab, render it
-          return (tab.url || !isTokenDiscoveryBrowserEnabled()) ? (
+          return (tab.url || !isTokenDiscoveryBrowserEnabled) ? (
             <BrowserTab
               key={`tab_${tab.id}`}
               id={tab.id}
@@ -433,7 +433,7 @@ export const Browser = (props) => {
               newTab={newTab}
               updateTabInfo={updateTabInfo}
             />
-          )
+          );
         }),
     [
       tabs,
@@ -443,6 +443,7 @@ export const Browser = (props) => {
       updateTabInfo,
       showTabsView,
       activeTabId,
+      isTokenDiscoveryBrowserEnabled,
     ],
   );
 
