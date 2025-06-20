@@ -111,9 +111,6 @@ import { Hex } from '@metamask/utils';
 import { Nft, Token } from '@metamask/assets-controllers';
 import { Carousel } from '../../UI/Carousel';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent/SolanaNewFeatureContent';
-///: END:ONLY_INCLUDE_IF
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { cloneDeep } from 'lodash';
@@ -341,6 +338,13 @@ const Wallet = ({
     isParticipatingInMetaMetrics,
     navigate,
   ]);
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  useEffect(() => {
+    navigate(Routes.SOLANA_NEW_FEATURE_CONTENT, {
+      screen: Routes.SOLANA_NEW_FEATURE_CONTENT,
+    });
+  }, []);
+  ///: END:ONLY_INCLUDE_IF
 
   useEffect(() => {
     addTraitsToUser({
@@ -776,11 +780,6 @@ const Wallet = ({
             defiEnabled={defiEnabled}
             collectiblesEnabled={isEvmSelected}
           />
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-            <SolanaNewFeatureContent />
-            ///: END:ONLY_INCLUDE_IF
-          }
         </>
       </View>
     ),
