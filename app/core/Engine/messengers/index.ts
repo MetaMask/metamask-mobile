@@ -44,6 +44,8 @@ export const CONTROLLER_MESSENGERS = {
   },
   AccountTreeController: {
     getMessenger: getAccountTreeControllerMessenger,
+    getInitMessenger: noop,
+  },
   ApprovalController: {
     getMessenger: getApprovalControllerMessenger,
     getInitMessenger: noop,
