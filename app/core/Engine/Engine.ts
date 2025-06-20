@@ -1195,6 +1195,7 @@ export class Engine {
           'AccountsController:getAccountByAddress',
           'SnapController:handleRequest',
           'TransactionController:getState',
+          'RemoteFeatureFlagController:getState',
         ],
         allowedEvents: [
           'TransactionController:transactionConfirmed',
