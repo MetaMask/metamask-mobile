@@ -570,6 +570,10 @@ class Amount extends PureComponent {
   };
 
   UNSAFE_componentWillMount = async () => {
+     // TODO: check with Salim if the content of this function is still needed
+     // this was debugging code in attempt to fix https://github.com/MetaMask/MetaMask-planning/issues/5200
+     // since then, Salim confirmed the issue will be fixed in his PR https://github.com/MetaMask/core/pull/6012
+     // Salim also offered to provide a patch (yarn) that could fix this locally until his PR is merged and controller updated
      await Engine.context.TokenDetectionController.detectTokens({
       chainIds: [this.props.sendFlowContextualChainId],
     });
