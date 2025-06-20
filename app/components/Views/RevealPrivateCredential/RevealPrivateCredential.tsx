@@ -412,7 +412,7 @@ const RevealPrivateCredential = ({
       <CustomTabView
         tabLabel={strings(`reveal_credential.text`)}
         style={styles.tabContent}
-        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW}
+        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT}
       >
         <Text style={styles.boldText}>
           {strings(`reveal_credential.${privCredentialName}`)}
@@ -448,7 +448,7 @@ const RevealPrivateCredential = ({
       <CustomTabView
         tabLabel={strings(`reveal_credential.qr_code`)}
         style={styles.tabContent}
-        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW}
+        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_QR_CODE}
       >
         <View
           style={styles.qrCodeWrapper}

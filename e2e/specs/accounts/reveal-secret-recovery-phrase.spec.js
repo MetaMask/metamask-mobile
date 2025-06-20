@@ -119,7 +119,6 @@ describe(
       // See details here: https://github.com/MetaMask/metamask-mobile/pull/4170
       await RevealSecretRecoveryPhrase.tapToCopyCredentialToClipboard();
       await RevealSecretRecoveryPhrase.tapToRevealPrivateCredentialQRCode();
-      await RevealSecretRecoveryPhrase.scrollToQR();
       await Assertions.checkIfVisible(
         RevealSecretRecoveryPhrase.revealCredentialQRCodeImage,
       );
