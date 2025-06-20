@@ -211,14 +211,15 @@ class Assertions {
   }
 
   /**
-   * Check if a value is present (not null, not undefined, not an empty string).
+   * Check if a value is defined (not null, not undefined, not an empty string).
+   * Also evaluates a Boolean value.
    * Note: This assertion does not test UI elements. It is intended for testing values such as events from the mock server or other non-UI data.
    * @param {*} value - The value to check.
    */
-  static async checkIfValueIsPresent(value) {
-    if (value === null || value === undefined || value === '') {
+  static async checkIfValueIsDefined(value) {
+    if (!value) {
       throw new Error(
-        'Value is not present (null, undefined, or empty string)',
+        'Value is not present (falsy value)',
       );
     }
   }

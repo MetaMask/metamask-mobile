@@ -53,7 +53,7 @@ describe(SmokeMultiChainAPI('wallet_sessionChanged'), () => {
                 const eventText = await MultichainTestDApp.getSessionChangedEventData(0);
 
                 // Verify event text exists
-                await Assertions.checkIfValueIsPresent(eventText);
+                await Assertions.checkIfValueIsDefined(eventText);
 
                 if (!eventText) {
                     throw new Error('Event text is null or empty');

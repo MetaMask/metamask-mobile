@@ -148,7 +148,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     const bridgeButtonClicked = eventsToAssert.find((event) => event.event === eventsToCheck.BRIDGE_BUTTON_CLICKED);
     await softAssert.checkAndCollect(
       async () => {
-        await Assertions.checkIfValueIsPresent(bridgeButtonClicked);
+        await Assertions.checkIfValueIsDefined(bridgeButtonClicked);
       }, 'Bridge Button Clicked: Should be defined',
     );
     await softAssert.checkAndCollect(
@@ -164,7 +164,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     const bridgePageViewed = eventsToAssert.find((event) => event.event === eventsToCheck.BRIDGE_PAGE_VIEWED);
     await softAssert.checkAndCollect(
       async () => {
-        await Assertions.checkIfValueIsPresent(bridgePageViewed);
+        await Assertions.checkIfValueIsDefined(bridgePageViewed);
       }, 'Bridge Page Viewed: Should be defined',
     );
     await softAssert.checkAndCollect(
@@ -188,7 +188,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     const unifiedSwapBridgeInputChanged = eventsToAssert.filter((event) => event.event === eventsToCheck.UNIFIED_SWAPBRIDGE_INPUT_CHANGED);
     await softAssert.checkAndCollect(
       async () => {
-        await Assertions.checkIfValueIsPresent(unifiedSwapBridgeInputChanged);
+        await Assertions.checkIfValueIsDefined(unifiedSwapBridgeInputChanged);
       }, 'Unified SwapBridge Input Changed: Should be defined',
     );
     await softAssert.checkAndCollect(
@@ -205,7 +205,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     );
     await softAssert.checkAndCollect(
       async () => {
-        await Assertions.checkIfValueIsPresent(hasAllInputs);
+        await Assertions.checkIfValueIsDefined(hasAllInputs);
       }, 'Unified SwapBridge Input Changed: Should have all inputs',
     );
 
@@ -213,7 +213,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     const unifiedSwapBridgeQuotesRequested = eventsToAssert.find((event) => event.event === eventsToCheck.UNIFIED_SWAPBRIDGE_QUOTES_REQUESTED);
     await softAssert.checkAndCollect(
       async () => {
-        await Assertions.checkIfValueIsPresent(unifiedSwapBridgeQuotesRequested);
+        await Assertions.checkIfValueIsDefined(unifiedSwapBridgeQuotesRequested);
       }, 'Unified SwapBridge Quotes Requested: Should be defined',
     );
     await softAssert.checkAndCollect(
@@ -230,7 +230,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     );
     await softAssert.checkAndCollect(
       async () => {
-        await Assertions.checkIfValueIsPresent(unifiedSwapBridgeQuotesRequested?.properties.slippage_limit);
+        await Assertions.checkIfValueIsDefined(unifiedSwapBridgeQuotesRequested?.properties.slippage_limit);
       }, 'Unified SwapBridge Quotes Requested: Should have a slippage',
     );
 
@@ -238,7 +238,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     const unifiedSwapBridgeSubmitted = eventsToAssert.find((event) => event.event === eventsToCheck.UNIFIED_SWAPBRIDGE_SUBMITTED);
     await softAssert.checkAndCollect(
       async () => {
-        await Assertions.checkIfValueIsPresent(unifiedSwapBridgeSubmitted);
+        await Assertions.checkIfValueIsDefined(unifiedSwapBridgeSubmitted);
       }, 'Unified SwapBridge Submitted: Should be defined',
     );
     await softAssert.checkAndCollect(
@@ -258,7 +258,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     const unifiedSwapBridgeCompleted = eventsToAssert.find((event) => event.event === eventsToCheck.UNIFIED_SWAPBRIDGE_COMPLETED);
     await softAssert.checkAndCollect(
       async () => {
-        await Assertions.checkIfValueIsPresent(unifiedSwapBridgeCompleted);
+        await Assertions.checkIfValueIsDefined(unifiedSwapBridgeCompleted);
       }, 'Unified SwapBridge Completed: Should be defined',
     );
     await softAssert.checkAndCollect(
