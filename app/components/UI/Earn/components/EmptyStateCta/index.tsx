@@ -25,6 +25,9 @@ import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { parseFloatSafe } from '../../utils/number';
 import styleSheet from './EmptyStateCta.styles';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
+import { Hex } from '@metamask/utils';
 
 interface EarnEmptyStateCta {
   token: TokenI;
@@ -43,6 +46,10 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
     selectStablecoinLendingEnabledFlag,
   );
 
+  const network = useSelector((state: RootState) =>
+    selectNetworkConfigurationByChainId(state, token?.chainId as Hex),
+  );
+
   const earnToken = useSelector((state: RootState) =>
     earnSelectors.selectEarnToken(state, token),
   );
@@ -58,9 +65,12 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
           provider: EVENT_PROVIDERS.CONSENSYS,
           location: EVENT_LOCATIONS.TOKEN_DETAILS_SCREEN,
           token_name: token.name,
-          token_symbol: token.symbol,
+          token: token.symbol,
+          text: 'Earn',
           token_chain_id: getDecimalChainId(token.chainId),
           estimatedAnnualRewards: estimatedAnnualRewardsFormatted,
+          apr: `${apr}%`,
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
         })
         .build(),
     );
@@ -72,6 +82,23 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
   };
 
   const navigateToLendingHistoricApyChart = () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EARN_LEARN_MORE_CLICKED)
+        .addProperties({
+          provider: EVENT_PROVIDERS.CONSENSYS,
+          location: EVENT_LOCATIONS.TOKEN_DETAILS_SCREEN,
+          component_name: 'EarnEmptyStateCta',
+          token_name: token.name,
+          token_symbol: token.symbol,
+          text: 'Learn more',
+          network: network?.name,
+          token_chain_id: getDecimalChainId(token.chainId),
+          apr: `${apr}%`,
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        })
+        .build(),
+    );
+
     navigate(Routes.EARN.MODALS.ROOT, {
       screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
       params: { asset: earnToken },
