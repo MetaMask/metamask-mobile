@@ -839,7 +839,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                   testID={`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`}
                                   keyboardType="default"
                                   autoCorrect={false}
-                                  textContentType="none"
+                                  textContentType="oneTimeCode"
                                   spellCheck={false}
                                   autoFocus={
                                     index === nextSeedPhraseInputFocusedIndex
