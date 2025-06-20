@@ -157,7 +157,7 @@ const SolanaNewFeatureContent = () => {
                 variant={ButtonVariants.Primary}
                 onPress={() => importAccountWithSRP()}
                 testID={
-                  SolanaNewFeatureSheetSelectorsIDs.SOLANA_NEW_FEATURE_SHEET
+                  SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON
                 }
                 label={strings('solana_new_feature_content.import_your_wallet')}
                 width={ButtonWidthTypes.Full}
@@ -168,7 +168,7 @@ const SolanaNewFeatureContent = () => {
                 variant={ButtonVariants.Secondary}
                 onPress={() => handleClose()}
                 testID={
-                  SolanaNewFeatureSheetSelectorsIDs.SOLANA_NEW_FEATURE_SHEET
+                  SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON
                 }
                 width={ButtonWidthTypes.Full}
                 size={ButtonSize.Lg}
