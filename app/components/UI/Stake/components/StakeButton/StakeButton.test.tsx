@@ -331,4 +331,21 @@ describe('StakeButton', () => {
 
     expect(queryByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeNull();
   });
+
+  it('does not render button when all pooled staking experience is disabled and token is ETH', () => {
+    (
+      selectPooledStakingEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingEnabledFlag
+      >
+    ).mockReturnValue(false);
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    const { queryByTestId } = renderComponent();
+
+    expect(queryByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeNull();
+  });
 });

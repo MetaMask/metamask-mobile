@@ -28,7 +28,6 @@ import { selectNetworkConfigurations } from '../../networkController';
 import { selectTokensBalances } from '../../tokenBalancesController';
 import { selectTokenMarketData } from '../../tokenRatesController';
 import { pooledStakingSelectors } from '../pooledStaking';
-
 import { toChecksumAddress } from 'ethereumjs-util';
 import {
   selectPooledStakingEnabledFlag,
@@ -93,7 +92,7 @@ const selectEarnTokens = createDeepEqualSelector(
   (earnTokenBaseData) => {
     const {
       earnState,
-      isPooledStakingEnabled,
+      // isPooledStakingEnabled,
       isStablecoinLendingEnabled,
       pooledStakingPerChain,
       isPooledStakingEligible,
@@ -257,24 +256,26 @@ const selectEarnTokens = createDeepEqualSelector(
 
       const assetTicker = token?.ticker || token.symbol;
       // is pooled staking enabled and eligible
-      if (isPooledStakingEnabled && isPooledStakingEligible) {
-        // TODO: we could add direct validator staking as an additional earn experience
-        if (isStakingToken || isStakingOutputToken) {
-          experiences.push({
-            type: EARN_EXPERIENCES.POOLED_STAKING,
-            apr: pooledStakingVaultAprForChain,
-            ...getEstimatedAnnualRewards(
-              pooledStakingVaultAprForChain,
-              assetBalanceFiatNumber,
-              tokenBalanceMinimalUnit.toString(),
-              currentCurrency,
-              token.decimals,
-              assetTicker,
-            ),
-            vault: pooledStakingVaultForChain,
-          });
-        }
+      // TODO: This is a temporary fix for when pooled stkaing and lending are disabled
+      // it allows Eth to still be seen as an earn token to get earn token details
+      // if (isPooledStakingEnabled && isPooledStakingEligible) {
+      // TODO: we could add direct validator staking as an additional earn experience
+      if (isStakingToken || isStakingOutputToken) {
+        experiences.push({
+          type: EARN_EXPERIENCES.POOLED_STAKING,
+          apr: pooledStakingVaultAprForChain,
+          ...getEstimatedAnnualRewards(
+            pooledStakingVaultAprForChain,
+            assetBalanceFiatNumber,
+            tokenBalanceMinimalUnit.toString(),
+            currentCurrency,
+            token.decimals,
+            assetTicker,
+          ),
+          vault: pooledStakingVaultForChain,
+        });
       }
+      // }
 
       // is stablecoin lending enabled and eligible
       if (isStablecoinLendingEnabled && isStablecoinLendingEligible) {
@@ -430,7 +431,112 @@ const selectEarnTokens = createDeepEqualSelector(
   },
 );
 
+const selectEarnToken = createSelector(
+  [selectEarnTokens, (_state: RootState, asset: TokenI) => asset],
+  (earnTokens, asset) => {
+    if (!asset) return;
+    if (!asset.chainId) return;
+    if (!asset.address) return;
+    const earnToken =
+      earnTokens.earnTokensByChainIdAndAddress?.[
+        getDecimalChainId(asset.chainId)
+      ]?.[asset.address.toLowerCase()];
+    if (asset?.isETH && asset?.isStaked !== earnToken?.isStaked) return;
+    return earnToken;
+  },
+);
+
+const selectEarnOutputToken = createSelector(
+  [selectEarnTokens, (_state: RootState, asset: TokenI) => asset],
+  (earnTokens, asset) => {
+    if (!asset) return;
+    if (!asset.chainId) return;
+    if (!asset.address) return;
+    const outputToken =
+      earnTokens.earnOutputTokensByChainIdAndAddress?.[
+        getDecimalChainId(asset.chainId)
+      ]?.[asset.address.toLowerCase()];
+    if (asset?.isETH && asset?.isStaked !== outputToken?.isStaked) return;
+    return outputToken;
+  },
+);
+
+const selectPairedEarnOutputToken = createSelector(
+  [selectEarnTokens, (_state: RootState, asset: TokenI) => asset],
+  (earnTokensData, earnToken) => {
+    if (!earnToken) return;
+    if (!earnToken.chainId) return;
+    if (!earnToken.address) return;
+    const pairedEarnOutputToken =
+      earnTokensData.earnTokenPairsByChainIdAndAddress?.[
+        Number(earnToken.chainId)
+      ]?.[earnToken.address.toLowerCase()]?.[0];
+    if (
+      earnToken.isETH &&
+      earnToken.isStaked === pairedEarnOutputToken?.isStaked
+    )
+      return;
+
+    return pairedEarnOutputToken;
+  },
+);
+
+const selectPairedEarnToken = createSelector(
+  [selectEarnTokens, (_state: RootState, asset: TokenI) => asset],
+  (earnTokensData, earnOutputToken) => {
+    if (!earnOutputToken) return;
+    if (!earnOutputToken.chainId) return;
+    if (!earnOutputToken.address) return;
+    const pairedEarnToken =
+      earnTokensData.earnOutputTokenPairsByChainIdAndAddress?.[
+        Number(earnOutputToken.chainId)
+      ]?.[earnOutputToken.address.toLowerCase()]?.[0];
+    if (
+      earnOutputToken.isETH &&
+      earnOutputToken.isStaked === pairedEarnToken?.isStaked
+    )
+      return;
+    return pairedEarnToken;
+  },
+);
+
+const selectEarnTokenPair = createSelector(
+  [
+    (_state: RootState, asset: TokenI) => asset,
+    selectEarnToken,
+    selectEarnOutputToken,
+    selectPairedEarnToken,
+    selectPairedEarnOutputToken,
+  ],
+  (
+    _asset,
+    earnToken,
+    earnOutputToken,
+    pairedEarnToken,
+    pairedEarnOutputToken,
+  ) => {
+    let earnTokenToUse;
+    let outputTokenToUse;
+    if (earnToken) {
+      earnTokenToUse = earnToken;
+      outputTokenToUse = pairedEarnOutputToken;
+    } else if (earnOutputToken) {
+      outputTokenToUse = earnOutputToken;
+      earnTokenToUse = pairedEarnToken;
+    }
+    return {
+      earnToken: earnTokenToUse,
+      outputToken: outputTokenToUse,
+    };
+  },
+);
+
 export const earnSelectors = {
   selectEarnControllerState,
   selectEarnTokens,
+  selectEarnToken,
+  selectEarnOutputToken,
+  selectEarnTokenPair,
+  selectPairedEarnToken,
+  selectPairedEarnOutputToken,
 };
