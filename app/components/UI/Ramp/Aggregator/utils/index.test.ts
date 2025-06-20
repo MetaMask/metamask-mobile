@@ -32,6 +32,8 @@ import { FiatOrder, RampType } from '../../../../../reducers/fiatOrders/types';
 import { getOrders } from '../../../../../reducers/fiatOrders';
 import type { RootState } from '../../../../../reducers';
 import { QuoteSortBy } from '@consensys/on-ramp-sdk/dist/IOnRampSdk';
+// eslint-disable-next-line import/no-namespace
+import * as IntlModule from '../../../../../util/intl';
 
 describe('timeToDescription', () => {
   it('should return a function', () => {
@@ -74,7 +76,7 @@ describe('formatAmount', () => {
   });
 
   it('should return input amount as string if Intl throws', () => {
-    jest.spyOn(Intl, 'NumberFormat').mockImplementation(
+    jest.spyOn(IntlModule, 'getIntlNumberFormatter').mockImplementation(
       () =>
         ({
           format: jest.fn().mockImplementation(() => {
@@ -86,13 +88,6 @@ describe('formatAmount', () => {
     );
     expect(formatAmount(123123)).toBe('123123');
     jest.spyOn(Intl, 'NumberFormat').mockClear();
-  });
-
-  it('should return input amount as string if Intl is not defined', () => {
-    const globalIntl = global.Intl;
-    global.Intl = undefined as unknown as typeof Intl;
-    expect(formatAmount(123123)).toBe('123123');
-    global.Intl = globalIntl;
   });
 });
 

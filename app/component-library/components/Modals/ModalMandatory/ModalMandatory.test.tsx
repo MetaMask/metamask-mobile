@@ -164,14 +164,6 @@ describe('ModalMandatory', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('handles close button press', () => {
-    const { getByTestId } = render(<ModalMandatory route={mockRoute} />);
-    const closeButton = getByTestId(TermsOfUseModalSelectorsIDs.CLOSE_BUTTON);
-
-    fireEvent.press(closeButton);
-    expect(closeButton).toBeTruthy();
-  });
-
   it('renders scroll to end button when needed', () => {
     const { getByTestId } = render(<ModalMandatory route={mockRoute} />);
     const scrollButton = getByTestId(

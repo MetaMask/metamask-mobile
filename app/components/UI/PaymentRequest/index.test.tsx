@@ -8,9 +8,14 @@ import {
 import PaymentRequest from './index';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
+import { SolScope } from '@metamask/keyring-api';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
-import { SolScope } from '@metamask/keyring-api';
+import Routes from '../../../constants/navigation/Routes';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+// eslint-disable-next-line import/no-namespace
+import * as networks from '../../../util/networks';
+import ethLogo from '../../../assets/images/eth-logo.png';
 
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
@@ -131,6 +136,7 @@ const renderComponent = (props = {}) =>
         <PaymentRequest
           navigation={mockNavigation}
           route={mockRoute}
+          networkImageSource=""
           {...props}
         />
       </ThemeContext.Provider>
@@ -140,6 +146,18 @@ const renderComponent = (props = {}) =>
 describe('PaymentRequest', () => {
   it('renders correctly', () => {
     const { toJSON } = renderComponent();
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly with network picker when feature flag is enabled', () => {
+    jest
+      .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
+      .mockReturnValue(true);
+
+    const { toJSON } = renderComponent({
+      chainId: '0x1',
+      networkImageSource: ethLogo,
+    });
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -201,5 +219,57 @@ describe('PaymentRequest', () => {
 
     expect(mockSetShowError).toHaveBeenCalledWith(true);
     expect(queryByText('Invalid request, please try again')).toBeTruthy();
+  });
+
+  describe('handleNetworkPickerPress', () => {
+    it('should navigate to network selector modal when feature flag is enabled', () => {
+      jest
+        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
+        .mockReturnValue(true);
+
+      const mockMetrics = {
+        trackEvent: jest.fn(),
+        createEventBuilder: jest.fn(() => ({
+          addProperties: jest.fn(() => ({
+            build: jest.fn(() => 'builtEvent'),
+          })),
+        })),
+      };
+
+      const { getByTestId } = renderComponent({
+        metrics: mockMetrics,
+        chainId: '0x1',
+        networkImageSource: ethLogo,
+      });
+
+      const networkPicker = getByTestId(
+        WalletViewSelectorsIDs.NAVBAR_NETWORK_PICKER,
+      );
+
+      act(() => {
+        fireEvent.press(networkPicker);
+      });
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        {
+          screen: Routes.SHEET.NETWORK_SELECTOR,
+        },
+      );
+    });
+
+    it('should not render network picker when feature flag is disabled', () => {
+      // Feature flag is already set to false in beforeEach
+      const { queryByTestId } = renderComponent({
+        chainId: '0x1',
+        networkImageSource: ethLogo,
+      });
+
+      const networkPicker = queryByTestId(
+        WalletViewSelectorsIDs.NAVBAR_NETWORK_PICKER,
+      );
+
+      expect(networkPicker).toBeNull();
+    });
   });
 });

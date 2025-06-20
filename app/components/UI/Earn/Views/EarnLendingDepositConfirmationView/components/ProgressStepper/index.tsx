@@ -134,7 +134,7 @@ const ProgressStepper = ({
 
   return (
     <View>
-      <Svg height={height} width={'auto'}>
+      <Svg height={height} width={'100%'}>
         <Line
           x1="0"
           y1="5"

@@ -15,7 +15,7 @@ import { LedgerContextProvider } from '../../context/ledger-context';
 import { QRHardwareContextProvider } from '../../context/qr-hardware-context';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useConfirmationRedesignEnabled } from '../../hooks/useConfirmationRedesignEnabled';
-import { useFlatConfirmation } from '../../hooks/ui/useFlatConfirmation';
+import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import { ConfirmationAssetPollingProvider } from '../confirmation-asset-polling-provider/confirmation-asset-polling-provider';
 import GeneralAlertBanner from '../general-alert-banner';
 import Info from '../info-root';
@@ -64,7 +64,7 @@ interface ConfirmProps {
 
 export const Confirm = ({ route }: ConfirmProps) => {
   const { approvalRequest } = useApprovalRequest();
-  const { isFlatConfirmation } = useFlatConfirmation();
+  const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
   const navigation = useNavigation();
   const { onReject } = useConfirmActions();
@@ -78,7 +78,7 @@ export const Confirm = ({ route }: ConfirmProps) => {
     return null;
   }
 
-  if (isFlatConfirmation) {
+  if (isFullScreenConfirmation) {
     // Keep this navigation option to prevent Android navigation flickering
     navigation.setOptions({
       headerShown: true,

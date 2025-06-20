@@ -7,7 +7,6 @@ const styleSheet = () =>
       justifyContent: 'space-between',
       paddingHorizontal: 16,
       paddingTop: 14,
-      paddingBottom: 6,
       gap: 16,
     },
     button: {
@@ -27,6 +26,14 @@ const styleSheet = () =>
       height: 32,
       borderRadius: 16,
       overflow: 'hidden',
+    },
+    EarnEmptyStateCta: {
+      paddingTop: 8,
+      paddingHorizontal: 16,
+    },
+    earnings: {
+      paddingHorizontal: 16,
+      paddingTop: 16,
     },
   });
 

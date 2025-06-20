@@ -31,12 +31,12 @@ import TransactionTypes from '../../../core/TransactionTypes';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { query } from '@metamask/controller-utils';
 import BigNumber from 'bignumber.js';
-import { toLowerCaseEquals } from '../../../util/general';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   getAddressAccountType,
   isHardwareAccount,
+  areAddressesEqual,
 } from '../../../util/address';
 
 import {
@@ -411,7 +411,7 @@ const RootRPCMethodsUI = (props) => {
             TOKEN_METHOD_TRANSFER
         ) {
           let asset = props.tokens.find(({ address }) =>
-            toLowerCaseEquals(address, to),
+            areAddressesEqual(address, to),
           );
           if (!asset) {
             // try to lookup contract by lowercased address `to`

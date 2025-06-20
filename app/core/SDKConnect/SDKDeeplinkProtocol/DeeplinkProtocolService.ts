@@ -32,6 +32,7 @@ import {
   getDefaultCaip25CaveatValue,
   getPermittedAccounts,
 } from '../../Permissions';
+import { areAddressesEqual, toFormattedAddress } from '../../../util/address';
 
 export default class DeeplinkProtocolService {
   public connections: DappConnections = {};
@@ -574,7 +575,7 @@ export default class DeeplinkProtocolService {
       }
     ).AccountsController;
 
-    const selectedInternalAccountChecksummedAddress = toChecksumHexAddress(
+    const selectedInternalAccountFormattedAddress = toFormattedAddress(
       accountsController.getSelectedAccount().address,
     );
 
@@ -589,22 +590,24 @@ export default class DeeplinkProtocolService {
       return [];
     }
 
-    const lowerCaseConnectedAddresses = connectedAddresses.map((address) =>
-      address.toLowerCase(),
+    const formattedConnectedAddresses = connectedAddresses.map((address) =>
+      toFormattedAddress(address),
     );
 
-    const isPartOfConnectedAddresses = lowerCaseConnectedAddresses.includes(
-      selectedInternalAccountChecksummedAddress.toLowerCase(),
+    const isPartOfConnectedAddresses = formattedConnectedAddresses.includes(
+      selectedInternalAccountFormattedAddress,
     );
 
     if (isPartOfConnectedAddresses) {
       // Create a new array with selectedAddress at the first position
       connectedAddresses = [
-        selectedInternalAccountChecksummedAddress,
+        selectedInternalAccountFormattedAddress,
         ...connectedAddresses.filter(
           (address) =>
-            address.toLowerCase() !==
-            selectedInternalAccountChecksummedAddress.toLowerCase(),
+            !areAddressesEqual(
+              address,
+              selectedInternalAccountFormattedAddress,
+            ),
         ),
       ];
     }

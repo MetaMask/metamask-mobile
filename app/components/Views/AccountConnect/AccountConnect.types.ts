@@ -1,4 +1,5 @@
 import { ImageSourcePropType } from 'react-native';
+import { CaipChainId } from '@metamask/utils';
 import {
   AvatarSize,
   AvatarVariant,
@@ -55,4 +56,5 @@ export interface NetworkAvatarProps {
   name: string;
   imageSource: ImageSourcePropType;
   variant: AvatarVariant;
+  caipChainId: CaipChainId;
 }

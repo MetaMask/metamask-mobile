@@ -17,6 +17,8 @@ import {
   POLYGON_CHAIN_ID,
   ZKSYNC_ERA_CHAIN_ID,
 } from '@metamask/swaps-controller/dist/constants';
+import Engine from '../../../../core/Engine';
+import { isSolanaChainId } from '@metamask/bridge-controller';
 
 const ALLOWED_CHAIN_IDS: (Hex | CaipChainId)[] = [
   ETH_CHAIN_ID,
@@ -38,4 +40,19 @@ export const isBridgeAllowed = (chainId: Hex | CaipChainId) => {
     return false;
   }
   return ALLOWED_CHAIN_IDS.includes(chainId);
+};
+
+
+export const wipeBridgeStatus = (address: string, chainId: Hex | CaipChainId) => {
+  Engine.context.BridgeStatusController.wipeBridgeStatus({
+    address,
+    ignoreNetwork: false,
+  });
+  // Solana addresses are case-sensitive, so we can only do this for EVM
+  if (!isSolanaChainId(chainId)) {
+    Engine.context.BridgeStatusController.wipeBridgeStatus({
+      address: address.toLowerCase(),
+      ignoreNetwork: false,
+    });
+  }
 };

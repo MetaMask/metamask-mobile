@@ -31,6 +31,7 @@ import type {
   ControllerInitFunction,
   ControllerInitRequest,
 } from '../../types';
+import AppConstants from '../../../../core/AppConstants';
 import type { TransactionEventHandlerRequest } from './types';
 import {
   handleTransactionApprovedEventForMetrics,
@@ -126,7 +127,7 @@ export const TransactionControllerInit: ControllerInitFunction<
         // @ts-expect-error - TransactionMeta mismatch type with TypedTransaction from '@ethereumjs/tx'
         sign: (...args) => keyringController.signTransaction(...args),
         state: persistedState.TransactionController,
-        publicKeyEIP7702: process.env.EIP_7702_PUBLIC_KEY as Hex | undefined,
+        publicKeyEIP7702: AppConstants.EIP_7702_PUBLIC_KEY as Hex | undefined,
       });
 
     addTransactionControllerListeners({

@@ -4,6 +4,7 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import useVaultApyAverages from './useVaultApyAverages';
 import { DEFAULT_VAULT_APY_AVERAGES } from '../constants';
 import Engine from '../../../../core/Engine';
+import { ChainId } from '@metamask/stake-sdk';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -16,9 +17,7 @@ jest.mock('../../../../core/Engine', () => ({
 const mockInitialState = {
   settings: {},
   engine: {
-    backgroundState: {
-      ...backgroundState,
-    },
+    backgroundState,
   },
 };
 
@@ -35,9 +34,12 @@ describe('useVaultApyAverages', () => {
           .refreshPooledStakingVaultApyAverages as jest.Mock
       ).mockRejectedValue(new Error('API Error'));
 
-      const { result } = renderHookWithProvider(() => useVaultApyAverages(), {
-        state: mockInitialState,
-      });
+      const { result } = renderHookWithProvider(
+        () => useVaultApyAverages(ChainId.ETHEREUM),
+        {
+          state: mockInitialState,
+        },
+      );
 
       await act(async () => {
         await result.current.refreshVaultApyAverages();

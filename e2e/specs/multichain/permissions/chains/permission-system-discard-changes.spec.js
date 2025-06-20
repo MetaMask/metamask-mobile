@@ -34,7 +34,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
 
         await Browser.navigateToTestDApp();
 
-        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
 
         // Navigate to chain permissions and add Sepolia
         await ConnectedAccountsModal.tapManagePermissionsButton();

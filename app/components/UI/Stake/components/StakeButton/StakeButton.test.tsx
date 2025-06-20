@@ -21,6 +21,7 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import { TokenI } from '../../../Tokens/types';
+import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 
 const mockNavigate = jest.fn();
 
@@ -31,18 +32,33 @@ const MOCK_APR_VALUES: { [symbol: string]: string } = {
   DAI: '5.0',
 };
 
-jest.mock('../../../Earn/hooks/useEarnTokenDetails', () => ({
-  useEarnTokenDetails: () => ({
-    getTokenWithBalanceAndApr: (token: TokenI) => ({
-      ...token,
-      apr: MOCK_APR_VALUES[token.symbol] ?? '0.0',
-      balanceFormatted: token.symbol === 'USDC' ? '6.84314 USDC' : '0',
-      balanceFiat: token.symbol === 'USDC' ? '$6.84' : '$0.00',
-      balanceMinimalUnit: token.symbol === 'USDC' ? '6.84314' : '0',
-      balanceFiatNumber: token.symbol === 'USDC' ? 6.84314 : 0,
-      experience:
-        token.symbol === 'USDC' ? 'STABLECOIN_LENDING' : 'POOLED_STAKING',
-    }),
+jest.mock('../../../Earn/hooks/useEarnTokens', () => ({
+  __esModule: true,
+  default: () => ({
+    getEarnToken: (token: TokenI) => {
+      const experienceType =
+        token.symbol === 'USDC' ? 'STABLECOIN_LENDING' : 'POOLED_STAKING';
+
+      const experiences = [
+        {
+          type: experienceType as EARN_EXPERIENCES,
+          apr: MOCK_APR_VALUES?.[token.symbol] ?? '',
+          estimatedAnnualRewardsFormatted: '',
+          estimatedAnnualRewardsFiatNumber: 0,
+        },
+      ];
+
+      return {
+        ...token,
+        balanceFormatted: token.symbol === 'USDC' ? '6.84314 USDC' : '0',
+        balanceFiat: token.symbol === 'USDC' ? '$6.84' : '$0.00',
+        balanceMinimalUnit: token.symbol === 'USDC' ? '6.84314' : '0',
+        balanceFiatNumber: token.symbol === 'USDC' ? 6.84314 : 0,
+        experiences,
+        tokenUsdExchangeRate: 0,
+        experience: experiences[0],
+      };
+    },
   }),
 }));
 
@@ -270,7 +286,7 @@ describe('StakeButton', () => {
         expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
           screen: Routes.STAKING.STAKE,
           params: {
-            token: MOCK_ETH_MAINNET_ASSET,
+            token: { ...MOCK_ETH_MAINNET_ASSET },
           },
         });
       });

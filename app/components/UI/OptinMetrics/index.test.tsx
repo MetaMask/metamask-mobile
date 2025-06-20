@@ -27,6 +27,10 @@ jest.mock(
   () => jest.fn().mockReturnValue({ userProp: 'User value' }),
 );
 
+jest.mock('../../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
+  getConfiguredCaipChainIds: jest.fn().mockReturnValue(['eip155:1']),
+}));
+
 jest.mock(
   '../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData',
   () => jest.fn().mockReturnValue({ deviceProp: 'Device value' }),
@@ -73,6 +77,7 @@ describe('OptinMetrics', () => {
             .build(),
         );
         expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {
+          chain_id_list: ['eip155:1'],
           deviceProp: 'Device value',
           userProp: 'User value',
         });
@@ -102,6 +107,7 @@ describe('OptinMetrics', () => {
             .build(),
         );
         expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {
+          chain_id_list: ['eip155:1'],
           deviceProp: 'Device value',
           userProp: 'User value',
         });

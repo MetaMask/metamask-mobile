@@ -1196,6 +1196,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                   accessibilityRole="button"
                                   accessible={true}
                                   activeOpacity={0.2}
+                                  disabled={false}
                                   onPress={[Function]}
                                   style={
                                     [
@@ -2379,6 +2380,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                   accessibilityRole="button"
                                   accessible={true}
                                   activeOpacity={0.2}
+                                  disabled={false}
                                   onPress={[Function]}
                                   style={
                                     [

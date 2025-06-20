@@ -15,7 +15,7 @@ import { RootState } from '../../../../reducers';
 import { useSelector } from 'react-redux';
 import { pooledStakingSelectors } from '../../../../selectors/earnController';
 
-const { selectVaultApy } = pooledStakingSelectors;
+const { selectVaultApyForChain } = pooledStakingSelectors;
 
 const mockVaultMetadata = MOCK_GET_VAULT_RESPONSE;
 
@@ -32,16 +32,18 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-const renderHook = (vaultMetadata?: PooledStakingState['vaultMetadata']) => {
+const renderHook = (vaultMetadata?: PooledStakingState[0]['vaultMetadata']) => {
   const mockState: DeepPartial<RootState> = {
     engine: {
       backgroundState: {
         ...backgroundState,
         EarnController: {
           pooled_staking: {
-            vaultMetadata: {
-              ...mockVaultMetadata,
-              ...vaultMetadata,
+            '1': {
+              vaultMetadata: {
+                ...mockVaultMetadata,
+                ...vaultMetadata,
+              },
             },
           },
         },
@@ -49,7 +51,7 @@ const renderHook = (vaultMetadata?: PooledStakingState['vaultMetadata']) => {
     },
   };
 
-  return renderHookWithProvider(() => useVaultMetadata(), {
+  return renderHookWithProvider(() => useVaultMetadata(1), {
     state: mockState,
   });
 };
@@ -59,7 +61,7 @@ describe('useVaultMetadata', () => {
     jest.resetAllMocks();
 
     (useSelector as jest.Mock).mockImplementation((selector) => {
-      if (selector === selectVaultApy) {
+      if (selector === selectVaultApyForChain) {
         return MOCK_SELECT_POOLED_STAKING_VAULT_APY;
       }
     });

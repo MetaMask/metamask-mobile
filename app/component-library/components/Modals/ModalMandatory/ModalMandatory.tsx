@@ -1,5 +1,11 @@
 // Third party dependencies
-import React, { useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   BackHandler,
   NativeScrollEvent,
@@ -32,6 +38,7 @@ import stylesheet from './ModalMandatory.styles';
 import { TermsOfUseModalSelectorsIDs } from '../../../../../e2e/selectors/Onboarding/TermsOfUseModal.selectors';
 import BottomSheet, { BottomSheetRef } from '../../BottomSheets/BottomSheet';
 import { useNavigation } from '@react-navigation/native';
+import { throttle } from 'lodash';
 
 const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const { colors } = useTheme();
@@ -128,22 +135,11 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
     }
   };
 
-  const onClose = () => {
-    navigation.goBack();
-  };
-
   const renderHeader = () => (
     <View style={styles.headerContainer}>
-      <View style={styles.headerEmpty} />
       <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
         {headerTitle}
       </Text>
-      <ButtonIcon
-        testID={TermsOfUseModalSelectorsIDs.CLOSE_BUTTON}
-        onPress={onClose}
-        iconName={IconName.Close}
-        hitSlop={12}
-      />
     </View>
   );
 
@@ -175,21 +171,25 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
     </View>
   );
 
-  const isCloseToBottom = ({
-    layoutMeasurement,
-    contentOffset,
-    contentSize,
-  }: NativeScrollEvent) => {
-    const paddingToBottom = 20;
-    if (
-      layoutMeasurement.height + contentOffset.y >=
-      contentSize.height - paddingToBottom
-    ) {
-      setIsScrollEnded(true);
-    } else {
-      setIsScrollEnded(false);
-    }
-  };
+  const isCloseToBottom = useCallback(
+    ({ layoutMeasurement, contentOffset, contentSize }: NativeScrollEvent) => {
+      const paddingToBottom = 20;
+      if (
+        layoutMeasurement.height + contentOffset.y >=
+        contentSize.height - paddingToBottom
+      ) {
+        setIsScrollEnded(true);
+      } else {
+        setIsScrollEnded(false);
+      }
+    },
+    [],
+  );
+
+  const throttledCloseToBottom = useMemo(
+    () => throttle(isCloseToBottom, 50),
+    [isCloseToBottom],
+  );
 
   const renderWebView = (webviewBody: BodyWebView) => {
     const source = isBodyWebViewUri(webviewBody)
@@ -204,9 +204,9 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         injectedJavaScript={isScrollEndedJS}
         onLoad={() => setIsWebViewLoaded(true)}
         onMessage={onMessage}
-        onScroll={({ nativeEvent }) =>
-          isCloseToBottom(nativeEvent as NativeScrollEvent)
-        }
+        onScroll={({ nativeEvent }) => {
+          throttledCloseToBottom(nativeEvent as NativeScrollEvent);
+        }}
         {...(source.uri && {
           onShouldStartLoadWithRequest: (req) => source.uri === req.url,
         })}
@@ -249,7 +249,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   };
 
   return (
-    <BottomSheet ref={bottomSheetRef} shouldNavigateBack>
+    <BottomSheet ref={bottomSheetRef} shouldNavigateBack isInteractable={false}>
       <View style={styles.modal} testID={containerTestId}>
         {renderHeader()}
         <View

@@ -26,6 +26,12 @@ class CreatePasswordView {
     );
   }
 
+  get iUnderstandCheckboxNewWallet() {
+    return Matchers.getElementByID(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+     );
+  }
+
   get submitButton() {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
@@ -52,7 +58,7 @@ class CreatePasswordView {
   }
 
   async tapIUnderstandCheckBox() {
-    await Gestures.waitAndTap(this.iUnderstandCheckbox);
+    await Gestures.tap(this.iUnderstandCheckbox);
   }
 
   async tapCreatePasswordButton() {

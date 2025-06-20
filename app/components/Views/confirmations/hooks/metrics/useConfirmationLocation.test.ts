@@ -152,6 +152,26 @@ describe('useConfirmationLocation', () => {
     expect(result.current).toBe(CONFIRMATION_EVENT_LOCATIONS.TRANSFER);
   });
 
+  it.each([
+    [TransactionType.tokenMethodApprove],
+    [TransactionType.tokenMethodSetApprovalForAll],
+    [TransactionType.tokenMethodIncreaseAllowance],
+  ])('returns APPROVE location for %s transactions', (transactionType) => {
+    mockUseApprovalRequest.mockReturnValue(
+      createApprovalRequestMock({
+        type: ApprovalType.Transaction,
+        requestData: {},
+      }),
+    );
+
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      type: transactionType,
+    } as unknown as TransactionMeta);
+
+    const { result } = renderHook(() => useConfirmationLocation());
+    expect(result.current).toBe(CONFIRMATION_EVENT_LOCATIONS.APPROVE);
+  });
+
   it('returns undefined for transaction approvals with unknown transaction type', () => {
     mockUseApprovalRequest.mockReturnValue(
       createApprovalRequestMock({

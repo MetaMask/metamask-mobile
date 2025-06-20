@@ -10,7 +10,7 @@ import { toggleCollectibleContractModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
-import { toLowerCaseEquals } from '../../../util/general';
+import { areAddressesEqual } from '../../../util/address';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
@@ -94,7 +94,7 @@ class CollectibleContractOverview extends PureComponent {
   onSend = () => {
     const { collectibleContract, collectibles } = this.props;
     const collectible = collectibles.find((collectible) =>
-      toLowerCaseEquals(collectible.address, collectibleContract.address),
+      areAddressesEqual(collectible.address, collectibleContract.address),
     );
     this.props.newAssetTransaction(collectible);
     this.props.navigation.navigate('SendFlowView');

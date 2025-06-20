@@ -10,6 +10,12 @@ import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../../e2e/selector
 import { NetworkAddedBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkAddedBottomSheet.selectors';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 
+jest.mock('../../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
+  addItemToChainIdList: jest.fn().mockReturnValue({
+    chain_id_list: ['eip155:1', 'eip155:137'],
+  }),
+}));
+
 jest.mock('../../../core/Engine', () => ({
   context: {
     PreferencesController: {
@@ -24,6 +30,18 @@ jest.mock('../../../core/Engine', () => ({
       setActiveNetwork: jest.fn(),
     },
   },
+}));
+
+const mockAddTraitsToUser = jest.fn();
+jest.mock('../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn().mockReturnValue({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnThis(),
+    }),
+    addTraitsToUser: mockAddTraitsToUser,
+  }),
 }));
 
 interface NetworkProps {
@@ -221,6 +239,79 @@ describe('NetworkDetails', () => {
     expect(
       Engine.context.MultichainNetworkController.setActiveNetwork,
     ).toHaveBeenCalledWith('test-network-id');
+  });
+
+  it('should call addTraitsToUser with chain ID list when adding a new network', async () => {
+    const { getByTestId } = renderWithTheme(<NetworkModal {...props} />);
+
+    const approveButton = getByTestId(
+      NetworkApprovalBottomSheetSelectorsIDs.APPROVE_BUTTON,
+    );
+    fireEvent.press(approveButton);
+
+    const switchButton = getByTestId(
+      NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
+    );
+
+    // Mock the addNetwork response to include networkClientId
+    (
+      Engine.context.NetworkController.addNetwork as jest.Mock
+    ).mockResolvedValue({
+      rpcEndpoints: [{ networkClientId: 'test-network-id' }],
+      defaultRpcEndpointIndex: 0,
+    });
+
+    await act(async () => {
+      fireEvent.press(switchButton);
+    });
+
+    // Verify addTraitsToUser was called with the chain ID list
+    expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+      chain_id_list: ['eip155:1', 'eip155:137'],
+    });
+  });
+
+  it('should call addTraitsToUser with chain ID list when updating an existing network', async () => {
+    // Mock existing network configuration
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectNetworkName) return 'Ethereum Main Network';
+      if (selector === selectUseSafeChainsListValidation) return true;
+      if (selector === selectNetworkConfigurations)
+        return {
+          '0x1': {
+            chainId: '0x1',
+          },
+        };
+      return {};
+    });
+
+    const { getByTestId } = renderWithTheme(<NetworkModal {...props} />);
+
+    const approveButton = getByTestId(
+      NetworkApprovalBottomSheetSelectorsIDs.APPROVE_BUTTON,
+    );
+    fireEvent.press(approveButton);
+
+    const switchButton = getByTestId(
+      NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
+    );
+
+    // Mock the updateNetwork response to include networkClientId
+    (
+      Engine.context.NetworkController.updateNetwork as jest.Mock
+    ).mockResolvedValue({
+      rpcEndpoints: [{ networkClientId: 'test-network-id' }],
+      defaultRpcEndpointIndex: 0,
+    });
+
+    await act(async () => {
+      fireEvent.press(switchButton);
+    });
+
+    // Verify addTraitsToUser was called with the chain ID list
+    expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+      chain_id_list: ['eip155:1', 'eip155:137'],
+    });
   });
 
   describe('closeModal', () => {

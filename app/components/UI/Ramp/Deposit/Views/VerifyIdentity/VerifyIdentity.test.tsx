@@ -4,26 +4,23 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import VerifyIdentity from './VerifyIdentity';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
-import { DepositSdkResult } from '../../hooks/useDepositSdkMethod';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 
-const mockUseDepositSdkMethodInitialValues: DepositSdkResult<'success'> = {
-  error: null,
-  loading: false,
-  sdkMethod: jest.fn().mockResolvedValue('Success'),
-  response: null,
-};
+interface MockQuote {
+  id: string;
+  amount: number;
+  currency: string;
+}
 
-let mockUseDepositSdkMethodValues: DepositSdkResult<'success'> = {
-  ...mockUseDepositSdkMethodInitialValues,
+// Mock the quote object
+const mockQuote: MockQuote = {
+  id: 'test-quote-id',
+  amount: 100,
+  currency: 'USD',
 };
-
-jest.mock('../../hooks/useDepositSdkMethod', () => ({
-  useDepositSdkMethod: () => mockUseDepositSdkMethodValues,
-}));
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -35,6 +32,9 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetNavigationOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
+    }),
+    useRoute: () => ({
+      params: { quote: mockQuote },
     }),
   };
 });
@@ -64,18 +64,11 @@ function render(Component: React.ComponentType) {
 describe('VerifyIdentity Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseDepositSdkMethodValues = {
-      ...mockUseDepositSdkMethodInitialValues,
-    };
   });
 
-  it('renders correctly', () => {
+  it('render matches snapshot', () => {
     render(VerifyIdentity);
-    expect(
-      screen.getByText(
-        'To deposit cash, we’ll need to verify your identity. This helps keep your account secure and your information private.',
-      ),
-    ).toBeTruthy();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('calls setOptions when the component mounts', () => {
@@ -91,10 +84,9 @@ describe('VerifyIdentity Component', () => {
     render(VerifyIdentity);
     fireEvent.press(screen.getByRole('button', { name: 'Get started' }));
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.DEPOSIT.BASIC_INFO,
-        undefined,
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.BASIC_INFO, {
+        quote: mockQuote,
+      });
     });
   });
 });

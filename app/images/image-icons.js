@@ -11,7 +11,6 @@ import AVAX from './avalanche.png';
 import LINEA_TESTNET from './linea-testnet-logo.png';
 import SEPOLIA from './sepolia-logo-dark.png';
 import LINEA_MAINNET from './linea-mainnet-logo.png';
-import APE_TOKEN from './ape-token.png';
 import SOLANA from './solana-logo.png';
 import GRAVITY from './gravity.png';
 import KAIA_MAINNET from './kaia.png';
@@ -28,6 +27,11 @@ import LENS from './lens.png';
 import PLUME from './plume-native.png';
 import GENESYS from './genesys.png';
 import KATANA from './katana.png';
+import SOPHON from './sophon.png';
+import SOPHON_TESTNET from './sophon-testnet.png';
+import APECHAIN_TOKEN from './apechain-token.png';
+import BERACHAIN_TOKEN from './berachain-token.png';
+import EDU from './edu.png';
 
 export default {
   PALM,
@@ -44,7 +48,6 @@ export default {
   'LINEA-SEPOLIA': LINEA_TESTNET,
   SEPOLIA,
   'LINEA-MAINNET': LINEA_MAINNET,
-  APE: APE_TOKEN,
   G: GRAVITY,
   'KAIA-MAINNET': KAIA_MAINNET,
   'KAIA-KAIROS-TESTNET': KAIA_MAINNET,
@@ -62,4 +65,9 @@ export default {
   PLUME,
   GENESYS,
   KATANA,
+  SOPHON,
+  'SOPHON-TESTNET': SOPHON_TESTNET,
+  APE: APECHAIN_TOKEN,
+  BERA: BERACHAIN_TOKEN,
+  EDU,
 };

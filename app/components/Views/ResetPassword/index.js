@@ -73,6 +73,9 @@ import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding
 // import NavigationService from '../../../core/NavigationService';
 // import { RecoveryError as SeedlessOnboardingRecoveryError } from '@metamask/seedless-onboarding-controller';
 
+import { MetaMetricsEvents, MetaMetrics } from '../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
@@ -413,6 +416,19 @@ class ResetPassword extends PureComponent {
 
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
       this.props.passwordSet();
+
+      // Track password changed event
+      const { biometryChoice, passwordStrength } = this.state;
+      const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
+      const eventBuilder = MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PASSWORD_CHANGED,
+      ).addProperties({
+        biometry_type: this.state.biometryType,
+        biometrics_enabled: Boolean(biometryChoice),
+        password_strength: passwordStrengthWord,
+      });
+      MetaMetrics.getInstance().trackEvent(eventBuilder.build());
+
       this.setState({ loading: false });
       InteractionManager.runAfterInteractions(() => {
         this.props.navigation.navigate('SecuritySettings');
@@ -753,9 +769,7 @@ class ResetPassword extends PureComponent {
                       false: colors.border.default,
                     }}
                     boxType="square"
-                    testID={
-                      ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID
-                    }
+                    testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                   />
                   <Text
                     variant={TextVariant.BodyMD}

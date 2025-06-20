@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DeleteWalletModal should render correctly 1`] = `
+exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
 <View
   style={
     {
@@ -619,6 +619,7 @@ exports[`DeleteWalletModal should render correctly 1`] = `
                                   "paddingHorizontal": 16,
                                 }
                               }
+                              testID="delete-modal-understand-continue"
                             >
                               <Text
                                 accessibilityRole="text"

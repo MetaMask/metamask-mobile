@@ -81,6 +81,17 @@ jest.mock('../../hooks/usePooledStakes', () => ({
   }),
 }));
 
+expect.addSnapshotSerializer({
+  test: (val) =>
+    val &&
+    typeof val === 'object' &&
+    (val.props?.source?.uri === '' ||
+      val.props?.onLayout ||
+      val.props?.onError ||
+      val.props?.onLoadEnd),
+  print: () => 'IGNORED_RANDOM_ELEMENT',
+});
+
 describe('StakeConfirmationView', () => {
   it('render matches snapshot', () => {
     const props: StakeConfirmationViewProps = {
@@ -92,6 +103,7 @@ describe('StakeConfirmationView', () => {
           annualRewardRate: '2.6%',
           annualRewardsETH: '0.00026 ETH',
           annualRewardsFiat: '$0.68',
+          chainId: '1',
         },
         name: 'params',
       },

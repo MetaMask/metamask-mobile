@@ -559,7 +559,9 @@ class Confirm extends PureComponent {
       ],
     };
 
-    ppomUtil.validateRequest(reqObject, id);
+    ppomUtil.validateRequest(reqObject, {
+      transactionMeta,
+    });
   };
 
   componentDidUpdate = (prevProps, prevState) => {
@@ -1155,6 +1157,7 @@ class Confirm extends PureComponent {
         isSelectOnly: true,
         onSelectAccount: this.onSelectAccount,
         checkBalanceError: this.getBalanceError,
+        isEvmOnly: true,
       },
     });
   };

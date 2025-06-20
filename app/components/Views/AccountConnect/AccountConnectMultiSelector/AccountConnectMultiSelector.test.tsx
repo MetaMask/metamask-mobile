@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { EthScope, SolScope } from '@metamask/keyring-api';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import { backgroundState } from '../../../../util/test/initial-root-state';
@@ -9,7 +10,6 @@ import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/select
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { CaipAccountId } from '@metamask/utils';
 import { WalletClientType } from '../../../../core/SnapKeyring/MultichainWalletSnapClient';
-import { SolScope } from '@metamask/keyring-api';
 
 const mockNavigate = jest.fn();
 const mockOnSubmit = jest.fn();
@@ -61,6 +61,7 @@ const mockAccounts = [
     isSelected: false,
     caipAccountId: 'eip155:0:0x1234' as const,
     isLoadingAccount: false,
+    scopes: [EthScope.Eoa],
   },
   {
     address: '0x5678',
@@ -71,6 +72,7 @@ const mockAccounts = [
     isSelected: false,
     caipAccountId: 'eip155:0:0x5678' as const,
     isLoadingAccount: false,
+    scopes: [EthScope.Eoa],
   },
 ];
 

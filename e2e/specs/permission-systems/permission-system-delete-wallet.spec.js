@@ -46,7 +46,7 @@ describe(Regression('Permission System'), () => {
         await TabBarComponent.tapBrowser();
         await Assertions.checkIfVisible(Browser.browserScreenID);
         await Browser.navigateToTestDApp();
-        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.checkIfVisible(ConnectedAccountsModal.title);
         await ConnectedAccountsModal.scrollToBottomOfModal();
         await TestHelpers.delay(2000);
@@ -98,7 +98,7 @@ describe(Regression('Permission System'), () => {
         //should no longer be connected to the  dapp
         await TabBarComponent.tapBrowser();
         await Assertions.checkIfVisible(Browser.browserScreenID);
-        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
         await NetworkListModal.scrollToBottomOfNetworkList();
         await Assertions.checkIfVisible(NetworkListModal.testNetToggle);

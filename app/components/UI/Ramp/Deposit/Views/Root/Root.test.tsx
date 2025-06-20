@@ -7,6 +7,7 @@ const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
 const mockCheckExistingToken = jest.fn();
+let mockGetStarted = true;
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -28,20 +29,41 @@ jest.mock('../../sdk', () => {
     ...actual,
     useDepositSDK: () => ({
       checkExistingToken: mockCheckExistingToken,
+      getStarted: mockGetStarted,
     }),
   };
 });
 
+jest.mock(
+  './GetStarted/GetStarted',
+  () =>
+    function MockGetStarted() {
+      return null;
+    },
+);
+
 describe('Root Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetStarted = true;
   });
 
-  it('redirects to BUILD_QUOTE when no token exists', async () => {
+  it('render matches snapshot', () => {
+    const screen = renderDepositTestComponent(Root, Routes.DEPOSIT.ROOT);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('calls checkExistingToken on load', async () => {
     mockCheckExistingToken.mockResolvedValue(false);
-
     renderDepositTestComponent(Root, Routes.DEPOSIT.ROOT);
+    await waitFor(() => {
+      expect(mockCheckExistingToken).toHaveBeenCalled();
+    });
+  });
 
+  it('redirects to BUILD_QUOTE when getStarted is true', async () => {
+    mockCheckExistingToken.mockResolvedValue(false);
+    renderDepositTestComponent(Root, Routes.DEPOSIT.ROOT);
     await waitFor(() => {
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
@@ -55,43 +77,12 @@ describe('Root Component', () => {
     });
   });
 
-  it('redirects to VERIFY_IDENTITY when token exists', async () => {
-    mockCheckExistingToken.mockResolvedValue(true);
-
+  it('does not redirect when getStarted is false', async () => {
+    mockGetStarted = false;
+    mockCheckExistingToken.mockResolvedValue(false);
     renderDepositTestComponent(Root, Routes.DEPOSIT.ROOT);
-
     await waitFor(() => {
-      expect(mockReset).toHaveBeenCalledWith({
-        index: 0,
-        routes: [
-          {
-            name: Routes.DEPOSIT.VERIFY_IDENTITY,
-            params: { animationEnabled: false },
-          },
-        ],
-      });
-    });
-  });
-
-  it('does not reset navigation until initialRoute is set', async () => {
-    mockCheckExistingToken.mockImplementation(
-      () =>
-        new Promise((resolve) => {
-          setTimeout(() => resolve(false), 100);
-        }),
-    );
-    renderDepositTestComponent(Root, Routes.DEPOSIT.ROOT);
-    expect(mockReset).not.toHaveBeenCalled();
-    await waitFor(() => {
-      expect(mockReset).toHaveBeenCalledWith({
-        index: 0,
-        routes: [
-          {
-            name: Routes.DEPOSIT.BUILD_QUOTE,
-            params: { animationEnabled: false },
-          },
-        ],
-      });
+      expect(mockReset).not.toHaveBeenCalled();
     });
   });
 });

@@ -10,6 +10,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { useTheme } from '../../../../util/theme';
 import { selectTokenList } from '../../../../selectors/tokenListController';
 import { ImportTokenViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { FlashList } from '@shopify/flash-list';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -55,6 +56,9 @@ const createStyles = (colors: any) =>
     ethLogo: {
       width: 50,
       height: 50,
+    },
+    listContainer: {
+      flex: 1,
     },
   });
 
@@ -111,36 +115,43 @@ const AssetList = ({
     [tokenList, styles],
   );
 
+  const renderItem = useCallback(
+    ({ item }: { item: { symbol: string; name: string } }) => {
+      const { symbol, name } = item || {};
+      return (
+        <StyledButton
+          type={'normal'}
+          containerStyle={styles.item}
+          onPress={() => handleSelectAsset(item)}
+        >
+          <View style={styles.assetListElement}>
+            <View style={styles.assetIcon}>{renderLogo(item)}</View>
+            <View style={styles.assetInfo}>
+              <Text style={styles.textSymbol}>{symbol}</Text>
+              {!!name && <Text style={styles.text}>{name}</Text>}
+            </View>
+          </View>
+        </StyledButton>
+      );
+    },
+    [styles, handleSelectAsset, renderLogo],
+  );
+
+  if (searchResults.length === 0) {
+    return <Text style={styles.text}>{emptyMessage}</Text>;
+  }
+
   return (
-    <View testID={ImportTokenViewSelectorsIDs.ASSET_SEARCH_CONTAINER}>
-      {
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        searchResults.map((_: any, i: number) => {
-          const { symbol, name } = searchResults[i] || {};
-          return (
-            <StyledButton
-              type={'normal'}
-              containerStyle={styles.item}
-              onPress={() => handleSelectAsset(searchResults[i])} // eslint-disable-line
-              key={i}
-            >
-              <View style={styles.assetListElement}>
-                <View style={styles.assetIcon}>
-                  {renderLogo(searchResults[i])}
-                </View>
-                <View style={styles.assetInfo}>
-                  <Text style={styles.textSymbol}>{symbol}</Text>
-                  {!!name && <Text style={styles.text}>{name}</Text>}
-                </View>
-              </View>
-            </StyledButton>
-          );
-        })
-      }
-      {searchResults.length === 0 && (
-        <Text style={styles.text}>{emptyMessage}</Text>
-      )}
+    <View
+      testID={ImportTokenViewSelectorsIDs.ASSET_SEARCH_CONTAINER}
+      style={styles.listContainer}
+    >
+      <FlashList
+        data={searchResults}
+        renderItem={renderItem}
+        estimatedItemSize={80}
+        keyExtractor={(_, index) => index.toString()}
+      />
     </View>
   );
 };

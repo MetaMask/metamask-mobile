@@ -1,83 +1,46 @@
-import { captureException } from '@sentry/react-native';
 import { hasProperty, isObject } from '@metamask/utils';
-import {
-  type NetworkConfiguration,
-  RpcEndpointType,
-} from '@metamask/network-controller';
-import {
-  ChainId,
-  BuiltInNetworkName,
-  NetworkNickname,
-  BUILT_IN_CUSTOM_NETWORKS_RPC,
-  NetworksTicker,
-  BlockExplorerUrl,
-} from '@metamask/controller-utils';
-
 import { ensureValidState } from './util';
+import { captureException } from '@sentry/react-native';
 
 /**
- * Migration 78: Add 'Monad Testnet'
+ * Migration 78: Reset PhishingController phishingLists
  *
- * This migration add Monad Testnet to the network controller
- * as a default Testnet.
+ * This migration resets only the phishingLists array in the PhishingController state
+ * while preserving all other state properties. This allows the app to rebuild the lists
+ * while maintaining user preferences and configuration.
  */
 const migration = (state: unknown): unknown => {
   const migrationVersion = 78;
 
-  // Ensure the state is valid for migration
   if (!ensureValidState(state, migrationVersion)) {
     return state;
   }
 
   try {
     if (
-      hasProperty(state, 'engine') &&
-      hasProperty(state.engine, 'backgroundState') &&
-      hasProperty(state.engine.backgroundState, 'NetworkController') &&
-      isObject(state.engine.backgroundState.NetworkController) &&
-      isObject(
-        state.engine.backgroundState.NetworkController
-          .networkConfigurationsByChainId,
-      )
+      !hasProperty(state.engine.backgroundState, 'PhishingController') ||
+      !isObject(state.engine.backgroundState.PhishingController)
     ) {
-      // It is possible to get the Monad Network configuration by `getDefaultNetworkConfigurationsByChainId()`,
-      // But we choose to re-define it here to prevent the need to change this file,
-      // when `getDefaultNetworkConfigurationsByChainId()` has some breaking changes in the future.
-      const networkClientId = BuiltInNetworkName.MonadTestnet;
-      const chainId = ChainId[networkClientId];
-      const monadTestnetConfiguration: NetworkConfiguration = {
-        blockExplorerUrls: [BlockExplorerUrl[networkClientId]],
-        chainId,
-        defaultRpcEndpointIndex: 0,
-        defaultBlockExplorerUrlIndex: 0,
-        name: NetworkNickname[networkClientId],
-        nativeCurrency: NetworksTicker[networkClientId],
-        rpcEndpoints: [
-          {
-            failoverUrls: [],
-            networkClientId,
-            type: RpcEndpointType.Custom,
-            url: BUILT_IN_CUSTOM_NETWORKS_RPC['monad-testnet'],
-          },
-        ],
-      };
-
-      // Regardless if the network already exists, we will overwrite it with the default configuration.
-      state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[
-        chainId
-      ] = monadTestnetConfiguration;
-    } else {
       captureException(
         new Error(
-          `Migration ${migrationVersion}: NetworkController or networkConfigurationsByChainId not found in state`,
+          `Migration 078: Invalid PhishingController state: '${JSON.stringify(
+            state.engine.backgroundState.PhishingController,
+          )}'`,
         ),
       );
+      return state;
     }
+
+    // Only reset the phishingLists field to an empty array
+    // while preserving all other fields
+    state.engine.backgroundState.PhishingController.phishingLists = [];
+    state.engine.backgroundState.PhishingController.stalelistLastFetched = 0;
+
     return state;
   } catch (error) {
     captureException(
       new Error(
-        `Migration ${migrationVersion}: Adding Monad Testnet failed with error: ${error}`,
+        `Migration 078: cleaning PhishingController state failed with error: ${error}`,
       ),
     );
     return state;

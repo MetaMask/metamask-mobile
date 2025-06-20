@@ -63,50 +63,147 @@ exports[`PermissionsSummary should render correctly 1`] = `
         >
           <View
             style={
-              {
-                "alignItems": "center",
-                "borderRadius": 10,
-                "justifyContent": "center",
-              }
+              [
+                {
+                  "borderRadius": 16,
+                  "height": 32,
+                  "width": 32,
+                },
+                {
+                  "alignItems": "center",
+                  "borderRadius": 10,
+                  "justifyContent": "center",
+                },
+              ]
             }
           >
-            <View
-              style={
-                [
-                  {
-                    "alignContent": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderRadius": 27,
-                    "height": 54,
-                    "justifyContent": "center",
-                    "width": 54,
-                  },
-                  {
-                    "borderRadius": 16,
-                    "height": 32,
-                    "width": 32,
-                  },
-                ]
-              }
+            <TouchableOpacity
+              onPress={[Function]}
+              testID="accounts-connected-network-picker"
             >
-              <Text
+              <View
+                onLayout={[Function]}
                 style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontSize": 24,
-                      "fontWeight": "400",
-                      "textAlign": "center",
-                      "textTransform": "uppercase",
-                    },
-                    undefined,
-                  ]
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
                 }
+                testID="badge-wrapper-badge"
               >
-                a
-              </Text>
-            </View>
+                <View>
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "#f3f5f9",
+                        "borderColor": "#b7bbc866",
+                        "borderRadius": 16,
+                        "borderWidth": 1,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "overflow": "hidden",
+                        "width": 32,
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 16,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
+                      }
+                    >
+                      a
+                    </Text>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
         <View
@@ -357,6 +454,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                                 "flexDirection": "row",
                               }
                             }
+                            testID="avatar-group-container"
                           >
                             <View
                               style={
@@ -367,12 +465,13 @@ exports[`PermissionsSummary should render correctly 1`] = `
                               testID="avatargroup-avatar-container-0"
                             >
                               <View
+                                caipChainId="eip155:1"
                                 style={
                                   {
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
+                                    "borderRadius": 4,
                                     "borderWidth": 1.5,
                                     "height": 16,
                                     "justifyContent": "center",
@@ -584,6 +683,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                           "flexDirection": "row",
                         }
                       }
+                      testID="avatar-group-container"
                     >
                       <View
                         style={
@@ -890,6 +990,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                           "flexDirection": "row",
                         }
                       }
+                      testID="avatar-group-container"
                     >
                       <View
                         style={
@@ -900,12 +1001,13 @@ exports[`PermissionsSummary should render correctly 1`] = `
                         testID="avatargroup-avatar-container-0"
                       >
                         <View
+                          caipChainId="eip155:1"
                           style={
                             {
                               "alignItems": "center",
                               "backgroundColor": "#ffffff",
                               "borderColor": "#ffffff",
-                              "borderRadius": 8,
+                              "borderRadius": 4,
                               "borderWidth": 1.5,
                               "height": 16,
                               "justifyContent": "center",
@@ -1232,50 +1334,147 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
         >
           <View
             style={
-              {
-                "alignItems": "center",
-                "borderRadius": 10,
-                "justifyContent": "center",
-              }
+              [
+                {
+                  "borderRadius": 16,
+                  "height": 32,
+                  "width": 32,
+                },
+                {
+                  "alignItems": "center",
+                  "borderRadius": 10,
+                  "justifyContent": "center",
+                },
+              ]
             }
           >
-            <View
-              style={
-                [
-                  {
-                    "alignContent": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderRadius": 27,
-                    "height": 54,
-                    "justifyContent": "center",
-                    "width": 54,
-                  },
-                  {
-                    "borderRadius": 16,
-                    "height": 32,
-                    "width": 32,
-                  },
-                ]
-              }
+            <TouchableOpacity
+              onPress={[Function]}
+              testID="accounts-connected-network-picker"
             >
-              <Text
+              <View
+                onLayout={[Function]}
                 style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontSize": 24,
-                      "fontWeight": "400",
-                      "textAlign": "center",
-                      "textTransform": "uppercase",
-                    },
-                    undefined,
-                  ]
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
                 }
+                testID="badge-wrapper-badge"
               >
-                a
-              </Text>
-            </View>
+                <View>
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "#f3f5f9",
+                        "borderColor": "#b7bbc866",
+                        "borderRadius": 16,
+                        "borderWidth": 1,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "overflow": "hidden",
+                        "width": 32,
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 16,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
+                      }
+                    >
+                      a
+                    </Text>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
         <View
@@ -1562,7 +1761,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderRadius": 8,
+                        "borderRadius": 4,
                         "height": 16,
                         "justifyContent": "center",
                         "overflow": "hidden",
@@ -1863,50 +2062,147 @@ exports[`PermissionsSummary should render only the account permissions card when
         >
           <View
             style={
-              {
-                "alignItems": "center",
-                "borderRadius": 10,
-                "justifyContent": "center",
-              }
+              [
+                {
+                  "borderRadius": 16,
+                  "height": 32,
+                  "width": 32,
+                },
+                {
+                  "alignItems": "center",
+                  "borderRadius": 10,
+                  "justifyContent": "center",
+                },
+              ]
             }
           >
-            <View
-              style={
-                [
-                  {
-                    "alignContent": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderRadius": 27,
-                    "height": 54,
-                    "justifyContent": "center",
-                    "width": 54,
-                  },
-                  {
-                    "borderRadius": 16,
-                    "height": 32,
-                    "width": 32,
-                  },
-                ]
-              }
+            <TouchableOpacity
+              onPress={[Function]}
+              testID="accounts-connected-network-picker"
             >
-              <Text
+              <View
+                onLayout={[Function]}
                 style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontSize": 24,
-                      "fontWeight": "400",
-                      "textAlign": "center",
-                      "textTransform": "uppercase",
-                    },
-                    undefined,
-                  ]
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
                 }
+                testID="badge-wrapper-badge"
               >
-                a
-              </Text>
-            </View>
+                <View>
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "#f3f5f9",
+                        "borderColor": "#b7bbc866",
+                        "borderRadius": 16,
+                        "borderWidth": 1,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "overflow": "hidden",
+                        "width": 32,
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 16,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
+                      }
+                    >
+                      a
+                    </Text>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
         <View
@@ -2105,6 +2401,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                         "flexDirection": "row",
                       }
                     }
+                    testID="avatar-group-container"
                   >
                     <View
                       style={
@@ -2797,6 +3094,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                         "flexDirection": "row",
                       }
                     }
+                    testID="avatar-group-container"
                   >
                     <View
                       style={
@@ -2807,12 +3105,13 @@ exports[`PermissionsSummary should render only the network permissions card when
                       testID="avatargroup-avatar-container-0"
                     >
                       <View
+                        caipChainId="eip155:1"
                         style={
                           {
                             "alignItems": "center",
                             "backgroundColor": "#ffffff",
                             "borderColor": "#ffffff",
-                            "borderRadius": 8,
+                            "borderRadius": 4,
                             "borderWidth": 1.5,
                             "height": 16,
                             "justifyContent": "center",
@@ -3138,50 +3437,147 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
         >
           <View
             style={
-              {
-                "alignItems": "center",
-                "borderRadius": 10,
-                "justifyContent": "center",
-              }
+              [
+                {
+                  "borderRadius": 16,
+                  "height": 32,
+                  "width": 32,
+                },
+                {
+                  "alignItems": "center",
+                  "borderRadius": 10,
+                  "justifyContent": "center",
+                },
+              ]
             }
           >
-            <View
-              style={
-                [
-                  {
-                    "alignContent": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderRadius": 27,
-                    "height": 54,
-                    "justifyContent": "center",
-                    "width": 54,
-                  },
-                  {
-                    "borderRadius": 16,
-                    "height": 32,
-                    "width": 32,
-                  },
-                ]
-              }
+            <TouchableOpacity
+              onPress={[Function]}
+              testID="accounts-connected-network-picker"
             >
-              <Text
+              <View
+                onLayout={[Function]}
                 style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontSize": 24,
-                      "fontWeight": "400",
-                      "textAlign": "center",
-                      "textTransform": "uppercase",
-                    },
-                    undefined,
-                  ]
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
                 }
+                testID="badge-wrapper-badge"
               >
-                a
-              </Text>
-            </View>
+                <View>
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "#f3f5f9",
+                        "borderColor": "#b7bbc866",
+                        "borderRadius": 16,
+                        "borderWidth": 1,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "overflow": "hidden",
+                        "width": 32,
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 16,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
+                      }
+                    >
+                      a
+                    </Text>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
         <View
@@ -3432,6 +3828,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                                 "flexDirection": "row",
                               }
                             }
+                            testID="avatar-group-container"
                           >
                             <View
                               style={
@@ -3442,12 +3839,13 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                               testID="avatargroup-avatar-container-0"
                             >
                               <View
+                                caipChainId="eip155:1"
                                 style={
                                   {
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
+                                    "borderRadius": 4,
                                     "borderWidth": 1.5,
                                     "height": 16,
                                     "justifyContent": "center",
@@ -3659,6 +4057,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                           "flexDirection": "row",
                         }
                       }
+                      testID="avatar-group-container"
                     >
                       <View
                         style={
@@ -3965,6 +4364,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                           "flexDirection": "row",
                         }
                       }
+                      testID="avatar-group-container"
                     >
                       <View
                         style={
@@ -3975,12 +4375,13 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                         testID="avatargroup-avatar-container-0"
                       >
                         <View
+                          caipChainId="eip155:1"
                           style={
                             {
                               "alignItems": "center",
                               "backgroundColor": "#ffffff",
                               "borderColor": "#ffffff",
-                              "borderRadius": 8,
+                              "borderRadius": 4,
                               "borderWidth": 1.5,
                               "height": 16,
                               "justifyContent": "center",
@@ -4307,50 +4708,147 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
         >
           <View
             style={
-              {
-                "alignItems": "center",
-                "borderRadius": 10,
-                "justifyContent": "center",
-              }
+              [
+                {
+                  "borderRadius": 16,
+                  "height": 32,
+                  "width": 32,
+                },
+                {
+                  "alignItems": "center",
+                  "borderRadius": 10,
+                  "justifyContent": "center",
+                },
+              ]
             }
           >
-            <View
-              style={
-                [
-                  {
-                    "alignContent": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderRadius": 27,
-                    "height": 54,
-                    "justifyContent": "center",
-                    "width": 54,
-                  },
-                  {
-                    "borderRadius": 16,
-                    "height": 32,
-                    "width": 32,
-                  },
-                ]
-              }
+            <TouchableOpacity
+              onPress={[Function]}
+              testID="accounts-connected-network-picker"
             >
-              <Text
+              <View
+                onLayout={[Function]}
                 style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontSize": 24,
-                      "fontWeight": "400",
-                      "textAlign": "center",
-                      "textTransform": "uppercase",
-                    },
-                    undefined,
-                  ]
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
                 }
+                testID="badge-wrapper-badge"
               >
-                a
-              </Text>
-            </View>
+                <View>
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "#f3f5f9",
+                        "borderColor": "#b7bbc866",
+                        "borderRadius": 16,
+                        "borderWidth": 1,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "overflow": "hidden",
+                        "width": 32,
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 16,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
+                      }
+                    >
+                      a
+                    </Text>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
         <View
@@ -4601,6 +5099,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                                 "flexDirection": "row",
                               }
                             }
+                            testID="avatar-group-container"
                           >
                             <View
                               style={
@@ -4611,12 +5110,13 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                               testID="avatargroup-avatar-container-0"
                             >
                               <View
+                                caipChainId="eip155:1"
                                 style={
                                   {
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
+                                    "borderRadius": 4,
                                     "borderWidth": 1.5,
                                     "height": 16,
                                     "justifyContent": "center",
@@ -4828,6 +5328,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                           "flexDirection": "row",
                         }
                       }
+                      testID="avatar-group-container"
                     >
                       <View
                         style={
@@ -5134,6 +5635,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                           "flexDirection": "row",
                         }
                       }
+                      testID="avatar-group-container"
                     >
                       <View
                         style={
@@ -5144,12 +5646,13 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                         testID="avatargroup-avatar-container-0"
                       >
                         <View
+                          caipChainId="eip155:1"
                           style={
                             {
                               "alignItems": "center",
                               "backgroundColor": "#ffffff",
                               "borderColor": "#ffffff",
-                              "borderRadius": 8,
+                              "borderRadius": 4,
                               "borderWidth": 1.5,
                               "height": 16,
                               "justifyContent": "center",

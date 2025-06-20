@@ -16,6 +16,38 @@ import Engine from '../../../../../core/Engine';
 import * as networks from '../../../../../util/networks';
 const { PreferencesController } = Engine.context;
 
+jest.mock(
+  '../../../../../util/metrics/MultichainAPI/networkMetricUtils',
+  () => ({
+    removeItemFromChainIdList: jest.fn().mockReturnValue({
+      chain_id_list: ['eip155:1'],
+    }),
+  }),
+);
+
+jest.mock('../../../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn(() => ({
+        build: jest.fn(),
+      })),
+    })),
+  }),
+  withMetricsAwareness: (Component: unknown) => Component,
+}));
+
+jest.mock('../../../../../core/Analytics', () => ({
+  MetaMetrics: {
+    getInstance: jest.fn().mockReturnValue({
+      addTraitsToUser: jest.fn(),
+    }),
+  },
+  MetaMetricsEvents: {
+    NETWORK_REMOVED: 'Network Removed',
+  },
+}));
+
 // Mock the entire module
 jest.mock('../../../../../util/networks/isNetworkUiRedesignEnabled', () => ({
   isNetworkUiRedesignEnabled: jest.fn(),

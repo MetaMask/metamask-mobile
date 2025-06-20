@@ -8,10 +8,10 @@ import {
   weiToFiatNumber,
 } from '../../../../util/number';
 import useBalance from '../../Stake/hooks/useBalance';
-import { EarnTokenDetails } from './useEarnTokenDetails';
+import { EarnTokenDetails } from '../types/lending.types';
+import useEarnDepositGasFee from './useEarnGasFee';
+import { useEarnMetadata } from './useEarnMetadata';
 import useInputHandler from './useInput';
-import useStakingGasFee from '../../Stake/hooks/useStakingGasFee';
-import useVaultMetadata from '../../Stake/hooks/useVaultMetadata';
 
 export interface EarnInputProps {
   earnToken: EarnTokenDetails;
@@ -28,7 +28,7 @@ const useEarnInputHandlers = ({
   const [estimatedAnnualRewards, setEstimatedAnnualRewards] = useState('-');
 
   const balanceMinimalUnit: BN4 = useMemo(
-    () => new BN4(earnToken.balanceMinimalUnit),
+    () => new BN4(earnToken?.balanceMinimalUnit ?? '0'),
     [earnToken.balanceMinimalUnit],
   );
 
@@ -48,36 +48,46 @@ const useEarnInputHandlers = ({
     amountFiatNumber,
     handleMaxInput,
   } = useInputHandler({
-    balance: earnToken.balanceMinimalUnit,
+    balance: earnToken?.balanceMinimalUnit ?? '0',
     decimals: earnToken.decimals,
     ticker: earnToken.ticker ?? earnToken.symbol,
     conversionRate,
     exchangeRate,
   });
 
-  const { estimatedGasFeeWei, isLoadingStakingGasFee, isStakingGasFeeError } =
-    useStakingGasFee(balanceWei.toString());
+  const {
+    estimatedEarnGasFeeWei: estimatedGasFeeWei,
+    isLoadingEarnGasFee,
+    getEstimatedEarnGasFee,
+    isEarnGasFeeError,
+  } = useEarnDepositGasFee(amountTokenMinimalUnit, earnToken.experience);
 
   // max amount of native currency stakable after gas fee
   const maxStakeableAmountWei = useMemo(
     () =>
-      !isStakingGasFeeError && balanceWei.gt(estimatedGasFeeWei)
+      !isEarnGasFeeError &&
+      !isLoadingEarnGasFee &&
+      balanceWei.gt(estimatedGasFeeWei)
         ? balanceWei.sub(estimatedGasFeeWei)
         : new BN4(0),
 
-    [balanceWei, estimatedGasFeeWei, isStakingGasFeeError],
+    [balanceWei, estimatedGasFeeWei, isEarnGasFeeError, isLoadingEarnGasFee],
   );
 
   const isOverMaximum = useMemo(() => {
-    const isOverMaximumEth =
-      !!earnToken.isETH &&
-      isNonZeroAmount &&
-      amountTokenMinimalUnit.sub(maxStakeableAmountWei).gt(new BN4(0));
-    const isOverMaximumToken =
-      !earnToken.isETH &&
-      isNonZeroAmount &&
-      amountTokenMinimalUnit.sub(balanceMinimalUnit).gt(new BN4(0)) &&
-      balanceWei.sub(estimatedGasFeeWei).gte(new BN4(0));
+    let isOverMaximumEth = false;
+    if (earnToken.isETH && isNonZeroAmount && !isLoadingEarnGasFee) {
+      isOverMaximumEth = amountTokenMinimalUnit
+        .sub(maxStakeableAmountWei)
+        .gt(new BN4(0));
+    }
+    let isOverMaximumToken = false;
+    if (!earnToken.isETH && isNonZeroAmount && !isLoadingEarnGasFee) {
+      isOverMaximumToken = amountTokenMinimalUnit
+        .sub(balanceMinimalUnit)
+        .gt(new BN4(0));
+    }
+
     return {
       isOverMaximumEth,
       isOverMaximumToken,
@@ -88,24 +98,32 @@ const useEarnInputHandlers = ({
     maxStakeableAmountWei,
     earnToken.isETH,
     balanceMinimalUnit,
-    balanceWei,
-    estimatedGasFeeWei,
+    isLoadingEarnGasFee,
   ]);
 
-  // TODO: Update useVaultMetadata to support lending and pooled-staking or separate and call separate hooks.
-  const { annualRewardRate, annualRewardRateDecimal, isLoadingVaultMetadata } =
-    useVaultMetadata();
-
+  const { annualRewardRate, annualRewardRateDecimal, isLoadingEarnMetadata } =
+    useEarnMetadata(earnToken);
   const handleMax = useCallback(async () => {
     if (!balanceMinimalUnit) return;
-    handleMaxInput(
-      earnToken.isETH ? maxStakeableAmountWei : balanceMinimalUnit,
-    );
+
+    let maxMinimalUnit;
+
+    if (earnToken.isETH) {
+      const preEstimatedGasFee = await getEstimatedEarnGasFee(
+        maxStakeableAmountWei,
+      );
+      maxMinimalUnit = balanceWei.sub(preEstimatedGasFee);
+    } else {
+      maxMinimalUnit = balanceMinimalUnit;
+    }
+    handleMaxInput(maxMinimalUnit);
   }, [
     balanceMinimalUnit,
     handleMaxInput,
     maxStakeableAmountWei,
     earnToken.isETH,
+    getEstimatedEarnGasFee,
+    balanceWei,
   ]);
 
   const annualRewardsToken = useMemo(
@@ -115,8 +133,13 @@ const useEarnInputHandlers = ({
           fromTokenMinimalUnit(amountTokenMinimalUnit, earnToken.decimals),
         ) * annualRewardRateDecimal,
         5,
-      )} ETH`,
-    [amountTokenMinimalUnit, annualRewardRateDecimal, earnToken.decimals],
+      )} ${earnToken.ticker}`,
+    [
+      amountTokenMinimalUnit,
+      annualRewardRateDecimal,
+      earnToken.decimals,
+      earnToken.ticker,
+    ],
   );
 
   const annualRewardsFiat = useMemo(
@@ -160,7 +183,7 @@ const useEarnInputHandlers = ({
     : `${tokenBalance}`;
 
   const getDepositTxGasPercentage = useCallback(() => {
-    if (!isNonZeroAmount || isLoadingStakingGasFee || !estimatedGasFeeWei) {
+    if (!isNonZeroAmount || isLoadingEarnGasFee || !estimatedGasFeeWei) {
       return '0';
     }
 
@@ -176,7 +199,7 @@ const useEarnInputHandlers = ({
     conversionRate,
     estimatedGasFeeWei,
     isNonZeroAmount,
-    isLoadingStakingGasFee,
+    isLoadingEarnGasFee,
     amountFiatNumber,
   ]);
 
@@ -208,8 +231,8 @@ const useEarnInputHandlers = ({
     annualRewardsFiat,
     annualRewardRate,
     handleMax,
-    isLoadingStakingGasFee,
-    isLoadingVaultMetadata,
+    isLoadingEarnGasFee,
+    isLoadingEarnMetadata,
     balanceValue,
     getDepositTxGasPercentage,
     isHighGasCostImpact,

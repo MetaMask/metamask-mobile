@@ -134,7 +134,6 @@ describe('StakingWithdrawal', () => {
       },
     );
 
-
     expect(mockTrackPageViewedEvent).toHaveBeenCalledTimes(1);
 
     await waitFor(() => {
