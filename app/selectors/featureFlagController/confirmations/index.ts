@@ -6,6 +6,7 @@ import { getFeatureFlagValue } from '../env';
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ConfirmationRedesignRemoteFlags = {
   approve: boolean;
+  contract_deployment: boolean;
   contract_interaction: boolean;
   signatures: boolean;
   staking_confirmations: boolean;
@@ -80,8 +81,14 @@ export const selectConfirmationRedesignFlagsFromRemoteFeatureFlags = (
     false,
   );
 
+  const isContractDeploymentEnabled = getFeatureFlagValue(
+    process.env.FEATURE_FLAG_REDESIGNED_CONTRACT_DEPLOYMENT,
+    remoteValues?.contract_deployment !== false,
+  );
+
   return {
     approve: isApproveEnabled,
+    contract_deployment: isContractDeploymentEnabled,
     contract_interaction: isContractInteractionEnabled,
     signatures: isSignaturesEnabled,
     staking_confirmations: isStakingConfirmationsEnabled,
