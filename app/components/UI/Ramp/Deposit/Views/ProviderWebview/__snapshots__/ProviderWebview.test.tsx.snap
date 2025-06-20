@@ -241,6 +241,9 @@ exports[`ProviderWebview Component handles webview HTTP error and shows error st
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={9}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -592,6 +595,9 @@ exports[`ProviderWebview Component renders default state correctly 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -933,7 +939,7 @@ exports[`ProviderWebview Component renders error state correctly 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={1}
+              handlerTag={4}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -1482,6 +1488,9 @@ exports[`ProviderWebview Component renders loading state correctly 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={3}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1822,6 +1831,9 @@ exports[`ProviderWebview Component renders loading when no payment URL is availa
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={5}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2162,6 +2174,9 @@ exports[`ProviderWebview Component renders webview when payment URL is available
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={6}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2513,6 +2528,9 @@ exports[`ProviderWebview Component resets state when error view retry is trigger
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={10}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
