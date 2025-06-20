@@ -854,32 +854,9 @@ class ChoosePassword extends PureComponent {
                         color={TextColor.Default}
                       >
                         {strings('import_from_seed.learn_more')}
-                        <Text
-                          variant={TextVariant.BodyMD}
-                          color={TextColor.Primary}
-                          onPress={this.learnMore}
-                          testID={ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID}
-                        >
-                          {' ' + strings('reset_password.learn_more')}
-                        </Text>
                       </Text>
                     }
                   />
-                  <View style={styles.learnMoreTextContainer}>
-                    <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Default}
-                    >
-                      {strings('import_from_seed.learn_more')}
-                      <Text
-                        variant={TextVariant.BodySM}
-                        color={TextColor.Primary}
-                        onPress={this.learnMore}
-                      >
-                        {' ' + strings('reset_password.learn_more')}
-                      </Text>
-                    </Text>
-                  </View>
                 </View>
 
                 <View style={styles.ctaWrapper}>
