@@ -1,10 +1,11 @@
+import React from 'react';
 import {
   EthAccountType,
   SolAccountType,
   SolScope,
 } from '@metamask/keyring-api';
 import { fireEvent } from '@testing-library/react-native';
-import React from 'react';
+import '../../UI/Bridge/_mocks_/initialState';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import {
   selectCanSignTransactions,
