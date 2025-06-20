@@ -26,10 +26,6 @@ async function parseDeeplink({
   onHandled?: () => void;
 }) {
   try {
-    // Validate URL format before creating URL object
-    if (!url || !url.includes('://') || url.split('://')[1].length === 0) {
-      throw new Error('Invalid URL format');
-    }
     const validatedUrl = new URL(url);
     DevLogger.log(`DeepLinkManager:parse validatedUrl=${validatedUrl}`);
 
