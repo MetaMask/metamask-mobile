@@ -1,6 +1,6 @@
-import compareVersions from 'compare-versions';
+// import compareVersions from 'compare-versions';
 import { createSelector } from 'reselect';
-import packageJson from '../../../../package.json';
+// import packageJson from '../../../../package.json';
 import { selectRemoteFeatureFlags } from '..';
 
 /**
@@ -12,7 +12,7 @@ export interface MultichainAccountsFeatureFlag {
   minimumVersion: string | null;
 }
 
-const APP_VERSION = packageJson.version;
+// const APP_VERSION = packageJson.version;
 export const MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1 = '1';
 export const MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2 = '2';
 
@@ -40,24 +40,24 @@ export const assertMultichainAccountsFeatureFlagType = (value: unknown): value i
  * @returns True if the multichain accounts feature is enabled for the specified version, false otherwise.
  */
 export const isMultichainAccountsFeatureEnabled = (
-  enableMultichainAccounts: MultichainAccountsFeatureFlag | undefined,
-  featureVersionToCheck: string
-): boolean => {
-  if (!enableMultichainAccounts) {
-    return false;
-  }
+  _enableMultichainAccounts: MultichainAccountsFeatureFlag | undefined,
+  _featureVersionToCheck: string
+): boolean => true
+  // if (!enableMultichainAccounts) {
+  //   return false;
+  // }
 
-  const { enabled, featureVersion, minimumVersion } = enableMultichainAccounts;
+  // const { enabled, featureVersion, minimumVersion } = enableMultichainAccounts;
 
-  if (!enabled || !minimumVersion || !featureVersion) {
-    return false;
-  }
+  // if (!enabled || !minimumVersion || !featureVersion) {
+  //   return false;
+  // }
 
-  return (
-    featureVersion === featureVersionToCheck &&
-    compareVersions.compare(minimumVersion, APP_VERSION, '<=')
-  );
-};
+  // return (
+  //   featureVersion === featureVersionToCheck &&
+  //   compareVersions.compare(minimumVersion, APP_VERSION, '<=')
+  // );
+;
 
 /**
  * Creates a selector to determine if multichain accounts are enabled based on the feature version.

@@ -15,7 +15,8 @@ export class AccountTreeInitService {
     if(!assertMultichainAccountsFeatureFlagType(enableMultichainAccounts)) {
       return;
     }
-    const isMultichainAccountsEnabled = this.isMultichainAccountsEnabledForState1(enableMultichainAccounts);
+
+    const isMultichainAccountsEnabled = true; // this.isMultichainAccountsEnabledForState1(enableMultichainAccounts);
 
     if (isMultichainAccountsEnabled) {
       AccountTreeController.init();
