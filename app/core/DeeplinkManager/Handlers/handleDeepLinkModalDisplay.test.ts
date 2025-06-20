@@ -2,7 +2,7 @@ import handleDeepLinkModalDisplay from './handleDeepLinkModalDisplay';
 import { waitFor } from '@testing-library/react-native';
 import NavigationService from '../../../core/NavigationService';
 import { store } from '../../../store';
-import { RootState } from '../../../components/UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
+import { RootState } from '../../../reducers';
 
 jest.mock('../../../core/NavigationService', () => ({
     navigation: {
