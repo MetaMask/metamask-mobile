@@ -198,6 +198,12 @@ class SolanaTestDApp {
   async cancelSignMessage(): Promise<void> {
     await Gestures.waitAndTap(this.cancelSignMessageButtonSelector);
   }
+
+  async tapCancelButton(): Promise<void> {
+    const cancelButton = element(by.text('Cancel'));
+    await waitFor(cancelButton).toBeVisible().withTimeout(10000);
+    await cancelButton.tap();
+  }
 }
 
 export default new SolanaTestDApp();

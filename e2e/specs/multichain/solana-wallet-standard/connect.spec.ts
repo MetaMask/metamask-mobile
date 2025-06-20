@@ -8,7 +8,6 @@ import {
   connectSolanaTestDapp,
   navigateToSolanaTestDApp,
 } from './testHelpers';
-import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
 import TestHelpers from '../../../helpers';
 import { withSolanaAccountSnap } from '../../../common-solana';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
@@ -54,8 +53,7 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
       await header.connect();
       await header.selectMetaMask();
 
-      // Click connect button
-      await ConnectBottomSheet.tapCancelButton();
+      await SolanaTestDApp.tapCancelButton();
 
       await TestHelpers.delay(1000);
       const connectionStatus = await header.getConnectionStatus();
