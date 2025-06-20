@@ -101,7 +101,7 @@ import {
   getMetamaskNotificationsReadCount,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
-import { selectIsProfileSyncingEnabled } from '../../../selectors/identity';
+import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useAccountName } from '../../hooks/useAccountName';
 
@@ -125,6 +125,7 @@ import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { cloneDeep } from 'lodash';
 import { prepareNftDetectionEvents } from '../../../util/assets';
+import { toFormattedAddress } from '../../../util/address';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -160,7 +161,6 @@ const createStyles = ({ colors, typography }: Theme) =>
       alignItems: 'center',
     },
     banner: {
-      widht: '80%',
       marginTop: 20,
       paddingHorizontal: 16,
     },
@@ -340,7 +340,7 @@ const Wallet = ({
     selectIsMetamaskNotificationsEnabled,
   );
 
-  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
 
   const unreadNotificationCount = useSelector(
     getMetamaskNotificationsUnreadCount,
@@ -459,9 +459,9 @@ const Wallet = ({
 
         Object.values(evmNetworkConfigurations).forEach(
           ({ defaultRpcEndpointIndex, rpcEndpoints }) => {
-            AccountTrackerController.refresh(
+            AccountTrackerController.refresh([
               rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
-            );
+            ]);
           },
         );
       });
@@ -486,7 +486,7 @@ const Wallet = ({
         navigation,
         colors,
         isNotificationEnabled,
-        isProfileSyncingEnabled,
+        isBackupAndSyncEnabled,
         unreadNotificationCount,
         readNotificationCount,
       ),
@@ -501,7 +501,7 @@ const Wallet = ({
     networkImageSource,
     onTitlePress,
     isNotificationEnabled,
-    isProfileSyncingEnabled,
+    isBackupAndSyncEnabled,
     unreadNotificationCount,
     readNotificationCount,
   ]);
@@ -607,7 +607,7 @@ const Wallet = ({
   ]);
 
   const renderTabBar = useCallback(
-    (props) => (
+    (props: Record<string, unknown>) => (
       <View style={styles.base}>
         <DefaultTabBar
           underlineStyle={styles.tabUnderlineStyle}
@@ -638,12 +638,14 @@ const Wallet = ({
   }, []);
 
   const onChangeTab = useCallback(
-    async (obj) => {
+    async (obj: { ref: { props: { tabLabel: string } } }) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
         trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
       } else {
         // Return early if no address selected
         if (!selectedAddress) return;
+
+        const formattedSelectedAddress = toFormattedAddress(selectedAddress);
 
         trackEvent(
           createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES).build(),
@@ -651,7 +653,7 @@ const Wallet = ({
         // Call detect nfts
         const { NftDetectionController, NftController } = Engine.context;
         const previousNfts = cloneDeep(
-          NftController.state.allNfts[selectedAddress.toLowerCase()],
+          NftController.state.allNfts[formattedSelectedAddress],
         );
 
         try {
@@ -662,7 +664,7 @@ const Wallet = ({
         }
 
         const newNfts = cloneDeep(
-          NftController.state.allNfts[selectedAddress.toLowerCase()],
+          NftController.state.allNfts[formattedSelectedAddress],
         );
 
         const eventParams = prepareNftDetectionEvents(

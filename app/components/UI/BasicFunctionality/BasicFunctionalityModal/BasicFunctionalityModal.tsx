@@ -31,7 +31,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import { useMetrics } from '../../../hooks/useMetrics';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
-import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
+import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
 
 interface Props {
   route: {
@@ -51,7 +51,7 @@ const BasicFunctionalityModal = ({ route }: Props) => {
   const isEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
-  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
   const isNotificationsFeatureEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -86,7 +86,7 @@ const BasicFunctionalityModal = ({ route }: Props) => {
             was_notifications_on: isEnabled
               ? isNotificationsFeatureEnabled
               : false,
-            was_profile_syncing_on: isEnabled ? isProfileSyncingEnabled : false,
+            was_profile_syncing_on: isEnabled ? isBackupAndSyncEnabled : false,
           })
           .build(),
       );
@@ -120,6 +120,20 @@ const BasicFunctionalityModal = ({ route }: Props) => {
       </Text>
       <Text variant={TextVariant.BodyMD} style={styles.description}>
         {strings('default_settings.sheet.description_off')}
+      </Text>
+      <Text variant={TextVariant.BodyMD} style={styles.description}>
+        {strings('default_settings.sheet.description_off2')}{' '}
+        <Text variant={TextVariant.BodyMDBold} style={styles.description}>
+          {strings('default_settings.sheet.description_off2_related_features1')}{' '}
+        </Text>
+        <Text variant={TextVariant.BodyMD} style={styles.description}>
+          {strings(
+            'default_settings.sheet.description_off2_related_features1_and',
+          )}{' '}
+        </Text>
+        <Text variant={TextVariant.BodyMDBold} style={styles.description}>
+          {strings('default_settings.sheet.description_off2_related_features2')}
+        </Text>
       </Text>
       <View style={styles.bottom}>
         <Checkbox

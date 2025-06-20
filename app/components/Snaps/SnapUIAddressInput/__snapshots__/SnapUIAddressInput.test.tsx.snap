@@ -230,6 +230,7 @@ exports[`SnapUIAddressInput renders the matched address info in a disabled state
     >
       <SvgMock
         color="#4459ff"
+        fill="currentColor"
         height={16}
         name="Close"
         style={
@@ -334,6 +335,7 @@ exports[`SnapUIAddressInput renders with an invalid CAIP Account ID 1`] = `
       >
         <SvgMock
           color="#4459ff"
+          fill="currentColor"
           height={16}
           name="Close"
           style={

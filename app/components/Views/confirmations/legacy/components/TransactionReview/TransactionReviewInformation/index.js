@@ -257,7 +257,8 @@ class TransactionReviewInformation extends PureComponent {
   };
 
   setNetworkNonce = async () => {
-    const { networkClientId, setNonce, setProposedNonce, transaction } = this.props;
+    const { networkClientId, setNonce, setProposedNonce, transaction } =
+      this.props;
     const proposedNonce = await getNetworkNonce(transaction, networkClientId);
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
@@ -358,14 +359,16 @@ class TransactionReviewInformation extends PureComponent {
           currentCurrency,
           amountToken,
         );
-        const totalValue = `${amountToken + ' ' + selectedAsset.symbol
-          } + ${renderFromWei(totalGas)} ${getTicker(ticker)}`;
+        const totalValue = `${
+          amountToken + ' ' + selectedAsset.symbol
+        } + ${renderFromWei(totalGas)} ${getTicker(ticker)}`;
         return [totalFiat, totalValue];
       },
       ERC721: () => {
         const totalFiat = totalGasFiat;
-        const totalValue = `${selectedAsset.name}  (#${selectedAsset.tokenId
-          }) + ${renderFromWei(totalGas)} ${getTicker(ticker)}`;
+        const totalValue = `${selectedAsset.name}  (#${
+          selectedAsset.tokenId
+        }) + ${renderFromWei(totalGas)} ${getTicker(ticker)}`;
         return [totalFiat, totalValue];
       },
       default: () => [undefined, undefined],
@@ -515,11 +518,13 @@ class TransactionReviewInformation extends PureComponent {
           totalMaxConversion,
         });
 
-        renderableTotalMinNative = `${selectedAsset.name} ${' (#' + selectedAsset.tokenId + ')'
-          } + ${renderableTotalMinNative}`;
+        renderableTotalMinNative = `${selectedAsset.name} ${
+          ' (#' + selectedAsset.tokenId + ')'
+        } + ${renderableTotalMinNative}`;
 
-        renderableTotalMaxNative = `${selectedAsset.name} ${' (#' + selectedAsset.tokenId + ')'
-          } + ${renderableTotalMaxNative}`;
+        renderableTotalMaxNative = `${selectedAsset.name} ${
+          ' (#' + selectedAsset.tokenId + ')'
+        } + ${renderableTotalMaxNative}`;
 
         return [
           renderableTotalMinNative,
@@ -761,7 +766,7 @@ const mapStateToProps = (state) => {
       chainId,
       getRampNetworks(state),
     ),
-    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state, chainId),
   };
 };
 

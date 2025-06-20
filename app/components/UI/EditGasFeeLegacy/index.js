@@ -343,7 +343,7 @@ const EditGasFeeLegacy = ({
               <View style={styles.customGasHeader}>
                 <TouchableOpacity onPress={onCancel}>
                   <Icon
-                    name={'ios-arrow-back'}
+                    name={'arrow-back'}
                     size={24}
                     color={colors.text.default}
                   />
@@ -352,7 +352,7 @@ const EditGasFeeLegacy = ({
                   {strings('transaction.edit_network_fee')}
                 </Text>
                 <Icon
-                  name={'ios-arrow-back'}
+                  name={'arrow-back'}
                   size={24}
                   color={colors.background.default}
                 />
@@ -404,7 +404,7 @@ const EditGasFeeLegacy = ({
                     </Text>
                     <Text noMargin link bold style={styles.advancedOptionsIcon}>
                       <Icon
-                        name={`ios-arrow-${
+                        name={`arrow-${
                           showAdvancedOptions ? 'up' : 'down'
                         }`}
                       />

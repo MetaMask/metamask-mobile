@@ -139,7 +139,6 @@ export const makeSelectNetworkImageSource = () =>
 
       const networkConfig = networkConfigurations[chainId];
       if (networkConfig) {
-        // @ts-expect-error The utils/network file is still JS and this function expects a networkType, and should be optional
         return getNetworkImageSource({ chainId: networkConfig.chainId });
       }
       return getNetworkImageSource({

@@ -12,6 +12,7 @@ import {
 import {
   isEIP1559Transaction,
   TransactionType,
+  TransactionEnvelopeType,
 } from '@metamask/transaction-controller';
 import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '../../core/Engine';
@@ -169,6 +170,17 @@ const actionKeys = {
     'transactions.tx_review_staking_unstake',
   ),
 };
+
+/**
+ * Checks if a transaction is a legacy transaction by examining its type.
+ * Legacy transactions are identified by the TransactionEnvelopeType.legacy type.
+ *
+ * @param {object} transactionMeta - The transaction metadata to check
+ * @returns {boolean} true if the transaction is a legacy transaction, false otherwise
+ */
+export function isLegacyTransaction(transactionMeta) {
+  return transactionMeta?.txParams?.type === TransactionEnvelopeType.legacy;
+}
 
 /**
  * Generates transfer data for specified method
@@ -385,7 +397,8 @@ export async function isSmartContractAddress(
   // If in contract map we don't need to cache it
   if (
     isMainnetByChainId(chainId) &&
-    Engine.context.TokenListController.state.tokensChainsCache?.[chainId]?.data?.[address]
+    Engine.context.TokenListController.state.tokensChainsCache?.[chainId]
+      ?.data?.[address]
   ) {
     return Promise.resolve(true);
   }
@@ -648,8 +661,8 @@ export const calculateAmountsEIP1559 = ({
   gasFeeMinNative,
   gasFeeMaxNative,
   gasFeeMaxConversion,
-  gasFeeMinHex,
   gasFeeMaxHex,
+  gasFeeMinHex,
 }) => {
   // amount numbers
   const amountConversion = getValueFromWeiHex({
@@ -1642,4 +1655,16 @@ export const getIsNativeTokenTransferred = (txParams) =>
  */
 export function isNFTTokenStandard(tokenStandard) {
   return [ERC721, ERC1155].includes(tokenStandard);
+}
+
+/**
+ * Get a transaction by its ID
+ * @param {string} transactionId - The ID of the transaction to get
+ * @param {TransactionController} transactionController - The transaction controller
+ * @returns {TransactionMeta} The transaction meta object
+ */
+export function getTransactionById(transactionId, transactionController) {
+  return transactionController.state.transactions.find(
+    (tx) => tx.id === transactionId,
+  );
 }

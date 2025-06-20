@@ -85,7 +85,6 @@ const styleSheet = (colors: Theme['colors']) =>
     valueModalHeaderText: {
       color: colors.text.default,
       ...fontStyles.bold,
-      fontSize: 14,
       textAlign: 'center',
       width: '100%',
       // height of header icon

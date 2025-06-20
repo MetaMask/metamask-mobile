@@ -34,21 +34,37 @@ export const useAlertsConfirmed = (alerts: Alert[]) => {
    * @param key - The key of the alert.
    * @returns True if the alert is confirmed, false otherwise.
    */
-  const isAlertConfirmed = useCallback((key: string) => confirmed[key] ?? false, [confirmed]);
+  const isAlertConfirmed = useCallback(
+    (key: string) => confirmed[key] ?? false,
+    [confirmed],
+  );
 
   /**
    * Unconfirmed danger alerts.
    */
-  const unconfirmedDangerAlerts = useMemo(() => alerts.filter(
-    alertSelected => !isAlertConfirmed(alertSelected.key) && alertSelected.severity === Severity.Danger
-  ), [alerts, isAlertConfirmed]);
+  const unconfirmedDangerAlerts = useMemo(
+    () =>
+      alerts.filter(
+        (alertSelected) =>
+          !isAlertConfirmed(alertSelected.key) &&
+          alertSelected.severity === Severity.Danger,
+      ),
+    [alerts, isAlertConfirmed],
+  );
 
   /**
    * Unconfirmed field danger alerts.
    */
-  const unconfirmedFieldDangerAlerts = useMemo(() => alerts.filter(
-    alertSelected => !isAlertConfirmed(alertSelected.key) && alertSelected.severity === Severity.Danger && alertSelected.field !== undefined
-  ), [alerts, isAlertConfirmed]);
+  const unconfirmedFieldDangerAlerts = useMemo(
+    () =>
+      alerts.filter(
+        (alertSelected) =>
+          !isAlertConfirmed(alertSelected.key) &&
+          alertSelected.severity === Severity.Danger &&
+          alertSelected.field !== undefined,
+      ),
+    [alerts, isAlertConfirmed],
+  );
 
   return {
     isAlertConfirmed,

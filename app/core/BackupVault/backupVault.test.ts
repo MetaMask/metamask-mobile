@@ -21,7 +21,6 @@ describe('backupVault', () => {
       vault: undefined,
       keyrings: [],
       isUnlocked: false,
-      keyringsMetadata: [],
     };
 
     expect(async () => await backupVault(keyringState)).rejects.toThrow(
@@ -41,7 +40,6 @@ describe('backupVault', () => {
       vault: undefined,
       keyrings: [],
       isUnlocked: false,
-      keyringsMetadata: [],
     };
 
     const response = await backupVault(keyringState);

@@ -62,7 +62,6 @@ const TransactionAsset = ({
 }: TransactionAssetProps) => {
   const networkName =
     NETWORK_TO_SHORT_NETWORK_NAME_MAP[chainId as AllowedBridgeChainIds];
-  //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
   const networkImageSource = getNetworkImageSource({ chainId });
 
   // Solana native SOL will also be the zero address for quote data from Bridge API only!

@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 
 const styleSheet = () => StyleSheet.create({
     wrapper: {
-      marginBottom: 10,
+      marginBottom: 24,
     },
     details: { marginLeft: 10, marginBottom: 10 },
     detailsItem: {

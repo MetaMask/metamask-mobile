@@ -24,6 +24,15 @@ import DevLogger from '../utils/DevLogger';
 import { wait, waitForKeychainUnlocked } from '../utils/wait.util';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
+import {
+  getDefaultCaip25CaveatValue,
+  getPermittedAccounts,
+} from '../../Permissions';
+import { areAddressesEqual, toFormattedAddress } from '../../../util/address';
 
 export default class DeeplinkProtocolService {
   public connections: DappConnections = {};
@@ -281,7 +290,16 @@ export default class DeeplinkProtocolService {
 
     return permissionsController.requestPermissions(
       { origin: channelId },
-      { eth_accounts: {} },
+      {
+        [Caip25EndowmentPermissionName]: {
+          caveats: [
+            {
+              type: Caip25CaveatType,
+              value: getDefaultCaip25CaveatValue(),
+            },
+          ],
+        },
+      },
     );
   }
 
@@ -551,30 +569,17 @@ export default class DeeplinkProtocolService {
   }
 
   public getSelectedAccounts() {
-    const permissionController = (
-      Engine.context as {
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        PermissionController: PermissionController<any, any>;
-      }
-    ).PermissionController;
-
-    const permissions = permissionController.getPermissions(
-      this.currentClientId ?? '',
-    );
-
     const accountsController = (
       Engine.context as {
         AccountsController: AccountsController;
       }
     ).AccountsController;
 
-    const selectedInternalAccountChecksummedAddress = toChecksumHexAddress(
+    const selectedInternalAccountFormattedAddress = toFormattedAddress(
       accountsController.getSelectedAccount().address,
     );
 
-    let connectedAddresses = permissions?.eth_accounts?.caveats?.[0]
-      ?.value as string[];
+    let connectedAddresses = getPermittedAccounts(this.currentClientId ?? '');
 
     DevLogger.log(
       `DeeplinkProtocolService::clients_connected connectedAddresses`,
@@ -585,22 +590,24 @@ export default class DeeplinkProtocolService {
       return [];
     }
 
-    const lowerCaseConnectedAddresses = connectedAddresses.map((address) =>
-      address.toLowerCase(),
+    const formattedConnectedAddresses = connectedAddresses.map((address) =>
+      toFormattedAddress(address),
     );
 
-    const isPartOfConnectedAddresses = lowerCaseConnectedAddresses.includes(
-      selectedInternalAccountChecksummedAddress.toLowerCase(),
+    const isPartOfConnectedAddresses = formattedConnectedAddresses.includes(
+      selectedInternalAccountFormattedAddress,
     );
 
     if (isPartOfConnectedAddresses) {
       // Create a new array with selectedAddress at the first position
       connectedAddresses = [
-        selectedInternalAccountChecksummedAddress,
+        selectedInternalAccountFormattedAddress,
         ...connectedAddresses.filter(
           (address) =>
-            address.toLowerCase() !==
-            selectedInternalAccountChecksummedAddress.toLowerCase(),
+            !areAddressesEqual(
+              address,
+              selectedInternalAccountFormattedAddress,
+            ),
         ),
       ];
     }

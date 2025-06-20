@@ -33,6 +33,7 @@ import Text, {
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { selectPermissionControllerState } from '../../../../selectors/snaps/permissionController';
+import { toFormattedAddress } from '../../../../util/address';
 
 const createStyles = (
   _colors: ThemeColors,
@@ -104,8 +105,8 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
     () =>
       accounts?.filter((account) =>
         permittedAccountsAddresses
-          .map((address) => address.toLowerCase())
-          .includes(account.address.toLowerCase()),
+          .map((address) => toFormattedAddress(address))
+          .includes(toFormattedAddress(account.address)),
       ),
     [accounts, permittedAccountsAddresses],
   );
@@ -113,9 +114,10 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
   useEffect(() => {
     if (channelId) {
       const origin = channelId;
-      getPermittedAccounts(origin).then((_accounts) => {
-        setPermittedAccountsAddresses(_accounts);
-      });
+      const permittedAccountsForOrigin = getPermittedAccounts(origin);
+      setPermittedAccountsAddresses(
+        permittedAccountsForOrigin.map(toFormattedAddress),
+      );
     }
   }, [channelId]);
 

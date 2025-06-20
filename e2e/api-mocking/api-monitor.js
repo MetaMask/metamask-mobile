@@ -23,8 +23,7 @@ const dirExists = async (dir) => {
   try {
     await access(dir);
     return true;
-  }
-  catch (error) {
+  } catch (error) {
     return false;
   }
 };
@@ -60,7 +59,7 @@ const fileLocks = new Map();
  */
 const acquireLock = async (filePath) => {
   while (fileLocks.get(filePath)) {
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 10));
   }
   fileLocks.set(filePath, true);
 };
@@ -93,7 +92,7 @@ const writeToLogFile = async (logFile, logEntry, retries = 3) => {
         } catch (parseError) {
           // If JSON is corrupted, try to recover by reading the file line by line
           console.warn('JSON parse error, attempting to recover...');
-          const lines = fileContent.split('\n').filter(line => line.trim());
+          const lines = fileContent.split('\n').filter((line) => line.trim());
           logs = [];
           for (const line of lines) {
             try {
@@ -113,7 +112,7 @@ const writeToLogFile = async (logFile, logEntry, retries = 3) => {
         if (i === retries - 1) {
           console.error('Error writing to log file:', error);
         } else {
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise((resolve) => setTimeout(resolve, 100));
         }
       }
     }
@@ -199,7 +198,7 @@ export const startApiMonitor = async (port) => {
 
       return { url: returnUrl };
     },
-    beforeResponse: async ({ statusCode, headers, body, statusMessage, }) => {
+    beforeResponse: async ({ statusCode, headers, body, statusMessage }) => {
       try {
         const responseBody = await body.getText();
         let parsedBody = responseBody;
@@ -216,7 +215,7 @@ export const startApiMonitor = async (port) => {
           statusCode,
           statusMessage,
           headers: headers || {},
-          body: parsedBody
+          body: parsedBody,
         };
 
         // Write response to log file

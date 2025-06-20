@@ -102,6 +102,7 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
     >
       <Text
         allowFontScaling={false}
+        selectable={false}
         style={
           [
             {
