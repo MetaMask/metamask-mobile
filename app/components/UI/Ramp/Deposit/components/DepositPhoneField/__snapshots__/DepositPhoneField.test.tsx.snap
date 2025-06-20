@@ -113,7 +113,7 @@ exports[`DepositPhoneField additional props should match snapshot 1`] = `
           onChangeText={[Function]}
           onFocus={[Function]}
           onKeyDown={[Function]}
-          placeholder="(222) 222-2222"
+          placeholder="Enter your phone number"
           placeholderTextColor="#9ca1af"
           style={
             {
@@ -252,7 +252,7 @@ exports[`DepositPhoneField error message should match snapshot 1`] = `
           onChangeText={[Function]}
           onFocus={[Function]}
           onKeyDown={[Function]}
-          placeholder="(222) 222-2222"
+          placeholder="Enter your phone number"
           placeholderTextColor="#9ca1af"
           style={
             {
@@ -407,7 +407,7 @@ exports[`DepositPhoneField render should match snapshot 1`] = `
           onChangeText={[Function]}
           onFocus={[Function]}
           onKeyDown={[Function]}
-          placeholder="(222) 222-2222"
+          placeholder="Enter your phone number"
           placeholderTextColor="#9ca1af"
           style={
             {
@@ -547,7 +547,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
             onChangeText={[Function]}
             onFocus={[Function]}
             onKeyDown={[Function]}
-            placeholder="(222) 222-2222"
+            placeholder="Enter your phone number"
             placeholderTextColor="#9ca1af"
             style={
               {
@@ -994,6 +994,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "United States",
                               "phoneDigitCount": 10,
                               "phonePrefix": "+1",
+                              "placeholder": "(555) 123-4567",
                               "recommended": true,
                               "supported": true,
                             },
@@ -1009,6 +1010,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Andorra",
                               "phoneDigitCount": 6,
                               "phonePrefix": "+376",
+                              "placeholder": "123 456",
                               "supported": true,
                             },
                             {
@@ -1018,6 +1020,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Austria",
                               "phoneDigitCount": 10,
                               "phonePrefix": "+43",
+                              "placeholder": "664 123 456",
                               "supported": true,
                             },
                             {
@@ -1027,6 +1030,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Belgium",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+32",
+                              "placeholder": "470 123 456",
                               "supported": true,
                             },
                             {
@@ -1036,6 +1040,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Czech Republic",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+420",
+                              "placeholder": "601 123 456",
                               "supported": true,
                             },
                             {
@@ -1045,6 +1050,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Denmark",
                               "phoneDigitCount": 8,
                               "phonePrefix": "+45",
+                              "placeholder": "12 34 56 78",
                               "supported": true,
                             },
                             {
@@ -1054,6 +1060,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Estonia",
                               "phoneDigitCount": 8,
                               "phonePrefix": "+372",
+                              "placeholder": "5123 4567",
                               "supported": true,
                             },
                             {
@@ -1063,6 +1070,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Finland",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+358",
+                              "placeholder": "40 123 4567",
                               "supported": true,
                             },
                             {
@@ -1072,6 +1080,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "France",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+33",
+                              "placeholder": "6 12 34 56 78",
                               "supported": true,
                             },
                             {
@@ -1081,6 +1090,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Germany",
                               "phoneDigitCount": 10,
                               "phonePrefix": "+49",
+                              "placeholder": "151 12345678",
                               "supported": true,
                             },
                             {
@@ -1090,6 +1100,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Greece",
                               "phoneDigitCount": 10,
                               "phonePrefix": "+30",
+                              "placeholder": "691 234 5678",
                               "supported": true,
                             },
                             {
@@ -1099,6 +1110,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Hungary",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+36",
+                              "placeholder": "20 123 4567",
                               "supported": true,
                             },
                             {
@@ -1108,6 +1120,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Iceland",
                               "phoneDigitCount": 7,
                               "phonePrefix": "+354",
+                              "placeholder": "612 3456",
                               "supported": true,
                             },
                             {
@@ -1117,6 +1130,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Ireland",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+353",
+                              "placeholder": "83 123 4567",
                               "supported": true,
                             },
                             {
@@ -1126,6 +1140,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Italy",
                               "phoneDigitCount": 10,
                               "phonePrefix": "+39",
+                              "placeholder": "312 345 6789",
                               "supported": true,
                             },
                             {
@@ -1135,6 +1150,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Latvia",
                               "phoneDigitCount": 8,
                               "phonePrefix": "+371",
+                              "placeholder": "2123 4567",
                               "supported": true,
                             },
                             {
@@ -1144,6 +1160,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Lithuania",
                               "phoneDigitCount": 8,
                               "phonePrefix": "+370",
+                              "placeholder": "612 34567",
                               "supported": true,
                             },
                             {
@@ -1153,6 +1170,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Luxembourg",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+352",
+                              "placeholder": "621 123 456",
                               "supported": true,
                             },
                             {
@@ -1162,6 +1180,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Malta",
                               "phoneDigitCount": 8,
                               "phonePrefix": "+356",
+                              "placeholder": "2123 4567",
                               "supported": true,
                             },
                             {
@@ -1171,6 +1190,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Montenegro",
                               "phoneDigitCount": 8,
                               "phonePrefix": "+382",
+                              "placeholder": "67 123 456",
                               "supported": true,
                             },
                             {
@@ -1180,6 +1200,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Netherlands",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+31",
+                              "placeholder": "6 12345678",
                               "supported": true,
                             },
                             {
@@ -1189,6 +1210,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Norway",
                               "phoneDigitCount": 8,
                               "phonePrefix": "+47",
+                              "placeholder": "123 45 678",
                               "supported": true,
                             },
                             {
@@ -1198,6 +1220,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Poland",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+48",
+                              "placeholder": "123 456 789",
                               "supported": true,
                             },
                             {
@@ -1207,6 +1230,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Portugal",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+351",
+                              "placeholder": "912 345 678",
                               "supported": true,
                             },
                             {
@@ -1216,6 +1240,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Romania",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+40",
+                              "placeholder": "712 345 678",
                               "supported": true,
                             },
                             {
@@ -1225,6 +1250,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Serbia",
                               "phoneDigitCount": 8,
                               "phonePrefix": "+381",
+                              "placeholder": "60 123 4567",
                               "supported": true,
                             },
                             {
@@ -1234,6 +1260,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Slovakia",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+421",
+                              "placeholder": "904 123 456",
                               "supported": true,
                             },
                             {
@@ -1243,6 +1270,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Slovenia",
                               "phoneDigitCount": 8,
                               "phonePrefix": "+386",
+                              "placeholder": "31 234 567",
                               "supported": true,
                             },
                             {
@@ -1252,6 +1280,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Spain",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+34",
+                              "placeholder": "612 345 678",
                               "supported": true,
                             },
                             {
@@ -1261,6 +1290,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Sweden",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+46",
+                              "placeholder": "70 123 4567",
                               "supported": true,
                             },
                             {
@@ -1270,6 +1300,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Switzerland",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+41",
+                              "placeholder": "76 123 4567",
                               "supported": true,
                             },
                             {
@@ -1279,6 +1310,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "United Kingdom",
                               "phoneDigitCount": 10,
                               "phonePrefix": "+44",
+                              "placeholder": "7123 456789",
                               "supported": true,
                             },
                             {
@@ -1288,6 +1320,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Åland Islands",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+358",
+                              "placeholder": "40 123 4567",
                               "supported": true,
                             },
                             {
@@ -1297,6 +1330,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Bermuda",
                               "phoneDigitCount": 10,
                               "phonePrefix": "+1",
+                              "placeholder": "(555) 123-4567",
                               "supported": false,
                             },
                             {
@@ -1306,6 +1340,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Canada",
                               "phoneDigitCount": 10,
                               "phonePrefix": "+1",
+                              "placeholder": "(555) 123-4567",
                               "supported": false,
                             },
                             {
@@ -1315,6 +1350,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Guadeloupe",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+590",
+                              "placeholder": "123 456 789",
                               "supported": false,
                             },
                             {
@@ -1324,6 +1360,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Martinique",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+596",
+                              "placeholder": "123 456 789",
                               "supported": false,
                             },
                             {
@@ -1333,6 +1370,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Mexico",
                               "phoneDigitCount": 10,
                               "phonePrefix": "+52",
+                              "placeholder": "55 1234 5678",
                               "supported": false,
                             },
                             {
@@ -1342,6 +1380,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Puerto Rico",
                               "phoneDigitCount": 10,
                               "phonePrefix": "+1",
+                              "placeholder": "(555) 123-4567",
                               "supported": false,
                             },
                             {
@@ -1351,6 +1390,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Saint Martin",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+590",
+                              "placeholder": "123 456 789",
                               "supported": false,
                             },
                             {
@@ -1360,6 +1400,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Cyprus",
                               "phoneDigitCount": 8,
                               "phonePrefix": "+357",
+                              "placeholder": "1234 5678",
                               "supported": false,
                             },
                             {
@@ -1369,6 +1410,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Georgia",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+995",
+                              "placeholder": "123 456 789",
                               "supported": false,
                             },
                             {
@@ -1378,6 +1420,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Hong Kong",
                               "phoneDigitCount": 8,
                               "phonePrefix": "+852",
+                              "placeholder": "1234 5678",
                               "supported": false,
                             },
                             {
@@ -1387,6 +1430,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "India",
                               "phoneDigitCount": 10,
                               "phonePrefix": "+91",
+                              "placeholder": "98765 43210",
                               "supported": false,
                             },
                             {
@@ -1396,6 +1440,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Israel",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+972",
+                              "placeholder": "123 456 789",
                               "supported": false,
                             },
                             {
@@ -1405,6 +1450,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Kuwait",
                               "phoneDigitCount": 8,
                               "phonePrefix": "+965",
+                              "placeholder": "1234 5678",
                               "supported": false,
                             },
                             {
@@ -1414,6 +1460,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Malaysia",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+60",
+                              "placeholder": "123 456 789",
                               "supported": false,
                             },
                             {
@@ -1423,6 +1470,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Philippines",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+63",
+                              "placeholder": "123 456 7890",
                               "supported": false,
                             },
                             {
@@ -1432,6 +1480,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Brazil",
                               "phoneDigitCount": 11,
                               "phonePrefix": "+55",
+                              "placeholder": "11 98765-4321",
                               "supported": false,
                             },
                             {
@@ -1441,6 +1490,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "French Guiana",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+594",
+                              "placeholder": "123 456 789",
                               "supported": false,
                             },
                             {
@@ -1450,6 +1500,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Australia",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+61",
+                              "placeholder": "412 345 678",
                               "supported": false,
                             },
                             {
@@ -1459,6 +1510,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Guam",
                               "phoneDigitCount": 10,
                               "phonePrefix": "+1",
+                              "placeholder": "(555) 123-4567",
                               "supported": false,
                             },
                             {
@@ -1468,6 +1520,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "New Zealand",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+64",
+                              "placeholder": "123 456 789",
                               "supported": false,
                             },
                             {
@@ -1477,6 +1530,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Mayotte",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+262",
+                              "placeholder": "123 456 789",
                               "supported": false,
                             },
                             {
@@ -1486,6 +1540,7 @@ exports[`DepositPhoneField should open region modal when flag is pressed 1`] = `
                               "name": "Réunion",
                               "phoneDigitCount": 9,
                               "phonePrefix": "+262",
+                              "placeholder": "123 456 789",
                               "supported": false,
                             },
                           ],
@@ -2538,7 +2593,7 @@ exports[`DepositPhoneField should use selectedRegion from context when available
           onChangeText={[Function]}
           onFocus={[Function]}
           onKeyDown={[Function]}
-          placeholder="2222 222222"
+          placeholder="Enter your phone number"
           placeholderTextColor="#9ca1af"
           style={
             {

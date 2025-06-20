@@ -12289,6 +12289,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "United States",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+1",
+                                                    "placeholder": "(555) 123-4567",
                                                     "recommended": true,
                                                     "supported": true,
                                                   },
@@ -12304,6 +12305,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Andorra",
                                                     "phoneDigitCount": 6,
                                                     "phonePrefix": "+376",
+                                                    "placeholder": "123 456",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12313,6 +12315,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Austria",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+43",
+                                                    "placeholder": "664 123 456",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12322,6 +12325,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Belgium",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+32",
+                                                    "placeholder": "470 123 456",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12331,6 +12335,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Czech Republic",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+420",
+                                                    "placeholder": "601 123 456",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12340,6 +12345,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Denmark",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+45",
+                                                    "placeholder": "12 34 56 78",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12349,6 +12355,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Estonia",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+372",
+                                                    "placeholder": "5123 4567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12358,6 +12365,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Finland",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+358",
+                                                    "placeholder": "40 123 4567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12367,6 +12375,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "France",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+33",
+                                                    "placeholder": "6 12 34 56 78",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12376,6 +12385,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Germany",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+49",
+                                                    "placeholder": "151 12345678",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12385,6 +12395,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Greece",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+30",
+                                                    "placeholder": "691 234 5678",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12394,6 +12405,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Hungary",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+36",
+                                                    "placeholder": "20 123 4567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12403,6 +12415,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Iceland",
                                                     "phoneDigitCount": 7,
                                                     "phonePrefix": "+354",
+                                                    "placeholder": "612 3456",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12412,6 +12425,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Ireland",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+353",
+                                                    "placeholder": "83 123 4567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12421,6 +12435,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Italy",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+39",
+                                                    "placeholder": "312 345 6789",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12430,6 +12445,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Latvia",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+371",
+                                                    "placeholder": "2123 4567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12439,6 +12455,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Lithuania",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+370",
+                                                    "placeholder": "612 34567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12448,6 +12465,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Luxembourg",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+352",
+                                                    "placeholder": "621 123 456",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12457,6 +12475,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Malta",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+356",
+                                                    "placeholder": "2123 4567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12466,6 +12485,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Montenegro",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+382",
+                                                    "placeholder": "67 123 456",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12475,6 +12495,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Netherlands",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+31",
+                                                    "placeholder": "6 12345678",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12484,6 +12505,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Norway",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+47",
+                                                    "placeholder": "123 45 678",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12493,6 +12515,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Poland",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+48",
+                                                    "placeholder": "123 456 789",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12502,6 +12525,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Portugal",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+351",
+                                                    "placeholder": "912 345 678",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12511,6 +12535,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Romania",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+40",
+                                                    "placeholder": "712 345 678",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12520,6 +12545,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Serbia",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+381",
+                                                    "placeholder": "60 123 4567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12529,6 +12555,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Slovakia",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+421",
+                                                    "placeholder": "904 123 456",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12538,6 +12565,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Slovenia",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+386",
+                                                    "placeholder": "31 234 567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12547,6 +12575,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Spain",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+34",
+                                                    "placeholder": "612 345 678",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12556,6 +12585,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Sweden",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+46",
+                                                    "placeholder": "70 123 4567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12565,6 +12595,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Switzerland",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+41",
+                                                    "placeholder": "76 123 4567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12574,6 +12605,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "United Kingdom",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+44",
+                                                    "placeholder": "7123 456789",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12583,6 +12615,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Åland Islands",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+358",
+                                                    "placeholder": "40 123 4567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -12592,6 +12625,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Bermuda",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+1",
+                                                    "placeholder": "(555) 123-4567",
                                                     "supported": false,
                                                   },
                                                   {
@@ -12601,6 +12635,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Canada",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+1",
+                                                    "placeholder": "(555) 123-4567",
                                                     "supported": false,
                                                   },
                                                   {
@@ -12610,6 +12645,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Guadeloupe",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+590",
+                                                    "placeholder": "123 456 789",
                                                     "supported": false,
                                                   },
                                                   {
@@ -12619,6 +12655,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Martinique",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+596",
+                                                    "placeholder": "123 456 789",
                                                     "supported": false,
                                                   },
                                                   {
@@ -12628,6 +12665,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Mexico",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+52",
+                                                    "placeholder": "55 1234 5678",
                                                     "supported": false,
                                                   },
                                                   {
@@ -12637,6 +12675,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Puerto Rico",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+1",
+                                                    "placeholder": "(555) 123-4567",
                                                     "supported": false,
                                                   },
                                                   {
@@ -12646,6 +12685,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Saint Martin",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+590",
+                                                    "placeholder": "123 456 789",
                                                     "supported": false,
                                                   },
                                                   {
@@ -12655,6 +12695,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Cyprus",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+357",
+                                                    "placeholder": "1234 5678",
                                                     "supported": false,
                                                   },
                                                   {
@@ -12664,6 +12705,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Georgia",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+995",
+                                                    "placeholder": "123 456 789",
                                                     "supported": false,
                                                   },
                                                   {
@@ -12673,6 +12715,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Hong Kong",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+852",
+                                                    "placeholder": "1234 5678",
                                                     "supported": false,
                                                   },
                                                   {
@@ -12682,6 +12725,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "India",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+91",
+                                                    "placeholder": "98765 43210",
                                                     "supported": false,
                                                   },
                                                   {
@@ -12691,6 +12735,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Israel",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+972",
+                                                    "placeholder": "123 456 789",
                                                     "supported": false,
                                                   },
                                                   {
@@ -12700,6 +12745,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Kuwait",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+965",
+                                                    "placeholder": "1234 5678",
                                                     "supported": false,
                                                   },
                                                   {
@@ -12709,6 +12755,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Malaysia",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+60",
+                                                    "placeholder": "123 456 789",
                                                     "supported": false,
                                                   },
                                                   {
@@ -12718,6 +12765,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Philippines",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+63",
+                                                    "placeholder": "123 456 7890",
                                                     "supported": false,
                                                   },
                                                   {
@@ -12727,6 +12775,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Brazil",
                                                     "phoneDigitCount": 11,
                                                     "phonePrefix": "+55",
+                                                    "placeholder": "11 98765-4321",
                                                     "supported": false,
                                                   },
                                                   {
@@ -12736,6 +12785,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "French Guiana",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+594",
+                                                    "placeholder": "123 456 789",
                                                     "supported": false,
                                                   },
                                                   {
@@ -12745,6 +12795,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Australia",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+61",
+                                                    "placeholder": "412 345 678",
                                                     "supported": false,
                                                   },
                                                   {
@@ -12754,6 +12805,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Guam",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+1",
+                                                    "placeholder": "(555) 123-4567",
                                                     "supported": false,
                                                   },
                                                   {
@@ -12763,6 +12815,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "New Zealand",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+64",
+                                                    "placeholder": "123 456 789",
                                                     "supported": false,
                                                   },
                                                   {
@@ -12772,6 +12825,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Mayotte",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+262",
+                                                    "placeholder": "123 456 789",
                                                     "supported": false,
                                                   },
                                                   {
@@ -12781,6 +12835,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                     "name": "Réunion",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+262",
+                                                    "placeholder": "123 456 789",
                                                     "supported": false,
                                                   },
                                                 ],
@@ -15616,6 +15671,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "United States",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+1",
+                                                    "placeholder": "(555) 123-4567",
                                                     "recommended": true,
                                                     "supported": true,
                                                   },
@@ -15631,6 +15687,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Andorra",
                                                     "phoneDigitCount": 6,
                                                     "phonePrefix": "+376",
+                                                    "placeholder": "123 456",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15640,6 +15697,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Austria",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+43",
+                                                    "placeholder": "664 123 456",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15649,6 +15707,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Belgium",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+32",
+                                                    "placeholder": "470 123 456",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15658,6 +15717,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Czech Republic",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+420",
+                                                    "placeholder": "601 123 456",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15667,6 +15727,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Denmark",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+45",
+                                                    "placeholder": "12 34 56 78",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15676,6 +15737,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Estonia",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+372",
+                                                    "placeholder": "5123 4567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15685,6 +15747,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Finland",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+358",
+                                                    "placeholder": "40 123 4567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15694,6 +15757,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "France",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+33",
+                                                    "placeholder": "6 12 34 56 78",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15703,6 +15767,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Germany",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+49",
+                                                    "placeholder": "151 12345678",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15712,6 +15777,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Greece",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+30",
+                                                    "placeholder": "691 234 5678",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15721,6 +15787,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Hungary",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+36",
+                                                    "placeholder": "20 123 4567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15730,6 +15797,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Iceland",
                                                     "phoneDigitCount": 7,
                                                     "phonePrefix": "+354",
+                                                    "placeholder": "612 3456",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15739,6 +15807,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Ireland",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+353",
+                                                    "placeholder": "83 123 4567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15748,6 +15817,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Italy",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+39",
+                                                    "placeholder": "312 345 6789",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15757,6 +15827,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Latvia",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+371",
+                                                    "placeholder": "2123 4567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15766,6 +15837,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Lithuania",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+370",
+                                                    "placeholder": "612 34567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15775,6 +15847,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Luxembourg",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+352",
+                                                    "placeholder": "621 123 456",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15784,6 +15857,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Malta",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+356",
+                                                    "placeholder": "2123 4567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15793,6 +15867,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Montenegro",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+382",
+                                                    "placeholder": "67 123 456",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15802,6 +15877,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Netherlands",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+31",
+                                                    "placeholder": "6 12345678",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15811,6 +15887,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Norway",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+47",
+                                                    "placeholder": "123 45 678",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15820,6 +15897,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Poland",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+48",
+                                                    "placeholder": "123 456 789",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15829,6 +15907,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Portugal",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+351",
+                                                    "placeholder": "912 345 678",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15838,6 +15917,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Romania",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+40",
+                                                    "placeholder": "712 345 678",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15847,6 +15927,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Serbia",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+381",
+                                                    "placeholder": "60 123 4567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15856,6 +15937,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Slovakia",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+421",
+                                                    "placeholder": "904 123 456",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15865,6 +15947,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Slovenia",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+386",
+                                                    "placeholder": "31 234 567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15874,6 +15957,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Spain",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+34",
+                                                    "placeholder": "612 345 678",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15883,6 +15967,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Sweden",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+46",
+                                                    "placeholder": "70 123 4567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15892,6 +15977,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Switzerland",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+41",
+                                                    "placeholder": "76 123 4567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15901,6 +15987,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "United Kingdom",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+44",
+                                                    "placeholder": "7123 456789",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15910,6 +15997,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Åland Islands",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+358",
+                                                    "placeholder": "40 123 4567",
                                                     "supported": true,
                                                   },
                                                   {
@@ -15919,6 +16007,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Bermuda",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+1",
+                                                    "placeholder": "(555) 123-4567",
                                                     "supported": false,
                                                   },
                                                   {
@@ -15928,6 +16017,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Canada",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+1",
+                                                    "placeholder": "(555) 123-4567",
                                                     "supported": false,
                                                   },
                                                   {
@@ -15937,6 +16027,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Guadeloupe",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+590",
+                                                    "placeholder": "123 456 789",
                                                     "supported": false,
                                                   },
                                                   {
@@ -15946,6 +16037,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Martinique",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+596",
+                                                    "placeholder": "123 456 789",
                                                     "supported": false,
                                                   },
                                                   {
@@ -15955,6 +16047,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Mexico",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+52",
+                                                    "placeholder": "55 1234 5678",
                                                     "supported": false,
                                                   },
                                                   {
@@ -15964,6 +16057,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Puerto Rico",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+1",
+                                                    "placeholder": "(555) 123-4567",
                                                     "supported": false,
                                                   },
                                                   {
@@ -15973,6 +16067,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Saint Martin",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+590",
+                                                    "placeholder": "123 456 789",
                                                     "supported": false,
                                                   },
                                                   {
@@ -15982,6 +16077,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Cyprus",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+357",
+                                                    "placeholder": "1234 5678",
                                                     "supported": false,
                                                   },
                                                   {
@@ -15991,6 +16087,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Georgia",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+995",
+                                                    "placeholder": "123 456 789",
                                                     "supported": false,
                                                   },
                                                   {
@@ -16000,6 +16097,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Hong Kong",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+852",
+                                                    "placeholder": "1234 5678",
                                                     "supported": false,
                                                   },
                                                   {
@@ -16009,6 +16107,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "India",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+91",
+                                                    "placeholder": "98765 43210",
                                                     "supported": false,
                                                   },
                                                   {
@@ -16018,6 +16117,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Israel",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+972",
+                                                    "placeholder": "123 456 789",
                                                     "supported": false,
                                                   },
                                                   {
@@ -16027,6 +16127,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Kuwait",
                                                     "phoneDigitCount": 8,
                                                     "phonePrefix": "+965",
+                                                    "placeholder": "1234 5678",
                                                     "supported": false,
                                                   },
                                                   {
@@ -16036,6 +16137,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Malaysia",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+60",
+                                                    "placeholder": "123 456 789",
                                                     "supported": false,
                                                   },
                                                   {
@@ -16045,6 +16147,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Philippines",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+63",
+                                                    "placeholder": "123 456 7890",
                                                     "supported": false,
                                                   },
                                                   {
@@ -16054,6 +16157,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Brazil",
                                                     "phoneDigitCount": 11,
                                                     "phonePrefix": "+55",
+                                                    "placeholder": "11 98765-4321",
                                                     "supported": false,
                                                   },
                                                   {
@@ -16063,6 +16167,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "French Guiana",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+594",
+                                                    "placeholder": "123 456 789",
                                                     "supported": false,
                                                   },
                                                   {
@@ -16072,6 +16177,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Australia",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+61",
+                                                    "placeholder": "412 345 678",
                                                     "supported": false,
                                                   },
                                                   {
@@ -16081,6 +16187,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Guam",
                                                     "phoneDigitCount": 10,
                                                     "phonePrefix": "+1",
+                                                    "placeholder": "(555) 123-4567",
                                                     "supported": false,
                                                   },
                                                   {
@@ -16090,6 +16197,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "New Zealand",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+64",
+                                                    "placeholder": "123 456 789",
                                                     "supported": false,
                                                   },
                                                   {
@@ -16099,6 +16207,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Mayotte",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+262",
+                                                    "placeholder": "123 456 789",
                                                     "supported": false,
                                                   },
                                                   {
@@ -16108,6 +16217,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                     "name": "Réunion",
                                                     "phoneDigitCount": 9,
                                                     "phonePrefix": "+262",
+                                                    "placeholder": "123 456 789",
                                                     "supported": false,
                                                   },
                                                 ],

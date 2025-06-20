@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 
 import Label from '../../../../../../component-library/components/Form/Label';
@@ -13,13 +13,10 @@ import { Theme } from '../../../../../../util/theme/models';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { E164Number } from 'libphonenumber-js';
 import PhoneInput from 'react-phone-number-input/react-native-input';
-import {
-  getCountryCallingCode,
-  parsePhoneNumber,
-} from 'react-phone-number-input';
 import { DepositRegion, DEPOSIT_REGIONS } from '../../constants';
 import RegionModal from '../RegionModal/RegionModal';
 import { useDepositSDK } from '../../sdk';
+import { strings } from '../../../../../../../locales/i18n';
 
 interface PhoneFieldProps
   extends Omit<TextFieldProps, 'size' | 'onChangeText'> {
@@ -101,27 +98,6 @@ const DepositPhoneField: React.FC<PhoneFieldProps> = ({
     setIsRegionModalVisible(false);
   }, []);
 
-  const placeholder = useMemo(() => {
-    const countryCode = selectedRegion?.code || 'US';
-    const callingCode = getCountryCallingCode(countryCode);
-
-    if (countryCode === 'US') {
-      const exampleNumber = `+${callingCode}${'2'.repeat(
-        selectedRegion?.phoneDigitCount || 10,
-      )}`;
-      const parsed = parsePhoneNumber(exampleNumber);
-      if (!parsed) return '';
-      return parsed.formatNational();
-    }
-    const exampleNumber = `+${callingCode}${'2'.repeat(
-      selectedRegion?.phoneDigitCount || 9,
-    )}`;
-    const parsed = parsePhoneNumber(exampleNumber);
-    if (!parsed) return '';
-    const formatted = parsed.formatInternational();
-    return formatted.replace(`+${callingCode} `, '');
-  }, [selectedRegion?.code, selectedRegion?.phoneDigitCount]);
-
   return (
     <>
       <View style={styles.field}>
@@ -156,7 +132,10 @@ const DepositPhoneField: React.FC<PhoneFieldProps> = ({
                 size={TextFieldSize.Lg}
                 placeholderTextColor={theme.colors.text.muted}
                 keyboardAppearance={theme.themeAppearance}
-                placeholder={placeholder}
+                placeholder={
+                  selectedRegion?.placeholder ||
+                  strings('deposit.basic_info.enter_phone_number')
+                }
                 keyboardType="phone-pad"
                 style={styles.phoneInput}
                 {...props}

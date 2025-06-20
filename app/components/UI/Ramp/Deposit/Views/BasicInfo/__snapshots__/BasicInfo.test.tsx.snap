@@ -857,7 +857,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                       onChangeText={[Function]}
                                       onFocus={[Function]}
                                       onKeyDown={[Function]}
-                                      placeholder="(222) 222-2222"
+                                      placeholder="(555) 123-4567"
                                       placeholderTextColor="#9ca1af"
                                       style={
                                         {
@@ -2033,7 +2033,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                       onChangeText={[Function]}
                                       onFocus={[Function]}
                                       onKeyDown={[Function]}
-                                      placeholder="(222) 222-2222"
+                                      placeholder="(555) 123-4567"
                                       placeholderTextColor="#9ca1af"
                                       style={
                                         {
@@ -3241,7 +3241,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       onChangeText={[Function]}
                                       onFocus={[Function]}
                                       onKeyDown={[Function]}
-                                      placeholder="(222) 222-2222"
+                                      placeholder="(555) 123-4567"
                                       placeholderTextColor="#9ca1af"
                                       style={
                                         {
