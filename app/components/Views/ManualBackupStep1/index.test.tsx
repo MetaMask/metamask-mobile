@@ -8,6 +8,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import { AppThemeKey } from '../../../util/theme/models';
 import { strings } from '../../../../locales/i18n';
+import { InteractionManager } from 'react-native';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -58,6 +59,19 @@ jest.mock('react-native', () => {
 });
 
 describe('ManualBackupStep1', () => {
+  const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
+    cb();
+    return {
+      then: (onfulfilled: () => void) => Promise.resolve(onfulfilled()),
+      done: (onfulfilled: () => void, onrejected: () => void) =>
+        Promise.resolve().then(onfulfilled, onrejected),
+      cancel: jest.fn(),
+    };
+  });
+  jest
+    .spyOn(InteractionManager, 'runAfterInteractions')
+    .mockImplementation(mockRunAfterInteractions);
+
   const mockWords = [
     'abstract',
     'accident',

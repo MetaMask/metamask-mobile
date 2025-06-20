@@ -34,6 +34,8 @@ import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags
 import Earnings from '../Earnings';
 import EarnEmptyStateCta from '../EmptyStateCta';
 import styleSheet from './EarnLendingBalance.styles';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
 
 export const EARN_LENDING_BALANCE_TEST_IDS = {
   RECEIPT_TOKEN_BALANCE_ASSET_LOGO: 'receipt-token-balance-asset-logo',
@@ -48,10 +50,16 @@ export interface EarnLendingBalanceProps {
 
 const { selectEarnTokenPair, selectEarnOutputToken } = earnSelectors;
 const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
+  const { trackEvent, createEventBuilder } = useMetrics();
+
   const { styles } = useStyles(styleSheet, {});
 
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
+  );
+
+  const network = useSelector((state: RootState) =>
+    selectNetworkConfigurationByChainId(state, asset?.chainId as Hex),
   );
 
   const isStablecoinLendingEnabled = useSelector(
@@ -78,7 +86,31 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
     [earnToken?.balanceMinimalUnit],
   );
 
+  const emitLendingActionButtonMetaMetric = (
+    action: 'deposit' | 'withdrawal',
+  ) => {
+    const event =
+      action === 'deposit'
+        ? MetaMetricsEvents.EARN_LENDING_DEPOSIT_MORE_BUTTON_CLICKED
+        : MetaMetricsEvents.EARN_LENDING_WITHDRAW_BUTTON_CLICKED;
+
+    trackEvent(
+      createEventBuilder(event)
+        .addProperties({
+          action_type: action,
+          token: earnToken?.symbol,
+          network: network?.name,
+          user_earn_token_balance: earnToken?.balanceFormatted,
+          user_receipt_token_balance: receiptToken?.balanceFormatted,
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        })
+        .build(),
+    );
+  };
+
   const handleNavigateToWithdrawalInputScreen = () => {
+    emitLendingActionButtonMetaMetric('withdrawal');
+
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
       params: {
@@ -88,6 +120,8 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   };
 
   const handleNavigateToDepositInputScreen = () => {
+    emitLendingActionButtonMetaMetric('deposit');
+
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE,
       params: {

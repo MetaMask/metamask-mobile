@@ -53,6 +53,7 @@ import { AppMetadataController } from '@metamask/app-metadata-controller';
 import { appMetadataControllerInit } from '../controllers/app-metadata-controller';
 import { AccountTreeController } from '@metamask/account-tree-controller';
 import { accountTreeControllerInit } from '../../../multichain-accounts/controllers/account-tree-controller';
+import { WebSocketServiceInit } from '../controllers/snaps/websocket-service-init';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/app-metadata-controller');
@@ -102,6 +103,7 @@ describe('initModularizedControllers', () => {
     snapInterfaceControllerInit,
   );
   const mockSnapsRegistryInit = jest.mocked(snapsRegistryInit);
+  const mockWebSocketServiceInit = jest.mocked(WebSocketServiceInit);
   const mockMultichainAssetsControllerInit = jest.mocked(
     multichainAssetsControllerInit,
   );
@@ -141,6 +143,7 @@ describe('initModularizedControllers', () => {
           CronjobController: mockCronjobControllerInit,
           GasFeeController: mockGasFeeControllerInit,
           ExecutionService: mockExecutionServiceInit,
+          WebSocketService: mockWebSocketServiceInit,
           MultichainNetworkController: mockMultichainNetworkControllerInit,
           MultichainAssetsController: mockMultichainAssetsControllerInit,
           MultichainTransactionsController:

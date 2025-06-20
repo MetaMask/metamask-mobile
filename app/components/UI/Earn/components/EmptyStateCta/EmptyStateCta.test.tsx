@@ -308,7 +308,7 @@ describe('EmptyStateCta', () => {
     });
   });
 
-  it('submits metrics event on button click', async () => {
+  it('submits metrics event on "earn" button click', async () => {
     const { findByText } = renderComponent(mockEarnToken);
 
     const startEarningButton = await findByText(
@@ -325,9 +325,12 @@ describe('EmptyStateCta', () => {
         estimatedAnnualRewards: '5',
         location: EVENT_LOCATIONS.TOKEN_DETAILS_SCREEN,
         provider: EVENT_PROVIDERS.CONSENSYS,
+        apr: '4.5%',
+        experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        text: 'Earn',
+        token: 'USDC',
         token_chain_id: '1',
         token_name: 'USDC',
-        token_symbol: 'USDC',
       },
       saveDataRecording: true,
       sensitiveProperties: {},
