@@ -302,8 +302,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     | undefined
   >(undefined);
 
-  const [isSdkUrlUnknown, setIsSdkUrlUnknown] = useState(false);
-
   const { domainTitle, hostname } = useMemo(() => {
     let title = '';
     let dappHostname = dappUrl || channelIdOrHostname;
@@ -323,7 +321,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       dappHostname = channelIdOrHostname;
     } else {
       title = strings('sdk.unknown');
-      setIsSdkUrlUnknown(true);
     }
 
     return { domainTitle: title, hostname: dappHostname };
@@ -977,8 +974,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     renderSingleConnectSelectorScreen,
     renderMultiConnectSelectorScreen,
     renderMultiConnectNetworkSelectorScreen,
-    renderAddNewAccount,
-    isSdkUrlUnknown
+    renderAddNewAccount
   ]);
 
   return (
