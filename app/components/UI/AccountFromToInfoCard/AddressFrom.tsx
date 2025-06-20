@@ -2,6 +2,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { toHex } from '@metamask/controller-utils';
 
 import { strings } from '../../../../locales/i18n';
 import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
@@ -9,10 +10,8 @@ import { BadgeVariant } from '../../../component-library/components/Badges/Badge
 import Text from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
-import {
-  selectEvmNetworkImageSource,
-  selectEvmNetworkName,
-} from '../../../selectors/networkInfos';
+import { selectNetworkConfigurationByChainId } from '../../../selectors/networkController';
+import { RootState } from '../../../reducers';
 import {
   getLabelTextByAddress,
   renderAccountName,
@@ -20,8 +19,11 @@ import {
 import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import stylesheet from './AddressFrom.styles';
 import { selectInternalEvmAccounts } from '../../../selectors/accountsController';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import useNetworkInfo from '../../Views/confirmations/hooks/useNetworkInfo';
-import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
+import { getNetworkImageSource } from '../../../util/networks';
+import { selectEvmNetworkName } from '../../../selectors/networkInfos';
+import { selectEvmNetworkImageSource } from '../../../selectors/networkInfos';
 
 interface Asset {
   isETH?: boolean;
@@ -56,17 +58,40 @@ const AddressFrom = ({
     asset,
     from,
     dontWatchAsset,
-    isPerDappSelectedNetworkEnabled() ? chainId : undefined,
+    chainId,
   );
 
   const accountsByChainId = useSelector(selectAccountsByChainId);
+  const networkConfiguration = useSelector((state: RootState) =>
+    chainId ? selectNetworkConfigurationByChainId(state, toHex(chainId)) : null,
+  );
 
   const internalAccounts = useSelector(selectInternalEvmAccounts);
   const activeAddress = toChecksumAddress(from);
+  
+  const globalNetworkName = useSelector(selectEvmNetworkName);
+  const globalNetworkImage = useSelector(selectEvmNetworkImageSource);
 
-  const networkName = useSelector(selectEvmNetworkName);
-  const networkImage = useSelector(selectEvmNetworkImageSource);
-  const perDappNetworkInfo = useNetworkInfo(chainId);
+  let perDappNetworkName, perDappNetworkImageSource;
+  if(origin) {
+    const perDappNetworkInfo = useNetworkInfo(origin);
+    perDappNetworkName = perDappNetworkInfo.networkName;
+    perDappNetworkImageSource = perDappNetworkInfo.networkImage;
+  }
+
+  let sendFlowNetworkName, sendFlowNetworkImageSource;
+
+  if (isRemoveGlobalNetworkSelectorEnabled() && networkConfiguration) {
+    sendFlowNetworkName = networkConfiguration.name;
+  }
+
+  if (isRemoveGlobalNetworkSelectorEnabled() && chainId) {
+    // @ts-expect-error The utils/network file is still JS and this function expects a networkType, which should be optional
+    const sendFlowChainImage = getNetworkImageSource({ chainId: toHex(chainId) });
+    if (sendFlowChainImage) {
+      sendFlowNetworkImageSource = sendFlowChainImage;
+    }
+  }
 
   const useBlockieIcon = useSelector(
     // TODO: Replace "any" with type
@@ -85,13 +110,13 @@ const AddressFrom = ({
     }
   }, [accountsByChainId, internalAccounts, activeAddress, origin]);
 
-  const displayNetworkName = isPerDappSelectedNetworkEnabled()
-    ? perDappNetworkInfo.networkName
-    : networkName;
-
-  const displayNetworkImage = isPerDappSelectedNetworkEnabled()
-    ? perDappNetworkInfo.networkImage
-    : networkImage;
+  const displayNetworkName = origin 
+    ? perDappNetworkName 
+    : isRemoveGlobalNetworkSelectorEnabled() ? sendFlowNetworkName : globalNetworkName;
+  
+  const displayNetworkImage = origin 
+    ? perDappNetworkImageSource
+    : isRemoveGlobalNetworkSelectorEnabled() ? sendFlowNetworkImageSource : globalNetworkImage;
 
   const accountTypeLabel = getLabelTextByAddress(activeAddress);
 

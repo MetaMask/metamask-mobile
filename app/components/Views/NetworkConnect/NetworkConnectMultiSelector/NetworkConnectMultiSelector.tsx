@@ -24,11 +24,16 @@ import {
   EvmAndMultichainNetworkConfigurationsWithCaipChainId,
   selectNetworkConfigurationsByCaipChainId,
 } from '../../../../selectors/networkController';
-import { getNetworkImageSource } from '../../../../util/networks';
+import Engine from '../../../../core/Engine';
+import { PermissionKeys } from '../../../../core/Permissions/specifications';
+import { CaveatTypes } from '../../../../core/Permissions/constants';
+import { getNetworkImageSource, isPerDappSelectedNetworkEnabled} from '../../../../util/networks';
+
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
-
+import Logger from '../../../../util/Logger';
 import { CaipChainId } from '@metamask/utils';
+import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
 
 const NetworkConnectMultiSelector = ({
   isLoading,
@@ -43,6 +48,12 @@ const NetworkConnectMultiSelector = ({
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
+  const globalChainId = useSelector(selectEvmChainId);
+  const networkInfo = useNetworkInfo(hostname);
+
+  const { chainId: currentChainId } = isPerDappSelectedNetworkEnabled()
+    ? networkInfo
+    : { chainId: globalChainId };
 
   useEffect(() => {
     setSelectedChainIds(defaultSelectedChainIds);

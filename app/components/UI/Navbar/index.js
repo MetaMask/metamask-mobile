@@ -71,6 +71,7 @@ import { BridgeViewMode } from '../Bridge/types';
 import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
@@ -559,6 +560,9 @@ export function getSendFlowTitle(
   themeColors,
   resetTransaction,
   transaction,
+  disableNetwork =  true,
+  showSelectedNetwork = false,
+  sendFlowContextualChainId = '',
 ) {
   const innerStyles = StyleSheet.create({
     headerButtonText: {
@@ -594,9 +598,17 @@ export function getSendFlowTitle(
     title !== 'send.send_to' && !route?.params?.isPaymentRequest;
 
   const titleToRender = title;
-
+  console.log('>>> Navbar isRemoveGlobalNetworkSelectorEnabled()', isRemoveGlobalNetworkSelectorEnabled());
   return {
-    headerTitle: () => <NavbarTitle title={titleToRender} disableNetwork />,
+    headerTitle: () => (
+      <NavbarTitle
+        title={titleToRender}
+        disableNetwork={disableNetwork}
+        showSelectedNetwork={isRemoveGlobalNetworkSelectorEnabled() ? showSelectedNetwork : undefined}
+        networkName={isRemoveGlobalNetworkSelectorEnabled() ? sendFlowContextualChainId : undefined}
+        source={isRemoveGlobalNetworkSelectorEnabled() ? "SendFlow" : undefined}
+      />
+    ),
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
