@@ -937,7 +937,11 @@ const App: React.FC = () => {
       if (sdkInit.current) {
         handleDeeplink(opts);
       } else {
-        const uri = opts.params?.['+non_branch_link'] as string || opts.uri || '';
+        const uri = opts.params?.['+non_branch_link'] as string || opts.uri || null;
+        if (!uri) {
+          return;
+        }
+        
         DevLogger.log(`branch.io handleDeeplink:: adding ${uri} to queue. Got ${JSON.stringify(opts)} from branch.io`);
         queueOfHandleDeeplinkFunctions.current =
           queueOfHandleDeeplinkFunctions.current.concat([
