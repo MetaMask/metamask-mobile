@@ -21,6 +21,7 @@ import { useAddNetwork } from '../../../../hooks/useAddNetwork';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { selectIsBridgeEnabledSource } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
+import { waitForCondition } from '../../../../../core/SDKConnect/utils/wait.util';
 
 export enum SwapBridgeNavigationLocation {
   TabBar = 'TabBar',
@@ -184,9 +185,12 @@ export const useSwapBridgeNavigation = ({
         );
 
         // The await isn't enough for the network to actually be set
-        while (selectChainId(store.getState()) !== swapToken.chainId) {
-          await new Promise((resolve) => setTimeout(resolve, 10));
-        }
+        await waitForCondition({
+          fn: () => selectChainId(store.getState()) === swapToken.chainId,
+          context: 'swapToken.chainId',
+          waitTime: 50,
+          timeout: 2500,
+        });
       }
 
       // If the token was found by searching for it, it's more likely we want to swap into it than out of it

@@ -49,18 +49,24 @@ export const waitForCondition = async ({
   fn,
   context,
   waitTime = 1000,
+  timeout,
 }: {
   fn: () => boolean;
   waitTime?: number;
   context?: string;
+  timeout?: number;
 }) => {
   let i = 0;
+  const startTime = Date.now();
   while (!fn()) {
     i += 1;
     if (i > 5 && i % 10 === 0) {
       DevLogger.log(`Waiting for fn context=${context} to return true`);
     }
     await wait(waitTime);
+    if (timeout && Date.now() - startTime > timeout) {
+      throw new Error(`waitForCondition timed out after ${timeout}ms`);
+    }
   }
 };
 
