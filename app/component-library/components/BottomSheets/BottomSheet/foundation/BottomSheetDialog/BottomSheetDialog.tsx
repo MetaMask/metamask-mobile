@@ -68,7 +68,12 @@ const BottomSheetDialog = forwardRef<
       useSafeAreaInsets();
     const { y: frameY } = useSafeAreaFrame();
     const { height: screenHeight } = useWindowDimensions();
-    const maxSheetHeight = screenHeight - screenTopPadding;
+    // on Android, the status bar height is already included in screenHeight so we don't need to subtract it
+    const statusBarHeight = Platform.select({
+      ios: screenTopPadding,
+      android: 0,
+    }) || 0;
+    const maxSheetHeight = screenHeight - statusBarHeight;
     const { styles } = useStyles(styleSheet, {
       maxSheetHeight,
       screenBottomPadding,
