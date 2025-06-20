@@ -1,5 +1,8 @@
 import { createAnvil, Anvil as AnvilType } from '@viem/anvil';
 import { createAnvilClients } from './anvil-clients';
+import { AnvilPort } from '../fixtures/utils';
+
+export const DEFAULT_ANVIL_PORT = 8545;
 
 /**
  * Represents the available Ethereum hardforks for the Anvil server
@@ -44,7 +47,7 @@ type Hex = `0x${string}`;
  * @property {boolean} noMining - Whether to disable automatic mining
  */
 export const defaultOptions = {
-  balance: 25,
+  balance: 1000,
   chainId: 1337,
   gasLimit: 30000000,
   gasPrice: 2000000000,
@@ -52,7 +55,7 @@ export const defaultOptions = {
   host: '127.0.0.1',
   mnemonic:
     'drive manage close raven tape average sausage pledge riot furnace august tip',
-  port: 8545,
+  port: DEFAULT_ANVIL_PORT,
   noMining: false,
 };
 
@@ -101,11 +104,7 @@ class AnvilManager {
       noMining?: boolean;
     } = {},
   ): Promise<void> {
-    if (!opts.mnemonic) {
-      throw new Error('Missing required mnemonic');
-    }
-
-    const options = { ...defaultOptions, ...opts };
+    const options = { ...defaultOptions, ...opts,port: AnvilPort() };
     const { port } = options;
 
     try {

@@ -24,6 +24,7 @@ import ppomUtil from '../../lib/ppom/ppom-util';
 import { EIP5792ErrorCode } from '../../constants/transaction';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import Engine from '../Engine';
+import { areAddressesEqual } from '../../util/address';
 
 const VERSION = '2.0.0';
 const SUPPORTED_KEYRING_TYPES = [KeyringTypes.hd, KeyringTypes.simple];
@@ -301,8 +302,8 @@ function getAccountKeyringType(accountAddress: Hex): KeyringTypes {
   const { accounts } = Engine.controllerMessenger.call(
     'AccountsController:getState',
   ).internalAccounts;
-  const account = Object.values(accounts).find(
-    (acc) => acc.address === accountAddress.toLowerCase(),
+  const account = Object.values(accounts).find((acc) =>
+    areAddressesEqual(acc.address, accountAddress),
   );
 
   return account?.metadata?.keyring?.type as KeyringTypes;

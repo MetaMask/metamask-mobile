@@ -13,7 +13,7 @@ import { useQRHardwareContext } from '../context/qr-hardware-context';
 import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
-import { useStandaloneConfirmation } from './ui/useStandaloneConfirmation';
+import { useFullScreenConfirmation } from './ui/useFullScreenConfirmation';
 
 export const useConfirmActions = () => {
   const {
@@ -33,7 +33,7 @@ export const useConfirmActions = () => {
   const shouldUseSmartTransaction = useSelector((state: RootState) =>
     selectShouldUseSmartTransaction(state, transactionMetadata?.chainId),
   );
-  const { isStandaloneConfirmation } = useStandaloneConfirmation();
+  const { isFullScreenConfirmation } = useFullScreenConfirmation();
 
   const isSignatureReq =
     approvalRequest?.type && isSignatureRequest(approvalRequest?.type);
@@ -72,7 +72,7 @@ export const useConfirmActions = () => {
       handleErrors: false,
     });
 
-    if (isStandaloneConfirmation) {
+    if (isFullScreenConfirmation) {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } else {
       navigation.goBack();
@@ -91,7 +91,7 @@ export const useConfirmActions = () => {
     captureSignatureMetrics,
     onRequestConfirm,
     isSignatureReq,
-    isStandaloneConfirmation,
+    isFullScreenConfirmation,
     shouldUseSmartTransaction,
   ]);
 

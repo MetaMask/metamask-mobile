@@ -18,7 +18,7 @@ while IFS= read -r file; do
         matching_files+=("$file")
         echo "Found matching test: $file"
     fi
-done < <(find "$BASE_DIR" -type f -name "*.spec.js" -exec grep -l "$TEST_SUITE_TAG" {} \; | sort -u)
+done < <(find "$BASE_DIR" -type f \( -name "*.spec.js" -o -name "*.spec.ts" \) -exec grep -l "$TEST_SUITE_TAG" {} \; | sort -u)
 
 # Check if any files were found
 if [ ${#matching_files[@]} -eq 0 ]; then

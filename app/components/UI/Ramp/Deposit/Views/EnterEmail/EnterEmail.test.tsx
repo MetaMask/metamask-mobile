@@ -2,22 +2,37 @@ import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import EnterEmail from './EnterEmail';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { DepositSdkResult } from '../../hooks/useDepositSdkMethod';
+import { DepositSdkMethodResult } from '../../hooks/useDepositSdkMethod';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 
-const mockUseDepositSdkMethodInitialValues: DepositSdkResult<'response'> = {
+const mockResponse = {
+  data: null,
   error: null,
-  loading: false,
-  sdkMethod: jest.fn().mockResolvedValue('Success'),
-  response: null,
+  isFetching: false,
 };
 
-let mockUseDepositSdkMethodValues: DepositSdkResult<'response'> = {
+const mockUseDepositSdkMethodInitialValues: DepositSdkMethodResult<'sendUserOtp'> =
+  [mockResponse, jest.fn().mockResolvedValue('Success')];
+
+let mockUseDepositSdkMethodValues: DepositSdkMethodResult<'sendUserOtp'> = {
   ...mockUseDepositSdkMethodInitialValues,
+};
+
+interface MockQuote {
+  id: string;
+  amount: number;
+  currency: string;
+}
+
+// Mock the quote object
+const mockQuote: MockQuote = {
+  id: 'test-quote-id',
+  amount: 100,
+  currency: 'USD',
 };
 
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
@@ -35,6 +50,9 @@ jest.mock('@react-navigation/native', () => {
         actualReactNavigation.useNavigation().setOptions,
       ),
     }),
+    useRoute: () => ({
+      params: { quote: mockQuote },
+    }),
   };
 });
 
@@ -51,18 +69,15 @@ function render(Component: React.ComponentType) {
 describe('EnterEmail Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseDepositSdkMethodValues = {
-      ...mockUseDepositSdkMethodInitialValues,
-    };
+    mockUseDepositSdkMethodValues = [
+      { ...mockResponse },
+      jest.fn().mockResolvedValue('Success'),
+    ];
   });
 
-  it('renders correctly', () => {
+  it('render matches snapshot', () => {
     render(EnterEmail);
-    expect(
-      screen.getByText(
-        "We'll send a six-digit code to your email to check it's you.",
-      ),
-    ).toBeTruthy();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('calls setOptions when the component mounts', () => {
@@ -74,13 +89,13 @@ describe('EnterEmail Component', () => {
     );
   });
 
-  it('displays loading state', async () => {
-    mockUseDepositSdkMethodValues = {
-      ...mockUseDepositSdkMethodInitialValues,
-      loading: true,
-    };
+  it('renders loading state snapshot', async () => {
+    mockUseDepositSdkMethodValues = [
+      { ...mockResponse, isFetching: true },
+      jest.fn(),
+    ];
     render(EnterEmail);
-    expect(screen.getByText('Sending email...')).toBeTruthy();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('navigates to next screen on "Send email" button press with valid email', async () => {
@@ -89,25 +104,28 @@ describe('EnterEmail Component', () => {
     fireEvent.changeText(emailInput, 'test@example.com');
     fireEvent.press(screen.getByRole('button', { name: 'Send email' }));
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.DEPOSIT.OTP_CODE,
-        undefined,
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.OTP_CODE, {
+        email: 'test@example.com',
+        quote: mockQuote,
+      });
     });
   });
 
-  it('shows validation error for invalid email', async () => {
+  it('renders validation error snapshot invalid email', async () => {
     render(EnterEmail);
     const emailInput = screen.getByPlaceholderText('name@domain.com');
     fireEvent.changeText(emailInput, 'invalid-email');
     fireEvent.press(screen.getByRole('button', { name: 'Send email' }));
-    expect(screen.getByText('Please enter a valid email address')).toBeTruthy();
+    expect(screen.toJSON()).toMatchSnapshot();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('displays error message when API call fails', async () => {
-    mockUseDepositSdkMethodValues.error = 'Invalid email address';
+  it('renders error message snapshot when API call fails', async () => {
+    mockUseDepositSdkMethodValues = [
+      { ...mockResponse, error: 'API Error' },
+      jest.fn(),
+    ];
     render(EnterEmail);
-    expect(screen.getByText('Invalid email address')).toBeTruthy();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });

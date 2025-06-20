@@ -52,6 +52,8 @@ import { getControllerOrThrow, initModularizedControllers } from './utils';
 import { AppMetadataController } from '@metamask/app-metadata-controller';
 import { appMetadataControllerInit } from '../controllers/app-metadata-controller';
 import { seedlessOnboardingControllerInit } from '../controllers/seedless-onboarding-controller';
+import { AccountTreeController } from '@metamask/account-tree-controller';
+import { accountTreeControllerInit } from '../../../multichain-accounts/controllers/account-tree-controller';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/app-metadata-controller');
@@ -84,6 +86,7 @@ jest.mock('../controllers/transaction-controller');
 jest.mock(
   '../controllers/defi-positions-controller/defi-positions-controller-init',
 );
+jest.mock('../../../multichain-accounts/controllers/account-tree-controller');
 
 describe('initModularizedControllers', () => {
   const mockAccountsControllerInit = jest.mocked(accountsControllerInit);
@@ -128,6 +131,7 @@ describe('initModularizedControllers', () => {
   const mockSeedlessOnboardingControllerInit = jest.mocked(
     seedlessOnboardingControllerInit,
   );
+  const mockAccountTreeControllerInit = jest.mocked(accountTreeControllerInit);
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
   ) {
@@ -136,6 +140,7 @@ describe('initModularizedControllers', () => {
         existingControllersByName: {},
         controllerInitFunctions: {
           AccountsController: mockAccountsControllerInit,
+          AccountTreeController: mockAccountTreeControllerInit,
           CurrencyRateController: mockCurrencyRateControllerInit,
           CronjobController: mockCronjobControllerInit,
           GasFeeController: mockGasFeeControllerInit,
@@ -228,6 +233,9 @@ describe('initModularizedControllers', () => {
     });
     mockDeFiPositionsControllerInit.mockReturnValue({
       controller: {} as unknown as DeFiPositionsController,
+    });
+    mockAccountTreeControllerInit.mockReturnValue({
+      controller: {} as unknown as AccountTreeController,
     });
   });
 

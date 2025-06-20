@@ -10,6 +10,7 @@ import React, {
 } from 'react';
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
+import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
 
 // External dependencies.
 import { strings } from '../../../../locales/i18n';
@@ -201,12 +202,17 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const selectedNetworkAvatars = useMemo(
     () =>
-      selectedChainIds.map((selectedChainId) => ({
-        size: AvatarSize.Xs,
-        name: networkConfigurations[selectedChainId]?.name || '',
-        imageSource: getNetworkImageSource({ chainId: selectedChainId }),
-        variant: AvatarVariant.Network,
-      })),
+      selectedChainIds
+        .filter(
+          (selectedChainId) => !NON_EVM_TESTNET_IDS.includes(selectedChainId),
+        )
+        .map((selectedChainId) => ({
+          size: AvatarSize.Xs,
+          name: networkConfigurations[selectedChainId]?.name || '',
+          imageSource: getNetworkImageSource({ chainId: selectedChainId }),
+          variant: AvatarVariant.Network,
+          caipChainId: selectedChainId,
+        })),
     [networkConfigurations, selectedChainIds],
   );
 

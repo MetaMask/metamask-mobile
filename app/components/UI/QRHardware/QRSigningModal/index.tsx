@@ -7,6 +7,7 @@ import { useTheme } from '../../../../util/theme';
 import { useDispatch, useSelector } from 'react-redux';
 import { getNormalizedTxState } from '../../../../util/transactions';
 import { resetTransaction } from '../../../../actions/transaction';
+import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 
 interface IQRSigningModalProps {
   isVisible: boolean;
@@ -46,6 +47,8 @@ const QRSigningModal = ({
   const styles = createStyles(colors);
   const [isModalCompleteShow, setModalCompleteShow] = useState(false);
   const { from } = useSelector(getNormalizedTxState);
+  // This is picking up selected account as `from` address when unusual confirmation flow - like swaps
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
 
   const handleCancel = () => {
     onCancel?.();
@@ -91,7 +94,7 @@ const QRSigningModal = ({
           cancelCallback={handleCancel}
           failureCallback={handleFailure}
           bypassAndroidCameraAccessCheck={false}
-          fromAddress={from}
+          fromAddress={from || selectedAccount?.address}
         />
       </View>
     </Modal>

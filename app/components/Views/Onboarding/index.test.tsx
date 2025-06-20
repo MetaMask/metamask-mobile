@@ -4,6 +4,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import Device from '../../../util/device';
 import { fireEvent } from '@testing-library/react-native';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
+import { InteractionManager } from 'react-native';
 
 const mockInitialState = {
   engine: {
@@ -24,6 +25,18 @@ jest.mock('../../../util/device', () => ({
 jest.mock('../../../core/OAuthService/OAuthLoginHandlers', () => ({
   createLoginHandler: jest.fn(),
 }));
+const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
+  cb();
+  return {
+    then: (onfulfilled: () => void) => Promise.resolve(onfulfilled()),
+    done: (onfulfilled: () => void, onrejected: () => void) =>
+      Promise.resolve().then(onfulfilled, onrejected),
+    cancel: jest.fn(),
+  };
+});
+jest
+  .spyOn(InteractionManager, 'runAfterInteractions')
+  .mockImplementation(mockRunAfterInteractions);
 
 describe('Onboarding', () => {
   it('should render correctly', () => {

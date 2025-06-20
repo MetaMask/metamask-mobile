@@ -88,5 +88,10 @@ export const deriveBalanceFromAssetMarketDetails = (
   // NOTE: the way we calculate the balances here loses precision for both tokens and native assets
   // This is different than how portfolio fiat total is calculated and causes variance between the totals
 
-  return { balanceFiat, balanceValueFormatted, balance, balanceFiatCalculation };
+  return {
+    balanceFiat,
+    balanceValueFormatted,
+    balance,
+    balanceFiatCalculation,
+  };
 };

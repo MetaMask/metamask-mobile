@@ -1,3 +1,4 @@
+import { TransactionController } from '@metamask/transaction-controller';
 import type { ControllerInitFunction } from '../../types';
 import {
   EarnController,
@@ -23,6 +24,9 @@ export const earnControllerInit: ControllerInitFunction<
   const controller = new EarnController({
     messenger: controllerMessenger,
     state: earnControllerState,
+    // TODO: this init method is not currently used, when it is, we need to pass in the addTransactionFn
+    // from an intiialized TransactionController
+    addTransactionFn: TransactionController.prototype.addTransaction,
   });
 
   return { controller };

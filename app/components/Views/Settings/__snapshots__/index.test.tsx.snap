@@ -166,7 +166,7 @@ exports[`Settings should render correctly 1`] = `
                 }
               }
             >
-              Privacy settings, MetaMetrics, private key and wallet Secret Recovery Phrase
+              Privacy settings, MetaMetrics, private key, and Secret Recovery Phrase.
             </Text>
           </View>
           <View

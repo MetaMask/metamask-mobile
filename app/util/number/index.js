@@ -31,7 +31,9 @@ const BIG_NUMBER_ETH_MULTIPLIER = new BigNumber('1');
 export const hexToBN = (inputHex) =>
   typeof inputHex !== 'string'
     ? new BN4(inputHex, 16)
-    : (inputHex ? new BN4(remove0x(inputHex), 16) : new BN4(0));
+    : inputHex
+    ? new BN4(remove0x(inputHex), 16)
+    : new BN4(0);
 
 /**
  * Converts a BN object to a hex string with a '0x' prefix.
@@ -399,7 +401,9 @@ export function isNumber(str) {
  * @returns {boolean} - True if the value is a valid number
  */
 export function isNumberValue(value) {
-  if (value === null || value === undefined) { return false; }
+  if (value === null || value === undefined) {
+    return false;
+  }
 
   if (typeof value === 'number') {
     return !Number.isNaN(value) && Number.isFinite(value);

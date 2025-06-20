@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import { noop } from 'lodash';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { transferTransactionStateMock } from '../../../mock-data/transfer-transaction-mock';
+import { transferTransactionStateMock } from '../../../__mocks__/transfer-transaction-mock';
 import { validateGasPrice } from '../../../utils/gas-validations';
 import { GasPriceInput } from './gas-price-input';
 

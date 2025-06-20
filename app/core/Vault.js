@@ -15,6 +15,7 @@ import {
 ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import ReduxService from './redux';
 ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+import { areAddressesEqual } from '../util/address';
 
 /**
  * Restore the given serialized QR keyring.
@@ -130,14 +131,9 @@ export const recreateVaultWithNewPassword = async (
   selectedAddress,
 ) => {
   const { KeyringController, AccountsController } = Engine.context;
-  const hdKeyringsWithMetadata = KeyringController.state.keyrings
-    .map((keyring, _index) => ({
-      ...keyring,
-      ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-      metadata: KeyringController.state.keyringsMetadata?.[_index] || {},
-      ///: END:ONLY_INCLUDE_IF
-    }))
-    .filter((keyring) => keyring.type === KeyringTypes.hd);
+  const hdKeyringsWithMetadata = KeyringController.state.keyrings.filter(
+    (keyring) => keyring.type === KeyringTypes.hd,
+  );
 
   const seedPhrases = await Promise.all(
     hdKeyringsWithMetadata.map(async (keyring) => {
@@ -180,12 +176,12 @@ export const recreateVaultWithNewPassword = async (
       'error while trying to get imported accounts on recreate vault',
     );
   }
-
   const firstPartySnapAccounts =
     AccountsController.listMultichainAccounts().filter(
-      (account) => account.options?.entropySource,
+      (account) =>
+        account.options?.entropySource &&
+        account.metadata.keyring.type === KeyringTypes.snap,
     );
-
   // Get props to restore vault
   const hdKeyringsAccountCount = hdKeyringsWithMetadata.map(
     (keyring) => keyring.accounts.length,
@@ -213,8 +209,8 @@ export const recreateVaultWithNewPassword = async (
     newPassword,
     primaryKeyringSeedPhrase,
   );
-  const [newPrimaryKeyringMetadata] = KeyringController.state.keyringsMetadata;
-  const newPrimaryKeyringId = newPrimaryKeyringMetadata.id;
+  const [newPrimaryKeyring] = KeyringController.state.keyrings;
+  const newPrimaryKeyringId = newPrimaryKeyring.metadata.id;
 
   // START: Restoring keyrings
 
@@ -229,7 +225,10 @@ export const recreateVaultWithNewPassword = async (
       await SeedlessOnboardingController.changePassword(newPassword, password);
     } catch (error) {
       Logger.error(error);
-      await KeyringController.createNewVaultAndRestore(password, seedPhrase);
+      await KeyringController.createNewVaultAndRestore(
+        password,
+        primaryKeyringSeedPhrase,
+      );
       throw new Error('Password change failed');
     }
   }
@@ -290,7 +289,11 @@ export const recreateVaultWithNewPassword = async (
   const recreatedKeyrings = KeyringController.state.keyrings;
   // Reselect previous selected account if still available
   for (const keyring of recreatedKeyrings) {
-    if (keyring.accounts.includes(selectedAddress.toLowerCase())) {
+    if (
+      keyring.accounts.some((account) =>
+        areAddressesEqual(account, selectedAddress),
+      )
+    ) {
       Engine.setSelectedAddress(selectedAddress);
       return;
     }

@@ -30,9 +30,9 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingTop: 16,
     },
     headerContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
+      justifyContent: 'center',
       alignItems: 'center',
+      paddingBottom: 16,
     },
     headerText: {
       color: colors.text.default,

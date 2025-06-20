@@ -60,7 +60,7 @@ const useAddressBalance = (
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
   if (isPerDappSelectedNetworkEnabled() && chainId) {
     // If chainId is provided, use the accounts and ticker for that chain
-    accounts = accountsByChainId[chainId];
+    accounts = accountsByChainId[chainId] ?? {};
     ticker = networkConfigurationByChainId?.nativeCurrency;
   }
 

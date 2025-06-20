@@ -1,5 +1,4 @@
-import { PooledStakeExitRequest } from '@metamask/stake-sdk';
-
+import { PooledStakeExitRequest, ChainId } from '@metamask/stake-sdk';
 import { MOCK_GET_POOLED_STAKES_API_RESPONSE } from '../__mocks__/stakeMockData';
 import { createMockAccountsControllerState } from '../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../util/test/initial-root-state';
@@ -27,8 +26,10 @@ const mockExchangeRate = MOCK_GET_POOLED_STAKES_API_RESPONSE.exchangeRate;
 
 const mockInitialEarnControllerState: DeepPartial<EarnControllerState> = {
   pooled_staking: {
-    pooledStakes: mockPooledStakeData,
-    exchangeRate: mockExchangeRate,
+    '1': {
+      pooledStakes: mockPooledStakeData,
+      exchangeRate: mockExchangeRate,
+    },
   },
 };
 
@@ -52,8 +53,8 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 const renderHook = (state?: {
-  pooledStakes?: PooledStakingState['pooledStakes'];
-  exchangeRate?: PooledStakingState['exchangeRate'];
+  pooledStakes?: PooledStakingState[0]['pooledStakes'];
+  exchangeRate?: PooledStakingState[0]['exchangeRate'];
 }) => {
   const mockState: DeepPartial<RootState> = {
     engine: {
@@ -61,18 +62,22 @@ const renderHook = (state?: {
         ...backgroundState,
         AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
         EarnController: {
-          ...mockInitialEarnControllerState,
           pooled_staking: {
-            ...mockInitialEarnControllerState.pooled_staking,
-            pooledStakes: state?.pooledStakes,
-            exchangeRate: state?.exchangeRate,
+            isEligible: true,
+            [ChainId.ETHEREUM]: {
+              ...mockInitialEarnControllerState.pooled_staking?.['1'],
+              pooledStakes: state?.pooledStakes,
+              exchangeRate: state?.exchangeRate,
+            },
           },
         },
       },
     },
   };
 
-  return renderHookWithProvider(() => usePooledStakes(), { state: mockState });
+  return renderHookWithProvider(() => usePooledStakes(ChainId.ETHEREUM), {
+    state: mockState,
+  });
 };
 
 describe('usePooledStakes', () => {

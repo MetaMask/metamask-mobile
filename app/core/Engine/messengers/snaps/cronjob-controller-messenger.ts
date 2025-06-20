@@ -6,11 +6,10 @@ import {
   SnapEnabled,
   SnapUninstalled,
   HandleSnapRequest,
-  GetAllSnaps,
 } from '@metamask/snaps-controllers';
 import { GetPermissions } from '@metamask/permission-controller';
 
-type Actions = GetPermissions | HandleSnapRequest | GetAllSnaps;
+type Actions = GetPermissions | HandleSnapRequest;
 
 type Events =
   | SnapInstalled
@@ -45,7 +44,6 @@ export function getCronjobControllerMessenger(
     allowedActions: [
       `PermissionController:getPermissions`,
       'SnapController:handleRequest',
-      'SnapController:getAll',
     ],
   });
 }

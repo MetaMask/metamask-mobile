@@ -8,6 +8,7 @@ import {
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { useNavigation } from '@react-navigation/native';
+import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
@@ -64,7 +65,7 @@ import {
   SCALE_FACTOR,
 } from './PermissionSummary.constants';
 import { isCaipAccountIdInPermittedAccountIds } from '@metamask/chain-agnostic-permission';
-import { parseCaipAccountId } from '@metamask/utils';
+import { CaipChainId, parseCaipAccountId } from '@metamask/utils';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,
@@ -74,6 +75,7 @@ import AvatarToken from '../../../component-library/components/Avatars/Avatar/va
 import AccountConnectCreateInitialAccount from '../../Views/AccountConnect/AccountConnectCreateInitialAccount';
 import { SolScope } from '@metamask/keyring-api';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -284,6 +286,7 @@ const PermissionsSummary = ({
   }, [hostname, navigate]);
 
   const toggleRevokeAllPermissionsModal = useCallback(() => {
+    trace({ name: TraceName.DisconnectAllAccountPermissions });
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
       params: {
@@ -295,6 +298,7 @@ const PermissionsSummary = ({
         onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
       },
     });
+    endTrace({ name: TraceName.DisconnectAllAccountPermissions });
   }, [isRenderedAsBottomSheet, onRevokeAllHandler, hostname, navigate]);
 
   const getAccountLabel = useCallback(() => {
@@ -552,6 +556,14 @@ const PermissionsSummary = ({
     [styles, colors],
   );
 
+  const filteredAccountAddresses = useMemo(
+    () =>
+      accountAddresses.filter((address) => {
+        const { chainId: caipChainId } = parseCaipAccountId(address);
+        return !NON_EVM_TESTNET_IDS.includes(caipChainId as CaipChainId);
+      }),
+    [accountAddresses],
+  );
   const renderAccountsConnectedList = useCallback(
     (
       accountsConnectedTabKey: string,
@@ -568,7 +580,7 @@ const PermissionsSummary = ({
       ) : (
         <AccountsConnectedList
           key={accountsConnectedTabKey}
-          selectedAddresses={accountAddresses}
+          selectedAddresses={filteredAccountAddresses}
           ensByAccountAddress={ensByAccountAddress}
           accounts={accounts}
           privacyMode={privacyMode}
@@ -578,14 +590,14 @@ const PermissionsSummary = ({
         />
       ),
     [
-      accountAddresses,
       ensByAccountAddress,
-      accounts,
       privacyMode,
       networkAvatars,
       handleEditAccountsButtonPress,
       promptToCreateSolanaAccount,
       onCreateAccount,
+      accounts,
+      filteredAccountAddresses,
     ],
   );
 

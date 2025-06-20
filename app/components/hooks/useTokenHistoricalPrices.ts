@@ -1,6 +1,7 @@
 import { CaipAssetId, CaipAssetType, Hex } from '@metamask/utils';
 import { getDecimalChainId } from '../../util/networks';
 import { useState, useEffect } from 'react';
+import { TraceName, endTrace, trace } from '../../util/trace';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainHistoricalPrices } from '../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
@@ -89,10 +90,19 @@ const useTokenHistoricalPrices = ({
             : (`${asset.chainId}/token:${asset.address}` as CaipAssetType);
           const standardizedTimeInterval = standardizeTimeInterval(timePeriod);
 
+          trace({
+            name: TraceName.FetchHistoricalPrices,
+            data: {
+              normalizedCaipAssetTypeAddress,
+            },
+          });
+
           await Engine.context.MultichainAssetsRatesController.fetchHistoricalPricesForAsset(
             normalizedCaipAssetTypeAddress,
             lastSelectedNonEvmAccount,
           );
+
+          endTrace({ name: TraceName.FetchHistoricalPrices });
 
           const result =
             multichainHistoricalPrices[normalizedCaipAssetTypeAddress][
@@ -123,7 +133,12 @@ const useTokenHistoricalPrices = ({
             uri.searchParams.set('to', to.toString());
           }
 
+          trace({
+            name: TraceName.FetchHistoricalPrices,
+            data: { uri: uri.toString() },
+          });
           const response = await fetch(uri.toString());
+          endTrace({ name: TraceName.FetchHistoricalPrices });
           const data: { prices: TokenPrice[] } = await response.json();
           setPrices(data.prices as TokenPrice[]);
         }

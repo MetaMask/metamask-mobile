@@ -49,150 +49,169 @@ describe('SkipAccountSecurityModal', () => {
     jest.clearAllMocks();
   });
 
-  const setupTest = () => {
-    const mockNavigate = jest.fn();
-    const mockGoBack = jest.fn();
-    const mockSetOptions = jest.fn();
+  describe('with route params', () => {
+    const setupTest = () => {
+      const mockNavigate = jest.fn();
+      const mockGoBack = jest.fn();
+      const mockSetOptions = jest.fn();
 
-    (useNavigation as jest.Mock).mockReturnValue({
-      navigate: mockNavigate,
-      goBack: mockGoBack,
-      setOptions: mockSetOptions,
-      addListener: jest.fn(),
-      removeListener: jest.fn(),
-      isFocused: jest.fn(),
-      reset: jest.fn(),
-    });
+      const mockNavigation = (useNavigation as jest.Mock).mockReturnValue({
+        navigate: mockNavigate,
+        goBack: mockGoBack,
+        setOptions: mockSetOptions,
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+        isFocused: jest.fn(),
+        reset: jest.fn(),
+      });
 
-    const wrapper = renderWithProvider(
-      <SkipAccountSecurityModal
-        route={{
-          params: {
-            onConfirm: mockOnConfirm,
-            onCancel: mockOnCancel,
-          },
-        }}
-      />,
-    );
+      const wrapper = renderWithProvider(
+        <SkipAccountSecurityModal
+          route={{
+            params: {
+              onConfirm: mockOnConfirm,
+              onCancel: mockOnCancel,
+            },
+          }}
+        />,
+      );
 
-    return {
-      wrapper,
-      mockNavigate,
-      mockGoBack,
-      mockSetOptions,
+      return {
+        wrapper,
+        mockNavigate,
+        mockGoBack,
+        mockSetOptions,
+        mockNavigation,
+      };
     };
-  };
 
-  const setupTestWithoutParams = () => {
-    const mockNavigate = jest.fn();
-    const mockGoBack = jest.fn();
-    const mockSetOptions = jest.fn();
-
-    (useNavigation as jest.Mock).mockReturnValue({
-      navigate: mockNavigate,
-      goBack: mockGoBack,
-      setOptions: mockSetOptions,
-      addListener: jest.fn(),
-      removeListener: jest.fn(),
-      isFocused: jest.fn(),
-      reset: jest.fn(),
+    it('render matches snapshot', () => {
+      const { wrapper, mockNavigation } = setupTest();
+      expect(wrapper).toMatchSnapshot();
+      mockNavigation.mockRestore();
     });
 
-    const wrapper = renderWithProvider(<SkipAccountSecurityModal route={{}} />);
+    it('render Skip and Secure now buttons with correct content', () => {
+      const { wrapper, mockNavigation } = setupTest();
 
-    return {
-      wrapper,
-      mockNavigate,
-      mockGoBack,
-      mockSetOptions,
+      const cancelButton = wrapper.getByRole('button', {
+        name: strings('account_backup_step_1.skip_button_cancel'),
+      });
+      const confirmButton = wrapper.getByRole('button', {
+        name: strings('account_backup_step_1.skip_button_confirm'),
+      });
+
+      expect(cancelButton).toBeTruthy();
+      expect(confirmButton).toBeTruthy();
+      mockNavigation.mockRestore();
+    });
+
+    it('on skip button press, the bottom sheet is closed and the onConfirm function is called', () => {
+      Platform.OS = 'android';
+
+      const { wrapper, mockGoBack, mockNavigation } = setupTest();
+
+      const confirmButton = wrapper.getByRole('button', {
+        name: strings('account_backup_step_1.skip_button_confirm'),
+      });
+      expect(confirmButton.props.disabled).toBe(true);
+
+      const checkbox = wrapper.getByTestId(
+        SkipAccountSecurityModalSelectorsIDs.iOS_SKIP_BACKUP_BUTTON_ID,
+      );
+      fireEvent.press(checkbox);
+
+      expect(confirmButton.props.disabled).toBe(false);
+
+      fireEvent.press(confirmButton);
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+      mockNavigation.mockRestore();
+    });
+
+    it('on secure now button press, the bottom sheet is closed and the onCancel function is called', () => {
+      Platform.OS = 'android';
+
+      const { wrapper, mockGoBack, mockNavigation } = setupTest();
+
+      const cancelButton = wrapper.getByRole('button', {
+        name: strings('account_backup_step_1.skip_button_cancel'),
+      });
+
+      expect(cancelButton).toBeEnabled();
+
+      const checkbox = wrapper.getByTestId(
+        SkipAccountSecurityModalSelectorsIDs.iOS_SKIP_BACKUP_BUTTON_ID,
+      );
+
+      fireEvent.press(checkbox);
+
+      fireEvent.press(cancelButton);
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockOnCancel).toHaveBeenCalledTimes(1);
+      mockNavigation.mockRestore();
+    });
+  });
+
+  describe('with empty route params', () => {
+    const setupTest = () => {
+      const mockNavigate = jest.fn();
+      const mockGoBack = jest.fn();
+      const mockSetOptions = jest.fn();
+
+      const mockNavigation = (useNavigation as jest.Mock).mockReturnValue({
+        navigate: mockNavigate,
+        goBack: mockGoBack,
+        setOptions: mockSetOptions,
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+        isFocused: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      const wrapper = renderWithProvider(
+        <SkipAccountSecurityModal route={{}} />,
+      );
+
+      return {
+        wrapper,
+        mockNavigate,
+        mockGoBack,
+        mockSetOptions,
+        mockNavigation,
+      };
     };
-  };
 
-  it('should render correctly', () => {
-    const { wrapper } = setupTest();
-    expect(wrapper).toMatchSnapshot();
-  });
-
-  it('should render cta actions', () => {
-    const { wrapper } = setupTest();
-
-    const cancelButton = wrapper.getByRole('button', {
-      name: strings('account_backup_step_1.skip_button_cancel'),
-    });
-    const confirmButton = wrapper.getByRole('button', {
-      name: strings('account_backup_step_1.skip_button_confirm'),
+    it('render matches snapshot', () => {
+      const { wrapper, mockNavigation } = setupTest();
+      expect(wrapper).toMatchSnapshot();
+      mockNavigation.mockRestore();
     });
 
-    expect(cancelButton).toBeTruthy();
-    expect(confirmButton).toBeTruthy();
-  });
+    it('on secure now button press, the bottom sheet is closed and the onCancel function is not called', () => {
+      const { wrapper, mockGoBack, mockNavigation } = setupTest();
 
-  it('should render cta actions without params', () => {
-    const { wrapper } = setupTestWithoutParams();
+      const cancelButton = wrapper.getByRole('button', {
+        name: strings('account_backup_step_1.skip_button_cancel'),
+      });
 
-    const cancelButton = wrapper.getByRole('button', {
-      name: strings('account_backup_step_1.skip_button_cancel'),
-    });
-    const confirmButton = wrapper.getByRole('button', {
-      name: strings('account_backup_step_1.skip_button_confirm'),
-    });
-
-    expect(cancelButton).toBeTruthy();
-    expect(confirmButton).toBeTruthy();
-  });
-
-  it('should render cta actions and actions are called', () => {
-    Platform.OS = 'android';
-
-    const { wrapper, mockGoBack } = setupTest();
-
-    const cancelButton = wrapper.getByRole('button', {
-      name: strings('account_backup_step_1.skip_button_cancel'),
-    });
-    const confirmButton = wrapper.getByRole('button', {
-      name: strings('account_backup_step_1.skip_button_confirm'),
-    });
-    const checkbox = wrapper.getByTestId(
-      SkipAccountSecurityModalSelectorsIDs.iOS_SKIP_BACKUP_BUTTON_ID,
-    );
-
-    expect(cancelButton).toBeEnabled();
-    expect(confirmButton.props.disabled).toBe(true);
-    expect(checkbox.props.disabled).toBe(false);
-
-    fireEvent.press(checkbox);
-    expect(confirmButton.props.disabled).toBe(false);
-
-    fireEvent.press(cancelButton);
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockOnCancel).toHaveBeenCalledTimes(1);
-    expect(mockOnConfirm).toHaveBeenCalledTimes(0);
-
-    fireEvent.press(confirmButton);
-    expect(mockGoBack).toHaveBeenCalledTimes(2);
-    expect(mockOnCancel).toHaveBeenCalledTimes(1);
-    expect(mockOnConfirm).toHaveBeenCalledTimes(1);
-  });
-
-  it('should handle onCancel when route params are not provided', () => {
-    const { wrapper, mockGoBack } = setupTestWithoutParams();
-
-    const cancelButton = wrapper.getByRole('button', {
-      name: strings('account_backup_step_1.skip_button_cancel'),
+      fireEvent.press(cancelButton);
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockOnCancel).toHaveBeenCalledTimes(0);
+      mockNavigation.mockRestore();
     });
 
-    fireEvent.press(cancelButton);
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-  });
+    it('on skip button press, the bottom sheet is closed and the onConfirm function is not called', () => {
+      const { wrapper, mockGoBack, mockNavigation } = setupTest();
 
-  it('should handle onConfirm when route params are not provided', () => {
-    const { wrapper, mockGoBack } = setupTestWithoutParams();
+      const confirmButton = wrapper.getByRole('button', {
+        name: strings('account_backup_step_1.skip_button_confirm'),
+      });
 
-    const confirmButton = wrapper.getByRole('button', {
-      name: strings('account_backup_step_1.skip_button_confirm'),
+      fireEvent.press(confirmButton);
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockOnConfirm).toHaveBeenCalledTimes(0);
+      mockNavigation.mockRestore();
     });
-
-    fireEvent.press(confirmButton);
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });

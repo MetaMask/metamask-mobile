@@ -26,6 +26,8 @@ describe('handleUniversalLinks', () => {
   const mockHandleBuyCrypto = jest.fn();
   const mockHandleSellCrypto = jest.fn();
   const mockHandleBrowserUrl = jest.fn();
+  const mockHandleOpenHome = jest.fn();
+  const mockHandleSwap = jest.fn();
   const mockConnectToChannel = jest.fn();
   const mockGetConnections = jest.fn();
   const mockRevalidateChannel = jest.fn();
@@ -42,6 +44,8 @@ describe('handleUniversalLinks', () => {
     _handleBuyCrypto: mockHandleBuyCrypto,
     _handleSellCrypto: mockHandleSellCrypto,
     _handleBrowserUrl: mockHandleBrowserUrl,
+    _handleOpenHome: mockHandleOpenHome,
+    _handleSwap: mockHandleSwap,
   } as unknown as DeeplinkManager;
 
   const handled = jest.fn();
@@ -93,7 +97,7 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('ACTIONS.ANDROID_SDK', () => {
-    it('should call bindAndroidSDK when action is ANDROID_SDK', () => {
+    it('calls bindAndroidSDK when action is ANDROID_SDK', () => {
       DevLogger.log = jest.fn();
 
       urlObj = {
@@ -121,7 +125,7 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('ACTIONS.CONNECT', () => {
-    it('should displays RETURN_TO_DAPP_MODAL', () => {
+    it('displays RETURN_TO_DAPP_MODAL', () => {
       params.redirect = 'true';
       // Mock Device.isIos() to return true
       jest.spyOn(Device, 'isIos').mockReturnValue(true);
@@ -167,7 +171,7 @@ describe('handleUniversalLinks', () => {
       params.redirect = '';
     });
 
-    it('should call handleDeeplink', () => {
+    it('calls handleDeeplink', () => {
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/${ACTIONS.CONNECT}/additional/path`,
@@ -205,7 +209,7 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('ACTIONS.WC with wcURL', () => {
-    it('should call WC2Manager.connect if action is WC and wcURL is truthy', () => {
+    it('calls WC2Manager.connect if action is WC and wcURL is truthy', () => {
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/${ACTIONS.WC}/additional/path`,
@@ -230,7 +234,7 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('ACTIONS.WC without wcURL', () => {
-    it('should not call WC2Manager.connect if action is WC and wcURL is falsy', () => {
+    it('does not call WC2Manager.connect if action is WC and wcURL is falsy', () => {
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/${ACTIONS.WC}/additional/path`,
@@ -255,7 +259,7 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('PREFIXES[action]', () => {
-    it('should call instance.parse if PREFIXES[action] is truthy', () => {
+    it('calls instance.parse if PREFIXES[action] is truthy', () => {
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/${ACTIONS.SEND}/additional/path`,
@@ -282,7 +286,7 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('ACTIONS.BUY_CRYPTO', () => {
-    it('should call instance._handleBuyCrypto if action is ACTIONS.BUY_CRYPTO', () => {
+    it('calls instance._handleBuyCrypto if action is ACTIONS.BUY_CRYPTO', () => {
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/${ACTIONS.BUY_CRYPTO}/additional/path`,
@@ -306,7 +310,7 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('ACTIONS.SELL_CRYPTO', () => {
-    it('should call instance._handleSellCrypto if action is ACTIONS.SELL_CRYPTO', () => {
+    it('calls instance._handleSellCrypto if action is ACTIONS.SELL_CRYPTO', () => {
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/${ACTIONS.SELL_CRYPTO}/additional/path`,
@@ -330,7 +334,7 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('default condition', () => {
-    it('should call instance._handleBrowserUrl if action is not ACTIONS.BUY_CRYPTO or ACTIONS.SELL_CRYPTO', () => {
+    it('calls instance._handleBrowserUrl if action is not ACTIONS.BUY_CRYPTO or ACTIONS.SELL_CRYPTO', () => {
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/other-action/additional/path`,
@@ -353,6 +357,140 @@ describe('handleUniversalLinks', () => {
         'test-href',
         mockBrowserCallBack,
       );
+    });
+  });
+
+  describe('MM_IO_UNIVERSAL_LINK_HOST actions', () => {
+    beforeEach(() => {
+      urlObj = {
+        hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        href: 'test-href',
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+    });
+
+    describe('ACTIONS.HOME', () => {
+      it('calls _handleOpenHome when action is HOME', () => {
+        const homeUrlObj = {
+          ...urlObj,
+          pathname: `/${ACTIONS.HOME}/additional/path`,
+        };
+
+        handleUniversalLink({
+          instance,
+          handled,
+          urlObj: homeUrlObj,
+          params,
+          browserCallBack: mockBrowserCallBack,
+          origin,
+          wcURL,
+          url,
+        });
+
+        expect(handled).toHaveBeenCalled();
+        expect(mockHandleOpenHome).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('ACTIONS.SWAP', () => {
+      it('calls _handleSwap with correct path of "swap" when action is SWAP', () => {
+        const swapUrl = `${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}/some-swap-path`;
+        const swapUrlObj = {
+          ...urlObj,
+          href: swapUrl,
+          pathname: `/${ACTIONS.SWAP}/some-swap-path`,
+        };
+
+        handleUniversalLink({
+          instance,
+          handled,
+          urlObj: swapUrlObj,
+          params,
+          browserCallBack: mockBrowserCallBack,
+          origin,
+          wcURL,
+          url,
+        });
+
+        expect(handled).toHaveBeenCalled();
+        expect(mockHandleSwap).toHaveBeenCalledWith(
+          `${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}/some-swap-path`,
+        );
+      });
+    });
+
+    describe('ACTIONS.BUY and ACTIONS.BUY_CRYPTO', () => {
+      it('calls _handleBuyCrypto with correct path of "buy" when action is BUY', () => {
+        const buyUrl = `${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.BUY}/some-buy-path`;
+        const buyUrlObj = {
+          ...urlObj,
+          href: buyUrl,
+          pathname: `/${ACTIONS.BUY}/some-buy-path`,
+        };
+
+        handleUniversalLink({
+          instance,
+          handled,
+          urlObj: buyUrlObj,
+          params,
+          browserCallBack: mockBrowserCallBack,
+          origin,
+          wcURL,
+          url,
+        });
+
+        expect(handled).toHaveBeenCalled();
+        expect(mockHandleBuyCrypto).toHaveBeenCalledWith(
+          `${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.BUY}/some-buy-path`,
+        );
+      });
+
+      it('calls _handleBuyCrypto with correct path of "buy-crypto" when action is BUY_CRYPTO', () => {
+        const buyUrl = `${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.BUY_CRYPTO}/some-buy-path`;
+        const buyUrlObj = {
+          ...urlObj,
+          href: buyUrl,
+          pathname: `/${ACTIONS.BUY_CRYPTO}/some-buy-path`,
+        };
+
+        handleUniversalLink({
+          instance,
+          handled,
+          urlObj: buyUrlObj,
+          params,
+          browserCallBack: mockBrowserCallBack,
+          origin,
+          wcURL,
+          url,
+        });
+
+        expect(handled).toHaveBeenCalled();
+        expect(mockHandleBuyCrypto).toHaveBeenCalledWith(
+          `${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.BUY_CRYPTO}/some-buy-path`,
+        );
+      });
+    });
+
+    describe('default case', () => {
+      it('navigates to home when action is not recognized', () => {
+        const unknownUrlObj = {
+          ...urlObj,
+          pathname: '/unknown-action/path',
+        };
+
+        handleUniversalLink({
+          instance,
+          handled,
+          urlObj: unknownUrlObj,
+          params,
+          browserCallBack: mockBrowserCallBack,
+          origin,
+          wcURL,
+          url,
+        });
+
+        expect(handled).toHaveBeenCalled();
+        expect(mockHandleOpenHome).toHaveBeenCalledTimes(1);
+      });
     });
   });
 });

@@ -281,7 +281,7 @@ exports[`DepositInfoSection renders correctly 1`] = `
                   }
                 }
               >
-                5 DAI
+                5 USDC
               </Text>
             </View>
           </View>
@@ -755,7 +755,7 @@ exports[`DepositInfoSection renders correctly 1`] = `
                     }
                   }
                 >
-                  AAVE v3
+                  aave
                 </Text>
               </View>
             </View>

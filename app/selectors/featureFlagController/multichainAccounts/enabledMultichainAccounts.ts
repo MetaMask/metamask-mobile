@@ -13,8 +13,8 @@ export interface MultichainAccountsFeatureFlag {
 }
 
 const APP_VERSION = packageJson.version;
-const FEATURE_VERSION_1 = '1';
-const FEATURE_VERSION_2 = '2';
+export const MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1 = '1';
+export const MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2 = '2';
 
 /**
  * Asserts that the given value is a valid MultichainAccountsFeatureFlag.
@@ -55,7 +55,7 @@ export const isMultichainAccountsFeatureEnabled = (
 
   return (
     featureVersion === featureVersionToCheck &&
-    compareVersions.compare(minimumVersion, APP_VERSION, '>=')
+    compareVersions.compare(minimumVersion, APP_VERSION, '<=')
   );
 };
 
@@ -81,10 +81,10 @@ const createMultichainAccountsStateSelector = (featureVersions: string[]) =>
  * Selector to check if multichain accounts state 1 is enabled.
  * Returns true if the feature is enabled for state 1 or state 2.
  */
-export const selectMultichainAccountsState1Enabled = createMultichainAccountsStateSelector([FEATURE_VERSION_1, FEATURE_VERSION_2]);
+export const selectMultichainAccountsState1Enabled = createMultichainAccountsStateSelector([MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1, MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2]);
 
 /**
  * Selector to check if multichain accounts state 2 is enabled.
  * @returns Boolean indicating if multichain accounts state 2 is enabled.
  */
-export const selectMultichainAccountsState2Enabled = createMultichainAccountsStateSelector([FEATURE_VERSION_2]);
+export const selectMultichainAccountsState2Enabled = createMultichainAccountsStateSelector([MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2]);

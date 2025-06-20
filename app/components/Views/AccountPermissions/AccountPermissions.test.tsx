@@ -2,6 +2,7 @@ import React from 'react';
 import { act, fireEvent } from '@testing-library/react-native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { EthScope } from '@metamask/keyring-api';
 import { Account } from '../../hooks/useAccounts';
 import renderWithProvider, {
   DeepPartial,
@@ -34,7 +35,7 @@ const MOCK_EVM_ACCOUNT_2_NAME = 'Account 2';
 const MOCK_EVM_ACCOUNT_1_CAIP_ACCOUNT_ID = `eip155:0:${MOCK_EVM_ACCOUNT_1}`;
 const MOCK_EVM_ACCOUNT_2_CAIP_ACCOUNT_ID = `eip155:0:${MOCK_EVM_ACCOUNT_2}`;
 
-const MOCK_EVM_CAIP_SCOPE_1 = 'eip155:0';
+const MOCK_EVM_CAIP_SCOPE_1 = EthScope.Eoa;
 
 const MOCK_USE_ACCOUNTS_RETURN: Account[] = [
   {
@@ -50,6 +51,7 @@ const MOCK_USE_ACCOUNTS_RETURN: Account[] = [
     balanceError: undefined,
     caipAccountId: MOCK_EVM_ACCOUNT_1_CAIP_ACCOUNT_ID,
     isLoadingAccount: false,
+    scopes: [MOCK_EVM_CAIP_SCOPE_1],
   },
   {
     name: MOCK_EVM_ACCOUNT_2_NAME,
@@ -64,6 +66,7 @@ const MOCK_USE_ACCOUNTS_RETURN: Account[] = [
     balanceError: undefined,
     caipAccountId: MOCK_EVM_ACCOUNT_2_CAIP_ACCOUNT_ID,
     isLoadingAccount: false,
+    scopes: [MOCK_EVM_CAIP_SCOPE_1],
   },
 ];
 
@@ -126,6 +129,9 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     MultichainNetworkController: {
       setActiveNetwork: jest.fn(),
+    },
+    SelectedNetworkController: {
+      setNetworkClientIdForDomain: jest.fn(),
     },
     PermissionController: {
       revokeAllPermissions: jest.fn(),
@@ -248,6 +254,16 @@ const mockInitialState = (
       ...backgroundState,
       MultichainNetworkController: {
         multichainNetworkConfigurationsByChainId: {},
+        networksWithTransactionActivity: {
+          [MOCK_EVM_ACCOUNT_1.toLowerCase()]: {
+            namespace: 'eip155:0',
+            activeChains: ['1', '56'],
+          },
+          [MOCK_EVM_ACCOUNT_2.toLowerCase()]: {
+            namespace: 'eip155:0',
+            activeChains: ['1', '137'],
+          },
+        },
       },
       KeyringController: {
         isUnlocked: true,
@@ -426,7 +442,7 @@ describe('AccountPermissions', () => {
     });
 
     expect(
-      Engine.context.MultichainNetworkController.setActiveNetwork,
+      Engine.context.SelectedNetworkController.setNetworkClientIdForDomain,
     ).toHaveBeenCalled();
     expect(mockUpdatePermittedChains).toHaveBeenCalledWith(
       'test',
@@ -484,10 +500,9 @@ describe('AccountPermissions', () => {
     );
     fireEvent.press(updateButton);
 
-    expect(mockAddPermittedAccounts).toHaveBeenCalledWith(
-      'test',
-      ['eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7'],
-    );
+    expect(mockAddPermittedAccounts).toHaveBeenCalledWith('test', [
+      'eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7',
+    ]);
   });
 
   it('handles update permissions when accounts are added from edit view', async () => {
@@ -513,10 +528,9 @@ describe('AccountPermissions', () => {
     );
     fireEvent.press(updateButton);
 
-    expect(mockAddPermittedAccounts).toHaveBeenCalledWith(
-      'test',
-      ['eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7'],
-    );
+    expect(mockAddPermittedAccounts).toHaveBeenCalledWith('test', [
+      'eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7',
+    ]);
     expect(mockRemovePermittedAccounts).not.toHaveBeenCalled();
   });
 
@@ -531,10 +545,7 @@ describe('AccountPermissions', () => {
         }}
       />,
       {
-        state: mockInitialState([
-          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
-          '0xd018538C87232FF95acbCe4870629b75640a78E7',
-        ]),
+        state: mockInitialState([MOCK_EVM_ACCOUNT_1, MOCK_EVM_ACCOUNT_2]),
       },
     );
 
@@ -581,10 +592,9 @@ describe('AccountPermissions', () => {
     );
     fireEvent.press(updateButton);
 
-    expect(mockAddPermittedAccounts).toHaveBeenCalledWith(
-      'test',
-      ['eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7'],
-    );
+    expect(mockAddPermittedAccounts).toHaveBeenCalledWith('test', [
+      'eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7',
+    ]);
     expect(mockRemovePermittedAccounts).toHaveBeenCalledWith('test', [
       '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
     ]);

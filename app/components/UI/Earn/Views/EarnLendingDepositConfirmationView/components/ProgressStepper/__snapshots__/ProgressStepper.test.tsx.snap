@@ -4,7 +4,7 @@ exports[`ProgressStepper renders correctly 1`] = `
 <View>
   <RNSVGSvgView
     bbHeight={10}
-    bbWidth="auto"
+    bbWidth="100%"
     focusable={false}
     height={10}
     style={
@@ -16,11 +16,11 @@ exports[`ProgressStepper renders correctly 1`] = `
         {
           "flex": 0,
           "height": 10,
-          "width": "auto",
+          "width": "100%",
         },
       ]
     }
-    width="auto"
+    width="100%"
   >
     <RNSVGGroup
       fill={
@@ -211,7 +211,7 @@ exports[`ProgressStepper renders first and second step complete state when activ
 <View>
   <RNSVGSvgView
     bbHeight={10}
-    bbWidth="auto"
+    bbWidth="100%"
     focusable={false}
     height={10}
     style={
@@ -223,11 +223,11 @@ exports[`ProgressStepper renders first and second step complete state when activ
         {
           "flex": 0,
           "height": 10,
-          "width": "auto",
+          "width": "100%",
         },
       ]
     }
-    width="auto"
+    width="100%"
   >
     <RNSVGGroup
       fill={
@@ -414,7 +414,7 @@ exports[`ProgressStepper renders first step complete and second step pending sta
 <View>
   <RNSVGSvgView
     bbHeight={10}
-    bbWidth="auto"
+    bbWidth="100%"
     focusable={false}
     height={10}
     style={
@@ -426,11 +426,11 @@ exports[`ProgressStepper renders first step complete and second step pending sta
         {
           "flex": 0,
           "height": 10,
-          "width": "auto",
+          "width": "100%",
         },
       ]
     }
-    width="auto"
+    width="100%"
   >
     <RNSVGGroup
       fill={
@@ -619,7 +619,7 @@ exports[`ProgressStepper renders first step loading when isLoading prop set to t
 <View>
   <RNSVGSvgView
     bbHeight={10}
-    bbWidth="auto"
+    bbWidth="100%"
     focusable={false}
     height={10}
     style={
@@ -631,11 +631,11 @@ exports[`ProgressStepper renders first step loading when isLoading prop set to t
         {
           "flex": 0,
           "height": 10,
-          "width": "auto",
+          "width": "100%",
         },
       ]
     }
-    width="auto"
+    width="100%"
   >
     <RNSVGGroup
       fill={
@@ -832,7 +832,7 @@ exports[`ProgressStepper renders first step pending state when active step is 0 
 <View>
   <RNSVGSvgView
     bbHeight={10}
-    bbWidth="auto"
+    bbWidth="100%"
     focusable={false}
     height={10}
     style={
@@ -844,11 +844,11 @@ exports[`ProgressStepper renders first step pending state when active step is 0 
         {
           "flex": 0,
           "height": 10,
-          "width": "auto",
+          "width": "100%",
         },
       ]
     }
-    width="auto"
+    width="100%"
   >
     <RNSVGGroup
       fill={

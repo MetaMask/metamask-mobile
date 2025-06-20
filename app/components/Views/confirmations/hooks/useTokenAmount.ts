@@ -54,7 +54,7 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
   const nativeConversionRate = new BigNumber(
     useSelector((state: RootState) =>
       selectConversionRateByChainId(state, chainId as Hex),
-    ) ?? 1,
+    ) ?? 0,
   );
   const { networkNativeCurrency } = useNetworkInfo(chainId as Hex);
   const currencyRates = useSelector(selectCurrencyRates);

@@ -48,6 +48,7 @@ describe(
         await ChangePasswordView.tapIUnderstandCheckBox();
         await ChangePasswordView.typeInConfirmPasswordInputBox(NEW_PASSWORD);
         await ChangePasswordView.reEnterPassword(NEW_PASSWORD);
+        await ChangePasswordView.tapSubmitButton();
 
         // should lock wallet from Settings
         await CommonView.tapBackButton();

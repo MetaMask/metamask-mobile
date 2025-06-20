@@ -102,18 +102,18 @@ const usePoolStakedDeposit = () => {
   // Linter is complaining that function may use other dependencies
   // We will simply ignore since we don't want to use inline function
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const memoizedAttemptDepositTransaction = useCallback(
-    attemptDepositTransaction(
+  const memoizedAttemptDepositTransaction = useCallback(() => {
+    if (!stakingContract) return;
+    return attemptDepositTransaction(
       stakingContract,
       networkClientId,
       trackEvent,
       createEventBuilder,
-    ),
-    [stakingContract, networkClientId, trackEvent, createEventBuilder],
-  );
+    );
+  }, [stakingContract, networkClientId, trackEvent, createEventBuilder]);
 
   return {
-    attemptDepositTransaction: memoizedAttemptDepositTransaction,
+    attemptDepositTransaction: memoizedAttemptDepositTransaction(),
   };
 };
 

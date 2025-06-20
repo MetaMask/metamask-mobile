@@ -93,7 +93,7 @@ export async function addMMOriginatedTransaction(
     params: [txParams],
   };
 
-  ppomUtil.validateRequest(reqObject, id);
+  ppomUtil.validateRequest(reqObject, { transactionMeta });
 
   return transactionMeta;
 }

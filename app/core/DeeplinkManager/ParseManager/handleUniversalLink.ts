@@ -30,16 +30,21 @@ function handleUniversalLink({
   wcURL: string;
   url: string;
 }) {
-  const { MM_UNIVERSAL_LINK_HOST, MM_DEEP_ITMS_APP_LINK } = AppConstants;
+  const {
+    MM_UNIVERSAL_LINK_HOST,
+    MM_DEEP_ITMS_APP_LINK,
+    MM_IO_UNIVERSAL_LINK_HOST,
+    MM_IO_UNIVERSAL_LINK_TEST_HOST,
+  } = AppConstants;
   const DEEP_LINK_BASE = `${PROTOCOLS.HTTPS}://${MM_UNIVERSAL_LINK_HOST}`;
 
   // Universal links
   handled();
 
-  if (urlObj.hostname === MM_UNIVERSAL_LINK_HOST) {
-    // action is the first part of the pathname
-    const action: ACTIONS = urlObj.pathname.split('/')[1] as ACTIONS;
+  // action is the first part of the pathname
+  const action: ACTIONS = urlObj.pathname.split('/')[1] as ACTIONS;
 
+  if (urlObj.hostname === MM_UNIVERSAL_LINK_HOST) {
     if (action === ACTIONS.ANDROID_SDK) {
       DevLogger.log(
         `DeeplinkManager:: metamask launched via android sdk universal link`,
@@ -144,6 +149,41 @@ function handleUniversalLink({
 
       // Normal links (same as dapp)
       instance._handleBrowserUrl(urlObj.href, browserCallBack);
+    }
+  } else if (urlObj.hostname === MM_IO_UNIVERSAL_LINK_HOST || urlObj.hostname === MM_IO_UNIVERSAL_LINK_TEST_HOST) {
+    // TODO: handle private links with signature verification https://github.com/MetaMask/metamask-mobile/issues/16040
+    // TODO: add interstitial modal for public links https://github.com/MetaMask/metamask-mobile/issues/15491
+    switch (action) {
+      case ACTIONS.HOME:
+        instance._handleOpenHome();
+        return;
+      case ACTIONS.SWAP: {
+        // TODO: perhaps update this when the new bridging UI is implemented
+        // Expecting to only be a navigation change
+        const swapPath = urlObj.href.replace(
+          `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.SWAP}`,
+          '',
+        );
+        instance._handleSwap(swapPath);
+        return;
+      }
+      case ACTIONS.BUY:
+      case ACTIONS.BUY_CRYPTO: {
+        const rampPath = urlObj.href
+          .replace(
+            `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.BUY_CRYPTO}`,
+            '',
+          )
+          .replace(
+            `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.BUY}`,
+            '',
+          );
+        instance._handleBuyCrypto(rampPath);
+        return;
+      }
+      default:
+        instance._handleOpenHome();
+        return;
     }
   } else {
     // Normal links (same as dapp)

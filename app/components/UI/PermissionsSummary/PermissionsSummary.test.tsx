@@ -1,5 +1,5 @@
 import React from 'react';
-import { CaipAccountId } from '@metamask/utils';
+import { CaipAccountId, CaipChainId } from '@metamask/utils';
 import { EthScope } from '@metamask/keyring-api';
 import PermissionsSummary from './PermissionsSummary';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -29,6 +29,7 @@ const MOCK_ACCOUNTS = [
     yOffset: 0,
     type: KeyringTypes.simple,
     isLoadingAccount: false,
+    scopes: [EthScope.Eoa],
   },
 ];
 
@@ -44,6 +45,7 @@ const MOCK_NETWORK_AVATARS = [
     imageSource: { uri: 'test-network-avatar.png' },
     size: AvatarSize.Xs,
     variant: AvatarVariant.Network,
+    caipChainId: 'eip155:1' as CaipChainId,
   },
 ];
 

@@ -17,6 +17,8 @@ import { SmartTransactionStatuses } from '@metamask/smart-transactions-controlle
 
 import Logger from '../util/Logger';
 import { TransactionStatus } from '@metamask/transaction-controller';
+import { endTrace, trace, TraceName } from '../util/trace';
+
 export const constructTitleAndMessage = (notification) => {
   let title, message;
   switch (notification.type) {
@@ -217,6 +219,13 @@ class NotificationManager {
         // Clean up
         this._removeListeners(transactionMeta.id);
 
+        trace({
+          name: TraceName.TransactionConfirmed,
+          data: {
+            chainId: transactionMeta.chainId,
+            assetType: originalTransaction.assetType,
+          },
+        });
         const {
           TokenBalancesController,
           TokenDetectionController,
@@ -245,6 +254,13 @@ class NotificationManager {
           }
         }
         Promise.all(pollPromises);
+        endTrace({
+          name: TraceName.TransactionConfirmed,
+          data: {
+            chainId: transactionMeta.chainId,
+            assetType: originalTransaction.assetType,
+          },
+        });
 
         // Prompt review
         ReviewManager.promptReview();

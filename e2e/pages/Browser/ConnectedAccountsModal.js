@@ -166,6 +166,12 @@ class ConnectedAccountsModal {
   async tapConnectMoreAccountsButton() {
     await Gestures.waitAndTap(this.connectAccountsButton);
   }
+  async getNetworkName() {
+
+    const networkNameElement  = this.navigateToEditNetworksPermissionsButton
+    const attributes = await networkNameElement.label;
+    return attributes;
+  }
 }
 
 export default new ConnectedAccountsModal();

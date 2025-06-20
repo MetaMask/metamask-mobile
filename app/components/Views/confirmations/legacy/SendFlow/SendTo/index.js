@@ -17,6 +17,7 @@ import {
   isENS,
   isValidHexAddress,
   validateAddressOrENS,
+  areAddressesEqual,
 } from '../../../../../../util/address';
 import { getEther, getTicker } from '../../../../../../util/transactions';
 import {
@@ -61,7 +62,6 @@ import SendFlowAddressTo from '../AddressTo';
 import { includes } from 'lodash';
 import { SendViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/SendView.selectors';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
-import { toLowerCaseEquals } from '../../../../../../util/general';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
 
 const dummy = () => true;
@@ -228,7 +228,7 @@ class SendFlow extends PureComponent {
     return !!(
       networkAddressBook[checksummedAddress] ||
       internalAccounts.find((account) =>
-        toLowerCaseEquals(account.address, checksummedAddress),
+        areAddressesEqual(account.address, checksummedAddress),
       )
     );
   };
@@ -278,9 +278,8 @@ class SendFlow extends PureComponent {
   };
 
   onTransactionDirectionSet = async () => {
-    const { setRecipient, navigation, providerType } = this.props;
+    const { setRecipient, navigation, providerType, selectedAddress } = this.props;
     const {
-      fromSelectedAddress,
       toAccount,
       toEnsName,
       toSelectedAddressName,
@@ -293,7 +292,7 @@ class SendFlow extends PureComponent {
 
     const toAddress = toEnsAddressResolved || toAccount;
     setRecipient(
-      fromSelectedAddress,
+      selectedAddress,
       toAddress,
       toEnsName,
       toSelectedAddressName,
@@ -383,7 +382,7 @@ class SendFlow extends PureComponent {
 
     const checksummedAddress = this.safeChecksumAddress(toAccount);
     const matchingAccount = internalAccounts.find((account) =>
-      toLowerCaseEquals(account.address, checksummedAddress),
+      areAddressesEqual(account.address, checksummedAddress),
     );
 
     return networkAddressBook[checksummedAddress]

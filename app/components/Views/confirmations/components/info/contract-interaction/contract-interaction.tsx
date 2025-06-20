@@ -6,10 +6,11 @@ import { SimulationDetails } from '../../../../../UI/SimulationDetails/Simulatio
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { use7702TransactionType } from '../../../hooks/7702/use7702TransactionType';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import AccountNetworkInfo from '../../rows/account-network-info-row';
+import { ConfirmationInfoComponentIDs } from '../../../constants/info-ids';
+import AccountNetworkInfoRow from '../../rows/account-network-info-row';
 import OriginRow from '../../rows/origin-row';
 import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row/advanced-details-row';
-import GasFeesDetails from '../../rows/transactions/gas-fee-details';
+import GasFeesDetailsRow from '../../rows/transactions/gas-fee-details-row';
 import SwitchAccountTypeInfoRow from '../../rows/switch-account-type-info-row';
 
 const ContractInteraction = () => {
@@ -21,8 +22,8 @@ const ContractInteraction = () => {
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
 
   return (
-    <View>
-      <AccountNetworkInfo />
+    <View testID={ConfirmationInfoComponentIDs.CONTRACT_INTERACTION}>
+      <AccountNetworkInfoRow />
       {isBatchedUpgrade && <SwitchAccountTypeInfoRow />}
       <SimulationDetails
         transaction={transactionMetadata as TransactionMeta}
@@ -30,7 +31,7 @@ const ContractInteraction = () => {
         isTransactionsRedesign
       />
       <OriginRow isSignatureRequest={false} />
-      <GasFeesDetails />
+      <GasFeesDetailsRow />
       <AdvancedDetailsRow />
     </View>
   );

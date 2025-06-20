@@ -51,6 +51,9 @@ function getAccountTypeScopes(accountType: KeyringAccountType): CaipChainId[] {
 
     // Bitcoin account types
     [BtcAccountType.P2wpkh]: [BtcScope.Mainnet],
+    [BtcAccountType.P2pkh]: [BtcScope.Mainnet],
+    [BtcAccountType.P2sh]: [BtcScope.Mainnet],
+    [BtcAccountType.P2tr]: [BtcScope.Mainnet],
 
     // Solana account types
     [SolAccountType.DataAccount]: [SolScope.Mainnet],

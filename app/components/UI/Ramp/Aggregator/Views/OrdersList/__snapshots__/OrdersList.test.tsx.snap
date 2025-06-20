@@ -391,10 +391,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   }
                 }
               >
-                Test Provider
-                :
-                 
-                Purchased ETH
+                Test Provider: Purchased ETH
               </Text>
               <Text
                 accessibilityRole="text"
@@ -574,10 +571,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   }
                 }
               >
-                Test Provider
-                :
-                 
-                Purchased ETH
+                Test Provider: Purchased ETH
               </Text>
               <Text
                 accessibilityRole="text"
@@ -757,10 +751,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   }
                 }
               >
-                Test Provider
-                :
-                 
-                Purchased ETH
+                Test Provider: Purchased ETH
               </Text>
               <Text
                 accessibilityRole="text"
@@ -1249,10 +1240,7 @@ exports[`OrdersList renders correctly 1`] = `
                   }
                 }
               >
-                Test Provider
-                :
-                 
-                Purchased ETH
+                Test Provider: Purchased ETH
               </Text>
               <Text
                 accessibilityRole="text"
@@ -1432,10 +1420,7 @@ exports[`OrdersList renders correctly 1`] = `
                   }
                 }
               >
-                Test Provider
-                :
-                 
-                Sold ETH
+                Test Provider: Sold ETH
               </Text>
               <Text
                 accessibilityRole="text"
@@ -1615,10 +1600,7 @@ exports[`OrdersList renders correctly 1`] = `
                   }
                 }
               >
-                Test Provider
-                :
-                 
-                Purchased ETH
+                Test Provider: Purchased ETH
               </Text>
               <Text
                 accessibilityRole="text"
@@ -1798,10 +1780,7 @@ exports[`OrdersList renders correctly 1`] = `
                   }
                 }
               >
-                Test Provider
-                :
-                 
-                Purchased ETH
+                Test Provider: Purchased ETH
               </Text>
               <Text
                 accessibilityRole="text"
@@ -2724,10 +2703,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   }
                 }
               >
-                Test Provider
-                :
-                 
-                Sold ETH
+                Test Provider: Sold ETH
               </Text>
               <Text
                 accessibilityRole="text"
@@ -3152,10 +3128,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   }
                 }
               >
-                Test Provider
-                :
-                 
-                Sold ETH
+                Test Provider: Sold ETH
               </Text>
               <Text
                 accessibilityRole="text"
@@ -3644,10 +3617,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   }
                 }
               >
-                Test Provider
-                :
-                 
-                Purchased ETH
+                Test Provider: Purchased ETH
               </Text>
               <Text
                 accessibilityRole="text"
@@ -3827,10 +3797,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   }
                 }
               >
-                Test Provider
-                :
-                 
-                Sold ETH
+                Test Provider: Sold ETH
               </Text>
               <Text
                 accessibilityRole="text"
@@ -4010,10 +3977,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   }
                 }
               >
-                Test Provider
-                :
-                 
-                Purchased ETH
+                Test Provider: Purchased ETH
               </Text>
               <Text
                 accessibilityRole="text"
@@ -4193,10 +4157,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   }
                 }
               >
-                Test Provider
-                :
-                 
-                Purchased ETH
+                Test Provider: Purchased ETH
               </Text>
               <Text
                 accessibilityRole="text"

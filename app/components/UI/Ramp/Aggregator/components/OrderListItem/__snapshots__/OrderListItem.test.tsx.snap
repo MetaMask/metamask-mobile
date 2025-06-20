@@ -90,10 +90,7 @@ exports[`OrderListItem should render correctly 1`] = `
           }
         }
       >
-        Test Provider
-        :
-         
-        Purchased ETH
+        Test Provider: Purchased ETH
       </Text>
       <Text
         accessibilityRole="text"
@@ -256,10 +253,7 @@ exports[`OrderListItem should render correctly 2`] = `
           }
         }
       >
-        Test Provider
-        :
-         
-        Purchased ETH
+        Test Provider: Purchased ETH
       </Text>
       <Text
         accessibilityRole="text"
@@ -422,10 +416,7 @@ exports[`OrderListItem should render correctly 3`] = `
           }
         }
       >
-        Test Provider
-        :
-         
-        Sold ETH
+        Test Provider: Sold ETH
       </Text>
       <Text
         accessibilityRole="text"
@@ -588,10 +579,7 @@ exports[`OrderListItem should render correctly 4`] = `
           }
         }
       >
-        Test Provider
-        :
-         
-        Sold ETH
+        Test Provider: Sold ETH
       </Text>
       <Text
         accessibilityRole="text"
@@ -754,10 +742,7 @@ exports[`OrderListItem should render correctly 5`] = `
           }
         }
       >
-        Test Provider
-        :
-         
-        Sold ETH
+        Test Provider: Sold ETH
       </Text>
       <Text
         accessibilityRole="text"
@@ -920,10 +905,7 @@ exports[`OrderListItem should render correctly 6`] = `
           }
         }
       >
-        Test Provider
-        :
-         
-        Sold ETH
+        Test Provider: Sold ETH
       </Text>
       <Text
         accessibilityRole="text"
@@ -1086,10 +1068,7 @@ exports[`OrderListItem should render correctly 7`] = `
           }
         }
       >
-        Test Provider
-        :
-         
-        Purchased ETH
+        Test Provider: Purchased ETH
       </Text>
       <Text
         accessibilityRole="text"
@@ -1252,10 +1231,7 @@ exports[`OrderListItem should render correctly 8`] = `
           }
         }
       >
-        Test Provider
-        :
-         
-        Purchased ETH
+        Test Provider: Purchased ETH
       </Text>
       <Text
         accessibilityRole="text"

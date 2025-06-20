@@ -13,6 +13,7 @@ import {
   upgradeAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { approveERC20TransactionStateMock } from '../../__mocks__/approve-transaction-mock';
 import Title from './title';
 
 describe('Confirm Title', () => {
@@ -117,5 +118,12 @@ describe('Confirm Title', () => {
       state: getAppStateForConfirmation(upgradeAccountConfirmation),
     });
     expect(getByText('Includes 2 transactions')).toBeTruthy();
+  });
+
+  it('renders expected elements for approve', () => {
+    const { getByText } = renderWithProvider(<Title />, {
+      state: approveERC20TransactionStateMock,
+    });
+    expect(getByText('Approve request')).toBeTruthy();
   });
 });

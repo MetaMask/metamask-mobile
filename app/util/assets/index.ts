@@ -1,6 +1,7 @@
 import { Nft, NftControllerState } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
 import { isEqual } from 'lodash';
+import { getIntlNumberFormatter } from '../intl';
 
 export const formatWithThreshold = (
   amount: number | null,
@@ -19,11 +20,11 @@ export const formatWithThreshold = (
   }
 
   if (amount === 0) {
-    return new Intl.NumberFormat(locale, options).format(0);
+    return getIntlNumberFormatter(locale, options).format(0);
   }
   return amount < threshold
-    ? `<${new Intl.NumberFormat(locale, options).format(threshold)}`
-    : new Intl.NumberFormat(locale, options).format(amount);
+    ? `<${getIntlNumberFormatter(locale, options).format(threshold)}`
+    : getIntlNumberFormatter(locale, options).format(amount);
 };
 
 type AccountNfts = NftControllerState['allNfts'][string]; // Type for NFTs of a single account

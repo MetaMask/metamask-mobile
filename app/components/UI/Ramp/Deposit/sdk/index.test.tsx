@@ -274,28 +274,7 @@ describe('Deposit SDK Context', () => {
     });
   });
 
-  describe('Email and Authentication', () => {
-    it('manages email state correctly', () => {
-      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
-      const TestComponent = () => {
-        contextValue = useDepositSDK();
-        return null;
-      };
-
-      renderWithProvider(
-        <DepositSDKProvider>
-          <TestComponent />
-        </DepositSDKProvider>,
-        { state: mockedState },
-      );
-
-      act(() => {
-        contextValue?.setEmail('test@example.com');
-      });
-
-      expect(contextValue?.email).toBe('test@example.com');
-    });
-
+  describe('Authentication', () => {
     it('handles authentication state correctly', async () => {
       let contextValue: ReturnType<typeof useDepositSDK> | undefined;
       const TestComponent = () => {
@@ -395,6 +374,54 @@ describe('Deposit SDK Context', () => {
       expect(contextValue?.authToken).toEqual(mockToken);
       jest.requireMock('../utils/ProviderTokenVault').getProviderToken =
         originalMock;
+    });
+    it('clears authentication state when calling clearAuthToken', async () => {
+      const resetProviderTokenMock = jest.fn().mockResolvedValue(undefined);
+      jest.requireMock('../utils/ProviderTokenVault').resetProviderToken =
+        resetProviderTokenMock;
+
+      const clearAccessTokenMock = jest.fn();
+      (NativeRampsSdk as jest.Mock).mockImplementationOnce(() => ({
+        setAccessToken: jest.fn(),
+        clearAccessToken: clearAccessTokenMock,
+      }));
+
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return <Text>Test Component</Text>;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: mockedState },
+      );
+
+      const mockToken = {
+        id: 'test-token-id',
+        accessToken: 'test-token',
+        ttl: 3600,
+        created: new Date(),
+        userId: 'test-user-id',
+      };
+
+      await act(async () => {
+        await contextValue?.setAuthToken(mockToken);
+      });
+
+      expect(contextValue?.isAuthenticated).toBe(true);
+      expect(contextValue?.authToken).toEqual(mockToken);
+
+      await act(async () => {
+        contextValue?.clearAuthToken();
+      });
+
+      expect(resetProviderTokenMock).toHaveBeenCalled();
+      expect(clearAccessTokenMock).toHaveBeenCalled();
+      expect(contextValue?.isAuthenticated).toBe(false);
+      expect(contextValue?.authToken).toBeUndefined();
     });
   });
 });

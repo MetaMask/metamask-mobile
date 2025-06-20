@@ -73,6 +73,7 @@ import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
+import AppConstants from '../../../../../core/AppConstants';
 
 export interface BridgeRouteParams {
   token?: BridgeToken;
@@ -84,15 +85,6 @@ const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
-
-  // Ref necessary to avoid race condition between Redux state and component state
-  // Without it, the component would reset the bridge state when it shouldn't
-  const isSubmittingTxRef = useRef(isSubmittingTx);
-
-  // Update ref when Redux state changes
-  useEffect(() => {
-    isSubmittingTxRef.current = isSubmittingTx;
-  }, [isSubmittingTx]);
 
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
@@ -122,8 +114,12 @@ const BridgeView = () => {
   } = useBridgeQuoteData();
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
   const { handleSwitchTokens } = useSwitchTokens();
-  const selectedAddress = useSelector(selectSelectedInternalAccountFormattedAddress);
-  const isHardwareAddress = selectedAddress ? !!isHardwareAccount(selectedAddress) : false;
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const isHardwareAddress = selectedAddress
+    ? !!isHardwareAccount(selectedAddress)
+    : false;
 
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
@@ -162,9 +158,9 @@ const BridgeView = () => {
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
 
   const hasValidBridgeInputs =
-    isValidSourceAmount && 
-    !!sourceToken && 
-    !!destToken && 
+    isValidSourceAmount &&
+    !!sourceToken &&
+    !!destToken &&
     // Prevent quote fetching when destination address is not set
     // Destinations address is only needed for EVM <> Solana bridges
     (!isEvmSolanaBridge || (isEvmSolanaBridge && !!destAddress));
@@ -206,13 +202,10 @@ const BridgeView = () => {
   // Reset bridge state when component unmounts
   useEffect(
     () => () => {
-      // Only reset state if we're not in the middle of a transaction
-      if (!isSubmittingTxRef.current) {
-        dispatch(resetBridgeState());
-        // Clear bridge controller state if available
-        if (Engine.context.BridgeController?.resetState) {
-          Engine.context.BridgeController.resetState();
-        }
+      dispatch(resetBridgeState());
+      // Clear bridge controller state if available
+      if (Engine.context.BridgeController?.resetState) {
+        Engine.context.BridgeController.resetState();
       }
     },
     [dispatch],
@@ -302,7 +295,13 @@ const BridgeView = () => {
   };
 
   const handleTermsPress = () => {
-    // TODO: Implement terms and conditions navigation
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: AppConstants.URLS.TERMS_AND_CONDITIONS,
+        title: strings('bridge.terms_and_conditions'),
+      },
+    });
   };
 
   const handleSourceTokenPress = () =>
@@ -332,7 +331,9 @@ const BridgeView = () => {
     }
 
     const isSwap = route.params.bridgeViewMode === BridgeViewMode.Swap;
-    return isSwap ? strings('bridge.confirm_swap') : strings('bridge.confirm_bridge');
+    return isSwap
+      ? strings('bridge.confirm_swap')
+      : strings('bridge.confirm_bridge');
   };
 
   useEffect(() => {
@@ -385,10 +386,14 @@ const BridgeView = () => {
       activeQuote &&
       quotesLastFetched && (
         <Box style={styles.buttonContainer}>
-          {isHardwareAddress && isSolanaSourced && (
+          {isHardwareAddress && (
             <BannerAlert
               severity={BannerAlertSeverity.Error}
-              description={strings('bridge.hardware_wallet_not_supported')}
+              description={
+                isSolanaSourced
+                  ? strings('bridge.hardware_wallet_not_supported_solana')
+                  : strings('bridge.hardware_wallet_not_supported')
+              }
             />
           )}
           <Button
@@ -396,12 +401,16 @@ const BridgeView = () => {
             label={getButtonLabel()}
             onPress={handleContinue}
             style={styles.button}
-            isDisabled={hasInsufficientBalance || isSubmittingTx || (isHardwareAddress && isSolanaSourced)}
+            isDisabled={
+              hasInsufficientBalance ||
+              isSubmittingTx ||
+              isHardwareAddress
+            }
           />
           <Button
             variant={ButtonVariants.Link}
             label={
-              <Text color={TextColor.Alternative}>
+              <Text color={TextColor.Primary}>
                 {strings('bridge.terms_and_conditions')}
               </Text>
             }
@@ -507,4 +516,3 @@ const BridgeView = () => {
 };
 
 export default BridgeView;
-

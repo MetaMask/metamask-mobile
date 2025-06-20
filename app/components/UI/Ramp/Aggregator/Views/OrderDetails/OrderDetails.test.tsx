@@ -1,5 +1,5 @@
 import React from 'react';
-import { processFiatOrder } from '../../index';
+import { processFiatOrder } from '../../../index';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import {
   DeepPartial,
@@ -120,7 +120,7 @@ function mockGetUpdatedOrder(order: FiatOrder) {
   };
 }
 
-jest.mock('../../index', () => ({
+jest.mock('../../../index', () => ({
   processFiatOrder: jest.fn().mockImplementation((order, onSuccess) => {
     const updatedOrder = mockGetUpdatedOrder(order);
     if (onSuccess) {
@@ -462,7 +462,7 @@ describe('OrderDetails', () => {
         providerOrderLink: 'https://example.com',
       },
     };
-    render(OrderDetails, [testOrder]);
+    render(OrderDetails, [testOrder as FiatOrder]);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
@@ -485,7 +485,7 @@ describe('OrderDetails', () => {
       },
     };
 
-    render(OrderDetails, [testOrder]);
+    render(OrderDetails, [testOrder as FiatOrder]);
 
     fireEvent.press(screen.getByText('Contact Support'));
     expect(mockTrackEvent).toHaveBeenCalledWith(
