@@ -279,14 +279,6 @@ jest.mock('../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
 mockGetConnection.mockReturnValue(undefined);
 mockIsUUID.mockReturnValue(false);
 
-// Mock Toast context
-const mockToastRef = {
-  current: {
-    showToast: jest.fn(),
-    closeToast: jest.fn(),
-  },
-};
-
 describe('AccountConnect', () => {
   it('renders correctly with base request', () => {
     const { toJSON } = renderWithProvider(
@@ -370,7 +362,7 @@ describe('AccountConnect', () => {
   describe('AccountConnectMultiSelector handlers', () => {
     it('invokes onEditNetworks and renders multiconnect network selector', async () => {
             // Render the container component with necessary props
-            const { getByTestId, UNSAFE_getByType, findByTestId } =
+            const { getByTestId, findByTestId } =
             renderWithProvider(
               <AccountConnect
                 route={{
