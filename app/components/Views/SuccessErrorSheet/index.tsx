@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useRef } from 'react';
 import { View } from 'react-native';
 import Text from '../../../component-library/components/Texts/Text';
 import {
@@ -28,7 +28,6 @@ export interface SuccessErrorSheetParams {
   description: string | React.ReactNode;
   customButton: React.ReactNode;
   type: 'success' | 'error';
-  icon: IconName;
   secondaryButtonLabel?: string;
   onSecondaryButtonPress?: () => void;
   primaryButtonLabel?: string;
@@ -48,7 +47,6 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     description,
     customButton,
     type = 'success',
-    icon,
     secondaryButtonLabel,
     onSecondaryButtonPress,
     primaryButtonLabel,
@@ -66,13 +64,6 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
       onClose();
     }
   };
-
-  const currentIcon = useMemo(() => {
-    if (icon) {
-      return icon;
-    }
-    return type === 'success' ? IconName.CheckBold : IconName.CircleX;
-  }, [icon, type]);
 
   const handleSecondaryButtonPress = () => {
     navigation.goBack();
@@ -92,7 +83,7 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     <BottomSheet ref={bottomSheetRef} onClose={handleClose}>
       <View style={styles.statusContainer}>
         <Icon
-          name={currentIcon}
+          name={type === 'success' ? IconName.Confirmation : IconName.CircleX}
           size={IconSize.Xl}
           color={
             type === 'success' ? colors.success.default : colors.error.default
