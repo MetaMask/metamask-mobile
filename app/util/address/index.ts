@@ -36,6 +36,7 @@ import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { AddressBookControllerState } from '@metamask/address-book-controller';
 import {
   isEqualCaseInsensitive,
+  toChecksumHexAddress,
   type NetworkType,
 } from '@metamask/controller-utils';
 import type {
