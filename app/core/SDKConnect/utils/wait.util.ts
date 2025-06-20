@@ -44,30 +44,23 @@ export const waitForReadyClient = async (
  * @param {string} [params.context] - Optional context information to be used in logging messages.
  * If provided, it will be included in log outputs for diagnostic purposes, particularly when the
  * function has been polled more than 5 times and on every tenth poll thereafter without the condition being met.
- * @param {number} [params.timeout] - Optional timeout in milliseconds. If provided, the function will throw an error if the condition is not met within the timeout period.
  */
 export const waitForCondition = async ({
   fn,
   context,
   waitTime = 1000,
-  timeout,
 }: {
   fn: () => boolean;
   waitTime?: number;
   context?: string;
-  timeout?: number;
 }) => {
   let i = 0;
-  const startTime = Date.now();
   while (!fn()) {
     i += 1;
     if (i > 5 && i % 10 === 0) {
       DevLogger.log(`Waiting for fn context=${context} to return true`);
     }
     await wait(waitTime);
-    if (timeout && Date.now() - startTime > timeout) {
-      throw new Error(`waitForCondition timed out after ${timeout}ms`);
-    }
   }
 };
 
