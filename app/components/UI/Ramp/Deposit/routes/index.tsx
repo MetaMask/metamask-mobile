@@ -15,7 +15,9 @@ import BasicInfo from '../Views/BasicInfo';
 import EnterAddress from '../Views/EnterAddress';
 import KycProcessing from '../Views/KycProcessing';
 import ProviderWebview from '../Views/ProviderWebview';
+import KycWebview from '../Views/KycWebview';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
+import OrderProcessing from '../Views/OrderProcessing';
 
 interface DepositParamList {
   [key: string]:
@@ -75,6 +77,11 @@ const DepositRoutes = () => (
         options={getAnimationOptions}
       />
       <Stack.Screen
+        name={Routes.DEPOSIT.KYC_WEBVIEW}
+        component={KycWebview}
+        options={getAnimationOptions}
+      />
+      <Stack.Screen
         name={Routes.DEPOSIT.KYC_PROCESSING}
         component={KycProcessing}
         options={getAnimationOptions}
@@ -82,6 +89,11 @@ const DepositRoutes = () => (
       <Stack.Screen
         name={Routes.DEPOSIT.PROVIDER_WEBVIEW}
         component={ProviderWebview}
+        options={getAnimationOptions}
+      />
+      <Stack.Screen
+        name={Routes.DEPOSIT.ORDER_PROCESSING}
+        component={OrderProcessing}
         options={getAnimationOptions}
       />
     </Stack.Navigator>

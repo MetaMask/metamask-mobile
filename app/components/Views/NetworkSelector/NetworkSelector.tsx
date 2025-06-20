@@ -120,7 +120,7 @@ interface ShowConfirmDeleteModalState {
 }
 
 interface NetworkSelectorRouteParams {
-  evmChainId?: Hex;
+  chainId?: Hex;
   hostInfo?: {
     metadata?: {
       origin?: string;
@@ -167,8 +167,7 @@ const NetworkSelector = () => {
 
   // origin is defined if network selector is opened from a dapp
   const origin = route.params?.hostInfo?.metadata?.origin || '';
-
-  const browserEvmChainId = route.params?.evmChainId || null;
+  const browserChainId = route.params?.chainId || null;
   const parentSpan = trace({
     name: TraceName.NetworkSwitch,
     tags: getTraceTags(store.getState()),
@@ -369,8 +368,8 @@ const NetworkSelector = () => {
   };
 
   const isNetworkSelected = (chainId: Hex | CaipChainId) => {
-    if (browserEvmChainId) {
-      return chainId === browserEvmChainId;
+    if (browserChainId) {
+      return chainId === browserChainId;
     }
 
     return !isEvmSelected ? false : chainId === selectedChainId;
@@ -716,25 +715,27 @@ const NetworkSelector = () => {
     Object.values(nonEvmNetworkConfigurations)
       // TODO: - [SOLANA] - Remove this filter once we want to show non evm like BTC
       .filter((network) => network.chainId === SolScope.Mainnet)
-      .map((network) => (
-        <Cell
-          key={network.chainId}
-          variant={CellVariant.Select}
-          title={network.name}
-          avatarProps={{
-            variant: AvatarVariant.Network,
-            name: 'Solana',
-            imageSource: images.SOLANA,
-            size: avatarSize,
-          }}
-          isSelected={!isEvmSelected && !browserEvmChainId}
-          onPress={() => onNonEvmNetworkChange(SolScope.Mainnet)}
-          style={
-            browserEvmChainId ? styles.networkCellDisabled : styles.networkCell
-          }
-          disabled={!!browserEvmChainId}
-        />
-      ));
+      .map((network) => {
+        const isSelected =
+          network.chainId === browserChainId ||
+          (!isEvmSelected && !browserChainId);
+        return (
+          <Cell
+            key={network.chainId}
+            variant={CellVariant.Select}
+            title={network.name}
+            avatarProps={{
+              variant: AvatarVariant.Network,
+              name: nonEvmNetworkConfigurations?.[SolScope.Mainnet]?.name,
+              imageSource: images.SOLANA,
+              size: avatarSize,
+            }}
+            isSelected={isSelected}
+            onPress={() => onNonEvmNetworkChange(SolScope.Mainnet)}
+            style={styles.networkCell}
+          />
+        );
+      });
   ///: END:ONLY_INCLUDE_IF
   const renderTestNetworksSwitch = () => (
     <View style={styles.switchContainer}>

@@ -20,7 +20,7 @@ import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import stylesheet from './AddressFrom.styles';
 import { selectInternalEvmAccounts } from '../../../selectors/accountsController';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
-import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import useNetworkInfo from '../../Views/confirmations/hooks/useNetworkInfo';
 import { getNetworkImageSource } from '../../../util/networks';
 import { selectEvmNetworkName } from '../../../selectors/networkInfos';
 import { selectEvmNetworkImageSource } from '../../../selectors/networkInfos';
@@ -133,7 +133,7 @@ const AddressFrom = ({
         accountName={accountName}
         accountBalanceLabel={strings('transaction.balance')}
         accountTypeLabel={accountTypeLabel as string}
-        accountNetwork={displayNetworkName}
+        accountNetwork={String(displayNetworkName)}
         badgeProps={{
           variant: BadgeVariant.Network,
           name: displayNetworkName,

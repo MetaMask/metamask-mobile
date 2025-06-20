@@ -117,6 +117,7 @@ import { selectAllTokens } from '../../../../../../selectors/tokensController';
 import { selectAccountsByChainId } from '../../../../../../selectors/accountTrackerController';
 import { selectAllTokenBalances } from '../../../../../../selectors/tokenBalancesController';
 import { BigNumber } from 'bignumber.js';
+import { isHardwareAccount } from '../../../../../../util/address';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -720,7 +721,7 @@ class Amount extends PureComponent {
       providerType,
       onConfirm,
       globalNetworkClientId,
-      isRedesignedTransferConfirmationEnabled,
+      isRedesignedTransferConfirmationEnabledForTransfer,
     } = this.props;
     const {
       inputValue,
@@ -774,10 +775,13 @@ class Amount extends PureComponent {
         .build(),
     );
 
+    const shouldUseRedesignedTransferConfirmation = 
+      isRedesignedTransferConfirmationEnabledForTransfer && !isHardwareAccount(transaction.from);
+
     setSelectedAsset(selectedAsset);
     if (onConfirm) {
       onConfirm();
-    } else if (isRedesignedTransferConfirmationEnabled) {
+    } else if (shouldUseRedesignedTransferConfirmation) {
         this.setState({ isRedesignedTransferTransactionLoading: true });
 
         const transactionParams = {
@@ -806,7 +810,7 @@ class Amount extends PureComponent {
         });
         this.setState({ isRedesignedTransferTransactionLoading: false });
         navigation.navigate('SendFlowView', {
-          screen: Routes.STANDALONE_CONFIRMATIONS.TRANSFER,
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         });
       } else {
         navigation.navigate(Routes.SEND_FLOW.CONFIRM);
@@ -1737,7 +1741,7 @@ const mapStateToProps = (state, ownProps) => {
       globalChainId,
       getRampNetworks(state),
     ),
-    isRedesignedTransferConfirmationEnabled:
+    isRedesignedTransferConfirmationEnabledForTransfer:
       selectConfirmationRedesignFlags(state).transfer,
     swapsIsLive: swapsLivenessSelector(state),
     globalChainId,
