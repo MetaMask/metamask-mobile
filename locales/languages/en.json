@@ -4349,6 +4349,11 @@
     "accounts_list": {
       "details": "Details"
     },
+    "wallet_details": {
+      "wallet_name": "Wallet Name",
+      "balance": "Balance",
+      "add_account": "Add account"
+    },
     "smart_account": {
       "title": "Enable Smart Account",
       "description": "You can enable smart account features on supported networks.",
