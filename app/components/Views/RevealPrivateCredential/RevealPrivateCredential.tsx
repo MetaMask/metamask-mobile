@@ -599,7 +599,11 @@ const RevealPrivateCredential = ({
   const renderWarning = (privCredentialName: string) => (
     <View style={[styles.rowWrapper, styles.warningWrapper]}>
       <View style={[styles.warningRowWrapper]}>
-        <Icon style={styles.icon} name={IconName.EyeSlash} size={IconSize.Lg} />
+        <Icon
+          color={colors.error.default}
+          name={IconName.EyeSlash}
+          size={IconSize.Lg}
+        />
         {privCredentialName === PRIVATE_KEY ? (
           <Text style={styles.warningMessageText}>
             {strings(

@@ -53,11 +53,11 @@ export const createStyles = (theme: Theme) =>
     },
     warningWrapper: {
       backgroundColor: theme.colors.error.muted,
-      margin: 20,
-      marginTop: 10,
+      padding: 20,
       borderRadius: 8,
       borderWidth: 1,
       borderColor: theme.colors.error.default,
+      marginTop: 16,
     },
     warningRowWrapper: {
       flexDirection: 'row',
@@ -78,7 +78,6 @@ export const createStyles = (theme: Theme) =>
       color: theme.colors.text.default,
     },
     icon: {
-      margin: 10,
       color: theme.colors.error.default,
     },
     blueText: {
