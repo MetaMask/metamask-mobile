@@ -880,26 +880,40 @@ const App: React.FC = () => {
   // on Android devices, this creates a listener
   // to deeplinks used to open the app
   // when it is in background (so not closed)
+  // When the app is closed, the deeplink is received in the initialURL promise
   // Documentation: https://reactnative.dev/docs/linking#handling-deep-links
   useEffect(() => {
-    if (Device.isAndroid())
+    const handleURL = (url: string) => {
+      if (url && sdkInit.current) {
+        handleDeeplink({ uri: url });
+      } else {
+        DevLogger.log(`android handleDeeplink:: adding ${url} to queue`);
+        queueOfHandleDeeplinkFunctions.current =
+          queueOfHandleDeeplinkFunctions.current.concat([
+            {
+              uri: url,
+              func: () => {
+                handleDeeplink({ uri: url });
+              },
+            },
+          ]);
+      }
+    };
+
+    Linking.getInitialURL().then((url) => {
+      if (!url) {
+        return;
+      }
+      DevLogger.log(`handleDeeplink:: got initial URL ${url}`);
+      handleURL(url);            
+    });
+
+    if (Device.isAndroid()) {
       Linking.addEventListener('url', (params) => {
         const { url } = params;
-        if (url && sdkInit.current) {
-          handleDeeplink({ uri: url });
-        } else {
-          Logger.log(`android handleDeeplink:: adding to queue`);
-          queueOfHandleDeeplinkFunctions.current =
-            queueOfHandleDeeplinkFunctions.current.concat([
-              {
-                uri: url,
-                func: () => {
-                  handleDeeplink({ uri: url });
-                },
-              },
-            ]);
-        }
+        handleURL(url);
       });
+    }
   }, [handleDeeplink]);
 
   useEffect(() => {
@@ -923,10 +937,12 @@ const App: React.FC = () => {
       if (sdkInit.current) {
         handleDeeplink(opts);
       } else {
+        const uri = opts.params?.['+non_branch_link'] as string || opts.uri || '';
+        DevLogger.log(`branch.io handleDeeplink:: adding ${uri} to queue. Got ${JSON.stringify(opts)} from branch.io`);
         queueOfHandleDeeplinkFunctions.current =
           queueOfHandleDeeplinkFunctions.current.concat([
             {
-              uri: opts.params?.['+non_branch_link'] as string || opts.uri || '',
+              uri,
               func: () => {
                 handleDeeplink(opts);
               },
