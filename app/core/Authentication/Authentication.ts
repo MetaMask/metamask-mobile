@@ -111,7 +111,10 @@ class AuthenticationService {
     await KeyringController.createNewVaultAndRestore(password, parsedSeed);
     ///: BEGIN:ONLY_INCLUDE_IF(solana)
     this.attemptSolanaAccountDiscovery().catch((error) => {
-      console.warn('Solana account discovery failed during wallet creation:', error);
+      console.warn(
+        'Solana account discovery failed during wallet creation:',
+        error,
+      );
       // Store flag to retry on next unlock
       StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, TRUE);
     });
@@ -145,7 +148,10 @@ class AuthenticationService {
         10000, // maxDelay
       );
     } catch (error) {
-      console.error('Solana account discovery failed after all retries:', error);
+      console.error(
+        'Solana account discovery failed after all retries:',
+        error,
+      );
     }
   };
 
@@ -176,7 +182,10 @@ class AuthenticationService {
 
     ///: BEGIN:ONLY_INCLUDE_IF(solana)
     this.attemptSolanaAccountDiscovery().catch((error) => {
-      console.warn('Solana account discovery failed during wallet creation:', error);
+      console.warn(
+        'Solana account discovery failed during wallet creation:',
+        error,
+      );
       StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
     });
     ///: END:ONLY_INCLUDE_IF
@@ -566,10 +575,11 @@ class AuthenticationService {
     // rollback on fail ( reset wallet )
     await this.createWalletVaultAndKeychain(password);
     try {
-      const keyringMetadata = KeyringController.state.keyringsMetadata.at(0);
-      if (!keyringMetadata) {
+      const keyring = KeyringController.state.keyrings.at(0);
+      if (!keyring) {
         throw new Error('No keyring metadata found');
       }
+      const keyringMetadata = keyring.metadata;
       const seedPhrase = await KeyringController.exportSeedPhrase(
         password,
         keyringMetadata.id,
