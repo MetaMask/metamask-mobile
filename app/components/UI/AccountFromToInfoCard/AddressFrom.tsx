@@ -76,7 +76,7 @@ const AddressFrom = ({
   if(origin) {
     const perDappNetworkInfo = useNetworkInfo(origin);
     perDappNetworkName = perDappNetworkInfo.networkName;
-    perDappNetworkImageSource = perDappNetworkInfo.networkImageSource;
+    perDappNetworkImageSource = perDappNetworkInfo.networkImage;
   }
 
   let sendFlowNetworkName, sendFlowNetworkImageSource;
