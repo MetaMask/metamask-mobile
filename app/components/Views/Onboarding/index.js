@@ -26,7 +26,12 @@ import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
-import { loadingSet, loadingUnset, setExistingUser } from '../../../actions/user';
+import {
+  loadingSet,
+  loadingUnset,
+  setExistingUser,
+} from '../../../actions/user';
+import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../reducers/legalNotices';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
@@ -48,7 +53,6 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 
 import fox from '../../../animations/Searching_Fox.json';
-import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const createStyles = (colors) =>
@@ -224,6 +228,10 @@ class Onboarding extends PureComponent {
      */
     setExistingUser: PropTypes.func,
     /**
+     * Action to save onboarding event
+     */
+    saveOnboardingEvent: PropTypes.func,
+    /**
      * loadings msg
      */
     loadingMsg: PropTypes.string,
@@ -231,10 +239,6 @@ class Onboarding extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
-    /**
-     * Function to save onboarding event prior to metrics being enabled
-     */
-    dispatchSaveOnboardingEvent: PropTypes.func,
   };
   notificationAnimated = new Animated.Value(100);
   detailsYAnimated = new Animated.Value(0);
@@ -352,7 +356,9 @@ class Onboarding extends PureComponent {
       this.props.navigation.navigate('ChoosePassword', {
         [PREVIOUS_SCREEN]: ONBOARDING,
       });
-      this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
+      this.track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
+        account_type: 'metamask',
+      });
     };
 
     this.handleExistingUser(action);
@@ -367,15 +373,19 @@ class Onboarding extends PureComponent {
           [PREVIOUS_SCREEN]: ONBOARDING,
         },
       );
-      this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
+      this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
+        account_type: 'imported',
+      });
     };
     this.handleExistingUser(action);
   };
 
-  track = (event) => {
+  track = (event, properties) => {
     trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(event).build(),
-      this.props.dispatchSaveOnboardingEvent,
+      MetricsEventBuilder.createEventBuilder(event)
+        .addProperties(properties)
+        .build(),
+      this.props.saveOnboardingEvent,
     );
   };
 
@@ -549,7 +559,7 @@ class Onboarding extends PureComponent {
     if (this.props.existingUser) {
       return;
     }
-    
+
     try {
       // Fallback: check MMKV storage for existing user flag
       const existingUserInStorage = await StorageWrapper.getItem(EXISTING_USER);
@@ -584,6 +594,7 @@ const mapDispatchToProps = (dispatch) => ({
   setExistingUser: (existingUser) => dispatch(setExistingUser(existingUser)),
   dispatchSaveOnboardingEvent: (...eventArgs) =>
     dispatch(saveOnboardingEvent(eventArgs)),
+  saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Onboarding);
