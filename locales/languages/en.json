@@ -471,6 +471,8 @@
   },
   "deposit": {
     "title": "Deposit",
+    "selectRegion": "Select Region",
+    "chooseYourRegionToContinue": "Choose your region to continue",
     "buildQuote": {
       "payWith": "Pay with",
       "unexpectedError": "An unexpected error occurred.",
@@ -538,9 +540,17 @@
       "success_description": "You can now enter your payment info and complete your deposit.",
       "success_button": "Complete your order"
     },
+    "provider_webview": {
+      "title": "Deposit",
+      "webview_received_error": "Webview received error: %{code}"
+    },
     "kyc_webview": {
       "title": "Verifying your identity",
       "webview_received_error": "WebView received error status code: {{code}}"
+    },
+    "order_processing": {
+      "title": "Processing deposit",
+      "button": "Close"
     }
   },
   "receive": {
@@ -4335,6 +4345,11 @@
     },
     "accounts_list": {
       "details": "Details"
+    },
+    "wallet_details": {
+      "wallet_name": "Wallet Name",
+      "balance": "Balance",
+      "add_account": "Add account"
     },
     "smart_account": {
       "title": "Enable Smart Account",
