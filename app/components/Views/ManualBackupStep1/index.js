@@ -50,7 +50,7 @@ import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import Routes from '../../../constants/navigation/Routes';
-import { saveOnboardingEvent } from '../../../actions/onboarding';
+import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 
 /**
  * View that's shown during the second step of
@@ -60,7 +60,7 @@ const ManualBackupStep1 = ({
   route,
   navigation,
   appTheme,
-  dispatchSaveOnboardingEvent,
+  saveOnboardingEvent,
 }) => {
   const [seedPhraseHidden, setSeedPhraseHidden] = useState(true);
   const [password, setPassword] = useState(undefined);
@@ -90,6 +90,11 @@ const ManualBackupStep1 = ({
     ),
     [colors, navigation, styles.headerLeft],
   );
+  const track = (event, properties) => {
+    const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
+    eventBuilder.addProperties(properties);
+    trackOnboarding(eventBuilder.build(), saveOnboardingEvent);
+  };
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
@@ -113,6 +118,9 @@ const ManualBackupStep1 = ({
   };
 
   const showWhatIsSeedphrase = () => {
+    track(MetaMetricsEvents.SRP_DEFINITION_CLICKED, {
+      location: 'manual_backup_step_1',
+    });
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SEEDPHRASE_MODAL,
     });
@@ -163,12 +171,7 @@ const ManualBackupStep1 = ({
 
   const revealSeedPhrase = () => {
     setSeedPhraseHidden(false);
-    trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED,
-      ).build(),
-      dispatchSaveOnboardingEvent,
-    );
+    track(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED, {});
   };
 
   const tryUnlockWithPassword = async (password) => {
@@ -283,7 +286,6 @@ const ManualBackupStep1 = ({
       showCancelButton={false}
       confirmButtonMode={'confirm'}
       contentContainerStyle={styles.actionView}
-      buttonContainerStyle={styles.buttonContainer}
     >
       <View
         style={styles.wrapper}
@@ -337,6 +339,10 @@ const ManualBackupStep1 = ({
                     numberOfLines={1}
                     style={styles.word}
                     testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
+                    adjustsFontSizeToFit
+                    allowFontScaling
+                    minimumFontScale={0.1}
+                    maxFontSizeMultiplier={0}
                   >
                     {item}
                   </Text>
@@ -384,7 +390,7 @@ ManualBackupStep1.propTypes = {
   /**
    * Action to save onboarding event
    */
-  dispatchSaveOnboardingEvent: PropTypes.func,
+  saveOnboardingEvent: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
@@ -392,7 +398,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
+  saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ManualBackupStep1);

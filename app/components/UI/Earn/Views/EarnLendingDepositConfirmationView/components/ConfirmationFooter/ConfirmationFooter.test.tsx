@@ -3,9 +3,23 @@ import renderWithProvider from '../../../../../../../util/test/renderWithProvide
 import ConfirmationFooter, {
   ConfirmationFooterProps,
   CONFIRMATION_FOOTER_BUTTON_TEST_IDS,
+  CONFIRMATION_FOOTER_LINK_TEST_IDS,
 } from './index';
 import { strings } from '../../../../../../../../locales/i18n';
 import { act, fireEvent } from '@testing-library/react-native';
+import { Linking } from 'react-native';
+import AppConstants from '../../../../../../../core/AppConstants';
+
+jest.mock('react-native', () => {
+  const actual = jest.requireActual('react-native');
+  return {
+    ...actual,
+    Linking: {
+      ...actual.Linking,
+      openUrl: jest.fn(),
+    },
+  };
+});
 
 const mockOnCancel = jest.fn();
 const mockOnConfirm = jest.fn();
@@ -85,5 +99,41 @@ describe('ConfirmationFooter', () => {
 
     expect(mockOnConfirm).toHaveBeenCalledTimes(1);
     expect(mockOnCancel).toHaveBeenCalledTimes(0);
+  });
+
+  it('Links to browser terms of use page', async () => {
+    const { getByTestId } = renderWithProvider(
+      <ConfirmationFooter {...defaultProps} />,
+    );
+
+    const termsOfUseButton = getByTestId(
+      CONFIRMATION_FOOTER_LINK_TEST_IDS.TERMS_OF_USE_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(termsOfUseButton);
+    });
+
+    expect(Linking.openURL).toHaveBeenLastCalledWith(
+      AppConstants.URLS.TERMS_OF_USE,
+    );
+  });
+
+  it('Links to browser risk disclosure page', async () => {
+    const { getByTestId } = renderWithProvider(
+      <ConfirmationFooter {...defaultProps} />,
+    );
+
+    const riskDisclosureButton = getByTestId(
+      CONFIRMATION_FOOTER_LINK_TEST_IDS.RISK_DISCLOSURE_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(riskDisclosureButton);
+    });
+
+    expect(Linking.openURL).toHaveBeenLastCalledWith(
+      AppConstants.URLS.EARN_RISK_DISCLOSURE,
+    );
   });
 });

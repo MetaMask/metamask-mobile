@@ -11,6 +11,11 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "0x1": {},
         },
       },
+      "AccountTreeController": {
+        "accountTree": {
+          "wallets": {},
+        },
+      },
       "AccountsController": {
         "internalAccounts": {
           "accounts": {},
@@ -532,6 +537,8 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "isAccountSyncingReadyToBeDispatched": false,
         "isBackupAndSyncEnabled": true,
         "isBackupAndSyncUpdateLoading": false,
+        "isContactSyncingEnabled": true,
+        "isContactSyncingInProgress": false,
       },
     },
   },

@@ -8,6 +8,9 @@ import { Authentication } from '../../../core';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { MIN_PASSWORD_LENGTH } from '../../../util/password';
+import { BIOMETRY_TYPE } from 'react-native-keychain';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import { InteractionManager } from 'react-native';
 
 // Mock the clipboard
 jest.mock('@react-native-clipboard/clipboard', () => ({
@@ -21,7 +24,33 @@ const initialState = {
   },
 };
 
+const mockIsEnabled = jest.fn().mockReturnValue(true);
+
+jest.mock('../../hooks/useMetrics', () => {
+  const actualUseMetrics = jest.requireActual('../../hooks/useMetrics');
+  return {
+    ...actualUseMetrics,
+    useMetrics: jest.fn().mockReturnValue({
+      ...actualUseMetrics.useMetrics,
+      isEnabled: () => mockIsEnabled(),
+    }),
+  };
+});
+
 describe('ImportFromSecretRecoveryPhrase', () => {
+  jest
+    .spyOn(InteractionManager, 'runAfterInteractions')
+    .mockImplementation((cb) => {
+      if (cb && typeof cb === 'function') {
+        cb();
+      }
+      return {
+        then: jest.fn(),
+        done: jest.fn(),
+        cancel: jest.fn(),
+      };
+    });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -253,7 +282,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
             ),
           ).toBeOnTheScreen();
           expect(
-            getByText(strings('import_from_seed.create_password')),
+            getByText(strings('import_from_seed.metamask_password')),
           ).toBeOnTheScreen();
         },
         { timeout: 3000 },
@@ -419,7 +448,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         const errorMessage = queryByText(
-          strings('import_from_seed.invalid_seed_phrase'),
+          strings('import_from_seed.spellcheck_error'),
         );
         expect(errorMessage).toBeOnTheScreen();
       });
@@ -476,7 +505,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
           ),
         ).toBeOnTheScreen();
         expect(
-          getByText(strings('import_from_seed.create_password')),
+          getByText(strings('import_from_seed.metamask_password')),
         ).toBeOnTheScreen();
       });
     });
@@ -520,6 +549,20 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const input3 = getInput(3);
       expect(input3).toBeOnTheScreen();
     });
+
+    it('show seedphrase modal when srp link is pressed', () => {
+      const { getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      const srpLink = getByTestId(
+        ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID,
+      );
+      expect(srpLink).toBeOnTheScreen();
+      fireEvent.press(srpLink);
+    });
   });
 
   describe('Create password UI', () => {
@@ -554,10 +597,13 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         expect(
-          getByText(strings('import_from_seed.create_password')),
+          getByText(strings('import_from_seed.metamask_password')),
         ).toBeOnTheScreen();
         expect(
-          getByText(strings('import_from_seed.new_password')),
+          getByText(strings('import_from_seed.metamask_password_description')),
+        ).toBeOnTheScreen();
+        expect(
+          getByText(strings('import_from_seed.create_new_password')),
         ).toBeOnTheScreen();
         expect(
           getByText(strings('import_from_seed.confirm_password')),
@@ -660,8 +706,17 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
     });
 
-    it('minimum password length requirement message shown in initial state', async () => {
-      const { getByText } = await renderCreatePasswordUI();
+    it('minimum password length requirement message shown when create new password field value is less than 8 characters', async () => {
+      const { getByText, getByPlaceholderText } =
+        await renderCreatePasswordUI();
+
+      const passwordInput = getByPlaceholderText(
+        strings('import_from_seed.enter_strong_password'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'Weak');
+      });
 
       await waitFor(() => {
         expect(
@@ -761,12 +816,50 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         .mockRejectedValueOnce(new Error('Error: Passcode not set.'));
 
       // Try to import
-      const confirmButton = getByText(strings('import_from_seed.confirm'));
+      const confirmButton = getByText(
+        strings('import_from_seed.create_password_cta'),
+      );
       fireEvent.press(confirmButton);
 
       await waitFor(() => {
         expect(getByText('Unlock with Face ID?')).toBeOnTheScreen();
       });
+    });
+
+    it('Import seed phrase with optin metrics flow', async () => {
+      mockIsEnabled.mockReturnValue(false);
+      const { getByTestId, getByPlaceholderText } =
+        await renderCreatePasswordUI();
+
+      const passwordInput = getByPlaceholderText(
+        strings('import_from_seed.enter_strong_password'),
+      );
+      const confirmPasswordInput = getByPlaceholderText(
+        strings('import_from_seed.re_enter_password'),
+      );
+      // Enter valid passwords
+      fireEvent.changeText(passwordInput, 'StrongPass123!');
+      fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
+
+      // Check learn more checkbox
+      const learnMoreCheckbox = getByTestId(
+        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
+      );
+      fireEvent.press(learnMoreCheckbox);
+      jest
+        .spyOn(Authentication, 'componentAuthenticationType')
+        .mockResolvedValueOnce({
+          currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+          availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+        });
+
+      // Mock Authentication.newWalletAndRestore
+      jest.spyOn(Authentication, 'newWalletAndRestore').mockResolvedValueOnce();
+      // Try to import
+      const confirmButton = getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+      fireEvent.press(confirmButton);
     });
   });
 });

@@ -24,6 +24,14 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
+jest.mock('../../confirmations/hooks/7702/useEIP7702Networks', () => ({
+  useEIP7702Networks: jest.fn().mockReturnValue({
+    network7702List: [],
+    networkSupporting7702Present: false,
+    pending: false,
+  }),
+}));
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
