@@ -4,8 +4,6 @@ import { cloneDeep } from 'lodash';
 import { ensureValidState } from './util';
 import migrate from './084';
 
-const migrationVersion = 83;
-
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
@@ -19,11 +17,16 @@ const mockedEnsureValidState = jest.mocked(ensureValidState);
 
 const createTestState = () => ({
   engine: {
-    backgroundState: {},
+    backgroundState: {
+      UserStorageController: {
+        isBackupAndSyncEnabled: false,
+        isAccountSyncingEnabled: false,
+      },
+    },
   },
 });
 
-describe(`Migration ${migrationVersion}: Add Seedless Onboarding default state`, () => {
+describe('Migration 84: set isBackupAndSyncEnabled and isAccountSyncingEnabled to true for all users', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
@@ -38,15 +41,17 @@ describe(`Migration ${migrationVersion}: Add Seedless Onboarding default state`,
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('adds Seedless Onboarding default state to state', () => {
+  it('sets isBackupAndSyncEnabled and isAccountSyncingEnabled to true for all users', () => {
     const oldState = createTestState();
     mockedEnsureValidState.mockReturnValue(true);
 
     const expectedData = {
       engine: {
         backgroundState: {
-          SeedlessOnboardingController: {
-            socialBackupsMetadata: [],
+          UserStorageController: {
+            ...oldState.engine.backgroundState.UserStorageController,
+            isBackupAndSyncEnabled: true,
+            isAccountSyncingEnabled: true,
           },
         },
       },
@@ -68,24 +73,20 @@ describe(`Migration ${migrationVersion}: Add Seedless Onboarding default state`,
     {
       state: {
         engine: {
-          backgroundState: {
-            SeedlessOnboardingController: 'invalid',
-          },
+          backgroundState: {},
         },
       },
-      test: 'invalid SeedlessOnboardingController state',
+      test: 'empty backgroundState',
     },
     {
       state: {
         engine: {
           backgroundState: {
-            SeedlessOnboardingController: {
-              socialBackupsMetadata: 'invalid',
-            },
+            UserStorageController: 'invalid',
           },
         },
       },
-      test: 'invalid socialBackupsMetadata state',
+      test: 'invalid UserStorageController state',
     },
   ])('does not modify state if the state is invalid - $test', ({ state }) => {
     const orgState = cloneDeep(state);
@@ -95,6 +96,6 @@ describe(`Migration ${migrationVersion}: Add Seedless Onboarding default state`,
 
     // State should be unchanged
     expect(migratedState).toStrictEqual(orgState);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
+    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
   });
 });

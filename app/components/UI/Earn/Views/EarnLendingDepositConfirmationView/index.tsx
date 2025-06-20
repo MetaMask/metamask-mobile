@@ -3,6 +3,7 @@ import {
   TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { isEmpty } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -12,24 +13,30 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { capitalize } from '../../../../../util/general';
+import {
+  addCurrencySymbol,
+  renderFromTokenMinimalUnit,
+} from '../../../../../util/number';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { TokenI } from '../../../Tokens/types';
-import useEarnTokens from '../../hooks/useEarnTokens';
+import useEarnToken from '../../hooks/useEarnToken';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { EARN_LENDING_ACTIONS } from '../../types/lending.types';
+import { parseFloatSafe } from '../../utils';
 import ConfirmationFooter from './components/ConfirmationFooter';
 import DepositInfoSection from './components/DepositInfoSection';
 import DepositReceiveSection from './components/DepositReceiveSection';
 import Erc20TokenHero from './components/Erc20TokenHero';
 import styleSheet from './EarnLendingDepositConfirmationView.styles';
-import { parseFloatSafe } from '../../utils';
-import {
-  addCurrencySymbol,
-  renderFromTokenMinimalUnit,
-} from '../../../../../util/number';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-import { capitalize } from '../../../../../util/general';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import { RootState } from '../../../../../reducers';
+import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
+import { IMetaMetricsEvent } from '../../../../../core/Analytics';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 
 export interface LendingDepositViewRouteParams {
   token?: TokenI;
@@ -40,6 +47,7 @@ export interface LendingDepositViewRouteParams {
   action?: Extract<EARN_LENDING_ACTIONS, 'ALLOWANCE_INCREASE' | 'DEPOSIT'>;
   lendingContractAddress?: string;
   lendingProtocol?: string;
+  networkName?: string;
 }
 
 export interface EarnLendingDepositConfirmationViewProps {
@@ -67,17 +75,13 @@ const EarnLendingDepositConfirmationView = () => {
   } = params;
 
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   getStakingNavbar(strings('earn.deposit'), navigation, theme.colors);
 
-  useEffect(() => {
-    navigation.setOptions(
-      getStakingNavbar(strings('earn.deposit'), navigation, theme.colors, {
-        hasCancelButton: false,
-        backgroundColor: theme.colors.background.alternative,
-      }),
-    );
-  }, [navigation, theme.colors]);
+  const network = useSelector((state: RootState) =>
+    selectNetworkConfigurationByChainId(state, token?.chainId as Hex),
+  );
 
   const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
   const [activeStep, setActiveStep] = useState(
@@ -93,7 +97,8 @@ const EarnLendingDepositConfirmationView = () => {
     selectStablecoinLendingEnabledFlag,
   );
 
-  const { getPairedEarnTokens } = useEarnTokens();
+  const { earnToken, outputToken, getTokenSnapshot, tokenSnapshot } =
+    useEarnToken(token as TokenI);
 
   const confirmButtonText = useMemo(
     () =>
@@ -103,11 +108,112 @@ const EarnLendingDepositConfirmationView = () => {
     [activeStep],
   );
 
+  const getTrackEventProperties = useCallback(
+    (
+      actionType: string,
+      transactionId?: string,
+      transactionType?: TransactionType,
+    ) => {
+      const properties: {
+        action_type: string;
+        token: string | undefined;
+        network: string | undefined;
+        user_token_balance: string | undefined;
+        transaction_value: string;
+        experience: EARN_EXPERIENCES;
+        transaction_id?: string;
+        transaction_type?: string;
+      } = {
+        action_type: actionType,
+        token: token?.symbol,
+        network: network?.name,
+        user_token_balance: earnToken?.balanceFormatted,
+        transaction_value: `${renderFromTokenMinimalUnit(
+          amountTokenMinimalUnit ?? '0',
+          earnToken?.decimals as number,
+        )} ${earnToken?.symbol}`,
+        experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+      };
+
+      if (transactionId) {
+        properties.transaction_id = transactionId;
+      }
+
+      if (transactionType) {
+        properties.transaction_type = transactionType;
+      }
+
+      return properties;
+    },
+    [
+      token?.symbol,
+      network?.name,
+      earnToken?.balanceFormatted,
+      earnToken?.decimals,
+      earnToken?.symbol,
+      amountTokenMinimalUnit,
+    ],
+  );
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EARN_CONFIRMATION_PAGE_VIEWED)
+        .addProperties(getTrackEventProperties('deposit'))
+        .build(),
+    );
+
+    navigation.setOptions(
+      getStakingNavbar(strings('earn.deposit'), navigation, theme.colors, {
+        hasCancelButton: false,
+        backgroundColor: theme.colors.background.alternative,
+      }),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigation, theme.colors]);
+
+  const emitTxMetaMetric = useCallback(
+    (txType: TransactionType) =>
+      (transactionId: string) =>
+      (event: IMetaMetricsEvent) => {
+        trackEvent(
+          createEventBuilder(event)
+            .addProperties(
+              getTrackEventProperties('deposit', transactionId, txType),
+            )
+            .build(),
+        );
+      },
+    [createEventBuilder, getTrackEventProperties, trackEvent],
+  );
+
   const createAllowanceTxEventListeners = useCallback(
     (transactionId: string) => {
+      const emitAllowanceTxMetaMetric = emitTxMetaMetric(
+        TransactionType.tokenMethodIncreaseAllowance,
+      )(transactionId);
+
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionSubmitted',
+        () => {
+          emitAllowanceTxMetaMetric(
+            MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED,
+          );
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionDropped',
+        () => {
+          setIsConfirmButtonDisabled(false);
+          setIsApprovalLoading(false);
+          emitAllowanceTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_DROPPED);
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionFailed',
         () => {
+          emitAllowanceTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_FAILED);
           setIsConfirmButtonDisabled(false);
           setIsApprovalLoading(false);
         },
@@ -116,6 +222,9 @@ const EarnLendingDepositConfirmationView = () => {
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionRejected',
         () => {
+          emitAllowanceTxMetaMetric(
+            MetaMetricsEvents.EARN_TRANSACTION_REJECTED,
+          );
           setIsConfirmButtonDisabled(false);
           setIsApprovalLoading(false);
         },
@@ -128,20 +237,37 @@ const EarnLendingDepositConfirmationView = () => {
           setIsConfirmButtonDisabled(false);
           setIsApprovalLoading(false);
           setActiveStep(Steps.DEPOSIT);
+          emitAllowanceTxMetaMetric(
+            MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED,
+          );
         },
         (transactionMeta) => transactionMeta.id === transactionId,
       );
     },
-    [],
+    [emitTxMetaMetric],
   );
 
   const createDepositTxEventListeners = useCallback(
     (transactionId: string) => {
+      const emitDepositTxMetaMetric = emitTxMetaMetric(
+        TransactionType.lendingDeposit,
+      )(transactionId);
+
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionDropped',
+        () => {
+          setIsConfirmButtonDisabled(false);
+          setIsDepositLoading(false);
+          emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_DROPPED);
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionRejected',
         () => {
           setIsConfirmButtonDisabled(false);
           setIsDepositLoading(false);
+          emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_REJECTED);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
@@ -149,34 +275,105 @@ const EarnLendingDepositConfirmationView = () => {
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionSubmitted',
         () => {
-          navigation.navigate(Routes.TRANSACTIONS_VIEW);
+          emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
+
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionConfirmed',
+        () => {
+          emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED);
+          navigation.navigate(Routes.TRANSACTIONS_VIEW);
+        },
+        (transactionMeta) => transactionMeta.id === transactionId,
+      );
+
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionFailed',
+        () => {
+          setIsConfirmButtonDisabled(false);
+          setIsDepositLoading(false);
+          emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_FAILED);
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
+
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionConfirmed',
+        () => {
+          if (!outputToken) {
+            const networkClientId =
+              Engine.context.NetworkController.findNetworkClientIdByChainId(
+                tokenSnapshot?.chainId as Hex,
+              );
+            Engine.context.TokensController.addToken({
+              decimals: tokenSnapshot?.token?.decimals || 0,
+              symbol: tokenSnapshot?.token?.symbol || '',
+              address: tokenSnapshot?.token?.address || '',
+              name: tokenSnapshot?.token?.name || '',
+              networkClientId,
+            }).catch((error) => {
+              console.error(
+                error,
+                'error adding counter-token on confirmation',
+              );
+            });
+          }
+        },
+        (transactionMeta) => transactionMeta.id === transactionId,
+      );
     },
-    [navigation],
+    [emitTxMetaMetric, navigation, outputToken, tokenSnapshot],
   );
 
   const createTransactionEventListeners = useCallback(
     (transactionId: string, transactionType: string) => {
       if (!transactionId || !transactionType) return;
 
+      // Transaction Initiated but not submitted, rejected, or approved yet.
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EARN_TRANSACTION_INITIATED)
+          .addProperties(
+            getTrackEventProperties(
+              'deposit',
+              transactionId,
+              transactionType as TransactionType,
+            ),
+          )
+          .build(),
+      );
+
       if (transactionType === TransactionType.tokenMethodIncreaseAllowance) {
         createAllowanceTxEventListeners(transactionId);
       }
 
-      // TEMP: The lendingDeposit TransactionType has been added to the TransactionController but not released yet.
-      // if (transactionType === TransactionType.lendingDeposit) {
-      if (transactionType === 'lendingDeposit') {
+      if (transactionType === TransactionType.lendingDeposit) {
         createDepositTxEventListeners(transactionId);
       }
     },
-    [createAllowanceTxEventListeners, createDepositTxEventListeners],
+    [
+      createAllowanceTxEventListeners,
+      createDepositTxEventListeners,
+      createEventBuilder,
+      getTrackEventProperties,
+      trackEvent,
+    ],
   );
+
+  useEffect(() => {
+    if (!outputToken) {
+      getTokenSnapshot(
+        earnToken?.chainId as Hex,
+        earnToken?.experience.market?.outputToken?.address as Hex,
+      );
+    }
+  }, [outputToken, getTokenSnapshot, earnToken]);
 
   // Route param guards
   if (
     isEmpty(token) ||
+    !earnToken ||
     !amountTokenMinimalUnit ||
     !amountFiat ||
     !lendingContractAddress ||
@@ -185,16 +382,44 @@ const EarnLendingDepositConfirmationView = () => {
   )
     return null;
 
-  const { earnToken, outputToken } = getPairedEarnTokens(token);
-
-  if (!earnToken) return null;
-
   const handleCancel = () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EARN_DEPOSIT_REVIEW_CANCEL_CLICKED)
+        .addProperties({
+          selected_provider: EVENT_PROVIDERS.CONSENSYS,
+          text: 'Cancel',
+          location: EVENT_LOCATIONS.EARN_LENDING_DEPOSIT_CONFIRMATION_VIEW,
+          network: network?.name,
+          step:
+            activeStep === Steps.ALLOWANCE_INCREASE
+              ? 'Allowance increase'
+              : 'Deposit',
+        })
+        .build(),
+    );
+
     navigation.goBack();
   };
 
   const handleConfirm = async () => {
     try {
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.EARN_DEPOSIT_REVIEW_CONFIRM_CLICKED,
+        )
+          .addProperties({
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            text: 'Confirm',
+            location: EVENT_LOCATIONS.EARN_LENDING_DEPOSIT_CONFIRMATION_VIEW,
+            network: network?.name,
+            step:
+              activeStep === Steps.ALLOWANCE_INCREASE
+                ? 'Allowance increase'
+                : 'Deposit',
+          })
+          .build(),
+      );
+
       const isSupportedLendingAction =
         action === EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE ||
         action === EARN_LENDING_ACTIONS.DEPOSIT;
@@ -261,9 +486,7 @@ const EarnLendingDepositConfirmationView = () => {
             protocol: earnToken?.experience?.market?.protocol,
             underlyingTokenAddress:
               earnToken?.experience?.market?.underlying?.address,
-            gasOptions: {
-              // gasLimit: 60000,
-            },
+            gasOptions: {},
             txOptions: {
               deviceConfirmedOn: WalletDevice.MM_MOBILE,
               networkClientId,
@@ -289,6 +512,7 @@ const EarnLendingDepositConfirmationView = () => {
         setIsConfirmButtonDisabled(false);
         return;
       }
+
       // 3. Setup Transaction Event Listeners
       createTransactionEventListeners(transactionId, txType);
     } catch (error) {
@@ -322,14 +546,19 @@ const EarnLendingDepositConfirmationView = () => {
         />
         <DepositReceiveSection
           token={token}
-          receiptTokenName={outputToken?.name || ''}
+          receiptTokenName={
+            outputToken?.name || tokenSnapshot?.token.name || ''
+          }
           receiptTokenAmount={
             renderFromTokenMinimalUnit(
               amountTokenMinimalUnit,
               earnToken.decimals,
             ) +
             ' ' +
-            (outputToken?.ticker || outputToken?.symbol || '')
+            (outputToken?.ticker ||
+              outputToken?.symbol ||
+              tokenSnapshot?.token.symbol ||
+              '')
           }
           receiptTokenAmountFiat={addCurrencySymbol(
             amountFiat,

@@ -1,16 +1,15 @@
 import { captureException } from '@sentry/react-native';
-import { hasProperty } from '@metamask/utils';
+import { hasProperty, isObject } from '@metamask/utils';
 
 import { ensureValidState } from './util';
 
 /**
- * Migration 77: Add 'Seedless Onboarding default state' to seedless onboarding controller
+ * Migration 84:
  *
- * This migration add Seedless Onboarding default state to the seedless onboarding controller
- * as a default Seedless Onboarding State.
+ * This migration sets `isBackupAndSyncEnabled` and `isAccountSyncingEnabled` to true for all users.
  */
 const migration = (state: unknown): unknown => {
-  const migrationVersion = 83;
+  const migrationVersion = 84;
 
   // Ensure the state is valid for migration
   if (!ensureValidState(state, migrationVersion)) {
@@ -19,21 +18,25 @@ const migration = (state: unknown): unknown => {
 
   try {
     if (
-      hasProperty(state, 'engine') &&
-      hasProperty(state.engine, 'backgroundState') &&
-      !hasProperty(state.engine.backgroundState, 'SeedlessOnboardingController')
+      hasProperty(state.engine.backgroundState, 'UserStorageController') &&
+      isObject(state.engine.backgroundState.UserStorageController)
     ) {
-      // migrate seedless onboarding state with default values
-      state.engine.backgroundState.SeedlessOnboardingController = {
-        socialBackupsMetadata: [],
-      };
+      state.engine.backgroundState.UserStorageController.isBackupAndSyncEnabled =
+        true;
+      state.engine.backgroundState.UserStorageController.isAccountSyncingEnabled =
+        true;
+    } else {
+      captureException(
+        new Error(
+          `Migration ${migrationVersion}: UserStorageController not found in state`,
+        ),
+      );
     }
-
     return state;
   } catch (error) {
     captureException(
       new Error(
-        `Migration ${migrationVersion}: Adding Seedless Onboarding default state failed with error: ${error}`,
+        `Migration ${migrationVersion}: set isBackupAndSyncEnabled and isAccountSyncingEnabled to true for all users failed with error: ${error}`,
       ),
     );
     return state;
