@@ -33,6 +33,7 @@ const Routes = {
     KYC_PROCESSING: 'KycProcessing',
     KYC_WEBVIEW: 'KycWebview',
     PROVIDER_WEBVIEW: 'ProviderWebview',
+    ORDER_PROCESSING: 'OrderProcessing',
   },
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',
