@@ -20,6 +20,30 @@ export const prefixUrlWithProtocol = (
 };
 
 /**
+ * Creates a search url based on the search engine
+ * @param input - String corresponding to the search term
+ * @param searchEngine - String corresponding to the search engine
+ * @returns - String corresponding to the search url
+ */
+export function createSearchUrl(input: string, searchEngine = 'Google') {
+  let searchUrl =
+    'https://www.google.com/search?q=' + encodeURIComponent(input);
+  if (searchEngine === 'DuckDuckGo') {
+    searchUrl = 'https://duckduckgo.com/?q=' + encodeURIComponent(input);
+  }
+  return searchUrl;
+}
+
+/**
+ * Tests if the input is a url or a search term
+ * @param input - String corresponding to the input
+ * @returns - Boolean corresponding to whether the input is a url
+ */
+export function testUrl(input: string) {
+  return isUrl(input) || input.match(regex.url);
+}
+
+/**
  * Returns URL prefixed with protocol, which could be a search engine url if
  * a keyword is detected instead of a url
  *
@@ -31,19 +55,13 @@ export const prefixUrlWithProtocol = (
 export function processUrlForBrowser(input: string, searchEngine = 'Google') {
   const defaultProtocol = 'https://';
   //Check if it's a url or a keyword
-  if (!isUrl(input) && !input.match(regex.url)) {
+  if (!testUrl(input)) {
     // Add exception for localhost
     if (
       !input.startsWith('http://localhost') &&
       !input.startsWith('localhost')
     ) {
-      // In case of keywords we default to google search
-      let searchUrl =
-        'https://www.google.com/search?q=' + encodeURIComponent(input);
-      if (searchEngine === 'DuckDuckGo') {
-        searchUrl = 'https://duckduckgo.com/?q=' + encodeURIComponent(input);
-      }
-      return searchUrl;
+      return createSearchUrl(input, searchEngine);
     }
   }
   return prefixUrlWithProtocol(input, defaultProtocol);
