@@ -14,11 +14,11 @@ import { selectSamplePetnamesByChainId } from '../../../selectors/samplePetNameC
  * @sampleFeature do not use in production code
  */
 export function useSamplePetNames(chainId: SupportedCaipChainId | Hex) {
-  const petNamesByAddress = useSelector((state: RootState) => 
+  const petNamesByAddress = useSelector((state: RootState) =>
     selectSamplePetnamesByChainId(state, chainId as Hex)
   );
 
-  const petNames = useMemo(() => 
+  const petNames = useMemo(() =>
     Object.entries(petNamesByAddress).map(([address, name]) => ({
       address,
       name,

@@ -5,7 +5,7 @@ import { Hex } from '@metamask/utils';
 
 /**
  * Selector to get the sample petnames controller state
- * 
+ *
  * @param state - The root state object
  * @returns The sample petnames controller state
  */
@@ -14,7 +14,7 @@ export const selectSamplePetnamesControllerState = (state: RootState): SamplePet
 
 /**
  * Selector to get all petnames by chain ID and address
- * 
+ *
  * @param state - The root state object
  * @returns The petnames object organized by chain ID and address
  */
@@ -26,7 +26,7 @@ export const selectSamplePetnamesByChainIdAndAddress = createSelector(
 
 /**
  * Selector to get petnames for a specific chain
- * 
+ *
  * @param state - The root state object
  * @param chainId - The chain ID to get petnames for
  * @returns The petnames for the given chain ID
@@ -36,13 +36,13 @@ export const selectSamplePetnamesByChainId = createSelector(
     selectSamplePetnamesByChainIdAndAddress,
     (_state: RootState, chainId: Hex) => chainId,
   ],
-  (petnamesByChainIdAndAddress, chainId): Record<Hex, string> => 
-    petnamesByChainIdAndAddress[chainId] || {}
+  (petnamesByChainIdAndAddress, chainId): Record<Hex, string> =>
+    petnamesByChainIdAndAddress[chainId] ?? {}
 );
 
 /**
  * Selector to get a specific petname by chain ID and address
- * 
+ *
  * @param state - The root state object
  * @param chainId - The chain ID
  * @param address - The address to get the petname for
@@ -54,6 +54,6 @@ export const selectSamplePetnameByChainIdAndAddress = createSelector(
     (_state: RootState, chainId: Hex, _address: Hex) => chainId,
     (_state: RootState, _chainId: Hex, address: Hex) => address,
   ],
-  (petnamesByChainIdAndAddress, chainId, address) => 
+  (petnamesByChainIdAndAddress, chainId, address) =>
     petnamesByChainIdAndAddress[chainId]?.[address]
-); 
+);
