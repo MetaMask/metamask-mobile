@@ -213,7 +213,21 @@ const WalletActions = () => {
     closeBottomSheetAndNavigate(() => {
       navigate(Routes.DEPOSIT.ID);
     });
-  }, [closeBottomSheetAndNavigate, navigate]);
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.DEPOSIT_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Deposit',
+          location: 'TabBar',
+          chain_id_destination: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
+
+    trace({
+      name: TraceName.LoadDepositExperience,
+    });
+  }, [closeBottomSheetAndNavigate, navigate, trackEvent, createEventBuilder]);
 
   const onSend = useCallback(async () => {
     trackEvent(

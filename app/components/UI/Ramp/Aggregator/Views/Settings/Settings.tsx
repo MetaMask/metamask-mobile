@@ -19,7 +19,7 @@ import Button, {
 import { strings } from '../../../../../../../locales/i18n';
 import { useAppTheme } from '../../../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../../Navbar';
-import useAnalytics from '../../hooks/useAnalytics';
+import useAnalytics from '../../../hooks/useAnalytics';
 
 // Internal dependencies
 import ActivationKeys from './ActivationKeys';

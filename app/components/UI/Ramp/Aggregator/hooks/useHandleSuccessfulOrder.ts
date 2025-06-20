@@ -13,7 +13,7 @@ import { areAddressesEqual } from '../../../../../util/address';
 import useThunkDispatch from '../../../../hooks/useThunkDispatch';
 import { useRampSDK } from '../sdk';
 import { getNotificationDetails, stateHasOrder } from '../utils';
-import useAnalytics from './useAnalytics';
+import useAnalytics from '../../hooks/useAnalytics';
 import { hexToBN, toHexadecimal } from '../../../../../util/number';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import Routes from '../../../../../constants/navigation/Routes';

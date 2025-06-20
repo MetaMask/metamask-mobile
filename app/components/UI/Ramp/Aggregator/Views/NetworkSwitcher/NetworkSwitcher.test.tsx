@@ -148,7 +148,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const mockTrackEvent = jest.fn();
-jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 const mockFetchNetworks = jest.fn();
 const mockUseFetchRampNetworksInitialValues: Partial<
