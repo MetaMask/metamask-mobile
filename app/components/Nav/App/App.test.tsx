@@ -10,6 +10,7 @@ import { RootState } from '../../../reducers';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
+import Engine from '../../../core/Engine';
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -83,6 +84,19 @@ describe('App', () => {
     it('navigates to home when user exists and logs in', async () => {
       jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(true);
       jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
+      
+      // Mock the specific property access to simulate a vault exists
+      Object.defineProperty(Engine, 'context', {
+        get: jest.fn().mockReturnValue({
+          KeyringController: {
+            state: {
+              vault: 'mock-vault-data',
+            },
+          },
+        }),
+        configurable: true,
+      });
+      
       renderScreen(App, { name: 'App' }, { 
         state: {
           ...initialState,

@@ -592,8 +592,6 @@ const mapDispatchToProps = (dispatch) => ({
   disableNewPrivacyPolicyToast: () =>
     dispatch(storePrivacyPolicyClickedOrClosedAction()),
   setExistingUser: (existingUser) => dispatch(setExistingUser(existingUser)),
-  dispatchSaveOnboardingEvent: (...eventArgs) =>
-    dispatch(saveOnboardingEvent(eventArgs)),
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
 });
 
