@@ -122,7 +122,6 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
         <View style={styles.buttonWrapper}>
           <Button
             variant={ButtonVariants.Secondary}
-            overridePressedColor={colors.background.alternative}
             onPress={onPressContinueWithGoogleAction}
             testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
             label={
@@ -148,7 +147,6 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
           />
           <Button
             variant={ButtonVariants.Secondary}
-            overridePressedColor={colors.background.alternative}
             onPress={onPressContinueWithAppleAction}
             testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
             label={

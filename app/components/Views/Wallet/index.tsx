@@ -120,9 +120,6 @@ import { cloneDeep } from 'lodash';
 import { prepareNftDetectionEvents } from '../../../util/assets';
 import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
-///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
-import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
-///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 import { toFormattedAddress } from '../../../util/address';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
@@ -816,6 +813,12 @@ const Wallet = ({
     </ErrorBoundary>
   );
 };
+
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mapStateToProps = (state: any) => ({
+  shouldShowNewPrivacyToast: shouldShowNewPrivacyToastSelector(state),
+});
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

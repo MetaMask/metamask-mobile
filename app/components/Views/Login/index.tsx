@@ -92,7 +92,9 @@ import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@met
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import { useMetrics } from '../../hooks/useMetrics';
+///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -130,11 +132,9 @@ const Login: React.FC = () => {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
-  const {
-    ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
-    isEnabled: isMetricsEnabled,
-    ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
-  } = useMetrics();
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  const { isEnabled: isMetricsEnabled } = useMetrics();
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   const dispatch = useDispatch();
   const setOnboardingWizardStep = (step: number) =>
     dispatch(setOnboardingWizardStepUtil(step));
