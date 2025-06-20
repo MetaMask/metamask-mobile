@@ -60,15 +60,6 @@ describe(
       await OnboardingSuccessView.tapDone();
     });
 
-    it('should be able to opt-in of the onboarding-wizard', async () => {
-      await Assertions.checkIfVisible(MetaMetricsOptIn.container);
-      await MetaMetricsOptIn.tapAgreeButton();
-    });
-
-    it('should finish the onboarding', async () => {
-      await OnboardingSuccessView.tapDone();
-    });
-
     it('should dismiss the marketing consent bottom sheet', async () => {
       // dealing with flakiness on bitrise.
       await TestHelpers.delay(1000);
