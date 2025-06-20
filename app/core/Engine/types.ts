@@ -167,6 +167,9 @@ import {
   CronjobControllerActions,
   CronjobController,
   MultichainRouterActions,
+  WebSocketService,
+  WebSocketServiceActions,
+  WebSocketServiceEvents,
 } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -338,6 +341,7 @@ type GlobalActions =
   | NotificationServicesControllerMessengerActions
   | NotificationServicesPushControllerActions
   | CronjobControllerActions
+  | WebSocketServiceActions
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerActions
@@ -390,6 +394,7 @@ type GlobalEvents =
   | NotificationServicesControllerMessengerEvents
   | NotificationServicesPushControllerEvents
   | CronjobControllerEvents
+  | WebSocketServiceEvents
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerEvents
@@ -485,6 +490,7 @@ export type Controllers = {
   NotificationServicesPushController: NotificationServicesPushController;
   SnapInterfaceController: SnapInterfaceController;
   CronjobController: CronjobController;
+  WebSocketService: WebSocketService,
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -601,6 +607,7 @@ export type ControllersToInitialize =
   | 'SnapController'
   | 'SnapInterfaceController'
   | 'SnapsRegistry'
+  | 'WebSocketService'
   | 'NotificationServicesController'
   | 'NotificationServicesPushController'
   | 'AppMetadataController'

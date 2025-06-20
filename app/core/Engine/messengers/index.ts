@@ -16,6 +16,7 @@ import {
   getSnapControllerMessenger,
   getSnapInterfaceControllerMessenger,
   getSnapsRegistryMessenger,
+  getWebSocketServiceMessenger,
 } from './snaps';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -100,6 +101,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   NotificationServicesPushController: {
     getMessenger: getNotificationServicesPushControllerMessenger,
+    getInitMessenger: noop,
+  },
+  WebSocketService: {
+    getMessenger: getWebSocketServiceMessenger,
     getInitMessenger: noop,
   },
   ///: END:ONLY_INCLUDE_IF
