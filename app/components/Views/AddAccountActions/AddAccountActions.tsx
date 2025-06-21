@@ -11,11 +11,6 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { trace, TraceName, TraceOperation } from '../../../util/trace';
-import { getTraceTags } from '../../../util/sentry/tags';
-import { store } from '../../../store';
-///: END:ONLY_INCLUDE_IF
 
 // Internal dependencies
 import { AddAccountActionsProps } from './AddAccountActions.types';
@@ -140,11 +135,6 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const createSolanaAccount = async (scope: CaipChainId) => {
-    trace({
-      name: TraceName.CreateSnapAccount,
-      op: TraceOperation.CreateSnapAccount,
-      tags: getTraceTags(store.getState()),
-    });
     navigate(Routes.SHEET.ADD_ACCOUNT, {
       scope,
       clientType: WalletClientType.Solana,

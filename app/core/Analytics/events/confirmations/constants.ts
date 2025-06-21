@@ -6,6 +6,7 @@ export enum TOOLTIP_TYPES {
 // These are the main Info components that are used in Confirmations
 export enum CONFIRMATION_EVENT_LOCATIONS {
   APPROVE = 'approve',
+  CONTRACT_INTERACTION = 'contract_interaction',
   PERSONAL_SIGN = 'personal_sign',
   TYPED_SIGN_V1 = 'typed_sign_v1',
   TYPED_SIGN_V3_V4 = 'typed_sign_v3_v4',
