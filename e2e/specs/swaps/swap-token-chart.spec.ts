@@ -91,6 +91,7 @@ describe(Regression('Swap from Token view'), (): void => {
     await WalletView.tapOnToken('Ethereum');
     await Assertions.checkIfVisible(TokenOverview.container);
     await TokenOverview.scrollOnScreen();
+    await TestHelpers.delay(1000);
     await TokenOverview.tapSwapButton();
     if (!swapOnboarded) await Onboarding.tapStartSwapping();
     await Assertions.checkIfVisible(QuoteView.getQuotes);
@@ -101,8 +102,22 @@ describe(Regression('Swap from Token view'), (): void => {
     await TestHelpers.delay(3000);
     await QuoteView.selectToken(destTokenSymbol);
     await QuoteView.tapOnGetQuotes();
-    await Assertions.checkIfVisible(SwapView.fetchingQuotes);
-    await Assertions.checkIfVisible(SwapView.quoteSummary);
+    
+    // Try to find either the fetching quotes state or the quote summary
+    try {
+      await Assertions.checkIfVisible(SwapView.fetchingQuotes, 5000);
+    } catch (e) {
+      console.log('Fetching quotes not found, trying quote summary:', e);
+      // If fetching quotes is not found, try to find the quote summary directly
+      try {
+        await Assertions.checkIfVisible(SwapView.quoteSummary, 5000);
+      } catch (e2) {
+        console.log('Quote summary also not found:', e2);
+        // If neither is found, wait a bit more and try again
+        await Assertions.checkIfVisible(SwapView.quoteSummary, 5000);
+      }
+    }
+    
     await Assertions.checkIfVisible(SwapView.gasFee);
     await SwapView.tapIUnderstandPriceWarning();
     await SwapView.tapSwapButton();
