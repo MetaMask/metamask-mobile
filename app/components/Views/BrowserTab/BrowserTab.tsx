@@ -996,7 +996,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
         return false;
       }
 
-      sendActiveAccount();
 
       iconRef.current = undefined;
       if (isHomepage(nativeEvent.url)) {
@@ -1004,6 +1003,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
       }
 
       initializeBackgroundBridge(urlOrigin, true);
+      sendActiveAccount();
     },
     [
       isAllowedOrigin,
