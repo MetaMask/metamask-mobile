@@ -816,7 +816,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                           "width": 24,
                                         }
                                       }
-                                      testID="main-wallet-account-actions-0"
+                                      testID="main-wallet-account-actions"
                                     >
                                       <SvgMock
                                         color="#121314"
@@ -1139,7 +1139,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                           "width": 24,
                                         }
                                       }
-                                      testID="main-wallet-account-actions-1"
+                                      testID="main-wallet-account-actions"
                                     >
                                       <SvgMock
                                         color="#121314"

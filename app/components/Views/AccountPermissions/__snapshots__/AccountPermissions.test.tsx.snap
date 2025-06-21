@@ -700,7 +700,7 @@ exports[`AccountPermissions renders correctly 1`] = `
                       "width": 24,
                     }
                   }
-                  testID="main-wallet-account-actions-0"
+                  testID="main-wallet-account-actions"
                 >
                   <SvgMock
                     color="#121314"

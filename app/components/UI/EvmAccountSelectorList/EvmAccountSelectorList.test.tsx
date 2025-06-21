@@ -766,7 +766,7 @@ describe('EvmAccountSelectorList', () => {
     const { getAllByTestId } = renderComponent(initialState);
 
     // Find buttons with the correct test ID
-    const actionButtons = getAllByTestId(/main-wallet-account-actions-/);
+    const actionButtons = getAllByTestId(WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
     expect(actionButtons.length).toBe(2);
 
     // Click the first account's action button
@@ -1292,7 +1292,7 @@ describe('EvmAccountSelectorList', () => {
     const { getAllByTestId } = renderComponent(multichainState);
 
     const accountActionsButton = getAllByTestId(
-      `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-0`,
+      WalletViewSelectorsIDs.ACCOUNT_ACTIONS,
     )[0];
 
     fireEvent.press(accountActionsButton);
