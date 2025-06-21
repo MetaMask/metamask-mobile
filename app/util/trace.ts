@@ -53,6 +53,7 @@ export enum TraceName {
   ImportTokens = 'Import Tokens',
   RampQuoteLoading = 'Ramp Quote Loading',
   LoadRampExperience = 'Load Ramp Experience',
+  LoadDepositExperience = 'Load Deposit Experience',
   RevealSrp = 'Reveal SRP',
   RevealPrivateKey = 'Reveal Private Key',
   EvmDiscoverAccounts = 'EVM Discover Accounts',

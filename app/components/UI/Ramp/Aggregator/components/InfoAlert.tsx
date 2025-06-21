@@ -11,7 +11,7 @@ import RemoteImage from '../../../../Base/RemoteImage';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { Colors } from '../../../../../util/theme/models';
-import useAnalytics from '../hooks/useAnalytics';
+import useAnalytics from '../../hooks/useAnalytics';
 
 type Logos = QuoteResponse['provider']['logos'];
 

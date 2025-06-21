@@ -262,7 +262,7 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 
-jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 jest.mock('../../../../../../util/trace', () => ({
   trace: jest.fn(),

@@ -12,7 +12,7 @@ export type ScreenLocation =
   | 'Settings Screen';
 
 interface RampButtonClicked {
-  text: 'Buy' | 'Buy Native Token' | 'Sell' | 'Get Started';
+  text: 'Buy' | 'Buy Native Token' | 'Sell' | 'Get Started' | 'Deposit';
   location: string;
 }
 
@@ -22,6 +22,10 @@ interface BuyButtonClicked extends RampButtonClicked {
 
 interface SellButtonClicked extends RampButtonClicked {
   chain_id_source?: string;
+}
+
+interface DepositButtonClicked extends RampButtonClicked {
+  chain_id_destination?: string;
 }
 
 interface RampRegionSelected {
@@ -312,6 +316,8 @@ interface OffRampQuotesExpanded extends RampQuotesExpanded {
 }
 
 export interface AnalyticsEvents {
+  DEPOSIT_BUTTON_CLICKED: DepositButtonClicked;
+
   BUY_BUTTON_CLICKED: BuyButtonClicked;
   SELL_BUTTON_CLICKED: SellButtonClicked;
 

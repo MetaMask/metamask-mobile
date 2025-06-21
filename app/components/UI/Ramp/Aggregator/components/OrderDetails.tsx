@@ -22,7 +22,7 @@ import {
 import { FiatOrder, getProviderName } from '../../../../../reducers/fiatOrders';
 import useBlockExplorer from '../../../Swaps/utils/useBlockExplorer';
 import Spinner from '../../../AnimatedSpinner';
-import useAnalytics from '../hooks/useAnalytics';
+import useAnalytics from '../../hooks/useAnalytics';
 import { PROVIDER_LINKS } from '../types';
 import Account from './Account';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';

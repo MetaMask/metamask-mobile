@@ -38,6 +38,7 @@ import {
 } from '../../UI/Earn/selectors/featureFlags';
 import { EarnTokenDetails } from '../../UI/Earn/types/lending.types';
 import WalletActions from './WalletActions';
+import Routes from '../../../constants/navigation/Routes';
 
 jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
@@ -281,6 +282,7 @@ jest.mock('../../../util/trace', () => ({
   trace: jest.fn(),
   TraceName: {
     LoadRampExperience: 'LoadRampExperience',
+    LoadDepositExperience: 'LoadDepositExperience',
   },
 }));
 
@@ -429,6 +431,20 @@ describe('WalletActions', () => {
       tags: {
         rampType: RampType.SELL,
       },
+    });
+  });
+
+  it('should call the onDeposit function when the Deposit button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.ID);
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.LoadDepositExperience,
     });
   });
 
