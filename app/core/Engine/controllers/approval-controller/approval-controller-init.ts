@@ -1,8 +1,8 @@
 import { ApprovalController } from '@metamask/approval-controller';
 import { ApprovalType } from '@metamask/controller-utils';
 
-import type { ControllerInitFunction } from '../../types';
 import Logger from '../../../../util/Logger';
+import type { ControllerInitFunction } from '../../types';
 import { type ApprovalControllerMessenger } from '../../messengers/approval-controller-messenger';
 
 export const ApprovalControllerInit: ControllerInitFunction<
