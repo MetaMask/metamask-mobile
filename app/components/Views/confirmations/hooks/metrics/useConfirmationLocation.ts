@@ -46,7 +46,7 @@ const ConfirmationLocationMap = {
       case TransactionType.deployContract:
         return CONFIRMATION_EVENT_LOCATIONS.CONTRACT_DEPLOYMENT;
       default:
-        return undefined;
+        return CONFIRMATION_EVENT_LOCATIONS.CONTRACT_INTERACTION;
     }
   },
 };

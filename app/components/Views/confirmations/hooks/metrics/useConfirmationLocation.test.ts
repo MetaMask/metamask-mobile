@@ -190,7 +190,7 @@ describe('useConfirmationLocation', () => {
     );
   });
 
-  it('returns undefined for transaction approvals with unknown transaction type', () => {
+  it('defaults to CONTRACT_INTERACTION for unknown transaction types', () => {
     mockUseApprovalRequest.mockReturnValue(
       createApprovalRequestMock({
         type: ApprovalType.Transaction,
@@ -203,7 +203,7 @@ describe('useConfirmationLocation', () => {
     } as unknown as TransactionMeta);
 
     const { result } = renderHook(() => useConfirmationLocation());
-    expect(result.current).toBeUndefined();
+    expect(result.current).toBe(CONFIRMATION_EVENT_LOCATIONS.CONTRACT_INTERACTION);
   });
 
   it('updates location when approval request changes', () => {

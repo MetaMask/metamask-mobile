@@ -16,6 +16,7 @@ import {
   OPTIMISM_CHAIN_ID,
   POLYGON_CHAIN_ID,
   ZKSYNC_ERA_CHAIN_ID,
+  SEI_CHAIN_ID,
 } from '@metamask/swaps-controller/dist/constants';
 import Engine from '../../../../core/Engine';
 import { isSolanaChainId } from '@metamask/bridge-controller';
@@ -30,6 +31,7 @@ const ALLOWED_CHAIN_IDS: (Hex | CaipChainId)[] = [
   ARBITRUM_CHAIN_ID,
   AVALANCHE_CHAIN_ID,
   LINEA_CHAIN_ID,
+  SEI_CHAIN_ID,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   SolScope.Mainnet,
   ///: END:ONLY_INCLUDE_IF(keyring-snaps)
