@@ -446,9 +446,9 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       .spyOn(Engine.context.NetworkController, 'addNetwork')
       .mockReturnValue(networkConfigurationResult);
 
-    const spyOnSetActiveNetwork = jest.spyOn(
-      Engine.context.MultichainNetworkController,
-      'setActiveNetwork',
+    const spyOnSetNetworkClientIdForDomain = jest.spyOn(
+      Engine.context.SelectedNetworkController,
+      'setNetworkClientIdForDomain',
     );
 
     await wallet_addEthereumChain({
@@ -470,7 +470,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       }),
     );
 
-    expect(spyOnSetActiveNetwork).toHaveBeenCalledTimes(1);
+    expect(spyOnSetNetworkClientIdForDomain).toHaveBeenCalledTimes(1);
   });
 
   it('should call addTraitsToUser with chain ID list when adding a new network', async () => {
@@ -499,9 +499,9 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       .spyOn(Engine.context.NetworkController, 'updateNetwork')
       .mockReturnValue(networkConfigurationResult);
 
-    const spyOnSetActiveNetwork = jest.spyOn(
-      Engine.context.MultichainNetworkController,
-      'setActiveNetwork',
+    const spyOnSetNetworkClientIdForDomain = jest.spyOn(
+      Engine.context.SelectedNetworkController,
+      'setNetworkClientIdForDomain',
     );
 
     const existingParams = {
@@ -538,6 +538,6 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       }),
       undefined,
     );
-    expect(spyOnSetActiveNetwork).toHaveBeenCalledTimes(1);
+    expect(spyOnSetNetworkClientIdForDomain).toHaveBeenCalledTimes(1);
   });
 });
