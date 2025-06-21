@@ -63,6 +63,9 @@ exports[`AccountConnect renders correctly with base request 1`] = `
   >
     <View
       collapsable={false}
+      enabled={true}
+      handlerTag={2}
+      handlerType="PanGestureHandler"
       onGestureHandlerEvent={[Function]}
       onGestureHandlerStateChange={[Function]}
       onLayout={[Function]}
@@ -312,6 +315,8 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                     }
                     getItem={[Function]}
                     getItemCount={[Function]}
+                    handlerTag={1}
+                    handlerType="NativeViewGestureHandler"
                     keyExtractor={[Function]}
                     onContentSizeChange={[Function]}
                     onGestureHandlerEvent={[Function]}
@@ -1311,6 +1316,7 @@ exports[`AccountConnect renders correctly with base request 1`] = `
           </View>
         </View>
       </RCTSafeAreaView>
+      <View />
     </View>
   </View>
 </View>
@@ -1379,6 +1385,9 @@ exports[`AccountConnect renders correctly with request including chains and acco
   >
     <View
       collapsable={false}
+      enabled={true}
+      handlerTag={4}
+      handlerType="PanGestureHandler"
       onGestureHandlerEvent={[Function]}
       onGestureHandlerStateChange={[Function]}
       onLayout={[Function]}
@@ -1628,6 +1637,8 @@ exports[`AccountConnect renders correctly with request including chains and acco
                     }
                     getItem={[Function]}
                     getItemCount={[Function]}
+                    handlerTag={3}
+                    handlerType="NativeViewGestureHandler"
                     keyExtractor={[Function]}
                     onContentSizeChange={[Function]}
                     onGestureHandlerEvent={[Function]}
@@ -2627,6 +2638,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
           </View>
         </View>
       </RCTSafeAreaView>
+      <View />
     </View>
   </View>
 </View>
@@ -2695,6 +2707,9 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
   >
     <View
       collapsable={false}
+      enabled={true}
+      handlerTag={6}
+      handlerType="PanGestureHandler"
       onGestureHandlerEvent={[Function]}
       onGestureHandlerStateChange={[Function]}
       onLayout={[Function]}
@@ -2944,6 +2959,8 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                     }
                     getItem={[Function]}
                     getItemCount={[Function]}
+                    handlerTag={5}
+                    handlerType="NativeViewGestureHandler"
                     keyExtractor={[Function]}
                     onContentSizeChange={[Function]}
                     onGestureHandlerEvent={[Function]}
@@ -3943,6 +3960,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
           </View>
         </View>
       </RCTSafeAreaView>
+      <View />
     </View>
   </View>
 </View>

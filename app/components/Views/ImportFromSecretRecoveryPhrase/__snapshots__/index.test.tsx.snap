@@ -311,6 +311,9 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={

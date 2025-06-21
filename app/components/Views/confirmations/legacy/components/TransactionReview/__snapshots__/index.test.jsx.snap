@@ -692,6 +692,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                             </View>
                           </View>
                         </View>
+                        <View />
                       </View>
                     </View>
                     <View>
@@ -1028,6 +1029,9 @@ exports[`TransactionReview should match snapshot 1`] = `
                             </View>
                           </View>
                         </View>
+                        <View />
+                        <View />
+                        <View />
                       </View>
                       <View
                         style={
@@ -1386,6 +1390,7 @@ exports[`TransactionReview should match snapshot 1`] = `
           </RCTScrollView>
         </View>
       </View>
+      <View />
     </View>
   </View>,
 ]

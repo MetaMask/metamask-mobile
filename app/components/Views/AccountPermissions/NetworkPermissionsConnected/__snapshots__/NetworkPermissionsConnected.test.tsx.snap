@@ -136,6 +136,8 @@ exports[`NetworkPermissionsConnected renders correctly 1`] = `
       }
       getItem={[Function]}
       getItemCount={[Function]}
+      handlerTag={-1}
+      handlerType="NativeViewGestureHandler"
       initialNumToRender={999}
       keyExtractor={[Function]}
       onContentSizeChange={[Function]}

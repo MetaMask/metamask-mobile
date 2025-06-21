@@ -6,13 +6,12 @@ import { RpcEndpointType } from '@metamask/network-controller';
 import { backgroundState } from '../../../util/test/initial-root-state';
 
 // Mock the navigation
-const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
-    useNavigation: () => ({
-      goBack: mockGoBack,
+    useIsFocused: () => ({
+      isFocused: true,
     }),
   };
 });
