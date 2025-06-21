@@ -11,96 +11,109 @@ import enContent from '../../../locales/languages/en.json';
 import Browser from '../Browser/BrowserView';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
+
 const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
 const APPROVE_BUTTON_TEXT = enContent.transactions.tx_review_approve;
 
+interface ContractNavigationParams {
+  contractAddress: string;
+}
 
 class TestDApp {
-  get confirmButtonText() {
+  get confirmButtonText(): DetoxElement {
     return Matchers.getElementByText(CONFIRM_BUTTON_TEXT);
   }
 
-  get approveButtonText() {
+  get approveButtonText(): DetoxElement {
     return Matchers.getElementByText(APPROVE_BUTTON_TEXT);
   }
 
-  get DappConnectButton() {
+  get DappConnectButton(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.CONNECT_BUTTON,
     );
   }
 
-  get ApproveERC20TokensButton() {
+  get ApproveERC20TokensButton(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.APPROVE_ERC_20_TOKENS_BUTTON_ID,
     );
   }
-  get invalidSignature() {
+
+  get ApproveERC721TokenButton(): WebElement {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.APPROVE_ERC_721_TOKEN_BUTTON_ID,
+    );
+  }
+
+  get invalidSignature(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       'signInvalidType',
     );
   }
 
-  get ApproveERC721TokenButton() {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.APPROVE_ERC_721_TOKEN_BUTTON_ID,
-    );
-  }
   // This taps on the transfer tokens button under the "SEND TOKENS section"
-  get erc20TransferTokensButton() {
+  get erc20TransferTokensButton(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.ERC_20_SEND_TOKENS_TRANSFER_TOKENS_BUTTON_ID,
     );
   }
-  get increaseAllowanceButton() {
+
+  get increaseAllowanceButton(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.INCREASE_ALLOWANCE_BUTTON_ID,
     );
   }
-  get personalSignButton() {
+
+  get personalSignButton(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.PERSONAL_SIGN,
     );
   }
-  get signTypedDataButton() {
+
+  get signTypedDataButton(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.SIGN_TYPE_DATA,
     );
   }
-  get signTypedDataV3Button() {
+
+  get signTypedDataV3Button(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V3,
     );
   }
-  get signTypedDataV4Button() {
+
+  get signTypedDataV4Button(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V4,
     );
   }
-  get ethereumSignButton() {
+
+  get ethereumSignButton(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.ETHEREUM_SIGN,
     );
   }
-  get permitSignButton() {
+
+  get permitSignButton(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.PERMIT_SIGN,
     );
   }
 
-  get siweBadDomainButton() {
+  get siweBadDomainButton(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.ETHEREUM_SIGN_BAD_DOMAIN,
@@ -108,171 +121,177 @@ class TestDApp {
   }
 
   // This taps on the transfer tokens button under the "SEND TOKENS section"
-  get nftTransferFromTokensButton() {
+  get nftTransferFromTokensButton(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.NFT_TRANSFER_FROM_BUTTON_ID,
     );
   }
 
-  get nftSetApprovalForAllButton() {
+  get nftSetApprovalForAllButton(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.SET_APPROVAL_FOR_ALL_NFT_BUTTON_ID,
     );
   }
 
-  get addTokensToWalletButton() {
+  get addTokensToWalletButton(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.ADD_TOKENS_TO_WALLET_BUTTON,
     );
   }
 
-  get erc1155SetApprovalForAllButton() {
+  get erc1155SetApprovalForAllButton(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.SET_APPROVAL_FOR_ALL_ERC1155_BUTTON_ID,
     );
   }
 
-  get sendFailingTransactionButton() {
+  get sendFailingTransactionButton(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.SEND_FAILING_TRANSACTION_BUTTON_ID,
     );
   }
 
-  get erc1155BatchTransferButton() {
+  get erc1155BatchTransferButton(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.BATCH_TRANSFER_ERC1155_BUTTON_ID,
     );
   }
 
-  get switchChainFromTestDappButton() {
+  get switchChainFromTestDappButton(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.SWITCH_ETHEREUM_CHAIN,
     );
   }
-  get testDappFoxLogo() {
+
+  get testDappFoxLogo(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.TEST_DAPP_FOX_LOGO,
     );
   }
-  get testDappPageTitle() {
+
+  get testDappPageTitle(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.TEST_DAPP_HEADING_TITLE,
     );
   }
 
-  get erc721MintButton() {
+  get erc721MintButton(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.ERC_721_MINT_BUTTON_ID,
     );
   }
 
-  get sendEIP1559Button() {
+  get sendEIP1559Button(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.SEND_EIP_1559_BUTTON_ID,
     );
   }
 
-  async connect() {
+  async connect(): Promise<void> {
     await this.tapButton(this.DappConnectButton);
   }
 
-  async tapApproveERC20TokensButton() {
+  async tapApproveERC20TokensButton(): Promise<void> {
     await this.tapButton(this.ApproveERC20TokensButton);
   }
 
-  async tapApproveERC721TokenButton() {
+  async tapApproveERC721TokenButton(): Promise<void> {
     await this.tapButton(this.ApproveERC721TokenButton);
   }
-  async tapInvalidSigButton() {
+
+  async tapInvalidSigButton(): Promise<void> {
     await this.tapButton(this.invalidSignature);
   }
-  async tapIncreaseAllowanceButton() {
+
+  async tapIncreaseAllowanceButton(): Promise<void> {
     await this.tapButton(this.increaseAllowanceButton);
   }
-  async tapAddERC20TokenToWalletButton() {
+
+  async tapAddERC20TokenToWalletButton(): Promise<void> {
     await this.tapButton(this.addTokensToWalletButton);
   }
 
-  async tapPersonalSignButton() {
+  async tapPersonalSignButton(): Promise<void> {
     await this.tapButton(this.personalSignButton);
   }
 
-  async tapTypedSignButton() {
+  async tapTypedSignButton(): Promise<void> {
     await this.tapButton(this.signTypedDataButton);
   }
 
-  async tapTypedV3SignButton() {
+  async tapTypedV3SignButton(): Promise<void> {
     await this.tapButton(this.signTypedDataV3Button);
   }
 
-  async tapTypedV4SignButton() {
+  async tapTypedV4SignButton(): Promise<void> {
     await this.tapButton(this.signTypedDataV4Button);
   }
 
-  async tapEthereumSignButton() {
+  async tapEthereumSignButton(): Promise<void> {
     await this.tapButton(this.ethereumSignButton);
   }
 
-  async tapPermitSignButton() {
+  async tapPermitSignButton(): Promise<void> {
     await this.tapButton(this.permitSignButton);
   }
 
-  async tapSIWEBadDomainButton() {
+  async tapSIWEBadDomainButton(): Promise<void> {
     await this.tapButton(this.siweBadDomainButton);
   }
 
-  async tapERC20TransferButton() {
+  async tapERC20TransferButton(): Promise<void> {
     await this.tapButton(this.erc20TransferTokensButton);
   }
-  async tapNFTTransferButton() {
+
+  async tapNFTTransferButton(): Promise<void> {
     await this.tapButton(this.nftTransferFromTokensButton);
   }
 
-  async tabERC721MintButton() {
+  async tabERC721MintButton(): Promise<void> {
     await this.tapButton(this.erc721MintButton);
   }
 
-  async tapNFTSetApprovalForAllButton() {
+  async tapNFTSetApprovalForAllButton(): Promise<void> {
     await this.tapButton(this.nftSetApprovalForAllButton);
   }
 
-  async tapERC1155SetApprovalForAllButton() {
+  async tapERC1155SetApprovalForAllButton(): Promise<void> {
     await this.tapButton(this.erc1155SetApprovalForAllButton);
   }
 
-  async tapConfirmButton() {
-    await Gestures.tap(this.confirmButtonText, 0);
+  async tapConfirmButton(): Promise<void> {
+    await Gestures.waitAndTap(this.confirmButtonText);
   }
 
-  async tapApproveButton() {
-    await Gestures.tap(this.approveButtonText, 0);
+  async tapApproveButton(): Promise<void> {
+    await Gestures.waitAndTap(this.approveButtonText);
   }
 
-  async tapSendFailingTransactionButton() {
+  async tapSendFailingTransactionButton(): Promise<void> {
     await this.tapButton(this.sendFailingTransactionButton);
   }
 
-  async tapERC1155BatchTransferButton() {
+  async tapERC1155BatchTransferButton(): Promise<void> {
     await this.tapButton(this.erc1155BatchTransferButton);
   }
 
-  async tapButton(elementId) {
+  async tapButton(elementId: WebElement): Promise<void> {
     await Gestures.scrollToWebViewPort(elementId);
     await Gestures.tapWebElement(elementId);
   }
 
-  async navigateToTestDappWithContract({ contractAddress }) {
+  async navigateToTestDappWithContract({ contractAddress }: ContractNavigationParams): Promise<void> {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(
       `${TEST_DAPP_LOCAL_URL}?scrollTo=''&contract=${contractAddress}`,
@@ -280,13 +299,13 @@ class TestDApp {
     await TestHelpers.delay(3000); // should have a better assertion that waits until the webpage loads
   }
 
-  async switchChainFromTestDapp() {
+  async switchChainFromTestDapp(): Promise<void> {
     await this.tapButton(this.switchChainFromTestDappButton);
   }
 
-  async tapSendEIP1559Button() {
+  async tapSendEIP1559Button(): Promise<void> {
     await this.tapButton(this.sendEIP1559Button);
   }
 }
 
-export default new TestDApp();
+export default new TestDApp(); 
