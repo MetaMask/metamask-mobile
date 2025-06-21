@@ -9,7 +9,6 @@ import {
   checkWCPermissions,
   networkModalOnboardingConfig,
   onRequestUserApproval,
-  getHostname,
 } from './wc-utils';
 import type { NavigationContainerRef } from '@react-navigation/native';
 import Routes from '../../../app/constants/navigation/Routes';
@@ -23,6 +22,7 @@ import {
 
 import Engine from '../Engine';
 import DevLogger from '../SDKConnect/utils/DevLogger';
+import { getHostname } from '../../util/url';
 
 // Mock dependencies
 jest.mock('../Engine', () => ({
