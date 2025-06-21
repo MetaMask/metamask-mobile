@@ -2,6 +2,7 @@ import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 
 export const MMM_ORIGIN = 'metamask';
+export const MM_MOBILE_ORIGIN = 'Metamask Mobile';
 
 export const REDESIGNED_SIGNATURE_TYPES = [
   ApprovalType.EthSignTypedData,

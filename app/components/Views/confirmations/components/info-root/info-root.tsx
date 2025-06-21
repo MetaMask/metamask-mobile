@@ -50,10 +50,7 @@ const ConfirmationInfoComponentMap = {
       case TransactionType.tokenMethodSetApprovalForAll:
       case TransactionType.tokenMethodIncreaseAllowance:
         return Approve;
-      case TransactionType.batch:
-      case TransactionType.contractInteraction:
-      case TransactionType.lendingDeposit:
-      case TransactionType.lendingWithdraw:
+      // Default to contract interaction as generic transaction confirmation
       default:
         return ContractInteraction;
     }

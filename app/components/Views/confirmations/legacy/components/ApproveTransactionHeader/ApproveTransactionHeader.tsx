@@ -87,7 +87,6 @@ const ApproveTransactionHeader = ({
     <View style={styles.transactionHeader}>
       {showOrigin ? (
         <ApprovalTagUrl
-          from={from}
           origin={origin}
           url={url}
           sdkDappMetadata={sdkDappMetadata}
