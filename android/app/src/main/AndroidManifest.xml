@@ -89,7 +89,7 @@
 				<data android:scheme="https" />
 				<data android:host="metamask-alternate.test-app.link" />
 			</intent-filter>
-			<!-- MM IO Universal Links -->
+			<!-- MM App Links -->
 			<intent-filter android:autoVerify="true">
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
