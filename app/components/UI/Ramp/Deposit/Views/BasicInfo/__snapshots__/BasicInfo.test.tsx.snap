@@ -887,117 +887,144 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                               </View>
                             </View>
                             <View
-                              style={
-                                [
-                                  {
-                                    "flexDirection": "column",
-                                    "marginBottom": 16,
-                                  },
-                                  undefined,
-                                ]
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
-                                    "fontSize": 16,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "marginBottom": 6,
-                                  }
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": undefined,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
-                                testID="label"
-                              >
-                                Date of Birth
-                              </Text>
+                              }
+                              accessible={true}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                {
+                                  "width": "100%",
+                                }
+                              }
+                              testID="dob-input-touchable"
+                            >
                               <View
                                 style={
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#b7bbc8",
-                                    "borderRadius": 8,
-                                    "borderWidth": 1,
-                                    "flexDirection": "row",
-                                    "height": 48,
-                                    "opacity": 1,
-                                    "paddingHorizontal": 16,
-                                  }
+                                  [
+                                    {
+                                      "flexDirection": "column",
+                                      "marginBottom": 16,
+                                    },
+                                    undefined,
+                                  ]
                                 }
-                                testID="textfield"
                               >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "marginBottom": 6,
+                                    }
+                                  }
+                                  testID="label"
+                                >
+                                  Date of Birth
+                                </Text>
                                 <View
                                   style={
                                     {
-                                      "marginRight": 8,
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderColor": "#b7bbc8",
+                                      "borderRadius": 8,
+                                      "borderWidth": 1,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "opacity": 1,
+                                      "paddingHorizontal": 16,
                                     }
                                   }
-                                  testID="textfield-startacccessory"
+                                  testID="textfield"
                                 >
-                                  <Text
-                                    allowFontScaling={false}
-                                    selectable={false}
-                                    style={
-                                      [
-                                        {
-                                          "color": undefined,
-                                          "fontSize": 20,
-                                        },
-                                        {
-                                          "color": "#121314",
-                                        },
-                                        {
-                                          "fontFamily": "Ionicons",
-                                          "fontStyle": "normal",
-                                          "fontWeight": "normal",
-                                        },
-                                        {},
-                                      ]
-                                    }
-                                  >
-                                    
-                                  </Text>
-                                </View>
-                                <View
-                                  style={
-                                    {
-                                      "flex": 1,
-                                    }
-                                  }
-                                >
-                                  <TextInput
-                                    autoFocus={false}
-                                    editable={true}
-                                    keyboardAppearance="light"
-                                    keyboardType="number-pad"
-                                    onBlur={[Function]}
-                                    onChangeText={[Function]}
-                                    onFocus={[Function]}
-                                    placeholder="MM/DD/YYYY"
-                                    placeholderTextColor="#9ca1af"
-                                    returnKeyType="next"
+                                  <View
                                     style={
                                       {
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "transparent",
-                                        "borderWidth": 1,
-                                        "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
-                                        "fontSize": 16,
-                                        "fontWeight": "400",
-                                        "height": 24,
-                                        "letterSpacing": 0,
-                                        "opacity": 1,
-                                        "paddingVertical": 0,
+                                        "marginRight": 8,
                                       }
                                     }
-                                    testID="dob-input"
-                                    value="01/01/1990"
-                                  />
+                                    testID="textfield-startacccessory"
+                                  >
+                                    <Text
+                                      allowFontScaling={false}
+                                      selectable={false}
+                                      style={
+                                        [
+                                          {
+                                            "color": undefined,
+                                            "fontSize": 20,
+                                          },
+                                          {
+                                            "color": "#121314",
+                                            "marginRight": 8,
+                                          },
+                                          {
+                                            "fontFamily": "Ionicons",
+                                            "fontStyle": "normal",
+                                            "fontWeight": "normal",
+                                          },
+                                          {},
+                                        ]
+                                      }
+                                    >
+                                      
+                                    </Text>
+                                  </View>
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <TextInput
+                                      autoFocus={false}
+                                      editable={true}
+                                      keyboardAppearance="light"
+                                      onBlur={[Function]}
+                                      onFocus={[Function]}
+                                      onPress={[Function]}
+                                      placeholder="MM/DD/YYYY"
+                                      placeholderTextColor="#9ca1af"
+                                      pointerEvents="none"
+                                      style={
+                                        {
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "transparent",
+                                          "borderWidth": 1,
+                                          "color": "#121314",
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 16,
+                                          "fontWeight": "400",
+                                          "height": 24,
+                                          "letterSpacing": 0,
+                                          "opacity": 1,
+                                          "paddingVertical": 0,
+                                        }
+                                      }
+                                      testID="dob-input"
+                                      value="01/01/1990"
+                                    />
+                                  </View>
                                 </View>
                               </View>
                             </View>
@@ -2068,117 +2095,144 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                               </View>
                             </View>
                             <View
-                              style={
-                                [
-                                  {
-                                    "flexDirection": "column",
-                                    "marginBottom": 16,
-                                  },
-                                  undefined,
-                                ]
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
-                                    "fontSize": 16,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "marginBottom": 6,
-                                  }
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": undefined,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
-                                testID="label"
-                              >
-                                Date of Birth
-                              </Text>
+                              }
+                              accessible={true}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                {
+                                  "width": "100%",
+                                }
+                              }
+                              testID="dob-input-touchable"
+                            >
                               <View
                                 style={
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#b7bbc8",
-                                    "borderRadius": 8,
-                                    "borderWidth": 1,
-                                    "flexDirection": "row",
-                                    "height": 48,
-                                    "opacity": 1,
-                                    "paddingHorizontal": 16,
-                                  }
+                                  [
+                                    {
+                                      "flexDirection": "column",
+                                      "marginBottom": 16,
+                                    },
+                                    undefined,
+                                  ]
                                 }
-                                testID="textfield"
                               >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "marginBottom": 6,
+                                    }
+                                  }
+                                  testID="label"
+                                >
+                                  Date of Birth
+                                </Text>
                                 <View
                                   style={
                                     {
-                                      "marginRight": 8,
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderColor": "#b7bbc8",
+                                      "borderRadius": 8,
+                                      "borderWidth": 1,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "opacity": 1,
+                                      "paddingHorizontal": 16,
                                     }
                                   }
-                                  testID="textfield-startacccessory"
+                                  testID="textfield"
                                 >
-                                  <Text
-                                    allowFontScaling={false}
-                                    selectable={false}
-                                    style={
-                                      [
-                                        {
-                                          "color": undefined,
-                                          "fontSize": 20,
-                                        },
-                                        {
-                                          "color": "#121314",
-                                        },
-                                        {
-                                          "fontFamily": "Ionicons",
-                                          "fontStyle": "normal",
-                                          "fontWeight": "normal",
-                                        },
-                                        {},
-                                      ]
-                                    }
-                                  >
-                                    
-                                  </Text>
-                                </View>
-                                <View
-                                  style={
-                                    {
-                                      "flex": 1,
-                                    }
-                                  }
-                                >
-                                  <TextInput
-                                    autoFocus={false}
-                                    editable={true}
-                                    keyboardAppearance="light"
-                                    keyboardType="number-pad"
-                                    onBlur={[Function]}
-                                    onChangeText={[Function]}
-                                    onFocus={[Function]}
-                                    placeholder="MM/DD/YYYY"
-                                    placeholderTextColor="#9ca1af"
-                                    returnKeyType="next"
+                                  <View
                                     style={
                                       {
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "transparent",
-                                        "borderWidth": 1,
-                                        "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
-                                        "fontSize": 16,
-                                        "fontWeight": "400",
-                                        "height": 24,
-                                        "letterSpacing": 0,
-                                        "opacity": 1,
-                                        "paddingVertical": 0,
+                                        "marginRight": 8,
                                       }
                                     }
-                                    testID="dob-input"
-                                    value=""
-                                  />
+                                    testID="textfield-startacccessory"
+                                  >
+                                    <Text
+                                      allowFontScaling={false}
+                                      selectable={false}
+                                      style={
+                                        [
+                                          {
+                                            "color": undefined,
+                                            "fontSize": 20,
+                                          },
+                                          {
+                                            "color": "#121314",
+                                            "marginRight": 8,
+                                          },
+                                          {
+                                            "fontFamily": "Ionicons",
+                                            "fontStyle": "normal",
+                                            "fontWeight": "normal",
+                                          },
+                                          {},
+                                        ]
+                                      }
+                                    >
+                                      
+                                    </Text>
+                                  </View>
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <TextInput
+                                      autoFocus={false}
+                                      editable={true}
+                                      keyboardAppearance="light"
+                                      onBlur={[Function]}
+                                      onFocus={[Function]}
+                                      onPress={[Function]}
+                                      placeholder="MM/DD/YYYY"
+                                      placeholderTextColor="#9ca1af"
+                                      pointerEvents="none"
+                                      style={
+                                        {
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "transparent",
+                                          "borderWidth": 1,
+                                          "color": "#121314",
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 16,
+                                          "fontWeight": "400",
+                                          "height": 24,
+                                          "letterSpacing": 0,
+                                          "opacity": 1,
+                                          "paddingVertical": 0,
+                                        }
+                                      }
+                                      testID="dob-input"
+                                      value=""
+                                    />
+                                  </View>
                                 </View>
                               </View>
                             </View>
@@ -3297,135 +3351,162 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                               </Text>
                             </View>
                             <View
-                              style={
-                                [
-                                  {
-                                    "flexDirection": "column",
-                                    "marginBottom": 16,
-                                  },
-                                  undefined,
-                                ]
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
-                                    "fontSize": 16,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "marginBottom": 6,
-                                  }
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": undefined,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
-                                testID="label"
-                              >
-                                Date of Birth
-                              </Text>
+                              }
+                              accessible={true}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                {
+                                  "width": "100%",
+                                }
+                              }
+                              testID="dob-input-touchable"
+                            >
                               <View
                                 style={
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#b7bbc8",
-                                    "borderRadius": 8,
-                                    "borderWidth": 1,
-                                    "flexDirection": "row",
-                                    "height": 48,
-                                    "opacity": 1,
-                                    "paddingHorizontal": 16,
-                                  }
+                                  [
+                                    {
+                                      "flexDirection": "column",
+                                      "marginBottom": 16,
+                                    },
+                                    undefined,
+                                  ]
                                 }
-                                testID="textfield"
                               >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "marginBottom": 6,
+                                    }
+                                  }
+                                  testID="label"
+                                >
+                                  Date of Birth
+                                </Text>
                                 <View
                                   style={
                                     {
-                                      "marginRight": 8,
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderColor": "#b7bbc8",
+                                      "borderRadius": 8,
+                                      "borderWidth": 1,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "opacity": 1,
+                                      "paddingHorizontal": 16,
                                     }
                                   }
-                                  testID="textfield-startacccessory"
+                                  testID="textfield"
                                 >
-                                  <Text
-                                    allowFontScaling={false}
-                                    selectable={false}
-                                    style={
-                                      [
-                                        {
-                                          "color": undefined,
-                                          "fontSize": 20,
-                                        },
-                                        {
-                                          "color": "#121314",
-                                        },
-                                        {
-                                          "fontFamily": "Ionicons",
-                                          "fontStyle": "normal",
-                                          "fontWeight": "normal",
-                                        },
-                                        {},
-                                      ]
-                                    }
-                                  >
-                                    
-                                  </Text>
-                                </View>
-                                <View
-                                  style={
-                                    {
-                                      "flex": 1,
-                                    }
-                                  }
-                                >
-                                  <TextInput
-                                    autoFocus={false}
-                                    editable={true}
-                                    keyboardAppearance="light"
-                                    keyboardType="number-pad"
-                                    onBlur={[Function]}
-                                    onChangeText={[Function]}
-                                    onFocus={[Function]}
-                                    placeholder="MM/DD/YYYY"
-                                    placeholderTextColor="#9ca1af"
-                                    returnKeyType="next"
+                                  <View
                                     style={
                                       {
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "transparent",
-                                        "borderWidth": 1,
-                                        "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
-                                        "fontSize": 16,
-                                        "fontWeight": "400",
-                                        "height": 24,
-                                        "letterSpacing": 0,
-                                        "opacity": 1,
-                                        "paddingVertical": 0,
+                                        "marginRight": 8,
                                       }
                                     }
-                                    testID="dob-input"
-                                    value=""
-                                  />
+                                    testID="textfield-startacccessory"
+                                  >
+                                    <Text
+                                      allowFontScaling={false}
+                                      selectable={false}
+                                      style={
+                                        [
+                                          {
+                                            "color": undefined,
+                                            "fontSize": 20,
+                                          },
+                                          {
+                                            "color": "#121314",
+                                            "marginRight": 8,
+                                          },
+                                          {
+                                            "fontFamily": "Ionicons",
+                                            "fontStyle": "normal",
+                                            "fontWeight": "normal",
+                                          },
+                                          {},
+                                        ]
+                                      }
+                                    >
+                                      
+                                    </Text>
+                                  </View>
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <TextInput
+                                      autoFocus={false}
+                                      editable={true}
+                                      keyboardAppearance="light"
+                                      onBlur={[Function]}
+                                      onFocus={[Function]}
+                                      onPress={[Function]}
+                                      placeholder="MM/DD/YYYY"
+                                      placeholderTextColor="#9ca1af"
+                                      pointerEvents="none"
+                                      style={
+                                        {
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "transparent",
+                                          "borderWidth": 1,
+                                          "color": "#121314",
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 16,
+                                          "fontWeight": "400",
+                                          "height": 24,
+                                          "letterSpacing": 0,
+                                          "opacity": 1,
+                                          "paddingVertical": 0,
+                                        }
+                                      }
+                                      testID="dob-input"
+                                      value=""
+                                    />
+                                  </View>
                                 </View>
-                              </View>
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#ca3542",
-                                    "fontFamily": "CentraNo1-Book",
-                                    "fontSize": 12,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "marginTop": 4,
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#ca3542",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 12,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "marginTop": 4,
+                                    }
                                   }
-                                }
-                              >
-                                Date of birth is required
-                              </Text>
+                                >
+                                  Date of birth is required
+                                </Text>
+                              </View>
                             </View>
                             <View
                               style={

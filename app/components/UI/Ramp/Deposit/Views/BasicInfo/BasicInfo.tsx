@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect } from 'react';
-import { View } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { View, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import StyledButton from '../../../../StyledButton';
@@ -18,7 +18,7 @@ import DepositTextField from '../../components/DepositTextField';
 import { useForm } from '../../hooks/useForm';
 import DepositPhoneField from '../../components/DepositPhoneField';
 import DepositProgressBar from '../../components/DepositProgressBar';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
+import DepositDateField from '../../components/DepositDateField';
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 
@@ -45,6 +45,7 @@ const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { quote, kycUrl } = useParams<BasicInfoParams>();
+  const ssnInputRef = useRef<TextInput>(null);
 
   const initialFormData: BasicInfoFormData = {
     firstName: '',
@@ -165,24 +166,16 @@ const BasicInfo = (): JSX.Element => {
             returnKeyType="next"
           />
 
-          <DepositTextField
-            // TODO: Add internationalization for date format
-            // TODO: Add date picker functionality
-            startAccessory={
-              <IonicIcon
-                name="calendar-outline"
-                size={20}
-                style={styles.calendarIcon}
-              />
-            }
+          <DepositDateField
             label="Date of Birth"
+            // TODO: Internationalize date format
             placeholder="MM/DD/YYYY"
             value={formData.dob}
             onChangeText={handleFormDataChange('dob')}
             error={errors.dob}
-            returnKeyType="next"
-            keyboardType="number-pad"
             testID="dob-input"
+            maximumDate={new Date()}
+            nextInputRef={ssnInputRef}
           />
 
           <DepositTextField
@@ -197,6 +190,7 @@ const BasicInfo = (): JSX.Element => {
             keyboardType="number-pad"
             secureTextEntry
             testID="ssn-input"
+            ref={ssnInputRef}
           />
         </ScreenLayout.Content>
       </ScreenLayout.Body>
