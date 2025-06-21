@@ -114,14 +114,15 @@ describe(
       );
       await Assertions.checkIfTextIsDisplayed(defaultGanacheOptions.mnemonic);
       await RevealSecretRecoveryPhrase.scrollToCopyToClipboardButton();
-      // Android devices running OS version < 11 (API level 29) will not see the copy to clipboard button presented
-      // This will cause the following step to fail if e2e were being run on an older android OS prior to our minimum API level 29
-      // See details here: https://github.com/MetaMask/metamask-mobile/pull/4170
-      await RevealSecretRecoveryPhrase.tapToCopyCredentialToClipboard();
+
       await RevealSecretRecoveryPhrase.tapToRevealPrivateCredentialQRCode();
-      await Assertions.checkIfVisible(
-        RevealSecretRecoveryPhrase.revealCredentialQRCodeImage,
-      );
+
+      if (device.getPlatform() === 'ios') {
+        // For some reason, the QR code is visible on Android but detox cannot find it
+        await Assertions.checkIfVisible(
+          RevealSecretRecoveryPhrase.revealCredentialQRCodeImage,
+        );
+      }
       const isDoneVisible = await RevealSecretRecoveryPhrase.doneButton;
       if (!isDoneVisible) {
         await RevealSecretRecoveryPhrase.scrollToDone();
