@@ -18,7 +18,7 @@ exports[`TextWithPrefixIcon - Snapshot should render default settings correctly 
   <Text
     color="Default"
     testID="text-with-prefix-icon-text"
-    variant="sHeadingSMRegular"
+    variant="sBodyMD"
   >
     Sample Text
   </Text>

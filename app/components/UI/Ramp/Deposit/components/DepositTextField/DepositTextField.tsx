@@ -48,7 +48,7 @@ const DepositTextField = forwardRef<TextInput, DepositTextFieldProps>(
 
     return (
       <View style={[styles.field, containerStyle]}>
-        <Label variant={TextVariant.HeadingSMRegular} style={styles.label}>
+        <Label variant={TextVariant.BodyMD} style={styles.label}>
           {label}
         </Label>
         <TextField
