@@ -457,4 +457,241 @@ describe('EarnTokenList', () => {
       expect.anything(),
     );
   });
+
+  describe('ETH token filtering based on pooled staking status', () => {
+    it('filters out ETH tokens that are not staked when pooled staking is disabled', () => {
+      // Mock pooled staking as disabled
+      (selectPooledStakingEnabledFlag as unknown as jest.Mock).mockReturnValue(
+        false,
+      );
+
+      const mockTokens = [
+        {
+          ...MOCK_ETH_MAINNET_ASSET,
+          isETH: true,
+          isStaked: false, // Not staked ETH
+          balanceFormatted: '1.5 ETH',
+          balanceMinimalUnit: '1500000000000000000',
+          experience: { apr: '5.2', type: EARN_EXPERIENCES.POOLED_STAKING },
+          experiences: [{ apr: '5.2', type: EARN_EXPERIENCES.POOLED_STAKING }],
+        },
+        {
+          ...MOCK_USDC_MAINNET_ASSET,
+          isETH: false,
+          isStaked: false,
+          balanceFormatted: '100.0 USDC',
+          balanceMinimalUnit: '100000000',
+          experience: { apr: '3.5', type: EARN_EXPERIENCES.STABLECOIN_LENDING },
+          experiences: [
+            { apr: '3.5', type: EARN_EXPERIENCES.STABLECOIN_LENDING },
+          ],
+        },
+      ];
+
+      useEarnTokensSpy.mockReturnValue({
+        earnTokens: mockTokens,
+        earnOutputTokens: [],
+        earnableTotalFiatFormatted: '$100.00',
+        earnableTotalFiatNumber: 100,
+        earnTokensByChainIdAndAddress: {},
+        earnOutputTokensByChainIdAndAddress: {},
+        earnTokenPairsByChainIdAndAddress: {},
+        earnOutputTokenPairsByChainIdAndAddress: {},
+        getEarnToken: jest.fn(),
+        getOutputToken: jest.fn(),
+        getPairedEarnTokens: jest.fn(),
+        getEarnExperience: jest.fn(),
+        getEstimatedAnnualRewardsForAmount: jest.fn(),
+      });
+
+      const { queryByText, getByText } = renderWithProvider(
+        <SafeAreaProvider initialMetrics={initialMetrics}>
+          <EarnTokenList />
+        </SafeAreaProvider>,
+        { state: initialState },
+      );
+
+      // ETH should be filtered out (not staked + pooled staking disabled)
+      expect(queryByText('Ethereum')).toBeNull();
+
+      // USDC should still be shown (non-ETH token)
+      expect(getByText('USDC')).toBeDefined();
+    });
+
+    it('shows ETH tokens that are staked when pooled staking is disabled', () => {
+      // Mock pooled staking as disabled
+      (selectPooledStakingEnabledFlag as unknown as jest.Mock).mockReturnValue(
+        false,
+      );
+
+      const mockTokens = [
+        {
+          ...MOCK_ETH_MAINNET_ASSET,
+          isETH: true,
+          isStaked: true, // Staked ETH
+          balanceFormatted: '1.5 ETH',
+          balanceMinimalUnit: '1500000000000000000',
+          experience: { apr: '5.2', type: EARN_EXPERIENCES.POOLED_STAKING },
+          experiences: [{ apr: '5.2', type: EARN_EXPERIENCES.POOLED_STAKING }],
+        },
+        {
+          ...MOCK_USDC_MAINNET_ASSET,
+          isETH: false,
+          isStaked: false,
+          balanceFormatted: '100.0 USDC',
+          balanceMinimalUnit: '100000000',
+          experience: { apr: '3.5', type: EARN_EXPERIENCES.STABLECOIN_LENDING },
+          experiences: [
+            { apr: '3.5', type: EARN_EXPERIENCES.STABLECOIN_LENDING },
+          ],
+        },
+      ];
+
+      useEarnTokensSpy.mockReturnValue({
+        earnTokens: mockTokens,
+        earnOutputTokens: [],
+        earnableTotalFiatFormatted: '$100.00',
+        earnableTotalFiatNumber: 100,
+        earnTokensByChainIdAndAddress: {},
+        earnOutputTokensByChainIdAndAddress: {},
+        earnTokenPairsByChainIdAndAddress: {},
+        earnOutputTokenPairsByChainIdAndAddress: {},
+        getEarnToken: jest.fn(),
+        getOutputToken: jest.fn(),
+        getPairedEarnTokens: jest.fn(),
+        getEarnExperience: jest.fn(),
+        getEstimatedAnnualRewardsForAmount: jest.fn(),
+      });
+
+      const { getByText } = renderWithProvider(
+        <SafeAreaProvider initialMetrics={initialMetrics}>
+          <EarnTokenList />
+        </SafeAreaProvider>,
+        { state: initialState },
+      );
+
+      // ETH should be shown (staked ETH)
+      expect(getByText('Ethereum')).toBeDefined();
+
+      // USDC should also be shown
+      expect(getByText('USDC')).toBeDefined();
+    });
+
+    it('shows ETH tokens that are not staked when pooled staking is enabled', () => {
+      // Mock pooled staking as enabled
+      (selectPooledStakingEnabledFlag as unknown as jest.Mock).mockReturnValue(
+        true,
+      );
+
+      const mockTokens = [
+        {
+          ...MOCK_ETH_MAINNET_ASSET,
+          isETH: true,
+          isStaked: false, // Not staked ETH
+          balanceFormatted: '1.5 ETH',
+          balanceMinimalUnit: '1500000000000000000',
+          experience: { apr: '5.2', type: EARN_EXPERIENCES.POOLED_STAKING },
+          experiences: [{ apr: '5.2', type: EARN_EXPERIENCES.POOLED_STAKING }],
+        },
+        {
+          ...MOCK_USDC_MAINNET_ASSET,
+          isETH: false,
+          isStaked: false,
+          balanceFormatted: '100.0 USDC',
+          balanceMinimalUnit: '100000000',
+          experience: { apr: '3.5', type: EARN_EXPERIENCES.STABLECOIN_LENDING },
+          experiences: [
+            { apr: '3.5', type: EARN_EXPERIENCES.STABLECOIN_LENDING },
+          ],
+        },
+      ];
+
+      useEarnTokensSpy.mockReturnValue({
+        earnTokens: mockTokens,
+        earnOutputTokens: [],
+        earnableTotalFiatFormatted: '$100.00',
+        earnableTotalFiatNumber: 100,
+        earnTokensByChainIdAndAddress: {},
+        earnOutputTokensByChainIdAndAddress: {},
+        earnTokenPairsByChainIdAndAddress: {},
+        earnOutputTokenPairsByChainIdAndAddress: {},
+        getEarnToken: jest.fn(),
+        getOutputToken: jest.fn(),
+        getPairedEarnTokens: jest.fn(),
+        getEarnExperience: jest.fn(),
+        getEstimatedAnnualRewardsForAmount: jest.fn(),
+      });
+
+      const { getByText } = renderWithProvider(
+        <SafeAreaProvider initialMetrics={initialMetrics}>
+          <EarnTokenList />
+        </SafeAreaProvider>,
+        { state: initialState },
+      );
+
+      // ETH should be shown (pooled staking enabled)
+      expect(getByText('Ethereum')).toBeDefined();
+
+      // USDC should also be shown
+      expect(getByText('USDC')).toBeDefined();
+    });
+
+    it('shows non-ETH tokens regardless of pooled staking status', () => {
+      // Mock pooled staking as disabled
+      (selectPooledStakingEnabledFlag as unknown as jest.Mock).mockReturnValue(
+        false,
+      );
+
+      const mockTokens = [
+        {
+          ...MOCK_USDC_MAINNET_ASSET,
+          isETH: false,
+          isStaked: false,
+          balanceFormatted: '100.0 USDC',
+          balanceMinimalUnit: '100000000',
+          experience: { apr: '3.5', type: EARN_EXPERIENCES.STABLECOIN_LENDING },
+          experiences: [
+            { apr: '3.5', type: EARN_EXPERIENCES.STABLECOIN_LENDING },
+          ],
+        },
+        {
+          ...MOCK_USDC_BASE_MAINNET_ASSET,
+          isETH: false,
+          isStaked: false,
+          balanceFormatted: '50.0 USDC',
+          balanceMinimalUnit: '50000000',
+          experience: { apr: '4.0', type: EARN_EXPERIENCES.STABLECOIN_LENDING },
+          experiences: [
+            { apr: '4.0', type: EARN_EXPERIENCES.STABLECOIN_LENDING },
+          ],
+        },
+      ];
+
+      useEarnTokensSpy.mockReturnValue({
+        earnTokens: mockTokens,
+        earnOutputTokens: [],
+        earnableTotalFiatFormatted: '$100.00',
+        earnableTotalFiatNumber: 100,
+        earnTokensByChainIdAndAddress: {},
+        earnOutputTokensByChainIdAndAddress: {},
+        earnTokenPairsByChainIdAndAddress: {},
+        earnOutputTokenPairsByChainIdAndAddress: {},
+        getEarnToken: jest.fn(),
+        getOutputToken: jest.fn(),
+        getPairedEarnTokens: jest.fn(),
+        getEarnExperience: jest.fn(),
+        getEstimatedAnnualRewardsForAmount: jest.fn(),
+      });
+
+      const { getAllByText } = renderWithProvider(
+        <SafeAreaProvider initialMetrics={initialMetrics}>
+          <EarnTokenList />
+        </SafeAreaProvider>,
+        { state: initialState },
+      );
+
+      // Both USDC tokens should be shown (non-ETH tokens)
+      expect(getAllByText('USDC')).toBeDefined();
+    });
+  });
 });

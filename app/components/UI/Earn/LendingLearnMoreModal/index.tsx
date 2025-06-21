@@ -45,6 +45,8 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from 'react-native-reanimated';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { EARN_EXPERIENCES } from '../constants/experiences';
 
 interface BodyTextProps {
   assetSymbol: string;
@@ -138,6 +140,8 @@ export const LendingLearnMoreModal = () => {
 
   const sheetRef = useRef<BottomSheetRef>(null);
 
+  const { trackEvent, createEventBuilder } = useMetrics();
+
   const handleClose = () => {
     sheetRef.current?.onCloseBottomSheet();
   };
@@ -170,8 +174,18 @@ export const LendingLearnMoreModal = () => {
     }
   }, [parsedVaultTimespanApyAverages]);
 
-  const handleRedirectToLearnMore = () =>
+  const handleRedirectToLearnMore = () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EARN_LENDING_FAQ_LINK_OPENED)
+        .addProperties({
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          url: EARN_URLS.LENDING_FAQ,
+        })
+        .build(),
+    );
+
     Linking.openURL(EARN_URLS.LENDING_FAQ);
+  };
 
   const footerButtons: ButtonProps[] = [
     {
