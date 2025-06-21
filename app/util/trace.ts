@@ -58,6 +58,7 @@ export enum TraceName {
   EvmDiscoverAccounts = 'EVM Discover Accounts',
   SnapDiscoverAccounts = 'Snap Discover Accounts',
   FetchHistoricalPrices = 'Fetch Historical Prices',
+  ReceiveModal = 'Receive Modal',
   TransactionConfirmed = 'Transaction Confirmed',
   LoadCollectibles = 'Load Collectibles',
   DetectNfts = 'Detect Nfts',
