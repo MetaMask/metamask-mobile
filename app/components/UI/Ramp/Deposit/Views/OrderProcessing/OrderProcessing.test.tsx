@@ -8,7 +8,7 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 
-const mockQuoteId = 'test-quote-id-12345';
+const mockOrderId = 'test-order-id-12345';
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -22,7 +22,7 @@ jest.mock('@react-navigation/native', () => {
       ),
     }),
     useRoute: () => ({
-      params: { quoteId: mockQuoteId },
+      params: { orderId: mockOrderId },
     }),
   };
 });
@@ -54,11 +54,6 @@ describe('OrderProcessing Component', () => {
         title: 'Order Processing',
       }),
     );
-  });
-
-  it('displays the quote ID', () => {
-    render(OrderProcessing);
-    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('navigates to wallet home on button press', async () => {

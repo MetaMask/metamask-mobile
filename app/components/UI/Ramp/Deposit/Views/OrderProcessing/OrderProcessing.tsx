@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
+import { useSelector } from 'react-redux';
 import styleSheet from './OrderProcessing.styles';
 import { useNavigation } from '@react-navigation/native';
 import StyledButton from '../../../../StyledButton';
@@ -16,9 +17,11 @@ import { strings } from '../../../../../../../locales/i18n';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
+import { getOrderById } from '../../../../../../reducers/fiatOrders';
+import { RootState } from '../../../../../../reducers';
 
 export interface OrderProcessingParams {
-  quoteId: string;
+  orderId: string;
 }
 
 export const createOrderProcessingNavDetails =
@@ -29,7 +32,9 @@ export const createOrderProcessingNavDetails =
 const OrderProcessing = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { quoteId } = useParams<OrderProcessingParams>();
+  const { orderId } = useParams<OrderProcessingParams>();
+
+  const order = useSelector((state: RootState) => getOrderById(state, orderId));
 
   useEffect(() => {
     navigation.setOptions(
@@ -48,7 +53,10 @@ const OrderProcessing = () => {
           <DepositProgressBar steps={4} currentStep={3} />
           <View style={styles.container}>
             <Text variant={TextVariant.BodyMDBold} style={styles.heading}>
-              Quote ID: {quoteId}
+              Order ID: {orderId}
+            </Text>
+            <Text variant={TextVariant.BodyMD}>
+              {order ? JSON.stringify(order, null, 2) : 'No order found'}
             </Text>
           </View>
         </ScreenLayout.Content>
