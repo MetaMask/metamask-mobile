@@ -44,9 +44,6 @@ import {
   getTransakChainId,
   getTransakPaymentMethodId,
 } from '../../utils';
-import { KycStatus } from '../../hooks/useUserDetailsPolling';
-import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
-import RegionModal from '../../components/RegionModal';
 
 function formatAmount(
   amount: number,
@@ -54,6 +51,9 @@ function formatAmount(
 ): string {
   return getIntlNumberFormatter(I18n.locale, options).format(amount);
 }
+import { KycStatus } from '../../hooks/useUserDetailsPolling';
+import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
+import RegionModal from '../../components/RegionModal';
 
 const BuildQuote = () => {
   const navigation = useNavigation();
@@ -68,14 +68,11 @@ const BuildQuote = () => {
     useState<DepositFiatCurrency>(USD_CURRENCY);
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
-  const { isAuthenticated } = useDepositSDK();
+  const { isAuthenticated, selectedRegion, setSelectedRegion } =
+    useDepositSDK();
   const [error, setError] = useState<string | null>();
-
   const [isRegionModalVisible, setIsRegionModalVisible] =
     useState<boolean>(false);
-  const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
-    DEPOSIT_REGIONS.find((region) => region.code === 'US') || null,
-  );
 
   const [{ error: quoteFetchError }, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false },
@@ -243,20 +240,23 @@ const BuildQuote = () => {
     setIsRegionModalVisible(true);
   }, []);
 
-  const handleRegionSelect = useCallback((region: DepositRegion) => {
-    if (!region.supported) {
-      return;
-    }
+  const handleRegionSelect = useCallback(
+    (region: DepositRegion) => {
+      if (!region.supported) {
+        return;
+      }
 
-    setSelectedRegion(region);
-    setIsRegionModalVisible(false);
+      setSelectedRegion(region);
+      setIsRegionModalVisible(false);
 
-    if (region.currency === 'USD') {
-      setFiatCurrency(USD_CURRENCY);
-    } else if (region.currency === 'EUR') {
-      setFiatCurrency(EUR_CURRENCY);
-    }
-  }, []);
+      if (region.currency === 'USD') {
+        setFiatCurrency(USD_CURRENCY);
+      } else if (region.currency === 'EUR') {
+        setFiatCurrency(EUR_CURRENCY);
+      }
+    },
+    [setSelectedRegion],
+  );
 
   const hideRegionModal = useCallback(() => {
     setIsRegionModalVisible(false);
@@ -281,12 +281,8 @@ const BuildQuote = () => {
               onPress={handleRegionPress}
             >
               <View style={styles.regionContent}>
-                <Text variant={TextVariant.BodyMD}>
-                  {selectedRegion?.flag}
-                </Text>
-                <Text variant={TextVariant.BodyMD}>
-                  {selectedRegion?.code}
-                </Text>
+                <Text variant={TextVariant.BodyMD}>{selectedRegion?.flag}</Text>
+                <Text variant={TextVariant.BodyMD}>{selectedRegion?.code}</Text>
               </View>
             </TouchableOpacity>
           </View>

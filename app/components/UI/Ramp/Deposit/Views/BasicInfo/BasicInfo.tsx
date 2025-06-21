@@ -21,6 +21,7 @@ import DepositProgressBar from '../../components/DepositProgressBar';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { useDepositSDK } from '../../sdk';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
@@ -38,13 +39,11 @@ export interface BasicInfoFormData {
   ssn: string;
 }
 
-// TODO: Country Code must be dynamic and not hardcoded to USA
-const COUNTRY_CODE = '1';
-
 const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { quote, kycUrl } = useParams<BasicInfoParams>();
+  const { selectedRegion } = useDepositSDK();
 
   const initialFormData: BasicInfoFormData = {
     firstName: '',
@@ -105,21 +104,16 @@ const BasicInfo = (): JSX.Element => {
   }, [navigation, theme]);
 
   const handleOnPressContinue = useCallback(() => {
-    if (validateFormData()) {
-      const formattedFormData = {
-        ...formData,
-        mobileNumber: `+${COUNTRY_CODE}${formData.mobileNumber}`,
-      };
-
+    if (validateFormData() && selectedRegion) {
       navigation.navigate(
         ...createEnterAddressNavDetails({
-          formData: formattedFormData,
+          formData,
           quote,
           kycUrl,
         }),
       );
     }
-  }, [navigation, validateFormData, formData, quote, kycUrl]);
+  }, [navigation, validateFormData, formData, quote, kycUrl, selectedRegion]);
 
   return (
     <ScreenLayout>
@@ -153,16 +147,12 @@ const BasicInfo = (): JSX.Element => {
             />
           </View>
           <DepositPhoneField
-            // TODO: Add internationalization for phone number format
-            // TODO: Automatic formatting
-            countryCode={COUNTRY_CODE}
             label="Phone Number"
-            placeholder="(234) 567-8910"
             value={formData.mobileNumber}
             onChangeText={handleFormDataChange('mobileNumber')}
             error={errors.mobileNumber}
             testID="phone-number-input"
-            returnKeyType="next"
+            region={selectedRegion}
           />
 
           <DepositTextField

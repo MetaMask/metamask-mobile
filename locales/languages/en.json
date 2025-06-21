@@ -514,6 +514,7 @@
     },
     "basic_info": {
       "title": "Enter your basic info",
+      "enter_phone_number": "Enter your phone number",
       "continue": "Continue",
       "subtitle": "To begin verifying your identity, we need some basic information."
     },

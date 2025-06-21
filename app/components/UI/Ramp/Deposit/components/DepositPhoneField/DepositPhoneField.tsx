@@ -1,11 +1,5 @@
-import React, { forwardRef, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  TextInput,
-  StyleProp,
-  ViewStyle,
-} from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 
 import Label from '../../../../../../component-library/components/Form/Label';
 import Text, {
@@ -17,16 +11,18 @@ import TextField, {
 import { TextFieldProps } from '../../../../../../component-library/components/Form/TextField/TextField.types';
 import { Theme } from '../../../../../../util/theme/models';
 import { useStyles } from '../../../../../../component-library/hooks';
-import { formatUSPhoneNumber } from '../../utils';
+import { E164Number } from 'libphonenumber-js';
+import PhoneInput from 'react-phone-number-input/react-native-input';
+import { DepositRegion, DEPOSIT_REGIONS } from '../../constants';
+import RegionModal from '../RegionModal/RegionModal';
+import { useDepositSDK } from '../../sdk';
+import { strings } from '../../../../../../../locales/i18n';
 
 interface PhoneFieldProps
   extends Omit<TextFieldProps, 'size' | 'onChangeText'> {
   label: string;
   onChangeText: (text: string) => void;
   error?: string;
-  containerStyle?: StyleProp<ViewStyle>;
-  countryCode?: string;
-  countryFlag?: string;
 }
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -47,14 +43,6 @@ const styleSheet = (params: { theme: Theme }) => {
     countryPrefix: {
       flexDirection: 'row',
       alignItems: 'center',
-      height: 48,
-      paddingHorizontal: 12,
-      borderWidth: 1,
-      borderColor: theme.colors.border.default,
-      borderRightWidth: 0,
-      borderTopLeftRadius: 8,
-      borderBottomLeftRadius: 8,
-      backgroundColor: theme.colors.background.default,
     },
     countryFlag: {
       fontSize: 16,
@@ -65,71 +53,109 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     phoneInput: {
       flex: 1,
-      borderTopLeftRadius: 0,
-      borderBottomLeftRadius: 0,
     },
     error: {
       color: theme.colors.error.default,
       fontSize: 12,
       marginTop: 4,
     },
+    flagButton: {
+      padding: 4,
+    },
   });
 };
 
-// TODO: Add more international phone number formatting logic - This is US only
-const formatPhoneNumber = formatUSPhoneNumber;
+const DepositPhoneField: React.FC<PhoneFieldProps> = ({
+  label,
+  onChangeText,
+  error,
+  value,
+}) => {
+  const { styles, theme } = useStyles(styleSheet, {});
+  const { selectedRegion, setSelectedRegion } = useDepositSDK();
+  const [isRegionModalVisible, setIsRegionModalVisible] = useState(false);
 
-const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
-  (
-    {
-      label,
-      onChangeText,
-      error,
-      countryCode = '1',
-      countryFlag = '🇺🇸',
-      ...textFieldProps
+  const handlePhoneNumberChange = (newValue: E164Number) => {
+    onChangeText(newValue);
+  };
+
+  const handleFlagPress = useCallback(() => {
+    setIsRegionModalVisible(true);
+  }, []);
+
+  const handleRegionSelect = useCallback(
+    (newRegion: DepositRegion) => {
+      if (!newRegion.supported) {
+        return;
+      }
+      setSelectedRegion(newRegion);
+      setIsRegionModalVisible(false);
     },
-    ref,
-  ) => {
-    const { styles, theme } = useStyles(styleSheet, {});
+    [setSelectedRegion],
+  );
 
-    const [formattedPhoneNumber, setFormattedPhoneNumber] = useState('');
+  const hideRegionModal = useCallback(() => {
+    setIsRegionModalVisible(false);
+  }, []);
 
-    const handlePhoneNumberChange = (text: string) => {
-      const rawValue = text.replace(/\D/g, '');
-      const limitedRawValue = rawValue.slice(0, 10);
-      const formattedValue = formatPhoneNumber(rawValue);
-
-      setFormattedPhoneNumber(formattedValue);
-      onChangeText(limitedRawValue);
-    };
-
-    return (
+  return (
+    <>
       <View style={styles.field}>
         <Label variant={TextVariant.HeadingSMRegular} style={styles.label}>
           {label}
         </Label>
         <View style={styles.phoneInputWrapper}>
-          <View style={styles.countryPrefix}>
-            <Text style={styles.countryFlag}>{countryFlag}</Text>
-            <Text style={styles.countryCode}>+{countryCode}</Text>
-          </View>
-          <TextField
-            size={TextFieldSize.Lg}
-            placeholderTextColor={theme.colors.text.muted}
-            keyboardType="phone-pad"
-            keyboardAppearance={theme.themeAppearance}
-            ref={ref}
-            onChangeText={handlePhoneNumberChange}
-            style={styles.phoneInput}
-            {...textFieldProps}
-            value={formattedPhoneNumber}
+          <PhoneInput
+            country={selectedRegion?.code}
+            international={selectedRegion?.code !== 'US'}
+            value={value}
+            onChange={handlePhoneNumberChange}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            inputComponent={(props: any) => (
+              <TextField
+                testID="deposit-phone-field-test-id"
+                autoFocus
+                startAccessory={
+                  <TouchableOpacity
+                    style={styles.flagButton}
+                    onPress={handleFlagPress}
+                    accessibilityRole="button"
+                    accessible
+                  >
+                    <View style={styles.countryPrefix}>
+                      <Text style={styles.countryFlag}>
+                        {selectedRegion?.flag}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                }
+                size={TextFieldSize.Lg}
+                placeholderTextColor={theme.colors.text.muted}
+                keyboardAppearance={theme.themeAppearance}
+                placeholder={
+                  selectedRegion?.placeholder ||
+                  strings('deposit.basic_info.enter_phone_number')
+                }
+                keyboardType="phone-pad"
+                style={styles.phoneInput}
+                {...props}
+              />
+            )}
           />
         </View>
         {error ? <Text style={styles.error}>{error}</Text> : null}
       </View>
-    );
-  },
-);
+      <RegionModal
+        isVisible={isRegionModalVisible}
+        title="Select Region"
+        description="Choose your region"
+        data={DEPOSIT_REGIONS}
+        dismiss={hideRegionModal}
+        onRegionPress={handleRegionSelect}
+        selectedRegion={selectedRegion}
+      />
+    </>
+  );
+};
 
 export default DepositPhoneField;
