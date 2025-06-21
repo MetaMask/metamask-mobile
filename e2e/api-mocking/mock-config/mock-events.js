@@ -177,6 +177,7 @@ export const mockEvents = {
     segmentTrack: {
       urlEndpoint: E2E_METAMETRICS_TRACK_URL,
       responseCode: 200,
+      response: { success: true },
     },
   },
 };

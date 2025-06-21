@@ -68,7 +68,6 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
       permissions: { notifications: 'YES' },
       launchArgs: {
         fixtureServerPort: `${getFixturesServerPort()}`,
-        sendMetaMetricsinE2E: true,
       },
     });
     await loginToApp();
@@ -185,7 +184,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     },
   );
 
-  it.skip('should validate segment/metametric events for a successful swap', async (): Promise<void> => {
+  it('should validate segment/metametric events for a successful swap', async (): Promise<void> => {
 
     const testCases = [
       {
@@ -282,7 +281,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
       await softAssert.checkAndCollect(
         () =>
-          Assertions.checkIfValueIsPresent(
+          Assertions.checkIfValueIsDefined(
             quotesReceivedEvents[i].properties.response_time,
           ),
         `Quotes Received [${i}]: Check response_time (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
@@ -290,7 +289,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
       await softAssert.checkAndCollect(
         () =>
-          Assertions.checkIfValueIsPresent(
+          Assertions.checkIfValueIsDefined(
             quotesReceivedEvents[i].properties.network_fees_USD,
           ),
         `Quotes Received [${i}]: Check network_fees_USD (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
@@ -298,7 +297,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
       await softAssert.checkAndCollect(
         () =>
-          Assertions.checkIfValueIsPresent(
+          Assertions.checkIfValueIsDefined(
             quotesReceivedEvents[i].properties.network_fees_ETH,
           ),
         `Quotes Received [${i}]: Check network_fees_ETH (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
@@ -340,7 +339,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
       await softAssert.checkAndCollect(
         () =>
-          Assertions.checkIfValueIsPresent(
+          Assertions.checkIfValueIsDefined(
             quotesReceivedEvents[i].properties.network_fees_USD,
           ),
         `Swap Started [${i}]: Check network_fees_USD (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
@@ -348,7 +347,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
       await softAssert.checkAndCollect(
         () =>
-          Assertions.checkIfValueIsPresent(
+          Assertions.checkIfValueIsDefined(
             quotesReceivedEvents[i].properties.network_fees_ETH,
           ),
         `Swap Started [${i}]: Check network_fees_ETH (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
@@ -391,7 +390,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
       await softAssert.checkAndCollect(
         () =>
-          Assertions.checkIfValueIsPresent(
+          Assertions.checkIfValueIsDefined(
             quotesReceivedEvents[i].properties.network_fees_USD,
           ),
         `Swap Completed [${i}]: Check network_fees_USD (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
@@ -399,7 +398,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
       await softAssert.checkAndCollect(
         () =>
-          Assertions.checkIfValueIsPresent(
+          Assertions.checkIfValueIsDefined(
             quotesReceivedEvents[i].properties.network_fees_ETH,
           ),
         `Swap Completed [${i}]: Check network_fees_ETH (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
@@ -407,7 +406,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
       await softAssert.checkAndCollect(
         () =>
-          Assertions.checkIfValueIsPresent(
+          Assertions.checkIfValueIsDefined(
             swapCompletedEvents[i].properties.time_to_mine,
           ),
         `Swap Completed [${i}]: Check time_to_mine (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
@@ -415,7 +414,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
       await softAssert.checkAndCollect(
         () =>
-          Assertions.checkIfValueIsPresent(
+          Assertions.checkIfValueIsDefined(
             swapCompletedEvents[i].properties.estimated_vs_used_gasRatio,
           ),
         `Swap Completed [${i}]: Check estimated_vs_used_gasRatio (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
@@ -423,7 +422,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
       await softAssert.checkAndCollect(
         () =>
-          Assertions.checkIfValueIsPresent(
+          Assertions.checkIfValueIsDefined(
             swapCompletedEvents[i].properties.quote_vs_executionRatio,
           ),
         `Swap Completed [${i}]: Check quote_vs_executionRatio (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
