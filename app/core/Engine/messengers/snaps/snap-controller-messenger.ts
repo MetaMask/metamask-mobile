@@ -31,6 +31,7 @@ import {
 } from '@metamask/permission-controller';
 import {
   AddApprovalRequest,
+  RejectRequest,
   UpdateRequestState,
 } from '@metamask/approval-controller';
 import {
@@ -52,6 +53,7 @@ type Actions =
   | RevokePermissionForAllSubjects
   | GetSubjects
   | AddApprovalRequest
+  | RejectRequest
   | UpdateRequestState
   | GrantPermissions
   | GetSubjectMetadata
@@ -110,6 +112,7 @@ export function getSnapControllerMessenger(
       'PermissionController:getSubjectNames',
       'PermissionController:updateCaveat',
       'ApprovalController:addRequest',
+      'ApprovalController:rejectRequest',
       'ApprovalController:updateRequestState',
       'PermissionController:grantPermissions',
       'SubjectMetadataController:getSubjectMetadata',
