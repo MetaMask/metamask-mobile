@@ -14,6 +14,7 @@ import { backgroundState } from '../../test/initial-root-state';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
 let mockSubmitTx: jest.Mock<Promise<TransactionMeta>, [QuoteResponse & QuoteMetadata, boolean]>;
+let mockAddSwapsTransaction: jest.Mock;
 
 jest.mock('../../../core/Engine', () => {
   mockSubmitTx = jest.fn<Promise<TransactionMeta>, [QuoteResponse & QuoteMetadata, boolean]>();
@@ -24,6 +25,13 @@ jest.mock('../../../core/Engine', () => {
         submitTx: mockSubmitTx,
       },
     },
+  };
+});
+
+jest.mock('../../swaps/swaps-transactions', () => {
+  mockAddSwapsTransaction = jest.fn();
+  return {
+    addSwapsTransaction: mockAddSwapsTransaction,
   };
 });
 
@@ -256,5 +264,158 @@ describe('useSubmitBridgeTx', () => {
         quoteResponse: invalidQuoteResponse as QuoteResponse & QuoteMetadata,
       }),
     ).rejects.toThrow('Serialization failed');
+  });
+
+  describe('Transaction History Recording', () => {
+    it('should record Solana swap transaction in history', async () => {
+      const { result } = renderHook(() => useSubmitBridgeTx(), {
+        wrapper: createWrapper(),
+      });
+
+      // Create a Solana swap quote (same chain swap)
+      const solanaSwapQuote = {
+        quote: {
+          requestId: '4fc6b81c-33ee-42e2-b816-009f29e2ae5d',
+          srcChainId: 1151111081099710, // Solana mainnet
+          srcTokenAmount: '500000000',
+          srcAsset: {
+            address: '0x0000000000000000000000000000000000000000',
+            chainId: 1151111081099710,
+            symbol: 'SOL',
+            decimals: 9,
+            name: 'SOL',
+          },
+          destChainId: 1151111081099710, // Same chain - this is a swap
+          destTokenAmount: '57056221',
+          destAsset: {
+            address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // Custom USDC token
+            chainId: 1151111081099710,
+            symbol: 'USDC',
+            decimals: 6,
+            name: 'USD Coin',
+          },
+          bridgeId: 'lifi',
+        },
+        trade: '0xsolana_tx_data',
+        estimatedProcessingTimeInSeconds: 5,
+        ...DummyQuoteMetadata,
+      };
+
+      const mockTxResult = {
+        chainId: 1151111081099710,
+        id: 'sol_tx_123',
+        hash: 'sol_hash_123',
+        networkClientId: 'solana',
+        status: 'submitted',
+        time: Date.now(),
+        txParams: {
+          from: 'SolanaAddress123',
+        },
+      } as TransactionMeta;
+
+      mockSubmitTx.mockResolvedValueOnce(mockTxResult);
+      mockAddSwapsTransaction.mockClear();
+
+      await result.current.submitBridgeTx({
+        quoteResponse: solanaSwapQuote as QuoteResponse & QuoteMetadata,
+      });
+
+      // Verify transaction was recorded in swaps history
+      expect(mockAddSwapsTransaction).toHaveBeenCalledWith(
+        'sol_hash_123',
+        expect.objectContaining({
+          action: 'swap', // Same chain = swap
+          sourceToken: {
+            address: '0x0000000000000000000000000000000000000000',
+            symbol: 'SOL',
+            decimals: 9,
+            chainId: 1151111081099710,
+          },
+          destinationToken: {
+            address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+            symbol: 'USDC',
+            decimals: 6,
+            chainId: 1151111081099710,
+          },
+          sourceAmount: '500000000',
+          destinationAmount: '57056221',
+          bridgeId: 'lifi',
+        }),
+      );
+    });
+
+    it('should record bridge transaction in history', async () => {
+      const { result } = renderHook(() => useSubmitBridgeTx(), {
+        wrapper: createWrapper(),
+      });
+
+      const bridgeQuote = {
+        ...DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0],
+        ...DummyQuoteMetadata,
+      };
+
+      const mockTxResult = {
+        chainId: '0x1',
+        id: 'eth_tx_123',
+        hash: 'eth_hash_123',
+        networkClientId: 'mainnet',
+        status: 'submitted',
+        time: Date.now(),
+        txParams: {
+          from: '0x1234567890123456789012345678901234567890',
+        },
+      } as TransactionMeta;
+
+      mockSubmitTx.mockResolvedValueOnce(mockTxResult);
+      mockAddSwapsTransaction.mockClear();
+
+      await result.current.submitBridgeTx({
+        quoteResponse: bridgeQuote as QuoteResponse & QuoteMetadata,
+      });
+
+      // Verify transaction was recorded with bridge action
+      expect(mockAddSwapsTransaction).toHaveBeenCalledWith(
+        'eth_hash_123',
+        expect.objectContaining({
+          action: 'bridge', // Different chains = bridge
+        }),
+      );
+    });
+
+    it('should handle missing transaction hash gracefully', async () => {
+      const { result } = renderHook(() => useSubmitBridgeTx(), {
+        wrapper: createWrapper(),
+      });
+
+      const quote = {
+        ...DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0],
+        ...DummyQuoteMetadata,
+      };
+
+      // Transaction result without hash
+      const mockTxResult = {
+        chainId: '0x1',
+        id: 'tx_123',
+        networkClientId: 'mainnet',
+        status: 'submitted',
+        time: Date.now(),
+        txParams: {
+          from: '0x1234567890123456789012345678901234567890',
+        },
+      } as TransactionMeta;
+
+      mockSubmitTx.mockResolvedValueOnce(mockTxResult);
+      mockAddSwapsTransaction.mockClear();
+
+      await result.current.submitBridgeTx({
+        quoteResponse: quote as QuoteResponse & QuoteMetadata,
+      });
+
+      // Should use id as fallback
+      expect(mockAddSwapsTransaction).toHaveBeenCalledWith(
+        'tx_123',
+        expect.any(Object),
+      );
+    });
   });
 });
