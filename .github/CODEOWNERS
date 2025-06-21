@@ -105,8 +105,10 @@ ses.cjs                              @MetaMask/supply-chain
 patches/react-native+0.*.patch       @MetaMask/supply-chain
 
 # Portfolio Team
-app/components/hooks/useTokenSearchDiscovery @MetaMask/portfolio
+app/components/hooks/TokenSearchDiscovery @MetaMask/portfolio
 app/core/Engine/controllers/TokenSearchDiscoveryController @MetaMask/portfolio
+app/components/UI/SearchDiscoveryResult @MetaMask/portfolio
+app/components/Views/DiscoveryTab @MetaMask/portfolio
 
 # Snaps Team
 **/snaps/**                          @MetaMask/snaps-devs
