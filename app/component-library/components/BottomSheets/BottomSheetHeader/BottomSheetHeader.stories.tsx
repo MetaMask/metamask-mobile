@@ -14,7 +14,7 @@ export default BottomSheetHeaderMeta;
 
 export const BottomSheetHeader = {
   args: {
-    chidlren: 'Super Long BottomSheetHeader Title that may span 3 lines',
+    children: 'Super Long BottomSheetHeader Title that may span 3 lines',
   },
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
