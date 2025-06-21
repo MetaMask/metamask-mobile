@@ -21,6 +21,8 @@ import {
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
+import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkManager';
+import AppConstants from '../../core/AppConstants';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -129,6 +131,24 @@ export function* basicFunctionalityToggle() {
   }
 }
 
+export function* handleDeeplinkSaga() {
+  while (true) {
+    // Handle parsing deeplinks after login or when the lock manager is resolved
+    yield take([UserActionType.LOGIN, UserActionType.RESOLVE_LOCK_MANAGER]);
+
+    const deeplink = AppStateEventProcessor.pendingDeeplink;
+    if (deeplink) {
+      // TODO: See if we can hook into a navigation finished event before parsing so that the modal doesn't conflict with ongoing navigation events
+      setTimeout(() => {
+        SharedDeeplinkManager.parse(deeplink, {
+          origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+        });
+      }, 200);
+      AppStateEventProcessor.clearPendingDeeplink();
+    }
+  }
+}
+
 /**
  * Handles initializing app services on start up
  */
@@ -154,4 +174,5 @@ export function* rootSaga() {
   yield fork(startAppServices);
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
+  yield fork(handleDeeplinkSaga);
 }

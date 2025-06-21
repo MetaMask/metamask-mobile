@@ -26,7 +26,6 @@ import OptinMetrics from '../../UI/OptinMetrics';
 import SimpleWebview from '../../Views/SimpleWebview';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import branch from 'react-native-branch';
-import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -786,7 +785,6 @@ const App: React.FC = () => {
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
   const sdkInit = useRef<boolean | undefined>(undefined);
-
   const isFirstRender = useRef(true);
 
   if (isFirstRender.current) {
@@ -861,9 +859,6 @@ const App: React.FC = () => {
       try {
         if (deeplink && typeof deeplink === 'string') {
           AppStateEventProcessor.setCurrentDeeplink(deeplink);
-          SharedDeeplinkManager.parse(deeplink, {
-            origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-          });
         }
       } catch (e) {
         Logger.error(e as Error, `Deeplink: Error parsing deeplink`);
