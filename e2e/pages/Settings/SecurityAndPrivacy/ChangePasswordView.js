@@ -37,9 +37,9 @@ class ChangePasswordView {
   }
 
   get submitButton() {
-    return Matchers.getElementByID(
-      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-    );
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByText(ChoosePasswordSelectorsIDs.RESET_PASSWORD_BUTTON_TEXT)
+      : Matchers.getElementByID(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
   }
 
   async typeInConfirmPasswordInputBox(PASSWORD) {
@@ -61,9 +61,7 @@ class ChangePasswordView {
   }
 
   async tapSubmitButton() {
-    if (device.getPlatform() === 'android') {
-      await Gestures.waitAndTap(this.submitButton);
-    }
+    await Gestures.waitAndTap(this.submitButton);
   }
 }
 
