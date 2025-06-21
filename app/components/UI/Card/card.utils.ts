@@ -8,7 +8,27 @@ import {
 } from '../../../selectors/featureFlagController/card';
 import { getDecimalChainId } from '../../../util/networks';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { FlashListAssetKey } from '../Tokens/TokenList';
+import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
+import balanceScannerAbi from './balanceScannerAbi.json';
+import { StyleProp, ViewStyle } from 'react-native';
+import { ThemeColors } from '@metamask/design-tokens';
+import BigNumber from 'bignumber.js';
 
+/**
+ * Linea Mainnet contract addresses
+ */
+const BALANCE_SCANNER_CONTRACT_ADDRESS =
+  '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a';
+const BALANCE_SCANNER_ABI = balanceScannerAbi as ethers.ContractInterface;
+const getBalanceScannerContract = (
+  provider: ethers.providers.JsonRpcProvider,
+) =>
+  new ethers.Contract(
+    BALANCE_SCANNER_CONTRACT_ADDRESS,
+    BALANCE_SCANNER_ABI,
+    provider,
+  );
 /**
  * FoxConnect contract addresses on Linea
  */
@@ -21,14 +41,6 @@ const FOXCONNECT_US_ADDRESS = '0xA90b298d05C2667dDC64e2A4e17111357c215dD2';
 const foxConnectAbi = [
   'function getBeneficiary() view returns (address)',
   'function getWithdrawOperators() view returns (address[])',
-];
-
-/**
- * ERC20 Token ABI for allowance checking
- */
-const erc20Abi = [
-  'function allowance(address owner, address spender) view returns (uint256)',
-  'function balanceOf(address owner) view returns (uint256)',
 ];
 
 /**
@@ -62,24 +74,10 @@ export interface TokenConfig {
   name: string;
   balance: string; // Display balance formatted for UI
   allowanceState: AllowanceState;
-  rawBalance: ethers.BigNumber | string;
+  rawBalance: ethers.BigNumber;
   globalAllowance: string;
   usAllowance: string;
 }
-
-/**
- * Get contract instances for all supported tokens
- * @param provider - Ethers provider for Linea
- * @param tokenAddressesList - List of supported token addresses
- * @returns Array of contract instances for each token
- */
-const getContractsInstances = (
-  provider: ethers.providers.JsonRpcProvider,
-  tokenAddressesList: string[],
-) =>
-  Object.values(tokenAddressesList).map(
-    (tokenAddresses) => new ethers.Contract(tokenAddresses, erc20Abi, provider),
-  );
 
 const createProvider = () => {
   // Try to get API key from environment, otherwise use a public RPC URL
@@ -111,7 +109,7 @@ const getAllowanceState = (allowance: string): AllowanceState => {
   if (allowance === '0') {
     return AllowanceState.Delegatable;
   }
-  // use BigInt for very large values
+  // set arbitrary threshold for unlimited allowance
   const amount = BigInt(allowance);
   const UNLIMITED_THRESHOLD = BigInt(99999999999);
 
@@ -168,38 +166,33 @@ const hasDelegatedFunds = async (
   try {
     Logger.log(`Checking delegated funds for address: ${address}`);
 
-    const contractInstances = getContractsInstances(
-      provider,
-      tokenAddressesList,
-    );
+    const balanceScanner = getBalanceScannerContract(provider);
 
-    const allowanceChecksPromises = contractInstances.reduce(
-      (acc, contract) => {
-        // Check allowances for both FoxConnect contracts
-        acc.push(
-          contract.allowance(address, FOXCONNECT_GLOBAL_ADDRESS),
-          contract.allowance(address, FOXCONNECT_US_ADDRESS),
-        );
-        return acc;
-      },
-      [] as Promise<ethers.BigNumber>[],
-    );
+    const spenders = tokenAddressesList.map(() => [
+      FOXCONNECT_GLOBAL_ADDRESS,
+      FOXCONNECT_US_ADDRESS,
+    ]);
 
-    Logger.log(`Checking allowances for address: ${address}`);
+    const spendersAllowancesForTokens: [boolean, string][][] =
+      await balanceScanner.spendersAllowancesForTokens(
+        address,
+        tokenAddressesList,
+        spenders,
+      );
 
-    // Check all allowances in parallel
-    const allowances = await Promise.all(
-      allowanceChecksPromises.map((promise) =>
-        promise.catch((error: Error) => {
-          console.error('Error checking allowance:', error);
-          return ethers.BigNumber.from(0);
-        }),
-      ),
-    );
+    // Check if any of the allowances are non-zero
+    for (const allowances of spendersAllowancesForTokens) {
+      if (!allowances || allowances.length === 0) {
+        continue;
+      }
+      const [globalAllowance, usAllowance] = allowances.map(
+        (allowance) => allowance[1],
+      );
 
-    // Check if any token has a non-zero allowance for either FoxConnect contract
-    for (const allowance of allowances) {
-      if (!allowance.isZero()) {
+      if (
+        !BigNumber(globalAllowance).isZero() ||
+        !BigNumber(usAllowance).isZero()
+      ) {
         return true;
       }
     }
@@ -232,198 +225,110 @@ const hasTransactedWithFoxConnect = async (
     Logger.log(
       `Checking if address ${address} has transacted with FoxConnect contracts`,
     );
+    const balanceScanner = getBalanceScannerContract(provider);
+    const foxIface = new ethers.utils.Interface(foxConnectAbi);
+    const { defaultAbiCoder, hexZeroPad, hexlify, getAddress } = ethers.utils;
 
-    // Get withdraw operators and beneficiary for both contracts
-    const globalContract = new ethers.Contract(
+    const targets = [
       FOXCONNECT_GLOBAL_ADDRESS,
-      foxConnectAbi,
-      provider,
-    );
-    const usContract = new ethers.Contract(
       FOXCONNECT_US_ADDRESS,
-      foxConnectAbi,
-      provider,
+      FOXCONNECT_GLOBAL_ADDRESS,
+      FOXCONNECT_US_ADDRESS,
+    ];
+    const payloads = [
+      foxIface.encodeFunctionData('getWithdrawOperators', []),
+      foxIface.encodeFunctionData('getWithdrawOperators', []),
+      foxIface.encodeFunctionData('getBeneficiary', []),
+      foxIface.encodeFunctionData('getBeneficiary', []),
+    ];
+    const [r0, r1, r2, r3] = await balanceScanner['call(address[],bytes[])'](
+      targets,
+      payloads,
     );
+    const globalOperators = (
+      defaultAbiCoder.decode(['address[]'], r0.data)[0] as string[]
+    ).map((a) => a.toLowerCase());
+    const usOperators = (
+      defaultAbiCoder.decode(['address[]'], r1.data)[0] as string[]
+    ).map((a) => a.toLowerCase());
+    const globalBeneficiary = (
+      defaultAbiCoder.decode(['address'], r2.data)[0] as string
+    ).toLowerCase();
+    const usBeneficiary = (
+      defaultAbiCoder.decode(['address'], r3.data)[0] as string
+    ).toLowerCase();
 
-    // Get withdraw operators
-    const globalWithdrawOperators = await globalContract
-      .getWithdrawOperators()
-      .catch(() => []);
-    const usWithdrawOperators = await usContract
-      .getWithdrawOperators()
-      .catch(() => []);
-
-    Logger.log(`Global withdraw operators: ${globalWithdrawOperators}`);
-    Logger.log(`US withdraw operators: ${usWithdrawOperators}`);
-
-    // Get beneficiaries
-    const globalBeneficiary = await globalContract
-      .getBeneficiary()
-      .catch(() => '');
-    const usBeneficiary = await usContract.getBeneficiary().catch(() => '');
-
-    Logger.log(`Global beneficiary: ${globalBeneficiary}`);
-    Logger.log(`US beneficiary: ${usBeneficiary}`);
-
-    // Check if the address is a withdraw operator or beneficiary
     if (
-      globalWithdrawOperators.includes(address) ||
-      usWithdrawOperators.includes(address) ||
-      (globalBeneficiary &&
-        globalBeneficiary.toLowerCase() === address.toLowerCase()) ||
-      (usBeneficiary && usBeneficiary.toLowerCase() === address.toLowerCase())
+      globalOperators.includes(address) ||
+      usOperators.includes(address) ||
+      globalBeneficiary === address ||
+      usBeneficiary === address
     ) {
-      Logger.log(`Address ${address} is a withdraw operator or beneficiary`);
       return true;
     }
 
-    // Check token balances directly
-    const contractsInstances = getContractsInstances(
-      provider,
-      tokenAddressesList,
-    );
+    const fromBlock = -50000; // Check from the last 50,000 blocks
 
-    // First check if the user has any tokens (a prerequisite for transferring them)
-    const balancesPromises = contractsInstances.map((contract) => {
-      const balance = contract
-        .balanceOf(address)
-        .catch(() => ethers.BigNumber.from(0));
-      return {
-        contract: contract.address,
-        balance,
-      };
-    });
-
-    const resolvedBalances = await Promise.all(
-      balancesPromises.map((promise) =>
-        promise.balance.catch((error: Error) => {
-          console.error('Error getting balance:', error);
-          return ethers.BigNumber.from(0);
-        }),
-      ),
-    );
-
-    // Create a map of balances for easier access
-    const balances: {
-      [key: string]: ethers.BigNumber;
-    } = resolvedBalances.reduce((acc, { contract, balance }) => {
-      acc[contract] = balance;
-      return acc;
-    }, {});
-
-    // Check if any balance is non-zero, without naming it
-    const hasTokens = Object.values(balances).some(
-      (balance) => !balance.isZero(),
-    );
-
-    if (!hasTokens) {
-      Logger.log(
-        `Address ${address} has no token balances, skipping transfer check`,
-      );
-      return false;
-    }
-
-    // If the user has tokens, perform a more targeted search for transfers
-    // Instead of scanning a huge block range, use a filter with the specific addresses
-    // We already know both the sender/receiver and the token contracts
-
-    // Query for transfers from address to FoxConnect contracts
-    // Split into separate smaller queries for better performance
-    let transferFound = false;
-
+    // Fallback to log-scanning of transfers events
     for (const tokenAddress of tokenAddressesList) {
-      const tokenBalance = balances[tokenAddress];
-
-      // Skip if balance is not an object or is zero
-      if (!tokenBalance || typeof tokenBalance !== 'object') {
-        Logger.log(
-          `Skipping transfer check for ${tokenAddress} (invalid balance)`,
-        );
-        continue;
-      }
-
-      Logger.log(`Checking transfers for token ${tokenAddress}`);
-
-      // Use a more targeted approach - check transfers to FoxConnect
-      const fromUserToFoxconnectFilter = {
+      // Check if user has sent funds to FoxConnect contracts
+      const sentLogs = await provider.getLogs({
         address: tokenAddress,
         topics: [
           TRANSFER_EVENT_TOPIC,
-          ethers.utils.hexZeroPad(
-            ethers.utils.hexlify(address.toLowerCase()),
-            32,
-          ),
-          null, // Any recipient
+          hexZeroPad(hexlify(address.toLowerCase()), 32),
+          null,
         ],
-        fromBlock: -50000, // More targeted, can use smaller range
+        fromBlock,
         toBlock: 'latest',
-      };
-
-      const transfersFromUser = await provider.getLogs(
-        fromUserToFoxconnectFilter,
-      );
-      Logger.log(`Found ${transfersFromUser.length} transfers from user`);
-
-      // Check if any of these transfers were to FoxConnect contracts
-      for (const transfer of transfersFromUser) {
-        if (!transfer.topics[2]) continue;
-
-        const to = ethers.utils.getAddress('0x' + transfer.topics[2].slice(26));
-
-        if (
-          to.toLowerCase() === FOXCONNECT_GLOBAL_ADDRESS.toLowerCase() ||
-          to.toLowerCase() === FOXCONNECT_US_ADDRESS.toLowerCase()
-        ) {
-          Logger.log(`Found transfer from ${address} to ${to}`);
-          transferFound = true;
-          break;
-        }
+      });
+      Logger.log(`Found ${sentLogs.length} transfers from user`);
+      if (
+        sentLogs.some((log) => {
+          const to = getAddress('0x' + log.topics[2].slice(26)).toLowerCase();
+          return (
+            to === FOXCONNECT_GLOBAL_ADDRESS.toLowerCase() ||
+            to === FOXCONNECT_US_ADDRESS.toLowerCase() ||
+            globalOperators.includes(to) ||
+            usOperators.includes(to) ||
+            to === globalBeneficiary ||
+            to === usBeneficiary
+          );
+        })
+      ) {
+        return true;
       }
 
-      if (transferFound) break;
-
-      // Check transfers from FoxConnect to user
-      const toUserFromFoxconnectFilter = {
+      // Check if user has received funds from FoxConnect contracts
+      const receiveLogs = await provider.getLogs({
         address: tokenAddress,
         topics: [
           TRANSFER_EVENT_TOPIC,
-          null, // Any sender
-          ethers.utils.hexZeroPad(
-            ethers.utils.hexlify(address.toLowerCase()),
-            32,
-          ),
+          null,
+          hexZeroPad(hexlify(address.toLowerCase()), 32),
         ],
-        fromBlock: -50000,
+        fromBlock,
         toBlock: 'latest',
-      };
-
-      const transfersToUser = await provider.getLogs(
-        toUserFromFoxconnectFilter,
-      );
-      Logger.log(`Found ${transfersToUser.length} transfers to user`);
-
-      // Check if any of these transfers were from FoxConnect contracts
-      for (const transfer of transfersToUser) {
-        if (!transfer.topics[1]) continue;
-
-        const from = ethers.utils.getAddress(
-          '0x' + transfer.topics[1].slice(26),
-        );
-
-        if (
-          from.toLowerCase() === FOXCONNECT_GLOBAL_ADDRESS.toLowerCase() ||
-          from.toLowerCase() === FOXCONNECT_US_ADDRESS.toLowerCase()
-        ) {
-          Logger.log(`Found transfer from ${from} to ${address}`);
-          transferFound = true;
-          break;
-        }
+      });
+      Logger.log(`Found ${receiveLogs.length} transfers to user`);
+      if (
+        receiveLogs.some((log) => {
+          const from = getAddress('0x' + log.topics[1].slice(26)).toLowerCase();
+          return (
+            from === FOXCONNECT_GLOBAL_ADDRESS.toLowerCase() ||
+            from === FOXCONNECT_US_ADDRESS.toLowerCase() ||
+            globalOperators.includes(from) ||
+            usOperators.includes(from) ||
+            from === globalBeneficiary ||
+            from === usBeneficiary
+          );
+        })
+      ) {
+        return true;
       }
-
-      if (transferFound) break;
     }
 
-    return transferFound;
+    return false;
   } catch (error) {
     console.error('Error checking for FoxConnect transactions:', error);
     return false;
@@ -444,93 +349,87 @@ export const fetchSupportedTokensBalances = async (
   balanceList: TokenConfig[];
   totalBalanceDisplay: string;
 }> => {
+  const provider = createProvider();
+  const supportedTokens = mapCardFeatureToSupportedTokens(cardFeature);
+
+  if (!supportedTokens || supportedTokens.length === 0) {
+    console.warn('No supported tokens found for the card feature');
+    return {
+      balanceList: [],
+      totalBalanceDisplay: '0',
+    };
+  }
+
+  const supportedTokensAddresses = supportedTokens.map(
+    (token) => token.address as string,
+  );
+
+  const balanceScanner = getBalanceScannerContract(provider);
+
   try {
-    const provider = createProvider();
-    const supportedTokens = mapCardFeatureToSupportedTokens(cardFeature);
+    const spenders = supportedTokensAddresses.map(() => [
+      FOXCONNECT_GLOBAL_ADDRESS,
+      FOXCONNECT_US_ADDRESS,
+    ]);
 
-    if (!supportedTokens || supportedTokens.length === 0) {
-      console.warn('No supported tokens found for the card feature');
-      return {
-        balanceList: [],
-        totalBalanceDisplay: '0',
-      };
-    }
-
-    // Initialize token contracts
-    const contractInstances = getContractsInstances(
-      provider,
-      supportedTokens.map((token) => token.address as string),
-    );
-
-    const balanceListResult = await Promise.all(
-      contractInstances.map((contract) =>
-        Promise.all([
-          contract.balanceOf(address).catch(() => ethers.BigNumber.from(0)),
-          contract
-            .allowance(address, FOXCONNECT_GLOBAL_ADDRESS)
-            .catch(() => ethers.BigNumber.from(0)),
-          contract
-            .allowance(address, FOXCONNECT_US_ADDRESS)
-            .catch(() => ethers.BigNumber.from(0)),
-        ]).then(([raw, globalAllowance, usAllowance]) => ({
-          address: contract.address,
-          raw,
-          contract,
-          globalAllowance,
-          usAllowance,
-        })),
+    const [tokensBalance, spendersAllowancesForTokens]: [
+      [boolean, string][],
+      [boolean, string][][],
+    ] = await Promise.all([
+      balanceScanner.tokensBalance(address, supportedTokensAddresses),
+      balanceScanner.spendersAllowancesForTokens(
+        address,
+        supportedTokensAddresses,
+        spenders,
       ),
-    );
+    ]);
 
-    const balanceList = balanceListResult.map(
-      ({
-        address: TokenAddress,
-        raw,
-        contract,
+    const mappedBalanceList = tokensBalance.map((item, index) => {
+      const tokenInfo = supportedTokens[index];
+
+      if (!tokenInfo) {
+        console.warn(
+          `Token info not found for index ${index}. Skipping balance.`,
+        );
+        return null;
+      }
+
+      const spendersAllowances = spendersAllowancesForTokens[index];
+      if (!spendersAllowances || spendersAllowances.length === 0) {
+        console.warn(
+          `No spenders allowances found for token at index ${index}. Skipping allowance state.`,
+        );
+        return null;
+      }
+
+      const [globalAllowance, usAllowance] = spendersAllowances.map(
+        (allowance) => allowance[1],
+      );
+      const allowanceState = BigNumber(usAllowance).isZero()
+        ? getAllowanceState(globalAllowance)
+        : getAllowanceState(usAllowance);
+
+      const [success, hexBalance] = item;
+
+      const rawBalance = ethers.BigNumber.from(success ? hexBalance : 0);
+      return {
+        address: tokenInfo.address as string,
+        decimals: tokenInfo.decimals || 18,
+        symbol: tokenInfo.symbol || '',
+        name: tokenInfo.name || '',
+        balance: renderFromTokenMinimalUnit(
+          rawBalance.toString(),
+          tokenInfo.decimals || 18,
+        ),
+        rawBalance,
+        allowanceState,
         globalAllowance,
         usAllowance,
-      }) => {
-        const tokenInfo = supportedTokens.find(
-          (token) =>
-            token.address?.toLowerCase() === TokenAddress.toLowerCase(),
-        );
+      };
+    });
 
-        if (!tokenInfo) {
-          console.warn(
-            `Token info not found for address: ${TokenAddress}. Skipping balance.`,
-          );
-          throw new Error(
-            `Token info not found for address: ${TokenAddress}. Skipping balance.`,
-          );
-        }
-
-        const { decimals, name, symbol } = tokenInfo;
-
-        const allowance = !usAllowance?.isZero()
-          ? usAllowance
-          : globalAllowance;
-        const allowanceState = getAllowanceState(allowance.toString());
-
-        return {
-          address: TokenAddress,
-          symbol: symbol || '',
-          name: name || '',
-          balance: renderFromTokenMinimalUnit(raw.toString(), decimals || 18),
-          rawBalance: raw,
-          decimals: decimals || 18,
-          contract,
-          allowanceState,
-          globalAllowance: globalAllowance
-            ? renderFromTokenMinimalUnit(
-                globalAllowance.toString(),
-                decimals || 18,
-              )
-            : '0',
-          usAllowance: usAllowance
-            ? renderFromTokenMinimalUnit(usAllowance.toString(), decimals || 18)
-            : '0',
-        };
-      },
+    const balanceList = mappedBalanceList.filter(
+      (item): item is TokenConfig => item !== null,
     );
 
     const totalRawBalance = balanceList.reduce(
@@ -556,16 +455,21 @@ export const fetchSupportedTokensBalances = async (
       totalBalanceDisplay,
     };
   } catch (error) {
-    console.error('Error fetching token balances:', error);
-    throw new Error('Failed to fetch token balances. Please try again later.');
+    Logger.error(
+      error as Error,
+      `Error fetching balances with balance scanner for address ${address}`,
+    );
+    throw new Error(
+      `Error fetching balances with balance scanner for address ${address}: ${error}`,
+    );
   }
 };
 
 /**
  * Checks if the given address is a card holder
  * @param address - The Ethereum address to check
- * @param rawNetworkId - Current selected network ID
  * @param cardFeature - Optional card feature configuration
+ * @param rawNetworkId - Current selected network ID
  * @returns Promise<boolean> - Whether the address is a card holder
  */
 export const isCardHolder = async (
@@ -579,7 +483,10 @@ export const isCardHolder = async (
     );
     const networkId = getDecimalChainId(rawNetworkId);
 
-    if (!supportedNetworks.includes(networkId)) {
+    if (
+      !supportedNetworks.includes(networkId) ||
+      !cardFeature[`eip155:${networkId}`]?.enabled
+    ) {
       Logger.log(
         `Network ID ${networkId} is not supported by card feature, skipping card check`,
       );
@@ -599,11 +506,6 @@ export const isCardHolder = async (
 
     // Normalize address
     const normalizedAddress = address?.toLowerCase();
-
-    if (!normalizedAddress) {
-      Logger.log('Invalid address provided');
-      return false;
-    }
 
     Logger.log(
       `Checking if address ${normalizedAddress} is a card holder on network ${networkId}`,
@@ -673,3 +575,40 @@ export const isCardHolder = async (
     return false;
   }
 };
+
+const renderChip = (state: AllowanceState, colors: ThemeColors) => {
+  const tagConfig: Record<
+    AllowanceState,
+    { label: string; style?: StyleProp<ViewStyle> }
+  > = {
+    [AllowanceState.Delegatable]: {
+      label: 'Delegatable',
+    },
+    [AllowanceState.Unlimited]: {
+      label: 'Enabled',
+      style: { backgroundColor: colors.success.muted },
+    },
+    [AllowanceState.Limited]: {
+      label: 'Spend Limited',
+      style: { backgroundColor: colors.warning.muted },
+    },
+  };
+
+  return tagConfig[state];
+};
+
+/**
+ *
+ * @param tokenBalances - Array of token balances to map
+ * @returns FlashListAssetKey[] - Array of FlashListAssetKey objects
+ */
+export const mapTokenBalancesToTokenKeys = (
+  tokenBalances: TokenConfig[],
+  colors: ThemeColors,
+): FlashListAssetKey[] =>
+  tokenBalances.map((token) => ({
+    address: token.address,
+    chainId: LINEA_CHAIN_ID, // Assuming LINEA_CHAIN_ID is the chain ID for all tokens,
+    isStaked: false,
+    tag: renderChip(token.allowanceState, colors),
+  }));

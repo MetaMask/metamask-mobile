@@ -9,12 +9,16 @@ import Text, {
 import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 import Tag from '../../../../component-library/components/Tags/Tag';
+import { selectPrivacyMode } from '../../../../selectors/preferencesController';
+import { useSelector } from 'react-redux';
+import SensitiveText from '../../../../component-library/components/Texts/SensitiveText';
 
 const CardAssetListItem: React.FC<{
   token: TokenConfig;
 }> = ({ token }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const renderNetworkAvatar = useCallback(() => {
     if (!token) {
@@ -25,9 +29,6 @@ const CardAssetListItem: React.FC<{
   }, [token]);
 
   const renderChip = useCallback(() => {
-    const allowance =
-      token.usAllowance !== '0' ? token.usAllowance : token.globalAllowance;
-
     const tagConfig: Record<
       AllowanceState,
       { label: string; style?: StyleProp<ViewStyle> }
@@ -40,7 +41,7 @@ const CardAssetListItem: React.FC<{
         style: { backgroundColor: colors.success.muted },
       },
       [AllowanceState.Limited]: {
-        label: `Limited to ${allowance} ${token.symbol}`,
+        label: 'Spend Limited',
         style: { backgroundColor: colors.warning.muted },
       },
     };
@@ -63,9 +64,13 @@ const CardAssetListItem: React.FC<{
         </View>
       </View>
       <View>
-        <Text variant={TextVariant.BodyMD} style={styles.tokenSymbol}>
+        <SensitiveText
+          isHidden={privacyMode}
+          variant={TextVariant.BodyMD}
+          style={styles.tokenSymbol}
+        >
           {token.balance}
-        </Text>
+        </SensitiveText>
       </View>
     </View>
   );

@@ -73,6 +73,7 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
+import Tag from '../../../../../component-library/components/Tags/Tag';
 
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
@@ -410,8 +411,11 @@ export const TokenListItem = React.memo(
             </Text>
             {/** Add button link to Portfolio Stake if token is supported ETH chain and not a staked asset */}
           </View>
+
           <View style={styles.percentageChange}>
-            {!isTestNet(chainId) && showPercentageChange ? (
+            {assetKey.tag ? (
+              <Tag label={assetKey.tag.label} style={assetKey.tag.style} />
+            ) : !isTestNet(chainId) && showPercentageChange ? (
               <PercentageChange value={pricePercentChange1d ?? 0} />
             ) : null}
             {renderEarnCta()}
