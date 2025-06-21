@@ -237,6 +237,13 @@ class Browser {
       `${TEST_DAPP_LOCAL_URL}/request?method=eth_sendTransaction&params=${encodedParams}`,
     );
   }
+
+  async reloadTab() {
+    await this.tapUrlInputBox();
+
+    const urlInputBox = (await this.urlInputBoxID) as IndexableNativeElement;
+    await urlInputBox.typeText('\n');
+  }
 }
 
 export default new Browser();

@@ -52,7 +52,7 @@ export function overrideXMLHttpRequest() {
   global.XMLHttpRequest.prototype.open = function (
     method: string,
     url: string | URL,
-    async?: boolean,
+    async: boolean = true,
     user?: string | null,
     password?: string | null,
   ) {
@@ -67,14 +67,16 @@ export function overrideXMLHttpRequest() {
   };
 
   // Override the 'send' method to implement the blocking logic
-  global.XMLHttpRequest.prototype.send = function (...args: unknown[]) {
+  global.XMLHttpRequest.prototype.send = function (
+    body?: Document | XMLHttpRequestBodyInit | null,
+  ) {
     // Check if the current request should be blocked
     if (shouldBlockRequest(currentUrl)) {
       handleError(); // Trigger an error callback or handle the blocked request as needed
       return; // Do not proceed with the request
     }
     // For non-blocked requests, proceed as normal
-    return originalSend.call(this, ...args);
+    return originalSend.call(this, body);
   };
 }
 

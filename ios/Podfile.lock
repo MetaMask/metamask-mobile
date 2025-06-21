@@ -2067,7 +2067,7 @@ PODS:
     - React-utils (= 0.76.9)
   - ReactNativePayments (2.0.0):
     - React
-  - RNCAsyncStorage (1.23.1):
+  - RNCAsyncStorage (1.24.0):
     - React-Core
   - RNCCheckbox (0.5.17):
     - BEMCheckBox (~> 1.4)
@@ -2916,7 +2916,7 @@ SPEC CHECKSUMS:
   ReactCodegen: 25c2c1bed6e2c89daaa9e61c40e8680803df3c8f
   ReactCommon: 9cd9f89d1600b392c3a94552afc34def5fe54d02
   ReactNativePayments: 47056cd9f1dc32dbdd716974de5df700c44f12db
-  RNCAsyncStorage: aa75595c1aefa18f868452091fa0c411a516ce11
+  RNCAsyncStorage: b6410dead2732b5c72a7fdb1ecb5651bbcf4674b
   RNCCheckbox: 450ce156f3e29e25efa0315c96cfbabe5a39ded1
   RNCClipboard: ee059e6006b137e369caed5eb852b4aad9f5d886
   RNCMaskedView: 747049f3a7395b3df9c518fa8b100faa170daedf
