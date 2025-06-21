@@ -37,9 +37,15 @@ class ChangePasswordView {
   }
 
   get submitButton() {
-    return Matchers.getElementByID(
-      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-    );
+    if (device.getPlatform() === 'android') {
+      return Matchers.getElementByText(
+        'Reset password',
+      );
+    } else {
+      return Matchers.getElementByID(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+    }
   }
 
   async typeInConfirmPasswordInputBox(PASSWORD) {
