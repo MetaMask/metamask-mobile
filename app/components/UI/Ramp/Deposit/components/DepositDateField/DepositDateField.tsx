@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, forwardRef } from 'react';
 import {
   TouchableWithoutFeedback,
   Platform,
@@ -14,6 +14,36 @@ import DepositTextField from '../DepositTextField';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { Theme } from '../../../../../../util/theme/models';
 
+const MAXIMUM_DATE = new Date(2025, 11, 31);
+const MINIMUM_DATE = new Date(1900, 0, 1);
+const DEFAULT_DATE = new Date(2000, 0, 1);
+
+export const getDateDisplayValue = (value: string): Date => {
+  if (value) {
+    const parts = value.split('/');
+    if (parts.length === 3) {
+      const [month, day, year] = parts.map(Number);
+      const parsedDate = new Date(year, month - 1, day);
+      if (
+        !isNaN(parsedDate.getTime()) &&
+        parsedDate.getMonth() === month - 1 &&
+        parsedDate.getDate() === day
+      ) {
+        return parsedDate;
+      }
+    }
+  }
+
+  return DEFAULT_DATE;
+};
+
+export const formatDate = (date: Date): string => {
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${month}/${day}/${year}`;
+};
+
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
@@ -25,6 +55,7 @@ const styleSheet = (params: { theme: Theme }) => {
     modalContainer: {
       flex: 1,
       justifyContent: 'flex-end',
+      backgroundColor: theme.colors.overlay.default,
     },
     pickerContainer: {
       backgroundColor: theme.colors.background.default,
@@ -35,165 +66,159 @@ const styleSheet = (params: { theme: Theme }) => {
     buttonContainer: {
       flexDirection: 'row',
       justifyContent: 'flex-end',
+      marginBottom: 8,
     },
     touchableArea: {
       width: '100%',
+    },
+    dateTimePicker: {
+      backgroundColor: theme.colors.background.default,
     },
   });
 };
 
 interface DepositDateFieldProps {
   label: string;
-  placeholder?: string;
   value: string;
   onChangeText: (text: string) => void;
+  placeholder?: string;
   error?: string;
-  testID?: string;
   containerStyle?: object;
   maximumDate?: Date;
   minimumDate?: Date;
-  nextInputRef?: React.RefObject<TextInput>;
+  onSubmitEditing?: () => void;
 }
 
-const DepositDateField = ({
-  label,
-  placeholder = 'MM/DD/YYYY',
-  value,
-  onChangeText,
-  error,
-  testID,
-  containerStyle,
-  maximumDate,
-  minimumDate,
-  nextInputRef,
-}: DepositDateFieldProps) => {
-  const { styles, theme } = useStyles(styleSheet, {});
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const fieldRef = useRef<TextInput>(null);
+const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
+  (
+    {
+      label,
+      placeholder = 'MM/DD/YYYY',
+      value,
+      onChangeText,
+      error,
+      containerStyle,
+      onSubmitEditing,
+    },
+    ref,
+  ) => {
+    const { styles, theme } = useStyles(styleSheet, {});
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+    const fieldRef = useRef<TextInput>(null);
 
-  const getDateValue = useMemo(() => {
-    if (value) {
-      const [month, day, year] = value.split('/').map(Number);
-      const parsedDate = new Date(year, month - 1, day);
-      if (!isNaN(parsedDate.getTime())) {
-        return parsedDate;
-      }
-    }
-    return new Date();
-  }, [value]);
+    const dateDisplayValue = useMemo(() => getDateDisplayValue(value), [value]);
 
-  const formatDate = (date: Date): string => {
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${month}/${day}/${year}`;
-  };
-
-  const focusNextInput = () => {
-    if (nextInputRef?.current) {
-      nextInputRef.current.focus();
-    }
-  };
-
-  // @ts-expect-error - first param is not used
-  const handleDateChange = (_, date?: Date) => {
-    if (Platform.OS === 'android') {
+    const handleClosePicker = () => {
       setShowDatePicker(false);
-    }
+      setSelectedDate(null);
+    };
 
-    if (date) {
-      setSelectedDate(date);
-
-      if (Platform.OS === 'android') {
+    // @ts-expect-error - first param is not used
+    const handleDateChangeAndroid = (_, date?: Date) => {
+      setShowDatePicker(false);
+      if (date) {
+        setSelectedDate(date);
         onChangeText(formatDate(date));
-        focusNextInput();
+        onSubmitEditing?.();
       }
-    }
-  };
+    };
 
-  const handleConfirm = () => {
-    setShowDatePicker(false);
+    // @ts-expect-error - first param is not used
+    const handleDateChangeIos = (_, date?: Date) => {
+      if (date) {
+        setSelectedDate(date);
+      }
+    };
 
-    if (selectedDate) {
-      onChangeText(formatDate(selectedDate));
-    }
+    const handleConfirmIos = () => {
+      setShowDatePicker(false);
+      if (selectedDate) {
+        onChangeText(formatDate(selectedDate));
+        onSubmitEditing?.();
+      }
+    };
 
-    focusNextInput();
-  };
+    const preventModalDismissal = () => {
+      // Prevents touch events from bubbling up to the outer TouchableWithoutFeedback
+    };
 
-  return (
-    <>
-      <TouchableWithoutFeedback
-        onPress={() => setShowDatePicker(true)}
-        testID={`${testID}-touchable`}
-      >
-        <View style={styles.touchableArea}>
-          <DepositTextField
-            startAccessory={
-              <IonicIcon
-                name="calendar-outline"
-                size={20}
-                style={styles.calendarIcon}
-              />
-            }
-            label={label}
-            placeholder={placeholder}
-            value={value}
-            error={error}
-            testID={testID}
-            containerStyle={containerStyle}
-            ref={fieldRef}
-            pointerEvents="none"
-            onPress={() => setShowDatePicker(true)}
-          />
-        </View>
-      </TouchableWithoutFeedback>
-
-      {Platform.OS === 'android' && showDatePicker && (
-        <DateTimePicker
-          testID={`${testID}-picker`}
-          value={getDateValue}
-          mode="date"
-          display="default"
-          onChange={handleDateChange}
-          maximumDate={maximumDate}
-          minimumDate={minimumDate}
-        />
-      )}
-
-      {Platform.OS === 'ios' && (
-        <Modal
-          transparent
-          animationType="fade"
-          visible={showDatePicker}
-          onRequestClose={handleConfirm}
-        >
-          <View style={styles.modalContainer}>
-            <View style={styles.pickerContainer}>
-              <View style={styles.buttonContainer}>
-                <Button
-                  title="Done"
-                  onPress={handleConfirm}
-                  color={theme.colors.primary.default}
+    return (
+      <>
+        <TouchableWithoutFeedback onPress={() => setShowDatePicker(true)}>
+          <View style={styles.touchableArea}>
+            <DepositTextField
+              startAccessory={
+                <IonicIcon
+                  name="calendar-outline"
+                  size={20}
+                  style={styles.calendarIcon}
                 />
-              </View>
-              <DateTimePicker
-                testID={`${testID}-picker`}
-                value={getDateValue}
-                mode="date"
-                display="spinner"
-                onChange={handleDateChange}
-                maximumDate={maximumDate}
-                minimumDate={minimumDate}
-                style={{ backgroundColor: theme.colors.background.default }}
-              />
-            </View>
+              }
+              label={label}
+              placeholder={placeholder}
+              value={value}
+              error={error}
+              containerStyle={containerStyle}
+              ref={ref || fieldRef}
+              pointerEvents="none"
+              readOnly
+            />
           </View>
-        </Modal>
-      )}
-    </>
-  );
-};
+        </TouchableWithoutFeedback>
+
+        {Platform.OS === 'android' && showDatePicker && (
+          <DateTimePicker
+            value={dateDisplayValue}
+            mode="date"
+            display="default"
+            onChange={handleDateChangeAndroid}
+            maximumDate={MAXIMUM_DATE}
+            minimumDate={MINIMUM_DATE}
+          />
+        )}
+
+        {Platform.OS === 'ios' && (
+          <Modal
+            transparent
+            animationType="fade"
+            visible={showDatePicker}
+            onRequestClose={handleClosePicker}
+          >
+            <TouchableWithoutFeedback onPress={handleClosePicker}>
+              <View style={styles.modalContainer}>
+                <TouchableWithoutFeedback onPress={preventModalDismissal}>
+                  <View style={styles.pickerContainer}>
+                    <View style={styles.buttonContainer}>
+                      <Button
+                        title="Cancel"
+                        onPress={handleClosePicker}
+                        color={theme.colors.text.muted}
+                      />
+                      <Button
+                        title="Done"
+                        onPress={handleConfirmIos}
+                        color={theme.colors.primary.default}
+                      />
+                    </View>
+                    <DateTimePicker
+                      value={dateDisplayValue}
+                      mode="date"
+                      display="spinner"
+                      onChange={handleDateChangeIos}
+                      maximumDate={MAXIMUM_DATE}
+                      minimumDate={MINIMUM_DATE}
+                      style={styles.dateTimePicker}
+                    />
+                  </View>
+                </TouchableWithoutFeedback>
+              </View>
+            </TouchableWithoutFeedback>
+          </Modal>
+        )}
+      </>
+    );
+  },
+);
 
 export default DepositDateField;

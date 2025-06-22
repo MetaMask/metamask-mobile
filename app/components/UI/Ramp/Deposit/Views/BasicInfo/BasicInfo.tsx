@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useRef } from 'react';
-import { View, TextInput } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { View, TextInput, Platform, Keyboard } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import StyledButton from '../../../../StyledButton';
@@ -45,7 +46,14 @@ const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { quote, kycUrl } = useParams<BasicInfoParams>();
+
+  const firstNameInputRef = useRef<TextInput>(null);
+  const lastNameInputRef = useRef<TextInput>(null);
+  const phoneInputRef = useRef<TextInput>(null);
+  const dateInputRef = useRef<TextInput>(null);
   const ssnInputRef = useRef<TextInput>(null);
+
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   const initialFormData: BasicInfoFormData = {
     firstName: '',
@@ -96,6 +104,26 @@ const BasicInfo = (): JSX.Element => {
   );
 
   useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true);
+      },
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setKeyboardVisible(false);
+      },
+    );
+
+    return () => {
+      keyboardDidShowListener?.remove();
+      keyboardDidHideListener?.remove();
+    };
+  }, []);
+
+  useEffect(() => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
@@ -122,91 +150,130 @@ const BasicInfo = (): JSX.Element => {
     }
   }, [navigation, validateFormData, formData, quote, kycUrl]);
 
+  const handleSubmitEditing = useCallback(
+    (nextRef: React.RefObject<TextInput>) => {
+      nextRef.current?.focus();
+    },
+    [],
+  );
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <ScreenLayout.Content grow>
-          <DepositProgressBar steps={4} currentStep={2} />
-          <Text style={styles.subtitle}>
-            {strings('deposit.basic_info.subtitle')}
-          </Text>
-          <View style={styles.nameInputRow}>
-            <DepositTextField
-              label="First Name"
-              placeholder="John"
-              value={formData.firstName}
-              onChangeText={handleFormDataChange('firstName')}
-              error={errors.firstName}
+        <KeyboardAwareScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          enableOnAndroid
+          extraHeight={Platform.OS === 'android' ? 120 : 0}
+          extraScrollHeight={Platform.OS === 'android' ? 20 : 0}
+        >
+          <ScreenLayout.Content grow style={styles.screenContent}>
+            <DepositProgressBar steps={4} currentStep={2} />
+            <Text style={styles.subtitle}>
+              {strings('deposit.basic_info.subtitle')}
+            </Text>
+
+            <View style={styles.nameInputRow}>
+              <DepositTextField
+                label="First Name"
+                placeholder="John"
+                value={formData.firstName}
+                onChangeText={handleFormDataChange('firstName')}
+                error={errors.firstName}
+                returnKeyType="next"
+                testID="first-name-input"
+                containerStyle={styles.nameInputContainer}
+                ref={firstNameInputRef}
+                autoComplete="given-name"
+                textContentType="givenName"
+                autoCapitalize="words"
+                onSubmitEditing={() => handleSubmitEditing(lastNameInputRef)}
+              />
+
+              <DepositTextField
+                label="Last Name"
+                placeholder="Smith"
+                value={formData.lastName}
+                onChangeText={handleFormDataChange('lastName')}
+                error={errors.lastName}
+                returnKeyType="next"
+                testID="last-name-input"
+                containerStyle={styles.nameInputContainer}
+                ref={lastNameInputRef}
+                autoComplete="family-name"
+                textContentType="familyName"
+                autoCapitalize="words"
+                onSubmitEditing={() => handleSubmitEditing(phoneInputRef)}
+              />
+            </View>
+
+            <DepositPhoneField
+              // TODO: Add internationalization for phone number format
+              // TODO: Automatic formatting
+              countryCode={COUNTRY_CODE}
+              label="Phone Number"
+              placeholder="(234) 567-8910"
+              value={formData.mobileNumber}
+              onChangeText={handleFormDataChange('mobileNumber')}
+              error={errors.mobileNumber}
+              testID="phone-number-input"
               returnKeyType="next"
-              testID="first-name-input"
-              containerStyle={styles.nameInputContainer}
+              ref={phoneInputRef}
+              autoComplete="tel"
+              textContentType="telephoneNumber"
+              keyboardType="phone-pad"
+              onSubmitEditing={() => handleSubmitEditing(dateInputRef)}
+            />
+
+            <DepositDateField
+              label="Date of Birth"
+              placeholder="MM/DD/YYYY"
+              value={formData.dob}
+              onChangeText={handleFormDataChange('dob')}
+              error={errors.dob}
+              onSubmitEditing={() => handleSubmitEditing(ssnInputRef)}
+              ref={dateInputRef}
             />
 
             <DepositTextField
-              label="Last Name"
-              placeholder="Smith"
-              value={formData.lastName}
-              onChangeText={handleFormDataChange('lastName')}
-              error={errors.lastName}
-              returnKeyType="next"
-              testID="last-name-input"
-              containerStyle={styles.nameInputContainer}
+              label="Social Security Number"
+              placeholder="XXX-XX-XXXX"
+              value={formData.ssn}
+              onChangeText={handleFormDataChange('ssn')}
+              error={errors.ssn}
+              returnKeyType="done"
+              testID="ssn-input"
+              ref={ssnInputRef}
+              autoComplete="off"
+              textContentType="none"
+              secureTextEntry
+              keyboardType="number-pad"
+              maxLength={11}
+              onSubmitEditing={() => {
+                Keyboard.dismiss();
+                handleOnPressContinue();
+              }}
             />
-          </View>
-          <DepositPhoneField
-            // TODO: Add internationalization for phone number format
-            // TODO: Automatic formatting
-            countryCode={COUNTRY_CODE}
-            label="Phone Number"
-            placeholder="(234) 567-8910"
-            value={formData.mobileNumber}
-            onChangeText={handleFormDataChange('mobileNumber')}
-            error={errors.mobileNumber}
-            testID="phone-number-input"
-            returnKeyType="next"
-          />
-
-          <DepositDateField
-            label="Date of Birth"
-            // TODO: Internationalize date format
-            placeholder="MM/DD/YYYY"
-            value={formData.dob}
-            onChangeText={handleFormDataChange('dob')}
-            error={errors.dob}
-            testID="dob-input"
-            maximumDate={new Date()}
-            nextInputRef={ssnInputRef}
-          />
-
-          <DepositTextField
-            // TODO: Contextual rendering of SSN input based on country
-            // TODO: Automatically format SSN input?
-            label="Social Security Number"
-            placeholder="XXX-XX-XXXX"
-            value={formData.ssn}
-            onChangeText={handleFormDataChange('ssn')}
-            error={errors.ssn}
-            returnKeyType="done"
-            keyboardType="number-pad"
-            secureTextEntry
-            testID="ssn-input"
-            ref={ssnInputRef}
-          />
-        </ScreenLayout.Content>
+          </ScreenLayout.Content>
+        </KeyboardAwareScrollView>
       </ScreenLayout.Body>
-      <ScreenLayout.Footer>
-        <ScreenLayout.Content>
-          <Row>
-            <StyledButton
-              type="confirm"
-              onPress={handleOnPressContinue}
-              testID="continue-button"
-            >
-              {strings('deposit.basic_info.continue')}
-            </StyledButton>
-          </Row>
-        </ScreenLayout.Content>
-      </ScreenLayout.Footer>
+      {!keyboardVisible && (
+        <ScreenLayout.Footer>
+          <ScreenLayout.Content>
+            <Row>
+              <StyledButton
+                type="confirm"
+                onPress={handleOnPressContinue}
+                testID="continue-button"
+              >
+                {strings('deposit.basic_info.continue')}
+              </StyledButton>
+            </Row>
+          </ScreenLayout.Content>
+        </ScreenLayout.Footer>
+      )}
     </ScreenLayout>
   );
 };
