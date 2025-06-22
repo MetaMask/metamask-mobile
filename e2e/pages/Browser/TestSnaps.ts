@@ -133,7 +133,28 @@ class TestSnaps {
   }
 
   async tapValidEntropySource() {
-    await this.selectEntropySource('01JYBZ13WGV3HJ7K8091QH0ACZ', EntropyDropDownSelectorWebIDS.SNAP44_ENTROPY_DROP_DOWN as any);
+    await this.selectEntropySource('01JYCMT5Q344VAE9XDVH98WH1W', EntropyDropDownSelectorWebIDS.SNAP44_ENTROPY_DROP_DOWN as any);
+  }
+
+  async getOptionValueByText(selectorID: any, text: string) {
+    const webview = Matchers.getWebViewByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID);
+    return await webview.element(by.web.id(selectorID)).runScript((el, searchText) => {
+      if (!el || !el.options) return null;
+      const option = Array.from(el.options).find((opt: any) => opt.text.includes(searchText));
+      return option ? (option as any).value : null;
+    }, [text]);
+  }
+
+  async selectPrimaryEntropySource() {
+    const primaryValue = await this.getOptionValueByText(
+      EntropyDropDownSelectorWebIDS.SNAP44_ENTROPY_DROP_DOWN,
+      '(primary)'
+    );
+    if (primaryValue) {
+      await this.selectEntropySource(primaryValue, EntropyDropDownSelectorWebIDS.SNAP44_ENTROPY_DROP_DOWN);
+    } else {
+      throw new Error('Primary option not found in entropy dropdown');
+    }
   }
 
   async selectEntropySource(entropySource: string, selectorID: any) {
@@ -145,7 +166,6 @@ class TestSnaps {
       },
       [entropySource]
     );
-    return;
   }
 
   async connectToSnap() {

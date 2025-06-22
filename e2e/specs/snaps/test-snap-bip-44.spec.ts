@@ -23,6 +23,8 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
   const EXPECTED_SIGNATURE = '"0xa0cb4e931890059764c8ef1c4a7380c1d0bd11209eb899d49f5d2856224cb2a8a82f5136b7bc579c539332609336f3a6159fc1df6116acfe55dbbe5ccdffecc4984904c603dda0b3c91757dc6a590069a6c41837e1ab88e9dc21769d742f9a67"';
   const EXPECTED_CUSTOM_SIGNATURE = '"0xac396aaaf817d880ceab9b24995818436dee605524ae68061661fd69e340068fd55a24f579017c3591ed60d4738f25720ac3f23964c0209119e8afb2e20088a652b581a32b96002b7a282bf200ef1a463fb0ff56e2c3937f140a5300a5eacbc1"';
   const customMessage = 'This is a custom test message.';
+  const EXPECTED_FOO_BAR_SIGNATURE = '"0x988251404ed60124cc6a4c17bfda9659d59273b675d1cd942478960b0747f1c182076df7bc695ac1459416d0ab7e789f078a3c6f3e438d568f9c05260d95b716c7ba1942661f22f966f2691dc282b40523c073e88b6b43d9dd2983c85cbe6142"';
+
 
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
@@ -88,11 +90,12 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
 
   it('should select an valid entropy source ', async () => {
     await TestSnaps.tapEntropyDropDown();
-    await TestSnaps.tapValidEntropySource();
-    await TestSnaps.typeSignMessage(customMessage);
-    await TestSnaps.approveSignRequest();
+    await TestSnaps.selectPrimaryEntropySource();
+    await TestSnaps.typeSignMessage('foo bar');
     await TestSnaps.tapSignBip44MessageButton();
-    await Assertions.checkIfTextIsDisplayed('Entropy source with ID "invalid" not found.');
+    await TestSnaps.approveSignRequest();
+    const actualText = await TestSnaps.getSignBip44MessageResultText();
+    await Assertions.checkIfTextMatches(actualText, EXPECTED_FOO_BAR_SIGNATURE);
   });
 
   it('should select an invalid entropy source ', async () => {
