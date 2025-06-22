@@ -6,7 +6,7 @@ import LoginView from '../../pages/wallet/LoginView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacyView from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import ChangePasswordView from '../../pages/Settings/SecurityAndPrivacy/ChangePasswordView';
-import DeleteWalletModal from '../../pages/Settings/SecurityAndPrivacy/DeleteWalletModal';
+import ForgotPasswordModal from '../../pages/Common/ForgotPasswordModalView';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -62,14 +62,10 @@ describe(
         // should tap reset wallet button
         await LoginView.tapResetWalletButton();
 
-        /** need to add/update page object modal for delete wallet */
-        // await Assertions.checkIfVisible(DeleteWalletModal.container);
-
-        // should delete wallet
-        // await DeleteWalletModal.tapIUnderstandButton();
-        // await DeleteWalletModal.typeDeleteInInputBox();
-        // await DeleteWalletModal.tapDeleteMyWalletButton();
-        // await Assertions.checkIfVisible(OnboardingView.container);
+        // should reset wallet
+        await ForgotPasswordModal.tapResetWalletButton();
+        await ForgotPasswordModal.tapYesResetWalletButton();
+        await Assertions.checkIfVisible(OnboardingView.container);
       });
     });
   },
