@@ -9,6 +9,10 @@ export const TestSnapInputSelectorWebIDS = {
   MESSAGE_BIP44_INPUT_ID: 'bip44Message',
 };
 
+export const EntropyDropDownSelectorWebIDS = {
+  SNAP44_ENTROPY_DROP_DOWN: 'bip44-entropy-selector',
+};
+
 export const TestSnapResultSelectorWebIDS = {
   BIP44_RESULT_SPAN_ID: 'bip44Result',
   BIP44_SIGN_RESULT_SPAN_ID: 'bip44SignResult',

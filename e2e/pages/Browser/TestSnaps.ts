@@ -7,6 +7,7 @@ import {
   TestSnapInputSelectorWebIDS,
   TestSnapResultSelectorWebIDS,
   TestSnapBottomSheetSelectorWebIDS,
+  EntropyDropDownSelectorWebIDS,
 } from '../../selectors/Browser/TestSnaps.selectors';
 import Gestures from '../../utils/Gestures';
 import {
@@ -52,6 +53,13 @@ class TestSnaps {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapInputSelectorWebIDS.MESSAGE_BIP44_INPUT_ID,
+    );
+  }
+
+  get getEntropyDropDown() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      EntropyDropDownSelectorWebIDS.SNAP44_ENTROPY_DROP_DOWN,
     );
   }
 
@@ -114,6 +122,30 @@ class TestSnaps {
     await Gestures.scrollToWebViewPort(elementId);
     await TestHelpers.delay(1000);
     await Gestures.tapWebElement(elementId);
+  }
+
+  async tapEntropyDropDown() {
+    await this.tapButton(this.getEntropyDropDown);
+  }
+
+  async tapInvalidEntropySource() {
+    await this.selectEntropySource('invalid', EntropyDropDownSelectorWebIDS.SNAP44_ENTROPY_DROP_DOWN as any);
+  }
+
+  async tapValidEntropySource() {
+    await this.selectEntropySource('01JYBZ13WGV3HJ7K8091QH0ACZ', EntropyDropDownSelectorWebIDS.SNAP44_ENTROPY_DROP_DOWN as any);
+  }
+
+  async selectEntropySource(entropySource: string, selectorID: any) {
+    const webview = Matchers.getWebViewByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID);
+    await webview.element(by.web.id(selectorID)).runScript(
+      (el, value) => {
+        el.value = value;
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      },
+      [entropySource]
+    );
+    return;
   }
 
   async connectToSnap() {

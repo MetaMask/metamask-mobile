@@ -85,4 +85,21 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
     const actualText = await TestSnaps.getSignBip44MessageResultText();
     await Assertions.checkIfTextMatches(actualText, EXPECTED_CUSTOM_SIGNATURE);
   });
+
+  it('should select an valid entropy source ', async () => {
+    await TestSnaps.tapEntropyDropDown();
+    await TestSnaps.tapValidEntropySource();
+    await TestSnaps.typeSignMessage(customMessage);
+    await TestSnaps.approveSignRequest();
+    await TestSnaps.tapSignBip44MessageButton();
+    await Assertions.checkIfTextIsDisplayed('Entropy source with ID "invalid" not found.');
+  });
+
+  it('should select an invalid entropy source ', async () => {
+    await TestSnaps.tapEntropyDropDown();
+    await TestSnaps.tapInvalidEntropySource();
+    await TestSnaps.typeSignMessage(customMessage);
+    await TestSnaps.tapSignBip44MessageButton();
+    await Assertions.checkIfTextIsDisplayed('Entropy source with ID "invalid" not found.');
+  });
 });
