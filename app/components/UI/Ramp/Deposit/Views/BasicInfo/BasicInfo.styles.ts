@@ -21,15 +21,6 @@ const styleSheet = (params: { theme: Theme }) => {
     calendarIcon: {
       color: theme.colors.icon.default,
     },
-    scrollView: {
-      flex: 1,
-    },
-    scrollViewContent: {
-      flexGrow: 1,
-    },
-    screenContent: {
-      flex: 1,
-    },
   });
 };
 

@@ -5,7 +5,6 @@ import {
   TextInput,
   ViewStyle,
   StyleProp,
-  TextInputProps,
 } from 'react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Label from '../../../../../../component-library/components/Form/Label';
@@ -22,9 +21,6 @@ interface DepositTextFieldProps extends Omit<TextFieldProps, 'size'> {
   label: string;
   error?: string;
   containerStyle?: StyleProp<ViewStyle>;
-  // Auto-fill properties - using React Native TextInputProps types
-  autoComplete?: TextInputProps['autoComplete'];
-  textContentType?: TextInputProps['textContentType'];
 }
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -47,7 +43,7 @@ const styleSheet = (params: { theme: Theme }) => {
 };
 
 const DepositTextField = forwardRef<TextInput, DepositTextFieldProps>(
-  ({ label, error, containerStyle, style, autoComplete, textContentType, ...textFieldProps }, ref) => {
+  ({ label, error, containerStyle, style, ...textFieldProps }, ref) => {
     const { styles, theme } = useStyles(styleSheet, {});
 
     return (
@@ -61,8 +57,6 @@ const DepositTextField = forwardRef<TextInput, DepositTextFieldProps>(
           keyboardAppearance={theme.themeAppearance}
           style={style}
           ref={ref}
-          autoComplete={autoComplete}
-          textContentType={textContentType}
           {...textFieldProps}
         />
         {error ? <Text style={styles.error}>{error}</Text> : null}

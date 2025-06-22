@@ -448,11 +448,6 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                         >
                           <RCTScrollView
                             automaticallyAdjustContentInsets={false}
-                            contentContainerStyle={
-                              {
-                                "flexGrow": 1,
-                              }
-                            }
                             contentInset={
                               {
                                 "bottom": 0,
@@ -478,11 +473,6 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                             scrollToFocusedInput={[Function]}
                             scrollToPosition={[Function]}
                             showsVerticalScrollIndicator={false}
-                            style={
-                              {
-                                "flex": 1,
-                              }
-                            }
                             update={[Function]}
                             viewIsInsideTabBar={false}
                           >
@@ -496,9 +486,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                     {
                                       "flex": 1,
                                     },
-                                    {
-                                      "flex": 1,
-                                    },
+                                    undefined,
                                   ]
                                 }
                               >
@@ -1714,11 +1702,6 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                         >
                           <RCTScrollView
                             automaticallyAdjustContentInsets={false}
-                            contentContainerStyle={
-                              {
-                                "flexGrow": 1,
-                              }
-                            }
                             contentInset={
                               {
                                 "bottom": 0,
@@ -1744,11 +1727,6 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                             scrollToFocusedInput={[Function]}
                             scrollToPosition={[Function]}
                             showsVerticalScrollIndicator={false}
-                            style={
-                              {
-                                "flex": 1,
-                              }
-                            }
                             update={[Function]}
                             viewIsInsideTabBar={false}
                           >
@@ -1762,9 +1740,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                     {
                                       "flex": 1,
                                     },
-                                    {
-                                      "flex": 1,
-                                    },
+                                    undefined,
                                   ]
                                 }
                               >
@@ -2980,11 +2956,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                         >
                           <RCTScrollView
                             automaticallyAdjustContentInsets={false}
-                            contentContainerStyle={
-                              {
-                                "flexGrow": 1,
-                              }
-                            }
                             contentInset={
                               {
                                 "bottom": 0,
@@ -3010,11 +2981,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                             scrollToFocusedInput={[Function]}
                             scrollToPosition={[Function]}
                             showsVerticalScrollIndicator={false}
-                            style={
-                              {
-                                "flex": 1,
-                              }
-                            }
                             update={[Function]}
                             viewIsInsideTabBar={false}
                           >
@@ -3028,9 +2994,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     {
                                       "flex": 1,
                                     },
-                                    {
-                                      "flex": 1,
-                                    },
+                                    undefined,
                                   ]
                                 }
                               >

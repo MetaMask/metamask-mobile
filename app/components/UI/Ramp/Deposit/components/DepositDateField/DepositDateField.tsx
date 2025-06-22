@@ -84,8 +84,6 @@ interface DepositDateFieldProps {
   placeholder?: string;
   error?: string;
   containerStyle?: object;
-  maximumDate?: Date;
-  minimumDate?: Date;
   onSubmitEditing?: () => void;
 }
 

@@ -161,15 +161,13 @@ const BasicInfo = (): JSX.Element => {
     <ScreenLayout>
       <ScreenLayout.Body>
         <KeyboardAwareScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollViewContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           enableOnAndroid
           extraHeight={Platform.OS === 'android' ? 120 : 0}
           extraScrollHeight={Platform.OS === 'android' ? 20 : 0}
         >
-          <ScreenLayout.Content grow style={styles.screenContent}>
+          <ScreenLayout.Content grow>
             <DepositProgressBar steps={4} currentStep={2} />
             <Text style={styles.subtitle}>
               {strings('deposit.basic_info.subtitle')}
@@ -177,7 +175,7 @@ const BasicInfo = (): JSX.Element => {
 
             <View style={styles.nameInputRow}>
               <DepositTextField
-                label="First Name"
+                label={strings('deposit.basic_info.first_name')}
                 placeholder="John"
                 value={formData.firstName}
                 onChangeText={handleFormDataChange('firstName')}
@@ -193,7 +191,7 @@ const BasicInfo = (): JSX.Element => {
               />
 
               <DepositTextField
-                label="Last Name"
+                label={strings('deposit.basic_info.last_name')}
                 placeholder="Smith"
                 value={formData.lastName}
                 onChangeText={handleFormDataChange('lastName')}
@@ -213,7 +211,7 @@ const BasicInfo = (): JSX.Element => {
               // TODO: Add internationalization for phone number format
               // TODO: Automatic formatting
               countryCode={COUNTRY_CODE}
-              label="Phone Number"
+              label={strings('deposit.basic_info.phone_number')}
               placeholder="(234) 567-8910"
               value={formData.mobileNumber}
               onChangeText={handleFormDataChange('mobileNumber')}
@@ -228,7 +226,7 @@ const BasicInfo = (): JSX.Element => {
             />
 
             <DepositDateField
-              label="Date of Birth"
+              label={strings('deposit.basic_info.date_of_birth')}
               placeholder="MM/DD/YYYY"
               value={formData.dob}
               onChangeText={handleFormDataChange('dob')}
@@ -238,7 +236,7 @@ const BasicInfo = (): JSX.Element => {
             />
 
             <DepositTextField
-              label="Social Security Number"
+              label={strings('deposit.basic_info.social_security_number')}
               placeholder="XXX-XX-XXXX"
               value={formData.ssn}
               onChangeText={handleFormDataChange('ssn')}

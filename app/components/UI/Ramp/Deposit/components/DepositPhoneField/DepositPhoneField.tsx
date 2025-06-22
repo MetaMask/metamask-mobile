@@ -5,7 +5,6 @@ import {
   TextInput,
   StyleProp,
   ViewStyle,
-  TextInputProps,
 } from 'react-native';
 
 import Label from '../../../../../../component-library/components/Form/Label';
@@ -28,9 +27,6 @@ interface PhoneFieldProps
   containerStyle?: StyleProp<ViewStyle>;
   countryCode?: string;
   countryFlag?: string;
-  // Auto-fill properties
-  autoComplete?: TextInputProps['autoComplete'];
-  textContentType?: TextInputProps['textContentType'];
 }
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -91,8 +87,6 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
       error,
       countryCode = '1',
       countryFlag = '🇺🇸',
-      autoComplete,
-      textContentType,
       ...textFieldProps
     },
     ref,
@@ -128,8 +122,6 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
             ref={ref}
             onChangeText={handlePhoneNumberChange}
             style={styles.phoneInput}
-            autoComplete={autoComplete}
-            textContentType={textContentType}
             {...textFieldProps}
             value={formattedPhoneNumber}
           />
