@@ -60,7 +60,8 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import { formatAmount } from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
-import { QuickAmount, Region, ScreenLocation } from '../../types';
+import { QuickAmount, Region } from '../../types';
+import { ScreenLocation } from '../../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { selectTicker } from '../../../../../../selectors/networkController';
 

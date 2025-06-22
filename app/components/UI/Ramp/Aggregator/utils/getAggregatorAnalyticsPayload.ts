@@ -1,7 +1,7 @@
 import { Order } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
-import { AnalyticsEvents } from '../types';
+import { AnalyticsEvents } from '../../types';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 
 const getAggregatorAnalyticsPayload = (
