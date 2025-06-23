@@ -47,6 +47,7 @@ exports[`SampleFeature matches rendered snapshot 1`] = `
       },
     ]
   }
+  testID="sample-feature-container"
   update={[Function]}
   viewIsInsideTabBar={false}
 >
