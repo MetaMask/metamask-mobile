@@ -2,6 +2,9 @@ import React, { useEffect } from 'react';
 import { Linking, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ScrollView } from 'react-native-gesture-handler';
+import LottieView from 'lottie-react-native';
+
+import fox from '../../../animations/Solana_Fox.json';
 import { baseStyles, colors as importedColors } from '../../../styles/common';
 import Text, {
   TextVariant,
@@ -11,8 +14,6 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import LottieView from 'lottie-react-native';
-
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -24,7 +25,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { SolanaNewFeatureSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/SolanaNewFeatureSheet.selectors';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
-import fox from '../../../animations/Solana_Fox.json';
 
 const SolanaNewFeatureContent = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -49,9 +49,6 @@ const SolanaNewFeatureContent = () => {
     checkModalStatus();
   }, []);
 
-  /**
-   * Close Button, invokes both modal closing and ref closing
-   */
   const handleClose = async () => {
     await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'true');
 
@@ -84,7 +81,6 @@ const SolanaNewFeatureContent = () => {
     );
 
     await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'true');
-
     navigate(Routes.MULTI_SRP.IMPORT);
   };
 

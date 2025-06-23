@@ -58,14 +58,6 @@ const renderWithProviders = (component: React.ReactElement) =>
 describe('SolanaNewFeatureContent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTheme.mockReturnValue({
-      colors: {
-        background: { default: '#ffffff' },
-        text: { default: '#000000' },
-        primary: { default: '#037dd6' },
-        border: { muted: '#d6d9dc' },
-      },
-    });
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue('false');
   });
 
@@ -174,7 +166,6 @@ describe('SolanaNewFeatureContent', () => {
     const { getByTestId } = renderWithProviders(<SolanaNewFeatureContent />);
 
     await waitFor(() => {
-      // The LottieView should be rendered within the largeFoxWrapper
       expect(getByTestId('solana-new-feature-sheet')).toBeTruthy();
     });
   });
