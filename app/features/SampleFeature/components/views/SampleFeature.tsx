@@ -48,6 +48,7 @@ const SampleFeature = () => {
       style={[baseStyles.flexGrow, styles.wrapper]}
       resetScrollToCoords={{ x: 0, y: 0 }}
       keyboardShouldPersistTaps={'always'}
+      testID="sample-feature-container"
     >
       <Text
         color={TextColor.Default}
