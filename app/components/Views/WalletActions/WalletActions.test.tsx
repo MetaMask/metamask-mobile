@@ -4,31 +4,43 @@ import { selectChainId } from '../../../selectors/networkController';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { SolScope } from '@metamask/keyring-api';
-
 import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
-
-import WalletActions from './WalletActions';
-import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { RootState } from '../../../reducers';
-import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
+import { RootState } from '../../../reducers';
+import { RampType } from '../../../reducers/fiatOrders/types';
+import { earnSelectors } from '../../../selectors/earnController/earn';
 import {
   expectedUuid2,
   MOCK_ACCOUNTS_CONTROLLER_STATE,
 } from '../../../util/test/accountsControllerTestUtils';
 import Engine from '../../../core/Engine';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import { mockNetworkState } from '../../../util/test/network';
 import { trace, TraceName } from '../../../util/trace';
-import { RampType } from '../../../reducers/fiatOrders/types';
-import { selectStablecoinLendingEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
 import { ethers } from 'ethers';
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../UI/Earn/selectors/featureFlags';
+import { EarnTokenDetails } from '../../UI/Earn/types/lending.types';
+import WalletActions from './WalletActions';
 
 jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
+  selectPooledStakingEnabledFlag: jest.fn(),
+}));
+
+jest.mock('../../../selectors/earnController/earn', () => ({
+  earnSelectors: {
+    selectEarnTokens: jest.fn().mockReturnValue({
+      earnTokens: [],
+    }),
+  },
 }));
 
 jest.mock('../../../core/SnapKeyring/utils/sendMultichainTransaction', () => ({
@@ -527,7 +539,63 @@ describe('WalletActions', () => {
     ).not.toHaveBeenCalled();
   });
 
+  it('should hide the earn button if there are no elements to show and pooled staking is disabled', () => {
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectPooledStakingEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingEnabledFlag
+      >
+    ).mockReturnValue(false);
+
+    (
+      earnSelectors.selectEarnTokens as jest.MockedFunction<
+        typeof earnSelectors.selectEarnTokens
+      >
+    ).mockReturnValue({
+      earnTokens: [
+        {
+          address: '0x0',
+          chainId: '0x1',
+          decimals: 18,
+          image: '',
+          name: 'ETH',
+          isETH: true,
+          isStaked: false,
+        },
+      ] as unknown as EarnTokenDetails[],
+      earnOutputTokens: [],
+      earnTokensByChainIdAndAddress: {},
+      earnOutputTokensByChainIdAndAddress: {},
+      earnTokenPairsByChainIdAndAddress: {},
+      earnOutputTokenPairsByChainIdAndAddress: {},
+      earnableTotalFiatNumber: 0,
+      earnableTotalFiatFormatted: '$0',
+    });
+
+    const { queryByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
+
+    expect(
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
+    ).toBeNull();
+  });
+
   it('disables action buttons when the account cannot sign transactions', () => {
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectPooledStakingEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingEnabledFlag
+      >
+    ).mockReturnValue(true);
     (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(false);
     (isSwapsAllowed as jest.Mock).mockReturnValue(true);
     (isBridgeAllowed as jest.Mock).mockReturnValue(true);

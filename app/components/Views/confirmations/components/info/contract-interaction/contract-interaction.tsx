@@ -27,7 +27,7 @@ const ContractInteraction = () => {
       {isBatchedUpgrade && <SwitchAccountTypeInfoRow />}
       <SimulationDetails
         transaction={transactionMetadata as TransactionMeta}
-        enableMetrics={false}
+        enableMetrics
         isTransactionsRedesign
       />
       <OriginRow isSignatureRequest={false} />

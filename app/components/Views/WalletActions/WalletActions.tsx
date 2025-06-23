@@ -50,18 +50,24 @@ import {
   SwapBridgeNavigationLocation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { RampType } from '../../../reducers/fiatOrders/types';
-import { selectStablecoinLendingEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../UI/Earn/selectors/featureFlags';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
 import { selectDepositEntrypointWalletActions } from '../../../selectors/featureFlagController/deposit';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
 import Engine from '../../../core/Engine';
 import { selectMultichainTokenListForAccountId } from '../../../selectors/multichain/multichain';
 import { RootState } from '../../../reducers';
+import { earnSelectors } from '../../../selectors/earnController/earn';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+  const { earnTokens } = useSelector(earnSelectors.selectEarnTokens);
 
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectEvmTicker);
@@ -330,6 +336,17 @@ const WalletActions = () => {
     [styles.icon],
   );
 
+  const isEarnWalletActionEnabled = useMemo(() => {
+    if (
+      !isStablecoinLendingEnabled ||
+      (earnTokens.length <= 1 &&
+        earnTokens[0]?.isETH &&
+        !isPooledStakingEnabled)
+    ) {
+      return false;
+    }
+    return true;
+  }, [isStablecoinLendingEnabled, earnTokens, isPooledStakingEnabled]);
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
@@ -404,7 +421,7 @@ const WalletActions = () => {
           iconSize={AvatarSize.Md}
           disabled={false}
         />
-        {isStablecoinLendingEnabled && (
+        {isEarnWalletActionEnabled && (
           <WalletAction
             actionType={WalletActionType.Earn}
             iconName={IconName.Plant}
