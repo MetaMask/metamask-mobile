@@ -1393,6 +1393,7 @@ describe('EvmAccountSelectorList', () => {
         caipAccountId: 'eip155:0:0x123',
       },
       sectionIndex: 0,
+      accountIndex: 0,
     };
     const accountElement = renderItem({ item: accountItem });
     expect(accountElement).toBeDefined();
@@ -1445,6 +1446,7 @@ describe('EvmAccountSelectorList', () => {
         caipAccountId: 'eip155:0:0x123',
       },
       sectionIndex: 0,
+      accountIndex: 0,
     };
 
     const key = keyExtractor(accountItem);

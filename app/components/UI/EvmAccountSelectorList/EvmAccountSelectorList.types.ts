@@ -8,7 +8,7 @@ import { AccountWallet } from '@metamask/account-tree-controller';
 
 type FlattenedAccountListItem =
   | { type: 'header'; data: AccountSection; sectionIndex: number }
-  | { type: 'account'; data: Account; sectionIndex: number }
+  | { type: 'account'; data: Account; sectionIndex: number; accountIndex: number }
   | { type: 'footer'; data: AccountSection; sectionIndex: number };
 
 /**
