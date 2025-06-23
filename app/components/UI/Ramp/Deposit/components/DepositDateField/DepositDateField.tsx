@@ -27,6 +27,11 @@ const formatDate = (date: Date): string =>
     year: 'numeric',
   }).format(date);
 
+const getValidDate = (dateString: string): Date => {
+  const date = new Date(dateString);
+  return isNaN(date.getTime()) ? DEFAULT_DATE : date;
+};
+
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
@@ -137,7 +142,7 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
 
         {Platform.OS === 'android' && showDatePicker && (
           <DateTimePicker
-            value={new Date(value) || DEFAULT_DATE}
+            value={getValidDate(value)}
             mode="date"
             display="default"
             onChange={(_, date) => processSelectedDate(date)}
@@ -172,7 +177,7 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
                       />
                     </View>
                     <DateTimePicker
-                      value={new Date(value) || DEFAULT_DATE}
+                      value={getValidDate(value)}
                       mode="date"
                       display="spinner"
                       onChange={(_, date) =>
