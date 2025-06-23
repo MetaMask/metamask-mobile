@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './styles';
@@ -32,8 +32,7 @@ import { useWalletBalances } from '../hooks/useWalletBalances';
 import { RootState } from '../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import { useSelector } from 'react-redux';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
-import { getInternalAccountsFromWallet } from '../utils/getInternalAccountsFromWallet';
-import { getWalletKeyringId } from '../utils/getWalletKeyringId';
+import { useWalletInfo } from '../hooks/useWalletInfo';
 import Routes from '../../../../../constants/navigation/Routes';
 
 interface BaseWalletDetailsProps {
@@ -55,15 +54,10 @@ export const BaseWalletDetails = ({
     ? AvatarAccountType.Blockies
     : AvatarAccountType.JazzIcon;
 
-  const accounts = useMemo(
-    () => getInternalAccountsFromWallet(wallet),
-    [wallet],
-  );
+  const { accounts, keyringId, srpIndex } = useWalletInfo(wallet);
 
   const { formattedWalletTotalBalance, multichainBalancesForAllAccounts } =
     useWalletBalances(accounts);
-
-  const keyringId = getWalletKeyringId(accounts);
 
   const handleGoToAccountDetails = useCallback(
     (account: InternalAccount) => {
@@ -210,7 +204,9 @@ export const BaseWalletDetails = ({
             style={styles.srpRevealSection}
           >
             <Text variant={TextVariant.BodyMDMedium}>
-              {strings('accounts.reveal_secret_recovery_phrase')}
+              {strings('accounts.reveal_secret_recovery_phrase_with_index', {
+                index: srpIndex,
+              })}
             </Text>
             <Icon
               name={IconName.ArrowRight}

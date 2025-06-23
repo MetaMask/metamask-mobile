@@ -970,6 +970,7 @@
     "account_name": "Account name",
     "select_secret_recovery_phrase": "Select Secret Recovery Phrase",
     "reveal_secret_recovery_phrase": "Reveal Secret Recovery Phrase",
+    "reveal_secret_recovery_phrase_with_index": "Reveal Secret Recovery Phrase {{index}}",
     "add_new_hd_account_helper_text": "The Secret Recovery Phrase your new account will be generated from",
     "accounts": "accounts",
     "show_accounts": "Show",
