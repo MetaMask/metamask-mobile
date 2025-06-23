@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, TextInput, Platform, Keyboard } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { View, TextInput, Keyboard } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
 import Text from '../../../../../../component-library/components/Texts/Text';
@@ -53,8 +53,6 @@ const BasicInfo = (): JSX.Element => {
   const dateInputRef = useRef<TextInput>(null);
   const ssnInputRef = useRef<TextInput>(null);
 
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
-
   const initialFormData: BasicInfoFormData = {
     firstName: '',
     lastName: '',
@@ -104,26 +102,6 @@ const BasicInfo = (): JSX.Element => {
   );
 
   useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      'keyboardDidShow',
-      () => {
-        setKeyboardVisible(true);
-      },
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardDidHide',
-      () => {
-        setKeyboardVisible(false);
-      },
-    );
-
-    return () => {
-      keyboardDidShowListener?.remove();
-      keyboardDidHideListener?.remove();
-    };
-  }, []);
-
-  useEffect(() => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
@@ -163,11 +141,8 @@ const BasicInfo = (): JSX.Element => {
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          enableOnAndroid
-          extraHeight={Platform.OS === 'android' ? 120 : 0}
-          extraScrollHeight={Platform.OS === 'android' ? 20 : 0}
         >
-          <ScreenLayout.Content grow>
+          <ScreenLayout.Content>
             <DepositProgressBar steps={4} currentStep={2} />
             <Text style={styles.subtitle}>
               {strings('deposit.basic_info.subtitle')}
@@ -257,21 +232,20 @@ const BasicInfo = (): JSX.Element => {
           </ScreenLayout.Content>
         </KeyboardAwareScrollView>
       </ScreenLayout.Body>
-      {!keyboardVisible && (
-        <ScreenLayout.Footer>
-          <ScreenLayout.Content>
-            <Row>
-              <StyledButton
-                type="confirm"
-                onPress={handleOnPressContinue}
-                testID="continue-button"
-              >
-                {strings('deposit.basic_info.continue')}
-              </StyledButton>
-            </Row>
-          </ScreenLayout.Content>
-        </ScreenLayout.Footer>
-      )}
+
+      <ScreenLayout.Footer>
+        <ScreenLayout.Content>
+          <Row>
+            <StyledButton
+              type="confirm"
+              onPress={handleOnPressContinue}
+              testID="continue-button"
+            >
+              {strings('deposit.basic_info.continue')}
+            </StyledButton>
+          </Row>
+        </ScreenLayout.Content>
+      </ScreenLayout.Footer>
     </ScreenLayout>
   );
 };
