@@ -4,7 +4,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 
-// Exgernal dependencies
+// External dependencies
 import {
   renderShortAddress,
   getLabelTextByAddress,
