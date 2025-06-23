@@ -226,6 +226,7 @@ import {
 } from './controllers/multichain-router/constants';
 import { ErrorReportingService } from '@metamask/error-reporting-service';
 import { captureException } from '@sentry/react-native';
+import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
 
 ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
@@ -343,7 +344,7 @@ export class Engine {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const errorReportingService = new ErrorReportingService({
       messenger: errorReportingServiceMessenger,
-      captureException: (error) => captureException(error as Error),
+      captureException,
     });
 
     const networkControllerMessenger = this.controllerMessenger.getRestricted({
@@ -1258,6 +1259,7 @@ export class Engine {
         NotificationServicesController: notificationServicesControllerInit,
         NotificationServicesPushController:
           notificationServicesPushControllerInit,
+        WebSocketService: WebSocketServiceInit,
         ///: END:ONLY_INCLUDE_IF
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
         MultichainAssetsController: multichainAssetsControllerInit,
@@ -1299,6 +1301,7 @@ export class Engine {
     const snapController = controllersByName.SnapController;
     const snapInterfaceController = controllersByName.SnapInterfaceController;
     const snapsRegistry = controllersByName.SnapsRegistry;
+    const webSocketService = controllersByName.WebSocketService;
     const notificationServicesController =
       controllersByName.NotificationServicesController;
     const notificationServicesPushController =
@@ -1337,6 +1340,7 @@ export class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    snapController.init();
     // Notification Setup
     notificationServicesController.init();
     ///: END:ONLY_INCLUDE_IF
@@ -1584,6 +1588,7 @@ export class Engine {
       SubjectMetadataController: this.subjectMetadataController,
       AuthenticationController: authenticationController,
       UserStorageController: userStorageController,
+      WebSocketService: webSocketService,
       NotificationServicesController: notificationServicesController,
       NotificationServicesPushController: notificationServicesPushController,
       ///: END:ONLY_INCLUDE_IF
