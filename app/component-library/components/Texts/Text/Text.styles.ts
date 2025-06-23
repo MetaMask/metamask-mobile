@@ -68,8 +68,8 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
     ...variantObject,
     color: textColor,
     fontFamily: getFontFamily(variant, style?.fontWeight, style?.fontStyle),
-    // Only apply fontWeight on iOS, since Android uses weight-specific font family names
-    ...(Platform.OS === 'ios' && { fontWeight: finalFontWeight }),
+    // Only set fontWeight on Android to avoid conflicts with fontFamily
+    ...(Platform.OS === 'android' && { fontWeight: finalFontWeight }),
   };
 
   return StyleSheet.create({
