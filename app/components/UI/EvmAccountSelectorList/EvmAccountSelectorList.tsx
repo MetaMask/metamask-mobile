@@ -547,7 +547,7 @@ const EvmAccountSelectorList = ({
 
       accountsLengthRef.current = accounts.length;
     }
-  }, [accounts, selectedAddresses, isAutoScrollEnabled]);
+  }, [accounts, accountListRef, selectedAddresses, isAutoScrollEnabled]);
 
   return (
     <FlatList
