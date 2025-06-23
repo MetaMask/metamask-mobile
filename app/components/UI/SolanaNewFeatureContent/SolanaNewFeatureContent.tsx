@@ -47,7 +47,7 @@ const SolanaNewFeatureContent = () => {
       }
     };
     checkModalStatus();
-  }, []);
+  }, [navigate]);
 
   const handleClose = async () => {
     await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'true');
@@ -142,7 +142,7 @@ const SolanaNewFeatureContent = () => {
                 style={styles.image}
                 autoPlay
                 loop
-                // @ts-ignore
+                //@ts-expect-error - LottieView is not typed correctly
                 source={fox}
                 resizeMode="contain"
               />
@@ -163,9 +163,7 @@ const SolanaNewFeatureContent = () => {
               <Button
                 variant={ButtonVariants.Secondary}
                 onPress={() => handleClose()}
-                testID={
-                  SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON
-                }
+                testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON}
                 width={ButtonWidthTypes.Full}
                 size={ButtonSize.Lg}
                 style={styles.existingWalletButton}
