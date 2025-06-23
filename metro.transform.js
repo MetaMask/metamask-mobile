@@ -57,7 +57,7 @@ function getBuildTypeFeatures() {
   const envType = process.env.METAMASK_ENVIRONMENT ?? 'prod';
   switch (buildType) {
     case 'main':
-      return envType === 'prod' ? mainFeatureSet : betaFeatureSet;
+      return envType === 'beta' ? betaFeatureSet : mainFeatureSet;
     case 'beta':
       return betaFeatureSet;
     case 'flask':
