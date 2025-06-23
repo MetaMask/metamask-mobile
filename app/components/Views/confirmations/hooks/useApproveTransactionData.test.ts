@@ -1,5 +1,6 @@
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
+import { cloneDeep } from 'lodash';
 
+import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import {
   approveERC20TransactionStateMock,
   revokeERC20TransactionStateMock,
@@ -13,10 +14,10 @@ import {
   revokeERC20Permit2TransactionStateMock,
 } from '../__mocks__/approve-transaction-mock';
 import { TokenStandard } from '../types/token';
-import { useApproveTransactionData } from './useApproveTransactionData';
-import { useGetTokenStandardAndDetails } from './useGetTokenStandardAndDetails';
 import { ApproveMethod } from '../types/approve';
 import { ZERO_ADDRESS } from '../constants/address';
+import { useApproveTransactionData } from './useApproveTransactionData';
+import { useGetTokenStandardAndDetails } from './useGetTokenStandardAndDetails';
 
 jest.mock('./useGetTokenStandardAndDetails', () => ({
   useGetTokenStandardAndDetails: jest.fn(),
@@ -320,6 +321,78 @@ describe('useApproveTransactionData', () => {
       expect(spender).toBe(mockedSpender);
       expect(amount).toBe('0');
       expect(expiration).toBe('1746696740463');
+    });
+  });
+
+  describe('loading state', () => {
+    it('returns loading state when token standard is pending', () => {
+      mockUseGetTokenStandardAndDetails.mockReturnValue({
+        details: {
+          standard: undefined,
+        },
+        isPending: true,
+      } as unknown as ReturnType<typeof useGetTokenStandardAndDetails>);
+
+      const { result } = renderHookWithProvider(
+        () => useApproveTransactionData(),
+        {
+          state: approveERC20TransactionStateMock,
+        },
+      );
+
+      const { isLoading } = result.current;
+
+      expect(isLoading).toBe(true);
+    });
+
+    it('returns loading state when transaction metadata is not available', () => {
+      mockUseGetTokenStandardAndDetails.mockReturnValue({
+        details: {
+          standard: undefined,
+        },
+        isPending: false,
+      } as unknown as ReturnType<typeof useGetTokenStandardAndDetails>);
+
+      const clonedState = cloneDeep(approveERC20TransactionStateMock);
+
+      clonedState.engine.backgroundState.TransactionController.transactions =
+        [];
+
+      const { result } = renderHookWithProvider(
+        () => useApproveTransactionData(),
+        {
+          state: clonedState,
+        },
+      );
+
+      const { isLoading } = result.current;
+
+      expect(isLoading).toBe(true);
+    });
+
+    it('returns loading state when txParams.data is not available', () => {
+      mockUseGetTokenStandardAndDetails.mockReturnValue({
+        details: {
+          standard: undefined,
+        },
+        isPending: false,
+      } as unknown as ReturnType<typeof useGetTokenStandardAndDetails>);
+
+      const clonedState = cloneDeep(approveERC20TransactionStateMock);
+
+      clonedState.engine.backgroundState.TransactionController.transactions[0].txParams.data =
+        undefined;
+
+      const { result } = renderHookWithProvider(
+        () => useApproveTransactionData(),
+        {
+          state: clonedState,
+        },
+      );
+
+      const { isLoading } = result.current;
+
+      expect(isLoading).toBe(true);
     });
   });
 });

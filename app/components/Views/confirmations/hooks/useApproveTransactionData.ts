@@ -61,7 +61,7 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
   const transactionMetadata = useTransactionMetadataRequest();
 
   const { txParams, networkClientId } = transactionMetadata ?? {};
-  const data = txParams?.data ?? '0x';
+  const data = txParams?.data;
   const contractAddress = txParams?.to;
   const { details, isPending: isTokenStandardPending } =
     useGetTokenStandardAndDetails(contractAddress, networkClientId);
@@ -82,7 +82,7 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
 
   // Memoize the entire parsed approval data
   const parsedApproveData = useMemo((): ApproveTransactionData => {
-    if (!transactionMetadata || isTokenStandardPending) {
+    if (!transactionMetadata || isTokenStandardPending || !parsedData) {
       return {
         isLoading: true,
       };
