@@ -72,9 +72,12 @@ describe('Approve', () => {
       onReject: mockOnReject,
     }));
 
+    console.log("JEST - approveERC20TransactionStateMock", JSON.stringify(approveERC20TransactionStateMock, null, 2));
+
     const { getByText } = renderWithProvider(<Approve />, {
       state: approveERC20TransactionStateMock,
     });
+
 
     expect(getByText('Network Fee')).toBeDefined();
     expect(getByText('Advanced details')).toBeDefined();

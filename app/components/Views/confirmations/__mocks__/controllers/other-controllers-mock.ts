@@ -123,6 +123,38 @@ export const nftControllerMock = {
   },
 };
 
+export const swapsState = {
+  swaps: {
+    featureFlags: {
+      smartTransactions: {
+        mobileActive: false,
+      },
+    },
+  },
+};
+
+export const smartTransactionsControllerMock = {
+  engine: {
+    backgroundState: {
+      SmartTransactionsController: {
+        smartTransactionsState: {
+          liveness: false,
+        },
+      },
+    },
+  },
+};
+
+export const preferencesControllerMock = {
+  engine: {
+    backgroundState: {
+      PreferencesController: {
+        useTransactionSimulations: false,
+      },
+    },
+  },
+};
+
 export const otherControllersMock = merge(
   {},
   accountsControllerMock,
@@ -133,4 +165,7 @@ export const otherControllersMock = merge(
   multichainNetworkControllerMock,
   nftControllerMock,
   tokenBalancesControllerMock,
+  swapsState,
+  smartTransactionsControllerMock,
+  preferencesControllerMock,
 );
