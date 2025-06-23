@@ -158,7 +158,7 @@ const SolanaNewFeatureContent = () => {
                 label={strings('solana_new_feature_content.import_your_wallet')}
                 width={ButtonWidthTypes.Full}
                 size={ButtonSize.Lg}
-                style={styles.createWalletButton}
+                style={styles.importWalletButton}
               />
               <Button
                 variant={ButtonVariants.Secondary}
@@ -166,7 +166,7 @@ const SolanaNewFeatureContent = () => {
                 testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON}
                 width={ButtonWidthTypes.Full}
                 size={ButtonSize.Lg}
-                style={styles.existingWalletButton}
+                style={styles.notNowButton}
                 label={
                   <Text
                     variant={TextVariant.BodyMDMedium}

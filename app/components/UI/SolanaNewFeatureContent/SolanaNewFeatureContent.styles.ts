@@ -17,11 +17,6 @@ const createStyles = (colors: {
       alignItems: 'center',
       paddingVertical: 30,
     },
-    foxWrapper: {
-      width: Device.isLargeDevice() ? 200 : 175,
-      height: Device.isLargeDevice() ? 200 : 175,
-      marginVertical: 20,
-    },
     image: {
       alignSelf: 'center',
       width: Device.isLargeDevice() ? 300 : 220,
@@ -32,11 +27,6 @@ const createStyles = (colors: {
       paddingTop: Device.isLargeDevice() ? 60 : 40,
       paddingBottom: Device.isLargeDevice() ? 100 : 40,
     },
-    foxImage: {
-      width: 145,
-      height: 145,
-      resizeMode: 'contain',
-    },
     title: {
       fontSize: 50,
       lineHeight: 50,
@@ -44,8 +34,7 @@ const createStyles = (colors: {
       textAlign: 'center',
       paddingHorizontal: 60,
       paddingTop: 20,
-      fontFamily: 'MMPoly-Regular',
-      fontWeight: '900',
+      fontFamily: 'MMSans-Medium',
     },
     titleDescription: {
       paddingTop: 10,
@@ -60,34 +49,12 @@ const createStyles = (colors: {
       paddingHorizontal: 20,
       paddingTop: 20,
     },
-    footer: {
-      marginTop: -40,
-      marginBottom: 40,
-    },
-    login: {
-      fontSize: 18,
-      color: colors.primary.default,
-      ...fontStyles.normal,
-    },
-    buttonDescription: {
-      textAlign: 'center',
-      marginBottom: 16,
-    },
-    importWrapper: {
-      marginVertical: 16,
-    },
     createWrapper: {
       flex: 1,
       flexDirection: 'column',
       justifyContent: 'flex-end',
       rowGap: 16,
       marginBottom: 16,
-    },
-    buttonWrapper: {
-      flexDirection: 'column',
-      justifyContent: 'flex-end',
-      gap: 16,
-      width: '100%',
     },
     learnMoreButton: {
       textDecorationLine: 'underline',
@@ -96,61 +63,11 @@ const createStyles = (colors: {
       textAlign: 'center',
       paddingTop: 10,
     },
-    buttonLabel: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      columnGap: 8,
-    },
-    loader: {
-      marginTop: 180,
-      justifyContent: 'center',
-      textAlign: 'center',
-    },
-    loadingText: {
-      marginTop: 30,
-      textAlign: 'center',
-    },
-    modalTypeView: {
-      position: 'absolute',
-      bottom: 0,
-      paddingBottom: Device.isIphoneX() ? 20 : 10,
-      left: 0,
-      right: 0,
-      backgroundColor: importedColors.transparent,
-    },
-    notificationContainer: {
-      flex: 0.1,
-      flexDirection: 'row',
-      alignItems: 'flex-end',
-    },
-    divider: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 10,
-    },
-    dividerLine: {
-      flex: 1,
-      height: 1,
-      backgroundColor: colors.border.muted,
-    },
-    bottomSheetContainer: {
-      padding: 16,
-      flexDirection: 'column',
-      rowGap: 16,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    socialBtn: {
-      borderColor: colors.border.muted,
-      borderWidth: 1,
-      color: colors.text.default,
-    },
-    createWalletButton: {
+    importWalletButton: {
       borderRadius: 12,
       backgroundColor: importedColors.gettingStartedTextColor,
     },
-    existingWalletButton: {
+    notNowButton: {
       borderRadius: 12,
       backgroundColor: importedColors.transparent,
       borderWidth: 1,
