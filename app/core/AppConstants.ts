@@ -1,7 +1,6 @@
 import { CoreTypes } from '@walletconnect/types';
 import Device from '../util/device';
 import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
-import { getBundleId } from 'react-native-device-info';
 
 const DEVELOPMENT = 'development';
 const PORTFOLIO_URL =
