@@ -477,6 +477,7 @@ exports[`AccountSelector should render correctly 1`] = `
                             data={
                               [
                                 {
+                                  "accountIndex": 0,
                                   "data": {
                                     "address": "0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
                                     "balance": "0x0",
@@ -486,6 +487,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                   "type": "account",
                                 },
                                 {
+                                  "accountIndex": 1,
                                   "data": {
                                     "address": "0x2B5634C42055806a59e9107ED44D43c426E58258",
                                     "balance": "0x0",
@@ -1145,7 +1147,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                           "width": 24,
                                         }
                                       }
-                                      testID="main-wallet-account-actions-0"
+                                      testID="main-wallet-account-actions-1"
                                     >
                                       <SvgMock
                                         color="#121314"
