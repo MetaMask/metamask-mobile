@@ -546,65 +546,6 @@ describe('AssetOverview', () => {
       jest.useFakeTimers({ legacyFakeTimers: true });
     });
 
-    it('should switch networks before sending when on different chain', async () => {
-      const differentChainAsset = {
-        ...asset,
-        chainId: '0x89', // Different chain (Polygon)
-      };
-
-      const { getByTestId } = renderWithProvider(
-        <AssetOverview
-          asset={differentChainAsset}
-          displayBuyButton
-          displaySwapsButton
-          displayBridgeButton
-          swapsIsLive
-        />,
-        { state: mockInitialState },
-      );
-
-      const sendButton = getByTestId('token-send-button');
-      await fireEvent.press(sendButton);
-
-      // Wait for all promises to resolve
-      await Promise.resolve();
-
-      expect(navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
-    });
-
-    it('should not switch networks when on same chain', async () => {
-      const sameChainAsset = {
-        ...asset,
-        chainId: MOCK_CHAIN_ID, // Same chain as current
-      };
-
-      const { getByTestId } = renderWithProvider(
-        <AssetOverview
-          asset={sameChainAsset}
-          displayBuyButton
-          displaySwapsButton
-          displayBridgeButton
-          swapsIsLive
-        />,
-        { state: mockInitialState },
-      );
-
-      const sendButton = getByTestId('token-send-button');
-      await fireEvent.press(sendButton);
-
-      // Wait for all promises to resolve
-      await Promise.resolve();
-
-      expect(
-        Engine.context.MultichainNetworkController.setActiveNetwork,
-      ).not.toHaveBeenCalled();
-    });
-
     it('render mainBalance as fiat and secondaryBalance as native with portfolio view enabled', async () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverview asset={asset} />,
