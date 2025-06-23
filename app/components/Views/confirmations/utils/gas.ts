@@ -1,15 +1,15 @@
 import { hexToBN } from '@metamask/controller-utils';
 import { Hex, add0x } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
-import I18n from '../../../../../../locales/i18n';
-import { formatAmount } from '../../../../../components/UI/SimulationDetails/formatAmount';
+import I18n from '../../../../../locales/i18n';
+import { formatAmount } from '../../../../components/UI/SimulationDetails/formatAmount';
 import {
   addHexes,
   decGWEIToHexWEI,
   decimalToHex,
   getValueFromWeiHex,
   multiplyHexes,
-} from '../../../../../util/conversions';
+} from '../../../../util/conversions';
 
 const HEX_ZERO = '0x0';
 
@@ -40,7 +40,7 @@ export function getFeesFromHex({
   }
 
   const nativeConversionRateInBN = new BigNumber(
-    nativeConversionRate as number,
+    nativeConversionRate,
   );
   const locale = I18n.locale;
   const nativeCurrencyFee = `${formatAmount(
@@ -53,7 +53,7 @@ export function getFeesFromHex({
         numberOfDecimals: 4,
         conversionRate: 1,
         toDenomination: 'ETH',
-      }) || 0,
+      }) ?? 0,
     ),
   )} ${nativeCurrency}`;
 
@@ -67,7 +67,7 @@ export function getFeesFromHex({
         numberOfDecimals: 18,
         conversionRate: 1,
         toDenomination: 'ETH',
-      }) || 0,
+      }) ?? 0,
     ),
   )} ${nativeCurrency}`;
 
@@ -141,7 +141,7 @@ export function calculateGasEstimate({
   };
 }) {
   let minimumFeePerGas = addHexes(
-    decGWEIToHexWEI(estimatedBaseFee) || HEX_ZERO,
+    decGWEIToHexWEI(estimatedBaseFee) ?? HEX_ZERO,
     decimalToHex(priorityFeePerGas),
   );
 

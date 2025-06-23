@@ -9,33 +9,16 @@ import { selectNetworkConfigurationByChainId } from '../../../../../selectors/ne
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { isTestNet } from '../../../../../util/networks';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import { calculateGasEstimate, getFeesFromHex } from '../../utils/gas';
+import { useSupportsEIP1559 } from '../transactions/useSupportsEIP1559';
 import { useEIP1559TxFees } from './useEIP1559TxFees';
 import { useGasFeeEstimates } from './useGasFeeEstimates';
-import { useSupportsEIP1559 } from '../transactions/useSupportsEIP1559';
-import { getFeesFromHex, calculateGasEstimate } from './feeCalculationsShared';
 
 const HEX_ZERO = '0x0';
 
-// Default transaction meta for when undefined is passed
-const DEFAULT_TRANSACTION_META: TransactionMeta = {
-  id: 'default',
-  status: 'unapproved' as const,
-  time: Date.now(),
-  chainId: '0x1' as Hex,
-  gasLimitNoBuffer: HEX_ZERO,
-  networkClientId: '',
-  txParams: {
-    from: '0x0000000000000000000000000000000000000000' as Hex,
-    gasPrice: HEX_ZERO,
-  },
-} as TransactionMeta;
-
-export const useFeeCalculations = (transactionMeta?: TransactionMeta) => {
-  // Use a default transaction meta when undefined to satisfy hook requirements
-  const safeTransactionMeta = transactionMeta || DEFAULT_TRANSACTION_META;
-
+export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
   const { chainId, gasLimitNoBuffer, layer1GasFee, networkClientId } =
-    safeTransactionMeta;
+    transactionMeta;
 
   const { nativeCurrency } = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, chainId as Hex),
@@ -45,16 +28,16 @@ export const useFeeCalculations = (transactionMeta?: TransactionMeta) => {
   );
   const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
 
-  const { supportsEIP1559 } = useSupportsEIP1559(safeTransactionMeta);
+  const { supportsEIP1559 } = useSupportsEIP1559(transactionMeta);
   const fiatFormatter = useFiatFormatter();
   const { maxFeePerGas, maxPriorityFeePerGas } =
-    useEIP1559TxFees(safeTransactionMeta);
+    useEIP1559TxFees(transactionMeta);
   const { gasFeeEstimates } = useGasFeeEstimates(networkClientId);
   const shouldHideFiat = isTestNet(chainId as Hex) && !showFiatOnTestnets;
 
   const estimatedBaseFee = (gasFeeEstimates as GasFeeEstimates)
     ?.estimatedBaseFee;
-  const txParamsGasPrice = safeTransactionMeta.txParams?.gasPrice || HEX_ZERO;
+  const txParamsGasPrice = transactionMeta.txParams?.gasPrice ?? HEX_ZERO;
 
   const getFeesFromHexCallback = useCallback(
     (hexFee: string) =>
@@ -101,7 +84,7 @@ export const useFeeCalculations = (transactionMeta?: TransactionMeta) => {
       calculateGasEstimateCallback({
         feePerGas: maxFeePerGas,
         priorityFeePerGas: maxPriorityFeePerGas,
-        gas: gasLimitNoBuffer || HEX_ZERO,
+        gas: gasLimitNoBuffer ?? HEX_ZERO,
         shouldUseEIP1559FeeLogic: supportsEIP1559,
         gasPrice: txParamsGasPrice,
       }),
