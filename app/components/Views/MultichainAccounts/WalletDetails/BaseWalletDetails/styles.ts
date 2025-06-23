@@ -57,6 +57,9 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 8,
       marginTop: 16,
     },
+    srpRevealContent: {
+      flex: 1,
+    },
     accountsList: {
       marginTop: 16,
       flexDirection: 'column',

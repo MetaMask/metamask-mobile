@@ -1,16 +1,19 @@
 import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { AccountWallet } from '@metamask/account-tree-controller';
 import { getInternalAccountsFromWallet } from '../utils/getInternalAccountsFromWallet';
 import { useHdKeyringsWithSnapAccounts } from '../../../../hooks/useHdKeyringsWithSnapAccounts';
 import { areAddressesEqual } from '../../../../../util/address';
+import { selectSeedphraseBackedUp } from '../../../../../reducers/user/selectors';
 
 /**
- * Hook that provides comprehensive wallet information including accounts, keyring ID, and SRP index
+ * Hook that provides comprehensive wallet information including accounts, keyring ID, SRP index, and backup status
  * @param wallet - The AccountWallet object
- * @returns Object containing accounts, keyringId, and srpIndex
+ * @returns Object containing accounts, keyringId, srpIndex, and isSRPBackedUp
  */
 export const useWalletInfo = (wallet: AccountWallet) => {
   const hdKeyringsWithSnapAccounts = useHdKeyringsWithSnapAccounts();
+  const isSRPBackedUp = useSelector(selectSeedphraseBackedUp);
 
   return useMemo(() => {
     // Get accounts from the wallet (only call this once)
@@ -49,6 +52,7 @@ export const useWalletInfo = (wallet: AccountWallet) => {
       accounts,
       keyringId,
       srpIndex,
+      isSRPBackedUp,
     };
-  }, [wallet, hdKeyringsWithSnapAccounts]);
+  }, [wallet, hdKeyringsWithSnapAccounts, isSRPBackedUp]);
 };

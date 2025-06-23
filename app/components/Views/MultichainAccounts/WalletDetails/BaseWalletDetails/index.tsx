@@ -34,6 +34,7 @@ import { useSelector } from 'react-redux';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { useWalletInfo } from '../hooks/useWalletInfo';
 import Routes from '../../../../../constants/navigation/Routes';
+import { navigate } from '@react-navigation/compat/lib/typescript/src/NavigationActions';
 
 interface BaseWalletDetailsProps {
   wallet: AccountWallet;
@@ -54,7 +55,8 @@ export const BaseWalletDetails = ({
     ? AvatarAccountType.Blockies
     : AvatarAccountType.JazzIcon;
 
-  const { accounts, keyringId, srpIndex } = useWalletInfo(wallet);
+  const { accounts, keyringId, srpIndex, isSRPBackedUp } =
+    useWalletInfo(wallet);
 
   const { formattedWalletTotalBalance, multichainBalancesForAllAccounts } =
     useWalletBalances(accounts);
@@ -76,6 +78,13 @@ export const BaseWalletDetails = ({
       });
     }
   }, [navigation, keyringId]);
+
+  const handleBackupPressed = useCallback(() => {
+    navigation.navigate(Routes.SET_PASSWORD_FLOW.ROOT, {
+      screen: Routes.SET_PASSWORD_FLOW.MANUAL_BACKUP_STEP_1,
+      params: { backupFlow: true },
+    });
+  }, [navigation]);
 
   const renderAccountItem = (account: InternalAccount, index: number) => {
     const totalAccounts = accounts.length;
@@ -203,16 +212,48 @@ export const BaseWalletDetails = ({
             onPress={handleRevealSRP}
             style={styles.srpRevealSection}
           >
-            <Text variant={TextVariant.BodyMDMedium}>
-              {strings('accounts.reveal_secret_recovery_phrase_with_index', {
-                index: srpIndex,
-              })}
-            </Text>
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Md}
-              color={colors.text.alternative}
-            />
+            <Box
+              flexDirection={FlexDirection.Row}
+              alignItems={AlignItems.center}
+              justifyContent={JustifyContent.spaceBetween}
+              style={styles.srpRevealContent}
+            >
+              <Box
+                flexDirection={FlexDirection.Row}
+                alignItems={AlignItems.center}
+                gap={8}
+              >
+                <Text variant={TextVariant.BodyMDMedium}>
+                  {strings(
+                    'accounts.reveal_secret_recovery_phrase_with_index',
+                    {
+                      index: srpIndex,
+                    },
+                  )}
+                </Text>
+              </Box>
+              <Box
+                flexDirection={FlexDirection.Row}
+                alignItems={AlignItems.center}
+                gap={8}
+              >
+                {isSRPBackedUp === false ? (
+                  <TouchableOpacity onPress={handleBackupPressed}>
+                    <Text
+                      variant={TextVariant.BodyMDMedium}
+                      style={{ color: colors.error.default }}
+                    >
+                      {strings('multichain_accounts.wallet_details.back_up')}
+                    </Text>
+                  </TouchableOpacity>
+                ) : null}
+                <Icon
+                  name={IconName.ArrowRight}
+                  size={IconSize.Md}
+                  color={colors.text.alternative}
+                />
+              </Box>
+            </Box>
           </TouchableOpacity>
         )}
         <View

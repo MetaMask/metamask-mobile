@@ -4357,7 +4357,8 @@
     "wallet_details": {
       "wallet_name": "Wallet Name",
       "balance": "Balance",
-      "add_account": "Add account"
+      "add_account": "Add account",
+      "back_up": "Back up"
     },
     "smart_account": {
       "title": "Enable Smart Account",
