@@ -75,6 +75,8 @@ describe('Footer', () => {
     mockUseConfirmationContext.mockReturnValue({
       isTransactionValueUpdating: false,
       setIsTransactionValueUpdating: jest.fn(),
+      isConfirmationDismounting: false,
+      setIsConfirmationDismounting: jest.fn(),
     });
     (useAlerts as jest.Mock).mockReturnValue({
       fieldAlerts: [],
@@ -174,6 +176,8 @@ describe('Footer', () => {
     mockUseConfirmationContext.mockReturnValue({
       isTransactionValueUpdating: true,
       setIsTransactionValueUpdating: jest.fn(),
+      isConfirmationDismounting: false,
+      setIsConfirmationDismounting: jest.fn(),
     });
     const { getByTestId } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
