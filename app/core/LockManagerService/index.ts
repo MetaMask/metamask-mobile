@@ -10,7 +10,7 @@ import Logger from '../../util/Logger';
 import {
   lockApp,
   interruptBiometrics,
-  resolveLockManager,
+  checkForDeeplink,
 } from '../../actions/user';
 import ReduxService from '../redux';
 
@@ -18,6 +18,8 @@ export class LockManagerService {
   #appState?: AppStateStatus;
   #appStateListener?: NativeEventSubscription;
   #lockTimer?: number;
+
+  isRunning = () => this.#appStateListener !== undefined;
 
   #lockApp = async () => {
     if (!SecureKeychain.getInstance().isAuthenticating) {
@@ -53,7 +55,7 @@ export class LockManagerService {
       ) {
         // Lets other services know that the lock manager app state event is resolved while active
         if (nextAppState === 'active') {
-          ReduxService.store.dispatch(resolveLockManager());
+          ReduxService.store.dispatch(checkForDeeplink());
         }
         this.#appState = nextAppState;
         return;
@@ -69,6 +71,7 @@ export class LockManagerService {
       // Handle lock logic on background.
       if (nextAppState === 'background') {
         if (lockTime === 0) {
+          console.log('LOCKING APP');
           this.#lockApp();
         } else {
           // Autolock after some time.

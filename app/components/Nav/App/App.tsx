@@ -820,21 +820,22 @@ const App: React.FC = () => {
 
   const handleDeeplink = useCallback(
     ({
-      error,
-      params,
+      // error,
+      // params,
       uri,
     }: {
-      error?: string | null;
-      params?: Record<string, unknown>;
+      // error?: string | null;
+      // params?: Record<string, unknown>;
       uri?: string;
     }) => {
-      if (error) {
-        trackErrorAsAnalytics(error, 'Branch:');
-      }
-      const deeplink = params?.['+non_branch_link'] || uri || null;
+      // if (error) {
+      //   trackErrorAsAnalytics(error, 'Branch:');
+      // }
+      // const deeplink = params?.['+non_branch_link'] || uri || null;
       try {
-        if (deeplink && typeof deeplink === 'string') {
-          AppStateEventProcessor.setCurrentDeeplink(deeplink);
+        if (uri && typeof uri === 'string') {
+          AppStateEventProcessor.setCurrentDeeplink(uri);
+          dispatch(checkForDeeplink());
         }
       } catch (e) {
         Logger.error(e as Error, `Deeplink: Error parsing deeplink`);
@@ -868,6 +869,11 @@ const App: React.FC = () => {
     // Branch.io documentation: https://help.branch.io/developers-hub/docs/react-native
     branch.subscribe((opts) => {
       const { error } = opts;
+
+      branch.getLatestReferringParams().then((val) => {
+        const deeplink = opts.uri || (val['+non_branch_link'] as string);
+        handleDeeplink({ uri: deeplink });
+      });
 
       if (error) {
         // Log error for analytics and continue handling deeplink

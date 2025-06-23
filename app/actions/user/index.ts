@@ -2,7 +2,7 @@ import { type AppThemeKey } from '../../util/theme/models';
 import {
   type InterruptBiometricsAction,
   type LockAppAction,
-  type ResolveLockManagerAction,
+  type CheckForDeeplinkAction,
   type AuthSuccessAction,
   type AuthErrorAction,
   type PasswordSetAction,
@@ -39,9 +39,9 @@ export function lockApp(): LockAppAction {
   };
 }
 
-export function resolveLockManager(): ResolveLockManagerAction {
+export function checkForDeeplink(): CheckForDeeplinkAction {
   return {
-    type: UserActionType.RESOLVE_LOCK_MANAGER,
+    type: UserActionType.CHECK_FOR_DEEPLINK,
   };
 }
 

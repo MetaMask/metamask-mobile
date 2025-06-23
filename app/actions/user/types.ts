@@ -4,7 +4,7 @@ import { type Action } from 'redux';
 // Action type enum
 export enum UserActionType {
   LOCKED_APP = 'LOCKED_APP',
-  RESOLVE_LOCK_MANAGER = 'RESOLVE_LOCK_MANAGER',
+  CHECK_FOR_DEEPLINK = 'CHECK_FOR_DEEPLINK',
   AUTH_SUCCESS = 'AUTH_SUCCESS',
   AUTH_ERROR = 'AUTH_ERROR',
   INTERRUPT_BIOMETRICS = 'INTERRUPT_BIOMETRICS',
@@ -30,8 +30,7 @@ export enum UserActionType {
 // User actions
 export type LockAppAction = Action<UserActionType.LOCKED_APP>;
 
-export type ResolveLockManagerAction =
-  Action<UserActionType.RESOLVE_LOCK_MANAGER>;
+export type CheckForDeeplinkAction = Action<UserActionType.CHECK_FOR_DEEPLINK>;
 
 export type AuthSuccessAction = Action<UserActionType.AUTH_SUCCESS> & {
   payload: { bioStateMachineId?: string };
@@ -98,7 +97,7 @@ export type SetAppServicesReadyAction =
  */
 export type UserAction =
   | LockAppAction
-  | ResolveLockManagerAction
+  | CheckForDeeplinkAction
   | AuthSuccessAction
   | AuthErrorAction
   | InterruptBiometricsAction

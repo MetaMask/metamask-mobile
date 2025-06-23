@@ -1,4 +1,4 @@
-import { fork, take, cancel, put, call, all } from 'redux-saga/effects';
+import { fork, take, cancel, put, call, all, select } from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import {
@@ -23,6 +23,7 @@ import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkManager';
 import AppConstants from '../../core/AppConstants';
+import { selectUserLoggedIn } from '../../reducers/user';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -134,9 +135,16 @@ export function* basicFunctionalityToggle() {
 export function* handleDeeplinkSaga() {
   while (true) {
     // Handle parsing deeplinks after login or when the lock manager is resolved
-    yield take([UserActionType.LOGIN, UserActionType.RESOLVE_LOCK_MANAGER]);
+    yield take([UserActionType.LOGIN, UserActionType.CHECK_FOR_DEEPLINK]);
 
+    const isLoggedIn = (yield select(selectUserLoggedIn)) as boolean;
     const deeplink = AppStateEventProcessor.pendingDeeplink;
+
+    // If the user is not logged in, we don't need to handle the deeplink
+    if (!isLoggedIn) {
+      continue;
+    }
+
     if (deeplink) {
       // TODO: See if we can hook into a navigation finished event before parsing so that the modal doesn't conflict with ongoing navigation events
       setTimeout(() => {
