@@ -55,32 +55,32 @@ describe(`Migration ${migrationVersion}: Remove Automatic Security Checks state`
     interface TestState {
       engine: {
         backgroundState: {
-          security: {
-            automaticSecurityChecksEnabled: boolean;
-            hasUserSelectedAutomaticSecurityCheckOption: boolean;
-            isAutomaticSecurityChecksModalOpen: boolean;
-            otherSecurityProperty: string;
-          };
           OtherController: {
             shouldStayUntouched: boolean;
           };
         };
+      };
+      security: {
+        automaticSecurityChecksEnabled: boolean;
+        hasUserSelectedAutomaticSecurityCheckOption: boolean;
+        isAutomaticSecurityChecksModalOpen: boolean;
+        otherSecurityProperty: string;
       };
     }
 
     const state: TestState = {
       engine: {
         backgroundState: {
-          security: {
-            automaticSecurityChecksEnabled: true,
-            hasUserSelectedAutomaticSecurityCheckOption: false,
-            isAutomaticSecurityChecksModalOpen: true,
-            otherSecurityProperty: 'should remain',
-          },
           OtherController: {
             shouldStayUntouched: true,
           },
         },
+      },
+      security: {
+        automaticSecurityChecksEnabled: true,
+        hasUserSelectedAutomaticSecurityCheckOption: false,
+        isAutomaticSecurityChecksModalOpen: true,
+        otherSecurityProperty: 'should remain',
       },
     };
 
@@ -89,20 +89,18 @@ describe(`Migration ${migrationVersion}: Remove Automatic Security Checks state`
     const migratedState = migrate(state) as typeof state;
 
     // Automatic security check properties should be removed
-    expect(migratedState.engine.backgroundState.security).not.toHaveProperty(
+    expect(migratedState.security).not.toHaveProperty(
       'automaticSecurityChecksEnabled',
     );
-    expect(migratedState.engine.backgroundState.security).not.toHaveProperty(
+    expect(migratedState.security).not.toHaveProperty(
       'hasUserSelectedAutomaticSecurityCheckOption',
     );
-    expect(migratedState.engine.backgroundState.security).not.toHaveProperty(
+    expect(migratedState.security).not.toHaveProperty(
       'isAutomaticSecurityChecksModalOpen',
     );
 
     // Other security properties should remain unchanged
-    expect(
-      migratedState.engine.backgroundState.security.otherSecurityProperty,
-    ).toBe('should remain');
+    expect(migratedState.security.otherSecurityProperty).toBe('should remain');
 
     // Other controllers should remain untouched
     expect(migratedState.engine.backgroundState.OtherController).toEqual({
@@ -115,14 +113,13 @@ describe(`Migration ${migrationVersion}: Remove Automatic Security Checks state`
   it('handles state where some automatic security check properties are missing', () => {
     const state = {
       engine: {
-        backgroundState: {
-          security: {
-            automaticSecurityChecksEnabled: true,
-            // hasUserSelectedAutomaticSecurityCheckOption is missing
-            // isAutomaticSecurityChecksModalOpen is missing
-            otherSecurityProperty: 'should remain',
-          },
-        },
+        backgroundState: {},
+      },
+      security: {
+        automaticSecurityChecksEnabled: true,
+        // hasUserSelectedAutomaticSecurityCheckOption is missing
+        // isAutomaticSecurityChecksModalOpen is missing
+        otherSecurityProperty: 'should remain',
       },
     };
 
@@ -131,14 +128,12 @@ describe(`Migration ${migrationVersion}: Remove Automatic Security Checks state`
     const migratedState = migrate(state) as typeof state;
 
     // Should remove the existing property
-    expect(migratedState.engine.backgroundState.security).not.toHaveProperty(
+    expect(migratedState.security).not.toHaveProperty(
       'automaticSecurityChecksEnabled',
     );
 
     // Other properties should remain
-    expect(
-      migratedState.engine.backgroundState.security.otherSecurityProperty,
-    ).toBe('should remain');
+    expect(migratedState.security.otherSecurityProperty).toBe('should remain');
 
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
@@ -147,10 +142,13 @@ describe(`Migration ${migrationVersion}: Remove Automatic Security Checks state`
     const state = {
       engine: {
         backgroundState: {
-          security: {
-            otherSecurityProperty: 'should remain',
+          OtherController: {
+            shouldStayUntouched: true,
           },
         },
+      },
+      security: {
+        otherSecurityProperty: 'should remain',
       },
     };
 
@@ -159,20 +157,18 @@ describe(`Migration ${migrationVersion}: Remove Automatic Security Checks state`
     const migratedState = migrate(state) as typeof state;
 
     // Should not add any properties
-    expect(migratedState.engine.backgroundState.security).not.toHaveProperty(
+    expect(migratedState.security).not.toHaveProperty(
       'automaticSecurityChecksEnabled',
     );
-    expect(migratedState.engine.backgroundState.security).not.toHaveProperty(
+    expect(migratedState.security).not.toHaveProperty(
       'hasUserSelectedAutomaticSecurityCheckOption',
     );
-    expect(migratedState.engine.backgroundState.security).not.toHaveProperty(
+    expect(migratedState.security).not.toHaveProperty(
       'isAutomaticSecurityChecksModalOpen',
     );
 
     // Other properties should remain
-    expect(
-      migratedState.engine.backgroundState.security.otherSecurityProperty,
-    ).toBe('should remain');
+    expect(migratedState.security.otherSecurityProperty).toBe('should remain');
 
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
