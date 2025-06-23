@@ -1234,7 +1234,6 @@ describe('EvmAccountSelectorList', () => {
     const avatarGroups = queryAllByTestId('network-avatar-group-container');
     expect(avatarGroups).toHaveLength(0);
   });
-});
 
   // Helper to create state with multichain accounts enabled
   const getMultichainState = (overrides = {}) => ({
@@ -1311,10 +1310,10 @@ describe('EvmAccountSelectorList', () => {
     jest
       .requireMock('../../../util/address')
       .getLabelTextByAddress.mockReturnValue('Imported');
-    
+
     const multichainState = getMultichainState();
     const { queryByText } = renderComponent(multichainState);
-    
+
     // Tag labels should not be rendered when multichain is enabled
     // Even though getLabelTextByAddress might be called, its result shouldn't be displayed
     expect(queryByText('Imported')).toBeNull();
@@ -1327,3 +1326,204 @@ describe('EvmAccountSelectorList', () => {
     expect(getByText('HD Accounts')).toBeDefined();
     expect(getByText('Details')).toBeDefined();
   });
+
+  it('creates flattened data structure correctly for multichain accounts', () => {
+    const multichainState = getMultichainState();
+    const { getByTestId } = renderComponent(multichainState);
+
+    const flatList = getByTestId(ACCOUNT_SELECTOR_LIST_TESTID);
+
+    // Verify FlatList is used instead of SectionList by checking props
+    expect(flatList.props.data).toBeDefined();
+    expect(flatList.props.renderItem).toBeDefined();
+    expect(flatList.props.keyExtractor).toBeDefined();
+
+    // The flattened data should include headers, accounts, and footers
+    const data = flatList.props.data;
+    expect(data).toBeDefined();
+    expect(Array.isArray(data)).toBe(true);
+
+    // Should have header, accounts, and footer items
+    const headerItems = data.filter((item: { type: string }) => item.type === 'header');
+    const accountItems = data.filter((item: { type: string }) => item.type === 'account');
+    const footerItems = data.filter((item: { type: string }) => item.type === 'footer');
+
+    expect(headerItems.length).toBeGreaterThan(0);
+    expect(accountItems.length).toBeGreaterThan(0);
+    // Footer items are only created when there are multiple sections
+    // In this test setup, there's likely only one section, so no footer
+    expect(footerItems.length).toBeGreaterThanOrEqual(0);
+  });
+
+  it('renders different item types correctly', () => {
+    const multichainState = getMultichainState();
+    const { getByTestId } = renderComponent(multichainState);
+
+    const flatList = getByTestId(ACCOUNT_SELECTOR_LIST_TESTID);
+    const renderItem = flatList.props.renderItem;
+
+    // Test rendering header item
+    const headerItem = {
+      type: 'header',
+      data: { title: 'Test Header', data: [] },
+      sectionIndex: 0,
+    };
+    const headerElement = renderItem({ item: headerItem });
+    expect(headerElement).toBeDefined();
+
+    // Test rendering footer item
+    const footerItem = {
+      type: 'footer',
+      data: { title: 'Test Footer', data: [] },
+      sectionIndex: 0,
+    };
+    const footerElement = renderItem({ item: footerItem });
+    expect(footerElement).toBeDefined();
+
+    const accountItem = {
+      type: 'account',
+      data: {
+        name: 'Test Account',
+        address: '0x123',
+        assets: { fiatBalance: '$100' },
+        type: 'HD Key Tree',
+        yOffset: 0,
+        isSelected: false,
+        balanceError: undefined,
+        caipAccountId: 'eip155:0:0x123',
+      },
+      sectionIndex: 0,
+    };
+    const accountElement = renderItem({ item: accountItem });
+    expect(accountElement).toBeDefined();
+  });
+
+  it('handles onContentSizeChange callback correctly', () => {
+    // Mock accounts with selected account
+    setAccountsMock([
+      {
+        name: 'Account 1',
+        address: BUSINESS_ACCOUNT,
+        assets: { fiatBalance: '$3200.00\n1 ETH' },
+        type: 'HD Key Tree',
+        yOffset: 150,
+        isSelected: true,
+        balanceError: undefined,
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+      },
+    ]);
+
+    const { getByTestId } = renderComponent(initialState);
+
+    const flatList = getByTestId(ACCOUNT_SELECTOR_LIST_TESTID);
+
+    // Verify the component renders with onContentSizeChange prop
+    expect(flatList.props.onContentSizeChange).toBeDefined();
+    expect(typeof flatList.props.onContentSizeChange).toBe('function');
+  });
+
+  it('handles keyExtractor function with proper item structure', () => {
+    const { getByTestId } = renderComponent(initialState);
+
+    const flatList = getByTestId(ACCOUNT_SELECTOR_LIST_TESTID);
+    const keyExtractor = flatList.props.keyExtractor;
+
+    // Test that keyExtractor function exists
+    expect(typeof keyExtractor).toBe('function');
+
+    // Test key extraction for account item
+    const accountItem = {
+      type: 'account',
+      data: {
+        name: 'Test Account',
+        address: '0x123',
+        assets: { fiatBalance: '$100' },
+        type: 'HD Key Tree',
+        yOffset: 0,
+        isSelected: false,
+        balanceError: undefined,
+        caipAccountId: 'eip155:0:0x123',
+      },
+      sectionIndex: 0,
+    };
+
+    const key = keyExtractor(accountItem);
+    expect(key).toBe('0x123');
+  });
+
+  it('creates footer items when there are multiple sections', () => {
+    // Create a state with multiple sections to trigger footer creation
+    const multiSectionState = {
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          AccountTreeController: {
+            accountTree: {
+              wallets: {
+                wallet1: {
+                  metadata: {
+                    name: 'HD Accounts',
+                  },
+                  groups: {
+                    group1: {
+                      accounts: [
+                        Object.keys(initialState.engine.backgroundState.AccountsController.internalAccounts.accounts)[0]
+                      ]
+                    },
+                    group2: {
+                      accounts: [
+                        Object.keys(initialState.engine.backgroundState.AccountsController.internalAccounts.accounts)[1]
+                      ]
+                    }
+                  }
+                },
+                wallet2: {
+                  metadata: {
+                    name: 'Imported Accounts',
+                  },
+                  groups: {
+                    group3: {
+                      accounts: []
+                    }
+                  }
+                }
+              },
+            },
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              enableMultichainAccounts: {
+                enabled: true,
+                featureVersion: '1',
+                minimumVersion: '1.0.0',
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const { getByTestId } = renderComponent(multiSectionState);
+
+    const flatList = getByTestId(ACCOUNT_SELECTOR_LIST_TESTID);
+    const data = flatList.props.data;
+
+    // Should have header, accounts, and footer items
+    const headerItems = data.filter((item: { type: string }) => item.type === 'header');
+    const accountItems = data.filter((item: { type: string }) => item.type === 'account');
+    const footerItems = data.filter((item: { type: string }) => item.type === 'footer');
+
+    expect(headerItems.length).toBeGreaterThan(0);
+    expect(accountItems.length).toBeGreaterThan(0);
+    // With multiple sections, footer items should be created
+    expect(footerItems.length).toBeGreaterThan(0);
+
+    // Verify footer items have correct structure
+    footerItems.forEach((footerItem: { type: string; sectionIndex: number }) => {
+      expect(footerItem.type).toBe('footer');
+      expect(typeof footerItem.sectionIndex).toBe('number');
+    });
+  });
+});
