@@ -1,12 +1,8 @@
 import React from 'react';
+import { Text } from 'react-native';
 
 import { useApproveTransactionData } from '../../hooks/useApproveTransactionData';
 import { ApproveMethod } from '../../types/approve';
-import { StaticSimulationApproveMethod } from './static-simulation-approve-method';
-import { StaticSimulationIncreaseAllowanceMethod } from './static-simulation-increase-allowance-method';
-import { StaticSimulationDecreaseAllowanceMethod } from './static-simulation-decrease-allowance-method';
-import { StaticSimulationSetApprovalForAllMethod } from './static-simulation-set-approval-for-all-method';
-import { StaticSimulationPermit2ApproveMethod } from './static-simulation-permit2-approve-method';
 
 export const StaticSimulationApprove = () => {
   const { approveMethod } = useApproveTransactionData();
@@ -14,19 +10,19 @@ export const StaticSimulationApprove = () => {
   return (
     <>
       {approveMethod === ApproveMethod.APPROVE && (
-        <StaticSimulationApproveMethod />
+        <Text>StaticSimulationApprove</Text>
       )}
       {approveMethod === ApproveMethod.INCREASE_ALLOWANCE && (
-        <StaticSimulationIncreaseAllowanceMethod />
+        <Text>StaticSimulationIncreaseAllowance</Text>
       )}
       {approveMethod === ApproveMethod.DECREASE_ALLOWANCE && (
-        <StaticSimulationDecreaseAllowanceMethod />
+        <Text>StaticSimulationDecreaseAllowance</Text>
       )}
       {approveMethod === ApproveMethod.SET_APPROVAL_FOR_ALL && (
-        <StaticSimulationSetApprovalForAllMethod />
+        <Text>StaticSimulationSetApprovalForAll</Text>
       )}
       {approveMethod === ApproveMethod.PERMIT2_APPROVE && (
-        <StaticSimulationPermit2ApproveMethod />
+        <Text>StaticSimulationPermit2Approve</Text>
       )}
     </>
   );
