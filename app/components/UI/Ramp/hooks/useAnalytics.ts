@@ -1,11 +1,15 @@
 import { useCallback } from 'react';
-import { AnalyticsEvents } from '../types';
+import { AnalyticsEvents as AggregatorEvents } from '../Aggregator/types';
+import { AnalyticsEvents as DepositEvents } from '../Deposit/types';
+
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 
-export function trackEvent<T extends keyof AnalyticsEvents>(
+interface MergedRampEvents extends AggregatorEvents, DepositEvents {}
+
+export function trackEvent<T extends keyof MergedRampEvents>(
   eventType: T,
-  params: AnalyticsEvents[T],
+  params: MergedRampEvents[T],
 ) {
   const metrics = MetaMetrics.getInstance();
   metrics.trackEvent(
@@ -17,9 +21,9 @@ export function trackEvent<T extends keyof AnalyticsEvents>(
 
 function useAnalytics() {
   return useCallback(
-    <T extends keyof AnalyticsEvents>(
+    <T extends keyof MergedRampEvents>(
       eventType: T,
-      params: AnalyticsEvents[T],
+      params: MergedRampEvents[T],
     ) => {
       trackEvent(eventType, params);
     },
