@@ -15,48 +15,29 @@ const migration = (state: unknown): unknown => {
   }
 
   try {
-    if (
-      !hasProperty(state.engine.backgroundState, 'security') ||
-      !isObject(state.engine.backgroundState.security)
-    ) {
+    if (!hasProperty(state, 'security') || !isObject(state.security)) {
       captureException(
         new Error(
           `Migration ${migrationVersion}: Invalid security state: '${JSON.stringify(
-            state.engine.backgroundState.security,
+            state.security,
           )}'`,
         ),
       );
       return state;
     }
 
-    if (
-      hasProperty(
-        state.engine.backgroundState.security,
-        'automaticSecurityChecksEnabled',
-      )
-    ) {
-      delete state.engine.backgroundState.security
-        .automaticSecurityChecksEnabled;
+    if (hasProperty(state.security, 'automaticSecurityChecksEnabled')) {
+      delete state.security.automaticSecurityChecksEnabled;
     }
 
     if (
-      hasProperty(
-        state.engine.backgroundState.security,
-        'hasUserSelectedAutomaticSecurityCheckOption',
-      )
+      hasProperty(state.security, 'hasUserSelectedAutomaticSecurityCheckOption')
     ) {
-      delete state.engine.backgroundState.security
-        .hasUserSelectedAutomaticSecurityCheckOption;
+      delete state.security.hasUserSelectedAutomaticSecurityCheckOption;
     }
 
-    if (
-      hasProperty(
-        state.engine.backgroundState.security,
-        'isAutomaticSecurityChecksModalOpen',
-      )
-    ) {
-      delete state.engine.backgroundState.security
-        .isAutomaticSecurityChecksModalOpen;
+    if (hasProperty(state.security, 'isAutomaticSecurityChecksModalOpen')) {
+      delete state.security.isAutomaticSecurityChecksModalOpen;
     }
 
     return state;
