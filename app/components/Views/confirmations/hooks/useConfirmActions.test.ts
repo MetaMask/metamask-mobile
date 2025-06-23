@@ -8,6 +8,7 @@ import {
   stakingDepositConfirmationState,
 } from '../../../../util/test/confirm-data-helpers';
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
+import { useConfirmationContext } from '../context/confirmation-context';
 // eslint-disable-next-line import/no-namespace
 import * as QRHardwareHook from '../context/qr-hardware-context/qr-hardware-context';
 // eslint-disable-next-line import/no-namespace
@@ -37,6 +38,10 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../context/confirmation-context', () => ({
+  useConfirmationContext: jest.fn(),
+}));
+
 const mockCaptureSignatureMetrics = jest.fn();
 jest.mock('./signatures/useSignatureMetrics', () => ({
   useSignatureMetrics: () => ({
@@ -55,7 +60,9 @@ const createUseLedgerContextSpy = (mockedValues = {}) => {
 };
 
 describe('useConfirmAction', () => {
+  const mockSetIsConfirmationDismounting = jest.fn();
   const useNavigationMock = jest.mocked(useNavigation);
+  const useConfirmationContextMock = jest.mocked(useConfirmationContext);
   const navigateMock = jest.fn();
 
   beforeEach(() => {
@@ -64,6 +71,9 @@ describe('useConfirmAction', () => {
       goBack: jest.fn(),
       navigate: navigateMock,
     } as unknown as ReturnType<typeof useNavigation>);
+    useConfirmationContextMock.mockReturnValue({
+      setIsConfirmationDismounting: mockSetIsConfirmationDismounting,
+    } as unknown as ReturnType<typeof useConfirmationContext>);
   });
 
   it('call setScannerVisible if QR signing is in progress', async () => {
@@ -131,6 +141,8 @@ describe('useConfirmAction', () => {
       state: personalSignatureConfirmationState,
     });
     result?.current?.onConfirm();
+    expect(mockSetIsConfirmationDismounting).toHaveBeenCalledTimes(1);
+    expect(mockSetIsConfirmationDismounting).toHaveBeenCalledWith(true);
     expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
     await flushPromises();
     expect(mockCaptureSignatureMetrics).toHaveBeenCalledTimes(1);

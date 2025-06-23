@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Hex } from '@metamask/utils';
-
+import { useSelector } from 'react-redux';
 import { ScrollView } from 'react-native-gesture-handler';
+
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../../locales/i18n';
 import Text from '../../../../../../../component-library/components/Texts/Text/Text';
@@ -18,6 +19,9 @@ import {
   IconSize,
 } from '../../../../../../../component-library/components/Icons/Icon';
 import { NameType } from '../../../../../../UI/Name/Name.types';
+import { selectSmartTransactionsEnabled } from '../../../../../../../selectors/smartTransactionsController';
+import { RootState } from '../../../../../../../reducers';
+import { selectSmartTransactionsOptInStatus } from '../../../../../../../selectors/preferencesController';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import CustomNonceModal from '../../../../legacy/SendFlow/components/CustomNonceModal';
 import { use7702TransactionType } from '../../../../hooks/7702/use7702TransactionType';
@@ -31,7 +35,6 @@ import styleSheet from './advanced-details-row.styles';
 const MAX_DATA_LENGTH_FOR_SCROLL = 200;
 
 const AdvancedDetailsRow = () => {
-  const { styles } = useStyles(styleSheet, {});
   const transactionMetadata = useTransactionMetadataRequest();
   const {
     setShowNonceModal,
@@ -42,6 +45,23 @@ const AdvancedDetailsRow = () => {
   } = useEditNonce();
   const { isBatched, isUpgrade, is7702transaction, isDowngrade } =
     use7702TransactionType();
+  const isSTXEnabledForChain = useSelector((state: RootState) =>
+    selectSmartTransactionsEnabled(state, transactionMetadata?.chainId),
+  );
+  const isSTXOptIn = useSelector((state: RootState) =>
+    selectSmartTransactionsOptInStatus(state),
+  );
+  const isSTXUsable = isSTXEnabledForChain && isSTXOptIn;
+
+  const { styles } = useStyles(styleSheet, {
+    isSTXUsable,
+  });
+
+  const handleShowNonceModal = useCallback(() => {
+    if (isSTXUsable) {
+      setShowNonceModal(true);
+    }
+  }, [isSTXUsable, setShowNonceModal]);
 
   if (!transactionMetadata) {
     return null;
@@ -92,9 +112,8 @@ const AdvancedDetailsRow = () => {
               >
                 <Text
                   variant={TextVariant.BodyMD}
-                  color={TextColor.Primary}
                   style={styles.nonceText}
-                  onPress={() => setShowNonceModal(true)}
+                  onPress={isSTXUsable ? handleShowNonceModal : undefined}
                 >
                   {userSelectedNonce}
                 </Text>

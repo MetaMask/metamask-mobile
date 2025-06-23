@@ -10,6 +10,7 @@ import { RootState } from '../../../../reducers';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import { isSignatureRequest } from '../utils/confirm';
 import { useLedgerContext } from '../context/ledger-context';
+import { useConfirmationContext } from '../context/confirmation-context';
 import { useQRHardwareContext } from '../context/qr-hardware-context';
 import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './signatures/useSignatureMetrics';
@@ -31,6 +32,7 @@ export const useConfirmActions = () => {
   const { ledgerSigningInProgress, openLedgerSignModal } = useLedgerContext();
   const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
+  const { setIsConfirmationDismounting } = useConfirmationContext();
   const shouldUseSmartTransaction = useSelector((state: RootState) =>
     selectShouldUseSmartTransaction(state, transactionMetadata?.chainId),
   );
@@ -69,6 +71,10 @@ export const useConfirmActions = () => {
       setScannerVisible(true);
       return;
     }
+
+    // This will be used to hide certain alerts while the confirmation is closing
+    setIsConfirmationDismounting(true);
+
     await onRequestConfirm({
       waitForResult: isSignatureReq || !shouldUseSmartTransaction,
       deleteAfterResult: true,
@@ -97,6 +103,7 @@ export const useConfirmActions = () => {
     isFullScreenConfirmation,
     shouldUseSmartTransaction,
     shouldRedirectToTransactionsView,
+    setIsConfirmationDismounting,
   ]);
 
   return { onConfirm, onReject };

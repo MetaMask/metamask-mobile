@@ -6,21 +6,23 @@ import { strings } from '../../../../../../locales/i18n';
 
 import { useSelector } from 'react-redux';
 import { selectTransactions } from '../../../../../selectors/transactionController';
+import { useConfirmationContext } from '../../context/confirmation-context';
 
-const signedOrSubmittedStatuses = [
+const blockableStatuses = [
   TransactionStatus.signed,
-  TransactionStatus.submitted,
+  TransactionStatus.approved,
 ];
 
 export const useSignedOrSubmittedAlert = () => {
   const transactions = useSelector(selectTransactions);
+  const { isConfirmationDismounting } = useConfirmationContext();
 
   return useMemo(() => {
     const showAlert = transactions.some((transaction) =>
-      signedOrSubmittedStatuses.includes(transaction.status),
+      blockableStatuses.includes(transaction.status),
     );
 
-    if (!showAlert) {
+    if (!showAlert || isConfirmationDismounting) {
       return [];
     }
 
@@ -32,5 +34,5 @@ export const useSignedOrSubmittedAlert = () => {
         severity: Severity.Danger,
       },
     ];
-  }, [transactions]);
+  }, [isConfirmationDismounting, transactions]);
 };
