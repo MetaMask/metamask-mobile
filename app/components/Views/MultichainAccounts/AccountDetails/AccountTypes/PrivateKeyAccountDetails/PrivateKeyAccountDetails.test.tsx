@@ -5,7 +5,7 @@ import { createMockInternalAccount } from '../../../../../../util/test/accountsC
 import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
-import { MultichainDeleteAccountsSelectors } from '../../../../../../../e2e/specs/multichainAccounts/delete-account';
+import { MultichainDeleteAccountSelectors } from '../../../../../../../e2e/selectors/MultichainAccounts/DeleteAccount.selectors';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { ExportCredentialsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/ExportCredentials.selectors';
 
@@ -95,7 +95,9 @@ describe('PrivateKeyAccountDetails', () => {
     );
 
     expect(
-      getByTestId(MultichainDeleteAccountsSelectors.deleteAccountRemoveButton),
+      getByTestId(
+        MultichainDeleteAccountSelectors.DELETE_ACCOUNT_REMOVE_BUTTON,
+      ),
     ).toBeTruthy();
   });
 
@@ -109,7 +111,7 @@ describe('PrivateKeyAccountDetails', () => {
       AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER,
     );
     const removeAccount = getByTestId(
-      MultichainDeleteAccountsSelectors.deleteAccountRemoveButton,
+      MultichainDeleteAccountSelectors.DELETE_ACCOUNT_REMOVE_BUTTON,
     );
 
     expect(baseAccountDetails).toBeTruthy();

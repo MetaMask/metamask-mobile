@@ -400,6 +400,7 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                       "width": 28,
                                     }
                                   }
+                                  testID="LendingMaxSafeWithdrawalTooltipIcon"
                                 >
                                   <SvgMock
                                     color="#686e7d"

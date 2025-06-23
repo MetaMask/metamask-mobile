@@ -273,28 +273,15 @@ jest.mock('../../../components/UI/Stake/sdk/stakeSdkProvider', () => ({
   },
 }));
 
-jest.mock('../../../selectors/earnController/earn', () => ({
-  selectLendingMarketsByChainIdAndTokenAddress: jest.fn().mockReturnValue({}),
-  selectLendingMarketsByChainIdAndOutputTokenAddress: jest
-    .fn()
-    .mockReturnValue({}),
-  selectStakingMarketsByChainIdAndTokenAddress: jest.fn().mockReturnValue({}),
-  selectStakingMarketsByChainIdAndOutputTokenAddress: jest
-    .fn()
-    .mockReturnValue({}),
-  selectEarnState: jest.fn().mockReturnValue({}),
-}));
-
-jest.mock('../../../components/UI/Earn/hooks/useEarnTokens', () => ({
-  __esModule: true,
-  default: () => ({
-    getEarnToken: jest.fn().mockReturnValue(undefined),
-    getOutputToken: jest.fn().mockReturnValue(undefined),
-    getPairedEarnTokens: jest.fn().mockReturnValue({
+jest.mock('../../../selectors/earnController', () => ({
+  ...jest.requireActual('../../../selectors/earnController'),
+  earnSelectors: {
+    ...jest.requireActual('../../../selectors/earnController').earnSelectors,
+    selectEarnTokenPair: jest.fn().mockReturnValue({
       earnToken: undefined,
       outputToken: undefined,
     }),
-  }),
+  },
 }));
 
 describe('Asset', () => {

@@ -194,7 +194,7 @@ exports[`AccountBackupStep1 render matches snapshot 1`] = `
                   }
                 }
               >
-                Get Started
+                Get started
               </Text>
             </TouchableOpacity>
           </View>

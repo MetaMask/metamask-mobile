@@ -668,7 +668,7 @@ const SendFlowView = () => (
       options={Confirm.navigationOptions}
     />
     <Stack.Screen
-      name={Routes.STANDALONE_CONFIRMATIONS.TRANSFER}
+      name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
       component={RedesignedConfirm}
     />
   </Stack.Navigator>

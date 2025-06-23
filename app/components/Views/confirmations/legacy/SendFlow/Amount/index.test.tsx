@@ -11,6 +11,7 @@ import { AmountViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendF
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { setMaxValueMode } from '../../../../../../actions/transaction';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { isHardwareAccount } from '../../../../../../util/address';
 
 const mockTransactionTypes = TransactionTypes;
 
@@ -40,6 +41,8 @@ const MOCK_NFTS = [
       'https://opensea.io/assets/0x72b1FDb6443338A158DeC2FbF411B71123456789/114',
   },
 ];
+
+jest.mock('../../../../../../util/address');
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
@@ -226,12 +229,14 @@ describe('Amount', () => {
   const mockSelectConfirmationRedesignFlags = jest.mocked(
     selectConfirmationRedesignFlags,
   );
+  const mockIsHardwareAccount = jest.mocked(isHardwareAccount);
 
   beforeEach(() => {
     mockNavigate.mockClear();
     mockSelectConfirmationRedesignFlags.mockReturnValue({
       transfer: false,
     } as ReturnType<typeof selectConfirmationRedesignFlags>);
+    mockIsHardwareAccount.mockReturnValue(false);
   });
 
   it('renders correctly', () => {
@@ -1256,7 +1261,7 @@ describe('Amount', () => {
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith('SendFlowView', {
-      screen: Routes.STANDALONE_CONFIRMATIONS.TRANSFER,
+      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
     });
     expect(addTransaction).toHaveBeenCalledTimes(1);
     expect(addTransaction).toHaveBeenCalledWith(

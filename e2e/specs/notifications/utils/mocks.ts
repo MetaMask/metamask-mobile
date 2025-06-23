@@ -1,8 +1,6 @@
 import type { Mockttp } from 'mockttp';
 import {
   getMockFeatureAnnouncementResponse,
-  getMockBatchCreateTriggersResponse,
-  getMockBatchDeleteTriggersResponse,
   getMockListNotificationsResponse,
   getMockMarkNotificationsAsReadResponse,
   createMockNotificationEthSent,
@@ -22,16 +20,12 @@ import {
   createMockNotificationLidoWithdrawalCompleted,
 } from '@metamask/notification-services-controller/notification-services/mocks';
 import {
-  getMockRetrievePushNotificationLinksResponse,
   getMockUpdatePushNotificationLinksResponse,
   getMockCreateFCMRegistrationTokenResponse,
   getMockDeleteFCMRegistrationTokenResponse,
 } from '@metamask/notification-services-controller/push-services/mocks';
 import { getDecodedProxiedURL } from './helpers';
-import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import { encryptedStorageWithTriggers } from './mock-user-storage-data';
-import { NOTIFICATION_STORAGE_HASHED_KEY } from './constants';
-import { mockIdentityServices } from '../../identity/utils/mocks';
+import { MockttpNotificationTriggerServer } from './mock-notification-trigger-server';
 
 export const mockListNotificationsResponse = getMockListNotificationsResponse();
 mockListNotificationsResponse.response = [
@@ -83,42 +77,18 @@ export function getMockFeatureAnnouncementItemId() {
  * @param {import('mockttp').Mockttp} server - obj used to mock our endpoints
  */
 export async function mockNotificationServices(server: Mockttp) {
-  // Storage and Auth
-  const { userStorageMockttpControllerInstance } = await mockIdentityServices(
-    server,
-  );
-
-  // User Storage
-  const initialEncryptedTriggers = await encryptedStorageWithTriggers();
-  await userStorageMockttpControllerInstance.setupPath(
-    USER_STORAGE_FEATURE_NAMES.notifications,
-    server,
-    {
-      getResponse: [
-        {
-          HashedKey: NOTIFICATION_STORAGE_HASHED_KEY,
-          Data: initialEncryptedTriggers,
-        },
-      ],
-    },
-  );
+  // Trigger Config
+  new MockttpNotificationTriggerServer().setupServer(server);
 
   // Notifications
   mockAPICall(server, mockFeatureAnnouncementResponse);
-  mockAPICall(server, getMockBatchCreateTriggersResponse());
-  mockAPICall(server, getMockBatchDeleteTriggersResponse());
   mockAPICall(server, mockListNotificationsResponse);
   mockAPICall(server, getMockMarkNotificationsAsReadResponse());
 
   // Push Notifications
-  mockAPICall(server, getMockRetrievePushNotificationLinksResponse());
   mockAPICall(server, getMockUpdatePushNotificationLinksResponse());
   mockAPICall(server, getMockCreateFCMRegistrationTokenResponse());
   mockAPICall(server, getMockDeleteFCMRegistrationTokenResponse());
-
-  return {
-    userStorageMockttpControllerInstance,
-  };
 }
 
 interface ResponseParam {
@@ -149,7 +119,6 @@ function mockAPICall(server: Mockttp, response: ResponseParam) {
   requestRuleBuilder
     ?.matching((request) => {
       const url = getDecodedProxiedURL(request.url);
-
       return url.includes(String(response.url));
     })
     .thenCallback(() => ({

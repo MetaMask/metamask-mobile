@@ -1,9 +1,9 @@
 import enContent from '../../../locales/languages/en.json';
 
 export const QuoteViewSelectorText = {
-  QUOTES: enContent.bridge.quote,
-  BRIDGE_TO: 'Bridge to',
-  CONTINUE: 'Continue',
+  NETWORK_FEE: enContent.bridge.network_fee,
+  BRIDGE_TO: enContent.bridge.bridge_to,
+  CONFIRM_BRIDGE: enContent.bridge.confirm_bridge,
 };
 
 export const QuoteViewSelectorIDs = {

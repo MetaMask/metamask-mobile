@@ -1,16 +1,20 @@
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import React from 'react';
-import InputDisplay, { InputDisplayProps } from '.';
+import InputDisplay, { INPUT_DISPLAY_TEST_IDS, InputDisplayProps } from '.';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { renderFromTokenMinimalUnit } from '../../../../../util/number';
+import Routes from '../../../../../constants/navigation/Routes';
+
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
     useNavigation: () => ({
-      navigate: jest.fn(),
+      navigate: mockNavigate,
     }),
   };
 });
@@ -162,5 +166,30 @@ describe('InputDisplay', () => {
     fireEvent.press(currencyToggle);
 
     expect(defaultProps.handleCurrencySwitch).toHaveBeenCalled();
+  });
+
+  it('Opens lending max safe withdrawal tooltip on icon pressed', async () => {
+    const { getByTestId } = renderComponent({
+      ...defaultProps,
+      asset: {
+        ...mockToken,
+        symbol: 'USDC',
+        ticker: 'USDC',
+        name: 'USD Coin',
+      },
+      maxWithdrawalAmount: renderFromTokenMinimalUnit(25, 16),
+    });
+
+    const maxSafeWithdrawalTooltipIcon = getByTestId(
+      INPUT_DISPLAY_TEST_IDS.LENDING_MAX_SAFE_WITHDRAWAL_TOOLTIP_ICON,
+    );
+
+    await act(async () => {
+      fireEvent.press(maxSafeWithdrawalTooltipIcon);
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.MODALS.ROOT, {
+      screen: Routes.EARN.MODALS.LENDING_MAX_WITHDRAWAL,
+    });
   });
 });
