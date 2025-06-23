@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -17,8 +16,16 @@ import { selectInternalEvmAccounts } from '../../../../../../selectors/accountsC
 import styleSheet from './AddressList.styles';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
+import { Hex } from '@metamask/utils';
+import { RootState } from '../../../../../../reducers';
+import {
+  AddressListProps,
+  AddressBookEntryWithRelaxedChainId,
+  InternalAddressBookEntry,
+} from './AddressList.types';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../../util/networks';
 
-const LabelElement = (styles, label) => (
+const LabelElement = (styles: ReturnType<typeof styleSheet>, label: string) => (
   <View key={label} style={styles.labelElementWrapper}>
     <Text variant={TextVariant.BodyMD} style={styles.contactLabel}>
       {label.toUpperCase()}
@@ -34,32 +41,55 @@ const AddressList = ({
   onIconPress,
   onlyRenderAddressBook = false,
   reloadAddressList,
-}) => {
+}: AddressListProps) => {
   const { colors } = useTheme();
   const styles = styleSheet(colors);
-  const [contactElements, setContactElements] = useState([]);
-  const [fuse, setFuse] = useState(undefined);
+  const [contactElements, setContactElements] = useState<
+    (InternalAddressBookEntry | string)[]
+  >([]);
+  const [fuse, setFuse] = useState<
+    Fuse<AddressBookEntryWithRelaxedChainId> | undefined
+  >(undefined);
   const internalAccounts = useSelector(selectInternalEvmAccounts);
   const addressBook = useSelector(selectAddressBook);
   const ambiguousAddressEntries = useSelector(
-    (state) => state.user.ambiguousAddressEntries,
+    (state: RootState) => state.user.ambiguousAddressEntries,
   );
 
-  const networkAddressBook = useMemo(
-    () => addressBook[chainId] || {},
-    [addressBook, chainId],
+  const completeAndFlattenedAddressBook: AddressBookEntryWithRelaxedChainId[] =
+    useMemo(
+      () =>
+        Object.entries(addressBook)
+          .filter(([addressBookChainId, _]) => addressBookChainId !== '*')
+          .map(([_, addressDict]) => Object.values(addressDict))
+          .flat(),
+      [addressBook],
+    );
+
+  const completeAndFlattenedAddressBookFilteredByCurrentChainId = useMemo(
+    () =>
+      completeAndFlattenedAddressBook.filter(
+        (contact) => contact.chainId === chainId,
+      ),
+    [completeAndFlattenedAddressBook, chainId],
   );
+
   const parseAddressBook = useCallback(
-    (networkAddressBookList) => {
-      const contacts = networkAddressBookList.map((contact) => {
+    (addressBookList: AddressBookEntryWithRelaxedChainId[]) => {
+      const contacts = addressBookList.map((contact) => {
         const isAmbiguousAddress =
           chainId &&
-          ambiguousAddressEntries?.[chainId]?.includes(contact.address);
-        return {
+          ambiguousAddressEntries?.[chainId] &&
+          Array.isArray(ambiguousAddressEntries?.[chainId]) &&
+          ambiguousAddressEntries[chainId].includes(contact.address);
+        const addressContact: InternalAddressBookEntry = {
           ...contact,
-          ...(isAmbiguousAddress && { isAmbiguousAddress }),
           isSmartContract: false,
         };
+        if (isAmbiguousAddress) {
+          addressContact.isAmbiguousAddress = true;
+        }
+        return addressContact;
       });
 
       Promise.all(
@@ -74,8 +104,8 @@ const AddressList = ({
             .catch(() => contact),
         ),
       ).then((updatedContacts) => {
-        const newContactElements = [];
-        const addressBookTree = {};
+        const newContactElements: (InternalAddressBookEntry | string)[] = [];
+        const addressBookTree: Record<string, InternalAddressBookEntry[]> = {};
 
         updatedContacts.forEach((contact) => {
           const contactNameInitial = contact?.name?.[0];
@@ -107,46 +137,55 @@ const AddressList = ({
     [onlyRenderAddressBook, ambiguousAddressEntries, chainId],
   );
 
-  useEffect(() => {
-    const networkAddressBookList = Object.keys(networkAddressBook).map(
-      (address) => networkAddressBook[address],
-    );
-    const newFuse = new Fuse(networkAddressBookList, {
-      shouldSort: true,
-      threshold: 0.45,
-      location: 0,
-      distance: 10,
-      maxPatternLength: 32,
-      minMatchCharLength: 1,
-      keys: [
-        { name: 'name', weight: 0.5 },
-        { name: 'address', weight: 0.5 },
-      ],
-    });
-    setFuse(newFuse);
-    parseAddressBook(networkAddressBookList);
-  }, [networkAddressBook, parseAddressBook]);
-
   const getNetworkAddressBookList = useCallback(() => {
     if (inputSearch && fuse) {
       return fuse.search(inputSearch);
     }
 
-    return Object.keys(networkAddressBook).map(
-      (address) => networkAddressBook[address],
-    );
-  }, [fuse, inputSearch, networkAddressBook]);
+    return completeAndFlattenedAddressBookFilteredByCurrentChainId;
+  }, [
+    fuse,
+    inputSearch,
+    completeAndFlattenedAddressBookFilteredByCurrentChainId,
+  ]);
 
   useEffect(() => {
-    const networkAddressBookList = getNetworkAddressBookList();
-    parseAddressBook(networkAddressBookList);
+    const newFuse = new Fuse(
+      completeAndFlattenedAddressBookFilteredByCurrentChainId,
+      {
+        shouldSort: true,
+        threshold: 0.45,
+        location: 0,
+        distance: 10,
+        maxPatternLength: 32,
+        minMatchCharLength: 1,
+        keys: [
+          { name: 'name', weight: 0.5 },
+          { name: 'address', weight: 0.5 },
+        ],
+      },
+    );
+    setFuse(newFuse);
+  }, [
+    parseAddressBook,
+    completeAndFlattenedAddressBookFilteredByCurrentChainId,
+  ]);
+
+  useEffect(() => {
+    if (onlyRenderAddressBook && isRemoveGlobalNetworkSelectorEnabled()) {
+      parseAddressBook(completeAndFlattenedAddressBook);
+    } else {
+      const networkAddressBookList = getNetworkAddressBookList();
+      parseAddressBook(networkAddressBookList);
+    }
   }, [
     inputSearch,
-    addressBook,
     chainId,
     reloadAddressList,
     getNetworkAddressBookList,
     parseAddressBook,
+    completeAndFlattenedAddressBook,
+    onlyRenderAddressBook,
   ]);
 
   const renderMyAccounts = () => {
@@ -181,7 +220,9 @@ const AddressList = ({
     );
   };
 
-  const renderElement = (addressElement) => {
+  const renderAddressElement = (
+    addressElement: InternalAddressBookEntry | string,
+  ) => {
     if (typeof addressElement === 'string') {
       return LabelElement(styles, addressElement);
     }
@@ -198,25 +239,38 @@ const AddressList = ({
         onAccountLongPress={onAccountLongPress}
         testID={SendViewSelectorsIDs.ADDRESS_BOOK_ACCOUNT}
         isAmbiguousAddress={addressElement.isAmbiguousAddress}
-        chainId={chainId}
+        chainId={addressElement.chainId as Hex}
+        displayNetworkBadge={addressElement.displayNetworkBadge}
       />
     );
   };
 
-  const renderContent = () => {
-    const sendFlowContacts = [];
+  const renderAddressElementWithNetworkBadge = (
+    addressElement: InternalAddressBookEntry | string,
+  ) =>
+    renderAddressElement(
+      typeof addressElement === 'object'
+        ? {
+            ...addressElement,
+            displayNetworkBadge: true,
+          }
+        : addressElement,
+    );
 
-    contactElements.forEach((contractElement) => {
+  const renderContent = () => {
+    const sendFlowContacts: (InternalAddressBookEntry | string)[] = [];
+
+    contactElements.forEach((contactElement) => {
       if (
-        typeof contractElement === 'object' &&
-        contractElement.isSmartContract === false
+        typeof contactElement === 'object' &&
+        contactElement.isSmartContract === false
       ) {
-        const nameInitial = contractElement?.name?.[0].toLowerCase();
+        const nameInitial = contactElement?.name?.[0].toLowerCase();
         if (sendFlowContacts.includes(nameInitial)) {
-          sendFlowContacts.push(contractElement);
+          sendFlowContacts.push(contactElement);
         } else {
           sendFlowContacts.push(nameInitial);
-          sendFlowContacts.push(contractElement);
+          sendFlowContacts.push(contactElement);
         }
       }
     });
@@ -242,10 +296,10 @@ const AddressList = ({
                 <></>
               )}
 
-              {sendFlowContacts.map(renderElement)}
+              {sendFlowContacts.map(renderAddressElementWithNetworkBadge)}
             </>
           ) : (
-            contactElements.map(renderElement)
+            contactElements.map(renderAddressElementWithNetworkBadge)
           )}
         </KeyboardAwareScrollView>
       </View>
