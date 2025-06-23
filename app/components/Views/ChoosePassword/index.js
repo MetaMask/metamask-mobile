@@ -409,7 +409,7 @@ class ChoosePassword extends PureComponent {
         Logger.error(e);
       }
       // Set state in app as it was with no password
-      this.props.dispatch(setExistingUser(true));
+      this.props.setExistingUser(true);
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       this.props.passwordUnset();
       this.props.setLockTime(-1);
@@ -858,6 +858,7 @@ const mapDispatchToProps = (dispatch) => ({
   setLockTime: (time) => dispatch(setLockTime(time)),
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
+  setExistingUser: (value) => dispatch(setExistingUser(value)),
 });
 
 const mapStateToProps = (state) => ({});
