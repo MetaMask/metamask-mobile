@@ -1454,6 +1454,9 @@ describe('EvmAccountSelectorList', () => {
   });
 
   it('creates footer items when there are multiple sections', () => {
+    const accountIds = Object.keys(
+      initialState.engine.backgroundState.AccountsController.internalAccounts.accounts,
+    );
     // Create a state with multiple sections to trigger footer creation
     const multiSectionState = {
       ...initialState,
@@ -1471,12 +1474,12 @@ describe('EvmAccountSelectorList', () => {
                   groups: {
                     group1: {
                       accounts: [
-                        Object.keys(initialState.engine.backgroundState.AccountsController.internalAccounts.accounts)[0]
+                        accountIds[0]
                       ]
                     },
                     group2: {
                       accounts: [
-                        Object.keys(initialState.engine.backgroundState.AccountsController.internalAccounts.accounts)[1]
+                        accountIds[1]
                       ]
                     }
                   }
