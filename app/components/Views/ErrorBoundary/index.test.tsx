@@ -154,7 +154,7 @@ describe('ErrorBoundary', () => {
 
     await waitFor(() => {
       const textInput = getByPlaceholderText('Sharing details like how we can reproduce the bug will help us fix the problem.');
-      const submitButton = getByText('Submit').parent?.parent;
+      const submitButton = getByText('Submit').parent!.parent!;
 
       // Initially submit should be disabled (opacity 0.5)
       expect(submitButton.props.style).toContainEqual({opacity: 0.5});
