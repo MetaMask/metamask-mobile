@@ -24,7 +24,7 @@ import { handleCustomError, setReactNativeDefaultHandler } from './app/core/Erro
 
 // polyfill crypto
 global.crypto = {
-  ...Crypto,
+  ...crypto,
   ...global.crypto,
 };
 
