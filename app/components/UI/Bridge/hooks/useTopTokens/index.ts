@@ -1,4 +1,4 @@
-import { BRIDGE_PROD_API_BASE_URL, BridgeClientId, fetchBridgeTokens, formatChainIdToCaip, formatChainIdToHex, isSolanaChainId } from '@metamask/bridge-controller';
+import { BridgeClientId, fetchBridgeTokens, formatChainIdToCaip, formatChainIdToHex, isSolanaChainId } from '@metamask/bridge-controller';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { Hex, CaipChainId, isCaipChainId } from '@metamask/utils';
 import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
@@ -12,6 +12,7 @@ import { SwapsControllerState } from '@metamask/swaps-controller';
 import { selectTopAssetsFromFeatureFlags } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
+import { BRIDGE_API_BASE_URL } from '../../../../../constants/bridge';
 
 const MAX_TOP_TOKENS = 30;
 
@@ -19,7 +20,11 @@ interface UseTopTokensProps {
   chainId?: Hex | CaipChainId;
 }
 
-export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: BridgeToken[] | undefined, pending: boolean } => {
+export const useTopTokens = ({ chainId }: UseTopTokensProps): { 
+  topTokens: BridgeToken[] | undefined, 
+  remainingTokens: BridgeToken[] | undefined,
+  pending: boolean 
+} => {
   const swapsChainCache: SwapsControllerState['chainCache'] = useSelector(selectChainCache);
   const swapsTopAssets = useMemo(
     () => (chainId ? swapsChainCache[chainId]?.topAssets : null),
@@ -74,7 +79,7 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
       chainId,
       BridgeClientId.MOBILE,
       handleFetch,
-      BRIDGE_PROD_API_BASE_URL,
+      BRIDGE_API_BASE_URL,
     );
 
     // Convert from BridgeAsset type to BridgeToken type
@@ -104,12 +109,13 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
   }, [chainId]);
 
   // Merge the top assets from the Swaps API with the token data from the bridge API
-  const topTokens = useMemo(() => {
+  const { topTokens, remainingTokens } = useMemo(() => {
     if (!bridgeTokens) {
-      return [];
+      return { topTokens: [], remainingTokens: [] };
     }
 
     const result: BridgeToken[] = [];
+    const remainingTokensList: BridgeToken[] = [];
     const addedAddresses = new Set<string>();
     const topAssetAddrs = topAssetsFromFeatureFlags || swapsTopAssets?.map((asset) => asset.address) || [];
 
@@ -146,13 +152,23 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
     // Then add remaining unique bridge tokens until we reach the limit
     if (result.length < MAX_TOP_TOKENS) {
       for (const token of Object.values(bridgeTokens)) {
-        if (result.length >= MAX_TOP_TOKENS) break;
-        addTokenIfNotExists(token);
+        if (result.length >= MAX_TOP_TOKENS) {
+          remainingTokensList.push(token);
+        } else {
+          addTokenIfNotExists(token);
+        }
       }
     }
 
-    return result;
+    return { 
+      topTokens: result, 
+      remainingTokens: remainingTokensList
+    };
   }, [bridgeTokens, swapsTopAssets, topAssetsFromFeatureFlags]);
 
-  return { topTokens, pending: chainId ? (bridgeTokensPending || swapsTopAssetsPending) : false };
+  return { 
+    topTokens, 
+    remainingTokens,
+    pending: chainId ? (bridgeTokensPending || swapsTopAssetsPending) : false 
+  };
 };

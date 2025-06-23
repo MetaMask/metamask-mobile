@@ -1,13 +1,12 @@
 import {
   ChainId,
-  StakingType,
   type PooledStakes,
   type VaultData,
 } from '@metamask/stake-sdk';
-import { TokenI } from '../../Tokens/types';
-import { Contract } from 'ethers';
-import { Stake } from '../sdk/stakeSdkProvider';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { Contract } from 'ethers';
+import { TokenI } from '../../Tokens/types';
+import { Stake } from '../sdk/stakeSdkProvider';
 import { createMockToken, getCreateMockTokenOptions } from '../testUtils';
 import { TOKENS_WITH_DEFAULT_OPTIONS } from '../testUtils/testUtils.types';
 
@@ -102,8 +101,6 @@ const MOCK_POOLED_STAKING_CONTRACT_SERVICE = {
 
 export const MOCK_POOL_STAKING_SDK: Stake = {
   stakingContract: MOCK_POOLED_STAKING_CONTRACT_SERVICE,
-  sdkType: StakingType.POOLED,
-  setSdkType: jest.fn(),
 };
 
 export const MOCK_ETH_MAINNET_ASSET = createMockToken(
@@ -124,6 +121,12 @@ export const MOCK_USDC_MAINNET_ASSET = createMockToken(
   ),
 );
 
+export const MOCK_AETHUSDC_MAINNET_ASSET = createMockToken({
+  chainId: '0x1',
+  symbol: 'AETHUSDC',
+  name: 'Aave v3 USDC',
+});
+
 export const MOCK_USDT_MAINNET_ASSET = createMockToken(
   getCreateMockTokenOptions(
     CHAIN_IDS.MAINNET,
@@ -131,9 +134,21 @@ export const MOCK_USDT_MAINNET_ASSET = createMockToken(
   ),
 );
 
+export const MOCK_AUSDT_MAINNET_ASSET = createMockToken({
+  chainId: '0x1',
+  symbol: 'AUSDT',
+  name: 'Aave v3 USDT',
+});
+
 export const MOCK_DAI_MAINNET_ASSET = createMockToken(
   getCreateMockTokenOptions(CHAIN_IDS.MAINNET, TOKENS_WITH_DEFAULT_OPTIONS.DAI),
 );
+
+export const MOCK_ADAI_MAINNET_ASSET = createMockToken({
+  chainId: '0x1',
+  symbol: 'ADAI',
+  name: 'Aave v3 DAI',
+});
 
 const MOCK_LINK_MAINNET_ASSET = createMockToken(
   getCreateMockTokenOptions(
@@ -156,6 +171,12 @@ const MOCK_ETH_BASE_MAINNET_ASSET = createMockToken(
 export const MOCK_USDC_BASE_MAINNET_ASSET = createMockToken(
   getCreateMockTokenOptions(CHAIN_IDS.BASE, TOKENS_WITH_DEFAULT_OPTIONS.USDC),
 );
+
+export const MOCK_ABASUSDC_BASE_MAINNET_ASSET = createMockToken({
+  chainId: '0x2105',
+  symbol: 'aBasUSDC',
+  name: 'aBasUSDC',
+});
 
 export const MOCK_ACCOUNT_MULTI_CHAIN_TOKENS = [
   MOCK_ETH_MAINNET_ASSET,

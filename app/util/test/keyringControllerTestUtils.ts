@@ -1,8 +1,4 @@
-import {
-  KeyringMetadata,
-  KeyringObject,
-  KeyringTypes,
-} from '@metamask/keyring-controller';
+import { KeyringObject, KeyringTypes } from '@metamask/keyring-controller';
 
 export const mockSimpleKeyringAddress =
   '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -20,56 +16,43 @@ const MOCK_DEFAULT_KEYRINGS: KeyringObject[] = [
   {
     accounts: [mockSimpleKeyringAddress],
     type: KeyringTypes.simple,
+    metadata: {
+      id: '01JNG66ATK17YSN0TSS6H51EE3',
+      name: '',
+    },
   },
   {
     accounts: [mockQrKeyringAddress],
     type: KeyringTypes.qr,
+    metadata: {
+      id: '01JNG66NARF27JY9TGWJX385QW',
+      name: '',
+    },
   },
   {
     accounts: [mockHDKeyringAddress],
     type: KeyringTypes.hd,
+    metadata: {
+      id: '01JNG7170V9X27V5NFDTY04PJ4',
+      name: '',
+    },
   },
   {
     accounts: [mockSnapAddress1, mockSnapAddress2, mockSolanaAddress],
     type: KeyringTypes.snap,
+    metadata: {
+      id: '01JNG71B7GTWH0J1TSJY9891S0',
+      name: '',
+    },
   },
   {
     accounts: [mockSecondHDKeyringAddress],
     type: KeyringTypes.hd,
+    metadata: {
+      id: '01JSJNVTJEPSHZSNWAD3JT0PJN',
+      name: '',
+    },
   },
-];
-
-const MOCK_SIMPLE_KEYRING_METADATA: KeyringMetadata = {
-  id: '01JNG66ATK17YSN0TSS6H51EE3',
-  name: '',
-};
-
-const MOCK_QR_KEYRING_METADATA: KeyringMetadata = {
-  id: '01JNG66NARF27JY9TGWJX385QW',
-  name: '',
-};
-
-const MOCK_HD_KEYRING_METADATA: KeyringMetadata = {
-  id: '01JNG7170V9X27V5NFDTY04PJ4',
-  name: '',
-};
-
-const MOCK_SNAP_KEYRING_METADATA: KeyringMetadata = {
-  id: '01JNG71B7GTWH0J1TSJY9891S0',
-  name: '',
-};
-
-const MOCK_SECOND_HD_KEYRING_METADATA: KeyringMetadata = {
-  id: '01JSJNVTJEPSHZSNWAD3JT0PJN',
-  name: '',
-};
-
-const MOCK_DEFAULT_KEYRINGS_METADATA: KeyringMetadata[] = [
-  MOCK_SIMPLE_KEYRING_METADATA,
-  MOCK_QR_KEYRING_METADATA,
-  MOCK_HD_KEYRING_METADATA,
-  MOCK_SNAP_KEYRING_METADATA,
-  MOCK_SECOND_HD_KEYRING_METADATA,
 ];
 
 export const MOCK_KEYRING_CONTROLLER_STATE = {
@@ -85,8 +68,6 @@ export const MOCK_KEYRING_CONTROLLER_STATE = {
   },
   state: {
     keyrings: MOCK_DEFAULT_KEYRINGS,
-    keyringsMetadata: MOCK_DEFAULT_KEYRINGS_METADATA,
   },
   keyrings: MOCK_DEFAULT_KEYRINGS,
-  keyringsMetadata: MOCK_DEFAULT_KEYRINGS_METADATA,
 };

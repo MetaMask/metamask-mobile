@@ -20,7 +20,7 @@ import styleSheet from './Price.styles';
 import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { TokenI } from '../../Tokens/types';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import {  CaipAssetType, } from '@metamask/utils';
+import { CaipAssetType } from '@metamask/utils';
 import { AssetConversion } from '@metamask/snaps-sdk';
 ///: END:ONLY_INCLUDE_IF
 
@@ -90,9 +90,8 @@ const Price = ({
     ? distributedPriceData[activeChartIndex]?.[1] || currentPrice
     : Number(multichainAssetRates?.rate);
 
-
   const date: string | undefined = distributedPriceData[activeChartIndex]?.[0]
-    ? toDateFormat(distributedPriceData[activeChartIndex]?.[0])
+    ? toDateFormat(Number(distributedPriceData[activeChartIndex]?.[0]))
     : timePeriodTextDict[timePeriod];
 
   const diff: number | undefined = distributedPriceData[activeChartIndex]?.[1]
@@ -165,6 +164,7 @@ const Price = ({
               {diff === 0 ? '0' : ((diff / comparePrice) * 100).toFixed(2)}
               %){' '}
               <Text
+                testID="price-label"
                 color={TextColor.Alternative}
                 variant={TextVariant.BodyMDMedium}
               >

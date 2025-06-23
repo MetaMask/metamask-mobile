@@ -13,9 +13,6 @@ import { use7702TransactionType } from './use7702TransactionType';
 jest.mock('../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
     TransactionController: {
       getNonceLock: jest.fn().mockReturnValue({ releaseLock: jest.fn() }),
       updateTransaction: jest.fn(),
@@ -36,6 +33,7 @@ function runHook(confirmation: TransactionMeta) {
 describe('use7702TransactionType', () => {
   it('returns correct result for downgrade account type transaction', () => {
     const { result } = runHook(downgradeAccountConfirmation);
+    expect(result.is7702transaction).toBe(true);
     expect(result.isDowngrade).toBe(true);
     expect(result.isUpgrade).toBe(false);
     expect(result.isUpgradeOnly).toBe(false);
@@ -45,6 +43,7 @@ describe('use7702TransactionType', () => {
 
   it('returns correct result for upgrade + batched account type transaction', () => {
     const { result } = runHook(upgradeAccountConfirmation);
+    expect(result.is7702transaction).toBe(true);
     expect(result.isDowngrade).toBe(false);
     expect(result.isUpgrade).toBe(true);
     expect(result.isUpgradeOnly).toBe(false);
@@ -54,6 +53,7 @@ describe('use7702TransactionType', () => {
 
   it('returns correct result for upgrade only account type transaction', () => {
     const { result } = runHook(upgradeOnlyAccountConfirmation);
+    expect(result.is7702transaction).toBe(true);
     expect(result.isDowngrade).toBe(false);
     expect(result.isUpgrade).toBe(true);
     expect(result.isUpgradeOnly).toBe(true);
@@ -63,6 +63,7 @@ describe('use7702TransactionType', () => {
 
   it('returns correct result for other transaction', () => {
     const { result } = runHook(mockTransaction);
+    expect(result.is7702transaction).toBe(false);
     expect(result.isDowngrade).toBe(false);
     expect(result.isUpgrade).toBe(false);
     expect(result.isUpgradeOnly).toBe(false);

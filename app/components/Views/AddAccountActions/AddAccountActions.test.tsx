@@ -16,6 +16,9 @@ import Logger from '../../../util/Logger';
 import { RootState } from '../../../reducers';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const mockedNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -30,12 +33,7 @@ jest.mock('@react-navigation/native', () => {
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: () => ({
-      build: () => ({}),
-    }),
-  }),
+  useMetrics: jest.fn(),
 }));
 
 jest.mock('../../../actions/multiSrp', () => ({
@@ -64,6 +62,11 @@ const mockProps = {
 describe('AddAccountActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    (useMetrics as jest.Mock).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+    });
   });
 
   it('renders correctly', () => {
@@ -203,6 +206,31 @@ describe('AddAccountActions', () => {
     expect(mockProps.onBack).toHaveBeenCalled();
   });
 
+  it('navigates to import SRP screen and tracks event when clicking import SRP', () => {
+    renderScreen(
+      () => <AddAccountActions {...mockProps} />,
+      {
+        name: 'AddAccountActions',
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const importSrpButton = screen.getByTestId(
+      AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON,
+    );
+    fireEvent.press(importSrpButton);
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_CLICKED,
+      ).build(),
+    );
+    expect(mockedNavigate).toHaveBeenCalledWith(Routes.MULTI_SRP.IMPORT);
+    expect(mockProps.onBack).toHaveBeenCalled();
+  });
+
   describe('Multichain account creation', () => {
     it.each([
       {
@@ -253,10 +281,10 @@ describe('AddAccountActions', () => {
     const mockSecondHdKeyring = {
       type: KeyringTypes.hd,
       accounts: [],
-    };
-    const mockSecondHdKeyringMetadata = {
-      id: '',
-      name: '',
+      metadata: {
+        id: '',
+        name: '',
+      },
     };
 
     const stateWithMultipleHdKeyrings = {
@@ -280,10 +308,6 @@ describe('AddAccountActions', () => {
             keyrings: [
               ...MOCK_KEYRING_CONTROLLER.keyrings,
               mockSecondHdKeyring,
-            ],
-            keyringsMetadata: [
-              ...MOCK_KEYRING_CONTROLLER.keyringsMetadata,
-              mockSecondHdKeyringMetadata,
             ],
           },
         },

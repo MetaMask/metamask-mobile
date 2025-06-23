@@ -9,8 +9,8 @@ import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/W
 import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { isZero } from '../../../../../util/lodash';
-import useRampNetwork from '../../../Ramp/hooks/useRampNetwork';
-import { createBuyNavigationDetails } from '../../../Ramp/routes/utils';
+import useRampNetwork from '../../../Ramp/Aggregator/hooks/useRampNetwork';
+import { createBuyNavigationDetails } from '../../../Ramp/Aggregator/routes/utils';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -116,7 +116,8 @@ export const TokenListFooter = ({
       )}
       {/* render footer */}
       <View style={styles.footer} key={'tokens-footer'}>
-        <TouchableOpacity
+        {isEvmSelected &&  (
+          <TouchableOpacity
           style={styles.add}
           onPress={goToAddToken}
           disabled={!isAddTokenEnabled}
@@ -129,6 +130,7 @@ export const TokenListFooter = ({
             <Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
           </Text>
         </TouchableOpacity>
+        )}
       </View>
     </>
   );

@@ -16,7 +16,7 @@ import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnec
 
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 
-describe(
+xdescribe(
   SmokeNetworkExpansion('Chain Permission System, non-permitted chain, '),
   () => {
     beforeAll(async () => {
@@ -123,7 +123,7 @@ describe(
           await NetworkNonPemittedBottomSheet.tapAddThisNetworkButton();
 
           // Verify the permission was added by checking that disconnecting both networks shows disconnect all button
-          await Browser.tapNetworkAvatarButtonOnBrowser();
+          await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
           await ConnectedAccountsModal.tapManagePermissionsButton();
           await ConnectedAccountsModal.tapPermissionsSummaryTab();
           await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();

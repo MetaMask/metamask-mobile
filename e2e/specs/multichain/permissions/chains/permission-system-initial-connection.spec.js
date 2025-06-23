@@ -35,7 +35,7 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         await TestDApp.connect();
         await ConnectBottomSheet.tapConnectButton();
 
-        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.checkIfVisible(ConnectedAccountsModal.title);
       },
     );
@@ -60,6 +60,7 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
 
+        await ConnectedAccountsModal.tapSelectAllNetworksButton();
         await ConnectedAccountsModal.tapDeselectAllNetworksButton();
         await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
         await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
@@ -76,7 +77,7 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         await ConnectBottomSheet.tapConnectButton();
 
         // Open network permissions menu
-        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.checkIfVisible(ConnectedAccountsModal.title);
         await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapPermissionsSummaryTab();

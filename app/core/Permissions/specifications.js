@@ -52,8 +52,8 @@ export const CaveatFactories = Object.freeze({
  * @param {{
  * listAccounts: () => import('@metamask/keyring-api').InternalAccount[],
  * findNetworkClientIdByChainId: (chainId: `0x${string}`) => string,
- * isNonEvmScopeSupported: (scope: import('@metamask/chain-agnostic-permission').InternalScopeString) => boolean
- * getNonEvmAccountAddresses: (scope: import('@metamask/chain-agnostic-permission').InternalScopeString) => import('@metamask/utils').CaipAccountId[],
+ * isNonEvmScopeSupported: (scope: import('@metamask/chain-agnostic-permission').InternalScopeString) => import('@metamask/utils').Json | unknown
+ * getNonEvmAccountAddresses: (scope: import('@metamask/chain-agnostic-permission').InternalScopeString) => import('@metamask/utils').CaipAccountId[] | unknown,
  * }} options - Options bag.
  */
 export const getCaveatSpecifications = ({
@@ -188,5 +188,9 @@ export const unrestrictedMethods = Object.freeze([
   'snap_cancelBackgroundEvent',
   'snap_getBackgroundEvents',
   'snap_experimentalProviderRequest',
+  'snap_openWebSocket',
+  'snap_sendWebSocketMessage',
+  'snap_closeWebSocket',
+  'snap_getWebSockets',
   ///: END:ONLY_INCLUDE_IF
 ]);

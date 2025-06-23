@@ -24,6 +24,8 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_2,
 ]);
 
+const NETWORK_NAME_MOCK = 'Ethereum Main Network';
+
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
@@ -86,12 +88,10 @@ jest.mock('../../../core/Engine', () => {
                 '0x519d2CE57898513F676a5C3b66496c3C394c9CC7',
                 '0x07Be9763a718C0539017E2Ab6fC42853b4aEeb6B',
               ],
-            },
-          ],
-          keyringsMetadata: [
-            {
-              id: '01JNG71B7GTWH0J1TSJY9891S0',
-              name: '',
+              metadata: {
+                id: '01JNG71B7GTWH0J1TSJY9891S0',
+                name: '',
+              },
             },
           ],
         },
@@ -106,6 +106,15 @@ jest.mock('../../../core/Engine', () => {
     },
   };
 });
+
+jest.mock('../../Views/confirmations/hooks/useNetworkInfo', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+      networkImage: 10,
+      networkName: NETWORK_NAME_MOCK,
+      networkNativeCurrency: 'ETH',
+  })),
+}));
 
 jest.mock('../../../util/ENSUtils', () => ({
   ...jest.requireActual('../../../util/ENSUtils'),
@@ -238,5 +247,14 @@ describe('AccountFromToInfoCard', () => {
     );
     expect(await queryByText('test1.eth')).toBeDefined();
     expect(await queryByText('test3.eth')).toBeDefined();
+  });
+
+    it('renders correct network name', async () => {
+    const { findByText } = renderWithProvider(
+      //@ts-expect-error - Rest props are ignored for testing purposes
+      <AccountFromToInfoCard transactionState={transactionState} />,
+      { state: mockInitialState },
+    );
+    expect(await findByText(NETWORK_NAME_MOCK)).toBeDefined();
   });
 });

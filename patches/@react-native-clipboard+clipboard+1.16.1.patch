@@ -1,24 +1,41 @@
 diff --git a/node_modules/@react-native-clipboard/clipboard/android/src/main/java/com/reactnativecommunity/clipboard/ClipboardModule.java b/node_modules/@react-native-clipboard/clipboard/android/src/main/java/com/reactnativecommunity/clipboard/ClipboardModule.java
-index b68b858..3376547 100644
+index b68b858..532f3c9 100644
 --- a/node_modules/@react-native-clipboard/clipboard/android/src/main/java/com/reactnativecommunity/clipboard/ClipboardModule.java
 +++ b/node_modules/@react-native-clipboard/clipboard/android/src/main/java/com/reactnativecommunity/clipboard/ClipboardModule.java
-@@ -64,6 +64,16 @@ public class ClipboardModule extends NativeClipboardModuleSpec {
+@@ -64,6 +64,18 @@ public class ClipboardModule extends NativeClipboardModuleSpec {
      return (ClipboardManager) reactContext.getSystemService(Context.CLIPBOARD_SERVICE);
    }
  
 +  @ReactMethod
-+  public void clearString() {
++  public void clearString(Promise promise) {
 +    try {
 +      ClipboardManager clipboard = getClipboardService();
 +      clipboard.clearPrimaryClip();
++      promise.resolve(true);
 +    } catch (Exception e) {
 +      e.printStackTrace();
++      promise.reject(e);
 +    }
 +  }
 +
    @ReactMethod
    public void getString(Promise promise) {
      try {
+diff --git a/node_modules/@react-native-clipboard/clipboard/android/src/paper/java/com/reactnativecommunity/clipboard/NativeClipboardModuleSpec.java b/node_modules/@react-native-clipboard/clipboard/android/src/paper/java/com/reactnativecommunity/clipboard/NativeClipboardModuleSpec.java
+index e367325..32335ce 100644
+--- a/node_modules/@react-native-clipboard/clipboard/android/src/paper/java/com/reactnativecommunity/clipboard/NativeClipboardModuleSpec.java
++++ b/node_modules/@react-native-clipboard/clipboard/android/src/paper/java/com/reactnativecommunity/clipboard/NativeClipboardModuleSpec.java
+@@ -25,6 +25,10 @@ public abstract class NativeClipboardModuleSpec extends ReactContextBaseJavaModu
+     super(reactContext);
+   }
+ 
++  @ReactMethod
++  @DoNotStrip
++  public abstract void clearString(Promise promise);
++
+   @ReactMethod
+   @DoNotStrip
+   public abstract void getString(Promise promise);
 diff --git a/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.d.ts b/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.d.ts
 index 6c85195..3a9302e 100644
 --- a/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.d.ts
@@ -50,7 +67,7 @@ index 6c85195..3a9302e 100644
      /**
       * Returns whether the clipboard has an image or is empty.
 diff --git a/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.js b/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.js
-index ccdf309..3eb6120 100644
+index ccdf309..619600c 100644
 --- a/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.js
 +++ b/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.js
 @@ -127,6 +127,29 @@ exports.Clipboard = {
@@ -67,7 +84,7 @@ index ccdf309..3eb6120 100644
 +     * @param the content to be stored in the clipboard.
 +     */
 +	setStringExpire: function (content) {
-+        NativeClipboard_1.default.setStringExpire(content);
++        NativeClipboardModule_1.default.setStringExpire(content);
 +	},
 +	/**
 +     * [ANDROID ONLY] Clears the primary clip on Android
@@ -78,7 +95,7 @@ index ccdf309..3eb6120 100644
 +     * ```
 +     */
 +	clearString: function () {
-+		NativeClipboard_1.default.clearString();
++		NativeClipboardModule_1.default.clearString();
 +	},
      /**
       * Returns whether the clipboard has content or is empty.
@@ -95,7 +112,7 @@ index 3ee5caa..f6bd6f3 100644
  
  @implementation RNCClipboard {
      BOOL isObserving;
-@@ -51,6 +52,16 @@ - (void) listener:(NSNotification *) notification
+@@ -51,6 +52,16 @@ NSString *const CLIPBOARD_TEXT_CHANGED = @"RNCClipboard_TEXT_CHANGED";
      }
  }
  

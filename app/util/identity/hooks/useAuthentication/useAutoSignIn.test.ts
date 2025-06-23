@@ -29,6 +29,7 @@ const arrangeMockState = (
     backgroundState: {
       KeyringController: {
         isUnlocked: stateOverrides.isUnlocked,
+        keyrings: [],
       },
       AuthenticationController: {
         isSignedIn: stateOverrides.isSignedIn,
@@ -123,7 +124,7 @@ prerequisiteCombinations.forEach((prerequisiteState) => {
 });
 
 describe('useAutoSignIn', () => {
-  it('should initialize correctly', () => {
+  it('initializes correctly', () => {
     const { state } = arrangeMocks({
       isUnlocked: false,
       isBackupAndSyncEnabled: false,
@@ -142,7 +143,7 @@ describe('useAutoSignIn', () => {
   });
 
   shouldNotAutoSignInTestCases.forEach((stateOverrides) => {
-    it(`should not call performSignIn if conditions are not met`, async () => {
+    it(`does not call performSignIn if conditions are not met`, async () => {
       const { state, mockPerformSignInAction } = arrangeMocks(stateOverrides);
       const hook = renderHookWithProvider(() => useAutoSignIn(), { state });
 
@@ -155,7 +156,7 @@ describe('useAutoSignIn', () => {
   });
 
   shouldAutoSignInTestCases.forEach((stateOverrides) => {
-    it(`should call performSignIn if conditions are met`, async () => {
+    it(`calls performSignIn if conditions are met`, async () => {
       const { state, mockPerformSignInAction } = arrangeMocks(stateOverrides);
       const hook = renderHookWithProvider(() => useAutoSignIn(), { state });
 
@@ -165,5 +166,37 @@ describe('useAutoSignIn', () => {
 
       expect(mockPerformSignInAction).toHaveBeenCalled();
     });
+  });
+
+  it('calls performSignIn if new keyrings are detected', async () => {
+    const stateOverrides = {
+      isUnlocked: true,
+      useExternalServices: true,
+      isSignedIn: true,
+      completedOnboarding: true,
+      isBackupAndSyncEnabled: true,
+      participateInMetaMetrics: false,
+      isNotificationServicesEnabled: false,
+    };
+    const { state, mockPerformSignInAction } = arrangeMocks(stateOverrides);
+    const hook = renderHookWithProvider(() => useAutoSignIn(), { state });
+
+    // Initial call should not trigger sign-in
+    await act(async () => {
+      await hook.result.current.autoSignIn();
+    });
+
+    expect(mockPerformSignInAction).not.toHaveBeenCalled();
+
+    // Simulate new keyrings being detected
+    act(() => {
+      hook.result.current.setHasNewKeyrings(true);
+    });
+
+    await act(async () => {
+      await hook.result.current.autoSignIn();
+    });
+
+    expect(mockPerformSignInAction).toHaveBeenCalled();
   });
 });

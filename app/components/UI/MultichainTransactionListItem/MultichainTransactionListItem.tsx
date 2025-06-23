@@ -29,11 +29,13 @@ const MultichainTransactionListItem = ({
   bridgeHistoryItem,
   selectedAddress,
   navigation,
+  index,
 }: {
   transaction: Transaction;
   bridgeHistoryItem?: BridgeHistoryItem;
   selectedAddress: string;
   navigation: NavigationProp<ParamListBase>;
+  index?: number;
 }) => {
   const { colors, typography } = useTheme();
   const osColorScheme = useColorScheme();
@@ -103,7 +105,7 @@ const MultichainTransactionListItem = ({
         onPress={handlePress}
         underlayColor={colors.background.alternative}
         activeOpacity={1}
-        testID={`transaction-list-item-${transaction.id}`}
+        testID={`transaction-item-${index ?? 0}`}
       >
         <ListItem>
           <ListItem.Date style={style.listItemDate}>

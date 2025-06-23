@@ -34,7 +34,7 @@ describe(Regression('Permission System - Default Permissions'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
         // Step 2: Navigate to permissions management
-        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
 

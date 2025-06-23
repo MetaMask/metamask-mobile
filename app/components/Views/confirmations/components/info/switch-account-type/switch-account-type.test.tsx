@@ -8,6 +8,10 @@ import {
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import SwitchAccountType from './switch-account-type';
 
+jest.mock('../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
+  AssetPollingProvider: () => null,
+}));
+
 jest.mock('../../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
@@ -34,9 +38,6 @@ jest.mock('../../../../../../core/Engine', () => ({
           },
         },
       },
-    },
-    TokenListController: {
-      fetchTokenList: jest.fn(),
     },
     TransactionController: {
       getNonceLock: jest.fn().mockReturnValue({ releaseLock: jest.fn() }),

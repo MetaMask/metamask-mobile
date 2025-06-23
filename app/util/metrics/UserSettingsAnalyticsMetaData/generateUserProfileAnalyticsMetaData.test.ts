@@ -17,9 +17,21 @@ jest.mock('../../../core/Analytics', () => ({
   },
 }));
 
+const mockSelectNetworkConfigurations = jest.fn();
+jest.mock('../../../selectors/networkController', () => ({
+  selectNetworkConfigurations: jest.fn(() => mockSelectNetworkConfigurations()),
+}));
+
 describe('generateUserProfileAnalyticsMetaData', () => {
   beforeEach(() => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
+
+    mockSelectNetworkConfigurations.mockReturnValue({
+      '0x1': {
+        chainId: '0x1',
+        name: 'Ethereum Mainnet',
+      },
+    });
   });
 
   afterEach(() => {
@@ -41,12 +53,10 @@ describe('generateUserProfileAnalyticsMetaData', () => {
             {
               type: ExtendedKeyringTypes.hd,
               accounts: ['0x1', '0x2'],
-            },
-          ],
-          keyringsMetadata: [
-            {
-              id: '01JPM6NFVGW8V8KKN34053JVFT',
-              name: '',
+              metadata: {
+                id: '01JPM6NFVGW8V8KKN34053JVFT',
+                name: '',
+              },
             },
           ],
         },
@@ -55,108 +65,6 @@ describe('generateUserProfileAnalyticsMetaData', () => {
     user: { appTheme: 'os' },
     security: { dataCollectionForMarketing: true },
   };
-
-  describe('NUMBER_OF_HD_ENTROPIES', () => {
-    const testCases = [
-      {
-        name: 'with empty keyrings array',
-        state: {
-          engine: {
-            backgroundState: {
-              KeyringController: {
-                keyrings: [],
-              },
-            },
-          },
-        },
-        expected: 0,
-      },
-      {
-        name: 'with one HD keyring',
-        state: {
-          engine: {
-            backgroundState: {
-              KeyringController: {
-                keyrings: [
-                  {
-                    type: ExtendedKeyringTypes.hd,
-                    accounts: ['0x123'],
-                  },
-                ],
-              },
-            },
-          },
-        },
-        expected: 1,
-      },
-      {
-        name: 'with two HD keyrings',
-        state: {
-          engine: {
-            backgroundState: {
-              KeyringController: {
-                keyrings: [
-                  {
-                    type: ExtendedKeyringTypes.hd,
-                    accounts: ['0x123'],
-                  },
-                  {
-                    type: ExtendedKeyringTypes.hd,
-                    accounts: ['0x456'],
-                  },
-                ],
-              },
-            },
-          },
-        },
-        expected: 2,
-      },
-      {
-        name: 'with mixed keyring types',
-        state: {
-          engine: {
-            backgroundState: {
-              KeyringController: {
-                keyrings: [
-                  {
-                    type: ExtendedKeyringTypes.hd,
-                    accounts: ['0x123'],
-                  },
-                  {
-                    type: ExtendedKeyringTypes.simple,
-                    accounts: ['0x456'],
-                  },
-                  {
-                    type: ExtendedKeyringTypes.qr,
-                    accounts: ['0x789'],
-                  },
-                  {
-                    type: ExtendedKeyringTypes.hd,
-                    accounts: ['0xabc'],
-                  },
-                ],
-              },
-            },
-          },
-        },
-        expected: 2,
-      },
-    ];
-
-    testCases.forEach(({ name, state, expected }) => {
-      it(name, () => {
-        mockGetState.mockReturnValue({
-          ...mockState,
-          ...state,
-        });
-
-        const metadata = generateUserProfileAnalyticsMetaData();
-        expect(metadata[UserProfileProperty.NUMBER_OF_HD_ENTROPIES]).toBe(
-          expected,
-        );
-      });
-    });
-  });
 
   it('returns metadata', () => {
     mockGetState.mockReturnValue(mockState);
@@ -171,7 +79,7 @@ describe('generateUserProfileAnalyticsMetaData', () => {
       [UserProfileProperty.MULTI_ACCOUNT_BALANCE]: UserProfileProperty.OFF,
       [UserProfileProperty.SECURITY_PROVIDERS]: 'blockaid',
       [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
-      [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: 1,
+      [UserProfileProperty.CHAIN_IDS]: ['eip155:1'],
     });
   });
 
@@ -197,7 +105,6 @@ describe('generateUserProfileAnalyticsMetaData', () => {
         backgroundState: {
           KeyringController: {
             keyrings: [],
-            keyringsMetadata: [],
           },
         },
       },
@@ -210,7 +117,7 @@ describe('generateUserProfileAnalyticsMetaData', () => {
       [UserProfileProperty.TOKEN_DETECTION]: UserProfileProperty.OFF,
       [UserProfileProperty.MULTI_ACCOUNT_BALANCE]: UserProfileProperty.OFF,
       [UserProfileProperty.SECURITY_PROVIDERS]: '',
-      [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: 0,
+      [UserProfileProperty.CHAIN_IDS]: ['eip155:1'],
     });
   });
 

@@ -48,3 +48,9 @@ export const selectIsAccountSyncingReadyToBeDispatched = createSelector(
   (userStorageControllerState: UserStorageState) =>
     userStorageControllerState.isAccountSyncingReadyToBeDispatched,
 );
+
+export const selectIsContactSyncingEnabled = createSelector(
+  selectUserStorageControllerState,
+  (userStorageControllerState: UserStorageState) =>
+    userStorageControllerState?.isContactSyncingEnabled,
+);

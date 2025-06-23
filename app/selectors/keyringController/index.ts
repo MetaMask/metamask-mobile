@@ -1,13 +1,7 @@
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
-import {
-  KeyringControllerState,
-  KeyringMetadata,
-  KeyringObject,
-} from '@metamask/keyring-controller';
+import { KeyringControllerState } from '@metamask/keyring-controller';
 import { RootState } from '../../reducers';
 import { createDeepEqualSelector } from '../util';
-
-export type ExtendedKeyring = KeyringObject & { metadata: KeyringMetadata };
 
 /**
  *
@@ -23,10 +17,7 @@ const selectKeyringControllerState = (state: RootState) =>
 export const selectKeyrings = createDeepEqualSelector(
   selectKeyringControllerState,
   (keyringControllerState: KeyringControllerState) =>
-    keyringControllerState.keyrings.map((keyring, _index) => ({
-      ...keyring,
-      metadata: keyringControllerState.keyringsMetadata?.[_index] || {},
-    })),
+    keyringControllerState.keyrings,
 );
 
 /**

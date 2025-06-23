@@ -166,6 +166,10 @@ import {
   CronjobControllerEvents,
   CronjobControllerActions,
   CronjobController,
+  MultichainRouterActions,
+  WebSocketService,
+  WebSocketServiceActions,
+  WebSocketServiceEvents,
 } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -269,6 +273,13 @@ import {
   AppMetadataControllerEvents,
   AppMetadataControllerState,
 } from '@metamask/app-metadata-controller';
+import type { ErrorReportingServiceActions } from '@metamask/error-reporting-service';
+import {
+  AccountTreeController,
+  AccountTreeControllerState,
+  AccountTreeControllerActions,
+  AccountTreeControllerEvents
+} from '@metamask/account-tree-controller';
 
 /**
  * Controllers that area always instantiated
@@ -297,12 +308,12 @@ type SnapsGlobalActions =
   | SnapControllerActions
   | SnapsRegistryActions
   | SubjectMetadataControllerActions
-  | PhishingControllerActions
+  | PhishingControllerActions;
 type SnapsGlobalEvents =
   | SnapControllerEvents
   | SnapsRegistryEvents
   | SubjectMetadataControllerEvents
-  | PhishingControllerEvents
+  | PhishingControllerEvents;
 ///: END:ONLY_INCLUDE_IF
 
 type GlobalActions =
@@ -326,6 +337,7 @@ type GlobalActions =
   | NotificationServicesControllerMessengerActions
   | NotificationServicesPushControllerActions
   | CronjobControllerActions
+  | WebSocketServiceActions
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerActions
@@ -335,6 +347,7 @@ type GlobalActions =
   | MultichainTransactionsControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
+  | AccountTreeControllerActions
   | PreferencesControllerActions
   | PPOMControllerActions
   | TokenBalancesControllerActions
@@ -353,7 +366,9 @@ type GlobalActions =
   | BridgeStatusControllerActions
   | EarnControllerActions
   | AppMetadataControllerActions
-  | DeFiPositionsControllerActions;
+  | MultichainRouterActions
+  | DeFiPositionsControllerActions
+  | ErrorReportingServiceActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -375,6 +390,7 @@ type GlobalEvents =
   | NotificationServicesControllerMessengerEvents
   | NotificationServicesPushControllerEvents
   | CronjobControllerEvents
+  | WebSocketServiceEvents
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerEvents
@@ -405,7 +421,8 @@ type GlobalEvents =
   | BridgeStatusControllerEvents
   | EarnControllerEvents
   | AppMetadataControllerEvents
-  | DeFiPositionsControllerEvents;
+  | DeFiPositionsControllerEvents
+  | AccountTreeControllerEvents
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -424,6 +441,7 @@ export type BaseControllerMessenger = ExtendedControllerMessenger<
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type Controllers = {
   AccountsController: AccountsController;
+  AccountTreeController: AccountTreeController;
   AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
   AppMetadataController: AppMetadataController;
@@ -466,6 +484,7 @@ export type Controllers = {
   NotificationServicesPushController: NotificationServicesPushController;
   SnapInterfaceController: SnapInterfaceController;
   CronjobController: CronjobController;
+  WebSocketService: WebSocketService,
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -530,6 +549,7 @@ export type EngineState = {
   LoggingController: LoggingControllerState;
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
+  AccountTreeController: AccountTreeControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
   SignatureController: SignatureControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -580,6 +600,7 @@ export type ControllersToInitialize =
   | 'SnapController'
   | 'SnapInterfaceController'
   | 'SnapsRegistry'
+  | 'WebSocketService'
   | 'NotificationServicesController'
   | 'NotificationServicesPushController'
   | 'AppMetadataController'
@@ -590,6 +611,7 @@ export type ControllersToInitialize =
   | 'MultichainBalancesController'
   | 'MultichainTransactionsController'
   ///: END:ONLY_INCLUDE_IF
+  | 'AccountTreeController'
   | 'CurrencyRateController'
   | 'AccountsController'
   | 'MultichainNetworkController'

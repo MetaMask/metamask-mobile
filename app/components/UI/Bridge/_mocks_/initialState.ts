@@ -291,6 +291,11 @@ export const initialState = {
           },
         },
       },
+      AccountTreeController: {
+        accountTree: {
+          wallets: {},
+        },
+      },
       SmartTransactionsController: {
         smartTransactionsState: {
           liveness: true,
@@ -298,6 +303,7 @@ export const initialState = {
       },
       TransactionController: {
         transactions: [],
+        transactionBatches: [],
       },
       GasFeeController: {
         gasFeeEstimatesByChainId: {
@@ -416,13 +422,20 @@ export const initialState = {
           {
             accounts: [evmAccountAddress],
             type: 'HD Key Tree',
+            metadata: {
+              id: '01JKZ55Y6KPCYH08M6B9VSZWKW',
+              name: '',
+            },
           },
           {
             accounts: [solanaAccountAddress],
             type: 'Snap Keyring',
+            metadata: {
+              id: '01JKZ56KRVYEEHC601HSNW28T2',
+              name: '',
+            },
           },
         ],
-        keyringsMetadata: [],
         encryptionKey: '',
         encryptionSalt: '',
       },

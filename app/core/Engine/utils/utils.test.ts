@@ -51,6 +51,9 @@ import { createMockControllerInitFunction } from './test-utils';
 import { getControllerOrThrow, initModularizedControllers } from './utils';
 import { AppMetadataController } from '@metamask/app-metadata-controller';
 import { appMetadataControllerInit } from '../controllers/app-metadata-controller';
+import { AccountTreeController } from '@metamask/account-tree-controller';
+import { accountTreeControllerInit } from '../../../multichain-accounts/controllers/account-tree-controller';
+import { WebSocketServiceInit } from '../controllers/snaps/websocket-service-init';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/app-metadata-controller');
@@ -83,6 +86,7 @@ jest.mock('../controllers/transaction-controller');
 jest.mock(
   '../controllers/defi-positions-controller/defi-positions-controller-init',
 );
+jest.mock('../../../multichain-accounts/controllers/account-tree-controller');
 
 describe('initModularizedControllers', () => {
   const mockAccountsControllerInit = jest.mocked(accountsControllerInit);
@@ -99,6 +103,7 @@ describe('initModularizedControllers', () => {
     snapInterfaceControllerInit,
   );
   const mockSnapsRegistryInit = jest.mocked(snapsRegistryInit);
+  const mockWebSocketServiceInit = jest.mocked(WebSocketServiceInit);
   const mockMultichainAssetsControllerInit = jest.mocked(
     multichainAssetsControllerInit,
   );
@@ -124,6 +129,7 @@ describe('initModularizedControllers', () => {
   const mockDeFiPositionsControllerInit = jest.mocked(
     defiPositionsControllerInit,
   );
+  const mockAccountTreeControllerInit = jest.mocked(accountTreeControllerInit);
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
   ) {
@@ -132,10 +138,12 @@ describe('initModularizedControllers', () => {
         existingControllersByName: {},
         controllerInitFunctions: {
           AccountsController: mockAccountsControllerInit,
+          AccountTreeController: mockAccountTreeControllerInit,
           CurrencyRateController: mockCurrencyRateControllerInit,
           CronjobController: mockCronjobControllerInit,
           GasFeeController: mockGasFeeControllerInit,
           ExecutionService: mockExecutionServiceInit,
+          WebSocketService: mockWebSocketServiceInit,
           MultichainNetworkController: mockMultichainNetworkControllerInit,
           MultichainAssetsController: mockMultichainAssetsControllerInit,
           MultichainTransactionsController:
@@ -223,6 +231,9 @@ describe('initModularizedControllers', () => {
     });
     mockDeFiPositionsControllerInit.mockReturnValue({
       controller: {} as unknown as DeFiPositionsController,
+    });
+    mockAccountTreeControllerInit.mockReturnValue({
+      controller: {} as unknown as AccountTreeController,
     });
   });
 

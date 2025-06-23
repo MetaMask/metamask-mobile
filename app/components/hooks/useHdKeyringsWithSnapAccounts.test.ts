@@ -87,11 +87,6 @@ const mockInitialState = {
       },
       KeyringController: {
         keyrings: [mockHdKeyring, mockHdKeyring2, mockSnapKeyring],
-        keyringsMetadata: [
-          mockHdKeyringMetadata,
-          mockHdKeyringMetadata2,
-          mockSnapKeyringMetadata,
-        ],
       },
     },
   },
@@ -135,7 +130,6 @@ describe('useHdKeyringsWithSnapAccounts', () => {
               },
               KeyringController: {
                 keyrings: [],
-                keyringsMetadata: [],
               },
             },
           },

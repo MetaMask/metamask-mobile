@@ -1,5 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { EthScope } from '@metamask/keyring-api';
 import { toChecksumAddress } from 'ethereumjs-util';
 import useAccounts from './useAccounts';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -38,7 +39,9 @@ const MOCK_ACCOUNT_1: Account = {
     fiatBalance: '$0.00\n0 ETH',
   },
   balanceError: undefined,
-  caipAccountId: `eip155:0:${MOCK_ACCOUNT_ADDRESSES[0]}`
+  caipAccountId: `eip155:0:${MOCK_ACCOUNT_ADDRESSES[0]}`,
+  scopes: [EthScope.Eoa],
+  isLoadingAccount: false,
 };
 const MOCK_ACCOUNT_2: Account = {
   name: 'Account 2',
@@ -50,7 +53,9 @@ const MOCK_ACCOUNT_2: Account = {
     fiatBalance: '$0.00\n0 ETH',
   },
   balanceError: undefined,
-  caipAccountId: `eip155:0:${MOCK_ACCOUNT_ADDRESSES[1]}`
+  caipAccountId: `eip155:0:${MOCK_ACCOUNT_ADDRESSES[1]}`,
+  scopes: [EthScope.Eoa],
+  isLoadingAccount: false,
 };
 
 const MOCK_STORE_STATE = {
@@ -142,5 +147,13 @@ describe('useAccounts', () => {
       await waitForNextUpdate();
     });
     expect(result.current.ensByAccountAddress).toStrictEqual(expectedENSNames);
+  });
+
+  it('return scopes for evm accounts', async () => {
+    const { result, waitForNextUpdate } = renderHook(() => useAccounts());
+    await act(async () => {
+      await waitForNextUpdate();
+    });
+    expect(result.current.accounts[0].scopes).toStrictEqual([EthScope.Eoa]);
   });
 });

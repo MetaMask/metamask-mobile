@@ -1,40 +1,55 @@
-import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
-import { selectChainId } from '../../../selectors/networkController';
 import {
-  selectSelectedInternalAccount,
-  selectCanSignTransactions,
-} from '../../../selectors/accountsController';
-import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
-import {
-  SolScope,
   EthAccountType,
   SolAccountType,
+  SolScope,
 } from '@metamask/keyring-api';
+import { fireEvent } from '@testing-library/react-native';
+import React from 'react';
+import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
+import {
+  selectCanSignTransactions,
+  selectSelectedInternalAccount,
+} from '../../../selectors/accountsController';
+import { selectChainId } from '../../../selectors/networkController';
 
 import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
 
-import WalletActions from './WalletActions';
-import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { RootState } from '../../../reducers';
-import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { ethers } from 'ethers';
+import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
+import Engine from '../../../core/Engine';
+import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
+import { RootState } from '../../../reducers';
+import { RampType } from '../../../reducers/fiatOrders/types';
+import { earnSelectors } from '../../../selectors/earnController/earn';
 import {
   expectedUuid2,
   MOCK_ACCOUNTS_CONTROLLER_STATE,
 } from '../../../util/test/accountsControllerTestUtils';
-import Engine from '../../../core/Engine';
-import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import { mockNetworkState } from '../../../util/test/network';
 import { trace, TraceName } from '../../../util/trace';
-import { RampType } from '../../../reducers/fiatOrders/types';
-import { selectStablecoinLendingEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../UI/Earn/selectors/featureFlags';
+import { EarnTokenDetails } from '../../UI/Earn/types/lending.types';
+import WalletActions from './WalletActions';
 
 jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
+  selectPooledStakingEnabledFlag: jest.fn(),
+}));
+
+jest.mock('../../../selectors/earnController/earn', () => ({
+  earnSelectors: {
+    selectEarnTokens: jest.fn().mockReturnValue({
+      earnTokens: [],
+    }),
+  },
 }));
 
 jest.mock('../../../core/SnapKeyring/utils/sendMultichainTransaction', () => ({
@@ -143,7 +158,7 @@ jest.mock('../../UI/Bridge/utils', () => ({
   isBridgeAllowed: jest.fn().mockReturnValue(true),
 }));
 
-jest.mock('../../UI/Ramp/hooks/useRampNetwork', () => ({
+jest.mock('../../UI/Ramp/Aggregator/hooks/useRampNetwork', () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue([true]),
 }));
@@ -325,7 +340,7 @@ describe('WalletActions', () => {
     (isSwapsAllowed as jest.Mock).mockReturnValue(false);
     (isBridgeAllowed as jest.Mock).mockReturnValue(false);
     jest
-      .requireMock('../../UI/Ramp/hooks/useRampNetwork')
+      .requireMock('../../UI/Ramp/Aggregator/hooks/useRampNetwork')
       .default.mockReturnValue([false]);
 
     const mockState: DeepPartial<RootState> = {
@@ -379,7 +394,7 @@ describe('WalletActions', () => {
 
   it('should call the onBuy function when the Buy button is pressed', () => {
     jest
-      .requireMock('../../UI/Ramp/hooks/useRampNetwork')
+      .requireMock('../../UI/Ramp/Aggregator/hooks/useRampNetwork')
       .default.mockReturnValue([true]);
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
@@ -399,7 +414,7 @@ describe('WalletActions', () => {
 
   it('should call the onSell function when the Sell button is pressed', () => {
     jest
-      .requireMock('../../UI/Ramp/hooks/useRampNetwork')
+      .requireMock('../../UI/Ramp/Aggregator/hooks/useRampNetwork')
       .default.mockReturnValue([true]);
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
@@ -461,7 +476,7 @@ describe('WalletActions', () => {
         bridgeViewMode: 'Swap',
         sourcePage: 'MainView',
         token: {
-          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          address: ethers.constants.AddressZero,
           chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           decimals: 9,
           image: '',
@@ -507,12 +522,68 @@ describe('WalletActions', () => {
     ).not.toHaveBeenCalled();
   });
 
+  it('should hide the earn button if there are no elements to show and pooled staking is disabled', () => {
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectPooledStakingEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingEnabledFlag
+      >
+    ).mockReturnValue(false);
+
+    (
+      earnSelectors.selectEarnTokens as jest.MockedFunction<
+        typeof earnSelectors.selectEarnTokens
+      >
+    ).mockReturnValue({
+      earnTokens: [
+        {
+          address: '0x0',
+          chainId: '0x1',
+          decimals: 18,
+          image: '',
+          name: 'ETH',
+          isETH: true,
+          isStaked: false,
+        },
+      ] as unknown as EarnTokenDetails[],
+      earnOutputTokens: [],
+      earnTokensByChainIdAndAddress: {},
+      earnOutputTokensByChainIdAndAddress: {},
+      earnTokenPairsByChainIdAndAddress: {},
+      earnOutputTokenPairsByChainIdAndAddress: {},
+      earnableTotalFiatNumber: 0,
+      earnableTotalFiatFormatted: '$0',
+    });
+
+    const { queryByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
+
+    expect(
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
+    ).toBeNull();
+  });
+
   it('disables action buttons when the account cannot sign transactions', () => {
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectPooledStakingEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingEnabledFlag
+      >
+    ).mockReturnValue(true);
     (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(false);
     (isSwapsAllowed as jest.Mock).mockReturnValue(true);
     (isBridgeAllowed as jest.Mock).mockReturnValue(true);
     jest
-      .requireMock('../../UI/Ramp/hooks/useRampNetwork')
+      .requireMock('../../UI/Ramp/Aggregator/hooks/useRampNetwork')
       .default.mockReturnValue([true]);
 
     const mockStateWithoutSigningAndStablecoinLendingEnabled: DeepPartial<RootState> =

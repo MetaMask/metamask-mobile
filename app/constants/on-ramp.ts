@@ -7,6 +7,7 @@ export enum FIAT_ORDER_PROVIDERS {
   MOONPAY = 'MOONPAY',
   // The key for fiat on-ramp aggregator
   AGGREGATOR = 'AGGREGATOR',
+  DEPOSIT = 'DEPOSIT',
 }
 
 export enum FIAT_ORDER_STATES {
