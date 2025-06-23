@@ -138,6 +138,7 @@ stages:
       - build_ios_qa: {}
       - build_android_devbuild: {}
       - build_ios_devbuild: {}
+      - build_ios_simbuild: {}
   create_build_release:
     workflows:
       - build_android_release: {}
@@ -234,7 +235,7 @@ stages:
       - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_flask_build_tests_ios: {}
       - run_tag_flask_build_tests_android: {}
-      
+
   run_smoke_e2e_ios_android_stage:
     workflows:
       - run_ios_api_specs: {}
@@ -1068,12 +1069,12 @@ workflows:
                 set -ex
 
                 # Create directories for Detox
-                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build"
+                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build/Products"
                 mkdir -p "$BITRISE_SOURCE_DIR/../Library/Detox/ios"
 
                 # Copy saved files for Detox usage
                 # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
-                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build"
+                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build/Build/Products"
                 cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
       # - restore-cocoapods-cache@2: {}
       - restore-cache@2:
@@ -1194,7 +1195,7 @@ workflows:
       - deploy-to-bitrise-io@2.2.3:
           inputs:
             - pipeline_intermediate_files: |-
-                ios/build/Build:INTERMEDIATE_IOS_BUILD_DIR
+                ios/build/Build/Products/Release-iphonesimulator:INTERMEDIATE_IOS_BUILD_DIR
                 ../Library/Detox/ios:INTERMEDIATE_IOS_DETOX_DIR
           title: Save iOS build
       - save-cache@1:
@@ -1222,12 +1223,12 @@ workflows:
                 set -ex
 
                 # Create directories for Detox
-                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build"
+                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build/Products"
                 mkdir -p "$BITRISE_SOURCE_DIR/../Library/Detox/ios"
 
                 # Copy saved files for Detox usage
                 # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
-                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build"
+                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build/Build/Products"
                 cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
       # - restore-cocoapods-cache@2: {}
       - restore-cache@2:
@@ -2425,7 +2426,7 @@ app:
     - opts:
         is_expand: false
       MM_REMOVE_GLOBAL_NETWORK_SELECTOR: false
-  
+
     - opts:
         is_expand: false
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
@@ -2473,13 +2474,13 @@ app:
       VERSION_NAME: 7.46.99
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2011
+      VERSION_NUMBER: 1939
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.46.99
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2011
+      FLASK_VERSION_NUMBER: 1939
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
