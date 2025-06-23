@@ -65,19 +65,25 @@ export const container: UIComponentFactory<BoxElement> = ({
     },
   };
 
+  const scrollView =  {
+    element: 'ScrollView',
+    key: 'default-scrollview',
+    children: {
+      // This is a hack to enable proper scrolling.
+      element: 'TouchableHighlight',
+      children: styledContent,
+    },
+    props: {
+      style: {
+        marginBottom: useFooter && footer ? 80 : 0,
+      },
+    },
+  };
+
   return {
     element: 'Box',
     children: [
-      {
-        element: 'ScrollView',
-        key: 'default-scrollview',
-        children: styledContent,
-        props: {
-          style: {
-            marginBottom: useFooter && footer ? 80 : 0,
-          },
-        },
-      },
+      scrollView,
       ...(footer ? [footer] : []),
     ],
     props: {

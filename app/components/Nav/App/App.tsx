@@ -143,6 +143,7 @@ import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
+import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -583,6 +584,25 @@ const MultichainAccountDetails = () => {
   );
 };
 
+const MultichainWalletDetails = () => {
+  const route = useRoute();
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animationEnabled: false,
+      }}
+    >
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
+        component={WalletDetails}
+        initialParams={route?.params}
+      />
+    </Stack.Navigator>
+  );
+};
+
 const ModalConfirmationRequest = () => (
   <Stack.Navigator
     screenOptions={{
@@ -691,6 +711,10 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
         component={MultichainAccountDetails}
+      />
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
+        component={MultichainWalletDetails}
       />
       <Stack.Screen
         options={{
