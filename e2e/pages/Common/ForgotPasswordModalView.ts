@@ -3,55 +3,55 @@ import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 
 class ForgotPasswordModalView {
-  get container() {
+  get container(): DetoxElement {
     return Matchers.getElementByID(ForgotPasswordModalSelectorsIDs.CONTAINER);
   }
 
-  get title() {
+  get title(): DetoxElement {
     return Matchers.getElementByID(ForgotPasswordModalSelectorsIDs.TITLE);
   }
 
-  get description() {
+  get description(): DetoxElement {
     return Matchers.getElementByID(ForgotPasswordModalSelectorsIDs.DESCRIPTION);
   }
 
-  get resetWalletButton() {
+  get resetWalletButton(): DetoxElement {
     return Matchers.getElementByID(ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON);
   }
 
-  get yesResetWalletButton() {
+  get yesResetWalletButton(): DetoxElement {
     return Matchers.getElementByID(ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON);
   }
 
-  get cancelButton() {
+  get cancelButton(): DetoxElement {
     return Matchers.getElementByID(ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON);
   }
 
-  get warningText() {
+  get warningText(): DetoxElement {
     return Matchers.getElementByID(ForgotPasswordModalSelectorsIDs.WARNING_TEXT);
   }
 
-  get titleText() {
+  get titleText(): DetoxElement {
     return Matchers.getElementByText(ForgotPasswordModalSelectorsText.TITLE);
   }
 
-  get descriptionText() {
+  get descriptionText(): DetoxElement {
     return Matchers.getElementByText(ForgotPasswordModalSelectorsText.DESCRIPTION);
   }
 
-  get resetWalletText() {
+  get resetWalletText(): DetoxElement {
     return Matchers.getElementByText(ForgotPasswordModalSelectorsText.RESET_WALLET);
   }
 
-  get yesResetWalletText() {
+  get yesResetWalletText(): DetoxElement {
     return Matchers.getElementByText(ForgotPasswordModalSelectorsText.YES_RESET_WALLET);
   }
 
-  get cancelText() {
+  get cancelText(): DetoxElement {
     return Matchers.getElementByText(ForgotPasswordModalSelectorsText.CANCEL);
   }
 
-  get warningTextContent() {
+  get warningTextContent(): DetoxElement {
     return Matchers.getElementByText(ForgotPasswordModalSelectorsText.WARNING);
   }
 
