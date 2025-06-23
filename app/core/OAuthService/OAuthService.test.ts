@@ -14,6 +14,19 @@ const MOCK_USER_ID = 'user-id';
 const MOCK_JWT_TOKEN =
   'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN3bmFtOTA5QGdtYWlsLmNvbSIsInN1YiI6InN3bmFtOTA5QGdtYWlsLmNvbSIsImlzcyI6Im1ldGFtYXNrIiwiYXVkIjoibWV0YW1hc2siLCJpYXQiOjE3NDUyMDc1NjYsImVhdCI6MTc0NTIwNzg2NiwiZXhwIjoxNzQ1MjA3ODY2fQ.nXRRLB7fglRll7tMzFFCU0u7Pu6EddqEYf_DMyRgOENQ6tJ8OLtVknNf83_5a67kl_YKHFO-0PEjvJviPID6xg';
 
+jest.mock('./OAuthLoginHandlers/constants', () => ({
+  web3AuthNetwork: 'sapphire_mainnet',
+  AuthServerUrl: 'https://auth.example.com',
+  IosGID: 'mock-ios-google-client-id',
+  IosGoogleRedirectUri: 'mock-ios-google-redirect-uri',
+  IosAppleClientId: 'mock-ios-apple-client-id',
+  AndroidGoogleWebGID: 'mock-android-google-client-id',
+  AppleWebClientId: 'mock-android-apple-client-id',
+  AuthConnectionId: 'mock-auth-connection-id',
+  GroupedAuthConnectionId: 'mock-grouped-auth-connection-id',
+  AppleServerRedirectUri: 'https://auth.example.com/api/v1/oauth/callback',
+}));
+
 let mockLoginHandlerResponse: () => LoginHandlerResult | undefined = jest
   .fn()
   .mockImplementation(() => ({
