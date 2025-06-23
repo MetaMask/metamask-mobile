@@ -17,10 +17,12 @@ import {
   MOCK_LENDING_MARKET_USDT,
   MOCK_LENDING_MARKET_WETH,
 } from '../../../components/UI/Stake/__mocks__/earnControllerMockData';
-import { mockEarnControllerRootState } from '../../../components/UI/Stake/testUtils';
-import { RootState } from '../../../reducers';
 import { MOCK_ETH_MAINNET_ASSET } from '../../../components/UI/Stake/__mocks__/stakeMockData';
+import { mockEarnControllerRootState } from '../../../components/UI/Stake/testUtils';
 import { TokenI } from '../../../components/UI/Tokens/types';
+import { RootState } from '../../../reducers';
+import { EARN_EXPERIENCES } from '../../../components/UI/Earn/constants/experiences';
+import { EarnTokenDetails } from '../../../components/UI/Earn/types/lending.types';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
 import {
@@ -31,7 +33,6 @@ import {
   MOCK_MULTICHAIN_NETWORK_CONTROLLER_STATE,
   MOCK_NETWORK_CONTROLLER_STATE,
 } from '../../../util/test/confirm-data-helpers';
-import { EarnTokenDetails } from '../../../components/UI/Earn/types/lending.types';
 
 jest.mock('../../../components/UI/Earn/selectors/featureFlags', () => ({
   __esModule: true,
@@ -250,7 +251,7 @@ describe('Earn Controller Selectors', () => {
   });
 
   describe('selectEarnTokens', () => {
-    it('returns empty earn tokens data when no markets are present and pooled staking is disabled', () => {
+    it('returns pooled staking earn tokens data when no markets are present and pooled staking is disabled', () => {
       jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
       (
         selectPooledStakingEnabledFlag as jest.MockedFunction<
@@ -284,15 +285,29 @@ describe('Earn Controller Selectors', () => {
         mockStateWithNoTokens as unknown as RootState,
       );
 
-      expect(result).toEqual({
-        earnTokens: [],
-        earnOutputTokens: [],
-        earnTokensByChainIdAndAddress: {},
-        earnOutputTokensByChainIdAndAddress: {},
-        earnTokenPairsByChainIdAndAddress: {},
-        earnOutputTokenPairsByChainIdAndAddress: {},
-        earnableTotalFiatNumber: 0,
-        earnableTotalFiatFormatted: '$0',
+      expect(result.earnTokens.length).toEqual(1);
+      expect(result.earnTokens[0].isETH).toEqual(true);
+      expect(result.earnTokens[0].isStaked).toEqual(false);
+      expect(result.earnTokens[0].experience).toEqual({
+        type: EARN_EXPERIENCES.POOLED_STAKING,
+        apr: expect.any(String),
+        estimatedAnnualRewardsFormatted: expect.any(String),
+        estimatedAnnualRewardsFiatNumber: expect.any(Number),
+        estimatedAnnualRewardsTokenMinimalUnit: expect.any(String),
+        estimatedAnnualRewardsTokenFormatted: expect.any(String),
+        vault: expect.any(Object),
+      });
+      expect(result.earnOutputTokens.length).toEqual(1);
+      expect(result.earnOutputTokens[0].isETH).toEqual(true);
+      expect(result.earnOutputTokens[0].isStaked).toEqual(true);
+      expect(result.earnOutputTokens[0].experience).toEqual({
+        type: EARN_EXPERIENCES.POOLED_STAKING,
+        apr: expect.any(String),
+        estimatedAnnualRewardsFormatted: expect.any(String),
+        estimatedAnnualRewardsFiatNumber: expect.any(Number),
+        estimatedAnnualRewardsTokenMinimalUnit: expect.any(String),
+        estimatedAnnualRewardsTokenFormatted: expect.any(String),
+        vault: expect.any(Object),
       });
     });
 
