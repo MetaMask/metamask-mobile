@@ -12,6 +12,7 @@ export const REDESIGNED_SIGNATURE_TYPES = [
 export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.batch,
   TransactionType.contractInteraction,
+  TransactionType.deployContract,
   TransactionType.lendingDeposit,
   TransactionType.lendingWithdraw,
   TransactionType.revokeDelegation,

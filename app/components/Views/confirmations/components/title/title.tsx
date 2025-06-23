@@ -96,6 +96,7 @@ const getTitleAndSubTitle = (
       };
     }
     case ApprovalType.Transaction: {
+      
       if (isDowngrade || isUpgradeOnly) {
         return {
           title: strings('confirm.title.switch_account_type'),
@@ -112,6 +113,13 @@ const getTitleAndSubTitle = (
       if (REDESIGNED_APPROVE_TYPES.includes(transactionType)) {
         return {
           title: strings('confirm.title.approve'),
+        };
+      }
+
+      if (transactionType === TransactionType.deployContract) {
+        return {
+          title: strings('confirm.title.contract_deployment'),
+          subTitle: strings('confirm.sub_title.contract_deployment'),
         };
       }
 
