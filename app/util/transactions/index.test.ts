@@ -38,10 +38,12 @@ import {
   TOKEN_METHOD_SET_APPROVAL_FOR_ALL,
   TOKEN_METHOD_APPROVE,
   getTransactionReviewActionKey,
+  getTransactionById,
+  isLegacyTransaction
 } from '.';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
-import { TransactionType } from '@metamask/transaction-controller';
+import { TransactionType, TransactionEnvelopeType, TransactionMeta } from '@metamask/transaction-controller';
 import { Provider } from '@metamask/network-controller';
 import BigNumber from 'bignumber.js';
 
@@ -1203,5 +1205,106 @@ describe('Transactions utils :: getTransactionReviewActionKey', () => {
       chainId,
     );
     expect(result).toEqual(expectedReviewActionKey);
+  });
+});
+
+describe('Transactions utils :: getTransactionById', () => {
+  it('returns the correct transaction when given a valid transaction ID', () => {
+    const mockTransactions = [
+      { id: 'tx1', value: '0x1' },
+      { id: 'tx2', value: '0x2' },
+      { id: 'tx3', value: '0x3' },
+    ];
+    
+    const mockTransactionController = {
+      state: {
+        transactions: mockTransactions,
+      },
+    };
+
+    const result = getTransactionById('tx2', mockTransactionController);
+    
+    expect(result).toEqual(mockTransactions[1]);
+  });
+
+  it('returns undefined when given an invalid transaction ID', () => {
+    const mockTransactions = [
+      { id: 'tx1', value: '0x1' },
+      { id: 'tx2', value: '0x2' },
+      { id: 'tx3', value: '0x3' },
+    ];
+    
+    const mockTransactionController = {
+      state: {
+        transactions: mockTransactions,
+      },
+    };
+
+    const result = getTransactionById('nonexistent', mockTransactionController);
+    
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the transactions array is empty', () => {
+    const mockTransactionController = {
+      state: {
+        transactions: [],
+      },
+    };
+
+    const result = getTransactionById('tx1', mockTransactionController);
+    
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('Transactions utils :: isLegacyTransaction', () => {
+  it('returns true for a transaction with legacy type', () => {
+    const transactionMeta = {
+      txParams: {
+        type: TransactionEnvelopeType.legacy,
+        from: '0x123',
+        to: '0x456',
+        gasPrice: '0x77359400',
+      },
+    };
+
+    expect(isLegacyTransaction(transactionMeta)).toBe(true);
+  });
+
+  it('returns false for an EIP-1559 transaction', () => {
+    const transactionMeta = {
+      txParams: {
+        type: TransactionEnvelopeType.feeMarket,
+        from: '0x123',
+        to: '0x456',
+        maxFeePerGas: '0x77359400',
+        maxPriorityFeePerGas: '0x1',
+      },
+    };
+
+    expect(isLegacyTransaction(transactionMeta)).toBe(false);
+  });
+
+  it('returns false for a transaction without type field', () => {
+    const transactionMeta = {
+      txParams: {
+        from: '0x123',
+        to: '0x456',
+        gasPrice: '0x77359400',
+      },
+    };
+
+    expect(isLegacyTransaction(transactionMeta)).toBe(false);
+  });
+
+  it('returns false for undefined transactionMeta', () => {
+    // @ts-expect-error Testing undefined input
+    expect(isLegacyTransaction(undefined)).toBe(false);
+  });
+
+  it('returns false for transactionMeta without txParams', () => {
+    const transactionMeta = {};
+    expect(isLegacyTransaction(transactionMeta as Partial<TransactionMeta>)).toBe(false);
   });
 });

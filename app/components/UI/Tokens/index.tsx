@@ -204,19 +204,19 @@ const Tokens = memo(() => {
       style={styles.wrapper}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
     >
-      <TokenListControlBar goToAddToken={goToAddToken} />
       <AssetPollingProvider />
-        {sortedTokenKeys && (
-          <TokenList
-            tokenKeys={sortedTokenKeys}
-            refreshing={refreshing}
-            isAddTokenEnabled={isAddTokenEnabled}
-            onRefresh={onRefresh}
-            showRemoveMenu={showRemoveMenu}
-            goToAddToken={goToAddToken}
-            setShowScamWarningModal={handleScamWarningModal}
-          />
-        )}
+      <TokenListControlBar goToAddToken={goToAddToken} />
+      {sortedTokenKeys && (
+        <TokenList
+          tokenKeys={sortedTokenKeys}
+          refreshing={refreshing}
+          isAddTokenEnabled={isAddTokenEnabled}
+          onRefresh={onRefresh}
+          showRemoveMenu={showRemoveMenu}
+          goToAddToken={goToAddToken}
+          setShowScamWarningModal={handleScamWarningModal}
+        />
+      )}
       {showScamWarningModal && (
         <ScamWarningModal
           showScamWarningModal={showScamWarningModal}

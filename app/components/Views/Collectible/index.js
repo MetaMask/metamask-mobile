@@ -9,10 +9,10 @@ import Engine from '../../../core/Engine';
 import Modal from 'react-native-modal';
 import CollectibleContractInformation from '../../UI/CollectibleContractInformation';
 import { toggleCollectibleContractModal } from '../../../actions/modals';
-import { toLowerCaseEquals } from '../../../util/general';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
+import { areAddressesEqual } from '../../../util/address';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -103,7 +103,7 @@ class Collectible extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     const filteredCollectibles = collectibles.filter((collectible) =>
-      toLowerCaseEquals(collectible.address, address),
+      areAddressesEqual(collectible.address, address),
     );
     filteredCollectibles.map((collectible) => {
       if (!collectible.name || collectible.name === '') {

@@ -281,7 +281,11 @@ const ImportFromSecretRecoveryPhrase = ({
       // only clear clipboard if the seed phrase entered matches what's in the clipboard
       parseSeedPhrase(seed) === parsedClipboardContents
     ) {
-      await Clipboard.clearString();
+      try {
+        await Clipboard.clearString();
+      } catch (_) {
+        //Fail silently
+      }
     }
   };
 

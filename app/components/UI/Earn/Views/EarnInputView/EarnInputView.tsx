@@ -30,7 +30,6 @@ import EarnTokenSelector from '../../components/EarnTokenSelector';
 import EstimatedAnnualRewardsCard from '../../../Stake/components/EstimatedAnnualRewardsCard';
 import InputDisplay from '../../components/InputDisplay';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
-import { isStablecoinLendingFeatureEnabled } from '../../../Stake/constants';
 import {
   EVENT_LOCATIONS,
   EVENT_PROVIDERS,
@@ -42,6 +41,7 @@ import { EarnInputViewProps } from './EarnInputView.types';
 import { getEarnInputViewTitle } from './utils';
 import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
 import useEarnInputHandlers from '../../hooks/useEarnInput';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -65,6 +65,9 @@ const EarnInputView = () => {
   const conversionRate = useSelector(selectConversionRate) ?? 1;
   const contractExchangeRates = useSelector((state: RootState) =>
     selectContractExchangeRatesByChainId(state, token.chainId as Hex),
+  );
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
   );
 
   // if token is ETH, use 1 as the exchange rate
@@ -222,8 +225,6 @@ const EarnInputView = () => {
     attemptDepositTransaction,
   ]);
 
-  const isStablecoinLendingEnabled = isStablecoinLendingFeatureEnabled();
-
   const handleMaxButtonPress = () => {
     if (!isStablecoinLendingEnabled || token.isETH) {
       navigation.navigate('StakeModals', {
@@ -363,8 +364,8 @@ const EarnInputView = () => {
         currencyToggleValue={currencyToggleValue}
       />
       <View style={styles.rewardsRateContainer}>
-        {isStablecoinLendingFeatureEnabled() ? (
-          <EarnTokenSelector token={route?.params?.token} />
+        {isStablecoinLendingEnabled ? (
+          <EarnTokenSelector token={token} />
         ) : (
           <EstimatedAnnualRewardsCard
             estimatedAnnualRewards={estimatedAnnualRewards}

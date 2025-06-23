@@ -1,4 +1,5 @@
-import { useBridgeQuoteRequest } from './';
+import '../../_mocks_/initialState';
+import { DEBOUNCE_WAIT, useBridgeQuoteRequest } from './';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { createBridgeTestState } from '../../testUtils';
 import Engine from '../../../../../core/Engine';
@@ -58,7 +59,7 @@ describe('useBridgeQuoteRequest', () => {
 
     await act(async () => {
       await result.current();
-      jest.advanceTimersByTime(300);
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
     expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalled();
   });
@@ -76,7 +77,7 @@ describe('useBridgeQuoteRequest', () => {
 
     await act(async () => {
       await result.current();
-      jest.advanceTimersByTime(300);
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
 
     spyUpdateBridgeQuoteRequestParams.mockClear();
@@ -96,7 +97,7 @@ describe('useBridgeQuoteRequest', () => {
 
     await act(async () => {
       await result.current();
-      jest.advanceTimersByTime(300);
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
 
     spyUpdateBridgeQuoteRequestParams.mockClear();
@@ -116,7 +117,7 @@ describe('useBridgeQuoteRequest', () => {
 
     await act(async () => {
       await result.current();
-      jest.advanceTimersByTime(300);
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
 
     spyUpdateBridgeQuoteRequestParams.mockClear();
@@ -136,7 +137,7 @@ describe('useBridgeQuoteRequest', () => {
 
     await act(async () => {
       await result.current();
-      jest.advanceTimersByTime(300);
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
 
     spyUpdateBridgeQuoteRequestParams.mockClear();
@@ -156,7 +157,7 @@ describe('useBridgeQuoteRequest', () => {
 
     await act(async () => {
       await result.current();
-      jest.advanceTimersByTime(300);
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
 
     expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
@@ -180,7 +181,7 @@ describe('useBridgeQuoteRequest', () => {
 
     await act(async () => {
       await result.current();
-      jest.advanceTimersByTime(300);
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
 
     expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
@@ -215,7 +216,7 @@ describe('useBridgeQuoteRequest', () => {
 
     await act(async () => {
       await result.current();
-      jest.advanceTimersByTime(300);
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
 
     expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
@@ -239,13 +240,13 @@ describe('useBridgeQuoteRequest', () => {
       result.current();
 
       // Advance timer by less than debounce time
-      jest.advanceTimersByTime(200);
+      jest.advanceTimersByTime(DEBOUNCE_WAIT - 100);
 
       // Should not have been called yet
       expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
 
       // Advance timer past debounce time
-      jest.advanceTimersByTime(100);
+      jest.advanceTimersByTime(DEBOUNCE_WAIT + 100);
 
       // Should have been called exactly once
       expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledTimes(1);
@@ -289,7 +290,7 @@ describe('useBridgeQuoteRequest', () => {
 
     await act(async () => {
       await result.current();
-      jest.advanceTimersByTime(300);
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
 
     expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(

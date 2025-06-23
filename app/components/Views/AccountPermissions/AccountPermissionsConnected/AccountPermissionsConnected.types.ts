@@ -14,7 +14,6 @@ export interface AccountPermissionsConnectedProps
   extends Omit<UseAccounts, 'evmAccounts'> {
   isLoading?: boolean;
   selectedAddresses: string[];
-  onSetSelectedAddresses: (addresses: string[]) => void;
   onSetPermissionsScreen: (screen: AccountPermissionsScreens) => void;
   onDismissSheet: () => void;
   hostname: string;

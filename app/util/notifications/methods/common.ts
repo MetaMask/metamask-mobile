@@ -266,7 +266,7 @@ export const getNotificationBadge = (trigger_type: string) => {
     case TRIGGER_TYPES.ERC721_SENT:
     case TRIGGER_TYPES.ERC1155_SENT:
     case TRIGGER_TYPES.ETH_SENT:
-      return IconName.Arrow2Upright;
+      return IconName.Arrow2UpRight;
     case TRIGGER_TYPES.ERC20_RECEIVED:
     case TRIGGER_TYPES.ERC721_RECEIVED:
     case TRIGGER_TYPES.ERC1155_RECEIVED:

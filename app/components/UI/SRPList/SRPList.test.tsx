@@ -48,13 +48,14 @@ const initialState = {
           {
             type: ExtendedKeyringTypes.hd,
             accounts: [internalAccount1.address],
+            metadata: mockKeyringMetadata1,
           },
           {
             type: ExtendedKeyringTypes.simple,
             accounts: [internalAccount2.address],
+            metadata: mockKeyringMetadata2,
           },
         ],
-        keyringsMetadata: [mockKeyringMetadata1, mockKeyringMetadata2],
       },
     },
   },

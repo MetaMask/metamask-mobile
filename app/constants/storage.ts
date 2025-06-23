@@ -63,3 +63,5 @@ export const themeAppearanceLight = 'light';
 export const USE_TERMS = `${prefix}UserTermsAccepted${USE_TERMS_VERSION}`;
 
 export const SOLANA_FEATURE_MODAL_SHOWN = `${prefix}solanaFeatureModalShown`;
+
+export const SOLANA_DISCOVERY_PENDING = `${prefix}solanaDiscoveryPending`;

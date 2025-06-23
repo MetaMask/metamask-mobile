@@ -7,7 +7,6 @@ import SheetActions from '../../../../component-library/components-temp/SheetAct
 import { strings } from '../../../../../locales/i18n';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
-import { switchActiveAccounts } from '../../../../core/Permissions';
 import {
   ToastContext,
   ToastVariants,
@@ -30,6 +29,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
+import Engine from '../../../../core/Engine';
 
 const AccountPermissionsConnected = ({
   ensByAccountAddress,
@@ -37,7 +37,6 @@ const AccountPermissionsConnected = ({
   isLoading,
   selectedAddresses,
   onSetPermissionsScreen,
-  onSetSelectedAddresses,
   onDismissSheet,
   hostname,
   favicon,
@@ -47,14 +46,13 @@ const AccountPermissionsConnected = ({
   const { toastRef } = useContext(ToastContext);
 
   const onConnectMoreAccounts = useCallback(() => {
-    onSetSelectedAddresses([]);
     onSetPermissionsScreen(AccountPermissionsScreens.ConnectMoreAccounts);
-  }, [onSetSelectedAddresses, onSetPermissionsScreen]);
+  }, [onSetPermissionsScreen]);
 
   const switchActiveAccount = useCallback(
     (address: string) => {
       if (address !== activeAddress) {
-        switchActiveAccounts(hostname, address);
+        Engine.setSelectedAddress(address);
       }
       onDismissSheet();
       const activeAccountName = getAccountNameWithENS({
@@ -81,7 +79,6 @@ const AccountPermissionsConnected = ({
       onDismissSheet,
       accounts,
       ensByAccountAddress,
-      hostname,
       toastRef,
       accountAvatarType,
     ],

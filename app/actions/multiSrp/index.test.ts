@@ -8,14 +8,14 @@ import {
 } from './';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 
-jest.mock('../../util/Logger');
-
 const mockSetSelectedAddress = jest.fn();
 const mockAddNewKeyring = jest.fn();
 const mockGetKeyringsByType = jest.fn();
 const mockGetAccounts = jest.fn();
 const mockAddAccounts = jest.fn();
 const mockSetAccountLabel = jest.fn();
+const mockControllerMessenger = jest.fn();
+const mockAddDiscoveredAccounts = jest.fn();
 
 const hdKeyring = {
   getAccounts: () => {
@@ -28,6 +28,17 @@ const hdKeyring = {
   },
 };
 
+const mockSnapClient = {
+  addDiscoveredAccounts: mockAddDiscoveredAccounts,
+};
+
+jest.mock('../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
+  ...jest.requireActual('../../core/SnapKeyring/MultichainWalletSnapClient'),
+  MultichainWalletSnapFactory: {
+    createClient: () => mockSnapClient,
+  },
+}));
+
 jest.mock('../../core/Engine', () => ({
   context: {
     KeyringController: {
@@ -37,10 +48,14 @@ jest.mock('../../core/Engine', () => ({
       withKeyring: (_selector: unknown, operation: (args: unknown) => void) =>
         operation({ keyring: hdKeyring, metadata: { id: '1234' } }),
     },
+    AccountsController: {
+      getNextAvailableAccountName: jest.fn().mockReturnValue('Snap Account 1'),
+    },
   },
   setSelectedAddress: (address: string) => mockSetSelectedAddress(address),
   setAccountLabel: (address: string, label: string) =>
     mockSetAccountLabel(address, label),
+  controllerMessenger: mockControllerMessenger,
 }));
 
 jest.mocked(Engine);
@@ -66,6 +81,7 @@ describe('MultiSRP Actions', () => {
         numberOfAccounts: 1,
       });
       expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
+      expect(mockAddDiscoveredAccounts).toHaveBeenCalled();
     });
 
     it('throws error if SRP already imported', async () => {

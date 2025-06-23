@@ -10,6 +10,7 @@ import backgroundState from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { SolScope } from '@metamask/keyring-api';
 import type BN5 from 'bnjs5';
+import { mockNetworkState } from '../../../util/test/network';
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
 
@@ -54,6 +55,15 @@ const mockInitialState = {
         selectedMultichainNetworkChainId: SolScope.Mainnet,
 
         multichainNetworkConfigurationsByChainId: {},
+      },
+      NetworkController: {
+        ...mockNetworkState({
+          chainId: '0x1',
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+          blockExplorerUrl: 'https://goerli.lineascan.build',
+        }),
       },
     },
   },

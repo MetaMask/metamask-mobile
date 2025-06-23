@@ -7,7 +7,7 @@ describe('useLoadingTime', () => {
   });
 
   afterAll(() => {
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   it('should return the loading time when setLoadingComplete is called', () => {

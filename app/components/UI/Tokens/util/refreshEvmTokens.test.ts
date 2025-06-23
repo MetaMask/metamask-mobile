@@ -20,6 +20,15 @@ jest.mock('../../../../core/Engine', () => ({
     TokenRatesController: {
       updateExchangeRatesByChainId: jest.fn(),
     },
+    NetworkController: {
+      state: {
+        networkConfigurationsByChainId: {
+          '0x1': {
+            chainId: '0x1',
+          },
+        },
+      },
+    },
   },
 }));
 
@@ -68,16 +77,20 @@ describe('refreshEvmTokens', () => {
     ).toHaveBeenCalledTimes(2);
     expect(
       Engine.context.TokenRatesController.updateExchangeRatesByChainId,
-    ).toHaveBeenCalledWith({
-      chainId: '0x1',
-      nativeCurrency: 'ETH',
-    });
+    ).toHaveBeenCalledWith([
+      {
+        chainId: '0x1',
+        nativeCurrency: 'ETH',
+      },
+    ]);
     expect(
       Engine.context.TokenRatesController.updateExchangeRatesByChainId,
-    ).toHaveBeenCalledWith({
-      chainId: '0x89',
-      nativeCurrency: 'POL',
-    });
+    ).toHaveBeenCalledWith([
+      {
+        chainId: '0x89',
+        nativeCurrency: 'POL',
+      },
+    ]);
   });
 
   it('should not refresh tokens if EVM is not selected', async () => {

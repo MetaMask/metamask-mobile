@@ -81,11 +81,9 @@ describe('TokenSortBottomSheet', () => {
   });
 
   it('triggers PreferencesController to sort by token fiat amount when first cell is pressed', async () => {
-    const { queryByTestId } = render(<TokenSortBottomSheet />);
+    const { getByTestId } = render(<TokenSortBottomSheet />);
 
-    fireEvent.press(
-      queryByTestId(WalletViewSelectorsIDs.SORT_DECLINING_BALANCE),
-    );
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_DECLINING_BALANCE));
 
     await waitFor(() => {
       expect(
@@ -99,9 +97,9 @@ describe('TokenSortBottomSheet', () => {
   });
 
   it('triggers PreferencesController to sort alphabetically when the second cell is pressed', async () => {
-    const { queryByTestId } = render(<TokenSortBottomSheet />);
+    const { getByTestId } = render(<TokenSortBottomSheet />);
 
-    fireEvent.press(queryByTestId(WalletViewSelectorsIDs.SORT_ALPHABETICAL));
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_ALPHABETICAL));
 
     await waitFor(() => {
       expect(

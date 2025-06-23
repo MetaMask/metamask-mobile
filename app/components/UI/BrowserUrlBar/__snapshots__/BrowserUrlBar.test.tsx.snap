@@ -90,6 +90,7 @@ exports[`BrowserUrlBar should render correctly 1`] = `
     >
       <SvgMock
         color="#686e7d"
+        fill="currentColor"
         height={20}
         name="CircleX"
         style={
@@ -172,6 +173,7 @@ exports[`BrowserUrlBar should render correctly when url bar is not focused 1`] =
   >
     <SvgMock
       color="#686e7d"
+      fill="currentColor"
       height={16}
       name="Lock"
       style={

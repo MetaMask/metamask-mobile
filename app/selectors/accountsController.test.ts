@@ -22,6 +22,7 @@ import {
   selectSolanaAccountAddress,
   selectSolanaAccount,
   selectPreviouslySelectedEvmAccount,
+  selectInternalEvmAccounts,
 } from './accountsController';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -744,5 +745,32 @@ describe('selectPreviouslySelectedEvmAccount', () => {
 
     // Should return undefined as there are no EVM accounts
     expect(selectPreviouslySelectedEvmAccount(state)).toBeUndefined();
+  });
+});
+
+describe('selectInternalEvmAccounts', () => {
+  it(`returns internal accounts with evm account type`, () => {
+    const mockAccountsControllerReversed =
+      MOCK_GENERATED_ACCOUNTS_CONTROLLER_REVERSED();
+
+    const stateAccountsList = Object.values(
+      mockAccountsControllerReversed.internalAccounts.accounts,
+    );
+
+    expect(stateAccountsList).toHaveLength(6);
+
+    stateAccountsList[0].type = 'solana:data-account';
+    stateAccountsList[1].type = 'bip122:p2wpkh';
+
+    const result = selectInternalEvmAccounts({
+      engine: {
+        backgroundState: {
+          KeyringController: MOCK_KEYRING_CONTROLLER,
+          AccountsController: mockAccountsControllerReversed,
+        },
+      },
+    } as RootState);
+
+    expect(result).toHaveLength(4);
   });
 });

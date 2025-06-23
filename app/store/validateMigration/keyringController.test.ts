@@ -23,6 +23,10 @@ describe('validateKeyringController', () => {
       {
         type: 'HD Key Tree',
         accounts: ['0x123'],
+        metadata: {
+          id: 'mock-id',
+          name: 'mock-name',
+        },
       },
     ],
   };

@@ -12,7 +12,7 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsCo
 import { RootState } from '../../../../reducers';
 import BN4 from 'bnjs4';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { Hex } from '../../../../util/smart-transactions/smart-publish-hook';
+import { Hex } from '@metamask/utils';
 
 jest.mock('../../Stake/hooks/useBalance');
 jest.mock('../../Stake/hooks/useStakingGasFee');

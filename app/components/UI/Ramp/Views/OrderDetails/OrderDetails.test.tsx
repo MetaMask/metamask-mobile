@@ -373,7 +373,7 @@ describe('OrderDetails', () => {
         AppConstants.FIAT_ORDERS.POLLING_FREQUENCY * intervalCount,
       );
       jest.clearAllTimers();
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
     // processFiatOrder is called on load and then 3 times by the interval
     expect(processFiatOrder).toHaveBeenCalledTimes(1 + intervalCount);

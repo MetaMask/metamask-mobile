@@ -205,6 +205,7 @@ exports[`QuoteExpiredModal renders correctly 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={16}
                   name="Close"
                   style={
@@ -239,7 +240,7 @@ exports[`QuoteExpiredModal renders correctly 1`] = `
               }
             }
           >
-            Rates update every 10 seconds, so tap Get new quote when you're ready.
+            Rates update every 15 seconds, so tap Get new quote when you're ready.
           </Text>
         </View>
         <View

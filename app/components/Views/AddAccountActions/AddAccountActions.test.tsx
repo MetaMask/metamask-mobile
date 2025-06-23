@@ -253,10 +253,10 @@ describe('AddAccountActions', () => {
     const mockSecondHdKeyring = {
       type: KeyringTypes.hd,
       accounts: [],
-    };
-    const mockSecondHdKeyringMetadata = {
-      id: '',
-      name: '',
+      metadata: {
+        id: '',
+        name: '',
+      },
     };
 
     const stateWithMultipleHdKeyrings = {
@@ -280,10 +280,6 @@ describe('AddAccountActions', () => {
             keyrings: [
               ...MOCK_KEYRING_CONTROLLER.keyrings,
               mockSecondHdKeyring,
-            ],
-            keyringsMetadata: [
-              ...MOCK_KEYRING_CONTROLLER.keyringsMetadata,
-              mockSecondHdKeyringMetadata,
             ],
           },
         },

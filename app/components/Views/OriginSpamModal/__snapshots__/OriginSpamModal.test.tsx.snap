@@ -11,6 +11,7 @@ exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp
 >
   <SvgMock
     color="#1c7e33"
+    fill="currentColor"
     height={32}
     name="Confirmation"
     style={
@@ -140,6 +141,7 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
 >
   <SvgMock
     color="#9a6300"
+    fill="currentColor"
     height={32}
     name="Danger"
     style={

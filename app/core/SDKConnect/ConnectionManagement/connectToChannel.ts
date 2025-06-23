@@ -217,7 +217,7 @@ async function connectToChannel({
     store.dispatch(resetConnections(instance.state.connections));
 
     if (authorized && initialConnection) {
-      const accounts = await getPermittedAccounts(id);
+      const accounts = getPermittedAccounts(id);
       const currentChainId = selectEvmChainId(store.getState());
       connected.remote.state.channelId = id;
       const data = {

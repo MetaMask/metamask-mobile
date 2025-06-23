@@ -1,12 +1,11 @@
 import { useSelector } from 'react-redux';
 
 import { selectInternalAccounts } from '../../selectors/accountsController';
-import { toLowerCaseEquals } from '../../util/general';
+import { areAddressesEqual, safeToChecksumAddress } from '../../util/address';
 import { AddressBookEntry } from '@metamask/address-book-controller';
 import { selectAddressBook } from '../../selectors/addressBookController';
 import { selectIsEvmNetworkSelected } from '../../selectors/multichainNetworkController';
 import { selectEvmChainId } from '../../selectors/networkController';
-import { safeToChecksumAddress } from '../../util/address';
 
 type AccountInfo = Pick<AddressBookEntry, 'name' | 'address'>;
 
@@ -33,7 +32,7 @@ const useExistingAddress = (address?: string): AccountInfo | undefined => {
   }
 
   const accountWithMatchingAddress = internalAccounts.find((account) =>
-    toLowerCaseEquals(account.address, address),
+    areAddressesEqual(account.address, address),
   );
 
   if (accountWithMatchingAddress) {

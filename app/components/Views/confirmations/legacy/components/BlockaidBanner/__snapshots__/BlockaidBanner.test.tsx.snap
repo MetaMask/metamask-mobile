@@ -48,6 +48,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
   >
     <SvgMock
       color="#9a6300"
+      fill="currentColor"
       height={24}
       name="Danger"
       style={
@@ -144,6 +145,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
       >
         <SvgMock
           color="#4459ff"
+          fill="currentColor"
           height={16}
           name="ArrowDown"
           style={
@@ -201,6 +203,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
   >
     <SvgMock
       color="#ca3542"
+      fill="currentColor"
       height={24}
       name="Danger"
       style={
@@ -297,6 +300,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
       >
         <SvgMock
           color="#4459ff"
+          fill="currentColor"
           height={16}
           name="ArrowDown"
           style={
@@ -354,6 +358,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
   >
     <SvgMock
       color="#ca3542"
+      fill="currentColor"
       height={24}
       name="Danger"
       style={
@@ -450,6 +455,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
       >
         <SvgMock
           color="#4459ff"
+          fill="currentColor"
           height={16}
           name="ArrowDown"
           style={
@@ -516,6 +522,7 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
     >
       <SvgMock
         color="#9a6300"
+        fill="currentColor"
         height={24}
         name="Danger"
         style={
@@ -609,6 +616,7 @@ exports[`BlockaidBanner should render something does not look right with contact
   >
     <SvgMock
       color="#ca3542"
+      fill="currentColor"
       height={24}
       name="Danger"
       style={
@@ -705,6 +713,7 @@ exports[`BlockaidBanner should render something does not look right with contact
       >
         <SvgMock
           color="#4459ff"
+          fill="currentColor"
           height={16}
           name="ArrowDown"
           style={

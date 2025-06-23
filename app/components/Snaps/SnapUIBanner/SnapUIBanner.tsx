@@ -7,6 +7,7 @@ import Banner, {
 export interface SnapUIBannerProps {
   severity: BannerAlertSeverity | undefined;
   title: string;
+  children: React.ReactNode;
 }
 
 export const SnapUIBanner: FunctionComponent<SnapUIBannerProps> = ({

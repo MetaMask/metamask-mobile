@@ -28,23 +28,21 @@ jest.mock('../../../core/Engine', () => {
 });
 
 const mockKeyringName1 = 'Secret Recovery Phrase 1';
-const mockKeyringMetadata1 = {
-  id: '01JKZ55Y6KPCYH08M6B9VSZWKW',
-  name: '',
-};
-const mockKeyringMetadata2 = {
-  id: '01JKZ56KRVYEEHC601HSNW28T2',
-  name: '',
-};
 const mockKeyring1 = {
   type: ExtendedKeyringTypes.hd,
   accounts: [internalAccount1.address],
-  metadata: mockKeyringMetadata1,
+  metadata: {
+    id: '01JKZ55Y6KPCYH08M6B9VSZWKW',
+    name: '',
+  },
 };
 const mockKeyring2 = {
   type: ExtendedKeyringTypes.simple,
   accounts: [internalAccount2.address],
-  metadata: mockKeyringMetadata2,
+  metadata: {
+    id: '01JKZ56KRVYEEHC601HSNW28T2',
+    name: '',
+  },
 };
 
 const initialState = {
@@ -55,7 +53,6 @@ const initialState = {
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       KeyringController: {
         keyrings: [mockKeyring1, mockKeyring2],
-        keyringsMetadata: [mockKeyringMetadata1, mockKeyringMetadata2],
       },
     },
   },
@@ -122,7 +119,7 @@ describe('SRPList', () => {
 
     fireEvent.press(srpItem);
 
-    expect(mockOnKeyringSelect).toHaveBeenCalledWith(mockKeyringMetadata1.id);
+    expect(mockOnKeyringSelect).toHaveBeenCalledWith(mockKeyring1.metadata.id);
   });
 
   it('displays accounts when toggle is clicked', () => {

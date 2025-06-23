@@ -38,7 +38,7 @@ export const TooltipModal = ({
   const { styles } = useStyles(styleSheet, { title: title ?? '' });
 
   return (
-    <BottomModal visible={open} onClose={() => setOpen(false)}>
+    <BottomModal visible={open} onClose={() => setOpen(false)} isTooltip>
       <View style={styles.modalView}>
         <View style={styles.modalHeader}>
           <ButtonIcon

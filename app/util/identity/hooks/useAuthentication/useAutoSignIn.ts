@@ -5,7 +5,7 @@ import { useSignIn } from './useSignIn';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import {
-  selectIsProfileSyncingEnabled,
+  selectIsBackupAndSyncEnabled,
   selectIsSignedIn,
 } from '../../../../selectors/identity';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
@@ -48,7 +48,7 @@ export function useAutoSignIn(): {
   // Since MetaMetrics is not a controller that extends BaseController,
   // and it is not stored in the redux store, we programmatically trigger `autoSignIn`
   // in the following file: app/components/Views/Settings/SecuritySettings/Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection.tsx
-  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
   const isParticipateInMetaMetrics = isEnabled();
   const isNotificationServicesEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
@@ -56,11 +56,11 @@ export function useAutoSignIn(): {
 
   const isAtLeastOneAuthDependentFeatureEnabled = useMemo(
     () =>
-      isProfileSyncingEnabled ||
+      isBackupAndSyncEnabled ||
       isParticipateInMetaMetrics ||
       isNotificationServicesEnabled,
     [
-      isProfileSyncingEnabled,
+      isBackupAndSyncEnabled,
       isParticipateInMetaMetrics,
       isNotificationServicesEnabled,
     ],

@@ -50,6 +50,12 @@ class SettingsView {
     );
   }
 
+  get backupAndSyncSectionButton() {
+    return Matchers.getElementByID(
+      SettingsViewSelectorsIDs.BACKUP_AND_SYNC,
+    );
+  }
+
   get alertButton() {
     return device.getPlatform() === 'android'
       ? Matchers.getElementByText(CommonSelectorsText.YES_ALERT_BUTTON)
@@ -124,6 +130,10 @@ class SettingsView {
 
   async tapYesAlertButton() {
     await Gestures.tap(this.alertButton);
+  }
+
+  async tapBackupAndSync() {
+    await Gestures.tap(this.backupAndSyncSectionButton);
   }
 }
 

@@ -184,6 +184,7 @@ class AesCryptoTestForm {
       salt,
     );
     await Gestures.waitAndTap(this.generateEncryptionKeyButton);
+    await Gestures.waitAndTap(this.generateEncryptionKeyResponse);
 
     const responseFieldAtts = await (
       await this.generateEncryptionKeyResponse

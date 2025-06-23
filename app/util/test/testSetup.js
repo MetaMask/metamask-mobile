@@ -9,7 +9,50 @@ import '@shopify/flash-list/jestSetup';
 
 Enzyme.configure({ adapter: new Adapter() });
 
-jest.mock('react-native-quick-crypto', () => ({}));
+jest.mock('react-native-quick-crypto', () => ({
+  getRandomValues: jest.fn((array) => {
+    for (let i = 0; i < array.length; i++) {
+      array[i] = Math.floor(Math.random() * 256);
+    }
+    return array;
+  }),
+  subtle: {
+    importKey: jest.fn((format, keyData, algorithm, extractable, keyUsages) => {
+      return Promise.resolve({
+        format,
+        keyData,
+        algorithm,
+        extractable,
+        keyUsages,
+      });
+    }),
+    deriveBits: jest.fn((algorithm, baseKey, length) => {
+      const derivedBits = new Uint8Array(length);
+      for (let i = 0; i < length; i++) {
+        derivedBits[i] = Math.floor(Math.random() * 256);
+      }
+      return Promise.resolve(derivedBits);
+    }),
+    exportKey: jest.fn((format, key) => {
+      return Promise.resolve(new Uint8Array([1, 2, 3, 4]));
+    }),
+    encrypt: jest.fn((algorithm, key, data) => {
+      return Promise.resolve(new Uint8Array([
+        123,  34, 116, 101, 115,
+        116,  34,  58,  34, 100,
+         97, 116,  97,  34, 125
+      ]));
+    }),
+    decrypt: jest.fn((algorithm, key, data) => {
+      return Promise.resolve(new Uint8Array([
+        123,  34, 116, 101, 115,
+        116,  34,  58,  34, 100,
+         97, 116,  97,  34, 125
+      ]));
+    }),
+  },
+}));
+
 jest.mock('react-native-blob-jsi-helper', () => ({}));
 
 jest.mock('react-native', () => {
@@ -188,15 +231,22 @@ jest.mock('react-native-branch', () => ({
 }));
 jest.mock('react-native-sensors', () => 'RNSensors');
 jest.mock('@metamask/react-native-search-api', () => 'SearchApi');
-jest.mock('react-native-reanimated', () =>
-  require('react-native-reanimated/mock'),
-);
+
 jest.mock('react-native-background-timer', () => 'RNBackgroundTimer');
 jest.mock(
   '@react-native-async-storage/async-storage',
   () => mockRNAsyncStorage,
 );
 jest.mock('@react-native-cookies/cookies', () => 'RNCookies');
+
+/**
+ * Mock the reanimated module temporarily while the infinite style issue is being investigated
+ * Issue: https://github.com/software-mansion/react-native-reanimated/issues/6645
+ */
+jest.mock('react-native-reanimated', () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require('react-native-reanimated/mock'),
+);
 
 NativeModules.RNGestureHandlerModule = {
   attachGestureHandler: jest.fn(),
@@ -259,8 +309,6 @@ jest.mock(
   'react-native/Libraries/Components/TextInput/TextInput',
   () => 'TextInput',
 );
-
-jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
 
 jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
   runAfterInteractions: jest.fn(),
@@ -342,7 +390,7 @@ jest.mock('../../store/storage-wrapper', () => ({
 }));
 
 // eslint-disable-next-line import/no-commonjs
-require('react-native-reanimated/lib/module/reanimated2/jestUtils').setUpTests();
+require('react-native-reanimated').setUpTests();
 global.__reanimatedWorkletInit = jest.fn();
 global.__DEV__ = false;
 

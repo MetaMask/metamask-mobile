@@ -24,6 +24,11 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../core/Engine', () => ({
   acceptPendingApproval: jest.fn(),
   rejectPendingApproval: jest.fn(),
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
+  },
 }));
 
 const mockCaptureSignatureMetrics = jest.fn();
@@ -189,7 +194,7 @@ describe('useConfirmAction', () => {
     expect(clearSecurityAlertResponseSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('navigates to transactions view if confirmation is of type staking deposit', async () => {
+  it('navigates to transactions view if confirmation is standalone confirmation', async () => {
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
       state: stakingDepositConfirmationState,
     });

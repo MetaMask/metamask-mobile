@@ -91,7 +91,6 @@ const PermissionsSummary = ({
   let chainImage: ImageSourcePropType;
   if (isNetworkSwitch && customNetworkInformation?.chainId) {
     chainName = customNetworkInformation?.chainName;
-    // @ts-expect-error getNetworkImageSource is not implemented in typescript
     chainImage = getNetworkImageSource({
       chainId: customNetworkInformation?.chainId,
     });
@@ -385,7 +384,7 @@ const PermissionsSummary = ({
                     }
                     imageSource={
                       isNonDappNetworkSwitch
-                        ? // @ts-expect-error getNetworkImageSource is not implemented in typescript
+                        ?
                           getNetworkImageSource({
                             chainId,
                           })

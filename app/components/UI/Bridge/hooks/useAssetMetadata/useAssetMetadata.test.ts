@@ -1,3 +1,4 @@
+import '../../_mocks_/initialState';
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { AssetType, useAssetMetadata } from './index';

@@ -1,5 +1,8 @@
+import { unstable_batchedUpdates as batchFunc } from 'react-native';
+import { KeyringControllerState } from '@metamask/keyring-controller';
 import UntypedEngine from '../Engine';
 import { Engine as TypedEngine } from '../Engine/Engine';
+import Batcher from '../Batcher';
 import { getVaultFromBackup } from '../BackupVault';
 import Logger from '../../util/Logger';
 import {
@@ -13,20 +16,29 @@ import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../Engine/constants';
 import ReduxService from '../redux';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { KeyringControllerState } from '@metamask/keyring-controller';
 import { MetaMetrics } from '../Analytics';
+import { VaultBackupResult } from './types';
+import { INIT_BG_STATE_KEY, UPDATE_BG_STATE_KEY, LOG_TAG } from './constants';
 
-const LOG_TAG = 'EngineService';
-
-interface InitializeEngineResult {
-  success: boolean;
-  error?: string;
-}
-
-const UPDATE_BG_STATE_KEY = 'UPDATE_BG_STATE';
-const INIT_BG_STATE_KEY = 'INIT_BG_STATE';
 export class EngineService {
   private engineInitialized = false;
+
+  private updateBatcher = new Batcher<string>((keys) =>
+    batchFunc(() => {
+      keys.forEach((key) => {
+        if (key === INIT_BG_STATE_KEY) {
+          // first-time init action
+          ReduxService.store.dispatch({ type: INIT_BG_STATE_KEY });
+        } else {
+          // incremental update action
+          ReduxService.store.dispatch({
+            type: UPDATE_BG_STATE_KEY,
+            payload: { key },
+          });
+        }
+      });
+    }),
+  );
 
   /**
    * Starts the Engine and subscribes to the controller state changes
@@ -97,7 +109,7 @@ export class EngineService {
         if (!engine.context.KeyringController.metadata.vault) {
           Logger.log('keyringController vault missing for INIT_BG_STATE_KEY');
         }
-        ReduxService.store.dispatch({ type: INIT_BG_STATE_KEY });
+        this.updateBatcher.add(INIT_BG_STATE_KEY);
         this.engineInitialized = true;
       },
       () => !this.engineInitialized,
@@ -107,10 +119,7 @@ export class EngineService {
       if (!engine.context.KeyringController.metadata.vault) {
         Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
       }
-      ReduxService.store.dispatch({
-        type: UPDATE_BG_STATE_KEY,
-        payload: { key: controllerName },
-      });
+      this.updateBatcher.add(controllerName);
     };
 
     BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
@@ -129,7 +138,7 @@ export class EngineService {
         error?: string;
       }
    */
-  async initializeVaultFromBackup(): Promise<InitializeEngineResult> {
+  async initializeVaultFromBackup(): Promise<VaultBackupResult> {
     const keyringState = await getVaultFromBackup();
     const reduxState = ReduxService.store.getState();
     const state = reduxState?.engine?.backgroundState ?? {};
@@ -142,7 +151,6 @@ export class EngineService {
         keyrings: [],
         vault: keyringState.vault,
         isUnlocked: false,
-        keyringsMetadata: [],
       };
 
       Logger.log(`${LOG_TAG}: Initializing Engine from backup:`, {

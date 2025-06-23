@@ -5,6 +5,14 @@ import { renderHookWithProvider } from '../../../../../../util/test/renderWithPr
 import { useStakingDetails } from './useStakingDetails';
 import { mockEarnControllerRootState } from '../../../../../UI/Stake/testUtils';
 
+jest.mock('../../../../../../core/Engine', () => ({
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
+  },
+}));
+
 describe('useStakingDetails', () => {
   const mockEarnControllerState =
     mockEarnControllerRootState().engine.backgroundState.EarnController;

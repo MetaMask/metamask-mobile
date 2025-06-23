@@ -51,6 +51,8 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     accountsList: {
       display: 'flex',
+      width: '100%',
+      flexShrink: 1,
     },
     accountsListContentContainer: {
       display: 'flex',

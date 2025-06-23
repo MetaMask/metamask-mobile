@@ -28,6 +28,10 @@ import { EVENT_LOCATIONS } from '../../constants/events';
 import useStakingChain from '../../hooks/useStakingChain';
 import Engine from '../../../../../core/Engine';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -42,6 +46,14 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const chainId = useSelector(selectEvmChainId);
   const { isEligible } = useStakingEligibility();
   const { isStakingSupportedChain } = useStakingChain();
+
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
+
+  const areEarnExperiencesDisabled =
+    !isPooledStakingEnabled && !isStablecoinLendingEnabled;
 
   const onStakeButtonPress = async () => {
     if (!isStakingSupportedChain) {
@@ -89,6 +101,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         .build(),
     );
   };
+
+  if (areEarnExperiencesDisabled) return <></>;
 
   return (
     <Pressable

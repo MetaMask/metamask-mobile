@@ -1,5 +1,20 @@
+diff --git a/node_modules/@ledgerhq/hw-app-eth/lib/Eth.js b/node_modules/@ledgerhq/hw-app-eth/lib/Eth.js
+index 7fd2adf..4951714 100644
+--- a/node_modules/@ledgerhq/hw-app-eth/lib/Eth.js
++++ b/node_modules/@ledgerhq/hw-app-eth/lib/Eth.js
+@@ -220,8 +220,8 @@ class Eth {
+                 });
+             }
+             const v = (0, utils_1.getV)(response[0], chainId, parsedTransaction.type);
+-            const r = response.subarray(1, 1 + 32).toString("hex");
+-            const s = response.subarray(1 + 32, 1 + 32 + 32).toString("hex");
++            const r = Buffer.from(response.subarray(1, 1 + 32)).toString("hex");
++            const s = Buffer.from(response.subarray(1 + 32, 1 + 32 + 32)).toString("hex");
+             return { v, r, s };
+         });
+     }
 diff --git a/node_modules/@ledgerhq/hw-app-eth/lib/modules/EIP712/index.js b/node_modules/@ledgerhq/hw-app-eth/lib/modules/EIP712/index.js
-index 24251b4..7f4980f 100644
+index 24251b4..3cbe22a 100644
 --- a/node_modules/@ledgerhq/hw-app-eth/lib/modules/EIP712/index.js
 +++ b/node_modules/@ledgerhq/hw-app-eth/lib/modules/EIP712/index.js
 @@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
@@ -11,8 +26,39 @@ index 24251b4..7f4980f 100644
  const erc20_1 = require("../../services/ledger/erc20");
  const utils_1 = require("../../utils");
  const loadConfig_1 = require("../../services/ledger/loadConfig");
+@@ -191,7 +191,7 @@ const sendStructImplem = (transport, structImplem) => __awaiter(void 0, void 0,
+             ]);
+             const bufferSlices = new Array(Math.ceil(data.length / 256))
+                 .fill(null)
+-                .map((_, i) => data.subarray(i * 255, (i + 1) * 255));
++                .map((_, i) => Buffer.from(data.subarray(i * 255, (i + 1) * 255)));
+             for (const bufferSlice of bufferSlices) {
+                 yield transport.send(APDU_FIELDS.CLA, APDU_FIELDS.INS, bufferSlice !== bufferSlices[bufferSlices.length - 1]
+                     ? APDU_FIELDS.P1_partial
+@@ -416,8 +416,8 @@ const signEIP712Message = (transport_1, path_1, typedMessage_1, ...args_1) => __
+         .send(APDU_FIELDS.CLA, APDU_FIELDS.INS, APDU_FIELDS.P1, fullImplem ? APDU_FIELDS.P2_v0 : APDU_FIELDS.P2_full, signatureBuffer)
+         .then(response => {
+         const v = response[0];
+-        const r = response.subarray(1, 1 + 32).toString("hex");
+-        const s = response.subarray(1 + 32, 1 + 32 + 32).toString("hex");
++        const r = Buffer.from(response.subarray(1, 1 + 32)).toString("hex");
++        const s = Buffer.from(response.subarray(1 + 32, 1 + 32 + 32)).toString("hex");
+         return {
+             v,
+             r,
+@@ -455,8 +455,8 @@ const signEIP712HashedMessage = (transport, path, domainSeparatorHex, hashStruct
+     hashStruct.copy(buffer, offset);
+     return transport.send(0xe0, 0x0c, 0x00, 0x00, buffer).then(response => {
+         const v = response[0];
+-        const r = response.subarray(1, 1 + 32).toString("hex");
+-        const s = response.subarray(1 + 32, 1 + 32 + 32).toString("hex");
++        const r = Buffer.from(response.subarray(1, 1 + 32)).toString("hex");
++        const s = Buffer.from(response.subarray(1 + 32, 1 + 32 + 32)).toString("hex");
+         return {
+             v,
+             r,
 diff --git a/node_modules/@ledgerhq/hw-app-eth/lib/modules/EIP712/utils.js b/node_modules/@ledgerhq/hw-app-eth/lib/modules/EIP712/utils.js
-index 4f09ea8..1cc7de0 100644
+index 4f09ea8..ed5ed75 100644
 --- a/node_modules/@ledgerhq/hw-app-eth/lib/modules/EIP712/utils.js
 +++ b/node_modules/@ledgerhq/hw-app-eth/lib/modules/EIP712/utils.js
 @@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
@@ -24,8 +70,37 @@ index 4f09ea8..1cc7de0 100644
  const utils_1 = require("../../utils");
  /**
   * @ignore for the README
+@@ -256,11 +256,11 @@ const getAppAndVersion = (transport) => __awaiter(void 0, void 0, void 0, functi
+     let offset = 1;
+     const nameLength = appAndVersionHex[offset];
+     offset += 1;
+-    const name = appAndVersionHex.subarray(offset, offset + nameLength).toString("ascii");
++    const name = Buffer.from(appAndVersionHex.subarray(offset, offset + nameLength)).toString("ascii");
+     offset += nameLength;
+     const versionLength = appAndVersionHex[offset];
+     offset += 1;
+-    const version = appAndVersionHex.subarray(offset, offset + versionLength).toString("ascii");
++    const version = Buffer.from(appAndVersionHex.subarray(offset, offset + versionLength)).toString("ascii");
+     return {
+         name,
+         version,
+diff --git a/node_modules/@ledgerhq/hw-app-eth/lib/modules/Uniswap/decoders.js b/node_modules/@ledgerhq/hw-app-eth/lib/modules/Uniswap/decoders.js
+index a16c2f8..240538d 100644
+--- a/node_modules/@ledgerhq/hw-app-eth/lib/modules/Uniswap/decoders.js
++++ b/node_modules/@ledgerhq/hw-app-eth/lib/modules/Uniswap/decoders.js
+@@ -16,8 +16,8 @@ const swapV3Decoder = (input) => {
+     const tokens = [];
+     let i = 0;
+     while (i < pathBuffer.length) {
+-        tokens.push(`0x${pathBuffer
+-            .subarray(i, i + 20)
++        tokens.push(`0x${Buffer.from(pathBuffer
++            .subarray(i, i + 20))
+             .toString("hex")
+             .toLowerCase()}`);
+         // Skip 20B address + 3B fee
 diff --git a/node_modules/@ledgerhq/hw-app-eth/lib/services/ledger/erc20.js b/node_modules/@ledgerhq/hw-app-eth/lib/services/ledger/erc20.js
-index 8fdedf8..c10cea2 100644
+index 8fdedf8..90ce658 100644
 --- a/node_modules/@ledgerhq/hw-app-eth/lib/services/ledger/erc20.js
 +++ b/node_modules/@ledgerhq/hw-app-eth/lib/services/ledger/erc20.js
 @@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
@@ -38,7 +113,7 @@ index 8fdedf8..c10cea2 100644
  const asContractAddress = (addr) => {
      const a = addr.toLowerCase();
 diff --git a/node_modules/@ledgerhq/hw-app-eth/lib/services/ledger/index.js b/node_modules/@ledgerhq/hw-app-eth/lib/services/ledger/index.js
-index 86db997..29e1fe5 100644
+index 86db997..29ebcee 100644
 --- a/node_modules/@ledgerhq/hw-app-eth/lib/services/ledger/index.js
 +++ b/node_modules/@ledgerhq/hw-app-eth/lib/services/ledger/index.js
 @@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
@@ -51,7 +126,7 @@ index 86db997..29e1fe5 100644
  const erc20_1 = require("./erc20");
  const Uniswap_1 = require("../../modules/Uniswap");
 diff --git a/node_modules/@ledgerhq/hw-app-eth/lib/utils.js b/node_modules/@ledgerhq/hw-app-eth/lib/utils.js
-index 6c5f584..f960780 100644
+index 6c5f584..ca29460 100644
 --- a/node_modules/@ledgerhq/hw-app-eth/lib/utils.js
 +++ b/node_modules/@ledgerhq/hw-app-eth/lib/utils.js
 @@ -26,7 +26,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
@@ -63,3 +138,13 @@ index 6c5f584..f960780 100644
  Object.defineProperty(exports, "ERC20_CLEAR_SIGNED_SELECTORS", { enumerable: true, get: function () { return index_1.ERC20_CLEAR_SIGNED_SELECTORS; } });
  Object.defineProperty(exports, "ERC721_CLEAR_SIGNED_SELECTORS", { enumerable: true, get: function () { return index_1.ERC721_CLEAR_SIGNED_SELECTORS; } });
  Object.defineProperty(exports, "ERC1155_CLEAR_SIGNED_SELECTORS", { enumerable: true, get: function () { return index_1.ERC1155_CLEAR_SIGNED_SELECTORS; } });
+@@ -231,7 +231,7 @@ const safeChunkTransaction = (transactionRlp, derivationPath, transactionType) =
+     const chunks = Math.ceil(payload.length / chunkSize);
+     return new Array(chunks)
+         .fill(null)
+-        .map((_, i) => payload.subarray(i * chunkSize, (i + 1) * chunkSize));
++        .map((_, i) => Buffer.from(payload.subarray(i * chunkSize, (i + 1) * chunkSize)));
+ };
+ exports.safeChunkTransaction = safeChunkTransaction;
+ //# sourceMappingURL=utils.js.map
+\ No newline at end of file

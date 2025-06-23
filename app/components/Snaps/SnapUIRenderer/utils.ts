@@ -24,6 +24,7 @@ export interface MapToTemplateParams {
   element: JSXElement;
   form?: string;
   useFooter?: boolean;
+  isParentFlexRow?: boolean;
   onCancel?: () => void;
   onConfirm?: () => void;
   t?: (key: string) => string;
@@ -49,6 +50,7 @@ export const FIELD_ELEMENT_TYPES = [
   'Checkbox',
   'Selector',
   'AddressInput',
+  'AssetSelector',
 ];
 
 /**
@@ -68,6 +70,12 @@ export const getPrimaryChildElementIndex = (children: JSXElement[]) =>
  */
 function getChildrenForHash(component: JSXElement) {
   if (!hasChildren(component)) {
+    return null;
+  }
+
+  // Prevent re-rendering when rendering forms, we don't care what children it contains
+  // since we can identify it by its name. 
+  if (component.type === 'Form') {
     return null;
   }
 

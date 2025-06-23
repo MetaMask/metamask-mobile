@@ -1,3 +1,4 @@
+import { SolScope } from '@metamask/keyring-api';
 import {
   MultichainTransactionsController,
   MultichainTransactionsControllerState,
@@ -48,9 +49,11 @@ describe('multichain transactions controller init', () => {
       {
         nonEvmTransactions: {
           [MOCK_SOLANA_ACCOUNT.id]: {
-            transactions: [],
-            next: null,
-            lastUpdated: 0,
+            [SolScope.Mainnet]: {
+              transactions: [],
+              next: null,
+              lastUpdated: 0,
+            },
           },
         },
       };

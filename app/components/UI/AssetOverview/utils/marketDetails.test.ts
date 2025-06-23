@@ -4,7 +4,7 @@ describe('formatMarketDetails', () => {
   const mockOptions = {
     locale: 'en-US',
     currentCurrency: 'USD',
-    isEvmNetworkSelected: true,
+    isEvmAssetSelected: true,
     conversionRate: 1.5,
   };
 
@@ -66,7 +66,7 @@ describe('formatMarketDetails', () => {
 
     const nonEvmOptions = {
       ...mockOptions,
-      isEvmNetworkSelected: false,
+      isEvmAssetSelected: false,
     };
 
     const result = formatMarketDetails(marketData, nonEvmOptions);

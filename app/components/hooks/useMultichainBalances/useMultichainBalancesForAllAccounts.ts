@@ -108,11 +108,13 @@ const useMultichainBalancesForAllAccounts =
             totalFiatBalancesCrossEvmChain[account.address]
               ?.tokenFiatBalancesCrossChains ?? [],
           shouldShowAggregatedPercentage: getShouldShowAggregatedPercentage(
-            account,
             chainId as SupportedCaipChainId,
           ),
           isPortfolioVieEnabled: isPortfolioEnabled,
           aggregatedBalance: getAggregatedBalance(account),
+          // if the totalNativeTokenBalance is undefined, it means that the account is loading
+          isLoadingAccount:
+            accountBalanceData.totalNativeTokenBalance === undefined,
         };
       }
 

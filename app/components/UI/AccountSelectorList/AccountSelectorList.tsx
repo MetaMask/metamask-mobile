@@ -11,6 +11,7 @@ import { FlatList } from 'react-native-gesture-handler';
 import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { isAddress as isSolanaAddress } from '@solana/addresses';
 
 // External dependencies.
 import Cell, {
@@ -22,7 +23,12 @@ import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import { formatAddress, getLabelTextByAddress } from '../../../util/address';
+import {
+  areAddressesEqual,
+  formatAddress,
+  getLabelTextByAddress,
+  toFormattedAddress,
+} from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
@@ -39,6 +45,8 @@ import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wa
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './AccountSelectorList.constants';
+import { toHex } from '@metamask/controller-utils';
+import { Skeleton } from '../../../component-library/components/Skeleton';
 
 const AccountSelectorList = ({
   onSelectAccount,
@@ -76,43 +84,55 @@ const AccountSelectorList = ({
     if (!selectedAddresses?.length) return null;
     const lookupSet = new Set<string>();
     selectedAddresses.forEach((addr) => {
-      if (addr) lookupSet.add(addr.toLowerCase());
+      if (addr) lookupSet.add(toFormattedAddress(addr));
     });
     return lookupSet;
   }, [selectedAddresses]);
 
   const renderAccountBalances = useCallback(
-    ({ fiatBalance, tokens }: Assets, address: string) => {
+    (
+      { fiatBalance, tokens }: Assets,
+      address: string,
+      isLoadingAccount: boolean,
+    ) => {
       const fiatBalanceStrSplit = fiatBalance.split('\n');
       const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
       const tokenTicker = fiatBalanceStrSplit[1] || '';
+
       return (
         <View
           style={styles.balancesContainer}
           testID={`${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${address}`}
         >
-          <SensitiveText
-            length={SensitiveTextLength.Long}
-            style={styles.balanceLabel}
-            isHidden={privacyMode}
-          >
-            {fiatBalanceAmount}
-          </SensitiveText>
-          <SensitiveText
-            length={SensitiveTextLength.Short}
-            style={styles.balanceLabel}
-            isHidden={privacyMode}
-            color={privacyMode ? TextColor.Alternative : TextColor.Default}
-          >
-            {tokenTicker}
-          </SensitiveText>
-          {tokens && (
-            <AvatarGroup
-              avatarPropsList={tokens.map((tokenObj) => ({
-                ...tokenObj,
-                variant: AvatarVariant.Token,
-              }))}
-            />
+          {isLoadingAccount ? (
+            <Skeleton width={60} height={24} />
+          ) : (
+            <>
+              <SensitiveText
+                length={SensitiveTextLength.Long}
+                style={styles.balanceLabel}
+                isHidden={privacyMode}
+              >
+                {fiatBalanceAmount}
+              </SensitiveText>
+
+              <SensitiveText
+                length={SensitiveTextLength.Short}
+                style={styles.balanceLabel}
+                isHidden={privacyMode}
+                color={privacyMode ? TextColor.Alternative : TextColor.Default}
+              >
+                {tokenTicker}
+              </SensitiveText>
+              {tokens && (
+                <AvatarGroup
+                  avatarPropsList={tokens.map((tokenObj) => ({
+                    ...tokenObj,
+                    variant: AvatarVariant.Token,
+                  }))}
+                />
+              )}
+            </>
           )}
         </View>
       );
@@ -167,10 +187,10 @@ const AccountSelectorList = ({
                   removedAddress: address,
                   nextActiveAddress,
                 });
-                await Engine.context.KeyringController.removeAccount(address);
                 // Revocation of accounts from PermissionController is needed whenever accounts are removed.
                 // If there is an instance where this is not the case, this logic will need to be updated.
-                removeAccountsFromPermissions([address]);
+                removeAccountsFromPermissions([toHex(address)]);
+                await Engine.context.KeyringController.removeAccount(address);
               });
             },
           },
@@ -178,8 +198,6 @@ const AccountSelectorList = ({
         { cancelable: false },
       );
     },
-    // TODO: Please update this.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       accounts,
       onRemoveImportedAccount,
@@ -201,14 +219,20 @@ const AccountSelectorList = ({
         params: { selectedAccount: account },
       });
     },
-    // TODO: Please update this.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [navigate],
   );
 
   const renderAccountItem: ListRenderItem<Account> = useCallback(
     ({
-      item: { name, address, assets, type, isSelected, balanceError },
+      item: {
+        name,
+        address,
+        assets,
+        type,
+        isSelected,
+        balanceError,
+        isLoadingAccount,
+      },
       index,
     }) => {
       const shortAddress = formatAddress(address, 'short');
@@ -218,6 +242,7 @@ const AccountSelectorList = ({
         isDefaultAccountName(name) && ensName ? ensName : name;
       const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
       let cellVariant = CellVariant.SelectWithMenu;
+
       if (isMultiSelect) {
         cellVariant = CellVariant.MultiSelect;
       }
@@ -226,7 +251,9 @@ const AccountSelectorList = ({
       }
       let isSelectedAccount = isSelected;
       if (selectedAddressesLookup) {
-        isSelectedAccount = selectedAddressesLookup.has(address.toLowerCase());
+        isSelectedAccount = selectedAddressesLookup.has(
+          toFormattedAddress(address),
+        );
       }
 
       const cellStyle: ViewStyle = {
@@ -240,7 +267,8 @@ const AccountSelectorList = ({
         onLongPress({
           address,
           isAccountRemoveable:
-            type === KeyringTypes.simple || type === KeyringTypes.snap,
+            type === KeyringTypes.simple ||
+            (type === KeyringTypes.snap && !isSolanaAddress(address)),
           isSelected: isSelectedAccount,
           index,
         });
@@ -283,7 +311,8 @@ const AccountSelectorList = ({
           buttonProps={buttonProps}
         >
           {renderRightAccessory?.(address, accountName) ||
-            (assets && renderAccountBalances(assets, address))}
+            (assets &&
+              renderAccountBalances(assets, address, isLoadingAccount))}
         </Cell>
       );
     },
@@ -310,9 +339,9 @@ const AccountSelectorList = ({
       let selectedAccount: Account | undefined;
 
       if (selectedAddresses?.length) {
-        const selectedAddressLower = selectedAddresses[0].toLowerCase();
-        selectedAccount = accounts.find(
-          (acc) => acc.address.toLowerCase() === selectedAddressLower,
+        const selectedAddress = selectedAddresses[0];
+        selectedAccount = accounts.find((acc) =>
+          areAddressesEqual(acc.address, selectedAddress),
         );
       }
       // Fall back to the account with isSelected flag if no override or match found

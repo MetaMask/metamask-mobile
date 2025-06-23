@@ -14,6 +14,7 @@ import { useStyles } from '../../../../../../../component-library/hooks';
 import images from '../../../../../../../images/image-icons';
 import TokenIcon from '../../../../../../UI/Swaps/components/TokenIcon';
 import { useTokenValues } from '../../../../hooks/useTokenValues';
+import { useFlatConfirmation } from '../../../../hooks/ui/useFlatConfirmation';
 import { TooltipModal } from '../../../UI/Tooltip/Tooltip';
 import styleSheet from './token-hero.styles';
 
@@ -75,7 +76,10 @@ const AssetFiatConversion = ({
 );
 
 const TokenHero = ({ amountWei }: { amountWei?: string }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { isFlatConfirmation } = useFlatConfirmation();
+  const { styles } = useStyles(styleSheet, {
+    isFlatConfirmation,
+  });
   const { tokenAmountValue, tokenAmountDisplayValue, fiatDisplayValue } =
     useTokenValues({ amountWei });
   const [isModalVisible, setIsModalVisible] = useState(false);

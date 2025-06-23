@@ -139,7 +139,7 @@ const InfoAlert: React.FC<Props> = ({
           style={styles.cancel}
           hitSlop={{ top: 10, left: 20, right: 10, bottom: 10 }}
         >
-          <IonicIcon name="ios-close" size={30} color={colors.icon.default} />
+          <IonicIcon name="close" size={30} color={colors.icon.default} />
         </TouchableOpacity>
         <View style={styles.title}>
           {logos?.[themeAppearance] ? (

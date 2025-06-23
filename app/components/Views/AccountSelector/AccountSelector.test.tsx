@@ -17,14 +17,21 @@ const mockAccounts = [
   {
     address: '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
     balance: '0x0',
-    name: 'Account 1',
+    name: 'EVM Account 1',
+  },
+  {
+    address: '9JFiCmqKEmKjmBXN6p9xAZT72kr5f5WvxN6pUZRH6YNU',
+    balance: '0x0',
+    name: 'Solana Account 1',
   },
   {
     address: '0x2B5634C42055806a59e9107ED44D43c426E58258',
     balance: '0x0',
-    name: 'Account 2',
+    name: 'EVM Account 2',
   },
 ];
+
+const mockEvmAccounts = [mockAccounts[0], mockAccounts[2]];
 
 const mockEnsByAccountAddress = {
   '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756': 'test.eth',
@@ -81,9 +88,10 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: any) => selector(mockInitialState),
 }));
 
-jest.mock('../../../components/hooks/useAccounts', () => ({
-  useAccounts: jest.fn().mockReturnValue({
+jest.mock('../../hooks/useAccounts', () => ({
+  useAccounts: () => ({
     accounts: mockAccounts,
+    evmAccounts: mockEvmAccounts,
     ensByAccountAddress: mockEnsByAccountAddress,
     isLoading: false,
   }),
@@ -91,6 +99,20 @@ jest.mock('../../../components/hooks/useAccounts', () => ({
 
 jest.mock('../../../core/Engine', () => ({
   setSelectedAddress: jest.fn(),
+  context: {
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          accounts: {},
+        },
+      },
+    },
+    KeyringController: {
+      state: {
+        keyrings: [{}],
+      },
+    },
+  },
 }));
 
 const mockTrackEvent = jest.fn();
@@ -105,6 +127,7 @@ const mockRoute: AccountSelectorProps['route'] = {
     onSelectAccount: jest.fn((address: string) => address),
     checkBalanceError: (balance: string) => balance,
     disablePrivacyMode: false,
+    isEvmOnly: true,
   } as AccountSelectorParams,
 };
 
@@ -130,8 +153,8 @@ describe('AccountSelector', () => {
     expect(wrapper.toJSON()).toMatchSnapshot();
   });
 
-  it('should display accounts list', () => {
-    renderScreen(
+  it('includes all accounts', () => {
+    const { queryByText } = renderScreen(
       AccountSelectorWrapper,
       {
         name: Routes.SHEET.ACCOUNT_SELECTOR,
@@ -145,7 +168,33 @@ describe('AccountSelector', () => {
     const accountsList = screen.getByTestId(
       AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
     );
+
     expect(accountsList).toBeDefined();
+    expect(queryByText('EVM Account 1')).toBeDefined();
+    expect(queryByText('Solana Account 1')).toBeDefined();
+    expect(queryByText('EVM Account 2')).toBeDefined();
+  });
+
+  it('includes only EVM accounts if isEvmOnly', () => {
+    const { queryByText } = renderScreen(
+      AccountSelectorWrapper,
+      {
+        name: Routes.SHEET.ACCOUNT_SELECTOR,
+      },
+      {
+        state: mockInitialState,
+      },
+      { ...mockRoute.params, isEvmOnly: true },
+    );
+
+    const accountsList = screen.getByTestId(
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
+    );
+
+    expect(accountsList).toBeDefined();
+    expect(queryByText('EVM Account 1')).toBeDefined();
+    expect(queryByText('Solana Account 1')).toBeNull();
+    expect(queryByText('EVM Account 2')).toBeDefined();
   });
 
   it('should display add account button', () => {

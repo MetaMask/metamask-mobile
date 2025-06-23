@@ -12,6 +12,7 @@ import {
   selectBridgeQuotes as selectBridgeQuotesBase,
   SortOrder,
   selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
+  DEFAULT_FEATURE_FLAG_CONFIG,
 } from '@metamask/bridge-controller';
 import { BridgeToken } from '../../../../components/UI/Bridge/types';
 import { PopularList } from '../../../../util/networks/customNetworks';
@@ -20,6 +21,8 @@ import { MetaMetrics } from '../../../Analytics';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
+import { selectHasCreatedSolanaMainnetAccount } from '../../../../selectors/accountsController';
+import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -171,12 +174,30 @@ export const selectAllBridgeableNetworks = createSelector(
 
 export const selectBridgeFeatureFlags = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags) =>
-    selectBridgeFeatureFlagsBase({
+  (remoteFeatureFlags) => {
+    const bridgeConfig = remoteFeatureFlags.bridgeConfigV2;
+
+    const featureFlags = selectBridgeFeatureFlagsBase({
       remoteFeatureFlags: {
-        bridgeConfig: remoteFeatureFlags.bridgeConfig,
+        bridgeConfig,
       },
-    }),
+    });
+
+    if (
+      hasMinimumRequiredVersion(
+        featureFlags.minimumVersion,
+        process.env.MM_BRIDGE_ENABLED === 'true',
+      )
+    ) {
+      return featureFlags;
+    }
+
+    return selectBridgeFeatureFlagsBase({
+      remoteFeatureFlags: {
+        bridgeConfig: DEFAULT_FEATURE_FLAG_CONFIG,
+      },
+    });
+  },
 );
 
 export const selectIsBridgeEnabledSource = createSelector(
@@ -227,7 +248,8 @@ export const selectEnabledSourceChains = createSelector(
 export const selectEnabledDestChains = createSelector(
   selectAllBridgeableNetworks,
   selectBridgeFeatureFlags,
-  (networks, bridgeFeatureFlags) => {
+  selectHasCreatedSolanaMainnetAccount,
+  (networks, bridgeFeatureFlags, hasSolanaAccount) => {
     // We always want to show the popular list in the destination chain selector
     const popularListFormatted = PopularList.map(
       ({ chainId, nickname, rpcUrl, ticker, rpcPrefs }) => ({
@@ -240,8 +262,14 @@ export const selectEnabledDestChains = createSelector(
     );
 
     return uniqBy([...networks, ...popularListFormatted], 'chainId').filter(
-      ({ chainId }) =>
-        bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]?.isActiveDest,
+      ({ chainId }) => {
+        const caipChainId = formatChainIdToCaip(chainId);
+        // Only include Solana chains as active destinations if user has a Solana account
+        if (isSolanaChainId(chainId) && !hasSolanaAccount) {
+          return false;
+        }
+        return bridgeFeatureFlags.chains[caipChainId]?.isActiveDest;
+      },
     );
   },
 );
@@ -310,6 +338,13 @@ export const selectBridgeQuotes = createSelector(
       sortOrder: SortOrder.COST_ASC, // TODO for v1 we don't allow user to select alternative quotes, hardcode for now
       selectedQuote: null, // TODO for v1 we don't allow user to select alternative quotes, pass in null for now
     }),
+);
+
+export const selectIsSolanaSourced = createSelector(
+  selectSourceToken,
+  (sourceToken) =>
+    sourceToken?.chainId &&
+    isSolanaChainId(sourceToken.chainId),
 );
 
 export const selectIsEvmToSolana = createSelector(
