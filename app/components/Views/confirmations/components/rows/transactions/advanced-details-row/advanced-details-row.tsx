@@ -6,10 +6,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../../locales/i18n';
 import Text from '../../../../../../../component-library/components/Texts/Text/Text';
-import {
-  TextColor,
-  TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text/Text.types';
+import { TextVariant } from '../../../../../../../component-library/components/Texts/Text/Text.types';
 import { useEditNonce } from '../../../../../../hooks/useEditNonce';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import Name from '../../../../../../UI/Name';
