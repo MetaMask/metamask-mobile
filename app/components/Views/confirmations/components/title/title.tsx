@@ -104,17 +104,6 @@ const getTitleAndSubTitle = (
             : strings('confirm.sub_title.switch_to_smart_account'),
         };
       }
-      if (
-        transactionType === TransactionType.contractInteraction ||
-        isBatched
-      ) {
-        return {
-          title: strings('confirm.title.contract_interaction'),
-          subTitle: isBatched
-            ? ''
-            : strings('confirm.sub_title.contract_interaction'),
-        };
-      }
       if (REDESIGNED_TRANSFER_TYPES.includes(transactionType)) {
         return {
           title: strings('confirm.title.transfer'),
@@ -125,7 +114,14 @@ const getTitleAndSubTitle = (
           title: strings('confirm.title.approve'),
         };
       }
-      return {};
+
+      // Default to contract interaction
+      return {
+        title: strings('confirm.title.contract_interaction'),
+        subTitle: isBatched
+          ? ''
+          : strings('confirm.sub_title.contract_interaction'),
+      };
     }
     case ApprovalType.TransactionBatch: {
       const isWalletInitiated = approvalRequest?.origin === MMM_ORIGIN;
