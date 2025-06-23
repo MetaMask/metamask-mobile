@@ -4131,6 +4131,7 @@
       "permit_NFTs": "Withdrawal request",
       "signature_siwe": "Sign-in request",
       "contract_interaction": "Transaction request",
+      "contract_deployment": "Deploy a contract",
       "transfer": "Transfer request",
       "switch_account_type": "Account update",
       "approve": "Approve request"
@@ -4142,7 +4143,8 @@
       "signature_siwe": "A site wants you to sign in to prove you own this account.",
       "contract_interaction": "Review request details before you confirm.",
       "switch_to_smart_account": "You're switching to a smart account.",
-      "switch_to_standard_account": "You're switching back to a standard account (EOA)."
+      "switch_to_standard_account": "You're switching back to a standard account (EOA).",
+      "contract_deployment": "This site wants you to deploy a contract"
     },
     "request_from": "Request from",
     "staking_from": "Staking from",
