@@ -15,7 +15,7 @@ const mockedEnsureValidState = jest.mocked(ensureValidState);
 
 const migrationVersion = 86;
 
-describe(`Migration ${migrationVersion}: Add sessionProperties property to CAIP-25 permission caveats`, () => {
+describe(`Migration ${migrationVersion}: Remove Automatic Security Checks state`, () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
@@ -31,317 +31,145 @@ describe(`Migration ${migrationVersion}: Add sessionProperties property to CAIP-
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('captures exception if PermissionController is missing', () => {
+  it('captures exception if security state is invalid', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          // security is missing
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    expect(migratedState).toEqual(state);
+    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
+      `Migration ${migrationVersion}: Invalid security state`,
+    );
+  });
+
+  it('removes automatic security checks properties while preserving other fields', () => {
+    interface TestState {
+      engine: {
+        backgroundState: {
+          OtherController: {
+            shouldStayUntouched: boolean;
+          };
+        };
+      };
+      security: {
+        automaticSecurityChecksEnabled: boolean;
+        hasUserSelectedAutomaticSecurityCheckOption: boolean;
+        isAutomaticSecurityChecksModalOpen: boolean;
+        otherSecurityProperty: string;
+      };
+    }
+
+    const state: TestState = {
+      engine: {
+        backgroundState: {
+          OtherController: {
+            shouldStayUntouched: true,
+          },
+        },
+      },
+      security: {
+        automaticSecurityChecksEnabled: true,
+        hasUserSelectedAutomaticSecurityCheckOption: false,
+        isAutomaticSecurityChecksModalOpen: true,
+        otherSecurityProperty: 'should remain',
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state) as typeof state;
+
+    // Automatic security check properties should be removed
+    expect(migratedState.security).not.toHaveProperty(
+      'automaticSecurityChecksEnabled',
+    );
+    expect(migratedState.security).not.toHaveProperty(
+      'hasUserSelectedAutomaticSecurityCheckOption',
+    );
+    expect(migratedState.security).not.toHaveProperty(
+      'isAutomaticSecurityChecksModalOpen',
+    );
+
+    // Other security properties should remain unchanged
+    expect(migratedState.security.otherSecurityProperty).toBe('should remain');
+
+    // Other controllers should remain untouched
+    expect(migratedState.engine.backgroundState.OtherController).toEqual({
+      shouldStayUntouched: true,
+    });
+
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('handles state where some automatic security check properties are missing', () => {
     const state = {
       engine: {
         backgroundState: {},
       },
+      security: {
+        automaticSecurityChecksEnabled: true,
+        // hasUserSelectedAutomaticSecurityCheckOption is missing
+        // isAutomaticSecurityChecksModalOpen is missing
+        otherSecurityProperty: 'should remain',
+      },
     };
 
     mockedEnsureValidState.mockReturnValue(true);
 
-    const migratedState = migrate(state);
+    const migratedState = migrate(state) as typeof state;
 
-    expect(migratedState).toEqual(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      `Migration ${migrationVersion}: typeof state.PermissionController is undefined`,
+    // Should remove the existing property
+    expect(migratedState.security).not.toHaveProperty(
+      'automaticSecurityChecksEnabled',
     );
+
+    // Other properties should remain
+    expect(migratedState.security.otherSecurityProperty).toBe('should remain');
+
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('captures exception if PermissionController is not object', () => {
+  it('handles state where no automatic security check properties exist', () => {
     const state = {
       engine: {
         backgroundState: {
-          PermissionController: 'foobar'
+          OtherController: {
+            shouldStayUntouched: true,
+          },
         },
+      },
+      security: {
+        otherSecurityProperty: 'should remain',
       },
     };
 
     mockedEnsureValidState.mockReturnValue(true);
 
-    const migratedState = migrate(state);
+    const migratedState = migrate(state) as typeof state;
 
-    expect(migratedState).toEqual(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      `Migration ${migrationVersion}: typeof state.PermissionController is string`,
+    // Should not add any properties
+    expect(migratedState.security).not.toHaveProperty(
+      'automaticSecurityChecksEnabled',
     );
-  });
-
-  it('captures exception if subjects is not object', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: 'foobar'
-          }
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      `Migration ${migrationVersion}: typeof state.PermissionController.subjects is string`,
+    expect(migratedState.security).not.toHaveProperty(
+      'hasUserSelectedAutomaticSecurityCheckOption',
     );
-  });
+    expect(migratedState.security).not.toHaveProperty(
+      'isAutomaticSecurityChecksModalOpen',
+    );
 
-  it('returns state unchanged if the subject is not an object', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {
-            'test.com': 'foobar'
-            }
-          }
-        },
-      },
-    };
+    // Other properties should remain
+    expect(migratedState.security.otherSecurityProperty).toBe('should remain');
 
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual(state);
-  });
-
-  it('returns state unchanged if the subject is missing permissions', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {
-            'test.com': {}
-            }
-          }
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual(state);
-  });
-
-  it('returns state unchanged if the subject permissions is not an object', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {
-            'test.com': {
-              permissions: 'foobar'
-            }
-          }
-        }
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual(state);
-  });
-
-  it('returns state unchanged if there is no `endowment:caip25` permission', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {
-            'test.com': {
-              permissions: {
-              }
-            }
-          }
-        }
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual(state);
-  });
-
-  it('returns state unchanged if the `endowment:caip25` permission is not an object', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {
-            'test.com': {
-              permissions: {
-                'endowment:caip25': 'foobar'
-              }
-            }
-          }
-          }
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual(state);
-  });
-
-  it('returns state unchanged if the `endowment:caip25` permission caveats is not an array', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {
-            'test.com': {
-              permissions: {
-                'endowment:caip25': {
-                  caveats: 'foobar'
-                }
-              }
-            }
-          }
-          }
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual(state);
-  });
-
-  it('returns the state with empty object sessionProperties added to the caip-25 permission if missing', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {
-            'test.com': {
-              permissions: {
-                'endowment:caip25': {
-                  caveats: [{
-                    type: 'authorizedScopes',
-                    value: {
-                      requiredScopes: {},
-                      optionalScopes: {},
-                      isMultichainOrigin: true,
-                    }
-                  }]
-                }
-              }
-            }
-            }
-          }
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual({
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {
-            'test.com': {
-              permissions: {
-                'endowment:caip25': {
-                  caveats: [{
-                    type: 'authorizedScopes',
-                    value: {
-                      requiredScopes: {},
-                      optionalScopes: {},
-                      isMultichainOrigin: true,
-                      sessionProperties: {}
-                    }
-                  }]
-                }
-              }
-            }
-            }
-          }
-        },
-      },
-    });
-  });
-
-  it('returns the state with sessionProperties unchanged on the caip-25 permission if exists', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {
-            'test.com': {
-              permissions: {
-                'endowment:caip25': {
-                  caveats: [{
-                    type: 'authorizedScopes',
-                    value: {
-                      requiredScopes: {},
-                      optionalScopes: {},
-                      isMultichainOrigin: true,
-                      sessionProperties: {
-                        foo: 'bar'
-                      }
-                    }
-                  }]
-                }
-              }
-            }
-            }
-          }
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual({
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {
-            'test.com': {
-              permissions: {
-                'endowment:caip25': {
-                  caveats: [{
-                    type: 'authorizedScopes',
-                    value: {
-                      requiredScopes: {},
-                      optionalScopes: {},
-                      isMultichainOrigin: true,
-                      sessionProperties: {
-                        foo: 'bar'
-                      }
-                    }
-                  }]
-                }
-              }
-            }
-          }
-        }
-        },
-      },
-    });
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 });

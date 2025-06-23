@@ -83,9 +83,9 @@ import migration79 from './079';
 import migration80 from './080';
 import migration81 from './081';
 import migration82 from './082';
-import migration83 from './083';
-import migration84 from './084';
-import migration85 from './085';
+import migration83 from './084';
+import migration84 from './085';
+import migration85 from './086';
 import migration86 from './086';
 
 // Add migrations above this line
