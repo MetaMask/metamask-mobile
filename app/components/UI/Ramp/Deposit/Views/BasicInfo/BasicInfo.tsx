@@ -202,12 +202,14 @@ const BasicInfo = (): JSX.Element => {
 
             <DepositDateField
               label={strings('deposit.basic_info.date_of_birth')}
-              placeholder="MM/DD/YYYY"
               value={formData.dob}
               onChangeText={handleFormDataChange('dob')}
               error={errors.dob}
               onSubmitEditing={() => handleSubmitEditing(ssnInputRef)}
               ref={dateInputRef}
+              textFieldProps={{
+                testID: 'date-of-birth-input',
+              }}
             />
 
             <DepositTextField

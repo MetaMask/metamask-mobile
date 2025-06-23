@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, forwardRef } from 'react';
+import React, { useState, useRef, forwardRef, useCallback } from 'react';
 import {
   TouchableWithoutFeedback,
   Platform,
@@ -7,42 +7,25 @@ import {
   View,
   Button,
   TextInput,
+  TextInputProps,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import DepositTextField from '../DepositTextField';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { Theme } from '../../../../../../util/theme/models';
+import I18n from '../../../../../../../locales/i18n';
 
 const MAXIMUM_DATE = new Date(2025, 11, 31);
 const MINIMUM_DATE = new Date(1900, 0, 1);
 const DEFAULT_DATE = new Date(2000, 0, 1);
 
-export const getDateDisplayValue = (value: string): Date => {
-  if (value) {
-    const parts = value.split('/');
-    if (parts.length === 3) {
-      const [month, day, year] = parts.map(Number);
-      const parsedDate = new Date(year, month - 1, day);
-      if (
-        !isNaN(parsedDate.getTime()) &&
-        parsedDate.getMonth() === month - 1 &&
-        parsedDate.getDate() === day
-      ) {
-        return parsedDate;
-      }
-    }
-  }
-
-  return DEFAULT_DATE;
-};
-
-export const formatDate = (date: Date): string => {
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const year = date.getFullYear();
-  return `${month}/${day}/${year}`;
-};
+const formatDate = (date: Date): string =>
+  new Intl.DateTimeFormat(I18n.locale, {
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric',
+  }).format(date);
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -81,61 +64,47 @@ interface DepositDateFieldProps {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
-  placeholder?: string;
   error?: string;
   containerStyle?: object;
   onSubmitEditing?: () => void;
+  textFieldProps?: TextInputProps;
 }
 
 const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
   (
     {
       label,
-      placeholder = 'MM/DD/YYYY',
       value,
       onChangeText,
       error,
       containerStyle,
       onSubmitEditing,
+      textFieldProps,
     },
     ref,
   ) => {
     const { styles, theme } = useStyles(styleSheet, {});
     const [showDatePicker, setShowDatePicker] = useState(false);
-    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+    // staging state for iOS date selection
+    const [pendingDateSelection, setPendingDateSelection] =
+      useState<Date | null>(null);
     const fieldRef = useRef<TextInput>(null);
-
-    const dateDisplayValue = useMemo(() => getDateDisplayValue(value), [value]);
 
     const handleClosePicker = () => {
       setShowDatePicker(false);
-      setSelectedDate(null);
+      setPendingDateSelection(null);
     };
 
-    // @ts-expect-error - first param is not used
-    const handleDateChangeAndroid = (_, date?: Date) => {
-      setShowDatePicker(false);
-      if (date) {
-        setSelectedDate(date);
-        onChangeText(formatDate(date));
-        onSubmitEditing?.();
-      }
-    };
-
-    // @ts-expect-error - first param is not used
-    const handleDateChangeIos = (_, date?: Date) => {
-      if (date) {
-        setSelectedDate(date);
-      }
-    };
-
-    const handleConfirmIos = () => {
-      setShowDatePicker(false);
-      if (selectedDate) {
-        onChangeText(formatDate(selectedDate));
-        onSubmitEditing?.();
-      }
-    };
+    const processSelectedDate = useCallback(
+      (date?: Date | null) => {
+        if (date) {
+          setShowDatePicker(false);
+          onChangeText(formatDate(date));
+          onSubmitEditing?.();
+        }
+      },
+      [onChangeText, onSubmitEditing],
+    );
 
     const preventModalDismissal = () => {
       // Prevents touch events from bubbling up to the outer TouchableWithoutFeedback
@@ -154,23 +123,24 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
                 />
               }
               label={label}
-              placeholder={placeholder}
+              placeholder={formatDate(DEFAULT_DATE)}
               value={value}
               error={error}
               containerStyle={containerStyle}
               ref={ref || fieldRef}
               pointerEvents="none"
               readOnly
+              {...textFieldProps}
             />
           </View>
         </TouchableWithoutFeedback>
 
         {Platform.OS === 'android' && showDatePicker && (
           <DateTimePicker
-            value={dateDisplayValue}
+            value={new Date(value) || DEFAULT_DATE}
             mode="date"
             display="default"
-            onChange={handleDateChangeAndroid}
+            onChange={(_, date) => processSelectedDate(date)}
             maximumDate={MAXIMUM_DATE}
             minimumDate={MINIMUM_DATE}
           />
@@ -195,15 +165,19 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
                       />
                       <Button
                         title="Done"
-                        onPress={handleConfirmIos}
+                        onPress={() => {
+                          processSelectedDate(pendingDateSelection);
+                        }}
                         color={theme.colors.primary.default}
                       />
                     </View>
                     <DateTimePicker
-                      value={dateDisplayValue}
+                      value={new Date(value) || DEFAULT_DATE}
                       mode="date"
                       display="spinner"
-                      onChange={handleDateChangeIos}
+                      onChange={(_, date) =>
+                        setPendingDateSelection(date ?? null)
+                      }
                       maximumDate={MAXIMUM_DATE}
                       minimumDate={MINIMUM_DATE}
                       style={styles.dateTimePicker}

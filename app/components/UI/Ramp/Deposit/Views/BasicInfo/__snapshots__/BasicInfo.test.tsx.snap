@@ -1044,7 +1044,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                           keyboardAppearance="light"
                                           onBlur={[Function]}
                                           onFocus={[Function]}
-                                          placeholder="MM/DD/YYYY"
+                                          placeholder="01/01/2000"
                                           placeholderTextColor="#9ca1af"
                                           pointerEvents="none"
                                           readOnly={true}
@@ -1063,6 +1063,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                               "paddingVertical": 0,
                                             }
                                           }
+                                          testID="date-of-birth-input"
                                           value="01/01/1990"
                                         />
                                       </View>
@@ -2299,7 +2300,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                           keyboardAppearance="light"
                                           onBlur={[Function]}
                                           onFocus={[Function]}
-                                          placeholder="MM/DD/YYYY"
+                                          placeholder="01/01/2000"
                                           placeholderTextColor="#9ca1af"
                                           pointerEvents="none"
                                           readOnly={true}
@@ -2318,6 +2319,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                               "paddingVertical": 0,
                                             }
                                           }
+                                          testID="date-of-birth-input"
                                           value=""
                                         />
                                       </View>
@@ -3602,7 +3604,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           keyboardAppearance="light"
                                           onBlur={[Function]}
                                           onFocus={[Function]}
-                                          placeholder="MM/DD/YYYY"
+                                          placeholder="01/01/2000"
                                           placeholderTextColor="#9ca1af"
                                           pointerEvents="none"
                                           readOnly={true}
@@ -3621,6 +3623,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "paddingVertical": 0,
                                             }
                                           }
+                                          testID="date-of-birth-input"
                                           value=""
                                         />
                                       </View>

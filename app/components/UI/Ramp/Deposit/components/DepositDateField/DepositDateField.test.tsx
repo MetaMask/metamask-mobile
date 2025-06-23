@@ -3,11 +3,17 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { Platform } from 'react-native';
 import DepositDateField from './DepositDateField';
 
+jest.mock('../../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: {
+    locale: 'en-US',
+  },
+}));
+
 const defaultProps = {
   label: 'Date of Birth',
   value: '',
   onChangeText: jest.fn(),
-  placeholder: 'MM/DD/YYYY',
 };
 
 describe('DepositDateField', () => {

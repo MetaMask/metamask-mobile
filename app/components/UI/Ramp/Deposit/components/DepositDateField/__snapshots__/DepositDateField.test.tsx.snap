@@ -117,7 +117,7 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
             keyboardAppearance="light"
             onBlur={[Function]}
             onFocus={[Function]}
-            placeholder="MM/DD/YYYY"
+            placeholder="01/01/2000"
             placeholderTextColor="#9ca1af"
             pointerEvents="none"
             readOnly={true}
@@ -143,7 +143,7 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
     </View>
   </View>,
   <RNDateTimePicker
-    date={946702800000}
+    date={NaN}
     displayIOS="default"
     enabled={true}
     maximumDate={1767157200000}
@@ -274,7 +274,7 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
             keyboardAppearance="light"
             onBlur={[Function]}
             onFocus={[Function]}
-            placeholder="MM/DD/YYYY"
+            placeholder="01/01/2000"
             placeholderTextColor="#9ca1af"
             pointerEvents="none"
             readOnly={true}
@@ -450,7 +450,7 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
           </TouchableOpacity>
         </View>
         <RNDateTimePicker
-          date={946702800000}
+          date={NaN}
           displayIOS="spinner"
           enabled={true}
           maximumDate={1767157200000}
@@ -588,7 +588,7 @@ exports[`DepositDateField render matches snapshot 1`] = `
           keyboardAppearance="light"
           onBlur={[Function]}
           onFocus={[Function]}
-          placeholder="MM/DD/YYYY"
+          placeholder="01/01/2000"
           placeholderTextColor="#9ca1af"
           pointerEvents="none"
           readOnly={true}
@@ -731,7 +731,7 @@ exports[`DepositDateField render matches snapshot with a value 1`] = `
           keyboardAppearance="light"
           onBlur={[Function]}
           onFocus={[Function]}
-          placeholder="MM/DD/YYYY"
+          placeholder="01/01/2000"
           placeholderTextColor="#9ca1af"
           pointerEvents="none"
           readOnly={true}
@@ -874,7 +874,7 @@ exports[`DepositDateField render matches snapshot with an error 1`] = `
           keyboardAppearance="light"
           onBlur={[Function]}
           onFocus={[Function]}
-          placeholder="MM/DD/YYYY"
+          placeholder="01/01/2000"
           placeholderTextColor="#9ca1af"
           pointerEvents="none"
           readOnly={true}
