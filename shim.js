@@ -10,7 +10,6 @@ import {
 import { LaunchArguments } from 'react-native-launch-arguments';
 import { defaultMockPort } from './e2e/api-mocking/mock-config/mockUrlCollection.json';
 
-
 // In a testing environment, assign the fixtureServerPort to use a deterministic port
 if (isTest) {
   const raw = LaunchArguments.value();
@@ -83,10 +82,3 @@ if (enableApiCallLogs || isTest) {
         : originalFetch(url, options);
   })();
 }
-
-const Crypto = require('crypto');
-
-global.crypto = {
-  ...Crypto,
-  ...global.crypto,
-};
