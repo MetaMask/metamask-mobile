@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Linking, TouchableOpacity } from 'react-native';
 import { UR } from '@ngraveio/bc-ur';
 import { stringify as uuidStringify } from 'uuid';
@@ -16,6 +16,7 @@ import {
 } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
+import { ConfirmationInfoComponentIDs } from '../../constants/info-ids';
 import styleSheet from './qr-info.styles';
 
 const QRInfo = () => {
@@ -84,7 +85,7 @@ const QRInfo = () => {
   );
 
   return (
-    <Fragment>
+    <View testID={ConfirmationInfoComponentIDs.QR_INFO}>
       {QRState?.sign?.request && (
         <View style={styles.container}>
           <TouchableOpacity>
@@ -128,7 +129,7 @@ const QRInfo = () => {
         onScanError={onScanError}
         hideModal={() => setScannerVisible(false)}
       />
-    </Fragment>
+    </View>
   );
 };
 

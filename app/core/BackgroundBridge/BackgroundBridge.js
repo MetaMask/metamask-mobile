@@ -240,6 +240,12 @@ export class BackgroundBridge extends EventEmitter {
     }
 
     this.on('update', () => this.onStateUpdate());
+    // Ensures the inpage provider receives a message indiciating background liveliness
+    // so that messages sent before BackgroundBridge's EIP-1193 JSON-RPC pipeline was
+    // fully initialized can be retried
+    if (!this.isRemoteConn && !this.isWalletConnect) {
+      this.notifyChainChanged();
+    }
 
     if (this.isRemoteConn) {
       const memState = this.getState();
@@ -756,7 +762,8 @@ export class BackgroundBridge extends EventEmitter {
         handleNonEvmRequestForOrigin: (params) =>
           Engine.controllerMessenger.call('MultichainRouter:handleRequest', {
             ...params,
-            origin,
+            // The MultichainRouter expects a proper origin value.
+            origin: new URL(this.url).origin,
           }),
         getNonEvmAccountAddresses: Engine.controllerMessenger.call.bind(
           Engine.controllerMessenger,

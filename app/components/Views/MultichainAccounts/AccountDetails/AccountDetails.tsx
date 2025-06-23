@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import PrivateKeyAccountDetails from './AccountTypes/PrivateKeyAccountDetails';
 import HardwareAccountDetails from './AccountTypes/HardwareAccountDetails';
 import { isHardwareAccount } from '../../../../util/address';
+import SnapAccountDetails from './AccountTypes/SnapAccountDetails';
 
 interface AccountDetailsProps {
   route: {
@@ -43,6 +44,9 @@ export const AccountDetails = (props: AccountDetailsProps) => {
     }
     if (isHardwareAccount(account.type)) {
       return <HardwareAccountDetails account={account} />;
+    }
+    if (account.metadata.keyring.type === KeyringTypes.snap) {
+      return <SnapAccountDetails account={account} />;
     }
 
     return <BaseAccountDetails account={account} />;

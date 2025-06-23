@@ -2,8 +2,9 @@
 import React from 'react';
 import { FlatListProps } from 'react-native';
 
-// External dependencies.
+// External dependencies
 import { Account, UseAccounts } from '../../hooks/useAccounts';
+import { AccountWallet } from '@metamask/account-tree-controller';
 
 /**
  * EvmAccountSelectorList props.
@@ -64,4 +65,10 @@ export interface EvmAccountSelectorListProps
    * Optional boolean to indicate if privacy mode is enabled.
    */
   privacyMode?: boolean;
+}
+
+export interface AccountSection {
+  title: string;
+  wallet?: AccountWallet;
+  data: Account[];
 }

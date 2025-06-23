@@ -52,6 +52,8 @@ if (isDevelopmentOrInternalBuild) {
   environment = TransakEnvironment.Staging;
 }
 
+export const DepositSDKOrders = new NativeRampsSdk({}, environment);
+
 export const DepositSDKContext = createContext<DepositSDK | undefined>(
   undefined,
 );

@@ -67,6 +67,8 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
   </View>
   <RCTScrollView
     collapsable={false}
+    handlerTag={2}
+    handlerType="NativeViewGestureHandler"
     onGestureHandlerEvent={[Function]}
     onGestureHandlerStateChange={[Function]}
     style={
@@ -281,6 +283,8 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
       </Text>
       <RCTScrollView
         collapsable={false}
+        handlerTag={1}
+        handlerType="NativeViewGestureHandler"
         nestedScrollEnabled={true}
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
@@ -599,6 +603,8 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
   </View>
   <RCTScrollView
     collapsable={false}
+    handlerTag={4}
+    handlerType="NativeViewGestureHandler"
     onGestureHandlerEvent={[Function]}
     onGestureHandlerStateChange={[Function]}
     style={
@@ -708,6 +714,8 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
       </Text>
       <RCTScrollView
         collapsable={false}
+        handlerTag={3}
+        handlerType="NativeViewGestureHandler"
         nestedScrollEnabled={true}
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}

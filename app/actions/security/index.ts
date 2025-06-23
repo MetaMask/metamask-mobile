@@ -16,21 +16,6 @@ export interface AllowLoginWithRememberMeUpdated
   enabled: boolean;
 }
 
-export interface AutomaticSecurityChecks
-  extends ReduxAction<ActionType.SET_AUTOMATIC_SECURITY_CHECKS> {
-  enabled: boolean;
-}
-
-export interface UserSelectedAutomaticSecurityChecksOptions
-  extends ReduxAction<ActionType.USER_SELECTED_AUTOMATIC_SECURITY_CHECKS_OPTION> {
-  selected: boolean;
-}
-
-export interface SetAutomaticSecurityChecksModalOpen
-  extends ReduxAction<ActionType.SET_AUTOMATIC_SECURITY_CHECKS_MODAL_OPEN> {
-  open: boolean;
-}
-
 export interface SetNftAutoDetectionModalOpen
   extends ReduxAction<ActionType.SET_NFT_AUTO_DETECTION_MODAL_OPEN> {
   open: boolean;
@@ -48,9 +33,6 @@ export interface SetDataCollectionForMarketing
 
 export type Action =
   | AllowLoginWithRememberMeUpdated
-  | AutomaticSecurityChecks
-  | UserSelectedAutomaticSecurityChecksOptions
-  | SetAutomaticSecurityChecksModalOpen
   | SetDataCollectionForMarketing
   | SetNftAutoDetectionModalOpen
   | SetMultiRpcMigrationModalOpen;
@@ -60,26 +42,6 @@ export const setAllowLoginWithRememberMe = (
 ): AllowLoginWithRememberMeUpdated => ({
   type: ActionType.SET_ALLOW_LOGIN_WITH_REMEMBER_ME,
   enabled,
-});
-
-export const setAutomaticSecurityChecks = (
-  enabled: boolean,
-): AutomaticSecurityChecks => ({
-  type: ActionType.SET_AUTOMATIC_SECURITY_CHECKS,
-  enabled,
-});
-
-export const userSelectedAutomaticSecurityChecksOptions =
-  (): UserSelectedAutomaticSecurityChecksOptions => ({
-    type: ActionType.USER_SELECTED_AUTOMATIC_SECURITY_CHECKS_OPTION,
-    selected: true,
-  });
-
-export const setAutomaticSecurityChecksModalOpen = (
-  open: boolean,
-): SetAutomaticSecurityChecksModalOpen => ({
-  type: ActionType.SET_AUTOMATIC_SECURITY_CHECKS_MODAL_OPEN,
-  open,
 });
 
 export const setNftAutoDetectionModalOpen = (

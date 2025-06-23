@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { pooledStakingSelectors } from '../../../../selectors/earnController';
+import { DEFAULT_VAULT_APY_AVERAGES } from '../constants';
 
-const useVaultApyAverages = () => {
+const useVaultApyAverages = (chainId: number) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const vaultApyAverages = useSelector(
-    pooledStakingSelectors.selectVaultApyAverages,
+    pooledStakingSelectors.selectVaultApyAveragesForChain(chainId),
   );
 
   const fetchVaultAprs = async () => {
@@ -25,7 +26,7 @@ const useVaultApyAverages = () => {
   };
 
   return {
-    vaultApyAverages,
+    vaultApyAverages: vaultApyAverages || DEFAULT_VAULT_APY_AVERAGES,
     refreshVaultApyAverages: fetchVaultAprs,
     isLoadingVaultApyAverages: isLoading,
     error,

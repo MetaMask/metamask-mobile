@@ -192,9 +192,9 @@ class WalletView {
     await Gestures.swipe(this.nftTabContainer, 'up', 'slow', 0.6);
   }
 
-  async scrollDownOnTokensTab(tokenName) {
-    const tokenElement = await this.tokenInWallet(tokenName)
-    await Gestures.swipe(tokenElement, 'up', 'slow', 0.2);
+  async scrollDownOnTokensTab() {
+    const tokensContainer = await this.getTokensInWallet();
+    await Gestures.swipe(tokensContainer, 'up', 'slow', 0.2);
   }
 
   async scrollUpOnNFTsTab() {

@@ -181,7 +181,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
         </BadgeWrapper>
 
         <View style={styles.percentageChange}>
-          <Text style={styles.balances} variant={TextVariant.BodyLGMedium}>
+          <Text style={styles.balanceInfo} variant={TextVariant.BodyMD}>
             {asset.name || asset.symbol}
           </Text>
 

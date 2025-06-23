@@ -20,11 +20,13 @@ import Row from '../../../Aggregator/components/Row';
 import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
+import { createKycWebviewNavDetails } from '../KycWebview/KycWebview';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 export interface EnterAddressParams {
   formData: BasicInfoFormData;
   quote: BuyQuote;
+  kycUrl?: string;
 }
 
 export const createEnterAddressNavDetails =
@@ -42,8 +44,11 @@ interface AddressFormData {
 const EnterAddress = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { formData: basicInfoFormData, quote } =
-    useParams<EnterAddressParams>();
+  const {
+    formData: basicInfoFormData,
+    quote,
+    kycUrl,
+  } = useParams<EnterAddressParams>();
 
   const initialFormData: AddressFormData = {
     addressLine1: '',
@@ -110,6 +115,9 @@ const EnterAddress = (): JSX.Element => {
     ['Buying/selling crypto for investments'],
   );
 
+  const [{ error: ssnError, isFetching: ssnIsFetching }, submitSsnDetails] =
+    useDepositSdkMethod({ method: 'submitSsnDetails', onMount: false });
+
   useEffect(() => {
     navigation.setOptions(
       getDepositNavbarOptions(
@@ -135,6 +143,15 @@ const EnterAddress = (): JSX.Element => {
         return;
       }
 
+      if (basicInfoFormData.ssn) {
+        await submitSsnDetails(basicInfoFormData.ssn);
+
+        if (ssnError) {
+          console.error('SSN submission failed:', ssnError);
+          return;
+        }
+      }
+
       await submitPurpose();
 
       if (purposeError) {
@@ -142,7 +159,11 @@ const EnterAddress = (): JSX.Element => {
         return;
       }
 
-      navigation.navigate(...createKycProcessingNavDetails({ quote }));
+      if (kycUrl) {
+        navigation.navigate(...createKycWebviewNavDetails({ quote, kycUrl }));
+      } else {
+        navigation.navigate(...createKycProcessingNavDetails({ quote }));
+      }
     } catch (error) {
       console.error('Unexpected error during form submission:', error);
     }
@@ -156,6 +177,9 @@ const EnterAddress = (): JSX.Element => {
     purposeError,
     navigation,
     quote,
+    kycUrl,
+    submitSsnDetails,
+    ssnError,
   ]);
 
   return (
@@ -241,7 +265,7 @@ const EnterAddress = (): JSX.Element => {
                 type="confirm"
                 onPress={handleOnPressContinue}
                 testID="address-continue-button"
-                disabled={kycIsFetching || purposeIsFetching}
+                disabled={kycIsFetching || purposeIsFetching || ssnIsFetching}
               >
                 {strings('deposit.enter_address.continue')}
               </StyledButton>
