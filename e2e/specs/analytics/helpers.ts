@@ -117,7 +117,12 @@ export const onboardingEvents = {
   AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_PROMPT:
     'Automatic Security Checks Disabled From Prompt',
   WALLET_SECURITY_REMINDER_DISMISSED: 'Wallet Security Reminder Dismissed',
+  ONBOARDING_TOUR_STARTED: 'Onboarding Tour Started',
   ONBOARDING_TOUR_SKIPPED: 'Onboarding Tour Skipped',
+  ONBOARDING_TOUR_STEP_COMPLETED: 'Onboarding Tour Step Completed',
+  ONBOARDING_TOUR_STEP_REVISITED: 'Onboarding Tour Step Revisited',
   ONBOARDING_TOUR_COMPLETED: 'Onboarding Tour Completed',
   WALLET_SECURITY_SKIP_CONFIRMED: 'Wallet Security Skip Confirmed',
+  WALLET_SECURITY_MANUAL_BACKUP_INITIATED: 'Manual Backup Initiated',
+  WALLET_SECURITY_PHRASE_REVEALED: 'Phrase Revealed',
 };
