@@ -31,7 +31,7 @@ export default async function migrate(stateAsync: unknown) {
   if (
     !isValidNetworkControllerState(
       networkControllerState,
-      state as RootState,
+      state as unknown as RootState,
       migrationVersion,
     )
   ) {
