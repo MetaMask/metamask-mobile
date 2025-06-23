@@ -34,7 +34,6 @@ import { useSelector } from 'react-redux';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { useWalletInfo } from '../hooks/useWalletInfo';
 import Routes from '../../../../../constants/navigation/Routes';
-import { navigate } from '@react-navigation/compat/lib/typescript/src/NavigationActions';
 
 interface BaseWalletDetailsProps {
   wallet: AccountWallet;
