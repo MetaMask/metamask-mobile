@@ -467,22 +467,26 @@ exports[`AccountSelector should render correctly 1`] = `
                             />
                           </View>
                           <RCTScrollView
+                            collapsable={false}
                             data={
                               [
                                 {
-                                  "data": [
-                                    {
-                                      "address": "0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
-                                      "balance": "0x0",
-                                      "name": "EVM Account 1",
-                                    },
-                                    {
-                                      "address": "0x2B5634C42055806a59e9107ED44D43c426E58258",
-                                      "balance": "0x0",
-                                      "name": "EVM Account 2",
-                                    },
-                                  ],
-                                  "title": "Accounts",
+                                  "data": {
+                                    "address": "0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
+                                    "balance": "0x0",
+                                    "name": "EVM Account 1",
+                                  },
+                                  "sectionIndex": 0,
+                                  "type": "account",
+                                },
+                                {
+                                  "data": {
+                                    "address": "0x2B5634C42055806a59e9107ED44D43c426E58258",
+                                    "balance": "0x0",
+                                    "name": "EVM Account 2",
+                                  },
+                                  "sectionIndex": 0,
+                                  "type": "account",
                                 },
                               ]
                             }
@@ -491,27 +495,23 @@ exports[`AccountSelector should render correctly 1`] = `
                             initialNumToRender={999}
                             keyExtractor={[Function]}
                             onContentSizeChange={[Function]}
+                            onGestureHandlerEvent={[Function]}
+                            onGestureHandlerStateChange={[Function]}
                             onLayout={[Function]}
                             onMomentumScrollBegin={[Function]}
                             onMomentumScrollEnd={[Function]}
                             onScroll={[Function]}
                             onScrollBeginDrag={[Function]}
                             onScrollEndDrag={[Function]}
+                            removeClippedSubviews={false}
                             renderItem={[Function]}
+                            renderScrollComponent={[Function]}
                             scrollEventThrottle={0.0001}
-                            stickyHeaderIndices={
-                              [
-                                0,
-                              ]
-                            }
+                            stickyHeaderIndices={[]}
                             testID="account-list"
+                            viewabilityConfigCallbackPairs={[]}
                           >
                             <View>
-                              <View
-                                onFocusCapture={[Function]}
-                                onLayout={[Function]}
-                                style={null}
-                              />
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
@@ -1139,7 +1139,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                           "width": 24,
                                         }
                                       }
-                                      testID="main-wallet-account-actions-1"
+                                      testID="main-wallet-account-actions-0"
                                     >
                                       <SvgMock
                                         color="#121314"
@@ -1158,11 +1158,6 @@ exports[`AccountSelector should render correctly 1`] = `
                                   </View>
                                 </View>
                               </View>
-                              <View
-                                onFocusCapture={[Function]}
-                                onLayout={[Function]}
-                                style={null}
-                              />
                             </View>
                           </RCTScrollView>
                           <View
