@@ -353,13 +353,11 @@ const EvmAccountSelectorList = ({
       // Find the item index for the selected account in flattened data
       const selectedItemIndex = flattenedData.findIndex(
         (item) =>
-          item.type === 'account' &&
-          toFormattedAddress(item.data.address) ===
-            toFormattedAddress(selectedAccount.address),
+          item.type === 'account' && areAddressesEqual(item.data.address, selectedAccount.address),
       );
 
       if (selectedItemIndex !== -1) {
-        accountListRef?.current?.scrollToIndex({
+        accountListRef.current?.scrollToIndex({
           index: selectedItemIndex,
           animated: true,
           viewPosition: 0.5, // Center the item in the view
@@ -522,6 +520,7 @@ const EvmAccountSelectorList = ({
   const onContentSizeChanged = useCallback(() => {
     // Handle auto scroll to account
     if (!accounts.length || !isAutoScrollEnabled) return;
+
     if (accountsLengthRef.current !== accounts.length) {
       let selectedAccount: Account | undefined;
 
@@ -531,12 +530,13 @@ const EvmAccountSelectorList = ({
           areAddressesEqual(acc.address, selectedAddress),
         );
       }
+
       // Fall back to the account with isSelected flag if no override or match found
       if (!selectedAccount) {
         selectedAccount = accounts.find((acc) => acc.isSelected);
       }
 
-      accountListRef?.current?.scrollToOffset({
+      accountListRef.current?.scrollToOffset({
         offset: selectedAccount?.yOffset || 0,
         animated: false,
       });
