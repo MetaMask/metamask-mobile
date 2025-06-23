@@ -204,29 +204,20 @@ export const BaseWalletDetails = ({
           </Box>
         </View>
         {keyringId && (
-          <View style={styles.srpRevealSection}>
-            <TouchableOpacity
-              testID={WalletDetailsIds.REVEAL_SRP_BUTTON}
-              onPress={handleRevealSRP}
-            >
-              <Box
-                testID={WalletDetailsIds.WALLET_NAME}
-                flexDirection={FlexDirection.Row}
-                alignItems={AlignItems.center}
-                justifyContent={JustifyContent.spaceBetween}
-                gap={8}
-              >
-                <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-                  {strings('accounts.reveal_secret_recovery_phrase')}
-                </Text>
-                <Icon
-                  name={IconName.ArrowRight}
-                  size={IconSize.Md}
-                  color={colors.text.alternative}
-                />
-              </Box>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            testID={WalletDetailsIds.REVEAL_SRP_BUTTON}
+            onPress={handleRevealSRP}
+            style={styles.srpRevealSection}
+          >
+            <Text variant={TextVariant.BodyMDMedium}>
+              {strings('accounts.reveal_secret_recovery_phrase')}
+            </Text>
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Md}
+              color={colors.text.alternative}
+            />
+          </TouchableOpacity>
         )}
         <View
           style={styles.accountsList}
