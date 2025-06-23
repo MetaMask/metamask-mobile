@@ -20,6 +20,7 @@ import {
 import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
 import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
+import { IndexableWebElement } from 'detox/detox';
 
 export const TEST_SNAPS_URL = 'https://metamask.github.io/snaps/test-snaps/2.23.1/';
 
@@ -54,7 +55,7 @@ class TestSnaps {
     const element = await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapResultSelectorWebIDS[selector],
-    );
+    ) as IndexableWebElement;
 
     const actualText = await element.getText();
     await Assertions.checkIfTextMatches(actualText, expectedMessage);
@@ -68,13 +69,13 @@ class TestSnaps {
     const element = Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapViewSelectorWebIDS[buttonLocator],
-    );
+    ) as any;
     await Gestures.scrollToWebViewPort(element);
     await TestHelpers.delay(1000);
     await Gestures.tapWebElement(element);
   }
 
-  async getOptionValueByText(element: any, text: string) {
+  async getOptionValueByText(element: IndexableWebElement, text: string) {
     return await element.runScript((el, searchText) => {
       if (!el?.options) return null;
       const option = Array.from(el.options).find((opt: any) => opt.text.includes(searchText));
@@ -86,7 +87,7 @@ class TestSnaps {
     const element = await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       EntropyDropDownSelectorWebIDS[selector],
-    );
+    ) as IndexableWebElement;
 
     const source = await this.getOptionValueByText(element, entropySource);
 
@@ -124,7 +125,7 @@ class TestSnaps {
     const element = Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapInputSelectorWebIDS[locator],
-    );
+    ) as any;
     await Gestures.typeInWebElement(element, message);
   }
 
