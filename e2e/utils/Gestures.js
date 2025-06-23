@@ -107,6 +107,24 @@ class Gestures {
   }
 
   /**
+   * Type text into a web element within a webview using JavaScript injection.
+   * @param {Promise<Detox.IndexableWebElement>} element - The web element to type into.
+   * @param {string} text - The text to type.
+   */
+  static async typeInWebElement(element, text) {
+    try {
+      await (await element).runScript((el, value) => {
+        el.focus();
+        el.value = value;
+        el._valueTracker && el._valueTracker.setValue('');
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      }, [text]);
+    } catch {
+      await (await element).typeText(text);
+    }
+  }
+
+  /**
    * Double tap an element by text.
    *
    * @param {Promise<Detox.IndexableNativeElement>} element - The element to double tap
