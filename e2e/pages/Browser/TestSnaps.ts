@@ -122,11 +122,11 @@ class TestSnaps {
   }
 
   async fillMessage(locator: keyof typeof TestSnapInputSelectorWebIDS, message: string) {
-    const element = Matchers.getElementByWebID(
+    const webElement = Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapInputSelectorWebIDS[locator],
-    ) as any;
-    await Gestures.typeInWebElement(element, message);
+    ) as Promise<IndexableWebElement>;
+    await Gestures.typeInWebElement(webElement, message);
   }
 
   async swipeUpSmall() {
