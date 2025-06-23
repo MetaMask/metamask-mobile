@@ -53,7 +53,7 @@ describe('Migration 084', () => {
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
     expect(mockedCaptureException.mock.calls[0][0].message).toBe(
-      'Migration 83: `CronjobController` state is not an object.',
+      'Migration 84: `CronjobController` state is not an object.',
     );
   });
 
@@ -78,7 +78,7 @@ describe('Migration 084', () => {
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
     expect(mockedCaptureException.mock.calls[0][0].message).toBe(
-      'Migration 83: `PermissionController` state not found or is not an object.',
+      'Migration 84: `PermissionController` state not found or is not an object.',
     );
   });
 

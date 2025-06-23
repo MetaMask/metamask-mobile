@@ -1,88 +1,87 @@
 import { captureException } from '@sentry/react-native';
-import { cloneDeep } from 'lodash';
-import { ensureValidState } from './util';
+import { hasProperty, isObject } from '@metamask/utils';
 import {
-  hasProperty,
-  isObject,
-} from '@metamask/utils';
+  type NetworkConfiguration,
+  RpcEndpointType,
+} from '@metamask/network-controller';
+import {
+  ChainId,
+  BuiltInNetworkName,
+  NetworkNickname,
+  BUILT_IN_CUSTOM_NETWORKS_RPC,
+  NetworksTicker,
+  BlockExplorerUrl,
+} from '@metamask/controller-utils';
 
-
-// In-lined from @metamask/multichain
-const Caip25CaveatType = 'authorizedScopes';
-const Caip25EndowmentPermissionName = 'endowment:caip25';
+import { ensureValidState } from './util';
 
 /**
- * Migration to add sessionProperties property to CAIP-25 permission caveats
- * @param state - The current MetaMask mobile state.
- * @returns Migrated Redux state.
+ * Migration 83: Add 'Monad Testnet'
+ *
+ * This migration add Monad Testnet to the network controller
+ * as a default Testnet.
  */
-export default function migrate(oldState: unknown) {
-  const version = 83;
+const migration = (state: unknown): unknown => {
+  const migrationVersion = 83;
 
   // Ensure the state is valid for migration
-  if (!ensureValidState(oldState, version)) {
-    return oldState;
+  if (!ensureValidState(state, migrationVersion)) {
+    return state;
   }
 
-  const newState = cloneDeep(oldState);
-  const { backgroundState } = newState.engine;
+  try {
+    if (
+      hasProperty(state, 'engine') &&
+      hasProperty(state.engine, 'backgroundState') &&
+      hasProperty(state.engine.backgroundState, 'NetworkController') &&
+      isObject(state.engine.backgroundState.NetworkController) &&
+      isObject(
+        state.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId,
+      )
+    ) {
+      // It is possible to get the Monad Network configuration by `getDefaultNetworkConfigurationsByChainId()`,
+      // But we choose to re-define it here to prevent the need to change this file,
+      // when `getDefaultNetworkConfigurationsByChainId()` has some breaking changes in the future.
+      const networkClientId = BuiltInNetworkName.MonadTestnet;
+      const chainId = ChainId[networkClientId];
+      const monadTestnetConfiguration: NetworkConfiguration = {
+        blockExplorerUrls: [BlockExplorerUrl[networkClientId]],
+        chainId,
+        defaultRpcEndpointIndex: 0,
+        defaultBlockExplorerUrlIndex: 0,
+        name: NetworkNickname[networkClientId],
+        nativeCurrency: NetworksTicker[networkClientId],
+        rpcEndpoints: [
+          {
+            failoverUrls: [],
+            networkClientId,
+            type: RpcEndpointType.Custom,
+            url: BUILT_IN_CUSTOM_NETWORKS_RPC['monad-testnet'],
+          },
+        ],
+      };
 
-  if (
-    !hasProperty(backgroundState, 'PermissionController') ||
-    !isObject(backgroundState.PermissionController)
-  ) {
+      // Regardless if the network already exists, we will overwrite it with the default configuration.
+      state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[
+        chainId
+      ] = monadTestnetConfiguration;
+    } else {
+      captureException(
+        new Error(
+          `Migration ${migrationVersion}: NetworkController or networkConfigurationsByChainId not found in state`,
+        ),
+      );
+    }
+    return state;
+  } catch (error) {
     captureException(
       new Error(
-        `Migration ${version}: typeof state.PermissionController is ${typeof backgroundState.PermissionController}`,
+        `Migration ${migrationVersion}: Adding Monad Testnet failed with error: ${error}`,
       ),
     );
-    return oldState;
+    return state;
   }
+};
 
-  const {
-    PermissionController: { subjects },
-  } = backgroundState;
-
-  if (!isObject(subjects)) {
-    captureException(
-      new Error(
-        `Migration ${version}: typeof state.PermissionController.subjects is ${typeof subjects}`,
-      ),
-    );
-    return oldState;
-  }
-
-  for (const subject of Object.values(subjects)) {
-    if (
-      !isObject(subject) ||
-      !hasProperty(subject, 'permissions') ||
-      !isObject(subject.permissions)
-    ) {
-      continue;
-    }
-
-    const { permissions } = subject;
-    const caip25Permission = permissions[Caip25EndowmentPermissionName];
-
-    if (
-      !isObject(caip25Permission) ||
-      !Array.isArray(caip25Permission.caveats)
-    ) {
-      continue;
-    }
-
-    const caip25Caveat = caip25Permission.caveats.find(
-      (caveat) => caveat.type === Caip25CaveatType,
-    );
-
-    if (
-      caip25Caveat &&
-      isObject(caip25Caveat.value) &&
-      !hasProperty(caip25Caveat.value, 'sessionProperties')
-    ) {
-      caip25Caveat.value.sessionProperties = {};
-    }
-  }
-
-  return newState;
-}
+export default migration;
