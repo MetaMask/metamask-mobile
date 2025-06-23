@@ -21,7 +21,7 @@ export const selectSamplePetnamesControllerState = (state: RootState): SamplePet
 export const selectSamplePetnamesByChainIdAndAddress = createSelector(
   selectSamplePetnamesControllerState,
   (samplePetnamesControllerState: SamplePetnamesControllerState | undefined) =>
-    samplePetnamesControllerState?.namesByChainIdAndAddress || {}
+    samplePetnamesControllerState?.namesByChainIdAndAddress ?? {}
 );
 
 /**

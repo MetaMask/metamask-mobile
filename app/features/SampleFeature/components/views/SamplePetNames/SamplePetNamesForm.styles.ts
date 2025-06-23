@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../../../util/theme/models';
 
 /**
  * StyleSheet for the SamplePetNamesForm component
@@ -10,9 +9,7 @@ import { Theme } from '../../../../../util/theme/models';
  *
  * @sampleFeature do not use in production code
  */
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
-  const { colors } = theme;
+const styleSheet = () => {
   
   return StyleSheet.create({
     /**
