@@ -1108,7 +1108,7 @@ describe('EvmAccountSelectorList', () => {
 
     // Render the component to ensure it handles accounts with balance errors
     const { getByTestId } = renderComponent(initialState);
-    
+
     // Verify the component renders successfully even with balance errors
     expect(getByTestId(ACCOUNT_SELECTOR_LIST_TESTID)).toBeDefined();
   });
@@ -1525,5 +1525,24 @@ describe('EvmAccountSelectorList', () => {
       expect(footerItem.type).toBe('footer');
       expect(typeof footerItem.sectionIndex).toBe('number');
     });
+  });
+
+  it('navigates to wallet details when section header details link is pressed', () => {
+    const multichainState = getMultichainState();
+    const { getByText } = renderComponent(multichainState);
+
+    const detailsLink = getByText('Details');
+    fireEvent.press(detailsLink);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS,
+      {
+        wallet: expect.objectContaining({
+          metadata: expect.objectContaining({
+            name: 'HD Accounts',
+          }),
+        }),
+      }
+    );
   });
 });
