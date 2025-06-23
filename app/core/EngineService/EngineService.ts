@@ -110,6 +110,7 @@ export class EngineService {
           Logger.log('keyringController vault missing for INIT_BG_STATE_KEY');
         }
         this.updateBatcher.add(INIT_BG_STATE_KEY);
+        this.updateBatcher.flush();
         this.engineInitialized = true;
       },
       () => !this.engineInitialized,
