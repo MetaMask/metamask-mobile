@@ -94,6 +94,11 @@ const initialState = {
 };
 const store = mockStore(initialState);
 
+// Ensure the store has a dispatch function and all necessary methods
+store.dispatch = jest.fn();
+store.getState = jest.fn(() => initialState);
+store.subscribe = jest.fn();
+
 interface ChoosePasswordProps {
   route: {
     params: {
