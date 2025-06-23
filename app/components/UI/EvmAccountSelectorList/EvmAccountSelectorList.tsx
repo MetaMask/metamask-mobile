@@ -368,7 +368,7 @@ const EvmAccountSelectorList = ({
         });
       }
     }
-  }, [accounts, selectedAddresses, isAutoScrollEnabled, flattenedData]);
+  }, [accounts, accountListRef, selectedAddresses, isAutoScrollEnabled, flattenedData]);
 
   // Scroll to selected account when selection changes or on mount
   useEffect(() => {
