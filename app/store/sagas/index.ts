@@ -137,13 +137,15 @@ export function* handleDeeplinkSaga() {
     // Handle parsing deeplinks after login or when the lock manager is resolved
     yield take([UserActionType.LOGIN, UserActionType.CHECK_FOR_DEEPLINK]);
 
-    const isLoggedIn = (yield select(selectUserLoggedIn)) as boolean;
-    const deeplink = AppStateEventProcessor.pendingDeeplink;
+    const { KeyringController } = Engine.context;
+    const isUnlocked = KeyringController.isUnlocked();
 
-    // If the user is not logged in, we don't need to handle the deeplink
-    if (!isLoggedIn) {
+    // App is locked, don't handle the deeplink
+    if (!isUnlocked) {
       continue;
     }
+
+    const deeplink = AppStateEventProcessor.pendingDeeplink;
 
     if (deeplink) {
       // TODO: See if we can hook into a navigation finished event before parsing so that the modal doesn't conflict with ongoing navigation events
