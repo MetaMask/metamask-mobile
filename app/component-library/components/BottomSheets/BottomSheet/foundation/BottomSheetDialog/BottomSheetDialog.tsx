@@ -15,6 +15,7 @@ import {
   View,
   Platform,
   KeyboardAvoidingView,
+  Dimensions,
 } from 'react-native';
 import {
   PanGestureHandler,
@@ -48,6 +49,7 @@ import {
   BottomSheetDialogProps,
 } from './BottomSheetDialog.types';
 
+
 const BottomSheetDialog = forwardRef<
   BottomSheetDialogRef,
   BottomSheetDialogProps
@@ -66,14 +68,9 @@ const BottomSheetDialog = forwardRef<
   ) => {
     const { top: screenTopPadding, bottom: screenBottomPadding } =
       useSafeAreaInsets();
-    const { y: frameY } = useSafeAreaFrame();
-    const { height: screenHeight } = useWindowDimensions();
-    // on Android, the status bar height is already included in screenHeight so we don't need to subtract it
-    const statusBarHeight = Platform.select({
-      ios: screenTopPadding,
-      android: 0,
-    }) || 0;
-    const maxSheetHeight = screenHeight - statusBarHeight;
+    const { y: frameY, height: screenHeight } = useSafeAreaFrame();
+
+    const maxSheetHeight = screenHeight - screenTopPadding;
     const { styles } = useStyles(styleSheet, {
       maxSheetHeight,
       screenBottomPadding,
@@ -139,7 +136,7 @@ const BottomSheetDialog = forwardRef<
         const hasReachedDismissOffset =
           latestOffset >
           bottomOfDialogYValue.value *
-            DEFAULT_BOTTOMSHEETDIALOG_DISMISSTHRESHOLD;
+          DEFAULT_BOTTOMSHEETDIALOG_DISMISSTHRESHOLD;
         // Check if the gesture's vertical speed has reached the threshold to determine a swipe action
         const hasReachedSwipeThreshold =
           Math.abs(velocityY) >
