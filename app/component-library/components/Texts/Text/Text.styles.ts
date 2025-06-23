@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleSheet, TextStyle } from 'react-native';
+import { Platform, StyleSheet, TextStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
@@ -67,7 +67,7 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
     ...variantObject,
     color: textColor,
     fontFamily: getFontFamily(variant, style?.fontWeight, style?.fontStyle),
-    fontWeight: finalFontWeight,
+    ...(Platform.OS === 'ios' && { fontWeight: finalFontWeight }),
   };
 
   return StyleSheet.create({

@@ -34,7 +34,7 @@ const createStyles = (colors: {
       textAlign: 'center',
       paddingHorizontal: 60,
       paddingTop: 20,
-      fontFamily: 'MMSans-Medium',
+      fontFamily: 'MMPoly-Regular',
     },
     titleDescription: {
       paddingTop: 10,
