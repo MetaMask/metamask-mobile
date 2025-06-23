@@ -129,7 +129,7 @@ const BasicInfo = (): JSX.Element => {
   }, [navigation, validateFormData, formData, quote, kycUrl]);
 
   const handleSubmitEditing = useCallback(
-    (nextRef: React.RefObject<TextInput>) => {
+    (nextRef: React.RefObject<TextInput>) => () => {
       nextRef.current?.focus();
     },
     [],
@@ -162,7 +162,7 @@ const BasicInfo = (): JSX.Element => {
                 autoComplete="given-name"
                 textContentType="givenName"
                 autoCapitalize="words"
-                onSubmitEditing={() => handleSubmitEditing(lastNameInputRef)}
+                onSubmitEditing={handleSubmitEditing(firstNameInputRef)}
               />
 
               <DepositTextField
@@ -178,7 +178,7 @@ const BasicInfo = (): JSX.Element => {
                 autoComplete="family-name"
                 textContentType="familyName"
                 autoCapitalize="words"
-                onSubmitEditing={() => handleSubmitEditing(phoneInputRef)}
+                onSubmitEditing={handleSubmitEditing(lastNameInputRef)}
               />
             </View>
 
@@ -197,7 +197,7 @@ const BasicInfo = (): JSX.Element => {
               autoComplete="tel"
               textContentType="telephoneNumber"
               keyboardType="phone-pad"
-              onSubmitEditing={() => handleSubmitEditing(dateInputRef)}
+              onSubmitEditing={handleSubmitEditing(phoneInputRef)}
             />
 
             <DepositDateField
@@ -205,7 +205,7 @@ const BasicInfo = (): JSX.Element => {
               value={formData.dob}
               onChangeText={handleFormDataChange('dob')}
               error={errors.dob}
-              onSubmitEditing={() => handleSubmitEditing(ssnInputRef)}
+              onSubmitEditing={handleSubmitEditing(dateInputRef)}
               ref={dateInputRef}
               textFieldProps={{
                 testID: 'date-of-birth-input',
