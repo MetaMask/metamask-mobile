@@ -4,6 +4,7 @@ import {fireEvent, waitFor} from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ErrorBoundary, {Fallback} from './';
 import {MetricsEventBuilder} from '../../../core/Analytics/MetricsEventBuilder';
+import { captureSentryFeedback } from '../../../util/sentry/utils';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = MetricsEventBuilder.createEventBuilder;
@@ -154,7 +155,10 @@ describe('ErrorBoundary', () => {
 
     await waitFor(() => {
       const textInput = getByPlaceholderText('Sharing details like how we can reproduce the bug will help us fix the problem.');
-      const submitButton = getByText('Submit').parent!.parent!;
+      const submitButton = getByText('Submit').parent?.parent;
+      if (!submitButton) {
+        throw new Error('Could not find submit button');
+      }
 
       // Initially submit should be disabled (opacity 0.5)
       expect(submitButton.props.style).toContainEqual({opacity: 0.5});
@@ -193,7 +197,6 @@ describe('ErrorBoundary', () => {
 
   it('submits feedback and shows success alert when submit is pressed', async () => {
     const spyAlert = jest.spyOn(Alert, 'alert');
-    const mockCaptureSentryFeedback = require('../../../util/sentry/utils').captureSentryFeedback;
 
     const {getByText, getByPlaceholderText} = renderWithProvider(
       <Fallback {...mockProps} />,
@@ -210,7 +213,7 @@ describe('ErrorBoundary', () => {
 
       fireEvent.press(submitButton);
 
-      expect(mockCaptureSentryFeedback).toHaveBeenCalledWith({
+      expect(captureSentryFeedback).toHaveBeenCalledWith({
         sentryId: mockProps.sentryId,
         comments: 'Test feedback',
       });
