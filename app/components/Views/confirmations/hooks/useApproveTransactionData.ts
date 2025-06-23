@@ -10,7 +10,7 @@ import { useGetTokenStandardAndDetails } from './useGetTokenStandardAndDetails';
 import { TokenStandard } from '../types/token';
 import { ApproveMethod } from '../types/approve';
 
-type ApproveTransactionData = {
+interface ApproveTransactionData {
   // ERC20 specific
   amount?: string;
 
@@ -37,7 +37,7 @@ type ApproveTransactionData = {
 
   // ERC721 / ERC1155 specific
   tokenId?: string;
-};
+}
 
 /**
  * Hook to parse and extract approval transaction data from current transaction.
@@ -47,15 +47,15 @@ type ApproveTransactionData = {
  * information such as spender address, amount, token ID, and whether it's a revoke operation.
  *
  * @returns {ApproveTransactionData} An object containing parsed approval transaction data:
- *   - `amount` - The approval amount (for ERC20 tokens)
- *   - `approveMethod` - The type of approval method used (APPROVE, INCREASE_ALLOWANCE, etc.)
- *   - `expiration` - Expiration timestamp (for Permit2 approvals)
- *   - `isLoading` - Whether the transaction data is still being processed
- *   - `isRevoke` - Whether this is a revoke operation (setting approval to zero/zero address)
- *   - `tokenStandard` - The token standard (ERC20, ERC721, ERC1155)
- *   - `spender` - The address being approved to spend tokens
- *   - `token` - The token address (for Permit2 approvals)
- *   - `tokenId` - The specific token ID (for ERC721/ERC1155 tokens)
+ * `amount` - The approval amount (for ERC20 tokens)
+ * `approveMethod` - The type of approval method used (APPROVE, INCREASE_ALLOWANCE, etc.)
+ * `expiration` - Expiration timestamp (for Permit2 approvals)
+ * `isLoading` - Whether the transaction data is still being processed
+ * `isRevoke` - Whether this is a revoke operation (setting approval to zero/zero address)
+ * `tokenStandard` - The token standard (ERC20, ERC721, ERC1155)
+ * `spender` - The address being approved to spend tokens
+ * `token` - The token address (for Permit2 approvals)
+ * `tokenId` - The specific token ID (for ERC721/ERC1155 tokens)
  */
 export const useApproveTransactionData = (): ApproveTransactionData => {
   const transactionMetadata = useTransactionMetadataRequest();
@@ -74,10 +74,10 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
       return { fourByteCode: undefined, parsedData: undefined };
     }
 
-    const fourByteCode = get4ByteCode(data);
-    const parsedData = parseStandardTokenTransactionData(data);
+    const code = get4ByteCode(data);
+    const parsed = parseStandardTokenTransactionData(data);
 
-    return { fourByteCode, parsedData };
+    return { fourByteCode: code, parsedData: parsed };
   }, [data]);
 
   // Memoize the entire parsed approval data
@@ -86,7 +86,7 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
       return {
         isLoading: true,
       };
-    }    
+    }
 
     const result: ApproveTransactionData = {
       isLoading: false,
