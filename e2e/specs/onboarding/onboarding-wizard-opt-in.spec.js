@@ -238,7 +238,6 @@ describe(
             }, 'Marketing consent tracked properly');
 
           } catch {
-            console.log('Marketing consent sheet not shown.');
             const events = await getEventsPayloads(mockServer, [
               EVENT_NAMES.ANALYTICS_PREFERENCE_SELECTED,
             ]);
