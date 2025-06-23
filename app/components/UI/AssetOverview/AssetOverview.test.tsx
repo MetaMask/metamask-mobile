@@ -16,7 +16,6 @@ import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/Toke
 // eslint-disable-next-line import/no-namespace
 import * as transactions from '../../../util/transactions';
 import { mockNetworkState } from '../../../util/test/network';
-import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import { swapsUtils } from '@metamask/swaps-controller';
 import {
@@ -507,34 +506,6 @@ describe('AssetOverview', () => {
     });
   });
 
-  it('should prompt to add the network if coming from search and on a different chain', async () => {
-    (
-      Engine.context.NetworkController
-        .getNetworkConfigurationByChainId as jest.Mock
-    ).mockReturnValueOnce(null);
-    const differentChainAssetFromSearch = {
-      ...assetFromSearch,
-      chainId: '0xa',
-    };
-    const { getByTestId } = renderWithProvider(
-      <AssetOverview
-        asset={differentChainAssetFromSearch}
-        displayBuyButton
-        displaySwapsButton
-        swapsIsLive
-      />,
-      { state: mockInitialState },
-    );
-
-    const swapButton = getByTestId('token-swap-button');
-    fireEvent.press(swapButton);
-
-    // Wait for all promises to resolve
-    await Promise.resolve();
-
-    expect(mockAddPopularNetwork).toHaveBeenCalled();
-  });
-
   describe('Portfolio view network switching', () => {
     beforeEach(() => {
       jest.useFakeTimers();
@@ -544,6 +515,37 @@ describe('AssetOverview', () => {
 
     afterEach(() => {
       jest.useFakeTimers({ legacyFakeTimers: true });
+    });
+
+    it('should switch networks before sending when on different chain', async () => {
+      const differentChainAsset = {
+        ...asset,
+        chainId: '0x89', // Different chain (Polygon)
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview
+          asset={differentChainAsset}
+          displayBuyButton
+          displaySwapsButton
+          displayBridgeButton
+          swapsIsLive
+        />,
+        { state: mockInitialState },
+      );
+
+      const sendButton = getByTestId('token-send-button');
+      await fireEvent.press(sendButton);
+
+      // Wait for all promises to resolve
+      await Promise.resolve();
+
+      expect(navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.WALLET_VIEW,
+        },
+      });
     });
 
     it('render mainBalance as fiat and secondaryBalance as native with portfolio view enabled', async () => {
