@@ -85,7 +85,7 @@ exports[`QuoteInfoModal renders correctly 1`] = `
               "borderTopLeftRadius": 8,
               "borderTopRightRadius": 8,
               "borderWidth": 1,
-              "maxHeight": 1334,
+              "maxHeight": 640,
               "overflow": "hidden",
               "paddingBottom": 0,
               "shadowColor": "#0000001a",
@@ -99,7 +99,7 @@ exports[`QuoteInfoModal renders correctly 1`] = `
             {
               "transform": [
                 {
-                  "translateY": 1334,
+                  "translateY": 640,
                 },
               ],
             },

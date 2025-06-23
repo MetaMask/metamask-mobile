@@ -74,7 +74,7 @@ exports[`AccountConnect renders correctly with base request 1`] = `
             "borderTopLeftRadius": 8,
             "borderTopRightRadius": 8,
             "borderWidth": 1,
-            "maxHeight": 1334,
+            "maxHeight": 0,
             "overflow": "hidden",
             "paddingBottom": 0,
             "shadowColor": "#0000001a",
@@ -88,7 +88,7 @@ exports[`AccountConnect renders correctly with base request 1`] = `
           {
             "transform": [
               {
-                "translateY": 1334,
+                "translateY": 0,
               },
             ],
           },
@@ -1390,7 +1390,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
             "borderTopLeftRadius": 8,
             "borderTopRightRadius": 8,
             "borderWidth": 1,
-            "maxHeight": 1334,
+            "maxHeight": 0,
             "overflow": "hidden",
             "paddingBottom": 0,
             "shadowColor": "#0000001a",
@@ -1404,7 +1404,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
           {
             "transform": [
               {
-                "translateY": 1334,
+                "translateY": 0,
               },
             ],
           },
@@ -2706,7 +2706,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
             "borderTopLeftRadius": 8,
             "borderTopRightRadius": 8,
             "borderWidth": 1,
-            "maxHeight": 1334,
+            "maxHeight": 0,
             "overflow": "hidden",
             "paddingBottom": 0,
             "shadowColor": "#0000001a",
@@ -2720,7 +2720,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
           {
             "transform": [
               {
-                "translateY": 1334,
+                "translateY": 0,
               },
             ],
           },

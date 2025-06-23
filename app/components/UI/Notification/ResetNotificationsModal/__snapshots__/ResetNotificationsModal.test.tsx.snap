@@ -74,7 +74,7 @@ exports[`ResetNotificationsModal should render correctly 1`] = `
             "borderTopLeftRadius": 8,
             "borderTopRightRadius": 8,
             "borderWidth": 1,
-            "maxHeight": 1334,
+            "maxHeight": 0,
             "overflow": "hidden",
             "paddingBottom": 0,
             "shadowColor": "#0000001a",
@@ -88,7 +88,7 @@ exports[`ResetNotificationsModal should render correctly 1`] = `
           {
             "transform": [
               {
-                "translateY": 1334,
+                "translateY": 0,
               },
             ],
           },
