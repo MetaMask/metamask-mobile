@@ -130,9 +130,9 @@ const EvmAccountSelectorList = ({
   // Flatten sections into a single array for FlatList
   const flattenedData = useMemo((): FlattenedAccountListItem[] => {
     const items: FlattenedAccountListItem[] = [];
+    let accountIndex = 0;
 
     accountSections.forEach((section, sectionIndex) => {
-      // Add section header if using multichain accounts
       if (accountTreeSections) {
         items.push({
           type: 'header',
@@ -141,16 +141,16 @@ const EvmAccountSelectorList = ({
         });
       }
 
-      // Add accounts
       section.data.forEach((account) => {
         items.push({
           type: 'account',
           data: account,
           sectionIndex,
+          accountIndex,
         });
+        accountIndex++;
       });
 
-      // Add section footer if using multichain accounts and not the last section
       if (accountTreeSections && sectionIndex < accountSections.length - 1) {
         items.push({
           type: 'footer',
@@ -436,7 +436,7 @@ const EvmAccountSelectorList = ({
             type === KeyringTypes.simple ||
             (type === KeyringTypes.snap && !isSolanaAddress(address)),
           isSelected: isSelectedAccount,
-          index: item.sectionIndex,
+          index: item.accountIndex,
         });
       };
 
@@ -462,7 +462,7 @@ const EvmAccountSelectorList = ({
 
       const buttonProps = {
         onButtonClick: handleButtonClick,
-        buttonTestId: `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${item.sectionIndex}`,
+        buttonTestId: `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${item.accountIndex}`,
       };
 
       const avatarProps = {
