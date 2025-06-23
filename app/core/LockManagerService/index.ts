@@ -19,8 +19,6 @@ export class LockManagerService {
   #appStateListener?: NativeEventSubscription;
   #lockTimer?: number;
 
-  isRunning = () => this.#appStateListener !== undefined;
-
   #lockApp = async () => {
     if (!SecureKeychain.getInstance().isAuthenticating) {
       const { KeyringController } = Engine.context;
@@ -71,7 +69,6 @@ export class LockManagerService {
       // Handle lock logic on background.
       if (nextAppState === 'background') {
         if (lockTime === 0) {
-          console.log('LOCKING APP');
           this.#lockApp();
         } else {
           // Autolock after some time.
