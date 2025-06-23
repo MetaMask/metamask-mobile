@@ -23,7 +23,6 @@ jest.mock('./useGetTokenStandardAndDetails', () => ({
 }));
 
 const mockedSpender = '0x9876543210987654321098765432109876543210';
-const mockedPermit2Token = '0x1234567890123456789012345678901234567890';
 
 describe('useApproveTransactionData', () => {
   const mockUseGetTokenStandardAndDetails = jest.mocked(
