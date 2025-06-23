@@ -82,6 +82,10 @@ const EvmAccountSelectorList = ({
   ...props
 }: EvmAccountSelectorListProps) => {
   const { navigate } = useNavigation();
+  /**
+   * Ref for the FlatList component.
+   * The type of the ref is not explicitly defined.
+   */
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountListRef = useRef<any>(null);
