@@ -139,7 +139,7 @@ class TestSnaps {
   async getOptionValueByText(selectorID: any, text: string) {
     const webview = Matchers.getWebViewByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID);
     return await webview.element(by.web.id(selectorID)).runScript((el, searchText) => {
-      if (!el || !el.options) return null;
+      if (!el?.options) return null;
       const option = Array.from(el.options).find((opt: any) => opt.text.includes(searchText));
       return option ? (option as any).value : null;
     }, [text]);
