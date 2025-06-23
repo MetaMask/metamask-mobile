@@ -1,14 +1,10 @@
-import type {
-  ApprovalControllerActions,
-  ApprovalControllerEvents,
-} from '@metamask/approval-controller';
 import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
 
 const name = 'ApprovalController';
 
-type MessengerActions = ApprovalControllerActions;
+type MessengerActions = never;
 
-type MessengerEvents = ApprovalControllerEvents;
+type MessengerEvents = never;
 
 export type ApprovalControllerMessenger = RestrictedMessenger<
   typeof name,
