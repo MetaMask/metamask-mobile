@@ -52,12 +52,12 @@ class TestSnaps {
   }
 
   async checkResultSpan(selector: keyof typeof TestSnapResultSelectorWebIDS, expectedMessage: string) {
-    const element = await Matchers.getElementByWebID(
+    const webElement = await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapResultSelectorWebIDS[selector],
     ) as IndexableWebElement;
 
-    const actualText = await element.getText();
+    const actualText = await webElement.getText();
     await Assertions.checkIfTextMatches(actualText, expectedMessage);
   }
 
@@ -66,17 +66,17 @@ class TestSnaps {
   }
 
   async tapButton(buttonLocator: keyof typeof TestSnapViewSelectorWebIDS) {
-    const element = Matchers.getElementByWebID(
+    const webElement = Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapViewSelectorWebIDS[buttonLocator],
     ) as any;
-    await Gestures.scrollToWebViewPort(element);
+    await Gestures.scrollToWebViewPort(webElement);
     await TestHelpers.delay(1000);
-    await Gestures.tapWebElement(element);
+    await Gestures.tapWebElement(webElement);
   }
 
-  async getOptionValueByText(element: IndexableWebElement, text: string) {
-    return await element.runScript((el, searchText) => {
+  async getOptionValueByText(webElement: IndexableWebElement, text: string) {
+    return await webElement.runScript((el, searchText) => {
       if (!el?.options) return null;
       const option = Array.from(el.options).find((opt: any) => opt.text.includes(searchText));
       return option ? (option as any).value : null;
@@ -84,14 +84,14 @@ class TestSnaps {
   }
 
   async selectEntropySource(selector: keyof typeof EntropyDropDownSelectorWebIDS, entropySource: string) {
-    const element = await Matchers.getElementByWebID(
+    const webElement = await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       EntropyDropDownSelectorWebIDS[selector],
     ) as IndexableWebElement;
 
-    const source = await this.getOptionValueByText(element, entropySource);
+    const source = await this.getOptionValueByText(webElement, entropySource);
 
-    await element.runScript(
+    await webElement.runScript(
       (el, value) => {
         el.value = value;
         el.dispatchEvent(new Event('change', { bubbles: true }));
