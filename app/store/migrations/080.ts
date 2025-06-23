@@ -3,7 +3,7 @@ import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
 
 /**
- * Migration 79: Update profile sync state properties to backup and sync ones
+ * Migration 80: Update profile sync state properties to backup and sync ones
  * Copy `isProfileSyncingEnabled` to `isBackupAndSyncEnabled`
  * Copy `isProfileSyncingUpdateLoading` to `isBackupAndSyncUpdateLoading`
  * Delete `isProfileSyncingEnabled` from `UserStorageController`
