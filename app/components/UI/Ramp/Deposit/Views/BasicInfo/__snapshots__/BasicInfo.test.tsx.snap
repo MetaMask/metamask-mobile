@@ -2320,7 +2320,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                             }
                                           }
                                           testID="date-of-birth-input"
-                                          value=""
+                                          value="01/01/2000"
                                         />
                                       </View>
                                     </View>
@@ -3624,7 +3624,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             }
                                           }
                                           testID="date-of-birth-input"
-                                          value=""
+                                          value="01/01/2000"
                                         />
                                       </View>
                                     </View>

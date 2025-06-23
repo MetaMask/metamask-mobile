@@ -4,10 +4,7 @@ import { Platform } from 'react-native';
 import DepositDateField from './DepositDateField';
 
 jest.mock('../../../../../../../locales/i18n', () => ({
-  __esModule: true,
-  default: {
-    locale: 'en-US',
-  },
+  locale: 'en-US',
 }));
 
 const defaultProps = {

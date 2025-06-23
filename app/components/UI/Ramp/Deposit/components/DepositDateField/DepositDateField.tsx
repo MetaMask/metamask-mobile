@@ -20,12 +20,19 @@ const MAXIMUM_DATE = new Date(2025, 11, 31);
 const MINIMUM_DATE = new Date(1900, 0, 1);
 const DEFAULT_DATE = new Date(2000, 0, 1);
 
-const formatDate = (date: Date): string =>
-  new Intl.DateTimeFormat(I18n.locale, {
+const formatDate = (date: Date, locale = I18n.locale): string =>
+  new Intl.DateTimeFormat(locale, {
     month: '2-digit',
     day: '2-digit',
     year: 'numeric',
   }).format(date);
+
+const formatDateForValue = (date: Date): string => {
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  const year = date.getFullYear();
+  return `${month}/${day}/${year}`;
+};
 
 const getValidDate = (dateString: string): Date => {
   const date = new Date(dateString);
@@ -104,7 +111,7 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
       (date?: Date | null) => {
         if (date) {
           setShowDatePicker(false);
-          onChangeText(formatDate(date));
+          onChangeText(formatDateForValue(date));
           onSubmitEditing?.();
         }
       },
@@ -129,7 +136,7 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
               }
               label={label}
               placeholder={formatDate(DEFAULT_DATE)}
-              value={value}
+              value={formatDate(getValidDate(value))}
               error={error}
               containerStyle={containerStyle}
               ref={ref || fieldRef}
