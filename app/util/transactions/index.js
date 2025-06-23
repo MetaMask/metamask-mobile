@@ -500,14 +500,25 @@ export async function getTransactionActionKey(transaction, chainId) {
 
   // if data in transaction try to get method data
   if (data && data !== '0x') {
-    const { name } = await getMethodData(data, networkClientId);
-    if (name) return name;
+    try {
+      const { name } = await getMethodData(data, networkClientId);
+      if (name) return name;
+    } catch (error) {
+      console.warn('Failed to get method data for transaction:', error);
+    }
   }
 
-  const toSmartContract =
-    transaction.toSmartContract !== undefined
-      ? transaction.toSmartContract
-      : await isSmartContractAddress(to, chainId);
+  let toSmartContract;
+  try {
+    toSmartContract =
+      transaction.toSmartContract !== undefined
+        ? transaction.toSmartContract
+        : await isSmartContractAddress(to, chainId);
+  } catch (error) {
+    console.warn('Failed to check if address is smart contract:', error);
+    // Default to false for safety
+    toSmartContract = false;
+  }
 
   const authorizationAddress = authorizationList?.[0]?.address;
   const isDowngrade =

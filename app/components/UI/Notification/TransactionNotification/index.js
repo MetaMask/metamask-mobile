@@ -2,7 +2,12 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { StyleSheet, View, Text, Dimensions } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import Animated, { useSharedValue } from 'react-native-reanimated';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { renderFromWei, fastSplit } from '../../../../util/number';
@@ -132,23 +137,49 @@ function TransactionNotification(props) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  const animatedNotificationStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: detailsYAnimated.value }],
+  }));
+
+  const animatedActionStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: actionXAnimated.value }],
+  }));
+
+  const animatedDetailsStyle = useAnimatedStyle(() => ({
+    opacity: detailsAnimated.value,
+  }));
+
   const detailsFadeIn = useCallback(async () => {
     setTransactionDetailsIsVisible(true);
-    setTimeout(() => animatedTimingStart(detailsAnimated, 1), 500);
-  }, [setTransactionDetailsIsVisible, animatedTimingStart, detailsAnimated]);
+    setTimeout(() => {
+      detailsAnimated.value = withTiming(1, {
+        duration: 500,
+        easing: Easing.out(Easing.quad),
+      });
+    }, 500);
+  }, [setTransactionDetailsIsVisible, detailsAnimated]);
 
   const animateActionTo = useCallback(
     (position) => {
-      animatedTimingStart(detailsYAnimated, position);
-      animatedTimingStart(actionXAnimated, position);
+      detailsYAnimated.value = withTiming(position, {
+        duration: 300,
+        easing: Easing.out(Easing.quad),
+      });
+      actionXAnimated.value = withTiming(position, {
+        duration: 300,
+        easing: Easing.out(Easing.quad),
+      });
     },
-    [animatedTimingStart, actionXAnimated, detailsYAnimated],
+    [actionXAnimated, detailsYAnimated],
   );
 
   const onCloseDetails = useCallback(() => {
-    animatedTimingStart(detailsAnimated, 0);
+    detailsAnimated.value = withTiming(0, {
+      duration: 300,
+      easing: Easing.out(Easing.quad),
+    });
     setTimeout(() => setTransactionDetailsIsVisible(false), 1000);
-  }, [animatedTimingStart, setTransactionDetailsIsVisible, detailsAnimated]);
+  }, [setTransactionDetailsIsVisible, detailsAnimated]);
 
   const onCloseNotification = useCallback(() => {
     onCloseDetails();
@@ -313,8 +344,10 @@ function TransactionNotification(props) {
         </ElevatedView>
       </Animated.View>
       {transactionDetailsIsVisible && (
-        <View style={styles.modalsContainer}>
-          <View style={[styles.modalOverlay]}>
+        <Animated.View style={[styles.modalsContainer, animatedDetailsStyle]}>
+          <Animated.View
+            style={[styles.modalOverlay, animatedNotificationStyle]}
+          >
             <View style={styles.modalContainer}>
               <View style={styles.titleWrapper}>
                 <Text style={styles.title} onPress={onCloseDetails}>
@@ -335,8 +368,8 @@ function TransactionNotification(props) {
                 showCancelModal={onCancelPress}
               />
             </View>
-          </View>
-          <View style={[styles.modalOverlay]}>
+          </Animated.View>
+          <Animated.View style={[styles.modalOverlay, animatedActionStyle]}>
             <View style={styles.modalContainer}>
               <ActionContent
                 onCancelPress={onActionFinish}
@@ -365,8 +398,8 @@ function TransactionNotification(props) {
                 />
               </ActionContent>
             </View>
-          </View>
-        </View>
+          </Animated.View>
+        </Animated.View>
       )}
     </>
   );
@@ -454,7 +487,9 @@ const mapStateToProps = (state, ownProps) => {
     ({ id }) => id === ownProps?.currentNotification.transaction.id,
   );
 
-  const ticker = isPerDappSelectedNetworkEnabled() ? selectTickerByChainId(state, tx?.chainId) : selectEvmTicker(state);
+  const ticker = isPerDappSelectedNetworkEnabled()
+    ? selectTickerByChainId(state, tx?.chainId)
+    : selectEvmTicker(state);
   return {
     accounts: selectAccounts(state),
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),

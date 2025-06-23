@@ -281,7 +281,7 @@ export function decodeIncomingTransfer(args) {
   const {
     tx: {
       txParams: { to, from, value },
-      transferInformation: { symbol, decimals, contractAddress },
+      transferInformation,
       hash,
     },
     txChainId,
@@ -294,6 +294,50 @@ export function decodeIncomingTransfer(args) {
     primaryCurrency,
     selectedAddress,
   } = args;
+
+  // Guard against missing transferInformation
+  if (!transferInformation) {
+    console.warn(
+      'decodeIncomingTransfer called with missing transferInformation',
+    );
+    // Fallback to a basic transaction structure
+    const ticker =
+      networkConfigurationsByChainId?.[txChainId]?.nativeCurrency || 'ETH';
+    const amount = hexToBN(value || '0x0');
+    const renderValue = renderFromWei(amount);
+
+    const transactionElement = {
+      actionKey: actionKey || strings('transactions.received'),
+      renderFrom: renderFullAddress(from),
+      renderTo: renderFullAddress(to),
+      value: `${renderValue} ${ticker}`,
+      fiatValue: weiToFiat(amount, conversionRate, currentCurrency),
+      isIncomingTransfer: true,
+      transactionType: TRANSACTION_TYPES.RECEIVED,
+    };
+
+    const transactionDetails = {
+      renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
+      renderValue: `${renderValue} ${ticker}`,
+      renderFrom: renderFullAddress(from),
+      renderTo: renderFullAddress(to),
+      hash,
+      transactionType: TRANSACTION_TYPES.RECEIVED,
+      txChainId,
+      summaryAmount: `${renderValue} ${ticker}`,
+      summaryFee: `${renderFromWei(totalGas)} ${ticker}`,
+      summaryTotalAmount: `${renderValue} ${ticker}`,
+      summarySecondaryTotalAmount: weiToFiat(
+        amount,
+        conversionRate,
+        currentCurrency,
+      ),
+    };
+
+    return [transactionElement, transactionDetails];
+  }
+
+  const { symbol, decimals, contractAddress } = transferInformation;
 
   const amount = hexToBN(value);
   const token = { symbol, decimals, address: contractAddress };
@@ -608,16 +652,36 @@ function decodeConfirmTx(args) {
     selectedAddress,
     ticker,
   } = args;
-  const totalEth = hexToBN(value);
-  const renderTotalEth = `${renderFromWei(totalEth)} ${ticker}`;
-  const renderTotalEthFiat = weiToFiat(
-    totalEth,
-    conversionRate,
-    currentCurrency,
-  );
+
+  const safeValue = value || '0x0';
+  let totalEth, renderTotalEth, renderTotalEthFiat;
+
+  try {
+    totalEth = hexToBN(safeValue);
+    renderTotalEth = `${renderFromWei(totalEth)} ${ticker}`;
+    renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency);
+  } catch (error) {
+    console.warn(
+      'Error processing transaction value:',
+      error,
+      'value:',
+      safeValue,
+    );
+    totalEth = hexToBN('0x0');
+    renderTotalEth = `0 ${ticker}`;
+    renderTotalEthFiat = '0';
+  }
 
   const totalGas = calculateTotalGas(txParams);
-  const totalValue = isBN(totalEth) ? totalEth.add(totalGas) : totalGas;
+
+  // Guard against calculation errors with non-zero values
+  let totalValue;
+  try {
+    totalValue = isBN(totalEth) ? totalEth.add(totalGas) : totalGas;
+  } catch (error) {
+    console.warn('Error calculating total value:', error);
+    totalValue = totalGas;
+  }
 
   const renderFrom = renderFullAddress(from);
   const renderTo = renderFullAddress(to);
@@ -934,10 +998,20 @@ export default async function decodeTransaction(args) {
       return [transactionElement, transactionDetails];
   }
   if (isTransfer) {
-    [transactionElement, transactionDetails] = decodeIncomingTransfer({
-      ...args,
-      actionKey,
-    });
+    if (tx.transferInformation) {
+      [transactionElement, transactionDetails] = decodeIncomingTransfer({
+        ...args,
+        actionKey,
+      });
+    } else {
+      console.warn(
+        'Transaction marked as isTransfer but missing transferInformation, falling back to decodeConfirmTx',
+      );
+      [transactionElement, transactionDetails] = decodeConfirmTx({
+        ...args,
+        actionKey,
+      });
+    }
   } else {
     switch (actionKey) {
       case strings('transactions.sent_tokens'):

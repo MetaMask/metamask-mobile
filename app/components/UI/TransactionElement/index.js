@@ -45,9 +45,6 @@ import {
   useBridgeTxHistoryData,
 } from '../../../util/bridge/hooks/useBridgeTxHistoryData';
 import BridgeActivityItemTxSegments from '../Bridge/components/TransactionDetails/BridgeActivityItemTxSegments';
-import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../constants/bridge';
-import { decimalToHex } from '../../../util/conversions';
-import { addHexPrefix } from '../../../util/number';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,
@@ -229,16 +226,67 @@ class TransactionElement extends PureComponent {
   mounted = false;
 
   componentDidMount = async () => {
-    const [transactionElement, transactionDetails] = await decodeTransaction({
-      ...this.props,
-      swapsTransactions: this.props.swapsTransactions,
-      swapsTokens: this.props.swapsTokens,
-      assetSymbol: this.props.assetSymbol,
-      ticker: this.props.ticker,
-    });
-    this.mounted = true;
+    try {
+      const [transactionElement, transactionDetails] = await decodeTransaction({
+        ...this.props,
+        swapsTransactions: this.props.swapsTransactions,
+        swapsTokens: this.props.swapsTokens,
+        assetSymbol: this.props.assetSymbol,
+        ticker: this.props.ticker,
+      });
+      this.mounted = true;
 
-    this.mounted && this.setState({ transactionElement, transactionDetails });
+      if (transactionElement && transactionDetails) {
+        this.mounted &&
+          this.setState({ transactionElement, transactionDetails });
+      } else {
+        console.warn(
+          'decodeTransaction returned undefined results for tx:',
+          this.props.tx?.id,
+        );
+        const fallbackElement = {
+          actionKey: strings('transactions.transaction'),
+          value: '0',
+          fiatValue: '0',
+          transactionType: TRANSACTION_TYPES.SITE_INTERACTION,
+        };
+        const fallbackDetails = {
+          renderValue: '0',
+          renderFrom: this.props.tx?.txParams?.from || '',
+          renderTo: this.props.tx?.txParams?.to || '',
+          hash: this.props.tx?.hash || '',
+        };
+        this.mounted &&
+          this.setState({
+            transactionElement: fallbackElement,
+            transactionDetails: fallbackDetails,
+          });
+      }
+    } catch (error) {
+      console.error(
+        'Error decoding transaction:',
+        error,
+        'tx:',
+        this.props.tx?.id,
+      );
+      const fallbackElement = {
+        actionKey: strings('transactions.transaction'),
+        value: '0',
+        fiatValue: '0',
+        transactionType: TRANSACTION_TYPES.SITE_INTERACTION,
+      };
+      const fallbackDetails = {
+        renderValue: '0',
+        renderFrom: this.props.tx?.txParams?.from || '',
+        renderTo: this.props.tx?.txParams?.to || '',
+        hash: this.props.tx?.hash || '',
+      };
+      this.mounted &&
+        this.setState({
+          transactionElement: fallbackElement,
+          transactionDetails: fallbackDetails,
+        });
+    }
   };
 
   componentDidUpdate(prevProps) {
@@ -247,6 +295,10 @@ class TransactionElement extends PureComponent {
       prevProps.swapsTransactions !== this.props.swapsTransactions ||
       prevProps.swapsTokens !== this.props.swapsTokens
     ) {
+      this.setState({
+        transactionElement: undefined,
+        transactionDetails: undefined,
+      });
       this.componentDidMount();
     }
   }

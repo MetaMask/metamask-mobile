@@ -631,30 +631,37 @@ class Transactions extends PureComponent {
     }
   };
 
-  renderItem = ({ item, index }) => (
-    <TransactionElement
-      tx={item}
-      i={index}
-      assetSymbol={this.props.assetSymbol}
-      onSpeedUpAction={this.onSpeedUpAction}
-      isQRHardwareAccount={this.state.isQRHardwareAccount}
-      isLedgerAccount={this.state.isLedgerAccount}
-      signQRTransaction={this.signQRTransaction}
-      signLedgerTransaction={this.signLedgerTransaction}
-      cancelUnsignedQRTransaction={this.cancelUnsignedQRTransaction}
-      onCancelAction={this.onCancelAction}
-      onPressItem={this.toggleDetailsView}
-      selectedAddress={this.props.selectedAddress}
-      tokens={this.props.tokens}
-      collectibleContracts={this.props.collectibleContracts}
-      contractExchangeRates={this.props.contractExchangeRates}
-      exchangeRate={this.props.exchangeRate}
-      conversionRate={this.props.conversionRate}
-      currentCurrency={this.props.currentCurrency}
-      navigation={this.props.navigation}
-      txChainId={item.chainId}
-    />
-  );
+  renderItem = ({ item, index }) => {
+    if (!item || !item.id || !item.txParams) {
+      console.warn('Invalid transaction item:', item);
+      return null;
+    }
+
+    return (
+      <TransactionElement
+        tx={item}
+        i={index}
+        assetSymbol={this.props.assetSymbol}
+        onSpeedUpAction={this.onSpeedUpAction}
+        isQRHardwareAccount={this.state.isQRHardwareAccount}
+        isLedgerAccount={this.state.isLedgerAccount}
+        signQRTransaction={this.signQRTransaction}
+        signLedgerTransaction={this.signLedgerTransaction}
+        cancelUnsignedQRTransaction={this.cancelUnsignedQRTransaction}
+        onCancelAction={this.onCancelAction}
+        onPressItem={this.toggleDetailsView}
+        selectedAddress={this.props.selectedAddress}
+        tokens={this.props.tokens}
+        collectibleContracts={this.props.collectibleContracts}
+        contractExchangeRates={this.props.contractExchangeRates}
+        exchangeRate={this.props.exchangeRate}
+        conversionRate={this.props.conversionRate}
+        currentCurrency={this.props.currentCurrency}
+        navigation={this.props.navigation}
+        txChainId={item.chainId}
+      />
+    );
+  };
 
   toggleRetry = (errorMsg) =>
     this.setState((state) => ({ retryIsOpen: !state.retryIsOpen, errorMsg }));
