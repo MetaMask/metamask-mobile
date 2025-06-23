@@ -88,7 +88,7 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
   });
 
   it('should select an invalid entropy source', async () => {
-    await TestSnaps.selectEntropySource('bip44EntropyDropDown', 'invalid');
+    await TestSnaps.selectEntropySource('bip44EntropyDropDown', 'Invalid');
     await TestSnaps.fillMessage('messageBip44Input', customMessage);
     await TestSnaps.tapButton('signMessageBip44Button');
     await Assertions.checkIfTextIsDisplayed(
