@@ -1,4 +1,4 @@
-import { fork, take, cancel, put, call, all, select } from 'redux-saga/effects';
+import { fork, take, cancel, put, call, all } from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import {
@@ -23,7 +23,6 @@ import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkManager';
 import AppConstants from '../../core/AppConstants';
-import { selectUserLoggedIn } from '../../reducers/user';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;

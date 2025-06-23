@@ -866,7 +866,7 @@ const App: React.FC = () => {
         Logger.error(e as Error, `Deeplink: Error parsing deeplink`);
       }
     },
-    [],
+    [dispatch],
   );
 
   // on Android devices, this creates a listener

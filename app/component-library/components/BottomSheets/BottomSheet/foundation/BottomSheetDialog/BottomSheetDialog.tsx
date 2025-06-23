@@ -11,11 +11,9 @@ import React, {
 } from 'react';
 import {
   LayoutChangeEvent,
-  useWindowDimensions,
   View,
   Platform,
   KeyboardAvoidingView,
-  Dimensions,
 } from 'react-native';
 import {
   PanGestureHandler,
@@ -48,7 +46,6 @@ import {
   BottomSheetDialogRef,
   BottomSheetDialogProps,
 } from './BottomSheetDialog.types';
-
 
 const BottomSheetDialog = forwardRef<
   BottomSheetDialogRef,
@@ -136,7 +133,7 @@ const BottomSheetDialog = forwardRef<
         const hasReachedDismissOffset =
           latestOffset >
           bottomOfDialogYValue.value *
-          DEFAULT_BOTTOMSHEETDIALOG_DISMISSTHRESHOLD;
+            DEFAULT_BOTTOMSHEETDIALOG_DISMISSTHRESHOLD;
         // Check if the gesture's vertical speed has reached the threshold to determine a swipe action
         const hasReachedSwipeThreshold =
           Math.abs(velocityY) >
