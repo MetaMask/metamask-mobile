@@ -6,6 +6,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
   data={
     [
       {
+        "accountIndex": 0,
         "data": {
           "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
           "assets": {
@@ -26,6 +27,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
         "type": "account",
       },
       {
+        "accountIndex": 1,
         "data": {
           "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
           "assets": {
@@ -828,7 +830,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-0"
+            testID="main-wallet-account-actions-1"
           >
             <SvgMock
               color="#121314"
@@ -857,6 +859,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
   data={
     [
       {
+        "accountIndex": 0,
         "data": {
           "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
           "assets": {
@@ -877,6 +880,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
         "type": "account",
       },
       {
+        "accountIndex": 1,
         "data": {
           "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
           "assets": {
@@ -1603,7 +1607,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-0"
+            testID="main-wallet-account-actions-1"
           >
             <SvgMock
               color="#121314"
@@ -1632,6 +1636,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
   data={
     [
       {
+        "accountIndex": 0,
         "data": {
           "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
           "assets": {
@@ -1652,6 +1657,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
         "type": "account",
       },
       {
+        "accountIndex": 1,
         "data": {
           "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
           "assets": {
@@ -2454,7 +2460,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-0"
+            testID="main-wallet-account-actions-1"
           >
             <SvgMock
               color="#121314"
@@ -2483,6 +2489,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
   data={
     [
       {
+        "accountIndex": 0,
         "data": {
           "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
           "assets": {
@@ -2503,6 +2510,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
         "type": "account",
       },
       {
+        "accountIndex": 1,
         "data": {
           "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
           "assets": {
@@ -3305,7 +3313,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-0"
+            testID="main-wallet-account-actions-1"
           >
             <SvgMock
               color="#121314"
