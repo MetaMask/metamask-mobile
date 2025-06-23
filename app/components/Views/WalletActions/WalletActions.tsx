@@ -233,7 +233,13 @@ const WalletActions = () => {
     trace({
       name: TraceName.LoadDepositExperience,
     });
-  }, [closeBottomSheetAndNavigate, navigate, trackEvent, createEventBuilder]);
+  }, [
+    closeBottomSheetAndNavigate,
+    navigate,
+    trackEvent,
+    createEventBuilder,
+    chainId,
+  ]);
 
   const onSend = useCallback(async () => {
     trackEvent(
