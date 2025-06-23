@@ -96,23 +96,13 @@ const getTitleAndSubTitle = (
       };
     }
     case ApprovalType.Transaction: {
+      
       if (isDowngrade || isUpgradeOnly) {
         return {
           title: strings('confirm.title.switch_account_type'),
           subTitle: isDowngrade
             ? strings('confirm.sub_title.switch_to_standard_account')
             : strings('confirm.sub_title.switch_to_smart_account'),
-        };
-      }
-      if (
-        transactionType === TransactionType.contractInteraction ||
-        isBatched
-      ) {
-        return {
-          title: strings('confirm.title.contract_interaction'),
-          subTitle: isBatched
-            ? ''
-            : strings('confirm.sub_title.contract_interaction'),
         };
       }
       if (REDESIGNED_TRANSFER_TYPES.includes(transactionType)) {
@@ -125,7 +115,21 @@ const getTitleAndSubTitle = (
           title: strings('confirm.title.approve'),
         };
       }
-      return {};
+
+      if (transactionType === TransactionType.deployContract) {
+        return {
+          title: strings('confirm.title.contract_deployment'),
+          subTitle: strings('confirm.sub_title.contract_deployment'),
+        };
+      }
+
+      // Default to contract interaction
+      return {
+        title: strings('confirm.title.contract_interaction'),
+        subTitle: isBatched
+          ? ''
+          : strings('confirm.sub_title.contract_interaction'),
+      };
     }
     case ApprovalType.TransactionBatch: {
       const isWalletInitiated = approvalRequest?.origin === MMM_ORIGIN;

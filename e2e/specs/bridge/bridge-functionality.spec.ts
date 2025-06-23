@@ -74,16 +74,19 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await AddNewHdAccountComponent.tapConfirm();
     await Assertions.checkIfVisible(NetworkEducationModal.container);
     await NetworkEducationModal.tapGotItButton();
-    await Assertions.checkIfNotVisible(NetworkEducationModal.container as DetoxElement);
+    await Assertions.checkIfNotVisible(
+      NetworkEducationModal.container as DetoxElement,
+    );
     await Assertions.checkIfVisible(WalletView.container);
 
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.changeNetworkTo('Localhost', false);
     await Assertions.checkIfVisible(NetworkEducationModal.container);
     await NetworkEducationModal.tapGotItButton();
-    await Assertions.checkIfNotVisible(NetworkEducationModal.container as DetoxElement);
+    await Assertions.checkIfNotVisible(
+      NetworkEducationModal.container as DetoxElement,
+    );
     await Assertions.checkIfVisible(WalletView.container);
-
     await TabBarComponent.tapActions();
     await TestHelpers.delay(500);
     await WalletActionsBottomSheet.tapBridgeButton();
@@ -93,11 +96,12 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await TestHelpers.delay(1000);
     await QuoteView.selectNetwork('Solana');
     await Assertions.checkIfVisible(QuoteView.token('SOL'));
+    await TestHelpers.delay(1000);
     await QuoteView.selectToken('SOL');
     await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
     await Assertions.checkIfVisible(QuoteView.confirmButton);
     await QuoteView.tapConfirm();
-
+    await TestHelpers.delay(1000);
     // Check the bridge activity completed
     await TabBarComponent.tapActivity();
     await Assertions.checkIfVisible(ActivitiesView.title);
@@ -105,7 +109,9 @@ describe(SmokeTrade('Bridge functionality'), () => {
       ActivitiesView.bridgeActivityTitle('Solana'),
     );
     await Assertions.checkIfElementToHaveText(
-      ActivitiesView.transactionStatus(FIRST_ROW) as Promise<IndexableNativeElement>,
+      ActivitiesView.transactionStatus(
+        FIRST_ROW,
+      ) as Promise<IndexableNativeElement>,
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
       30000,
     );
@@ -114,11 +120,12 @@ describe(SmokeTrade('Bridge functionality'), () => {
   it('should bridge ETH (Mainnet) to ETH (Base Network)', async () => {
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
-
     await TabBarComponent.tapActions();
+    await TestHelpers.delay(500);
     await WalletActionsBottomSheet.tapBridgeButton();
-    await device.disableSynchronization();
+    await TestHelpers.delay(1000);
     await QuoteView.enterBridgeAmount('1');
+    await TestHelpers.delay(500);
     await QuoteView.tapBridgeTo();
     await TestHelpers.delay(1000);
     await QuoteView.selectNetwork('Base');
@@ -127,13 +134,16 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
     await Assertions.checkIfVisible(QuoteView.confirmButton);
     await QuoteView.tapConfirm();
+    await TestHelpers.delay(1000);
 
     // Check the bridge activity completed
     await TabBarComponent.tapActivity();
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.bridgeActivityTitle('Base'));
     await Assertions.checkIfElementToHaveText(
-      ActivitiesView.transactionStatus(FIRST_ROW) as Promise<IndexableNativeElement>,
+      ActivitiesView.transactionStatus(
+        FIRST_ROW,
+      ) as Promise<IndexableNativeElement>,
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
       30000,
     );
@@ -145,12 +155,15 @@ describe(SmokeTrade('Bridge functionality'), () => {
 
     await TabBarComponent.tapSettings();
     await SettingsView.tapAdvancedTitle();
+    await TestHelpers.delay(500);
+
     await AdvancedSettingsView.tapSmartTransactionSwitch();
     await TabBarComponent.tapWallet();
 
     await TabBarComponent.tapActions();
+    await TestHelpers.delay(500);
     await WalletActionsBottomSheet.tapBridgeButton();
-    await device.disableSynchronization();
+    await TestHelpers.delay(1000);
     await QuoteView.enterBridgeAmount('1');
     await QuoteView.tapBridgeTo();
     await TestHelpers.delay(1000);
@@ -160,13 +173,18 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
     await Assertions.checkIfVisible(QuoteView.confirmButton);
     await QuoteView.tapConfirm();
+    await TestHelpers.delay(1000);
 
     // Check the bridge activity completed
     await TabBarComponent.tapActivity();
     await Assertions.checkIfVisible(ActivitiesView.title);
-    await Assertions.checkIfVisible(ActivitiesView.bridgeActivityTitle('Optimism'));
+    await Assertions.checkIfVisible(
+      ActivitiesView.bridgeActivityTitle('Optimism'),
+    );
     await Assertions.checkIfElementToHaveText(
-      ActivitiesView.transactionStatus(FIRST_ROW) as Promise<IndexableNativeElement>,
+      ActivitiesView.transactionStatus(
+        FIRST_ROW,
+      ) as Promise<IndexableNativeElement>,
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
       30000,
     );
