@@ -77,12 +77,11 @@ const AddressList = ({
   const parseAddressBook = useCallback(
     (addressBookList: AddressBookEntryWithRelaxedChainId[]) => {
       const contacts = addressBookList.map((contact) => {
-        const isAmbiguousAddress = Boolean(
+        const isAmbiguousAddress =
           chainId &&
-            ambiguousAddressEntries?.[chainId] &&
-            Array.isArray(ambiguousAddressEntries?.[chainId]) &&
-            ambiguousAddressEntries[chainId].includes(contact.address),
-        );
+          ambiguousAddressEntries?.[chainId] &&
+          Array.isArray(ambiguousAddressEntries?.[chainId]) &&
+          ambiguousAddressEntries[chainId].includes(contact.address);
         const addressContact: InternalAddressBookEntry = {
           ...contact,
           isSmartContract: false,
