@@ -33,6 +33,7 @@ import { RootState } from '../../../../UI/BasicFunctionality/BasicFunctionalityM
 import { useSelector } from 'react-redux';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { getInternalAccountsFromWallet } from '../utils/getInternalAccountsFromWallet';
+import { getWalletKeyringId } from '../utils/getWalletKeyringId';
 import Routes from '../../../../../constants/navigation/Routes';
 
 interface BaseWalletDetailsProps {
@@ -62,6 +63,8 @@ export const BaseWalletDetails = ({
   const { formattedWalletTotalBalance, multichainBalancesForAllAccounts } =
     useWalletBalances(accounts);
 
+  const keyringId = getWalletKeyringId(accounts);
+
   const handleGoToAccountDetails = useCallback(
     (account: InternalAccount) => {
       navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS, {
@@ -70,6 +73,15 @@ export const BaseWalletDetails = ({
     },
     [navigation],
   );
+
+  const handleRevealSRP = useCallback(() => {
+    if (keyringId) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+        keyringId,
+      });
+    }
+  }, [navigation, keyringId]);
 
   const renderAccountItem = (account: InternalAccount, index: number) => {
     const totalAccounts = accounts.length;
@@ -191,6 +203,31 @@ export const BaseWalletDetails = ({
             )}
           </Box>
         </View>
+        {keyringId && (
+          <View style={styles.srpRevealSection}>
+            <TouchableOpacity
+              testID={WalletDetailsIds.REVEAL_SRP_BUTTON}
+              onPress={handleRevealSRP}
+            >
+              <Box
+                testID={WalletDetailsIds.WALLET_NAME}
+                flexDirection={FlexDirection.Row}
+                alignItems={AlignItems.center}
+                justifyContent={JustifyContent.spaceBetween}
+                gap={8}
+              >
+                <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+                  {strings('accounts.reveal_secret_recovery_phrase')}
+                </Text>
+                <Icon
+                  name={IconName.ArrowRight}
+                  size={IconSize.Md}
+                  color={colors.text.alternative}
+                />
+              </Box>
+            </TouchableOpacity>
+          </View>
+        )}
         <View
           style={styles.accountsList}
           testID={WalletDetailsIds.ACCOUNTS_LIST}
