@@ -38,9 +38,9 @@ const EVENT_NAMES = {
   ANALYTICS_PREFERENCE_SELECTED: 'Analytics Preference Selected',
   WELCOME_MESSAGE_VIEWED: 'Welcome Message Viewed',
   ONBOARDING_STARTED: 'Onboarding Started',
-  WALLET_SETUP_STARTED: 'Wallet Setup Started',
   WALLET_CREATION_ATTEMPTED: 'Wallet Creation Attempted',
   WALLET_CREATED: 'Wallet Created',
+  WALLET_PASSWORD_CREATED: 'Wallet Password Created',
   WALLET_SETUP_COMPLETED: 'Wallet Setup Completed',
   WALLET_SECURITY_SKIP_INITIATED: 'Wallet Security Skip Initiated',
   WALLET_SECURITY_SKIP_CONFIRMED: 'Wallet Security Skip Confirmed',
@@ -108,6 +108,7 @@ describe(
           const events = await getEventsPayloads(mockServer, [
             EVENT_NAMES.WALLET_CREATION_ATTEMPTED,
             EVENT_NAMES.WALLET_CREATED,
+            EVENT_NAMES.WALLET_PASSWORD_CREATED,
             EVENT_NAMES.WALLET_SETUP_COMPLETED,
           ]);
           const softAssert = new SoftAssert();
@@ -118,6 +119,10 @@ describe(
           softAssert.checkAndCollect(async () => {
             await Assertions.checkIfValueIsPresent(findEvent(events, EVENT_NAMES.WALLET_CREATED));
           }, 'Wallet Created tracked');
+
+          softAssert.checkAndCollect(async () => {
+            await Assertions.checkIfValueIsPresent(findEvent(events, EVENT_NAMES.WALLET_PASSWORD_CREATED));
+          }, 'Wallet Password Created tracked');
 
           softAssert.checkAndCollect(async () => {
             await Assertions.checkIfValueIsPresent(findEvent(events, EVENT_NAMES.WALLET_SETUP_COMPLETED));
