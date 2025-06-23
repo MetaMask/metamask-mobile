@@ -225,7 +225,7 @@ export const BaseWalletDetails = ({
               >
                 <Text variant={TextVariant.BodyMDMedium}>
                   {strings(
-                    'accounts.reveal_secret_recovery_phrase_with_index',
+                    'multichain_accounts.wallet_details.reveal_recovery_phrase_with_index',
                     {
                       index: srpIndex,
                     },

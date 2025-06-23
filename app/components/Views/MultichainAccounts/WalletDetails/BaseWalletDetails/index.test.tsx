@@ -164,7 +164,7 @@ describe('BaseWalletDetails', () => {
       );
 
       expect(getByTestId(WalletDetailsIds.REVEAL_SRP_BUTTON)).toBeTruthy();
-      expect(getByText('Reveal Secret Recovery Phrase 1')).toBeTruthy();
+      expect(getByText('Reveal Recovery Phrase 1')).toBeTruthy();
     });
 
     it('does not render SRP reveal section when keyringId is null', () => {
@@ -199,7 +199,7 @@ describe('BaseWalletDetails', () => {
           { state: mockInitialState },
         );
 
-        expect(getByText('Reveal Secret Recovery Phrase 2')).toBeTruthy();
+        expect(getByText('Reveal Recovery Phrase 2')).toBeTruthy();
         expect(getByText('Back up')).toBeTruthy();
       });
 
@@ -267,7 +267,7 @@ describe('BaseWalletDetails', () => {
           { state: mockInitialState },
         );
 
-        expect(getByText('Reveal Secret Recovery Phrase 1')).toBeTruthy();
+        expect(getByText('Reveal Recovery Phrase 1')).toBeTruthy();
         expect(queryByText('Back up')).toBeNull();
       });
 
@@ -304,7 +304,7 @@ describe('BaseWalletDetails', () => {
         { state: mockInitialState },
       );
 
-      expect(getByText('Reveal Secret Recovery Phrase 3')).toBeTruthy();
+      expect(getByText('Reveal Recovery Phrase 3')).toBeTruthy();
     });
 
     it('does not navigate when keyringId is null and button is pressed', () => {
