@@ -9,6 +9,7 @@ import {
   EmitterSubscription,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import images from 'images/image-icons';
 import Device from '../../../util/device';
 import AvatarAccount, {
   AvatarAccountType,
@@ -26,6 +27,11 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import UrlParser from 'url-parse';
 import { selectEvmChainId } from '../../../selectors/networkController';
+import {
+  selectIsEvmNetworkSelected,
+  selectNonEvmNetworkConfigurationsByChainId,
+  selectSelectedNonEvmNetworkChainId,
+} from '../../../selectors/multichainNetworkController';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -68,6 +74,13 @@ const AccountRightButton = ({
    * Current network
    */
   const chainId = useSelector(selectEvmChainId);
+  const selectedNonEvmNetworkChainId = useSelector(
+    selectSelectedNonEvmNetworkChainId,
+  );
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const nonEvmNetworkConfigurations = useSelector(
+    selectNonEvmNetworkConfigurationsByChainId,
+  );
 
   const handleKeyboardVisibility = useCallback(
     (visibility: boolean) => () => {
@@ -113,7 +126,7 @@ const AccountRightButton = ({
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.NETWORK_SELECTOR,
         params: {
-          evmChainId: chainId,
+          chainId: isEvmSelected ? chainId : selectedNonEvmNetworkChainId,
         },
       });
       trackEvent(
@@ -134,6 +147,8 @@ const AccountRightButton = ({
     createEventBuilder,
     chainId,
     onPress,
+    selectedNonEvmNetworkChainId,
+    isEvmSelected,
   ]);
 
   const route = useRoute<RouteProp<Record<string, { url: string }>, string>>();
@@ -163,8 +178,13 @@ const AccountRightButton = ({
         <Avatar
           variant={AvatarVariant.Network}
           size={AvatarSize.Md}
-          name={networkName}
-          imageSource={networkImageSource}
+          name={
+            isEvmSelected
+              ? networkName
+              : nonEvmNetworkConfigurations?.[selectedNonEvmNetworkChainId]
+                  ?.name
+          }
+          imageSource={isEvmSelected ? networkImageSource : images.SOLANA}
         />
       )}
     </TouchableOpacity>

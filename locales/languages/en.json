@@ -409,7 +409,7 @@
     "re_enter_password": "Re-enter your password",
     "use_at_least_8_characters": "Use at least 8 characters",
     "unlock_with_face_id": "Unlock with Face ID?",
-    "learn_more": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me.",
+    "learn_more": "If I forget this password, MetaMask can't recover it for me.",
     "seed_phrase_length_error": "Secret Recovery Phrase must be 12, 15, 18, 21, or 24 words",
     "continue": "Continue",
     "clear_all": "Clear all",
@@ -471,6 +471,8 @@
   },
   "deposit": {
     "title": "Deposit",
+    "selectRegion": "Select Region",
+    "chooseYourRegionToContinue": "Choose your region to continue",
     "buildQuote": {
       "payWith": "Pay with",
       "unexpectedError": "An unexpected error occurred.",
@@ -538,9 +540,17 @@
       "success_description": "You can now enter your payment info and complete your deposit.",
       "success_button": "Complete your order"
     },
+    "provider_webview": {
+      "title": "Deposit",
+      "webview_received_error": "Webview received error: %{code}"
+    },
     "kyc_webview": {
       "title": "Verifying your identity",
       "webview_received_error": "WebView received error status code: {{code}}"
+    },
+    "order_processing": {
+      "title": "Processing deposit",
+      "button": "Close"
     }
   },
   "receive": {
@@ -4122,6 +4132,7 @@
       "permit_NFTs": "Withdrawal request",
       "signature_siwe": "Sign-in request",
       "contract_interaction": "Transaction request",
+      "contract_deployment": "Deploy a contract",
       "transfer": "Transfer request",
       "switch_account_type": "Account update",
       "approve": "Approve request"
@@ -4133,7 +4144,8 @@
       "signature_siwe": "A site wants you to sign in to prove you own this account.",
       "contract_interaction": "Review request details before you confirm.",
       "switch_to_smart_account": "You're switching to a smart account.",
-      "switch_to_standard_account": "You're switching back to a standard account (EOA)."
+      "switch_to_standard_account": "You're switching back to a standard account (EOA).",
+      "contract_deployment": "This site wants you to deploy a contract"
     },
     "request_from": "Request from",
     "staking_from": "Staking from",
@@ -4336,6 +4348,11 @@
     },
     "accounts_list": {
       "details": "Details"
+    },
+    "wallet_details": {
+      "wallet_name": "Wallet Name",
+      "balance": "Balance",
+      "add_account": "Add account"
     },
     "smart_account": {
       "title": "Enable Smart Account",
