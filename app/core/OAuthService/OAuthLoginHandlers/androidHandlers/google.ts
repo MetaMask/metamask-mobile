@@ -5,6 +5,8 @@ import {
 import { signInWithGoogle } from 'react-native-google-acm';
 import { BaseLoginHandler } from '../baseHandler';
 import { OAuthErrorType, OAuthError } from '../../error';
+import { isE2E } from '../../../../util/test/utils';
+import { SeedlessOnboardingTestUtilts } from '../../../../util/test/seedlessOnboardingTestUtilts';
 
 /**
  * AndroidGoogleLoginHandler is the login handler for the Google login on android.
@@ -43,7 +45,20 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
    * @returns LoginHandlerIdTokenResult
    */
   async login(): Promise<LoginHandlerIdTokenResult> {
+
     try {
+
+      // Do mock response if running in e2e mode
+      if (isE2E) {
+        // check if there is a mock result
+        const mockResult = await SeedlessOnboardingTestUtilts.getInstance().getMockedOAuthLoginResponse();
+
+        // Only return mock result if it is not null, otherwise continue with the original flow
+        if (mockResult) {
+          return mockResult as LoginHandlerIdTokenResult;
+        }
+      }
+
       const result = await signInWithGoogle({
         serverClientId: this.clientId,
         nonce: this.nonce,

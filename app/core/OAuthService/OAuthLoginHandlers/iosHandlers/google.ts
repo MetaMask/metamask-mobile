@@ -6,6 +6,8 @@ import {
 } from 'expo-auth-session';
 import { BaseLoginHandler } from '../baseHandler';
 import { OAuthErrorType, OAuthError } from '../../error';
+import { SeedlessOnboardingTestUtilts } from '../../../../util/test/seedlessOnboardingTestUtilts';
+import { isE2E } from '../../../../util/test/utils';
 
 /**
  * IosGoogleLoginHandlerParams is the params for the Google login handler
@@ -57,6 +59,17 @@ export class IosGoogleLoginHandler extends BaseLoginHandler {
    * @returns LoginHandlerCodeResult
    */
   async login(): Promise<LoginHandlerCodeResult> {
+    // Do mock response if running in e2e mode
+    if (isE2E) {
+      // check if there is a mock result
+      const mockResult = await SeedlessOnboardingTestUtilts.getInstance().getMockedOAuthLoginResponse();
+
+      // Only return mock result if it is not null, otherwise continue with the original flow
+      if (mockResult) {
+        return mockResult as LoginHandlerCodeResult;
+      }
+    }
+    
     const state = JSON.stringify({
       nonce: this.nonce,
     });

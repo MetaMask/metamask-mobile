@@ -97,7 +97,7 @@ const SkipAccountSecurityModal = ({ route }) => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <View style={styles.skipModalContainer}>
+      <View style={styles.skipModalContainer} testID={SkipAccountSecurityModalSelectorsIDs.CONTAINER}>
         <Icon
           name={IconName.Danger}
           size={IconSize.Lg}
