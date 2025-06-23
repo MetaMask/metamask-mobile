@@ -592,7 +592,6 @@ class TransactionReview extends PureComponent {
                   >
                     <ApprovalTagUrl
                       currentEnsName={ensRecipient}
-                      from={from}
                       origin={origin}
                       sdkDappMetadata={sdkDappMetadata}
                       url={url}

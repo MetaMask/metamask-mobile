@@ -92,7 +92,7 @@ const selectEarnTokens = createDeepEqualSelector(
   (earnTokenBaseData) => {
     const {
       earnState,
-      isPooledStakingEnabled,
+      // isPooledStakingEnabled,
       isStablecoinLendingEnabled,
       pooledStakingPerChain,
       isPooledStakingEligible,
@@ -256,24 +256,26 @@ const selectEarnTokens = createDeepEqualSelector(
 
       const assetTicker = token?.ticker || token.symbol;
       // is pooled staking enabled and eligible
-      if (isPooledStakingEnabled && isPooledStakingEligible) {
-        // TODO: we could add direct validator staking as an additional earn experience
-        if (isStakingToken || isStakingOutputToken) {
-          experiences.push({
-            type: EARN_EXPERIENCES.POOLED_STAKING,
-            apr: pooledStakingVaultAprForChain,
-            ...getEstimatedAnnualRewards(
-              pooledStakingVaultAprForChain,
-              assetBalanceFiatNumber,
-              tokenBalanceMinimalUnit.toString(),
-              currentCurrency,
-              token.decimals,
-              assetTicker,
-            ),
-            vault: pooledStakingVaultForChain,
-          });
-        }
+      // TODO: This is a temporary fix for when pooled stkaing and lending are disabled
+      // it allows Eth to still be seen as an earn token to get earn token details
+      // if (isPooledStakingEnabled && isPooledStakingEligible) {
+      // TODO: we could add direct validator staking as an additional earn experience
+      if (isStakingToken || isStakingOutputToken) {
+        experiences.push({
+          type: EARN_EXPERIENCES.POOLED_STAKING,
+          apr: pooledStakingVaultAprForChain,
+          ...getEstimatedAnnualRewards(
+            pooledStakingVaultAprForChain,
+            assetBalanceFiatNumber,
+            tokenBalanceMinimalUnit.toString(),
+            currentCurrency,
+            token.decimals,
+            assetTicker,
+          ),
+          vault: pooledStakingVaultForChain,
+        });
       }
+      // }
 
       // is stablecoin lending enabled and eligible
       if (isStablecoinLendingEnabled && isStablecoinLendingEligible) {
