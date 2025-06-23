@@ -20,10 +20,8 @@ import ErrorView from '../../../Aggregator/components/ErrorView';
 import { depositOrderToFiatOrder } from '../../orderProcessor';
 import { addFiatOrder, FiatOrder } from '../../../../../../reducers/fiatOrders';
 import NotificationManager from '../../../../../../core/NotificationManager';
-import {
-  getNotificationDetails,
-  stateHasOrder,
-} from '../../../Aggregator/utils';
+import stateHasOrder from '../../../utils/stateHasOrder';
+import { getNotificationDetails } from '../../utils';
 import useThunkDispatch from '../../../../../hooks/useThunkDispatch';
 
 export interface ProviderWebviewParams {
@@ -119,7 +117,10 @@ const ProviderWebview = () => {
             return;
           }
 
-          const processedOrder = depositOrderToFiatOrder(order);
+          const processedOrder = {
+            ...depositOrderToFiatOrder(order),
+            account: selectedAddress || order.walletAddress,
+          };
 
           await handleSuccessfulOrder(processedOrder);
         }

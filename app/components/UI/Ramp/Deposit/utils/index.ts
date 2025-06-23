@@ -27,6 +27,10 @@ import {
   DepositFiatCurrency,
   DepositPaymentMethod,
 } from '../constants';
+import { FiatOrder } from '../../../../../reducers/fiatOrders';
+import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
+import { strings } from '../../../../../../locales/i18n';
+import { renderNumber } from '../../../../../util/number';
 
 const TRANSAK_CRYPTO_IDS: Record<string, string> = {
   'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': 'USDC',
@@ -103,3 +107,72 @@ export function getTransakPaymentMethodId(
   }
   return transakId;
 }
+
+const NOTIFICATION_DURATION = 5000;
+
+const baseNotificationDetails = {
+  duration: NOTIFICATION_DURATION,
+};
+
+/**
+ * Get notification details for deposit orders
+ * @param {FiatOrder} fiatOrder
+ */
+export const getNotificationDetails = (fiatOrder: FiatOrder) => {
+  switch (fiatOrder.state) {
+    case FIAT_ORDER_STATES.FAILED: {
+      return {
+        ...baseNotificationDetails,
+        title: strings('deposit.notifications.deposit_failed_title', {
+          currency: fiatOrder.cryptocurrency,
+        }),
+        description: strings(
+          'deposit.notifications.deposit_failed_description',
+        ),
+        status: 'error',
+      };
+    }
+    case FIAT_ORDER_STATES.CANCELLED: {
+      return {
+        ...baseNotificationDetails,
+        title: strings('deposit.notifications.deposit_cancelled_title'),
+        description: strings(
+          'deposit.notifications.deposit_cancelled_description',
+        ),
+        status: 'cancelled',
+      };
+    }
+    case FIAT_ORDER_STATES.COMPLETED: {
+      return {
+        ...baseNotificationDetails,
+        title: strings('deposit.notifications.deposit_completed_title', {
+          amount: renderNumber(String(fiatOrder.cryptoAmount)),
+          currency: fiatOrder.cryptocurrency,
+        }),
+        description: strings(
+          'deposit.notifications.deposit_completed_description',
+          {
+            currency: fiatOrder.cryptocurrency,
+          },
+        ),
+        status: 'success',
+      };
+    }
+    case FIAT_ORDER_STATES.CREATED: {
+      return null;
+    }
+    case FIAT_ORDER_STATES.PENDING:
+    default: {
+      return {
+        ...baseNotificationDetails,
+        title: strings('deposit.notifications.deposit_pending_title', {
+          currency: fiatOrder.cryptocurrency,
+        }),
+        description: strings(
+          'deposit.notifications.deposit_pending_description',
+        ),
+        status: 'pending',
+      };
+    }
+  }
+};
