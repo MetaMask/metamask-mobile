@@ -37,7 +37,10 @@ import Engine from '../../../../../core/Engine';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { useSelector } from 'react-redux';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../selectors/featureFlags';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../Views/EarnInputView/EarnInputView.types';
 import EarnDepositTokenListItem from '../EarnDepositTokenListItem';
 import EarnWithdrawalTokenListItem from '../EarnWithdrawalTokenListItem';
@@ -92,6 +95,7 @@ const EarnTokenList = () => {
   const { params } = useRoute<EarnTokenListProps['route']>();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
   const { includeReceiptTokens } = params?.tokenFilter ?? {};
 
   const { earnTokens, earnOutputTokens } = useEarnTokens();
@@ -220,8 +224,8 @@ const EarnTokenList = () => {
 
     tokens?.forEach((token) => {
       const hasTokenBalance = new BN4(token.balanceMinimalUnit).gt(new BN4(0));
-
-      if (hasTokenBalance) {
+      // show at least ETH if no other tokens have balance
+      if (hasTokenBalance || token.isETH) {
         tokensWithBalance.push(token);
       }
     });
@@ -247,8 +251,11 @@ const EarnTokenList = () => {
                 variant={UPSELL_BANNER_VARIANTS.HEADER}
               />
             )}
-            {tokensSortedByHighestYield?.map(
-              (token) =>
+            {tokensSortedByHighestYield?.map((token) => {
+              if (token.isETH && !token.isStaked && !isPooledStakingEnabled) {
+                return null;
+              }
+              return (
                 token?.chainId && (
                   <View
                     style={styles.listItemContainer}
@@ -256,8 +263,9 @@ const EarnTokenList = () => {
                   >
                     {renderTokenListItem(token)}
                   </View>
-                ),
-            )}
+                )
+              );
+            })}
           </>
         ) : (
           <EarnTokenListSkeletonPlaceholder />
