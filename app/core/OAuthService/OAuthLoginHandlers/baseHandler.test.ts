@@ -104,7 +104,7 @@ describe('BaseLoginHandler', () => {
 
     it('handles JWT tokens with special characters in payload', () => {
       // Test with payload containing special characters that need padding
-      const mockPayload = { email: 'test@example.com', name: 'John Doe 🦊' };
+      const mockPayload = { email: 'test@example.com', name: 'test data 🦊' };
       const mockPayloadBase64 = Buffer.from(
         JSON.stringify(mockPayload),
       ).toString('base64');
