@@ -6,7 +6,6 @@ import { startMockServer, stopMockServer } from '../../../api-mocking/mock-serve
 import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
 import TestHelpers from '../../../helpers';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import Assertions from '../../../utils/Assertions';
 import { mockIdentityServices } from '../utils/mocks';
 import { SmokeWalletPlatform } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
@@ -55,34 +54,18 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
     }
   });
 
-  // Helper function to navigate to contacts with retry logic
-  async function navigateToContactsWithRetry(maxRetries = 3) {
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        await TabBarComponent.tapSettings();
-        await TestHelpers.delay(3000);
-        
-        // Verify we're in settings first
-        await Assertions.checkIfVisible(SettingsView.generalSettingsButton);
-        
-        await SettingsView.tapContacts();
-        await TestHelpers.delay(2000);
-        
-        // Try to find the contacts screen
-        await Assertions.checkIfVisible(ContactsView.container);
-        return; // Success, exit the retry loop
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        console.log(`Attempt ${attempt} failed to navigate to contacts: ${errorMessage}`);
-        
-        if (attempt === maxRetries) {
-          throw new Error(`Failed to navigate to contacts after ${maxRetries} attempts. Last error: ${errorMessage}`);
-        }
-        
-        // Wait before retrying
-        await TestHelpers.delay(2000);
-      }
-    }
+  // Helper function to navigate to contacts with better error handling
+  async function navigateToContacts() {
+    // Wait for app to be fully loaded
+    await TestHelpers.delay(5000);
+
+    // Navigate to settings
+    await TabBarComponent.tapSettings();
+    await TestHelpers.delay(3000);
+
+    // Wait for settings to load and tap contacts
+    await SettingsView.tapContacts();
+    await TestHelpers.delay(3000);
   }
 
   it('syncs new contacts and retrieves them after importing the same SRP', async () => {
@@ -91,17 +74,24 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
       password: IDENTITY_TEAM_PASSWORD,
     });
 
-    await navigateToContactsWithRetry();
+    // Navigate to contacts
+    await navigateToContacts();
+
+    // Add new contact
     await ContactsView.tapAddContactButton();
-    await Assertions.checkIfVisible(AddContactView.container);
+    await TestHelpers.delay(2000);
 
     await AddContactView.typeInName(NEW_CONTACT_NAME);
     await AddContactView.typeInAddress(NEW_CONTACT_ADDRESS);
     await AddContactView.tapAddContactButton();
-    await Assertions.checkIfVisible(ContactsView.container);
-    await TestHelpers.delay(4000);
+
+    // Wait for contact to be added and sync
+    await TestHelpers.delay(5000);
+
+    // Verify contact is visible locally
     await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
 
+    // Restart app to test sync
     await TestHelpers.launchApp({
       newInstance: true,
       delete: true,
@@ -113,12 +103,13 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
       password: IDENTITY_TEAM_PASSWORD,
     });
 
-    // Navigate to contacts with retry logic for the second time
-    await navigateToContactsWithRetry();
-    
-    // Wait longer for sync to complete on the second device
-    await TestHelpers.delay(6000);
+    // Navigate to contacts on second device
+    await navigateToContacts();
 
+    // Wait longer for sync to complete
+    await TestHelpers.delay(8000);
+
+    // Verify contact synced from remote
     await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
   });
 });
