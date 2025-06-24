@@ -26,6 +26,7 @@ import {
   DepositCryptoCurrency,
   DepositFiatCurrency,
   DepositPaymentMethod,
+  SUPPORTED_DEPOSIT_TOKENS,
 } from '../constants';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
@@ -207,3 +208,29 @@ export const getNotificationDetails = (fiatOrder: FiatOrder) => {
     }
   }
 };
+
+const TRANSAK_ID_TO_ASSET_ID: Record<string, string> = Object.fromEntries(
+  Object.entries(TRANSAK_CRYPTO_IDS).map(([assetId, transakId]) => [
+    transakId,
+    assetId,
+  ]),
+);
+
+/**
+ * Transforms Transak crypto currency ID back to our internal crypto currency object
+ * @param transakCryptoId - The Transak crypto currency ID (e.g., 'USDC', 'USDT')
+ * @returns The internal DepositCryptoCurrency object
+ */
+export function getCryptoCurrencyFromTransakId(
+  transakCryptoId: string,
+): DepositCryptoCurrency | null {
+  const assetId = TRANSAK_ID_TO_ASSET_ID[transakCryptoId];
+
+  if (!assetId) {
+    return null;
+  }
+
+  return (
+    SUPPORTED_DEPOSIT_TOKENS.find((token) => token.assetId === assetId) || null
+  );
+}

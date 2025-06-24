@@ -25,9 +25,8 @@ import Icon, {
   IconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
 
-import { USDC_TOKEN, USDT_TOKEN } from '../../constants';
 import { strings } from '../../../../../../../locales/i18n';
-import { formatCurrency } from '../../utils';
+import { formatCurrency, getCryptoCurrencyFromTransakId } from '../../utils';
 import { selectChainId } from '../../../../../../selectors/networkController';
 import { selectEvmNetworkName } from '../../../../../../selectors/networkInfos';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
@@ -87,12 +86,7 @@ const OrderProcessing = () => {
       return null;
     }
 
-    if (order.data.cryptoCurrency === USDC_TOKEN.symbol) {
-      return USDC_TOKEN;
-    } else if (order.data.cryptoCurrency === USDT_TOKEN.symbol) {
-      return USDT_TOKEN;
-    }
-    return null;
+    return getCryptoCurrencyFromTransakId(order.data.cryptoCurrency);
   };
   const cryptoToken = getCryptoToken();
 
