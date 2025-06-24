@@ -51,6 +51,7 @@ app/reducers/fiatOrders/             @MetaMask/ramp
 # Confirmation Team
 app/components/Views/ActivityView                           @MetaMask/confirmations
 app/components/Views/MultichainTransactionsView             @MetaMask/confirmations
+app/components/UI/Transactions                              @MetaMask/confirmations
 app/components/Views/confirmations                          @MetaMask/confirmations
 app/core/Engine/controllers/gas-fee-controller              @MetaMask/confirmations
 app/core/Engine/controllers/signature-controller            @MetaMask/confirmations
