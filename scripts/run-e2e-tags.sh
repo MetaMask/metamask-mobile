@@ -7,36 +7,43 @@ set -euo pipefail
 BASE_DIR="./e2e/specs"
 # TEST_SUITE_TAG=".*SmokeEarn.*"
 
-echo "Searching for tests with pattern: $TEST_SUITE_TAG"
+# If E2E_TEST_FILE is set, use it directly
+if [[ -n "${E2E_TEST_FILE:-}" ]]; then
+    echo "E2E_TEST_FILE is set: $E2E_TEST_FILE"
+    # Support comma-separated list of files
+    IFS=',' read -ra FILES <<< "$E2E_TEST_FILE"
+    TEST_FILES="${FILES[*]}"
+    echo -e "\nRunning specified test file(s): $TEST_FILES"
+else
+    echo "Searching for tests with pattern: $TEST_SUITE_TAG"
 
-# Initialize an array to store matching files
-declare -a matching_files
+    # Initialize an array to store matching files
+    declare -a matching_files
 
-# Find matching files and store them in the array
-while IFS= read -r file; do
-    if [ -n "$file" ]; then
-        matching_files+=("$file")
-        echo "Found matching test: $file"
+    # Find matching files and store them in the array
+    while IFS= read -r file; do
+        if [ -n "$file" ]; then
+            matching_files+=("$file")
+            echo "Found matching test: $file"
+        fi
+    done < <(find "$BASE_DIR" -type f \( -name "*.spec.js" -o -name "*.spec.ts" \) -exec grep -l "$TEST_SUITE_TAG" {} \; | sort -u)
+
+    # Check if any files were found
+    if [ ${#matching_files[@]} -eq 0 ]; then
+        echo " No test files found containing pattern: $TEST_SUITE_TAG"
+        exit 1
     fi
-done < <(find "$BASE_DIR" -type f \( -name "*.spec.js" -o -name "*.spec.ts" \) -exec grep -l "$TEST_SUITE_TAG" {} \; | sort -u)
 
-# Check if any files were found
-if [ ${#matching_files[@]} -eq 0 ]; then
-    echo " No test files found containing pattern: $TEST_SUITE_TAG"
-    exit 1
+    # Display results
+    echo -e "\n Found ${#matching_files[@]} matching test files:"
+    printf '%s\n' "${matching_files[@]}" | sed 's/^/  - /'
+
+    # Join array elements with spaces to pass to test command
+    TEST_FILES="${matching_files[*]}"
+    echo -e "\nRunning matching tests..."
 fi
 
-# Display results
-echo -e "\n Found ${#matching_files[@]} matching test files:"
-printf '%s\n' "${matching_files[@]}" | sed 's/^/  - /'
-
 # Run all matching tests in a single command
-echo -e "\nRunning matching tests..."
-
-
-# Join array elements with spaces to pass to test command
-TEST_FILES="${matching_files[*]}"
-# yarn test:e2e:ios:debug:run $TEST_FILES
 if [[ "$BITRISE_TRIGGERED_WORKFLOW_ID" == *"ios"* ]]; then
     echo "Detected iOS workflow"
     IGNORE_BOXLOGS_DEVELOPMENT="true" \
