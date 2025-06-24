@@ -32,7 +32,7 @@ import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import { setCompletedOnboarding } from '../../../actions/onboarding';
 import createStyles from './index.styles';
 import CelebratingFox from '../../../animations/Celebrating_Fox.json';
-import SearchingFox from '../../../animations/Searching_Fox.json';
+import SearchingFox from '../../../animations/Solana_Fox.json';
 import LottieView from 'lottie-react-native';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 
@@ -82,6 +82,8 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     onDone();
   }, [onDone, dispatch]);
 
+  const searchingFoxAnimation = useMemo(() => SearchingFox as any, []);
+
   const renderContent = () => {
     switch (successFlow) {
       case ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP:
@@ -95,7 +97,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
               style={styles.walletReadyImage}
               autoPlay
               loop
-              source={SearchingFox}
+              source={searchingFoxAnimation}
               resizeMode="contain"
             />
             <View style={styles.descriptionWrapper}>

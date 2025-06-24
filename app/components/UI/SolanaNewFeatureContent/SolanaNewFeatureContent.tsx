@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Linking, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ScrollView } from 'react-native-gesture-handler';
 import LottieView from 'lottie-react-native';
+import type { AnimationObject } from 'lottie-react-native';
 
-import fox from '../../../animations/Solana_Fox.json';
+import SolanaFoxAnimation from '../../../animations/Solana_Fox.json';
 import { baseStyles, colors as importedColors } from '../../../styles/common';
 import Text, {
   TextVariant,
@@ -65,8 +66,6 @@ const SolanaNewFeatureContent = () => {
     navigate(Routes.WALLET.HOME, {
       screen: Routes.WALLET.HOME,
     });
-
-    // goBack();
   };
 
   const importAccountWithSRP = async () => {
@@ -98,6 +97,8 @@ const SolanaNewFeatureContent = () => {
         .build(),
     );
   };
+
+  const lottieSrc = useMemo(() => SolanaFoxAnimation as AnimationObject, []);
 
   return (
     <View
@@ -142,7 +143,7 @@ const SolanaNewFeatureContent = () => {
                 style={styles.image}
                 autoPlay
                 loop
-                source={fox}
+                source={lottieSrc}
                 resizeMode="contain"
               />
             </View>

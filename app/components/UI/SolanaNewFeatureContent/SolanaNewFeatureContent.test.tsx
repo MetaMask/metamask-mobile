@@ -100,7 +100,7 @@ describe('SolanaNewFeatureContent', () => {
     );
     expect(mockTrackEvent).toHaveBeenCalled();
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.FORCE_UPGRADE_REMIND_ME_LATER_CLICKED,
+      MetaMetricsEvents.SOLANA_NEW_FEATURE_CONTENT_NOT_NOW_CLICKED,
     );
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
       screen: Routes.WALLET.HOME,
