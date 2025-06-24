@@ -34,18 +34,4 @@ describe('ConfirmationContext', () => {
 
     expect(result.current.isTransactionValueUpdating).toBe(false);
   });
-
-  it('updates isConfirmationDismounting state when calling setIsConfirmationDismounting', () => {
-    const { result } = renderHook(() => useConfirmationContext(), { wrapper });
-
-    act(() => {
-      result.current.setIsConfirmationDismounting(true);
-    });
-
-    expect(result.current.isConfirmationDismounting).toBe(true);
-
-    act(() => {
-      result.current.setIsConfirmationDismounting(false);
-    });
-  });
 });

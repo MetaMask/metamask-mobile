@@ -1,14 +1,11 @@
 import {
   TransactionStatus,
   TransactionType,
+  TransactionMeta,
 } from '@metamask/transaction-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useSignedOrSubmittedAlert } from './useSignedOrSubmittedAlert';
-import { useConfirmationContext } from '../../context/confirmation-context';
-
-jest.mock('../../context/confirmation-context', () => ({
-  useConfirmationContext: jest.fn(),
-}));
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
 const MOCK_SIGNED_TRANSACTION_META = {
   id: '1',
@@ -26,14 +23,26 @@ const MOCK_APPROVED_TRANSACTION_META = {
   to: '0x456',
 };
 
+jest.mock('../transactions/useTransactionMetadataRequest', () => {
+  return {
+    useTransactionMetadataRequest: jest.fn().mockReturnValue({
+      id: '3',
+    }),
+  };
+});
+
 describe('useSignedOrSubmittedAlert', () => {
-  const mockUseConfirmationContext = jest.mocked(useConfirmationContext);
+  const mockUseTransactionMetadataRequest = jest.mocked(
+    useTransactionMetadataRequest,
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseConfirmationContext.mockReturnValue({
-      isConfirmationDismounting: false,
-    } as ReturnType<typeof useConfirmationContext>);
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      id: '3',
+      status: TransactionStatus.confirmed,
+      type: TransactionType.simpleSend,
+    } as TransactionMeta);
   });
 
   it('returns empty array if no transactions', () => {
@@ -54,10 +63,13 @@ describe('useSignedOrSubmittedAlert', () => {
     expect(result.current).toEqual([]);
   });
 
-  it('returns empty array if isConfirmationDismounting is true', () => {
-    mockUseConfirmationContext.mockReturnValue({
-      isConfirmationDismounting: true,
-    } as ReturnType<typeof useConfirmationContext>);
+  it('does not return alert if transaction metadata is present in the signed or approved transactions', () => {
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      id: '3',
+      status: TransactionStatus.approved,
+      type: TransactionType.simpleSend,
+    } as TransactionMeta);
+
     const { result } = renderHookWithProvider(
       () => useSignedOrSubmittedAlert(),
       {
@@ -65,7 +77,13 @@ describe('useSignedOrSubmittedAlert', () => {
           engine: {
             backgroundState: {
               TransactionController: {
-                transactions: [MOCK_SIGNED_TRANSACTION_META],
+                transactions: [
+                  {
+                    id: '3',
+                    status: TransactionStatus.approved,
+                    type: TransactionType.simpleSend,
+                  },
+                ],
               },
             },
           },
