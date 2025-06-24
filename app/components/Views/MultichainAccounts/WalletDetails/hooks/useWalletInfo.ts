@@ -15,10 +15,12 @@ export const useWalletInfo = (wallet: AccountWallet) => {
   const hdKeyringsWithSnapAccounts = useHdKeyringsWithSnapAccounts();
   const isSRPBackedUp = useSelector(selectSeedphraseBackedUp);
 
-  return useMemo(() => {
-    // Get accounts from the wallet (only call this once)
-    const accounts = getInternalAccountsFromWallet(wallet);
+  const accounts = useMemo(
+    () => getInternalAccountsFromWallet(wallet),
+    [wallet],
+  );
 
+  return useMemo(() => {
     if (accounts.length === 0) {
       return {
         accounts,
@@ -54,5 +56,5 @@ export const useWalletInfo = (wallet: AccountWallet) => {
       srpIndex,
       isSRPBackedUp,
     };
-  }, [wallet, hdKeyringsWithSnapAccounts, isSRPBackedUp]);
+  }, [accounts, hdKeyringsWithSnapAccounts, isSRPBackedUp]);
 };
