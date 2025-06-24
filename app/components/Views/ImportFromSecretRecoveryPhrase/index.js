@@ -813,11 +813,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                       {index + 1}.
                                     </Text>
                                   }
-                                  value={
-                                    seedPhraseInputFocusedIndex === index
-                                      ? item
-                                      : item
-                                  }
+                                  value={item}
                                   secureTextEntry={
                                     !canShowSeedPhraseWord(index)
                                   }
