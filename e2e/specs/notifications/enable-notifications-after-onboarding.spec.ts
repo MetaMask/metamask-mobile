@@ -1,4 +1,3 @@
-import type { DeviceLaunchAppConfig } from 'detox/detox';
 import type { Mockttp } from 'mockttp';
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 import TestHelpers from '../../helpers';

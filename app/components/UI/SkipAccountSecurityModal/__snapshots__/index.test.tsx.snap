@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SkipAccountSecurityModal with empty route params renders matches snapshot 1`] = `
+exports[`SkipAccountSecurityModal with empty route params render matches snapshot 1`] = `
 <div
   data-testid="mock-bottom-sheet"
 >
@@ -142,6 +142,7 @@ exports[`SkipAccountSecurityModal with empty route params renders matches snapsh
             "paddingHorizontal": 16,
           }
         }
+        testID="Cancel-Skip"
         type="Secondary"
       >
         <Text
@@ -206,7 +207,7 @@ exports[`SkipAccountSecurityModal with empty route params renders matches snapsh
 </div>
 `;
 
-exports[`SkipAccountSecurityModal with route params renders matches snapshot 1`] = `
+exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] = `
 <div
   data-testid="mock-bottom-sheet"
 >
@@ -348,6 +349,7 @@ exports[`SkipAccountSecurityModal with route params renders matches snapshot 1`]
             "paddingHorizontal": 16,
           }
         }
+        testID="Cancel-Skip"
         type="Secondary"
       >
         <Text

@@ -14,9 +14,13 @@ class Assertions {
    * @param timeout
    */
   static async checkIfVisible(element, timeout = TIMEOUT) {
-    return await waitFor(await element)
-      .toBeVisible()
-      .withTimeout(timeout);
+    return device.getPlatform() === 'ios'
+      ? await waitFor(await element)
+          .toExist()
+          .withTimeout(timeout)
+      : await waitFor(await element)
+          .toBeVisible()
+          .withTimeout(timeout);
   }
 
   /**
@@ -28,15 +32,12 @@ class Assertions {
     return await expect(await element).toExist();
   }
 
-
   /**
    * Check if an element with the specified ID is not visible.
    * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement | Detox.NativeElement>} element - The element to check.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
    */
   static async checkIfNotVisible(element, timeout = TIMEOUT) {
-    // rename this. We are checking if element is not visible.
-
     return await waitFor(await element)
       .not.toBeVisible()
       .withTimeout(timeout);
@@ -67,7 +68,6 @@ class Assertions {
       .toHaveLabel(label)
       .withTimeout(timeout);
   }
-
 
   /**
    * Check if text is visible.
@@ -213,14 +213,20 @@ class Assertions {
   }
 
   /**
-   * Check if a value is present (not null, not undefined, not an empty string).
+   * Check if a value is defined (not null, not undefined, not an empty string).
+   * Also evaluates a Boolean value.
    * Note: This assertion does not test UI elements. It is intended for testing values such as events from the mock server or other non-UI data.
    * @param {*} value - The value to check.
    */
-  static async checkIfValueIsPresent(value) {
-    if (value === null || value === undefined || value === '') {
+  static async checkIfValueIsDefined(value) {
+    // 0 evaluates to false, so we need to handle it separately
+    if (typeof value === 'number') {
+      return;
+    }
+
+    if (!value) {
       throw new Error(
-        'Value is not present (null, undefined, or empty string)',
+        'Value is not present (falsy value)',
       );
     }
   }
@@ -232,39 +238,60 @@ class Assertions {
    * @param {Object} partial - The partial object with expected key/value pairs
    * @param {boolean} deep - Whether to perform deep comparison for nested objects (default: true)
    */
-  static checkIfObjectContains(actual, partial, deep = true) {
-    const errors = [];
+  static async checkIfObjectContains(actual, partial, deep = true) {
+    return new Promise((resolve, reject) => {
+      const errors = [];
 
-    function check(actualObj, partialObj, path = '') {
-      if (typeof actualObj !== 'object' || typeof partialObj !== 'object' || actualObj === null || partialObj === null) {
-        if (actualObj !== partialObj) {
-          errors.push(`Value mismatch at "${path || 'root'}": expected ${JSON.stringify(partialObj)}, got ${JSON.stringify(actualObj)}`);
+      function check(actualObj, partialObj, path = '') {
+        if (
+          typeof actualObj !== 'object' ||
+          typeof partialObj !== 'object' ||
+          actualObj === null ||
+          partialObj === null
+        ) {
+          if (actualObj !== partialObj) {
+            errors.push(
+              `Value mismatch at "${path || 'root'}": expected ${JSON.stringify(
+                partialObj,
+              )}, got ${JSON.stringify(actualObj)}`,
+            );
+          }
+          return;
         }
-        return;
+
+        for (const key in partialObj) {
+          const currentPath = path ? `${path}.${key}` : key;
+          if (!Object.prototype.hasOwnProperty.call(actualObj, key)) {
+            errors.push(`Missing key at "${currentPath}" in actual object`);
+            continue;
+          }
+
+          if (
+            deep &&
+            typeof partialObj[key] === 'object' &&
+            partialObj[key] !== null
+          ) {
+            check(actualObj[key], partialObj[key], currentPath);
+          } else if (actualObj[key] !== partialObj[key]) {
+            errors.push(
+              `Value mismatch at "${currentPath}": expected ${JSON.stringify(
+                partialObj[key],
+              )}, got ${JSON.stringify(actualObj[key])}`,
+            );
+          }
+        }
       }
 
-      for (const key in partialObj) {
-        const currentPath = path ? `${path}.${key}` : key;
-        if (!Object.prototype.hasOwnProperty.call(actualObj, key)) {
-          errors.push(`Missing key at "${currentPath}" in actual object`);
-          continue;
-        }
+      check(actual, partial);
 
-        if (deep && typeof partialObj[key] === 'object' && partialObj[key] !== null) {
-          check(actualObj[key], partialObj[key], currentPath);
-        } else if (actualObj[key] !== partialObj[key]) {
-          errors.push(
-            `Value mismatch at "${currentPath}": expected ${JSON.stringify(partialObj[key])}, got ${JSON.stringify(actualObj[key])}`
-          );
-        }
+      if (errors.length > 0) {
+        reject(
+          new Error('Object contains assertion failed:\n' + errors.join('\n')),
+        );
+      } else {
+        resolve();
       }
-    }
-
-    check(actual, partial);
-
-    if (errors.length > 0) {
-      throw new Error('Object contains assertion failed:\n' + errors.join('\n'));
-    }
+    });
   }
 
    /**
@@ -336,9 +363,7 @@ class Assertions {
    */
   static async checkIfLabelContainsText(text, timeout = TIMEOUT) {
     const labelMatcher = element(by.label(new RegExp(text)));
-    return await waitFor(labelMatcher)
-      .toExist()
-      .withTimeout(timeout);
+    return await waitFor(labelMatcher).toExist().withTimeout(timeout);
   }
 }
 

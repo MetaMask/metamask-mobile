@@ -15,7 +15,7 @@ const styleSheet = (params: { theme: Theme }) => {
     badgeWrapper: {
       alignSelf: 'center',
     },
-    balances: {
+    balanceInfo: {
       flex: 1,
       justifyContent: 'flex-start',
       // marginLeft: 20,

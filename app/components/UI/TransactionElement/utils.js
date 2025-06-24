@@ -909,15 +909,7 @@ function decodeSwapsTx(args) {
  * currentCurrency, exchangeRate, contractExchangeRates, collectibleContracts, tokens
  */
 export default async function decodeTransaction(args) {
-  const {
-    tx,
-    selectedAddress,
-    chainId,
-    networkConfigurationsByChainId,
-    txChainId,
-    swapsTransactions = {},
-  } = args;
-  const ticker = networkConfigurationsByChainId?.[txChainId]?.nativeCurrency;
+  const { tx, selectedAddress, chainId, swapsTransactions = {}, ticker } = args;
   const chainIdToUse = tx.chainId || chainId;
   const { isTransfer } = tx || {};
 

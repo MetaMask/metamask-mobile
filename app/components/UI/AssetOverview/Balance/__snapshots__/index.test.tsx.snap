@@ -35,7 +35,7 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
         "flex": 1,
         "flexDirection": "row",
         "paddingHorizontal": 15,
-        "paddingVertical": 10,
+        "paddingVertical": 14,
       }
     }
     testID="asset-DAI"
@@ -178,9 +178,9 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
             "alignSelf": "flex-start",
             "color": "#121314",
             "flex": 1,
-            "fontFamily": "CentraNo1-Medium",
-            "fontSize": 18,
-            "fontWeight": "500",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
+            "fontWeight": "400",
             "justifyContent": "flex-start",
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -196,10 +196,10 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
             {
               "color": "#ca3542",
               "fontFamily": "CentraNo1-Medium",
-              "fontSize": 16,
+              "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 24,
+              "lineHeight": 22,
             }
           }
         />
@@ -219,9 +219,9 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Medium",
-            "fontSize": 18,
-            "fontWeight": "500",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
+            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -236,10 +236,10 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
           {
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
             "paddingHorizontal": 0,
           }
         }
@@ -287,7 +287,7 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
         "flex": 1,
         "flexDirection": "row",
         "paddingHorizontal": 15,
-        "paddingVertical": 10,
+        "paddingVertical": 14,
       }
     }
     testID="asset-DAI"
@@ -430,9 +430,9 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
             "alignSelf": "flex-start",
             "color": "#121314",
             "flex": 1,
-            "fontFamily": "CentraNo1-Medium",
-            "fontSize": 18,
-            "fontWeight": "500",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
+            "fontWeight": "400",
             "justifyContent": "flex-start",
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -448,10 +448,10 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
             {
               "color": "#ca3542",
               "fontFamily": "CentraNo1-Medium",
-              "fontSize": 16,
+              "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 24,
+              "lineHeight": 22,
             }
           }
         />
@@ -471,9 +471,9 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Medium",
-            "fontSize": 18,
-            "fontWeight": "500",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
+            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }

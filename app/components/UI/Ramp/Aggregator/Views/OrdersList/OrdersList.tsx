@@ -25,7 +25,7 @@ import { FiatOrder, getOrders } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 
-type filterType = 'ALL' | OrderOrderTypeEnum;
+type filterType = 'ALL' | 'PURCHASE' | 'SELL';
 
 interface FilterButtonProps extends Omit<ButtonProps, 'variant' | 'size'> {
   readonly selected?: boolean;
@@ -52,9 +52,18 @@ function OrdersList() {
   const navigation = useNavigation();
   const allOrders = useSelector(getOrders);
   const [currentFilter, setCurrentFilter] = useState<filterType>('ALL');
-  const orders = allOrders.filter(
-    (order) => currentFilter === 'ALL' || order.orderType === currentFilter,
-  );
+  const orders = allOrders.filter((order) => {
+    if (currentFilter === 'PURCHASE') {
+      return (
+        order.orderType === OrderOrderTypeEnum.Buy ||
+        order.orderType === 'DEPOSIT'
+      );
+    }
+    if (currentFilter === 'SELL') {
+      return order.orderType === OrderOrderTypeEnum.Sell;
+    }
+    return true;
+  });
 
   const handleNavigateToTxDetails = useCallback(
     (orderId: string) => {
@@ -96,13 +105,13 @@ function OrdersList() {
             />
             <FilterButton
               label={strings('fiat_on_ramp_aggregator.Purchased')}
-              onPress={() => setCurrentFilter(OrderOrderTypeEnum.Buy)}
-              selected={currentFilter === OrderOrderTypeEnum.Buy}
+              onPress={() => setCurrentFilter('PURCHASE')}
+              selected={currentFilter === 'PURCHASE'}
             />
             <FilterButton
               label={strings('fiat_on_ramp_aggregator.Sold')}
-              onPress={() => setCurrentFilter(OrderOrderTypeEnum.Sell)}
-              selected={currentFilter === OrderOrderTypeEnum.Sell}
+              onPress={() => setCurrentFilter('SELL')}
+              selected={currentFilter === 'SELL'}
             />
           </Row>
         </ScrollView>
@@ -117,10 +126,10 @@ function OrdersList() {
             color={TextColor.Muted}
             style={styles.emptyMessage}
           >
-            {currentFilter === OrderOrderTypeEnum.Buy
+            {currentFilter === 'PURCHASE'
               ? strings('fiat_on_ramp_aggregator.empty_buy_orders_list')
               : null}
-            {currentFilter === OrderOrderTypeEnum.Sell
+            {currentFilter === 'SELL'
               ? strings('fiat_on_ramp_aggregator.empty_sell_orders_list')
               : null}
           </Text>

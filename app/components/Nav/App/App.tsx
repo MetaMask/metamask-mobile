@@ -64,7 +64,6 @@ import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
-import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
 import { RestoreWallet } from '../../Views/RestoreWallet';
@@ -142,6 +141,10 @@ import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
 import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
 import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
+import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
+import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
+import { DeepLinkModal } from '../../UI/DeepLinkModal';
+import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -158,34 +161,11 @@ const clearStackNavigatorOptions = {
 
 const Stack = createStackNavigator();
 
-const OnboardingSuccessComponent = () => {
-  const navigation = useNavigation();
-  return (
-    <OnboardingSuccess
-      onDone={() => navigation.reset({ routes: [{ name: 'HomeNav' }] })}
-    />
-  );
-};
-
-const OnboardingSuccessComponentNoSRP = () => {
-  const navigation = useNavigation();
-  return (
-    <OnboardingSuccess
-      noSRP
-      onDone={() =>
-        navigation.reset({
-          routes: [{ name: 'HomeNav' }],
-        })
-      }
-    />
-  );
-};
-
 const OnboardingSuccessFlow = () => (
   <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
     <Stack.Screen
       name={Routes.ONBOARDING.SUCCESS}
-      component={OnboardingSuccessComponent} // Used in SRP flow
+      component={OnboardingSuccess} // Used in SRP flow
     />
     <Stack.Screen
       name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
@@ -223,7 +203,7 @@ const OnboardingNav = () => (
     />
     <Stack.Screen
       name={Routes.ONBOARDING.SUCCESS}
-      component={OnboardingSuccessComponentNoSRP} // Used in SRP flow
+      component={OnboardingSuccess} // Used in SRP flow
     />
     <Stack.Screen
       name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
@@ -443,10 +423,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
     <Stack.Screen name={'NftOptions'} component={NftOptions} />
     <Stack.Screen name={Routes.MODAL.UPDATE_NEEDED} component={UpdateNeeded} />
-    <Stack.Screen
-      name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
-      component={EnableAutomaticSecurityChecksModal}
-    />
     {
       <Stack.Screen
         name={Routes.SHEET.SELECT_SRP}
@@ -497,6 +473,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={ChangeInSimulationModal}
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
+    <Stack.Screen
+      name={Routes.MODAL.DEEP_LINK_MODAL}
+      component={DeepLinkModal}
+    />
   </Stack.Navigator>
 );
 
@@ -591,15 +571,38 @@ const MultichainAccountDetails = () => {
         component={DeleteAccount}
         initialParams={route?.params}
       />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL}
+        component={RevealPrivateKey}
+        initialParams={route?.params}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_SRP_CREDENTIAL}
+        component={RevealSRP}
+        initialParams={route?.params}
+      />
     </Stack.Navigator>
   );
 };
 
-const FlatConfirmationRequest = () => (
-  <Stack.Navigator>
-    <Stack.Screen name={Routes.CONFIRMATION_REQUEST_FLAT} component={Confirm} />
-  </Stack.Navigator>
-);
+const MultichainWalletDetails = () => {
+  const route = useRoute();
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animationEnabled: false,
+      }}
+    >
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
+        component={WalletDetails}
+        initialParams={route?.params}
+      />
+    </Stack.Navigator>
+  );
+};
 
 const ModalConfirmationRequest = () => (
   <Stack.Navigator
@@ -711,6 +714,10 @@ const AppFlow = () => {
         component={MultichainAccountDetails}
       />
       <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
+        component={MultichainWalletDetails}
+      />
+      <Stack.Screen
         options={{
           //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
           cardStyle: { backgroundColor: importedColors.transparent },
@@ -758,10 +765,6 @@ const AppFlow = () => {
         name={Routes.LOCK_SCREEN}
         component={LockScreen}
         options={{ gestureEnabled: false }}
-      />
-      <Stack.Screen
-        name={Routes.CONFIRMATION_REQUEST_FLAT}
-        component={FlatConfirmationRequest}
       />
       <Stack.Screen
         name={Routes.CONFIRMATION_REQUEST_MODAL}

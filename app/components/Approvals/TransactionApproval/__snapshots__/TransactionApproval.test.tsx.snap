@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`TransactionApproval renders QR signing modal if signing QR object 1`] = `
+exports[`TransactionApproval renders QR signing modal if signing QR object is exists 1`] = `
 <QRSigningModal
   QRState={
     {

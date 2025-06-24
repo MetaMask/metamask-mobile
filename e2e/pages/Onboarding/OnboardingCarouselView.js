@@ -7,7 +7,9 @@ import Gestures from '../../utils/Gestures';
 
 class OnboardingCarouselView {
   get container() {
-    return Matchers.getElementByID(OnboardingCarouselSelectorIDs.CONTAINER_ID);
+    return Matchers.getElementByID(
+      OnboardingCarouselSelectorIDs.CAROUSEL_CONTAINER_ID,
+    );
   }
 
   get getStartedButton() {

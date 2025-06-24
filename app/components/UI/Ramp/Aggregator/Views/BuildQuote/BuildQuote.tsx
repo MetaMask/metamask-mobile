@@ -316,8 +316,11 @@ const BuildQuote = () => {
   }, [amountBNMinimalUnit, isBuy, maxSellAmount]);
 
   const hasInsufficientBalance = useMemo(() => {
-    if (!balanceBN || !amountBNMinimalUnit) {
+    if (!amountBNMinimalUnit || amountBNMinimalUnit.isZero()) {
       return false;
+    }
+    if (!balanceBN) {
+      return true;
     }
     return balanceBN.lt(amountBNMinimalUnit);
   }, [balanceBN, amountBNMinimalUnit]);
