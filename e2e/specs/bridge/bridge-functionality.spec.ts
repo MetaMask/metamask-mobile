@@ -106,8 +106,8 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await TabBarComponent.tapActions();
     await TestHelpers.delay(500);
     await WalletActionsBottomSheet.tapBridgeButton();
-    await device.disableSynchronization();
-    await QuoteView.enterBridgeAmount('1');
+gi
+    await QuoteView.enterAmount('1');
     await QuoteView.tapBridgeTo();
     await TestHelpers.delay(1000);
     await QuoteView.selectNetwork('Solana');
@@ -117,7 +117,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
     await Assertions.checkIfVisible(QuoteView.confirmButton);
     await QuoteView.tapConfirm();
-    await TestHelpers.delay(1000);
+    await TestHelpers.delay(1000);gi
     // Check the bridge activity completed
     await TabBarComponent.tapActivity();
     await Assertions.checkIfVisible(ActivitiesView.title);
@@ -288,9 +288,8 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await TabBarComponent.tapActions();
     await TestHelpers.delay(500);
     await WalletActionsBottomSheet.tapBridgeButton();
-    await TestHelpers.delay(1000);
-    await QuoteView.enterBridgeAmount('1');
-    await TestHelpers.delay(500);
+    await device.disableSynchronization();
+    await QuoteView.enterAmount('1');
     await QuoteView.tapBridgeTo();
     await TestHelpers.delay(1000);
     await QuoteView.selectNetwork('Base');
@@ -328,8 +327,8 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await TabBarComponent.tapActions();
     await TestHelpers.delay(500);
     await WalletActionsBottomSheet.tapBridgeButton();
-    await TestHelpers.delay(1000);
-    await QuoteView.enterBridgeAmount('1');
+    await device.disableSynchronization();
+    await QuoteView.enterAmount('1');
     await QuoteView.tapBridgeTo();
     await TestHelpers.delay(1000);
     await QuoteView.selectNetwork('OP Mainnet');

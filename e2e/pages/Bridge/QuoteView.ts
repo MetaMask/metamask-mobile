@@ -26,7 +26,7 @@ class QuoteView {
     return Matchers.getElementByID(`asset-${symbol}`);
   }
 
-  async enterBridgeAmount(amount: string): Promise<void> {
+  async enterAmount(amount: string): Promise<void> {
   for (const digit of amount) {
     const button = Matchers.getElementByText(digit);
     await Gestures.waitAndTap(button);

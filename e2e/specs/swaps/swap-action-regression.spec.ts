@@ -1,9 +1,7 @@
 'use strict';
 import { ethers } from 'ethers';
-import type { IndexableNativeElement } from 'detox/detox';
 import { loginToApp } from '../../viewHelper';
-import QuoteView from '../../pages/swaps/QuoteView';
-import SwapView from '../../pages/swaps/SwapView';
+import { isUnifiedUIEnabledForChain } from './helpers/prepareSwapsTestEnvironment';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
@@ -16,8 +14,6 @@ import {
   stopFixtureServer,
 } from '../../fixtures/fixture-helper';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
@@ -29,20 +25,23 @@ import Assertions from '../../utils/Assertions';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
-
+import { submitSwapLegacyUI } from './helpers/swapLegacyUI';
+import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
 import Tenderly from '../../tenderly';
 
 const fixtureServer = new FixtureServer();
-const firstElement: number = 0;
 
 describe(Regression('Multiple Swaps from Actions'), () => {
   const FIRST_ROW: number = 0;
   const SECOND_ROW: number = 1;
-  let currentNetwork: string = CustomNetworks.Tenderly.Mainnet.providerConfig.nickname;
   const wallet: ethers.Wallet = ethers.Wallet.createRandom();
+  let isUnifiedUIEnabled: boolean | undefined;
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
+
+    isUnifiedUIEnabled = await isUnifiedUIEnabledForChain('1');
+
     await Tenderly.addFunds(
       CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
       wallet.address,
@@ -92,76 +91,28 @@ describe(Regression('Multiple Swaps from Actions'), () => {
     ${'erc20'}      | ${'10'}  | ${'DAI'}          | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
   `(
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
-    async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }) => {
+    async ({ type, quantity, sourceTokenSymbol, destTokenSymbol }) => {
       await TabBarComponent.tapWallet();
-
-      if (network.providerConfig.nickname !== currentNetwork) {
-        await WalletView.tapNetworksButtonOnNavBar();
-        await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle as Promise<IndexableNativeElement>);
-        await NetworkListModal.changeNetworkTo(
-          network.providerConfig.nickname,
-          false,
-        );
-        await NetworkEducationModal.tapGotItButton();
-        await TestHelpers.delay(3000);
-        currentNetwork = network.providerConfig.nickname;
-      }
-
       await Assertions.checkIfVisible(WalletView.container);
       await TabBarComponent.tapActions();
       await WalletActionsBottomSheet.tapSwapButton();
 
-      await Assertions.checkIfVisible(QuoteView.getQuotes);
-
-      //Select source token, if native token can skip because already selected
-      if (type !== 'native' && type !== 'wrap') {
-        await QuoteView.tapOnSelectSourceToken();
-        await QuoteView.tapSearchToken();
-        await QuoteView.typeSearchToken(sourceTokenSymbol);
-        await TestHelpers.delay(2000);
-        await QuoteView.selectToken(sourceTokenSymbol);
-      }
-      await QuoteView.enterSwapAmount(quantity);
-
-      //Select destination token
-      await QuoteView.tapOnSelectDestToken();
-      if (destTokenSymbol !== 'ETH') {
-        await QuoteView.tapSearchToken();
-        await QuoteView.typeSearchToken(destTokenSymbol);
-        await TestHelpers.delay(2000);
-        await QuoteView.selectToken(destTokenSymbol);
-      } else await QuoteView.selectToken(destTokenSymbol, firstElement);
-
-      //Make sure slippage is zero for wrapped tokens
-      if (sourceTokenSymbol === 'WETH' || destTokenSymbol === 'WETH') {
-        await Assertions.checkIfElementToHaveText(
-          QuoteView.maxSlippage,
-          'Max slippage 0%',
+      // Submit the Swap
+      if (isUnifiedUIEnabled) {
+        await submitSwapLegacyUI(
+          type,
+          quantity,
+          sourceTokenSymbol,
+          destTokenSymbol,
+        );
+      } else {
+        await submitSwapUnifiedUI(
+          type,
+          quantity,
+          sourceTokenSymbol,
+          destTokenSymbol,
         );
       }
-      // This call is needed because otherwise the device never becomes idle
-      await device.disableSynchronization();
-
-      await QuoteView.tapOnGetQuotes();
-      await Assertions.checkIfVisible(SwapView.quoteSummary);
-      await Assertions.checkIfVisible(SwapView.gasFee);
-      await SwapView.tapIUnderstandPriceWarning();
-      await SwapView.tapSwapButton();
-      //Wait for Swap to complete
-      try {
-        await Assertions.checkIfTextIsDisplayed(
-          SwapView.generateSwapCompleteLabel(
-            sourceTokenSymbol,
-            destTokenSymbol,
-          ),
-          30000,
-        );
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.log(`Swap complete didn't pop up: ${e}`);
-      }
-      await device.enableSynchronization();
-      await TestHelpers.delay(10000);
 
       // Check the swap activity completed
       await TabBarComponent.tapActivity();
@@ -169,15 +120,24 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       await Assertions.checkIfVisible(
         ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
       );
-      await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(FIRST_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
+      await Assertions.checkIfElementToHaveText(
+        ActivitiesView.transactionStatus(FIRST_ROW),
+        ActivitiesViewSelectorsText.CONFIRM_TEXT,
+        120000,
+      );
 
       // Check the token approval completed
       if (type === 'unapproved') {
         await Assertions.checkIfVisible(
           ActivitiesView.tokenApprovalActivity(sourceTokenSymbol),
         );
-        await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(SECOND_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
+        await Assertions.checkIfElementToHaveText(
+          ActivitiesView.transactionStatus(SECOND_ROW),
+          ActivitiesViewSelectorsText.CONFIRM_TEXT,
+          120000,
+        );
       }
     },
   );
 });
+
