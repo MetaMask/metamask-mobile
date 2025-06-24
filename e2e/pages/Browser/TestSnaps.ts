@@ -21,10 +21,6 @@ export const TEST_SNAPS_URL =
   'https://metamask.github.io/snaps/test-snaps/2.23.1/';
 
 class TestSnaps {
-  get container() {
-    return Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID);
-  }
-
   get getConnectSnapButton() {
     return Matchers.getElementByID(SNAP_INSTALL_CONNECT);
   }
@@ -122,10 +118,6 @@ class TestSnaps {
       TestSnapInputSelectorWebIDS[locator],
     ) as Promise<IndexableWebElement>;
     await Gestures.typeInWebElement(webElement, message);
-  }
-
-  async swipeUpSmall() {
-    await Gestures.swipe(this.container as any, 'up', 'slow', 0.2);
   }
 
   async approveSignRequest() {

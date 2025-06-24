@@ -66,7 +66,6 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
     await TestSnaps.fillMessage('messageBip44Input', customMessage);
     await TestSnaps.tapButton('signMessageBip44Button');
     await TestSnaps.approveSignRequest();
-    await TestSnaps.swipeUpSmall();
     await TestSnaps.checkResultSpan(
       'bip44SignResultSpan',
       EXPECTED_CUSTOM_SIGNATURE,
