@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { View, TouchableOpacity, Image, Linking } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useSelector } from 'react-redux';
@@ -26,8 +26,8 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 
 import { USDC_TOKEN, USDT_TOKEN } from '../../constants';
-import { getIntlNumberFormatter } from '../../../../../../util/intl';
-import I18n, { strings } from '../../../../../../../locales/i18n';
+import { strings } from '../../../../../../../locales/i18n';
+import { formatCurrency } from '../../utils';
 import { selectChainId } from '../../../../../../selectors/networkController';
 import { selectEvmNetworkName } from '../../../../../../selectors/networkInfos';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
@@ -57,15 +57,6 @@ export const createOrderProcessingNavDetails =
     Routes.DEPOSIT.ORDER_PROCESSING,
   );
 
-function formatCurrency(amount: number | string, currency: string): string {
-  const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-  return getIntlNumberFormatter(I18n.locale, {
-    style: 'currency',
-    currency: currency || 'USD',
-    currencyDisplay: 'symbol',
-  }).format(numAmount);
-}
-
 const OrderProcessing = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
@@ -87,20 +78,25 @@ const OrderProcessing = () => {
 
   const isDepositOrder = useCallback(
     (data: unknown): data is DepositOrder =>
-      data !== null && typeof data === 'object' && 'providerOrderLink' in data,
+      data !== null && typeof data === 'object',
     [],
   );
 
-  const cryptoToken = useMemo(() => {
-    if (order?.cryptocurrency === 'USDC') {
+  const getCryptoToken = () => {
+    if (!isDepositOrder(order?.data)) {
+      return null;
+    }
+
+    if (order.data.cryptoCurrency === USDC_TOKEN.symbol) {
       return USDC_TOKEN;
-    } else if (order?.cryptocurrency === 'USDT') {
+    } else if (order.data.cryptoCurrency === USDT_TOKEN.symbol) {
       return USDT_TOKEN;
     }
     return null;
-  }, [order]);
+  };
+  const cryptoToken = getCryptoToken();
 
-  const orderState = useMemo(() => {
+  const getOrderState = () => {
     if (order?.state === FIAT_ORDER_STATES.COMPLETED) {
       return OrderStatus.SUCCESS;
     } else if (
@@ -110,7 +106,8 @@ const OrderProcessing = () => {
       return OrderStatus.ERROR;
     }
     return OrderStatus.PROCESSING;
-  }, [order]);
+  };
+  const orderState = getOrderState();
 
   const getIconContainerStyle = () => {
     switch (orderState) {
@@ -144,7 +141,7 @@ const OrderProcessing = () => {
   }, []);
 
   const handleViewInTransak = useCallback(() => {
-    if (order?.data && isDepositOrder(order.data)) {
+    if (isDepositOrder(order?.data) && order.data.providerOrderLink) {
       Linking.openURL(order.data.providerOrderLink);
     }
   }, [order?.data, isDepositOrder]);
@@ -327,7 +324,7 @@ const OrderProcessing = () => {
             </View>
           </View>
 
-          {order?.data && isDepositOrder(order.data) && (
+          {isDepositOrder(order.data) && order.data.providerOrderLink && (
             <TouchableOpacity
               style={styles.transakLink}
               onPress={handleViewInTransak}

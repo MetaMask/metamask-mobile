@@ -29,8 +29,9 @@ import {
 } from '../constants';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
-import { strings } from '../../../../../../locales/i18n';
 import { renderNumber } from '../../../../../util/number';
+import { getIntlNumberFormatter } from '../../../../../util/intl';
+import I18n, { strings } from '../../../../../../locales/i18n';
 
 const TRANSAK_CRYPTO_IDS: Record<string, string> = {
   'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': 'USDC',
@@ -106,6 +107,36 @@ export function getTransakPaymentMethodId(
     throw new Error(`Unsupported payment method: ${paymentMethod.id}`);
   }
   return transakId;
+}
+
+/**
+ * Formats currency amounts using the device's locale
+ * @param amount - The amount to format (number or string)
+ * @param currency - The currency code (e.g., 'USD', 'EUR')
+ * @param options - Additional formatting options
+ * @returns Formatted currency string
+ */
+export function formatCurrency(
+  amount: number | string,
+  currency: string,
+  options?: Intl.NumberFormatOptions,
+): string {
+  try {
+    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+    const defaultOptions: Intl.NumberFormatOptions = {
+      style: 'currency',
+      currency: currency || 'USD',
+      currencyDisplay: 'symbol',
+    };
+
+    return getIntlNumberFormatter(I18n.locale, {
+      ...defaultOptions,
+      ...options,
+    }).format(numAmount);
+  } catch (error) {
+    console.error('Error formatting currency:', error);
+    return amount.toString();
+  }
 }
 
 const NOTIFICATION_DURATION = 5000;

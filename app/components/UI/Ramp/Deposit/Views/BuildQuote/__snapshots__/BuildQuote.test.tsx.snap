@@ -476,9 +476,7 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                     "textAlign": "center",
                                   }
                                 }
-                              >
-                                $0.00
-                              </Text>
+                              />
                               <Text
                                 accessibilityRole="text"
                                 style={
@@ -1980,9 +1978,7 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                     "textAlign": "center",
                                   }
                                 }
-                              >
-                                $0.00
-                              </Text>
+                              />
                               <Text
                                 accessibilityRole="text"
                                 style={
@@ -3484,9 +3480,7 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                     "textAlign": "center",
                                   }
                                 }
-                              >
-                                $0.00
-                              </Text>
+                              />
                               <Text
                                 accessibilityRole="text"
                                 style={
@@ -4964,9 +4958,7 @@ exports[`BuildQuote Component Continue button functionality renders unexpected e
                                     "textAlign": "center",
                                   }
                                 }
-                              >
-                                $0.00
-                              </Text>
+                              />
                               <Text
                                 accessibilityRole="text"
                                 style={
@@ -6468,9 +6460,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                     "textAlign": "center",
                                   }
                                 }
-                              >
-                                $0.00
-                              </Text>
+                              />
                               <Text
                                 accessibilityRole="text"
                                 style={
@@ -7948,9 +7938,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                     "textAlign": "center",
                                   }
                                 }
-                              >
-                                $1.00
-                              </Text>
+                              />
                               <Text
                                 accessibilityRole="text"
                                 style={
@@ -9428,9 +9416,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                     "textAlign": "center",
                                   }
                                 }
-                              >
-                                $0.00
-                              </Text>
+                              />
                               <Text
                                 accessibilityRole="text"
                                 style={
@@ -10908,9 +10894,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                     "textAlign": "center",
                                   }
                                 }
-                              >
-                                $0.00
-                              </Text>
+                              />
                               <Text
                                 accessibilityRole="text"
                                 style={
@@ -14240,9 +14224,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                     "textAlign": "center",
                                   }
                                 }
-                              >
-                                €0.00
-                              </Text>
+                              />
                               <Text
                                 accessibilityRole="text"
                                 style={
@@ -17572,9 +17554,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                     "textAlign": "center",
                                   }
                                 }
-                              >
-                                $0.00
-                              </Text>
+                              />
                               <Text
                                 accessibilityRole="text"
                                 style={

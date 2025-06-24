@@ -5,6 +5,7 @@ import {
   getTransakChainId,
   getTransakPaymentMethodId,
   getNotificationDetails,
+  formatCurrency,
 } from '.';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import {
@@ -31,6 +32,25 @@ describe('formatUSPhoneNumber', () => {
     expect(formatUSPhoneNumber('1234567890')).toBe('(123) 456-7890');
     expect(formatUSPhoneNumber('123')).toBe('(123');
     expect(formatUSPhoneNumber('123456')).toBe('(123) 456');
+  });
+});
+
+describe('formatCurrency', () => {
+  it('should format currency amounts correctly', () => {
+    expect(formatCurrency(100, 'USD')).toBe('$100.00');
+    expect(formatCurrency('50.5', 'EUR')).toBe('€50.50');
+    expect(formatCurrency(0, 'USD')).toBe('$0.00');
+  });
+
+  it('should handle custom options', () => {
+    const result = formatCurrency(100, 'USD', {
+      currencyDisplay: 'narrowSymbol',
+    });
+    expect(result).toBe('$100.00');
+  });
+
+  it('should default to USD when no currency provided', () => {
+    expect(formatCurrency(100, '')).toBe('$100.00');
   });
 });
 

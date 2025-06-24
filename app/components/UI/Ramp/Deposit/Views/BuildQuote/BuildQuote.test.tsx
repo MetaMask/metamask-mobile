@@ -80,6 +80,7 @@ jest.mock('../../utils', () => ({
   getTransakChainId: (chainId: string) => mockGetTransakChainId(chainId),
   getTransakPaymentMethodId: (paymentMethod: DepositPaymentMethod) =>
     mockGetTransakPaymentMethodId(paymentMethod),
+  formatCurrency: jest.fn(),
 }));
 
 jest.mock('../ProviderWebview/ProviderWebview', () => ({
