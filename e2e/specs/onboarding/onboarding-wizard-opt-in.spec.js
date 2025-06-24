@@ -211,16 +211,16 @@ describe(
         await Assertions.checkIfVisible(WalletView.container);
         return;
       } catch (error) {
-        console.log('Not on wallet screen, checking for intermediate screens...');
+        // Not on wallet screen, checking for intermediate screens
       }
 
       // Check for marketing consent modal
       try {
         await Assertions.checkIfVisible(ExperienceEnhancerBottomSheet.container);
         await ExperienceEnhancerBottomSheet.tapIAgree();
-        console.log('Dismissed marketing consent modal');
+        // Dismissed marketing consent modal
       } catch (error) {
-        console.log('No marketing consent modal found');
+        // No marketing consent modal found
       }
 
       // Check for protect your wallet modal
@@ -230,9 +230,9 @@ describe(
         await ProtectYourWalletModal.tapRemindMeLaterButton();
         await SkipAccountSecurityModal.tapIUnderstandCheckBox();
         await SkipAccountSecurityModal.tapSkipButton();
-        console.log('Dismissed protect your wallet modal');
+        // Dismissed protect your wallet modal
       } catch (error) {
-        console.log('No protect your wallet modal found');
+        // No protect your wallet modal found
       }
 
       // Now check if we're on wallet screen
@@ -315,7 +315,6 @@ describe(
             }, 'Wallet Security Reminder Dismissed tracked');
 
           } catch (error) {
-            console.log('Protect your wallet modal not found, continuing with test');
             // Ensure we're on the wallet screen even if modal didn't appear
             await Assertions.checkIfVisible(WalletView.container);
             
@@ -398,7 +397,7 @@ describe(
             await Assertions.checkIfVisible(LoginView.container);
             await LoginView.enterPassword(PASSWORD);
           } catch (error) {
-            console.log('Login screen not found, checking if already logged in');
+            // Login screen not found, checking if already logged in
           }
           
           await Assertions.checkIfVisible(WalletView.container);
