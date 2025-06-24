@@ -70,6 +70,34 @@ const styleSheet = (params: { theme: Theme }) => {
   });
 };
 
+const InputComponent = forwardRef<TextInput, any>((props, ref) => {
+  console.log('renering input component');
+
+  const { styles, theme, selectedRegion, handleFlagPress, ...rest } = props;
+  return (
+    <View style={styles.textFieldWrapper}>
+      <TouchableOpacity
+        onPress={handleFlagPress}
+        accessibilityRole="button"
+        accessible
+        style={styles.countryPrefix}
+      >
+        <Text style={styles.countryFlag}>{selectedRegion?.flag}</Text>
+      </TouchableOpacity>
+      <Input
+        ref={ref}
+        testID="deposit-phone-field-test-id"
+        keyboardType="phone-pad"
+        placeholderTextColor={theme.colors?.text.muted}
+        keyboardAppearance={theme.themeAppearance}
+        style={styles.textFieldInput}
+        isStateStylesDisabled
+        {...rest}
+      />
+    </View>
+  );
+});
+
 const DepositPhoneField: React.FC<PhoneFieldProps> = ({
   label,
   onChangeText,
@@ -113,33 +141,6 @@ const DepositPhoneField: React.FC<PhoneFieldProps> = ({
     );
   }, [selectedRegion]);
 
-  const InputComponent = useMemo(() => {
-    return forwardRef<TextInput, any>((props, ref) => {
-      return (
-        <View style={styles.textFieldWrapper}>
-          <TouchableOpacity
-            onPress={handleFlagPress}
-            accessibilityRole="button"
-            accessible
-            style={styles.countryPrefix}
-          >
-            <Text style={styles.countryFlag}>{selectedRegion?.flag}</Text>
-          </TouchableOpacity>
-          <Input
-            ref={ref}
-            testID="deposit-phone-field-test-id"
-            keyboardType="phone-pad"
-            placeholderTextColor={theme.colors?.text.muted}
-            keyboardAppearance={theme.themeAppearance}
-            style={styles.textFieldInput}
-            isStateStylesDisabled
-            {...props}
-          />
-        </View>
-      );
-    });
-  }, []);
-
   return (
     <>
       <View style={styles.field}>
@@ -154,12 +155,10 @@ const DepositPhoneField: React.FC<PhoneFieldProps> = ({
             onChange={handlePhoneNumberChange}
             placeholder={placeholder}
             keyboardType="phone-pad"
-            inputProps={{
-              selectedRegion,
-              handleFlagPress,
-              styles,
-              theme,
-            }}
+            selectedRegion={selectedRegion}
+            handleFlagPress={handleFlagPress}
+            styles={styles}
+            theme={theme}
             inputComponent={InputComponent}
           />
         </View>
