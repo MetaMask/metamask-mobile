@@ -90,18 +90,18 @@ const OrderProcessing = () => {
   };
   const cryptoToken = getCryptoToken();
 
-  const getOrderState = () => {
-    if (order?.state === FIAT_ORDER_STATES.COMPLETED) {
-      return OrderStatus.SUCCESS;
-    } else if (
-      order?.state === FIAT_ORDER_STATES.CANCELLED ||
-      order?.state === FIAT_ORDER_STATES.FAILED
-    ) {
-      return OrderStatus.ERROR;
-    }
-    return OrderStatus.PROCESSING;
-  };
-  const orderState = getOrderState();
+  let orderState;
+
+  if (order?.state === FIAT_ORDER_STATES.COMPLETED) {
+    orderState = OrderStatus.SUCCESS;
+  } else if (
+    order?.state === FIAT_ORDER_STATES.CANCELLED ||
+    order?.state === FIAT_ORDER_STATES.FAILED
+  ) {
+    orderState = OrderStatus.ERROR;
+  } else {
+    orderState = OrderStatus.PROCESSING;
+  }
 
   const getIconContainerStyle = () => {
     switch (orderState) {
