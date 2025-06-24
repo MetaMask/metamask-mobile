@@ -27,7 +27,7 @@ import ppomUtil from '../../lib/ppom/ppom-util';
 import { EIP5792ErrorCode } from '../../constants/transaction';
 import { areAddressesEqual } from '../../util/address';
 import { selectSmartTransactionsEnabled } from '../../selectors/smartTransactionsController';
-import { store } from '../../store/index.ts';
+import { store } from '../../store/index';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import Engine from '../Engine';
 import { isRelaySupported } from './transaction-relay.ts';
