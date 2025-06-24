@@ -1,9 +1,8 @@
 'use strict';
 import { ethers } from 'ethers';
 import { loginToApp } from '../../viewHelper';
+import { isUnifiedUIEnabledForChain } from './helpers/prepareSwapsTestEnvironment';
 import Onboarding from '../../pages/swaps/OnBoarding';
-import QuoteView from '../../pages/swaps/QuoteView';
-import SwapView from '../../pages/swaps/SwapView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
 import SettingsView from '../../pages/Settings/SettingsView';
@@ -28,15 +27,20 @@ import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Tenderly from '../../tenderly';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
+import { submitSwapLegacyUI } from './helpers/swapLegacyUI';
+import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
 
 const fixtureServer: FixtureServer = new FixtureServer();
 
 describe(Regression('Swap from Token view'), (): void => {
-  const FIRST_ROW: number = 0;
   const swapOnboarded: boolean = true; // TODO: Set it to false once we show the onboarding page again.
   const wallet: ethers.Wallet = ethers.Wallet.createRandom();
+  let isUnifiedUIEnabled: boolean | undefined;
 
   beforeAll(async (): Promise<void> => {
+
+    isUnifiedUIEnabled = await isUnifiedUIEnabledForChain('1');
+
     await Tenderly.addFunds(
       CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
       wallet.address,
@@ -83,6 +87,9 @@ describe(Regression('Swap from Token view'), (): void => {
   });
 
   it('should complete a USDC to DAI swap from the token chart', async (): Promise<void> => {
+    const FIRST_ROW: number = 0;
+    const type: string = 'native';
+    const quantity: string = '1';
     const sourceTokenSymbol: string = 'ETH';
     const destTokenSymbol: string = 'DAI';
 
@@ -93,36 +100,23 @@ describe(Regression('Swap from Token view'), (): void => {
     await TokenOverview.scrollOnScreen();
     await TokenOverview.tapSwapButton();
     if (!swapOnboarded) await Onboarding.tapStartSwapping();
-    await Assertions.checkIfVisible(QuoteView.getQuotes);
-    await QuoteView.enterSwapAmount('.5');
-    await QuoteView.tapOnSelectDestToken();
-    await QuoteView.tapSearchToken();
-    await QuoteView.typeSearchToken(destTokenSymbol);
-    await TestHelpers.delay(3000);
-    await QuoteView.selectToken(destTokenSymbol);
 
-    // This call is needed because otherwise the device never becomes idle
-    await device.disableSynchronization();
-
-    await QuoteView.tapOnGetQuotes();
-    await Assertions.checkIfVisible(SwapView.fetchingQuotes);
-    await Assertions.checkIfVisible(SwapView.quoteSummary);
-    await Assertions.checkIfVisible(SwapView.gasFee);
-    await SwapView.tapIUnderstandPriceWarning();
-    await SwapView.tapSwapButton();
-    await TestHelpers.delay(2000);
-    //Wait for Swap to complete
-    try {
-      await Assertions.checkIfTextIsDisplayed(
-        SwapView.generateSwapCompleteLabel(sourceTokenSymbol, destTokenSymbol),
-        30000,
-      );
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.log(`Swap complete didn't pop up: ${e}`);
-    }
-    await device.enableSynchronization();
-    await TestHelpers.delay(10000);
+    // Submit the Swap
+      if (isUnifiedUIEnabled) {
+        await submitSwapLegacyUI(
+          type,
+          quantity,
+          sourceTokenSymbol,
+          destTokenSymbol,
+        );
+      } else {
+        await submitSwapUnifiedUI(
+          type,
+          quantity,
+          sourceTokenSymbol,
+          destTokenSymbol,
+        );
+      }
 
     // After the swap is complete, the DAI balance shouldn't be 0
     await Assertions.checkIfTextIsNotDisplayed('0 DAI', 60000);
