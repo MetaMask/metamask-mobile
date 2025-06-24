@@ -38,7 +38,6 @@ describe(Regression('Term of Use Modal'), () => {
   });
 
   it('should restart app after accepting terms', async () => {
-    await device.sendToHome();
     await TestHelpers.relaunchApp();
     await Assertions.checkIfVisible(OnboardingCarouselView.container);
     await OnboardingCarouselView.tapOnGetStartedButton();
