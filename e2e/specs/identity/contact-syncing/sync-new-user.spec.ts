@@ -14,6 +14,7 @@ import { MockttpServer } from 'mockttp';
 import ContactsView from '../../../pages/Settings/Contacts/ContactsView';
 import AddContactView from '../../../pages/Settings/Contacts/AddContactView';
 import SettingsView from '../../../pages/Settings/SettingsView';
+import Assertions from '../../../utils/Assertions';
 
 describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
   const NEW_CONTACT_NAME = 'New Test Contact';
@@ -88,8 +89,11 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
     // Wait for contact to be added and sync
     await TestHelpers.delay(5000);
 
-    // Verify contact is visible locally
-    await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
+    // Add additional wait for the contacts list to refresh
+    await TestHelpers.delay(2000);
+
+    // Wait for the contact to be visible with proper assertion and longer timeout
+    await Assertions.checkIfTextIsDisplayed(NEW_CONTACT_NAME, 15000);
 
     // Restart app to test sync
     await TestHelpers.launchApp({
@@ -109,7 +113,10 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
     // Wait longer for sync to complete
     await TestHelpers.delay(8000);
 
-    // Verify contact synced from remote
-    await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
+    // Add additional wait for the contacts list to refresh
+    await TestHelpers.delay(2000);
+
+    // Verify contact synced from remote with proper assertion and longer timeout
+    await Assertions.checkIfTextIsDisplayed(NEW_CONTACT_NAME, 15000);
   });
 });
