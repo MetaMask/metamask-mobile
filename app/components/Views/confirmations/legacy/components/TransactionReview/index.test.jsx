@@ -12,7 +12,6 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../../../../util/transactions';
-// eslint-disable-next-line import/no-namespace
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../BlockaidBanner/BlockaidBanner.constants';
 import { MOCK_KEYRING_CONTROLLER_STATE } from '../../../../../../util/test/keyringControllerTestUtils';
 
