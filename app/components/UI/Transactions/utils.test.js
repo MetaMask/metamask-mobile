@@ -1,5 +1,9 @@
 import { filterRedundantBridgeTransactions } from './utils';
 
+const HASH_1 = '0x1234567890';
+const HASH_2 = '0xabcdef1234';
+const HASH_3 = '0x1234567891';
+
 describe('filterRedundantBridgeTransactions', () => {
   describe('Edge Cases', () => {
     it('should return the same array when input is empty', () => {
@@ -22,7 +26,7 @@ describe('filterRedundantBridgeTransactions', () => {
         {
           id: '1',
           type: 'incoming',
-          txParams: { value: '1000000000000000000' }
+          hash: HASH_1
         }
       ];
       const result = filterRedundantBridgeTransactions(transactions);
@@ -31,17 +35,17 @@ describe('filterRedundantBridgeTransactions', () => {
   });
 
   describe('Normal Functionality', () => {
-    it('should filter out incoming transaction when followed by bridge transaction with same value', () => {
+    it('should filter out incoming transaction when followed by bridge transaction with same hash', () => {
       const transactions = [
         {
           id: '1',
           type: 'incoming',
-          txParams: { value: '1000000000000000000' }
+          hash: HASH_1
         },
         {
           id: '2',
           type: 'bridge',
-          txParams: { value: '1000000000000000000' }
+          hash: HASH_1
         }
       ];
 
@@ -57,12 +61,12 @@ describe('filterRedundantBridgeTransactions', () => {
         {
           id: '1',
           type: 'incoming',
-          txParams: { value: '1000000000000000000' }
+          hash: HASH_1
         },
         {
           id: '2',
           type: 'bridge',
-          txParams: { value: '2000000000000000000' }
+          hash: HASH_2
         }
       ];
 
@@ -72,17 +76,17 @@ describe('filterRedundantBridgeTransactions', () => {
       expect(result).toEqual(transactions);
     });
 
-    it('should not filter incoming transaction when next transaction is not bridge type', () => {
+    it('should not filter incoming transaction when next transaction is also incoming type', () => {
       const transactions = [
         {
           id: '1',
           type: 'incoming',
-          txParams: { value: '1000000000000000000' }
+          hash: HASH_1
         },
         {
           id: '2',
-          type: 'outgoing',
-          txParams: { value: '1000000000000000000' }
+          type: 'incoming',
+          hash: HASH_1
         }
       ];
 
@@ -97,12 +101,12 @@ describe('filterRedundantBridgeTransactions', () => {
         {
           id: '1',
           type: 'outgoing',
-          txParams: { value: '1000000000000000000' }
+          hash: HASH_1
         },
         {
           id: '2',
           type: 'bridge',
-          txParams: { value: '1000000000000000000' }
+          hash: HASH_1
         }
       ];
 
@@ -119,22 +123,22 @@ describe('filterRedundantBridgeTransactions', () => {
         {
           id: '1',
           type: 'incoming',
-          txParams: { value: '1000000000000000000' }
+          hash: HASH_1
         },
         {
           id: '2',
           type: 'bridge',
-          txParams: { value: '1000000000000000000' }
+          hash: HASH_1
         },
         {
           id: '3',
           type: 'incoming',
-          txParams: { value: '2000000000000000000' }
+          hash: HASH_2
         },
         {
           id: '4',
           type: 'bridge',
-          txParams: { value: '2000000000000000000' }
+          hash: HASH_2
         }
       ];
 
@@ -150,34 +154,34 @@ describe('filterRedundantBridgeTransactions', () => {
         {
           id: '1',
           type: 'incoming',
-          txParams: { value: '1000000000000000000' }
+          hash: HASH_1
         },
         {
           id: '2',
           type: 'bridge',
-          txParams: { value: '1000000000000000000' }
+          hash: HASH_1
         },
         {
           id: '3',
           type: 'incoming',
-          txParams: { value: '2000000000000000000' }
+          hash: HASH_2
         },
         {
           id: '4',
           type: 'outgoing',
-          txParams: { value: '2000000000000000000' }
+          hash: HASH_2
         },
         {
           id: '5',
           type: 'bridge',
-          txParams: { value: '3000000000000000000' }
+          hash: HASH_3
         }
       ];
 
       const result = filterRedundantBridgeTransactions(transactions);
       
-      expect(result).toHaveLength(4);
-      expect(result.map(tx => tx.id)).toEqual(['2', '3', '4', '5']);
+      expect(result).toHaveLength(3);
+      expect(result.map(tx => tx.id)).toEqual(['2', '4', '5']);
     });
   });
 
@@ -191,7 +195,7 @@ describe('filterRedundantBridgeTransactions', () => {
         {
           id: '2',
           type: 'bridge',
-          txParams: { value: '1000000000000000000' }
+          hash: HASH_1
         }
       ];
 
@@ -211,7 +215,7 @@ describe('filterRedundantBridgeTransactions', () => {
         {
           id: '2',
           type: 'bridge',
-          txParams: { value: '1000000000000000000' }
+          hash: HASH_1
         }
       ];
 
@@ -226,7 +230,7 @@ describe('filterRedundantBridgeTransactions', () => {
         {
           id: '1',
           type: 'incoming',
-          txParams: { value: '1000000000000000000' }
+          hash: HASH_1
         },
         {
           id: '2',
@@ -245,7 +249,7 @@ describe('filterRedundantBridgeTransactions', () => {
         {
           id: '1',
           type: 'incoming',
-          txParams: { value: '1000000000000000000' }
+          hash: HASH_1
         },
         {
           id: '2',
@@ -262,22 +266,22 @@ describe('filterRedundantBridgeTransactions', () => {
   });
 
   describe('Non-consecutive Transactions', () => {
-    it('should not filter incoming transactions that are not immediately before bridge transactions', () => {
+    it('should not filter incoming transactions that are not immediately before outgoing transactions with the same hash', () => {
       const transactions = [
         {
           id: '1',
           type: 'incoming',
-          txParams: { value: '1000000000000000000' }
+          hash: HASH_1
         },
         {
           id: '2',
           type: 'outgoing',
-          txParams: { value: '500000000000000000' }
+          hash: HASH_2
         },
         {
           id: '3',
           type: 'bridge',
-          txParams: { value: '1000000000000000000' }
+          hash: HASH_1
         }
       ];
 
@@ -294,32 +298,12 @@ describe('filterRedundantBridgeTransactions', () => {
         {
           id: '1',
           type: 'incoming',
-          txParams: { value: '1000000000000000000' }
+          hash: HASH_1
         },
         {
           id: '2',
           type: 'bridge',
-          txParams: { value: '1000000000000000000' }
-        }
-      ];
-
-      const result = filterRedundantBridgeTransactions(transactions);
-      
-      expect(result).toHaveLength(1);
-      expect(result[0].id).toBe('2');
-    });
-
-    it('should handle zero values correctly', () => {
-      const transactions = [
-        {
-          id: '1',
-          type: 'incoming',
-          txParams: { value: '0' }
-        },
-        {
-          id: '2',
-          type: 'bridge',
-          txParams: { value: '0' }
+          hash: HASH_1
         }
       ];
 

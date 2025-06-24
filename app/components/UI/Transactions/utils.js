@@ -1,9 +1,7 @@
   /**
    * Filters out redundant incoming transactions that occur immediately after
-   * bridge transactions with the same value (after in time is before in the
-   * transactions array). This prevents duplicate transaction display when a
-   * bridge operation results in both a bridge transaction and an incoming
-   * transaction for the same amount.
+   * outgoing transactions with the same hash (after in time is before in the
+   * transactions array). This prevents duplicate transaction display.
    *
    * @param {Array<Object>} transactions - Array of transaction objects to
    * filter
@@ -26,13 +24,13 @@ export const filterRedundantBridgeTransactions = (transactions) => {
   for (let i = 0; i < transactions.length - 1; i++) {
     const currentTx = transactions[i];
 
-    if (currentTx.type === 'incoming' && currentTx.txParams?.value) {
+    if (currentTx.type === 'incoming' && currentTx.hash) {
       const nextTx = transactions[i + 1];
 
       if (
-        nextTx.type === 'bridge' &&
-        nextTx.txParams?.value &&
-        currentTx.txParams.value === nextTx.txParams.value
+        nextTx.type !== 'incoming' &&
+        nextTx.hash &&
+        currentTx?.hash === nextTx?.hash
       ) {
         incomingTransactionsToFilter.add(currentTx.id);
       }
