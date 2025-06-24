@@ -241,6 +241,9 @@ exports[`Network Selector renders correctly 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -339,6 +342,9 @@ exports[`Network Selector renders correctly 1`] = `
                       />
                       <View
                         collapsable={false}
+                        enabled={true}
+                        handlerTag={-1}
+                        handlerType="PanGestureHandler"
                         onGestureHandlerEvent={[Function]}
                         onGestureHandlerStateChange={[Function]}
                         style={
@@ -495,6 +501,8 @@ exports[`Network Selector renders correctly 1`] = `
                           >
                             <RCTScrollView
                               collapsable={false}
+                              handlerTag={-1}
+                              handlerType="NativeViewGestureHandler"
                               keyboardShouldPersistTaps="handled"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
@@ -1565,6 +1573,9 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1663,6 +1674,9 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                       />
                       <View
                         collapsable={false}
+                        enabled={true}
+                        handlerTag={-1}
+                        handlerType="PanGestureHandler"
                         onGestureHandlerEvent={[Function]}
                         onGestureHandlerStateChange={[Function]}
                         style={
@@ -1822,6 +1836,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                           >
                             <RCTScrollView
                               collapsable={false}
+                              handlerTag={-1}
+                              handlerType="NativeViewGestureHandler"
                               keyboardShouldPersistTaps="handled"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
