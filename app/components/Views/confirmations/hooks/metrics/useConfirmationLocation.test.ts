@@ -172,6 +172,24 @@ describe('useConfirmationLocation', () => {
     expect(result.current).toBe(CONFIRMATION_EVENT_LOCATIONS.APPROVE);
   });
 
+  it('returns CONTRACT_DEPLOYMENT location for contract deployment transactions', () => {
+    mockUseApprovalRequest.mockReturnValue(
+      createApprovalRequestMock({
+        type: ApprovalType.Transaction,
+        requestData: {},
+      }),
+    );
+
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      type: TransactionType.deployContract,
+    } as unknown as TransactionMeta);
+
+    const { result } = renderHook(() => useConfirmationLocation());
+    expect(result.current).toBe(
+      CONFIRMATION_EVENT_LOCATIONS.CONTRACT_DEPLOYMENT,
+    );
+  });
+
   it('defaults to CONTRACT_INTERACTION for unknown transaction types', () => {
     mockUseApprovalRequest.mockReturnValue(
       createApprovalRequestMock({
@@ -185,7 +203,9 @@ describe('useConfirmationLocation', () => {
     } as unknown as TransactionMeta);
 
     const { result } = renderHook(() => useConfirmationLocation());
-    expect(result.current).toBe(CONFIRMATION_EVENT_LOCATIONS.CONTRACT_INTERACTION);
+    expect(result.current).toBe(
+      CONFIRMATION_EVENT_LOCATIONS.CONTRACT_INTERACTION,
+    );
   });
 
   it('updates location when approval request changes', () => {
