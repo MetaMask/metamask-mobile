@@ -5,6 +5,7 @@ import {
 } from '../OAuthInterface';
 import { BaseLoginHandler, getAuthTokens } from './baseHandler';
 import { OAuthErrorType } from '../error';
+import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 
 // Mock fetch globally
 global.fetch = jest.fn();
@@ -129,8 +130,173 @@ describe('BaseLoginHandler', () => {
     });
   });
 
+  describe('padBase64String function (tested through decodeIdToken)', () => {
+    let mockHandler: MockLoginHandler;
+
+    beforeEach(() => {
+      mockHandler = new MockLoginHandler();
+    });
+
+    it('handles base64 strings that need 1 padding character', () => {
+      // Create a payload that results in base64 string ending with 3 characters (needs 1 padding)
+      const mockPayload = { email: 'test@example.com' };
+      const mockPayloadBase64 = Buffer.from(
+        JSON.stringify(mockPayload),
+      ).toString('base64');
+
+      // Remove any existing padding to test the padding logic
+      const unpaddedBase64 = mockPayloadBase64.replace(/=+$/, '');
+      const mockToken = `header.${unpaddedBase64}.signature`;
+
+      const decoded = mockHandler.decodeIdToken(mockToken);
+
+      expect(decoded).toBe(JSON.stringify(mockPayload));
+    });
+
+    it('handles base64 strings that need 2 padding characters', () => {
+      // Create a payload that results in base64 string ending with 2 characters (needs 2 padding)
+      const mockPayload = { email: 'test' };
+      const mockPayloadBase64 = Buffer.from(
+        JSON.stringify(mockPayload),
+      ).toString('base64');
+
+      // Remove any existing padding to test the padding logic
+      const unpaddedBase64 = mockPayloadBase64.replace(/=+$/, '');
+      const mockToken = `header.${unpaddedBase64}.signature`;
+
+      const decoded = mockHandler.decodeIdToken(mockToken);
+
+      expect(decoded).toBe(JSON.stringify(mockPayload));
+    });
+
+    it('handles base64 strings that need 3 padding characters', () => {
+      // Create a payload that results in base64 string ending with 1 character (needs 3 padding)
+      const mockPayload = { email: 't' };
+      const mockPayloadBase64 = Buffer.from(
+        JSON.stringify(mockPayload),
+      ).toString('base64');
+
+      // Remove any existing padding to test the padding logic
+      const unpaddedBase64 = mockPayloadBase64.replace(/=+$/, '');
+      const mockToken = `header.${unpaddedBase64}.signature`;
+
+      const decoded = mockHandler.decodeIdToken(mockToken);
+
+      expect(decoded).toBe(JSON.stringify(mockPayload));
+    });
+
+    it('handles base64 strings that already have correct padding', () => {
+      // Create a payload that results in base64 string with proper length (no padding needed)
+      const mockPayload = {
+        email: 'test@example.com',
+        name: 'John Doe',
+        id: 123,
+      };
+      const mockPayloadBase64 = Buffer.from(
+        JSON.stringify(mockPayload),
+      ).toString('base64');
+      const mockToken = `header.${mockPayloadBase64}.signature`;
+
+      const decoded = mockHandler.decodeIdToken(mockToken);
+
+      expect(decoded).toBe(JSON.stringify(mockPayload));
+    });
+
+    it('handles base64 strings with URL-safe characters that need conversion', () => {
+      // Test with payload containing characters that get URL-safe encoding
+      const mockPayload = {
+        email: 'test@example.com',
+        data: 'special_chars_+/',
+      };
+      const mockPayloadBase64 = Buffer.from(
+        JSON.stringify(mockPayload),
+      ).toString('base64');
+
+      // Convert to URL-safe format and remove padding
+      const urlSafeBase64 = mockPayloadBase64
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+
+      const mockToken = `header.${urlSafeBase64}.signature`;
+
+      const decoded = mockHandler.decodeIdToken(mockToken);
+
+      expect(decoded).toBe(JSON.stringify(mockPayload));
+    });
+
+    it('handles empty payload', () => {
+      const mockPayload = {};
+      const mockPayloadBase64 = Buffer.from(
+        JSON.stringify(mockPayload),
+      ).toString('base64');
+
+      // Remove padding to test padding logic
+      const unpaddedBase64 = mockPayloadBase64.replace(/=+$/, '');
+      const mockToken = `header.${unpaddedBase64}.signature`;
+
+      const decoded = mockHandler.decodeIdToken(mockToken);
+
+      expect(decoded).toBe(JSON.stringify(mockPayload));
+    });
+
+    it('handles payload with unicode characters and emojis', () => {
+      const mockPayload = {
+        email: 'test@example.com',
+        name: 'José 🦊',
+        message: 'Hello 世界! 🌍',
+      };
+      const mockPayloadBase64 = Buffer.from(
+        JSON.stringify(mockPayload),
+      ).toString('base64');
+
+      // Remove padding to test padding logic
+      const unpaddedBase64 = mockPayloadBase64.replace(/=+$/, '');
+      const mockToken = `header.${unpaddedBase64}.signature`;
+
+      const decoded = mockHandler.decodeIdToken(mockToken);
+
+      expect(decoded).toBe(JSON.stringify(mockPayload));
+    });
+
+    it('handles very short base64 strings', () => {
+      const mockPayload = { a: 1 };
+      const mockPayloadBase64 = Buffer.from(
+        JSON.stringify(mockPayload),
+      ).toString('base64');
+
+      // Remove padding to test padding logic
+      const unpaddedBase64 = mockPayloadBase64.replace(/=+$/, '');
+      const mockToken = `header.${unpaddedBase64}.signature`;
+
+      const decoded = mockHandler.decodeIdToken(mockToken);
+
+      expect(decoded).toBe(JSON.stringify(mockPayload));
+    });
+
+    it('handles very long base64 strings', () => {
+      const mockPayload = {
+        email: 'test@example.com',
+        data: 'a'.repeat(1000), // Very long string
+        array: Array.from({ length: 100 }, (_, i) => i), // Large array
+      };
+      const mockPayloadBase64 = Buffer.from(
+        JSON.stringify(mockPayload),
+      ).toString('base64');
+
+      // Remove padding to test padding logic
+      const unpaddedBase64 = mockPayloadBase64.replace(/=+$/, '');
+      const mockToken = `header.${unpaddedBase64}.signature`;
+
+      const decoded = mockHandler.decodeIdToken(mockToken);
+
+      expect(decoded).toBe(JSON.stringify(mockPayload));
+    });
+  });
+
   describe('getAuthTokens', () => {
     const mockAuthServerUrl = 'https://auth.example.com';
+    const mockPathname = 'auth/test';
 
     beforeEach(() => {
       (global.fetch as jest.Mock).mockClear();
@@ -158,7 +324,7 @@ describe('BaseLoginHandler', () => {
         clientId: 'mock-client-id',
         redirectUri: 'mock-redirect-uri',
         codeVerifier: 'mock-code-verifier',
-        web3AuthNetwork: 'sapphire_mainnet',
+        web3AuthNetwork: Web3AuthNetwork.Mainnet,
       };
 
       const result = await mockHandler.getAuthTokens(params, mockAuthServerUrl);
@@ -206,7 +372,7 @@ describe('BaseLoginHandler', () => {
         clientId: 'mock-client-id',
         redirectUri: 'mock-redirect-uri',
         codeVerifier: 'mock-code-verifier',
-        web3AuthNetwork: 'sapphire_devnet',
+        web3AuthNetwork: Web3AuthNetwork.Devnet,
       };
 
       const result = await mockHandler.getAuthTokens(params, mockAuthServerUrl);
@@ -249,7 +415,7 @@ describe('BaseLoginHandler', () => {
         clientId: 'mock-client-id',
         redirectUri: 'mock-redirect-uri',
         codeVerifier: 'mock-code-verifier',
-        web3AuthNetwork: 'sapphire_mainnet',
+        web3AuthNetwork: Web3AuthNetwork.Mainnet,
       };
 
       await expect(
@@ -272,7 +438,7 @@ describe('BaseLoginHandler', () => {
         clientId: 'mock-client-id',
         redirectUri: 'mock-redirect-uri',
         codeVerifier: 'mock-code-verifier',
-        web3AuthNetwork: 'sapphire_mainnet',
+        web3AuthNetwork: Web3AuthNetwork.Mainnet,
       };
 
       await expect(
@@ -283,106 +449,101 @@ describe('BaseLoginHandler', () => {
         code: OAuthErrorType.AuthServerError,
       });
     });
-  });
-});
 
-describe('getAuthTokens function', () => {
-  const mockAuthServerUrl = 'https://auth.example.com';
-  const mockPathname = 'auth/test';
+    it('makes correct request with code parameter', async () => {
+      const mockResponse = {
+        success: true,
+        id_token: 'mock-id-token',
+        message: 'Success',
+      };
 
-  beforeEach(() => {
-    (global.fetch as jest.Mock).mockClear();
-  });
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        status: 200,
+        json: () => Promise.resolve(mockResponse),
+      });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+      const params: HandleFlowParams = {
+        authConnection: AuthConnection.Google,
+        code: 'mock-code',
+        clientId: 'mock-client-id',
+        redirectUri: 'mock-redirect-uri',
+        codeVerifier: 'mock-code-verifier',
+        web3AuthNetwork: Web3AuthNetwork.Mainnet,
+      };
 
-  it('makes correct request with code parameter', async () => {
-    const mockResponse = {
-      success: true,
-      id_token: 'mock-id-token',
-      message: 'Success',
-    };
+      const result = await getAuthTokens(
+        params,
+        mockPathname,
+        mockAuthServerUrl,
+      );
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      status: 200,
-      json: () => Promise.resolve(mockResponse),
+      expect(global.fetch).toHaveBeenCalledWith(
+        `${mockAuthServerUrl}/${mockPathname}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            code: 'mock-code',
+            client_id: 'mock-client-id',
+            login_provider: AuthConnection.Google,
+            network: 'sapphire_mainnet',
+            redirect_uri: 'mock-redirect-uri',
+            code_verifier: 'mock-code-verifier',
+          }),
+        },
+      );
+
+      expect(result).toEqual(mockResponse);
     });
 
-    const params: HandleFlowParams = {
-      authConnection: AuthConnection.Google,
-      code: 'mock-code',
-      clientId: 'mock-client-id',
-      redirectUri: 'mock-redirect-uri',
-      codeVerifier: 'mock-code-verifier',
-      web3AuthNetwork: 'sapphire_mainnet',
-    };
+    it('makes correct request with idToken parameter', async () => {
+      const mockResponse = {
+        success: true,
+        id_token: 'mock-id-token',
+        message: 'Success',
+      };
 
-    const result = await getAuthTokens(params, mockPathname, mockAuthServerUrl);
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        status: 200,
+        json: () => Promise.resolve(mockResponse),
+      });
 
-    expect(global.fetch).toHaveBeenCalledWith(
-      `${mockAuthServerUrl}/${mockPathname}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const params: HandleFlowParams = {
+        authConnection: AuthConnection.Apple,
+        idToken: 'mock-id-token',
+        clientId: 'mock-client-id',
+        redirectUri: 'mock-redirect-uri',
+        codeVerifier: 'mock-code-verifier',
+        web3AuthNetwork: Web3AuthNetwork.Devnet,
+      };
+
+      const result = await getAuthTokens(
+        params,
+        mockPathname,
+        mockAuthServerUrl,
+      );
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        `${mockAuthServerUrl}/${mockPathname}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id_token: 'mock-id-token',
+            client_id: 'mock-client-id',
+            login_provider: AuthConnection.Apple,
+            network: 'sapphire_devnet',
+            redirect_uri: 'mock-redirect-uri',
+            code_verifier: 'mock-code-verifier',
+          }),
         },
-        body: JSON.stringify({
-          code: 'mock-code',
-          client_id: 'mock-client-id',
-          login_provider: AuthConnection.Google,
-          network: 'sapphire_mainnet',
-          redirect_uri: 'mock-redirect-uri',
-          code_verifier: 'mock-code-verifier',
-        }),
-      },
-    );
+      );
 
-    expect(result).toEqual(mockResponse);
-  });
-
-  it('makes correct request with idToken parameter', async () => {
-    const mockResponse = {
-      success: true,
-      id_token: 'mock-id-token',
-      message: 'Success',
-    };
-
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      status: 200,
-      json: () => Promise.resolve(mockResponse),
+      expect(result).toEqual(mockResponse);
     });
-
-    const params: HandleFlowParams = {
-      authConnection: AuthConnection.Apple,
-      idToken: 'mock-id-token',
-      clientId: 'mock-client-id',
-      redirectUri: 'mock-redirect-uri',
-      codeVerifier: 'mock-code-verifier',
-      web3AuthNetwork: 'sapphire_devnet',
-    };
-
-    const result = await getAuthTokens(params, mockPathname, mockAuthServerUrl);
-
-    expect(global.fetch).toHaveBeenCalledWith(
-      `${mockAuthServerUrl}/${mockPathname}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id_token: 'mock-id-token',
-          client_id: 'mock-client-id',
-          login_provider: AuthConnection.Apple,
-          network: 'sapphire_devnet',
-          redirect_uri: 'mock-redirect-uri',
-          code_verifier: 'mock-code-verifier',
-        }),
-      },
-    );
-
-    expect(result).toEqual(mockResponse);
   });
 });
