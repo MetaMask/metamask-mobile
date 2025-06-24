@@ -54,7 +54,7 @@ const SolanaNewFeatureContent = () => {
 
     trackEvent(
       createEventBuilder(
-        MetaMetricsEvents.FORCE_UPGRADE_REMIND_ME_LATER_CLICKED,
+        MetaMetricsEvents.SOLANA_NEW_FEATURE_CONTENT_NOT_NOW_CLICKED,
       )
         .addProperties({
           ...generateDeviceAnalyticsMetaData(),
@@ -142,7 +142,6 @@ const SolanaNewFeatureContent = () => {
                 style={styles.image}
                 autoPlay
                 loop
-                //@ts-expect-error - LottieView is not typed correctly
                 source={fox}
                 resizeMode="contain"
               />
