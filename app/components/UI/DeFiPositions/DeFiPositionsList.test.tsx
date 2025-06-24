@@ -242,7 +242,7 @@ describe('DeFiPositionsList', () => {
   });
 
   it('renders the loading positions message when positions are not yet available', async () => {
-    const { findByTestId, findByText } = renderWithProvider(
+    const { queryByTestId, findByText } = renderWithProvider(
       <DeFiPositionsList tabLabel="DeFi" />,
       {
         state: {
@@ -261,13 +261,13 @@ describe('DeFiPositionsList', () => {
     );
 
     expect(
-      await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER),
+      queryByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER),
     ).not.toBeOnTheScreen();
     expect(await findByText('Loading DeFi positions...')).toBeOnTheScreen();
   });
 
   it('renders the error message when the positions fetching failed for that address', async () => {
-    const { findByTestId, findByText } = renderWithProvider(
+    const { queryByTestId, findByText } = renderWithProvider(
       <DeFiPositionsList tabLabel="DeFi" />,
       {
         state: {
@@ -288,7 +288,7 @@ describe('DeFiPositionsList', () => {
     );
 
     expect(
-      await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER),
+      queryByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER),
     ).not.toBeOnTheScreen();
     expect(await findByText(`We could not load this page.`)).toBeOnTheScreen();
     expect(await findByText(`Try visiting again later.`)).toBeOnTheScreen();
