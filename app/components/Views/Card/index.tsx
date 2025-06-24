@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import { Dimensions, TouchableOpacity, View } from 'react-native';
 
 import Icon, {
@@ -47,8 +41,14 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import Loader from '../../../component-library/components-temp/Loader';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 
-const CardView = () => {
+interface ICardViewProps {
+  navigation?: NavigationProp<ParamListBase>;
+}
+
+const CardView = ({ navigation }: ICardViewProps) => {
+  const hasNavigation = Boolean(navigation);
   const { PreferencesController } = Engine.context;
   const [refreshing, setRefreshing] = useState(false);
   const [geolocation, setGeolocation] = useState<string | null>(null);
@@ -218,6 +218,11 @@ const CardView = () => {
         tokenBalances={supportedTokenBalances?.tokenConfigs || []}
         refreshing={refreshing}
         onRefresh={refreshTokens}
+      />
+      <ScreenshotDeterrent
+        hasNavigation={hasNavigation}
+        enabled
+        isSRP={false}
       />
     </View>
   );

@@ -144,13 +144,14 @@ const getPriorityTokenAddress = async ({
   const spenderTopics = spenders.map((s) =>
     ethers.utils.hexZeroPad(s.toLowerCase(), 32),
   );
+  const fromBlock = -50000; // Check from the last 50,000 blocks
 
   const logsPerToken = await Promise.all(
     supportedTokensAddresses.map((tokenAddress) =>
       provider
         .getLogs({
           address: tokenAddress,
-          fromBlock: 0,
+          fromBlock,
           toBlock: 'latest',
           topics: [approvalTopic, ownerTopic, spenderTopics],
         })
