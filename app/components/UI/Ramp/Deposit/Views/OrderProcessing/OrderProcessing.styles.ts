@@ -115,9 +115,6 @@ const styleSheet = (params: { theme: Theme }) => {
       marginHorizontal: -16,
       backgroundColor: theme.colors.border.muted,
     },
-    secondaryButton: {
-      // Spacing handled by buttonContainer gap
-    },
     buttonContainer: {
       gap: 16,
     },
