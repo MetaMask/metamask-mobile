@@ -94,14 +94,14 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
        // Submit the Swap
        if (isUnifiedUIEnabled) {
-         await submitSwapLegacyUI(
+         await submitSwapUnifiedUI(
            type,
            quantity,
            sourceTokenSymbol,
            destTokenSymbol,
          );
        } else {
-         await submitSwapUnifiedUI(
+         await submitSwapLegacyUI(
            type,
            quantity,
            sourceTokenSymbol,
