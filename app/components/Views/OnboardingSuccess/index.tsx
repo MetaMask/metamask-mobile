@@ -32,7 +32,7 @@ import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import { setCompletedOnboarding } from '../../../actions/onboarding';
 import createStyles from './index.styles';
 import CelebratingFox from '../../../animations/Celebrating_Fox.json';
-import SearchingFox from '../../../animations/Solana_Fox.json';
+import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 
