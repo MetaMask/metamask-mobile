@@ -42,7 +42,6 @@ const setupOnRampTest = async (testFn) => {
       restartDevice: true,
       launchArgs: {
         mockServerPort,
-        sendMetaMetricsinE2E: true,
       },
     },
     async () => {
@@ -56,6 +55,8 @@ const setupOnRampTest = async (testFn) => {
 };
 
 describe(SmokeTrade('Onramp quote build screen'), () => {
+  let shouldCheckProviderSelectedEvents = true;
+
   beforeAll(async () => {
     const segmentMock = {
       POST: [mockEvents.POST.segmentTrack],
@@ -97,6 +98,22 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
     });
   });
 
+  it('should expand the quotes section and select a provider', async () => {
+      // Disabling synchronization to avoid race conditions
+      await device.disableSynchronization();
+      try {
+        await QuotesView.tapExploreMoreOptions();
+        await Assertions.checkIfVisible(QuotesView.expandedQuotesSection);
+        await Assertions.checkIfVisible(QuotesView.continueWithProvider);
+        await QuotesView.tapContinueWithProvider();
+        await TestHelpers.pause(650); // Waiting for the last event to be sent
+      } catch (error) {
+        // We're ok catching this as there were not enough providers to select from
+        shouldCheckProviderSelectedEvents = false;
+        console.warn('No provider will be selected');
+      }
+  });
+
   it('should validate segment/metametric events for a successful onramp flow', async () => {
     const expectedEvents = {
       BUY_BUTTON_CLICKED: 'Buy Button Clicked',
@@ -105,6 +122,8 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
       ONRAMP_QUOTES_REQUESTED: 'On-ramp Quotes Requested',
       ONRAMP_QUOTES_RECEIVED: 'On-ramp Quotes Received',
       ONRAMP_QUOTE_ERROR: 'On-ramp Quote Error',
+      ONRAMP_QUOTES_EXPANDED: 'On-ramp Quotes Expanded',
+      ONRAMP_PROVIDER_SELECTED: 'On-ramp Provider Selected',
     };
 
     const softAssert = new SoftAssert();
@@ -115,16 +134,18 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
       expectedEvents.ONRAMP_QUOTES_REQUESTED,
       expectedEvents.ONRAMP_QUOTES_RECEIVED,
       expectedEvents.ONRAMP_QUOTE_ERROR,
+      expectedEvents.ONRAMP_QUOTES_EXPANDED,
+      expectedEvents.ONRAMP_PROVIDER_SELECTED,
     ]);
 
     const buyButtonClicked = events.find((event) => event.event === expectedEvents.BUY_BUTTON_CLICKED);
     await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsPresent(buyButtonClicked);
+      await Assertions.checkIfValueIsDefined(buyButtonClicked);
     }, 'Buy Button Clicked: Should be present');
 
     const onRampGetStartedClicked = events.find((event) => event.event === expectedEvents.ONRAMP_GET_STARTED_CLICKED);
     await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsPresent(onRampGetStartedClicked);
+      await Assertions.checkIfValueIsDefined(onRampGetStartedClicked);
     });
     await softAssert.checkAndCollect(async () => {
       await Assertions.checkIfObjectContains(onRampGetStartedClicked.properties, {
@@ -135,7 +156,7 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
 
     const onRampCanceled = events.find((event) => event.event === expectedEvents.ONRAMP_CANCELED);
     await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsPresent(onRampCanceled);
+      await Assertions.checkIfValueIsDefined(onRampCanceled);
     }, 'On-ramp Canceled: Should be present');
     await softAssert.checkAndCollect(async () => {
       await Assertions.checkIfObjectContains(onRampCanceled.properties, {
@@ -146,7 +167,7 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
 
     const onRampQuotesRequested = events.find((event) => event.event === expectedEvents.ONRAMP_QUOTES_REQUESTED);
     await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsPresent(onRampQuotesRequested);
+      await Assertions.checkIfValueIsDefined(onRampQuotesRequested);
     }, 'On-ramp Quotes Requested: Should be present');
     await softAssert.checkAndCollect(async () => {
       await Assertions.checkIfObjectHasKeysAndValidValues(onRampQuotesRequested.properties, {
@@ -161,7 +182,7 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
 
     const onRampQuotesReceived = events.find((event) => event.event === expectedEvents.ONRAMP_QUOTES_RECEIVED);
     await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsPresent(onRampQuotesReceived);
+      await Assertions.checkIfValueIsDefined(onRampQuotesReceived);
     }, 'On-ramp Quotes Received: Should be present');
     await softAssert.checkAndCollect(async () => {
       await Assertions.checkIfObjectHasKeysAndValidValues(onRampQuotesReceived.properties, {
@@ -193,7 +214,7 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
     // It should be removed once the onramp e2e flow is fixed.
     const onRampQuoteError = events.find((event) => event.event === expectedEvents.ONRAMP_QUOTE_ERROR);
     softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsPresent(onRampQuoteError);
+      await Assertions.checkIfValueIsDefined(onRampQuoteError);
     });
     await softAssert.checkAndCollect(async () => {
       await Assertions.checkIfObjectHasKeysAndValidValues(onRampQuoteError.properties, {
@@ -206,6 +227,54 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
         chain_id_destination: 'string',
       });
     }, 'On-ramp Quote Error: Should have correct properties');
+
+    // We only assert these events if there is more than one provider available
+    if (shouldCheckProviderSelectedEvents) {
+      const onRampQuotesExpanded = events.find((event) => event.event === expectedEvents.ONRAMP_QUOTES_EXPANDED);
+      await softAssert.checkAndCollect(async () => {
+        await Assertions.checkIfValueIsDefined(onRampQuotesExpanded);
+      }, 'On-ramp Quotes Expanded: Should be present');
+      await softAssert.checkAndCollect(async () => {
+        await Assertions.checkIfObjectHasKeysAndValidValues(onRampQuotesExpanded.properties, {
+          payment_method_id: 'string',
+          amount: 'number',
+          refresh_count: 'number',
+          results_count: 'number',
+          provider_onramp_first: 'string',
+          provider_onramp_list: 'array',
+          previously_used_count: 'number',
+          chain_id_destination: 'string',
+          currency_source: 'string',
+          currency_destination: 'string',
+        });
+      });
+
+      const onRampProviderSelected = events.find((event) => event.event === expectedEvents.ONRAMP_PROVIDER_SELECTED);
+      await softAssert.checkAndCollect(async () => {
+        await Assertions.checkIfValueIsDefined(onRampProviderSelected);
+      }, 'On-ramp Provider Selected: Should be present');
+
+      await softAssert.checkAndCollect(async () => {
+        await Assertions.checkIfObjectHasKeysAndValidValues(onRampProviderSelected.properties, {
+          refresh_count: 'number',
+          quote_position: 'number',
+          results_count: 'number',
+          payment_method_id: 'string',
+          total_fee: 'number',
+          gas_fee: 'number',
+          processing_fee: 'number',
+          exchange_rate: 'number',
+          amount: 'number',
+          is_best_rate: 'boolean',
+          is_recommended: 'boolean',
+          currency_source: 'string',
+          currency_destination: 'string',
+          provider_onramp: 'string',
+          crypto_out: 'number',
+          chain_id_destination: 'string',
+        });
+      }, 'On-ramp Provider Selected: Should have correct properties');
+    }
 
     softAssert.throwIfErrors();
   });

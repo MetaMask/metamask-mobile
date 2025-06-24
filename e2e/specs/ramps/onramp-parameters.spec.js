@@ -45,7 +45,6 @@ const setupOnRampTest = async (testFn) => {
       restartDevice: true,
       launchArgs: {
         mockServerPort,
-        sendMetaMetricsinE2E: true,
       },
     },
     async () => {
@@ -129,7 +128,7 @@ describe(SmokeTrade('On-Ramp Parameters'), () => {
 
     const rampRegionSelected = events.find((event) => event.event === expectedEvents.RAMPS_REGION_SELECTED);
     await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsPresent(rampRegionSelected);
+      await Assertions.checkIfValueIsDefined(rampRegionSelected);
     }, 'Ramp Region Selected: Should be present');
 
     await softAssert.checkAndCollect(async () => {
@@ -144,7 +143,7 @@ describe(SmokeTrade('On-Ramp Parameters'), () => {
 
     const onRampPaymentMethodSelected = events.find((event) => event.event === expectedEvents.ONRAMP_PAYMENT_METHOD_SELECTED);
     await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsPresent(onRampPaymentMethodSelected);
+      await Assertions.checkIfValueIsDefined(onRampPaymentMethodSelected);
     }, 'On-ramp Payment Method Selected: Should be present');
 
     await softAssert.checkAndCollect(async () => {

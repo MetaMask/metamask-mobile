@@ -63,7 +63,6 @@ describe(SmokeTrade('Off-Ramp Cashout destination'), () => {
         restartDevice: true,
         launchArgs: {
           mockServerPort,
-          sendMetaMetricsinE2E: true,
         },
       },
       async () => {
@@ -91,7 +90,7 @@ describe(SmokeTrade('Off-Ramp Cashout destination'), () => {
 
     const offRampPaymentMethodSelected = events.find((event) => event.event === expectedEvents.OFFRAMP_PAYMENT_METHOD_SELECTED);
     await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsPresent(offRampPaymentMethodSelected);
+      await Assertions.checkIfValueIsDefined(offRampPaymentMethodSelected);
     }, 'Off-ramp Payment Method Selected: Should be present');
     await softAssert.checkAndCollect(async () => {
       await Assertions.checkIfObjectHasKeysAndValidValues(offRampPaymentMethodSelected.properties, {
