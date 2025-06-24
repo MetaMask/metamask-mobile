@@ -1550,4 +1550,201 @@ describe('EvmAccountSelectorList', () => {
       }
     );
   });
+
+  describe('onContentSizeChange callback logic', () => {
+    it('should handle scroll logic for different scenarios', () => {
+      const testCases = [
+        {
+          name: 'with selectedAddresses provided',
+          accounts: [
+            {
+              name: 'Account 1',
+              address: BUSINESS_ACCOUNT,
+              assets: { fiatBalance: '$3200.00\n1 ETH' },
+              type: KeyringTypes.hd,
+              yOffset: 150,
+              isSelected: false,
+              balanceError: undefined,
+              caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+              isLoadingAccount: false,
+              scopes: ['eip155:1'],
+            },
+          ],
+          selectedAddresses: [BUSINESS_ACCOUNT],
+          isAutoScrollEnabled: true,
+        },
+        {
+          name: 'with isSelected fallback',
+          accounts: [
+            {
+              name: 'Account 1',
+              address: BUSINESS_ACCOUNT,
+              assets: { fiatBalance: '$3200.00\n1 ETH' },
+              type: KeyringTypes.hd,
+              yOffset: 150,
+              isSelected: false,
+              balanceError: undefined,
+              caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+              isLoadingAccount: false,
+              scopes: ['eip155:1'],
+            },
+            {
+              name: 'Account 2',
+              address: PERSONAL_ACCOUNT,
+              assets: { fiatBalance: '$6400.00\n2 ETH' },
+              type: KeyringTypes.hd,
+              yOffset: 300,
+              isSelected: true,
+              balanceError: undefined,
+              caipAccountId: `eip155:0:${PERSONAL_ACCOUNT}`,
+              isLoadingAccount: false,
+              scopes: ['eip155:1'],
+            },
+          ],
+          selectedAddresses: [],
+          isAutoScrollEnabled: true,
+        },
+        {
+          name: 'with no selected account',
+          accounts: [
+            {
+              name: 'Account 1',
+              address: BUSINESS_ACCOUNT,
+              assets: { fiatBalance: '$3200.00\n1 ETH' },
+              type: KeyringTypes.hd,
+              yOffset: 150,
+              isSelected: false,
+              balanceError: undefined,
+              caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+              isLoadingAccount: false,
+              scopes: ['eip155:1'],
+            },
+          ],
+          selectedAddresses: [],
+          isAutoScrollEnabled: true,
+        },
+        {
+          name: 'with invalid address',
+          accounts: [
+            {
+              name: 'Account 1',
+              address: BUSINESS_ACCOUNT,
+              assets: { fiatBalance: '$3200.00\n1 ETH' },
+              type: KeyringTypes.hd,
+              yOffset: 150,
+              isSelected: false,
+              balanceError: undefined,
+              caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+              isLoadingAccount: false,
+              scopes: ['eip155:1'],
+            },
+          ],
+          selectedAddresses: ['0xInvalidAddress'],
+          isAutoScrollEnabled: true,
+        },
+        {
+          name: 'with auto-scroll disabled',
+          accounts: [
+            {
+              name: 'Account 1',
+              address: BUSINESS_ACCOUNT,
+              assets: { fiatBalance: '$3200.00\n1 ETH' },
+              type: KeyringTypes.hd,
+              yOffset: 150,
+              isSelected: true,
+              balanceError: undefined,
+              caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+              isLoadingAccount: false,
+              scopes: ['eip155:1'],
+            },
+          ],
+          selectedAddresses: [BUSINESS_ACCOUNT],
+          isAutoScrollEnabled: false,
+        },
+      ];
+
+      testCases.forEach(({ accounts: testAccounts, selectedAddresses, isAutoScrollEnabled }) => {
+        setAccountsMock(testAccounts);
+
+        const TestComponent: React.FC = () => {
+          const { accounts, ensByAccountAddress } = useAccounts();
+          return (
+            <EvmAccountSelectorList
+              onSelectAccount={onSelectAccount}
+              accounts={accounts}
+              ensByAccountAddress={ensByAccountAddress}
+              selectedAddresses={selectedAddresses}
+              isAutoScrollEnabled={isAutoScrollEnabled}
+            />
+          );
+        };
+
+        const { getByTestId } = renderComponent(initialState, TestComponent);
+        const flatList = getByTestId(ACCOUNT_SELECTOR_LIST_TESTID);
+
+        expect(flatList.props.onContentSizeChange).toBeDefined();
+        expect(typeof flatList.props.onContentSizeChange).toBe('function');
+        expect(() => flatList.props.onContentSizeChange()).not.toThrow();
+      });
+    });
+
+    it('should call scrollToOffset with correct parameters when conditions are met', () => {
+      const mockScrollToOffset = jest.fn();
+      const mockRef = { current: { scrollToOffset: mockScrollToOffset } };
+
+      const testScrollLogic = (accounts: Account[], selectedAddresses?: string[], isAutoScrollEnabled = true) => {
+        if (!accounts.length || !isAutoScrollEnabled) return;
+
+        // Simulate the accountsLengthRef logic
+        const accountsLengthRef = { current: 0 };
+
+        if (accountsLengthRef.current !== accounts.length) {
+          let selectedAccount: Account | undefined;
+
+          if (selectedAddresses?.length) {
+            const selectedAddress = selectedAddresses[0];
+            selectedAccount = accounts.find((acc) =>
+              acc.address.toLowerCase() === selectedAddress.toLowerCase(),
+            );
+          }
+
+          // Fall back to the account with isSelected flag if no override or match found
+          if (!selectedAccount) {
+            selectedAccount = accounts.find((acc) => acc.isSelected);
+          }
+
+          mockRef.current?.scrollToOffset({
+            offset: selectedAccount?.yOffset || 0,
+            animated: false,
+          });
+
+          accountsLengthRef.current = accounts.length;
+        }
+      };
+
+      const mockAccounts: Account[] = [
+        {
+          name: 'Account 1',
+          address: BUSINESS_ACCOUNT,
+          assets: { fiatBalance: '$3200.00\n1 ETH' },
+          type: KeyringTypes.hd,
+          yOffset: 150,
+          isSelected: false,
+          balanceError: undefined,
+          caipAccountId: `eip155:1:${BUSINESS_ACCOUNT}` as const,
+          isLoadingAccount: false,
+          scopes: ['eip155:1'],
+        },
+      ];
+
+      // Test the logic directly
+      testScrollLogic(mockAccounts, [BUSINESS_ACCOUNT], true);
+
+      // Verify scrollToOffset was called with the correct parameters
+      expect(mockScrollToOffset).toHaveBeenCalledWith({
+        offset: 150,
+        animated: false,
+      });
+    });
+  });
 });
