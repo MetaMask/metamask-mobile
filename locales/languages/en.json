@@ -568,7 +568,9 @@
       "order_id": "Order ID",
       "fees": "Fees",
       "total": "Total",
-      "view_order_details_in_transak": "View order details in Transak"
+      "view_order_details_in_transak": "View order details in Transak",
+      "no_order_found": "No order found",
+      "back_to_wallet": "Back to Wallet"
     },
     "notifications": {
       "deposit_failed_title": "Deposit of {{currency}} has failed! Please try again, sorry for the inconvenience!",

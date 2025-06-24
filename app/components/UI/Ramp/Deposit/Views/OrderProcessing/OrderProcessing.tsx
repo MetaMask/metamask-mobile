@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, TouchableOpacity, Image, Linking } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useSelector } from 'react-redux';
@@ -27,7 +27,7 @@ import Icon, {
 
 import { USDC_TOKEN, USDT_TOKEN } from '../../constants';
 import { getIntlNumberFormatter } from '../../../../../../util/intl';
-import { strings } from '../../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../../locales/i18n';
 import { selectChainId } from '../../../../../../selectors/networkController';
 import { selectEvmNetworkName } from '../../../../../../selectors/networkInfos';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
@@ -59,7 +59,7 @@ export const createOrderProcessingNavDetails =
 
 function formatCurrency(amount: number | string, currency: string): string {
   const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-  return getIntlNumberFormatter('en-US', {
+  return getIntlNumberFormatter(I18n.locale, {
     style: 'currency',
     currency: currency || 'USD',
     currencyDisplay: 'symbol',
@@ -91,18 +91,16 @@ const OrderProcessing = () => {
     [],
   );
 
-  const getCryptoToken = () => {
+  const cryptoToken = useMemo(() => {
     if (order?.cryptocurrency === 'USDC') {
       return USDC_TOKEN;
     } else if (order?.cryptocurrency === 'USDT') {
       return USDT_TOKEN;
     }
     return null;
-  };
+  }, [order]);
 
-  const cryptoToken = getCryptoToken();
-
-  const getOrderState = () => {
+  const orderState = useMemo(() => {
     if (order?.state === FIAT_ORDER_STATES.COMPLETED) {
       return OrderStatus.SUCCESS;
     } else if (
@@ -112,9 +110,7 @@ const OrderProcessing = () => {
       return OrderStatus.ERROR;
     }
     return OrderStatus.PROCESSING;
-  };
-
-  const orderState = getOrderState();
+  }, [order]);
 
   const getIconContainerStyle = () => {
     switch (orderState) {
@@ -172,10 +168,25 @@ const OrderProcessing = () => {
         <ScreenLayout.Body>
           <ScreenLayout.Content grow>
             <View style={styles.errorContainer}>
-              <Text variant={TextVariant.BodyMD}>No order found</Text>
+              <Text variant={TextVariant.BodyMD}>
+                {strings('deposit.order_processing.no_order_found')}
+              </Text>
             </View>
           </ScreenLayout.Content>
         </ScreenLayout.Body>
+        <ScreenLayout.Footer>
+          <ScreenLayout.Content>
+            <View style={styles.buttonContainer}>
+              <StyledButton
+                type="confirm"
+                onPress={() => navigation.navigate(Routes.WALLET.HOME)}
+                testID="no-order-back-button"
+              >
+                {strings('deposit.order_processing.back_to_wallet')}
+              </StyledButton>
+            </View>
+          </ScreenLayout.Content>
+        </ScreenLayout.Footer>
       </ScreenLayout>
     );
   }
@@ -294,7 +305,7 @@ const OrderProcessing = () => {
 
             <View style={styles.separator} />
 
-            {orderFee && (
+            {Boolean(orderFee) && (
               <View style={styles.detailRow}>
                 <Text
                   variant={TextVariant.BodyMD}

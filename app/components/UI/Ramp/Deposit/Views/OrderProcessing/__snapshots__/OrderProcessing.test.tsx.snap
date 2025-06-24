@@ -656,6 +656,81 @@ exports[`OrderProcessing Component renders no order found state 1`] = `
         </View>
       </View>
     </View>
+    <View>
+      <View
+        style={
+          [
+            {
+              "padding": 15,
+            },
+            undefined,
+            undefined,
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "gap": 16,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={0.2}
+            onPress={[Function]}
+            style={
+              [
+                [
+                  {
+                    "borderRadius": 12,
+                    "justifyContent": "center",
+                    "padding": 15,
+                  },
+                  {
+                    "backgroundColor": "#4459ff",
+                    "minHeight": 50,
+                  },
+                  undefined,
+                ],
+                null,
+              ]
+            }
+            testID="no-order-back-button"
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#007aff",
+                    "fontSize": 17,
+                    "fontWeight": "500",
+                    "textAlign": "center",
+                  },
+                  null,
+                  [
+                    {
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "600",
+                      "textAlign": "center",
+                    },
+                    {
+                      "color": "#ffffff",
+                    },
+                    undefined,
+                  ],
+                  null,
+                ]
+              }
+            >
+              Back to Wallet
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
   </View>
 </RCTSafeAreaView>
 `;
