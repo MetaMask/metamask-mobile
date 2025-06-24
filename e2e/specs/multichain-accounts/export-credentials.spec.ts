@@ -16,10 +16,6 @@ import TestHelpers from '../../helpers';
 const PASSWORD = '123123123';
 
 const checkCredentials = async () => {
-  await Assertions.checkIfVisible(
-    RevealPrivateKey.revealCredentialCopyToClipboardButton,
-  );
-  await RevealPrivateKey.tapToCopyCredentialToClipboard();
   await Assertions.checkIfVisible(RevealPrivateKey.revealCredentialQRCodeTab);
   await RevealPrivateKey.tapToRevealPrivateCredentialQRCode();
   await Assertions.checkIfVisible(RevealPrivateKey.revealCredentialQRCodeImage);
