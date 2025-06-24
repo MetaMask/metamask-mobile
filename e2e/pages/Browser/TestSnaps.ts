@@ -10,18 +10,15 @@ import {
   EntropyDropDownSelectorWebIDS,
 } from '../../selectors/Browser/TestSnaps.selectors';
 import Gestures from '../../utils/Gestures';
-import {
-  SNAP_INSTALL_CONNECT,
-} from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
-import {
-  SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE,
-} from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
+import { SNAP_INSTALL_CONNECT } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
+import { SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
 import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
 import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
 import { IndexableWebElement } from 'detox/detox';
 
-export const TEST_SNAPS_URL = 'https://metamask.github.io/snaps/test-snaps/2.23.1/';
+export const TEST_SNAPS_URL =
+  'https://metamask.github.io/snaps/test-snaps/2.23.1/';
 
 class TestSnaps {
   get container() {
@@ -46,11 +43,14 @@ class TestSnaps {
     );
   }
 
-  async checkResultSpan(selector: keyof typeof TestSnapResultSelectorWebIDS, expectedMessage: string) {
-    const webElement = await Matchers.getElementByWebID(
+  async checkResultSpan(
+    selector: keyof typeof TestSnapResultSelectorWebIDS,
+    expectedMessage: string,
+  ) {
+    const webElement = (await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapResultSelectorWebIDS[selector],
-    ) as IndexableWebElement;
+    )) as IndexableWebElement;
 
     const actualText = await webElement.getText();
     await Assertions.checkIfTextMatches(actualText, expectedMessage);
@@ -71,18 +71,26 @@ class TestSnaps {
   }
 
   async getOptionValueByText(webElement: IndexableWebElement, text: string) {
-    return await webElement.runScript((el, searchText) => {
-      if (!el?.options) return null;
-      const option = Array.from(el.options).find((opt: any) => opt.text.includes(searchText));
-      return option ? (option as any).value : null;
-    }, [text]);
+    return await webElement.runScript(
+      (el, searchText) => {
+        if (!el?.options) return null;
+        const option = Array.from(el.options).find((opt: any) =>
+          opt.text.includes(searchText),
+        );
+        return option ? (option as any).value : null;
+      },
+      [text],
+    );
   }
 
-  async selectEntropySource(selector: keyof typeof EntropyDropDownSelectorWebIDS, entropySource: string) {
-    const webElement = await Matchers.getElementByWebID(
+  async selectEntropySource(
+    selector: keyof typeof EntropyDropDownSelectorWebIDS,
+    entropySource: string,
+  ) {
+    const webElement = (await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       EntropyDropDownSelectorWebIDS[selector],
-    ) as IndexableWebElement;
+    )) as IndexableWebElement;
 
     const source = await this.getOptionValueByText(webElement, entropySource);
 
@@ -91,7 +99,7 @@ class TestSnaps {
         el.value = value;
         el.dispatchEvent(new Event('change', { bubbles: true }));
       },
-      [source]
+      [source],
     );
   }
 
@@ -105,7 +113,10 @@ class TestSnaps {
     await Gestures.waitAndTap(this.getConnectSnapInstallOkButton);
   }
 
-  async fillMessage(locator: keyof typeof TestSnapInputSelectorWebIDS, message: string) {
+  async fillMessage(
+    locator: keyof typeof TestSnapInputSelectorWebIDS,
+    message: string,
+  ) {
     const webElement = Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapInputSelectorWebIDS[locator],
