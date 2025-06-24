@@ -37,6 +37,7 @@ const createStyles = (theme: Theme) => {
       width: 300,
       height: 40,
       backgroundColor: theme.colors.background.alternative,
+      zIndex: 2,
     },
     segmentedControlItem: {
       flex: 1,
@@ -62,6 +63,7 @@ const createStyles = (theme: Theme) => {
     },
     header: {
       backgroundColor: undefined,
+      zIndex: 2,
     },
   });
 };

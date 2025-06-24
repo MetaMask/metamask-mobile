@@ -29,6 +29,8 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
   }
   getItem={[Function]}
   getItemCount={[Function]}
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
   initialNumToRender={999}
   keyExtractor={[Function]}
   onContentSizeChange={[Function]}
