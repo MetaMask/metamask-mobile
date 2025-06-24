@@ -493,7 +493,7 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                   }
                                 }
                               >
-                                0.00
+                                0
                                  
                                 USDC
                               </Text>
@@ -1997,7 +1997,7 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                   }
                                 }
                               >
-                                0.00
+                                0
                                  
                                 USDC
                               </Text>
@@ -3501,7 +3501,7 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                   }
                                 }
                               >
-                                0.00
+                                0
                                  
                                 USDC
                               </Text>
@@ -4981,7 +4981,7 @@ exports[`BuildQuote Component Continue button functionality renders unexpected e
                                   }
                                 }
                               >
-                                0.00
+                                0
                                  
                                 USDC
                               </Text>
@@ -7965,7 +7965,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                   }
                                 }
                               >
-                                0.00
+                                0
                                  
                                 USDC
                               </Text>
@@ -9445,7 +9445,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                   }
                                 }
                               >
-                                0.00
+                                0
                                  
                                 USDC
                               </Text>
@@ -10925,7 +10925,7 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                   }
                                 }
                               >
-                                0.00
+                                0
                                  
                                 USDC
                               </Text>
@@ -14257,7 +14257,7 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                   }
                                 }
                               >
-                                0.00
+                                0
                                  
                                 USDC
                               </Text>
@@ -17589,7 +17589,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                   }
                                 }
                               >
-                                0.00
+                                0
                                  
                                 USDC
                               </Text>
