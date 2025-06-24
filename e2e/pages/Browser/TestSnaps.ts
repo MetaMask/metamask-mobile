@@ -14,7 +14,6 @@ import {
   SNAP_INSTALL_CONNECT,
 } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
 import {
-  SNAP_INSTALL_PERMISSIONS_REQUEST,
   SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE,
 } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
 import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
@@ -31,10 +30,6 @@ class TestSnaps {
 
   get getConnectSnapButton() {
     return Matchers.getElementByID(SNAP_INSTALL_CONNECT);
-  }
-
-  get getConnectSnapPermissionsRequestButton() {
-    return Matchers.getElementByID(SNAP_INSTALL_PERMISSIONS_REQUEST);
   }
 
   get getApproveSnapPermissionsRequestButton() {
@@ -103,22 +98,11 @@ class TestSnaps {
   async installSnap(buttonLocator: keyof typeof TestSnapViewSelectorWebIDS) {
     await this.tapButton(buttonLocator);
 
-    await Gestures.waitAndTap(this.getConnectSnapButton, {
-      skipVisibilityCheck: true,
-      delayBeforeTap: 2500,
-    });
+    await Gestures.waitAndTap(this.getConnectSnapButton);
 
-    await Gestures.waitAndTap(this.getConnectSnapPermissionsRequestButton, {
-      delayBeforeTap: 2500,
-    });
+    await Gestures.waitAndTap(this.getApproveSnapPermissionsRequestButton);
 
-    await Gestures.waitAndTap(this.getApproveSnapPermissionsRequestButton, {
-      delayBeforeTap: 2500,
-    });
-
-    await Gestures.waitAndTap(this.getConnectSnapInstallOkButton, {
-      delayBeforeTap: 2500,
-    });
+    await Gestures.waitAndTap(this.getConnectSnapInstallOkButton);
   }
 
   async fillMessage(locator: keyof typeof TestSnapInputSelectorWebIDS, message: string) {
