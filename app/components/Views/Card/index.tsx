@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { Dimensions, TouchableOpacity, View } from 'react-native';
 
 import Icon, {
@@ -91,7 +97,7 @@ const CardView = () => {
     }
   }, [selectedAddress, cardFeature]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const fetchBalances = async () => {
       await refreshTokens();
     };
@@ -99,7 +105,7 @@ const CardView = () => {
     fetchBalances();
   }, [refreshTokens]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const fetchGeolocation = async () => {
       const retrievedGeolocation = await getGeoLocation();
       setGeolocation(retrievedGeolocation);
