@@ -35,7 +35,7 @@ const AdvancedDetailsRow = () => {
   const transactionMetadata = useTransactionMetadataRequest();
   const {
     setShowNonceModal,
-    setUserSelectedNonce,
+    updateNonce,
     showNonceModal,
     proposedNonce,
     userSelectedNonce,
@@ -148,7 +148,7 @@ const AdvancedDetailsRow = () => {
                 proposedNonce={proposedNonce}
                 nonceValue={userSelectedNonce}
                 close={() => setShowNonceModal(false)}
-                save={(newNonce: number) => setUserSelectedNonce(newNonce)}
+                save={updateNonce}
               />
             )}
           </>
