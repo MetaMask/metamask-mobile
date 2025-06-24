@@ -2724,7 +2724,7 @@ DEPENDENCIES:
   - FirebaseCore
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
-  - GoogleAcm (from `../node_modules/react-native-google-acm`)
+  - "GoogleAcm (from `../node_modules/@metamask/react-native-acm`)"
   - "GoogleUtilities/NSData+zlib"
   - GzipSwift
   - lottie-ios (from `../node_modules/lottie-ios`)
@@ -2926,7 +2926,7 @@ EXTERNAL SOURCES:
   glog:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
   GoogleAcm:
-    :path: "../node_modules/react-native-google-acm"
+    :path: "../node_modules/@metamask/react-native-acm"
   lottie-ios:
     :path: "../node_modules/lottie-ios"
   lottie-react-native:
@@ -3184,8 +3184,8 @@ SPEC CHECKSUMS:
   ExpoFont: f354e926f8feae5e831ec8087f36652b44a0b188
   ExpoKeepAwake: b0171a73665bfcefcfcc311742a72a956e6aa680
   ExpoLinking: 8d12bee174ba0cdf31239706578e29e74a417402
-  ExpoWebBrowser: a212e6b480d8857d3e441fba51e0c968333803b3
   ExpoModulesCore: a6a8ab2ea6d0b6488b6fafc12033b1f8aac8ffb6
+  ExpoWebBrowser: a212e6b480d8857d3e441fba51e0c968333803b3
   EXUpdatesInterface: 7c977640bdd8b85833c19e3959ba46145c5719db
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: 7605ea4810e0e10ae4815292433c09bf4324ba45
@@ -3197,7 +3197,7 @@ SPEC CHECKSUMS:
   FirebaseMessaging: 7b5d8033e183ab59eb5b852a53201559e976d366
   fmt: 01b82d4ca6470831d1cc0852a1af644be019e8f6
   glog: 08b301085f15bcbb6ff8632a8ebaf239aae04e6a
-  GoogleAcm: b6140c6bbab70222b1c14fbdadaebc378747379d
+  GoogleAcm: baefc9e2bf9d40709561af90318a94edf609ac7f
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleUtilities: ea963c370a38a8069cc5f7ba4ca849a60b6d7d15
   GZIP: 3c0abf794bfce8c7cb34ea05a1837752416c8868
