@@ -12,18 +12,12 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../../constants/on-ramp';
 import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
+import { strings } from '../../../../../../locales/i18n';
 
-// Mock the strings function
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string, params?: Record<string, unknown>) => {
-    if (params) {
-      return `${key}_${JSON.stringify(params)}`;
-    }
-    return key;
-  }),
+  strings: jest.fn(),
 }));
 
-// Mock the renderNumber function
 jest.mock('../../../../../util/number', () => ({
   renderNumber: jest.fn((value: string) => value),
 }));
@@ -183,38 +177,50 @@ describe('getNotificationDetails', () => {
 
   it('should return error notification details for FAILED state', () => {
     const fiatOrder = createMockFiatOrder(FIAT_ORDER_STATES.FAILED);
+    (strings as jest.Mock)
+      .mockReturnValueOnce('ETH deposit failed')
+      .mockReturnValueOnce(
+        'Your ETH deposit could not be completed. Please try again.',
+      );
+
     const result = getNotificationDetails(fiatOrder);
 
     expect(result).toEqual({
       duration: 5000,
-      title: 'deposit.notifications.deposit_failed_title_{"currency":"ETH"}',
-      description: 'deposit.notifications.deposit_failed_description',
+      title: 'ETH deposit failed',
+      description: 'Your ETH deposit could not be completed. Please try again.',
       status: 'error',
     });
   });
 
   it('should return cancelled notification details for CANCELLED state', () => {
     const fiatOrder = createMockFiatOrder(FIAT_ORDER_STATES.CANCELLED);
+    (strings as jest.Mock)
+      .mockReturnValueOnce('Deposit cancelled')
+      .mockReturnValueOnce('Your deposit has been cancelled.');
+
     const result = getNotificationDetails(fiatOrder);
 
     expect(result).toEqual({
       duration: 5000,
-      title: 'deposit.notifications.deposit_cancelled_title',
-      description: 'deposit.notifications.deposit_cancelled_description',
+      title: 'Deposit cancelled',
+      description: 'Your deposit has been cancelled.',
       status: 'cancelled',
     });
   });
 
   it('should return success notification details for COMPLETED state', () => {
     const fiatOrder = createMockFiatOrder(FIAT_ORDER_STATES.COMPLETED);
+    (strings as jest.Mock)
+      .mockReturnValueOnce('0.1 ETH received')
+      .mockReturnValueOnce('Your ETH deposit has been completed successfully.');
+
     const result = getNotificationDetails(fiatOrder);
 
     expect(result).toEqual({
       duration: 5000,
-      title:
-        'deposit.notifications.deposit_completed_title_{"amount":"0.1","currency":"ETH"}',
-      description:
-        'deposit.notifications.deposit_completed_description_{"currency":"ETH"}',
+      title: '0.1 ETH received',
+      description: 'Your ETH deposit has been completed successfully.',
       status: 'success',
     });
   });
@@ -228,24 +234,32 @@ describe('getNotificationDetails', () => {
 
   it('should return pending notification details for PENDING state', () => {
     const fiatOrder = createMockFiatOrder(FIAT_ORDER_STATES.PENDING);
+    (strings as jest.Mock)
+      .mockReturnValueOnce('ETH deposit pending')
+      .mockReturnValueOnce('Your ETH deposit is being processed.');
+
     const result = getNotificationDetails(fiatOrder);
 
     expect(result).toEqual({
       duration: 5000,
-      title: 'deposit.notifications.deposit_pending_title_{"currency":"ETH"}',
-      description: 'deposit.notifications.deposit_pending_description',
+      title: 'ETH deposit pending',
+      description: 'Your ETH deposit is being processed.',
       status: 'pending',
     });
   });
 
   it('should return pending notification details for default case', () => {
     const fiatOrder = createMockFiatOrder('UNKNOWN' as FIAT_ORDER_STATES);
+    (strings as jest.Mock)
+      .mockReturnValueOnce('ETH deposit pending')
+      .mockReturnValueOnce('Your ETH deposit is being processed.');
+
     const result = getNotificationDetails(fiatOrder);
 
     expect(result).toEqual({
       duration: 5000,
-      title: 'deposit.notifications.deposit_pending_title_{"currency":"ETH"}',
-      description: 'deposit.notifications.deposit_pending_description',
+      title: 'ETH deposit pending',
+      description: 'Your ETH deposit is being processed.',
       status: 'pending',
     });
   });
