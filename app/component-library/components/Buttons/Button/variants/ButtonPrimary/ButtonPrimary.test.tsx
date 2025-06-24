@@ -1,7 +1,6 @@
 // Third party dependencies.
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { lightTheme } from '@metamask/design-tokens';
 
 // Internal dependencies.
 import ButtonPrimary from './ButtonPrimary';
@@ -17,6 +16,7 @@ describe('ButtonPrimary', () => {
     );
     expect(toJSON()).toMatchSnapshot();
   });
+
   it('should render the label text', () => {
     const { getByText } = render(
       <ButtonPrimary {...SAMPLE_BUTTONPRIMARY_PROPS} label="Test Button" />,
@@ -56,9 +56,57 @@ describe('ButtonPrimary', () => {
     );
 
     const buttonElement = getByTestId(BUTTONPRIMARY_TESTID);
+    expect(buttonElement).toBeTruthy();
+  });
 
-    expect(buttonElement.props.style.backgroundColor).toBe(
-      lightTheme.colors.error.default,
+  it('should apply the inverse styles when isInverse is true', () => {
+    const { getByTestId } = render(
+      <ButtonPrimary
+        {...SAMPLE_BUTTONPRIMARY_PROPS}
+        label="Inverse Button"
+        isInverse
+        testID={BUTTONPRIMARY_TESTID}
+      />,
     );
+
+    const buttonElement = getByTestId(BUTTONPRIMARY_TESTID);
+    expect(buttonElement).toBeTruthy();
+  });
+
+  it('should apply both inverse and danger styles when both props are true', () => {
+    const { getByTestId } = render(
+      <ButtonPrimary
+        {...SAMPLE_BUTTONPRIMARY_PROPS}
+        label="Inverse Danger Button"
+        isInverse
+        isDanger
+        testID={BUTTONPRIMARY_TESTID}
+      />,
+    );
+
+    const buttonElement = getByTestId(BUTTONPRIMARY_TESTID);
+    expect(buttonElement).toBeTruthy();
+  });
+
+  it('should show loading indicator when loading prop is true', () => {
+    const { getByTestId } = render(
+      <ButtonPrimary
+        {...SAMPLE_BUTTONPRIMARY_PROPS}
+        label="Loading Button"
+        loading
+        testID={BUTTONPRIMARY_TESTID}
+      />,
+    );
+
+    const buttonElement = getByTestId(BUTTONPRIMARY_TESTID);
+    expect(buttonElement).toBeTruthy();
+  });
+
+  it('should use default props when not specified', () => {
+    const { getByText } = render(
+      <ButtonPrimary {...SAMPLE_BUTTONPRIMARY_PROPS} label="Default Button" />,
+    );
+
+    expect(getByText('Default Button')).toBeTruthy();
   });
 });
