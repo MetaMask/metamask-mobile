@@ -21,7 +21,25 @@ import { isE2E } from './app/util/test/utils.js';
 
 import { Performance } from './app/core/Performance';
 import { handleCustomError, setReactNativeDefaultHandler } from './app/core/ErrorHandler';
+import { NativeModules } from 'react-native';
+
 Performance.setupPerformanceObservers();
+
+setTimeout(() => {
+  const fdm = NativeModules.FpsDebugModule;
+
+  fdm.isFpsDebugEnabled().then((isEnabled) => {
+    console.log('FPS Debug Enabled:', isEnabled);
+  });
+
+  fdm.setFpsDebugEnabled(true).then(() => {
+    console.log(`FPS Debug Enabled set to true`);
+    fdm.isFpsDebugEnabled().then((isEnabled) => {
+      console.log('Later, FPS Debug Enabled:', isEnabled);
+    });
+  });
+}, 1000);
+
 
 LogBox.ignoreAllLogs();
 // List of warnings that we're ignoring
