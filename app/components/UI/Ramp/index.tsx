@@ -217,7 +217,7 @@ function FiatOrders() {
           key={url}
           style={styles.hiddenView}
           source={{ uri: url }}
-          onNavigationStateChange={(navState) =>
+          onNavigationStateChange={(navState: WebViewNavigation) =>
             handleNavigationStateChange(navState, url)
           }
           onHttpError={() => dispatch(removeAuthenticationUrl(url))}
