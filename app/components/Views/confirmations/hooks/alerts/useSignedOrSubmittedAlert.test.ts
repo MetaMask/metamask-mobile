@@ -23,13 +23,9 @@ const MOCK_APPROVED_TRANSACTION_META = {
   to: '0x456',
 };
 
-jest.mock('../transactions/useTransactionMetadataRequest', () => {
-  return {
-    useTransactionMetadataRequest: jest.fn().mockReturnValue({
-      id: '3',
-    }),
-  };
-});
+jest.mock('../transactions/useTransactionMetadataRequest', () => ({
+  useTransactionMetadataRequest: jest.fn(),
+}));
 
 describe('useSignedOrSubmittedAlert', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
