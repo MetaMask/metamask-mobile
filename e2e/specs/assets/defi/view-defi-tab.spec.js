@@ -32,8 +32,8 @@ describe(SmokeNetworkAbstractions('View DeFi tab'), () => {
 
         await WalletView.tapOnDeFiTab();
 
+        await Assertions.checkIfVisible(WalletView.defiTabContainer);
         await Assertions.checkIfVisible(WalletView.defiNetworkFilter);
-        await Assertions.checkIfNotVisible(WalletView.defiTabContainer);
         await Assertions.checkIfTextIsDisplayed(
           WalletViewSelectorsText.DEFI_NO_POSITIONS,
         );
@@ -58,8 +58,8 @@ describe(SmokeNetworkAbstractions('View DeFi tab'), () => {
 
         await WalletView.tapOnDeFiTab();
 
-        await Assertions.checkIfNotVisible(WalletView.defiNetworkFilter);
         await Assertions.checkIfNotVisible(WalletView.defiTabContainer);
+        await Assertions.checkIfNotVisible(WalletView.defiNetworkFilter);
         await Assertions.checkIfTextIsDisplayed(
           WalletViewSelectorsText.DEFI_ERROR_CANNOT_LOAD_PAGE,
         );
@@ -86,14 +86,13 @@ describe(SmokeNetworkAbstractions('View DeFi tab'), () => {
       async () => {
         await loginToApp();
 
-        await Assertions.checkIfVisible(WalletView.defiNetworkFilter);
         await Assertions.checkIfVisible(WalletView.container);
         await Assertions.checkIfVisible(WalletView.defiTab);
 
         await WalletView.tapOnDeFiTab();
 
-        await Assertions.checkIfVisible(WalletView.defiNetworkFilter);
         await Assertions.checkIfVisible(WalletView.defiTabContainer);
+        await Assertions.checkIfVisible(WalletView.defiNetworkFilter);
         await Assertions.checkIfTextIsDisplayed('Aave V2');
         await Assertions.checkIfTextIsDisplayed('$14.74');
         await Assertions.checkIfTextIsDisplayed('Aave V3');

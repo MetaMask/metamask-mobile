@@ -315,6 +315,9 @@ describe('DeFiPositionsList', () => {
     );
 
     expect(
+      await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
       await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER),
     ).toBeOnTheScreen();
     expect(await findByText(`No positions yet`)).toBeOnTheScreen();
