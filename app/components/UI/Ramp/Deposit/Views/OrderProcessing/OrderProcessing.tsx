@@ -103,8 +103,6 @@ const OrderProcessing = () => {
   const cryptoToken = getCryptoToken();
 
   const getOrderState = () => {
-    return OrderStatus.SUCCESS;
-
     if (order?.state === FIAT_ORDER_STATES.COMPLETED) {
       return OrderStatus.SUCCESS;
     } else if (
@@ -145,8 +143,9 @@ const OrderProcessing = () => {
   }, [orderState, navigation]);
 
   const handleContactSupport = useCallback(() => {
-    navigation.navigate(Routes.SETTINGS.CONTACT_FORM);
-  }, [navigation]);
+    // TODO: Discuss proper support feature
+    Linking.openURL('https://support.transak.com/');
+  }, []);
 
   const handleViewInTransak = useCallback(() => {
     if (order?.data && isDepositOrder(order.data)) {
@@ -339,17 +338,17 @@ const OrderProcessing = () => {
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
           <View style={styles.buttonContainer}>
-            <StyledButton type="confirm" onPress={handleMainAction}>
+            <StyledButton
+              type="confirm"
+              onPress={handleMainAction}
+              testID="main-action-button"
+            >
               {orderState === OrderStatus.ERROR
                 ? strings('deposit.order_processing.error_button')
                 : strings('deposit.order_processing.button')}
             </StyledButton>
             {orderState === OrderStatus.ERROR && (
-              <StyledButton
-                type="normal"
-                onPress={handleContactSupport}
-                style={styles.secondaryButton}
-              >
+              <StyledButton type="normal" onPress={handleContactSupport}>
                 {strings('deposit.order_processing.contact_support_button')}
               </StyledButton>
             )}
