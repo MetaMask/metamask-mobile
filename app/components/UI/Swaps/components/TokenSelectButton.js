@@ -12,9 +12,9 @@ const styles = StyleSheet.create({
   },
 });
 
-function TokenSelectButton({ icon, symbol, onPress, disabled, label }) {
+function TokenSelectButton({ icon, symbol, onPress, disabled, label, testID }) {
   return (
-    <SelectorButton onPress={onPress} disabled={disabled}>
+    <SelectorButton onPress={onPress} disabled={disabled} testID={testID}>
       <View style={styles.icon}>
         <TokenIcon icon={icon} symbol={symbol} />
       </View>
@@ -29,6 +29,7 @@ TokenSelectButton.propTypes = {
   label: PropTypes.string,
   onPress: PropTypes.func,
   disabled: PropTypes.bool,
+  testID: PropTypes.string,
 };
 
 export default TokenSelectButton;
