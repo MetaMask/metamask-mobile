@@ -1,18 +1,21 @@
+// Third party dependencies.
 import React, { useCallback, useRef, useMemo, useEffect } from 'react';
 import {
   Alert,
   InteractionManager,
+  SectionListRenderItem,
   View,
   ViewStyle,
+  SectionList,
   TouchableOpacity,
 } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
 import { CaipChainId } from '@metamask/utils';
 import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 
+// External dependencies.
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
@@ -40,10 +43,10 @@ import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccountSections } from '../../../multichain-accounts/selectors/accountTreeController';
 
+// Internal dependencies.
 import {
   AccountSection,
   EvmAccountSelectorListProps,
-  FlattenedAccountListItem,
 } from './EvmAccountSelectorList.types';
 import styleSheet from './EvmAccountSelectorList.styles';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
@@ -82,14 +85,7 @@ const EvmAccountSelectorList = ({
   ...props
 }: EvmAccountSelectorListProps) => {
   const { navigate } = useNavigation();
-  /**
-   * Ref for the FlatList component.
-   * The type of the ref is not explicitly defined.
-   */
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const accountListRef = useRef<any>(null);
-  const accountsLengthRef = useRef<number>(0);
+  const accountListRef = useRef<SectionList<Account, AccountSection>>(null);
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -131,52 +127,7 @@ const EvmAccountSelectorList = ({
     return accounts.length > 0 ? [{ title: 'Accounts', data: accounts }] : [];
   }, [accounts, accountTreeSections, internalAccounts]);
 
-  // Flatten sections into a single array for FlatList
-  const flattenedData = useMemo((): FlattenedAccountListItem[] => {
-    const items: FlattenedAccountListItem[] = [];
-    let accountIndex = 0;
-
-    accountSections.forEach((section, sectionIndex) => {
-      if (accountTreeSections) {
-        items.push({
-          type: 'header',
-          data: section,
-          sectionIndex,
-        });
-      }
-
-      section.data.forEach((account) => {
-        items.push({
-          type: 'account',
-          data: account,
-          sectionIndex,
-          accountIndex,
-        });
-        accountIndex++;
-      });
-
-      if (accountTreeSections && sectionIndex < accountSections.length - 1) {
-        items.push({
-          type: 'footer',
-          data: section,
-          sectionIndex,
-        });
-      }
-    });
-
-    return items;
-  }, [accountSections, accountTreeSections]);
-
-  const getKeyExtractor = (item: FlattenedAccountListItem) => {
-    if (item.type === 'header') {
-      return `header-${item.sectionIndex}`;
-    }
-    if (item.type === 'footer') {
-      return `footer-${item.sectionIndex}`;
-    }
-    return item.data.address;
-  };
-
+  const getKeyExtractor = ({ address }: Account) => address;
   const useMultichainAccountDesign = Boolean(accountTreeSections);
 
   const selectedAddressesLookup = useMemo(() => {
@@ -315,7 +266,7 @@ const EvmAccountSelectorList = ({
   );
 
   const renderSectionHeader = useCallback(
-    ({ title, wallet }: { title: string; wallet?: AccountWallet }) => (
+    ({ section: { title, wallet } }: { section: AccountSection }) => (
       <View style={styles.sectionHeader}>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
           {title}
@@ -336,9 +287,18 @@ const EvmAccountSelectorList = ({
     ],
   );
 
-  const renderSectionFooter = useCallback(() => (
-    <View style={styles.sectionSeparator} />
-  ), [styles.sectionSeparator]);
+  const renderSectionFooter = useCallback(
+    ({ section }: { section: AccountSection }) => {
+      // Find the index of this section
+      const sectionIndex = accountSections.findIndex(
+        (s) => s.title === section.title,
+      );
+      // Only render separator if it's not the last section
+      const isLastSection = sectionIndex === accountSections.length - 1;
+      return isLastSection ? null : <View style={styles.sectionSeparator} />;
+    },
+    [styles.sectionSeparator, accountSections],
+  );
 
   const scrollToSelectedAccount = useCallback(() => {
     if (!accounts.length || !isAutoScrollEnabled || !accountListRef.current)
@@ -354,39 +314,45 @@ const EvmAccountSelectorList = ({
     }
 
     if (selectedAccount) {
-      // Find the item index for the selected account in flattened data
-      const selectedItemIndex = flattenedData.findIndex(
-        (item) =>
-          item.type === 'account' && areAddressesEqual(item.data.address, selectedAccount.address),
-      );
+      // Find the section and item index for the selected account
+      let sectionIndex = -1;
+      let itemIndex = -1;
 
-      if (selectedItemIndex !== -1) {
-        accountListRef.current?.scrollToIndex({
-          index: selectedItemIndex,
+      for (let i = 0; i < accountSections.length; i++) {
+        const section = accountSections[i];
+        const accountIndex = section.data.findIndex(
+          (acc) =>
+            toFormattedAddress(acc.address) ===
+            toFormattedAddress(selectedAccount.address),
+        );
+        if (accountIndex !== -1) {
+          sectionIndex = i;
+          itemIndex = accountIndex;
+          break;
+        }
+      }
+
+      if (sectionIndex !== -1 && itemIndex !== -1) {
+        accountListRef?.current?.scrollToLocation({
+          sectionIndex,
+          itemIndex,
           animated: true,
           viewPosition: 0.5, // Center the item in the view
         });
       }
     }
-  }, [accounts, accountListRef, selectedAddresses, isAutoScrollEnabled, flattenedData]);
+  }, [accounts, selectedAddresses, isAutoScrollEnabled, accountSections]);
 
   // Scroll to selected account when selection changes or on mount
   useEffect(() => {
     scrollToSelectedAccount();
   }, [scrollToSelectedAccount]);
 
-  const renderItem = useCallback(
-    ({ item }: { item: FlattenedAccountListItem }) => {
-      if (item.type === 'header') {
-        return renderSectionHeader(item.data);
-      }
-
-      if (item.type === 'footer') {
-        return renderSectionFooter();
-      }
-
-      // Render account item
-      const {
+  const renderAccountItem = useCallback<
+    SectionListRenderItem<Account, AccountSection>
+  >(
+    ({
+      item: {
         name,
         address,
         assets,
@@ -395,8 +361,9 @@ const EvmAccountSelectorList = ({
         balanceError,
         scopes,
         isLoadingAccount,
-      } = item.data;
-
+      },
+      index,
+    }) => {
       const partialAccount = {
         address,
         scopes,
@@ -438,7 +405,7 @@ const EvmAccountSelectorList = ({
             type === KeyringTypes.simple ||
             (type === KeyringTypes.snap && !isSolanaAddress(address)),
           isSelected: isSelectedAccount,
-          index: item.accountIndex,
+          index,
         });
       };
 
@@ -516,46 +483,22 @@ const EvmAccountSelectorList = ({
       navigate,
       styles.titleText,
       accountTreeSections,
-      renderSectionHeader,
-      renderSectionFooter,
     ],
   );
 
-  const onContentSizeChanged = useCallback(() => {
-    // Handle auto scroll to account
-    if (!accounts.length || !isAutoScrollEnabled) return;
-
-    if (accountsLengthRef.current !== accounts.length) {
-      let selectedAccount: Account | undefined;
-
-      if (selectedAddresses?.length) {
-        const selectedAddress = selectedAddresses[0];
-        selectedAccount = accounts.find((acc) =>
-          areAddressesEqual(acc.address, selectedAddress),
-        );
-      }
-
-      // Fall back to the account with isSelected flag if no override or match found
-      if (!selectedAccount) {
-        selectedAccount = accounts.find((acc) => acc.isSelected);
-      }
-
-      accountListRef.current?.scrollToOffset({
-        offset: selectedAccount?.yOffset || 0,
-        animated: false,
-      });
-
-      accountsLengthRef.current = accounts.length;
-    }
-  }, [accounts, accountListRef, selectedAddresses, isAutoScrollEnabled]);
-
   return (
-    <FlatList
+    <SectionList
       ref={accountListRef}
-      onContentSizeChange={onContentSizeChanged}
-      data={flattenedData}
+      sections={accountSections}
       keyExtractor={getKeyExtractor}
-      renderItem={renderItem}
+      // @ts-expect-error - This will work, for some reason typescript sees null as an option here, but it's not.
+      renderItem={renderAccountItem}
+      renderSectionHeader={
+        accountTreeSections ? renderSectionHeader : undefined
+      }
+      renderSectionFooter={
+        accountTreeSections ? renderSectionFooter : undefined
+      }
       // Increasing number of items at initial render fixes scroll issue.
       initialNumToRender={999}
       testID={ACCOUNT_SELECTOR_LIST_TESTID}

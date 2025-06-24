@@ -6,16 +6,11 @@ import { FlatListProps } from 'react-native';
 import { Account, UseAccounts } from '../../hooks/useAccounts';
 import { AccountWallet } from '@metamask/account-tree-controller';
 
-type FlattenedAccountListItem =
-  | { type: 'header'; data: AccountSection; sectionIndex: number }
-  | { type: 'account'; data: Account; sectionIndex: number; accountIndex: number }
-  | { type: 'footer'; data: AccountSection; sectionIndex: number };
-
 /**
  * EvmAccountSelectorList props.
  */
 export interface EvmAccountSelectorListProps
-  extends Partial<FlatListProps<FlattenedAccountListItem>>,
+  extends Partial<FlatListProps<Account>>,
     Omit<UseAccounts, 'evmAccounts'> {
   /**
    * Optional callback to trigger when account is selected.
@@ -77,5 +72,3 @@ export interface AccountSection {
   wallet?: AccountWallet;
   data: Account[];
 }
-
-export type { FlattenedAccountListItem };
