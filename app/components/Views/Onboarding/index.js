@@ -521,6 +521,8 @@ class Onboarding extends PureComponent {
                 />
               </View>
             )}
+            <Text>Hello</Text>
+            <Text>Network : {process.env.WEB3AUTH_NETWORK}</Text>
             {loading ? this.renderLoader() : this.renderContent()}
           </View>
 
