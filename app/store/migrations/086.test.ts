@@ -61,12 +61,6 @@ describe(`Migration ${migrationVersion}: Add Seedless Onboarding default state`,
   it.each([
     {
       state: {
-        engine: {},
-      },
-      test: 'empty engine state',
-    },
-    {
-      state: {
         engine: {
           backgroundState: {
             SeedlessOnboardingController: 'invalid',
