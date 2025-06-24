@@ -241,6 +241,9 @@ exports[`EarnInputView render matches snapshot 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -400,6 +403,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       "width": 28,
                                     }
                                   }
+                                  testID="LendingMaxSafeWithdrawalTooltipIcon"
                                 >
                                   <SvgMock
                                     color="#686e7d"
@@ -1923,6 +1927,9 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2082,6 +2089,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       "width": 28,
                                     }
                                   }
+                                  testID="LendingMaxSafeWithdrawalTooltipIcon"
                                 >
                                   <SvgMock
                                     color="#686e7d"

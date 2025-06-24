@@ -1,41 +1,54 @@
-import React from 'react';
 import { act, fireEvent } from '@testing-library/react-native';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import StakingBalance from './StakingBalance';
+import React from 'react';
+import { Image } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { Image } from 'react-native';
+import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   MOCK_ETH_MAINNET_ASSET,
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
   MOCK_GET_VAULT_RESPONSE,
   MOCK_STAKED_ETH_MAINNET_ASSET,
 } from '../../__mocks__/stakeMockData';
-import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
+import StakingBalance from './StakingBalance';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { earnSelectors } from '../../../../../selectors/earnController';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../../../util/networks';
 import { mockNetworkState } from '../../../../../util/test/network';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import {
   getMockEarnControllerState,
   getMockUseEarnTokens,
 } from '../../../Earn/__mocks__/earnMockData';
-import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
+import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import { TokenI } from '../../../Tokens/types';
 
-jest.mock('../../hooks/useStakingEarnings', () => ({
+const mockEarnTokenPair = getMockUseEarnTokens(EARN_EXPERIENCES.POOLED_STAKING);
+jest.mock('../../../Earn/hooks/useEarnings', () => ({
   __esModule: true,
   default: () => ({
     annualRewardRate: '2.6%',
-    lifetimeRewardsETH: '2.5 ETH',
+    lifetimeRewards: '2.5 ETH',
     lifetimeRewardsFiat: '$5000',
-    estimatedAnnualEarningsETH: '2.5 ETH',
+    estimatedAnnualEarnings: '2.5 ETH',
     estimatedAnnualEarningsFiat: '$5000',
     isLoadingEarningsData: false,
-    hasStakedPositions: true,
+    hasEarnLendingPositions: false,
+    hasEarnings: true,
+    hasEarnPooledStakes: true,
   }),
+}));
+
+jest.mock('../../../../../selectors/earnController', () => ({
+  ...jest.requireActual('../../../../../selectors/earnController'),
+  earnSelectors: {
+    selectEarnToken: jest.fn(),
+    selectEarnTokenPair: jest.fn(),
+    selectEarnOutputToken: jest.fn(),
+  },
 }));
 
 type MockSelectPooledStakingEnabledFlagSelector = jest.MockedFunction<
@@ -69,49 +82,12 @@ const mockInitialState = {
   },
 };
 
-const mockEarnTokenPair = getMockUseEarnTokens(EARN_EXPERIENCES.POOLED_STAKING);
-
 const MOCK_APR_VALUES: { [symbol: string]: string } = {
   Ethereum: '2.3',
   USDC: '4.5',
   USDT: '4.1',
   DAI: '5.0',
 };
-
-jest.mock('../../../Earn/hooks/useEarnTokens', () => {
-  const getEarnToken = (token: TokenI) => {
-    const experienceType =
-      token.symbol === 'USDC' ? 'STABLECOIN_LENDING' : 'POOLED_STAKING';
-
-    const experiences = [
-      {
-        type: experienceType as EARN_EXPERIENCES,
-        apr: MOCK_APR_VALUES?.[token.symbol] ?? '',
-        estimatedAnnualRewardsFormatted: '',
-        estimatedAnnualRewardsFiatNumber: 0,
-      },
-    ];
-
-    return {
-      ...token,
-      balanceFormatted: token.symbol === 'USDC' ? '6.84314 USDC' : '0',
-      balanceFiat: token.symbol === 'USDC' ? '$6.84' : '$0.00',
-      balanceMinimalUnit: token.symbol === 'USDC' ? '6.84314' : '0',
-      balanceFiatNumber: token.symbol === 'USDC' ? 6.84314 : 0,
-      experiences,
-      tokenUsdExchangeRate: 0,
-      experience: experiences[0],
-    };
-  };
-
-  return {
-    __esModule: true,
-    default: () => ({
-      getEarnToken,
-      getPairedEarnTokens: () => mockEarnTokenPair,
-    }),
-  };
-});
 
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
 
@@ -220,6 +196,37 @@ describe('StakingBalance', () => {
     (
       selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
     ).mockReturnValue(true);
+    (earnSelectors.selectEarnToken as unknown as jest.Mock).mockImplementation(
+      (_token: TokenI) => {
+        const experienceType =
+          _token.symbol === 'USDC' ? 'STABLECOIN_LENDING' : 'POOLED_STAKING';
+        const experiences = [
+          {
+            type: experienceType as EARN_EXPERIENCES,
+            apr: MOCK_APR_VALUES?.[_token.symbol] ?? '',
+            estimatedAnnualRewardsFormatted: '',
+            estimatedAnnualRewardsFiatNumber: 0,
+          },
+        ];
+
+        return {
+          ..._token,
+          balanceFormatted: _token.symbol === 'USDC' ? '6.84314 USDC' : '0',
+          balanceFiat: _token.symbol === 'USDC' ? '$6.84' : '$0.00',
+          balanceMinimalUnit: _token.symbol === 'USDC' ? '6.84314' : '0',
+          balanceFiatNumber: _token.symbol === 'USDC' ? 6.84314 : 0,
+          experiences,
+          tokenUsdExchangeRate: 0,
+          experience: experiences[0],
+        };
+      },
+    );
+    (
+      earnSelectors.selectEarnTokenPair as unknown as jest.Mock
+    ).mockImplementation((_token: TokenI) => mockEarnTokenPair);
+    (
+      earnSelectors.selectEarnOutputToken as unknown as jest.Mock
+    ).mockImplementation((_token: TokenI) => mockEarnTokenPair.outputToken);
   });
 
   it('render matches snapshot', () => {
@@ -269,6 +276,7 @@ describe('StakingBalance', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
+
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
       params: {

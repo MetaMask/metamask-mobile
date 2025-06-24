@@ -2,7 +2,7 @@ import {
   LendingMarketWithPosition,
   LendingPositionWithMarketReference,
 } from '@metamask/earn-controller';
-import { LendingProtocol } from '@metamask/stake-sdk';
+import { LendingProtocol } from '../../Earn/types/lending.types';
 
 export const MOCK_POOLED_STAKES_DATA = {
   account: '0x1234',

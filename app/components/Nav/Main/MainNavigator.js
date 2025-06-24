@@ -651,7 +651,7 @@ const NftDetailsFullImageModeView = (props) => (
 );
 
 const SendFlowView = () => (
-  <Stack.Navigator>
+  <Stack.Navigator headerMode="screen">
     <Stack.Screen
       name="SendTo"
       component={SendTo}
@@ -668,7 +668,7 @@ const SendFlowView = () => (
       options={Confirm.navigationOptions}
     />
     <Stack.Screen
-      name={Routes.STANDALONE_CONFIRMATIONS.TRANSFER}
+      name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
       component={RedesignedConfirm}
     />
   </Stack.Navigator>

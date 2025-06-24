@@ -26,27 +26,9 @@ jest.mock(
 
 describe('LendingMaxWithdrawalModal', () => {
   it('should render correctly', () => {
-    const { getByText } = render(<LendingMaxWithdrawalModal />);
+    const { toJSON } = render(<LendingMaxWithdrawalModal />);
 
-    // Check if the title is rendered
-    expect(getByText("Why can't I withdraw my full balance?")).toBeTruthy();
-
-    // Check if the explanation text is rendered
-    expect(
-      getByText(
-        'This wallet has active borrow positions made outside of this app, such as through Aave’s website.',
-      ),
-    ).toBeTruthy();
-    expect(
-      getByText(
-        'To keep your position safe, we limit withdrawals to avoid lowering your health factor too much, which could put your assets at risk of liquidation.',
-      ),
-    ).toBeTruthy();
-    expect(
-      getByText(
-        'To unlock more withdrawals, repay some of your borrowed assets or increase your collateral.',
-      ),
-    ).toBeTruthy();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should handle close action', () => {

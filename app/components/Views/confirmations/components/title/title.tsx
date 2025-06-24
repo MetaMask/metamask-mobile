@@ -1,4 +1,5 @@
 import { ApprovalRequest } from '@metamask/approval-controller';
+import { ApprovalType } from '@metamask/controller-utils';
 import { SignatureRequest } from '@metamask/signature-controller';
 import {
   TransactionMeta,
@@ -6,26 +7,26 @@ import {
 } from '@metamask/transaction-controller';
 import React from 'react';
 import { View } from 'react-native';
-import { ApprovalType } from '@metamask/controller-utils';
 
 import { strings } from '../../../../../../locales/i18n';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import useApprovalRequest from '../../hooks/useApprovalRequest';
+import {
+  MMM_ORIGIN,
+  REDESIGNED_APPROVE_TYPES,
+  REDESIGNED_TRANSFER_TYPES,
+} from '../../constants/confirmations';
+import { use7702TransactionType } from '../../hooks/7702/use7702TransactionType';
 import { useSignatureRequest } from '../../hooks/signatures/useSignatureRequest';
-import { useStandaloneConfirmation } from '../../hooks/ui/useStandaloneConfirmation';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
+import useApprovalRequest from '../../hooks/useApprovalRequest';
 import {
   isPermitDaiRevoke,
   isRecognizedPermit,
   isSIWESignatureRequest,
   parseAndNormalizeSignTypedDataFromSignatureRequest,
 } from '../../utils/signature';
-import {
-  REDESIGNED_APPROVE_TYPES,
-  REDESIGNED_TRANSFER_TYPES,
-} from '../../constants/confirmations';
-import { use7702TransactionType } from '../../hooks/7702/use7702TransactionType';
 import { BatchedTransactionTag } from '../batched-transactions-tag';
 import styleSheet from './title.styles';
 
@@ -95,23 +96,13 @@ const getTitleAndSubTitle = (
       };
     }
     case ApprovalType.Transaction: {
+      
       if (isDowngrade || isUpgradeOnly) {
         return {
           title: strings('confirm.title.switch_account_type'),
           subTitle: isDowngrade
             ? strings('confirm.sub_title.switch_to_standard_account')
             : strings('confirm.sub_title.switch_to_smart_account'),
-        };
-      }
-      if (
-        transactionType === TransactionType.contractInteraction ||
-        isBatched
-      ) {
-        return {
-          title: strings('confirm.title.contract_interaction'),
-          subTitle: isBatched
-            ? ''
-            : strings('confirm.sub_title.contract_interaction'),
         };
       }
       if (REDESIGNED_TRANSFER_TYPES.includes(transactionType)) {
@@ -122,6 +113,29 @@ const getTitleAndSubTitle = (
       if (REDESIGNED_APPROVE_TYPES.includes(transactionType)) {
         return {
           title: strings('confirm.title.approve'),
+        };
+      }
+
+      if (transactionType === TransactionType.deployContract) {
+        return {
+          title: strings('confirm.title.contract_deployment'),
+          subTitle: strings('confirm.sub_title.contract_deployment'),
+        };
+      }
+
+      // Default to contract interaction
+      return {
+        title: strings('confirm.title.contract_interaction'),
+        subTitle: isBatched
+          ? ''
+          : strings('confirm.sub_title.contract_interaction'),
+      };
+    }
+    case ApprovalType.TransactionBatch: {
+      const isWalletInitiated = approvalRequest?.origin === MMM_ORIGIN;
+      if (!isWalletInitiated) {
+        return {
+          title: strings('confirm.title.contract_interaction'),
         };
       }
       return {};
@@ -135,11 +149,11 @@ const Title = () => {
   const { approvalRequest } = useApprovalRequest();
   const signatureRequest = useSignatureRequest();
   const { styles } = useStyles(styleSheet, {});
-  const { isStandaloneConfirmation } = useStandaloneConfirmation();
+  const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const transactionMetadata = useTransactionMetadataRequest();
   const { isDowngrade, isBatched, isUpgradeOnly } = use7702TransactionType();
 
-  if (isStandaloneConfirmation) {
+  if (isFullScreenConfirmation) {
     return null;
   }
 
