@@ -255,7 +255,14 @@ buildAndroidDevBuild(){
 	then
 		source $ANDROID_ENV_FILE
 	fi
-	cd android && ./gradlew assembleProdDebug assembleProdDebugAndroidTest -DtestBuildType=debug --build-cache --parallel && cd ..
+
+	TASK_NAME="assembleProdDebug assembleProdDebugAndroidTest"
+
+	if [ "$METAMASK_BUILD_TYPE" = "flask" ] ; then
+		TASK_NAME="assembleFlaskDebug assembleFlaskDebugAndroidTest"
+	fi
+
+	cd android && ./gradlew $TASK_NAME assembleProdDebugAndroidTest -DtestBuildType=debug --build-cache --parallel && cd ..
 }
 
 buildAndroidRunQA(){
@@ -284,6 +291,11 @@ buildIosDevBuild(){
 
 	exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskDevelopment.plist"
 	scheme="MetaMask"
+
+	if [ "$METAMASK_BUILD_TYPE" = "flask" ] ; then
+		scheme="MetaMask-Flask"
+		exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskDevelopment.plist"
+	fi
 
 	echo "exportOptionsPlist: $exportOptionsPlist"
   	echo "Generating archive packages for $scheme"
@@ -623,7 +635,7 @@ buildIos() {
 		fi
 	elif [ "$MODE" == "flaskDebug" ] ; then
 		if [ "$RUN_DEVICE" = true ] ; then
-			buildIosDeviceFlask
+			buildIosDevBuild
 		else
 			buildIosSimulatorFlask
 		fi
