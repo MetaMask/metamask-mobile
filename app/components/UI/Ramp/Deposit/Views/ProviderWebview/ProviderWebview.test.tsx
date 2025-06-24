@@ -70,7 +70,7 @@ function setupDepositSdkMocks(
   paymentUrlData: string | null = null,
   paymentUrlError: string | null = null,
   paymentUrlIsFetching: boolean = false,
-  orderData: any = null,
+  orderData: Partial<DepositOrder> | null = null,
   orderError: string | null = null,
   orderIsFetching: boolean = false,
 ) {
