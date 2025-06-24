@@ -48,17 +48,15 @@ const AdvancedDetailsRow = () => {
   const isSTXOptIn = useSelector((state: RootState) =>
     selectSmartTransactionsOptInStatus(state),
   );
-  const isSTXUsable = isSTXEnabledForChain && isSTXOptIn;
+  const isNonceChangeDisabled = isSTXEnabledForChain && isSTXOptIn;
 
   const { styles } = useStyles(styleSheet, {
-    isSTXUsable,
+    isNonceChangeDisabled,
   });
 
   const handleShowNonceModal = useCallback(() => {
-    if (isSTXUsable) {
-      setShowNonceModal(true);
-    }
-  }, [isSTXUsable, setShowNonceModal]);
+    setShowNonceModal(true);
+  }, [setShowNonceModal]);
 
   if (!transactionMetadata) {
     return null;
@@ -110,7 +108,9 @@ const AdvancedDetailsRow = () => {
                 <Text
                   variant={TextVariant.BodyMD}
                   style={styles.nonceText}
-                  onPress={isSTXUsable ? handleShowNonceModal : undefined}
+                  onPress={
+                    isNonceChangeDisabled ? undefined : handleShowNonceModal
+                  }
                 >
                   {userSelectedNonce}
                 </Text>

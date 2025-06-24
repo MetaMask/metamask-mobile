@@ -90,7 +90,7 @@ describe('AdvancedDetailsRow', () => {
     expect(getByTestId('scroll-view-data')).toBeTruthy();
   });
 
-  describe('Nonce modal', () => {
+  describe('Nonce editing', () => {
     const mockSetShowNonceModal = jest.fn();
     beforeEach(() => {
       jest.clearAllMocks();
@@ -100,7 +100,7 @@ describe('AdvancedDetailsRow', () => {
       });
     });
 
-    it('shows modal only if STX is enabled for chain and opt in', () => {
+    it('nonce is not editable if STX is enabled', () => {
       const swapsEnabledState = merge({}, generateContractInteractionState, {
         swaps: {
           featureFlags: {
@@ -119,11 +119,10 @@ describe('AdvancedDetailsRow', () => {
 
       fireEvent.press(getByText('Advanced details'));
       fireEvent.press(getByText('42'));
-      expect(mockSetShowNonceModal).toHaveBeenCalledTimes(1);
-      expect(mockSetShowNonceModal).toHaveBeenCalledWith(true);
+      expect(mockSetShowNonceModal).toHaveBeenCalledTimes(0);
     });
 
-    it('does not show modal if STX is not enabled', () => {
+    it('nonce is editable if STX is not enabled', () => {
       const { getByText } = renderWithProvider(
         <AdvancedDetailsRow />,
         { state: generateContractInteractionState },
@@ -132,7 +131,8 @@ describe('AdvancedDetailsRow', () => {
       fireEvent.press(getByText('Advanced details'));
 
       fireEvent.press(getByText('42'));
-      expect(mockSetShowNonceModal).toHaveBeenCalledTimes(0);
+      expect(mockSetShowNonceModal).toHaveBeenCalledTimes(1);
+      expect(mockSetShowNonceModal).toHaveBeenCalledWith(true);
     });
   });
 

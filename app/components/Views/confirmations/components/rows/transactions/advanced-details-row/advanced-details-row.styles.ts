@@ -3,21 +3,21 @@ import { Theme } from '../../../../../../../util/theme/models';
 
 const styleSheet = (params: {
   theme: Theme;
-  vars: { isSTXUsable: boolean };
+  vars: { isNonceChangeDisabled: boolean };
 }) => {
   const {
     theme,
-    vars: { isSTXUsable },
+    vars: { isNonceChangeDisabled },
   } = params;
 
   return StyleSheet.create({
-    nonceText: isSTXUsable
+    nonceText: isNonceChangeDisabled
       ? {
-          textDecorationLine: 'underline',
-          color: theme.colors.primary.default,
+          color: theme.colors.text.default,
         }
       : {
-          color: theme.colors.text.default,
+          textDecorationLine: 'underline',
+          color: theme.colors.primary.default,
         },
     infoRowOverride: {
       paddingBottom: 4,
