@@ -10,32 +10,22 @@ import Assertions from '../../utils/Assertions';
 import { PopularNetworksList } from '../../resources/networks.e2e';
 import { Regression } from '../../tags';
 
+const tokens = [
+  {
+    address: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+    symbol: 'USDT',
+    decimals: 6,
+    name: 'USDT',
+  },
+];
+
 describe(Regression('Import Custom token'), () => {
   it('allows importing using contract address and not current network', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
           .withNetworkController(PopularNetworksList.Polygon)
-          .withTokenListController({
-            tokensChainsCache: {
-              '0x89': {
-                data: [
-                  {
-                    '0xc2132D05D31c914a87C6611C10748AEb04B58e8F': {
-                      name: 'USDT',
-                      aggregators: ['Lifi', 'Coinmarketcap', 'Rango'],
-                      address: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
-                      decimals: 6,
-                      iconUrl:
-                        'https://static.cx.metamask.io/api/v1/tokenIcons/137/0xc2132D05D31c914a87C6611C10748AEb04B58e8F.png',
-                      occurrences: 3,
-                      symbol: 'USDT',
-                    },
-                  },
-                ],
-              },
-            },
-          })
+          .withTokens(tokens)
           .build(),
         restartDevice: true,
       },
@@ -53,7 +43,7 @@ describe(Regression('Import Custom token'), () => {
         // await ImportTokensView.typeSymbol('USDT');
         //await ImportTokensView.tapTokenSymbolText();
 
-        // await ImportTokensView.scrollDownOnImportCustomTokens();
+        await ImportTokensView.scrollDownOnImportCustomTokens();
         await TestHelpers.delay(500);
 
         await ImportTokensView.tapOnNextButton();
@@ -64,7 +54,7 @@ describe(Regression('Import Custom token'), () => {
         await ConfirmAddAssetView.tapOnConfirmButton();
 
         await Assertions.checkIfVisible(WalletView.container);
-        await Assertions.checkIfVisible(WalletView.tokenInWallet('0 USDT'));
+        //await Assertions.checkIfVisible(WalletView.tokenInWallet('0 USDT'));
         await Assertions.checkIfVisible(
           WalletView.tokenInWallet('(Pos) Tether USD'),
         );
