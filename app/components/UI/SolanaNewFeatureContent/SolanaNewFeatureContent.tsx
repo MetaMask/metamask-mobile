@@ -2,8 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import { Linking, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ScrollView } from 'react-native-gesture-handler';
-import LottieView from 'lottie-react-native';
-import type { AnimationObject } from 'lottie-react-native';
+import LottieView, { type AnimationObject } from 'lottie-react-native';
 
 import SolanaFoxAnimation from '../../../animations/Solana_Fox.json';
 import { baseStyles, colors as importedColors } from '../../../styles/common';
@@ -31,8 +30,7 @@ const SolanaNewFeatureContent = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { navigate } = useNavigation();
 
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles();
 
   useEffect(() => {
     const checkModalStatus = async () => {

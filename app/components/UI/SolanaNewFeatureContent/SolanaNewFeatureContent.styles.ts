@@ -1,13 +1,8 @@
 import { StyleSheet } from 'react-native';
 import Device from '../../../util/device';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
+import { colors as importedColors } from '../../../styles/common';
 
-const createStyles = (colors: {
-  background: { default: string };
-  text: { default: string };
-  primary: { default: string };
-  border: { muted: string };
-}) =>
+const createStyles = () =>
   StyleSheet.create({
     scroll: {
       flex: 1,
