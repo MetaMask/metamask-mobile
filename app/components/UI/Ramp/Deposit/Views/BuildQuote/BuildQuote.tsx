@@ -54,6 +54,7 @@ function formatAmount(
 import { KycStatus } from '../../hooks/useUserDetailsPolling';
 import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
 import RegionModal from '../../components/RegionModal';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 const BuildQuote = () => {
   const navigation = useNavigation();
@@ -113,93 +114,101 @@ const BuildQuote = () => {
   }, [navigation, theme]);
 
   const handleOnPressContinue = useCallback(async () => {
-    try {
-      const quote = await getQuote(
-        getTransakFiatCurrencyId(fiatCurrency),
-        getTransakCryptoCurrencyId(cryptoCurrency),
-        getTransakChainId(cryptoCurrency.chainId),
-        getTransakPaymentMethodId(paymentMethod),
-        amount,
-      );
-      if (quoteFetchError || !quote) {
-        setError(strings('deposit.buildQuote.quoteFetchError'));
-        return;
-      }
+    navigation.navigate(
+      ...createBasicInfoNavDetails({
+        quote: {
+          quoteId: '123',
+        } as BuyQuote,
+      }),
+    );
 
-      if (!isAuthenticated) {
-        navigation.navigate(...createEnterEmailNavDetails({ quote }));
-      }
+    // try {
+    //   const quote = await getQuote(
+    //     getTransakFiatCurrencyId(fiatCurrency),
+    //     getTransakCryptoCurrencyId(cryptoCurrency),
+    //     getTransakChainId(cryptoCurrency.chainId),
+    //     getTransakPaymentMethodId(paymentMethod),
+    //     amount,
+    //   );
+    //   if (quoteFetchError || !quote) {
+    //     setError(strings('deposit.buildQuote.quoteFetchError'));
+    //     return;
+    //   }
 
-      const forms = await fetchKycForms(quote);
+    //   if (!isAuthenticated) {
+    //     navigation.navigate(...createEnterEmailNavDetails({ quote }));
+    //   }
 
-      if (kycFormsFetchError) {
-        setError(strings('deposit.buildQuote.unexpectedError'));
-        return;
-      }
+    //   const forms = await fetchKycForms(quote);
 
-      const { forms: requiredForms } = forms || {};
+    //   if (kycFormsFetchError) {
+    //     setError(strings('deposit.buildQuote.unexpectedError'));
+    //     return;
+    //   }
 
-      if (requiredForms?.length === 0) {
-        const userDetails = await fetchUserDetails();
+    //   const { forms: requiredForms } = forms || {};
 
-        if (userDetailsFetchError) {
-          setError(strings('deposit.buildQuote.unexpectedError'));
-          return;
-        }
+    //   if (requiredForms?.length === 0) {
+    //     const userDetails = await fetchUserDetails();
 
-        if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
-          navigation.navigate(...createProviderWebviewNavDetails({ quote }));
-          return;
-        }
+    //     if (userDetailsFetchError) {
+    //       setError(strings('deposit.buildQuote.unexpectedError'));
+    //       return;
+    //     }
 
-        navigation.navigate(...createKycProcessingNavDetails({ quote }));
-        return;
-      }
+    //     if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
+    //       navigation.navigate(...createProviderWebviewNavDetails({ quote }));
+    //       return;
+    //     }
 
-      const personalDetailsKycForm = requiredForms?.find(
-        (form) => form.id === 'personalDetails',
-      );
+    //     navigation.navigate(...createKycProcessingNavDetails({ quote }));
+    //     return;
+    //   }
 
-      const addressKycForm = requiredForms?.find(
-        (form) => form.id === 'address',
-      );
+    //   const personalDetailsKycForm = requiredForms?.find(
+    //     (form) => form.id === 'personalDetails',
+    //   );
 
-      const idProofKycForm = requiredForms?.find(
-        (form) => form.id === 'idProof',
-      );
+    //   const addressKycForm = requiredForms?.find(
+    //     (form) => form.id === 'address',
+    //   );
 
-      const idProofData = idProofKycForm
-        ? await fetchKycFormData(quote, idProofKycForm)
-        : null;
+    //   const idProofKycForm = requiredForms?.find(
+    //     (form) => form.id === 'idProof',
+    //   );
 
-      if (kycFormFetchError) {
-        setError(strings('deposit.buildQuote.unexpectedError'));
-        return;
-      }
+    //   const idProofData = idProofKycForm
+    //     ? await fetchKycFormData(quote, idProofKycForm)
+    //     : null;
 
-      if (personalDetailsKycForm || addressKycForm) {
-        navigation.navigate(
-          ...createBasicInfoNavDetails({
-            quote,
-            kycUrl: idProofData?.data?.kycUrl,
-          }),
-        );
-        return;
-      } else if (idProofData) {
-        navigation.navigate(
-          ...createKycWebviewNavDetails({
-            quote,
-            kycUrl: idProofData.data.kycUrl,
-          }),
-        );
-        return;
-      }
-      setError(strings('deposit.buildQuote.unexpectedError'));
-      return;
-    } catch (_) {
-      setError(strings('deposit.buildQuote.unexpectedError'));
-      return;
-    }
+    //   if (kycFormFetchError) {
+    //     setError(strings('deposit.buildQuote.unexpectedError'));
+    //     return;
+    //   }
+
+    //   if (personalDetailsKycForm || addressKycForm) {
+    //     navigation.navigate(
+    //       ...createBasicInfoNavDetails({
+    //         quote,
+    //         kycUrl: idProofData?.data?.kycUrl,
+    //       }),
+    //     );
+    //     return;
+    //   } else if (idProofData) {
+    //     navigation.navigate(
+    //       ...createKycWebviewNavDetails({
+    //         quote,
+    //         kycUrl: idProofData.data.kycUrl,
+    //       }),
+    //     );
+    //     return;
+    //   }
+    //   setError(strings('deposit.buildQuote.unexpectedError'));
+    //   return;
+    // } catch (_) {
+    //   setError(strings('deposit.buildQuote.unexpectedError'));
+    //   return;
+    // }
   }, [
     getQuote,
     fiatCurrency,

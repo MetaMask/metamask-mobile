@@ -1,22 +1,23 @@
-import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useCallback, useMemo, forwardRef } from 'react';
+import { View, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 
 import Label from '../../../../../../component-library/components/Form/Label';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import TextField, {
+import {
+  TextFieldProps,
   TextFieldSize,
-} from '../../../../../../component-library/components/Form/TextField';
-import { TextFieldProps } from '../../../../../../component-library/components/Form/TextField/TextField.types';
+} from '../../../../../../component-library/components/Form/TextField/TextField.types';
 import { Theme } from '../../../../../../util/theme/models';
 import { useStyles } from '../../../../../../component-library/hooks';
-import { E164Number } from 'libphonenumber-js';
+import { E164Number, CountryCode } from 'libphonenumber-js';
 import PhoneInput from 'react-phone-number-input/react-native-input';
 import { DepositRegion, DEPOSIT_REGIONS } from '../../constants';
 import RegionModal from '../RegionModal/RegionModal';
 import { useDepositSDK } from '../../sdk';
 import { strings } from '../../../../../../../locales/i18n';
+import Input from '../../../../../../component-library/components/Form/TextField/foundation/Input/Input';
 
 interface PhoneFieldProps
   extends Omit<TextFieldProps, 'size' | 'onChangeText'> {
@@ -39,19 +40,6 @@ const styleSheet = (params: { theme: Theme }) => {
     phoneInputWrapper: {
       flexDirection: 'row',
       alignItems: 'center',
-    },
-    countryPrefix: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    countryFlag: {
-      fontSize: 16,
-      marginRight: 4,
-    },
-    countryCode: {
-      fontSize: 14,
-    },
-    phoneInput: {
       flex: 1,
     },
     error: {
@@ -59,8 +47,25 @@ const styleSheet = (params: { theme: Theme }) => {
       fontSize: 12,
       marginTop: 4,
     },
-    flagButton: {
-      padding: 4,
+    textFieldWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderRadius: 8,
+      height: Number(TextFieldSize.Lg),
+      borderWidth: 1,
+      borderColor: theme.colors.border.default,
+      paddingHorizontal: 16,
+      backgroundColor: theme.colors.background.default,
+      flex: 1,
+    },
+    countryPrefix: {
+      marginRight: 8,
+    },
+    countryFlag: {
+      fontSize: 16,
+    },
+    textFieldInput: {
+      flex: 1,
     },
   });
 };
@@ -75,9 +80,12 @@ const DepositPhoneField: React.FC<PhoneFieldProps> = ({
   const { selectedRegion, setSelectedRegion } = useDepositSDK();
   const [isRegionModalVisible, setIsRegionModalVisible] = useState(false);
 
-  const handlePhoneNumberChange = (newValue: E164Number) => {
-    onChangeText(newValue);
-  };
+  const handlePhoneNumberChange = useCallback(
+    (newValue: E164Number) => {
+      onChangeText(newValue);
+    },
+    [onChangeText],
+  );
 
   const handleFlagPress = useCallback(() => {
     setIsRegionModalVisible(true);
@@ -98,6 +106,40 @@ const DepositPhoneField: React.FC<PhoneFieldProps> = ({
     setIsRegionModalVisible(false);
   }, []);
 
+  const placeholder = useMemo(() => {
+    return (
+      selectedRegion?.placeholder ||
+      strings('deposit.basic_info.enter_phone_number')
+    );
+  }, [selectedRegion]);
+
+  const InputComponent = useMemo(() => {
+    return forwardRef<TextInput, any>((props, ref) => {
+      return (
+        <View style={styles.textFieldWrapper}>
+          <TouchableOpacity
+            onPress={handleFlagPress}
+            accessibilityRole="button"
+            accessible
+            style={styles.countryPrefix}
+          >
+            <Text style={styles.countryFlag}>{selectedRegion?.flag}</Text>
+          </TouchableOpacity>
+          <Input
+            ref={ref}
+            testID="deposit-phone-field-test-id"
+            keyboardType="phone-pad"
+            placeholderTextColor={theme.colors?.text.muted}
+            keyboardAppearance={theme.themeAppearance}
+            style={styles.textFieldInput}
+            isStateStylesDisabled
+            {...props}
+          />
+        </View>
+      );
+    });
+  }, []);
+
   return (
     <>
       <View style={styles.field}>
@@ -110,37 +152,15 @@ const DepositPhoneField: React.FC<PhoneFieldProps> = ({
             international={selectedRegion?.code !== 'US'}
             value={value}
             onChange={handlePhoneNumberChange}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            inputComponent={(props: any) => (
-              <TextField
-                testID="deposit-phone-field-test-id"
-                autoFocus
-                startAccessory={
-                  <TouchableOpacity
-                    style={styles.flagButton}
-                    onPress={handleFlagPress}
-                    accessibilityRole="button"
-                    accessible
-                  >
-                    <View style={styles.countryPrefix}>
-                      <Text style={styles.countryFlag}>
-                        {selectedRegion?.flag}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                }
-                size={TextFieldSize.Lg}
-                placeholderTextColor={theme.colors.text.muted}
-                keyboardAppearance={theme.themeAppearance}
-                placeholder={
-                  selectedRegion?.placeholder ||
-                  strings('deposit.basic_info.enter_phone_number')
-                }
-                keyboardType="phone-pad"
-                style={styles.phoneInput}
-                {...props}
-              />
-            )}
+            placeholder={placeholder}
+            keyboardType="phone-pad"
+            inputProps={{
+              selectedRegion,
+              handleFlagPress,
+              styles,
+              theme,
+            }}
+            inputComponent={InputComponent}
           />
         </View>
         {error ? <Text style={styles.error}>{error}</Text> : null}
