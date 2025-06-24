@@ -17,7 +17,7 @@ const Caip25EndowmentPermissionName = 'endowment:caip25';
  * @returns Migrated Redux state.
  */
 export default function migrate(oldState: unknown) {
-  const version = 79;
+  const version = 80;
 
   // Ensure the state is valid for migration
   if (!ensureValidState(oldState, version)) {

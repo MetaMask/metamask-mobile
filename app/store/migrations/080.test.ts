@@ -13,7 +13,7 @@ jest.mock('./util', () => ({
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 
-const migrationVersion = 79;
+const migrationVersion = 80;
 
 describe(`Migration ${migrationVersion}: Add sessionProperties property to CAIP-25 permission caveats`, () => {
   beforeEach(() => {
