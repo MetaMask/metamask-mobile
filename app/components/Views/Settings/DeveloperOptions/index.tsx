@@ -9,7 +9,9 @@ import { useParams } from '../../../../util/navigation/navUtils';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './DeveloperOptions.styles';
 import SentryTest from './SentryTest';
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import SampleFeatureDevSettingsEntryPoint from '../../../../features/SampleFeature/components/views/SampleFeatureDevSettingsEntryPoint/SampleFeatureDevSettingsEntryPoint';
+///: END:ONLY_INCLUDE_IF
 
 const DeveloperOptions = () => {
   const navigation = useNavigation();
@@ -39,7 +41,13 @@ const DeveloperOptions = () => {
   return (
     <ScrollView style={styles.wrapper}>
       <SentryTest />
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+      }
       <SampleFeatureDevSettingsEntryPoint />
+      {
+        ///: END:ONLY_INCLUDE_IF
+      }
     </ScrollView>
   );
 };

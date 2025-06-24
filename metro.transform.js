@@ -21,6 +21,7 @@ const availableFeatures = new Set([
   'multi-srp',
   'bitcoin',
   'solana',
+  'sample-feature',
 ]);
 
 const mainFeatureSet = new Set([
@@ -55,18 +56,29 @@ const flaskFeatureSet = new Set([
 function getBuildTypeFeatures() {
   const buildType = process.env.METAMASK_BUILD_TYPE ?? 'main';
   const envType = process.env.METAMASK_ENVIRONMENT ?? 'prod';
-  switch (buildType) {
-    case 'main':
-      return envType === 'prod' ? mainFeatureSet : betaFeatureSet;
-    case 'beta':
-      return betaFeatureSet;
-    case 'flask':
-      return flaskFeatureSet;
-    default:
-      throw new Error(
-        `Invalid METAMASK_BUILD_TYPE of ${buildType} was passed to metro transform`,
-      );
+  
+  // Get base feature set based on build type
+  const features = (() => {
+    switch (buildType) {
+      case 'main':
+        return envType === 'prod' ? mainFeatureSet : betaFeatureSet;
+      case 'beta':
+        return betaFeatureSet;
+      case 'flask':
+        return flaskFeatureSet;
+      default:
+        throw new Error(
+          `Invalid METAMASK_BUILD_TYPE of ${buildType} was passed to metro transform`,
+        );
+    }
+  })();
+  
+  // Add sample-feature only if explicitly enabled via env var
+  if (process.env.INCLUDE_SAMPLE_FEATURE === 'true') {
+    return new Set([...features, 'sample-feature']);
   }
+  
+  return features;
 }
 
 /**

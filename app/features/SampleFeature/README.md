@@ -7,6 +7,39 @@ The Sample Feature is a development and testing feature that demonstrates best p
 > [!WARNING]
 > This is a sample feature for development/testing purposes only and should not be activated in production builds.
 
+## Build Configuration
+
+The Sample Feature uses code fencing to ensure it's completely excluded from production builds. It's only included when explicitly enabled via the `INCLUDE_SAMPLE_FEATURE` environment variable.
+
+### Enabling the Feature
+
+To include the Sample Feature in your build:
+
+```bash
+# For iOS development
+INCLUDE_SAMPLE_FEATURE=true yarn start:ios
+
+# For Android development
+INCLUDE_SAMPLE_FEATURE=true yarn start:android
+
+### How It Works
+
+1. **Code Fencing**: All Sample Feature code is wrapped with code fence comments:
+   ```typescript
+   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+   // Sample feature code here
+   ///: END:ONLY_INCLUDE_IF
+   ```
+
+2. **Metro Transform**: The Metro bundler removes fenced code during build time based on the environment variable
+3. **Zero Production Impact**: When `INCLUDE_SAMPLE_FEATURE` is not set, the code is completely removed from the bundle
+
+### Default Behavior
+
+- **Production builds**: Feature is always excluded
+- **Development builds**: Feature is excluded unless explicitly enabled
+- **QA/Beta builds**: Feature is excluded unless explicitly enabled
+
 ## Purpose
 
 This feature demonstrates:
@@ -216,7 +249,7 @@ Each component and hook has corresponding test files:
 # Run specific test
 yarn jest app/features/SampleFeature/components/views/SampleFeature.test.tsx
 
-# Run all unit test files
+# Run all Sample feature unit test files
 yarn jest app/features/SampleFeature --testMatch="**/*.test.ts?(x)"
 ```
 
@@ -234,20 +267,38 @@ Comprehensive E2E tests written in TypeScript demonstrating best practices for D
 > [!NOTE]
 > These e2e tests are for local development only and are not included in CI pipelines since this is a sample feature.
 
-```bash
-# Build the app for e2e testing first
-yarn test:e2e:android:debug:build
-# OR for iOS
-yarn test:e2e:ios:debug:build
+> [!IMPORTANT]
+> The Sample Feature must be included in the build using the `INCLUDE_SAMPLE_FEATURE` flag for E2E tests to work.
 
-# Run Sample Feature E2E tests only
-yarn test:e2e:sample:android:debug:run
-# OR for iOS
-yarn test:e2e:sample:ios:debug:run
-```
+
+1. Build the app with Sample Feature included for E2E testing:
+
+    ```bash
+    yarn test:e2e:sample:android:build
+    ```
+
+    Or for iOS:
+
+    ```bash
+    yarn test:e2e:sample:ios:build
+    ```
+
+2. Run Sample Feature E2E tests (environment variable included automatically):
+
+    ```bash
+    yarn test:e2e:sample:android:debug:run
+    ```
+
+    Or for iOS:
+
+    ```bash
+    yarn test:e2e:sample:ios:debug:run
+    ```
+
+**Without the flag, the Sample Feature won't be in the build and the tests will fail!**
 
 **E2E Implementation Details:**
-See [`app/features/SampleFeature/e2e/README_IMPLEMENTATION.md`](./e2e/README_IMPLEMENTATION.md) for:
+See [`app/features/SampleFeature/e2e/README.md`](./e2e/README.md) for:
 - Page object patterns
 - TypeScript configuration
 - Selector strategies

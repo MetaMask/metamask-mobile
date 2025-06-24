@@ -28,6 +28,16 @@ e2e/
 └── README.md                     # This file
 ```
 
+## Important: Feature Flag Requirement
+
+> [!CRITICAL]
+> The Sample Feature uses code fencing and requires the `INCLUDE_SAMPLE_FEATURE=true` environment variable to be included in builds.
+> **E2E tests will fail if the Sample Feature is not included in the build!**
+
+The Sample Feature is completely removed from production builds using code fencing (see [Build Configuration](../README.md#build-configuration)). This means:
+- Without the flag: The feature code doesn't exist in the app bundle
+- With the flag: The feature code is included and can be tested
+
 ## Test Scenarios
 
 The `sample-scenarios.feature` file documents test scenarios using Gherkin syntax for clarity. These scenarios serve as specifications for what should be implemented in the TypeScript tests.

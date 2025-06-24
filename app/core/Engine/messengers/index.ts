@@ -33,7 +33,9 @@ import { getNotificationServicesControllerMessenger } from './notifications/noti
 import { getNotificationServicesPushControllerMessenger } from './notifications/notification-services-push-controller-messenger';
 import { getGasFeeControllerMessenger } from './gas-fee-controller-messenger/gas-fee-controller-messenger';
 import { getSignatureControllerMessenger } from './signature-controller-messenger';
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFeature/controllers/sample-petnames-controller-messenger';
+///: END:ONLY_INCLUDE_IF
 /**
  * The messengers for the controllers that have been.
  */
@@ -126,8 +128,10 @@ export const CONTROLLER_MESSENGERS = {
     getInitMessenger: noop,
   },
   ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SamplePetnamesController: {
     getMessenger: getSamplePetnamesControllerMessenger,
     getInitMessenger: noop,
   },
+  ///: END:ONLY_INCLUDE_IF
 } as const;

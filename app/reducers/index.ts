@@ -35,7 +35,9 @@ import bridgeReducer from '../core/redux/slices/bridge';
 import performanceReducer, {
   PerformanceState,
 } from '../core/redux/slices/performance';
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import sampleCounterReducer from '../features/SampleFeature/reducers/sample-counter';
+///: END:ONLY_INCLUDE_IF
 import { isTest } from '../util/test/utils';
 
 /**
@@ -127,7 +129,9 @@ export interface RootState {
   bridge: StateFromReducer<typeof bridgeReducer>;
   banners: BannersState;
   performance?: PerformanceState;
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   sampleCounter: StateFromReducer<typeof sampleCounterReducer>;
+  ///: END:ONLY_INCLUDE_IF
 }
 
 const baseReducers = {
@@ -165,7 +169,9 @@ const baseReducers = {
   bridge: bridgeReducer,
   banners: bannersReducer,
   confirmationMetrics: confirmationMetricsReducer,
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   sampleCounter: sampleCounterReducer,
+  ///: END:ONLY_INCLUDE_IF
 };
 
 if (isTest) {

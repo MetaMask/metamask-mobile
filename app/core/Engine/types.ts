@@ -264,10 +264,12 @@ import {
   EarnControllerState,
 } from '@metamask/earn-controller';
 import { Hex } from '@metamask/utils';
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import {
   SamplePetnamesController,
   SamplePetnamesControllerState,
 } from '@metamask/sample-controllers';
+///: END:ONLY_INCLUDE_IF
 
 import { CONTROLLER_MESSENGERS } from './messengers';
 import type { RootState } from '../../reducers';
@@ -427,7 +429,10 @@ type GlobalEvents =
   | AppMetadataControllerEvents
   | DeFiPositionsControllerEvents
   | AccountTreeControllerEvents
-  | SamplePetnamesControllerEvents;
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  | SamplePetnamesControllerEvents
+  ///: END:ONLY_INCLUDE_IF
+  ;
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -468,7 +473,9 @@ export type Controllers = {
   PreferencesController: PreferencesController;
   RemoteFeatureFlagController: RemoteFeatureFlagController;
   PPOMController: PPOMController;
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SamplePetnamesController: SamplePetnamesController;
+  ///: END:ONLY_INCLUDE_IF
   TokenBalancesController: TokenBalancesController;
   TokenListController: TokenListController;
   TokenDetectionController: TokenDetectionController;
@@ -570,7 +577,9 @@ export type EngineState = {
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SamplePetnamesController: SamplePetnamesControllerState;
+  ///: END:ONLY_INCLUDE_IF
 };
 
 /** Controller names */
@@ -626,7 +635,10 @@ export type ControllersToInitialize =
   | 'GasFeeController'
   | 'SignatureController'
   | 'DeFiPositionsController'
-  | 'SamplePetnamesController';
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  | 'SamplePetnamesController'
+  ///: END:ONLY_INCLUDE_IF
+  ;
 
 /**
  * Callback that returns a controller messenger for a specific controller.
@@ -742,8 +754,10 @@ export type InitModularizedControllersFunction = (request: {
   controllersByName: ControllerByName;
 };
 
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 // Add event type for SamplePetnamesController
 export type SamplePetnamesControllerEvents = {
   type: 'SamplePetnamesController:stateChange';
   payload: [SamplePetnamesControllerState];
 };
+///: END:ONLY_INCLUDE_IF

@@ -226,7 +226,9 @@ import {
 } from './controllers/multichain-router/constants';
 import { ErrorReportingService } from '@metamask/error-reporting-service';
 import { captureException } from '@sentry/react-native';
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import { samplePetnamesControllerInit } from '../../features/SampleFeature/controllers/sample-petnames-controller-init';
+///: END:ONLY_INCLUDE_IF
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -1264,7 +1266,9 @@ export class Engine {
         MultichainBalancesController: multichainBalancesControllerInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
         ///: END:ONLY_INCLUDE_IF
+        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
         SamplePetnamesController: samplePetnamesControllerInit,
+        ///: END:ONLY_INCLUDE_IF
       },
       persistedState: initialState as EngineState,
       existingControllersByName,
@@ -1631,7 +1635,9 @@ export class Engine {
       BridgeStatusController: bridgeStatusController,
       EarnController: earnController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
+      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
       SamplePetnamesController: controllersByName.SamplePetnamesController,
+      ///: END:ONLY_INCLUDE_IF
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -2351,7 +2357,9 @@ export default {
       BridgeStatusController,
       EarnController,
       DeFiPositionsController,
+      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
       SamplePetnamesController,
+      ///: END:ONLY_INCLUDE_IF
     } = instance.datamodel.state;
 
     return {
@@ -2405,7 +2413,9 @@ export default {
       BridgeStatusController,
       EarnController,
       DeFiPositionsController,
+      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
       SamplePetnamesController,
+      ///: END:ONLY_INCLUDE_IF
     };
   },
 
