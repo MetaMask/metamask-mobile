@@ -67,7 +67,7 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
     ...variantObject,
     color: textColor,
     fontFamily: getFontFamily(variant, style?.fontWeight, style?.fontStyle),
-    fontWeight: finalFontWeight,	
+    fontWeight: finalFontWeight,
   };
 
   return StyleSheet.create({
