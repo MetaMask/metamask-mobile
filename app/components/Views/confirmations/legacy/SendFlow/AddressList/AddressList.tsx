@@ -142,42 +142,44 @@ const AddressList = ({
       return fuse.search(inputSearch);
     }
 
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      return completeAndFlattenedAddressBook;
+    }
+
     return completeAndFlattenedAddressBookFilteredByCurrentChainId;
   }, [
     fuse,
     inputSearch,
+    completeAndFlattenedAddressBook,
     completeAndFlattenedAddressBookFilteredByCurrentChainId,
   ]);
 
   useEffect(() => {
-    const newFuse = new Fuse(
-      completeAndFlattenedAddressBookFilteredByCurrentChainId,
-      {
-        shouldSort: true,
-        threshold: 0.45,
-        location: 0,
-        distance: 10,
-        maxPatternLength: 32,
-        minMatchCharLength: 1,
-        keys: [
-          { name: 'name', weight: 0.5 },
-          { name: 'address', weight: 0.5 },
-        ],
-      },
-    );
+    const fuseAddressBook = isRemoveGlobalNetworkSelectorEnabled()
+      ? completeAndFlattenedAddressBook
+      : completeAndFlattenedAddressBookFilteredByCurrentChainId;
+
+    const newFuse = new Fuse(fuseAddressBook, {
+      shouldSort: true,
+      threshold: 0.45,
+      location: 0,
+      distance: 10,
+      maxPatternLength: 32,
+      minMatchCharLength: 1,
+      keys: [
+        { name: 'name', weight: 0.5 },
+        { name: 'address', weight: 0.5 },
+      ],
+    });
     setFuse(newFuse);
   }, [
-    parseAddressBook,
+    completeAndFlattenedAddressBook,
     completeAndFlattenedAddressBookFilteredByCurrentChainId,
   ]);
 
   useEffect(() => {
-    if (onlyRenderAddressBook && isRemoveGlobalNetworkSelectorEnabled()) {
-      parseAddressBook(completeAndFlattenedAddressBook);
-    } else {
-      const networkAddressBookList = getNetworkAddressBookList();
-      parseAddressBook(networkAddressBookList);
-    }
+    const networkAddressBookList = getNetworkAddressBookList();
+    parseAddressBook(networkAddressBookList);
   }, [
     inputSearch,
     chainId,
@@ -185,6 +187,7 @@ const AddressList = ({
     getNetworkAddressBookList,
     parseAddressBook,
     completeAndFlattenedAddressBook,
+    completeAndFlattenedAddressBookFilteredByCurrentChainId,
     onlyRenderAddressBook,
   ]);
 

@@ -652,7 +652,6 @@ class ContactForm extends PureComponent {
             selectedNetwork={this.state.contactChainId}
             setSelectedNetwork={this.setSelectedNetwork}
             setOpenNetworkSelector={this.setOpenNetworkSelector}
-            displayEvmNetworksOnly={false}
             sheetRef={this.sheetRef}
           />
         ) : null}
