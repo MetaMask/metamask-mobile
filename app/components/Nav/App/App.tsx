@@ -35,7 +35,6 @@ import {
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
-import Device from '../../../util/device';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
@@ -782,7 +781,7 @@ const App: React.FC = () => {
   const userLoggedIn = useSelector(selectUserLoggedIn);
   const [onboarded, setOnboarded] = useState(false);
   const navigation = useNavigation();
-  const queueOfHandleDeeplinkFunctions = useRef<(() => void)[]>([]);
+  // const queueOfHandleDeeplinkFunctions = useRef<(() => void)[]>([]);
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
   const sdkInit = useRef<boolean | undefined>(undefined);
@@ -841,22 +840,10 @@ const App: React.FC = () => {
     appTriggeredAuth().catch((error) => {
       Logger.error(error, 'App: Error in appTriggeredAuth');
     });
-  }, [navigation, queueOfHandleDeeplinkFunctions]);
+  }, [navigation]);
 
   const handleDeeplink = useCallback(
-    ({
-      // error,
-      // params,
-      uri,
-    }: {
-      // error?: string | null;
-      // params?: Record<string, unknown>;
-      uri?: string;
-    }) => {
-      // if (error) {
-      //   trackErrorAsAnalytics(error, 'Branch:');
-      // }
-      // const deeplink = params?.['+non_branch_link'] || uri || null;
+    ({ uri }: { uri?: string }) => {
       try {
         if (uri && typeof uri === 'string') {
           AppStateEventProcessor.setCurrentDeeplink(uri);
@@ -869,20 +856,20 @@ const App: React.FC = () => {
     [dispatch],
   );
 
-  // on Android devices, this creates a listener
-  // to deeplinks used to open the app
-  // when it is in background (so not closed)
-  // Documentation: https://reactnative.dev/docs/linking#handling-deep-links
+  // Subscribe to incoming deeplinks
+  // Ex. SDK and WalletConnect deeplinks will funnel through here when opening the app from the device's camera
   useEffect(() => {
-    if (Device.isAndroid())
-      Linking.addEventListener('url', (params) => {
-        const { url } = params;
-        if (url) {
-          handleDeeplink({ uri: url });
-        }
-      });
+    Linking.addEventListener('url', (params) => {
+      const { url } = params;
+      if (url) {
+        handleDeeplink({ uri: url });
+      }
+    });
   }, [handleDeeplink]);
 
+  // Subscribe to incoming Branch deeplinks
+  // Branch.io documentation: https://help.branch.io/developers-hub/docs/react-native
+  // Ex. Branch links will funnel through here when opening the app from a Branch link
   useEffect(() => {
     // Initialize deep link manager
     SharedDeeplinkManager.init({
@@ -890,34 +877,32 @@ const App: React.FC = () => {
       dispatch,
     });
 
-    // Subscribe to incoming deeplinks
-    // Branch.io documentation: https://help.branch.io/developers-hub/docs/react-native
     branch.subscribe((opts) => {
       const { error } = opts;
+
+      // Log error for analytics and continue handling deeplink
+      if (error) {
+        trackErrorAsAnalytics(error, 'Branch:');
+      }
 
       branch.getLatestReferringParams().then((val) => {
         const deeplink = opts.uri || (val['+non_branch_link'] as string);
         handleDeeplink({ uri: deeplink });
       });
 
-      if (error) {
-        // Log error for analytics and continue handling deeplink
-        const branchError = new Error(error);
-        Logger.error(branchError, 'Error subscribing to branch.');
-      }
-
-      if (sdkInit.current) {
-        handleDeeplink(opts);
-      } else {
-        queueOfHandleDeeplinkFunctions.current =
-          queueOfHandleDeeplinkFunctions.current.concat([
-            () => {
-              handleDeeplink(opts);
-            },
-          ]);
-      }
+      // TODO: We should be able to remove this since deeplinks are only parsed if user is logged in
+      // if (sdkInit.current) {
+      //   handleDeeplink(opts);
+      // } else {
+      //   queueOfHandleDeeplinkFunctions.current =
+      //     queueOfHandleDeeplinkFunctions.current.concat([
+      //       () => {
+      //         handleDeeplink(opts);
+      //       },
+      //     ]);
+      // }
     });
-  }, [dispatch, handleDeeplink, navigation, queueOfHandleDeeplinkFunctions]);
+  }, [dispatch, handleDeeplink, navigation]);
 
   useEffect(() => {
     const initMetrics = async () => {
@@ -941,9 +926,10 @@ const App: React.FC = () => {
             navigation: NavigationService.navigation,
           });
           await SDKConnect.getInstance().postInit(() => {
-            setTimeout(() => {
-              queueOfHandleDeeplinkFunctions.current = [];
-            }, 1000);
+            // TODO: We should be able to remove queueOfHandleDeeplinkFunctions since deeplinks are only parsed if user is logged in
+            // setTimeout(() => {
+            //   queueOfHandleDeeplinkFunctions.current = [];
+            // }, 1000);
           });
           sdkInit.current = true;
         } catch (err) {
@@ -954,9 +940,10 @@ const App: React.FC = () => {
     }
 
     initSDKConnect()
-      .then(() => {
-        queueOfHandleDeeplinkFunctions.current.forEach((func) => func());
-      })
+      // TODO: We should be able to remove this since deeplinks are only parsed if user is logged in
+      // .then(() => {
+      //   queueOfHandleDeeplinkFunctions.current.forEach((func) => func());
+      // })
       .catch((err) => {
         Logger.error(err, 'Error initializing SDKConnect');
       });
