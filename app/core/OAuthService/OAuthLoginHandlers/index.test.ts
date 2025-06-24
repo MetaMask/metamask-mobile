@@ -47,7 +47,7 @@ const mockSignInWithGoogle = jest.fn().mockResolvedValue({
   type: 'google-signin',
   idToken: 'googleIdToken',
 });
-jest.mock('react-native-google-acm', () => ({
+jest.mock('@metamask/react-native-acm', () => ({
   signInWithGoogle: () => mockSignInWithGoogle(),
 }));
 

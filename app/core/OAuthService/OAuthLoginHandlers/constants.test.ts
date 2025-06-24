@@ -7,9 +7,9 @@ import {
   IosAppleClientId,
   AndroidGoogleWebGID,
   AppleWebClientId,
-  AuthConnectionId,
-  GroupedAuthConnectionId,
   AppleServerRedirectUri,
+  AuthConnectionConfig,
+
 } from './constants';
 
 describe('OAuth Constants', () => {
@@ -45,11 +45,6 @@ describe('OAuth Constants', () => {
       expect(AppleWebClientId).toBe('com.web3auth.appleloginextension');
     });
 
-    it('should have Auth connection IDs from jest config', () => {
-      expect(AuthConnectionId).toBe('byoa-server');
-      expect(GroupedAuthConnectionId).toBe('mm-seedless-onboarding');
-    });
-
     it('should generate correct Apple server redirect URI', () => {
       expect(AppleServerRedirectUri).toBe(
         'https://api-develop-torus-byoa.web3auth.io/api/v1/oauth/callback',
@@ -66,8 +61,7 @@ describe('OAuth Constants', () => {
       expect(IosAppleClientId).toBeTruthy();
       expect(AndroidGoogleWebGID).toBeTruthy();
       expect(AppleWebClientId).toBeTruthy();
-      expect(AuthConnectionId).toBeTruthy();
-      expect(GroupedAuthConnectionId).toBeTruthy();
+      expect(AuthConnectionConfig).toBeTruthy();
       expect(AppleServerRedirectUri).toBeTruthy();
     });
   });
