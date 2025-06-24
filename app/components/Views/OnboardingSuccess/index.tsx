@@ -82,8 +82,6 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     onDone();
   }, [onDone, dispatch]);
 
-  const searchingFoxAnimation = useMemo(() => SearchingFox as any, []);
-
   const renderContent = () => {
     switch (successFlow) {
       case ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP:
@@ -97,7 +95,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
               style={styles.walletReadyImage}
               autoPlay
               loop
-              source={searchingFoxAnimation}
+              source={SearchingFox}
               resizeMode="contain"
             />
             <View style={styles.descriptionWrapper}>
