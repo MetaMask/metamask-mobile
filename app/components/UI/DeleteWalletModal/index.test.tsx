@@ -8,7 +8,7 @@ import renderWithProvider, {
 import { createStackNavigator } from '@react-navigation/stack';
 import { RootState } from '../../../reducers';
 import { strings } from '../../../../locales/i18n';
-import { ForgotPasswordModalSelectorsIDs } from '../../../../e2e/selectors/Common/ForgotPasswordModal.selectors';
+import { DeleteWalletModalSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/DeleteWalletModal.selectors';
 import { SET_COMPLETED_ONBOARDING } from '../../../actions/onboarding';
 import { InteractionManager } from 'react-native';
 
@@ -129,10 +129,10 @@ describe('DeleteWalletModal', () => {
       const { getByTestId } = renderComponent(mockInitialState);
 
       fireEvent.press(
-        getByTestId(ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON),
+        getByTestId(DeleteWalletModalSelectorsIDs.CONTINUE_BUTTON),
       );
       fireEvent.press(
-        getByTestId(ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON),
+        getByTestId(DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON),
       );
 
       expect(mockSignOut).toHaveBeenCalled();
@@ -142,10 +142,10 @@ describe('DeleteWalletModal', () => {
       const { getByTestId } = renderComponent(mockInitialState);
 
       fireEvent.press(
-        getByTestId(ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON),
+        getByTestId(DeleteWalletModalSelectorsIDs.CONTINUE_BUTTON),
       );
       fireEvent.press(
-        getByTestId(ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON),
+        getByTestId(DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON),
       );
 
       expect(mockUseDispatch).toHaveBeenCalledWith(
