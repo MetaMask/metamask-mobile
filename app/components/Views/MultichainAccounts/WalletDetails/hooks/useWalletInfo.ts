@@ -13,7 +13,7 @@ import { selectSeedphraseBackedUp } from '../../../../../reducers/user/selectors
  */
 export const useWalletInfo = (wallet: AccountWallet) => {
   const hdKeyringsWithSnapAccounts = useHdKeyringsWithSnapAccounts();
-  const isSRPBackedUp = useSelector(selectSeedphraseBackedUp);
+  const globalSRPBackedUp = useSelector(selectSeedphraseBackedUp);
 
   const accounts = useMemo(
     () => getInternalAccountsFromWallet(wallet),
@@ -50,11 +50,16 @@ export const useWalletInfo = (wallet: AccountWallet) => {
 
     const srpIndex = keyringIndex + 1;
 
+    // Only return backup status for the primary SRP (index 1) since the current
+    // backup tracking system only tracks the primary SRP, not individual SRPs.
+    // For all other SRPs, we don't return backup status to avoid showing incorrect information.
+    const isSRPBackedUp = srpIndex === 1 ? globalSRPBackedUp : undefined;
+
     return {
       accounts,
       keyringId,
       srpIndex,
       isSRPBackedUp,
     };
-  }, [accounts, hdKeyringsWithSnapAccounts, isSRPBackedUp]);
+  }, [accounts, hdKeyringsWithSnapAccounts, globalSRPBackedUp]);
 };

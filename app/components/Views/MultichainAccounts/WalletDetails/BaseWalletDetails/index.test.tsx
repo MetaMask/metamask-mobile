@@ -291,6 +291,55 @@ describe('BaseWalletDetails', () => {
       });
     });
 
+    describe('when SRP backup status is undefined (non-primary SRP)', () => {
+      beforeEach(() => {
+        mockUseWalletInfo.mockReturnValue({
+          accounts: [mockAccount1, mockAccount2],
+          keyringId: 'keyring:2',
+          srpIndex: 2,
+          isSRPBackedUp: undefined,
+        });
+      });
+
+      it('does not render backup warning text', () => {
+        const { queryByText } = renderWithProvider(
+          <BaseWalletDetails wallet={mockWallet} />,
+          { state: mockInitialState },
+        );
+
+        expect(queryByText('Back up')).toBeNull();
+      });
+
+      it('renders only the reveal SRP text without backup warning', () => {
+        const { getByText, queryByText } = renderWithProvider(
+          <BaseWalletDetails wallet={mockWallet} />,
+          { state: mockInitialState },
+        );
+
+        expect(getByText('Reveal Recovery Phrase 2')).toBeTruthy();
+        expect(queryByText('Back up')).toBeNull();
+      });
+
+      it('navigates to SRP reveal quiz when reveal button is pressed', () => {
+        const { getByTestId } = renderWithProvider(
+          <BaseWalletDetails wallet={mockWallet} />,
+          { state: mockInitialState },
+        );
+
+        const srpRevealButton = getByTestId(WalletDetailsIds.REVEAL_SRP_BUTTON);
+        fireEvent.press(srpRevealButton);
+
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.MODAL.ROOT_MODAL_FLOW,
+          {
+            screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+            keyringId: 'keyring:2',
+          },
+        );
+      });
+    });
+
     it('displays correct SRP index in button text', () => {
       mockUseWalletInfo.mockReturnValue({
         accounts: [mockAccount1, mockAccount2],

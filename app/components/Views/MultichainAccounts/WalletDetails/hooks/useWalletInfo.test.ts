@@ -88,7 +88,7 @@ describe('useWalletInfo', () => {
       mockUseSelector.mockReturnValue(true);
     });
 
-    it('returns correct data for first SRP (index 1)', () => {
+    it('returns correct data for first SRP (index 1) with backup status', () => {
       mockUseHdKeyringsWithSnapAccounts.mockReturnValue([
         mockKeyring1,
         mockKeyring2,
@@ -104,7 +104,7 @@ describe('useWalletInfo', () => {
       });
     });
 
-    it('returns correct data for second SRP (index 2)', () => {
+    it('returns correct data for second SRP (index 2) without backup status', () => {
       const walletWithKeyring2 = {
         ...mockWallet,
         id: 'keyring:2',
@@ -122,11 +122,11 @@ describe('useWalletInfo', () => {
         accounts: [mockAccount3],
         keyringId: 'keyring:2',
         srpIndex: 2,
-        isSRPBackedUp: true,
+        isSRPBackedUp: undefined,
       });
     });
 
-    it('returns correct data for third SRP (index 3)', () => {
+    it('returns correct data for third SRP (index 3) without backup status', () => {
       // Create a unique account for the third keyring
       const mockAccount4 = createMockInternalAccount(
         '0x4',
@@ -162,7 +162,7 @@ describe('useWalletInfo', () => {
         accounts: [mockAccount4],
         keyringId: 'keyring:3',
         srpIndex: 3,
-        isSRPBackedUp: true,
+        isSRPBackedUp: undefined,
       });
     });
   });
@@ -176,7 +176,7 @@ describe('useWalletInfo', () => {
       ]);
     });
 
-    it('returns isSRPBackedUp as false', () => {
+    it('returns isSRPBackedUp as false for primary SRP (index 1)', () => {
       const { result } = renderHook(() => useWalletInfo(mockWallet));
 
       expect(result.current).toEqual({
@@ -184,6 +184,24 @@ describe('useWalletInfo', () => {
         keyringId: 'keyring:1',
         srpIndex: 1,
         isSRPBackedUp: false,
+      });
+    });
+
+    it('returns isSRPBackedUp as undefined for non-primary SRP (index 2)', () => {
+      const walletWithKeyring2 = {
+        ...mockWallet,
+        id: 'keyring:2',
+      } as unknown as AccountWallet;
+
+      mockGetInternalAccountsFromWallet.mockReturnValue([mockAccount3]);
+
+      const { result } = renderHook(() => useWalletInfo(walletWithKeyring2));
+
+      expect(result.current).toEqual({
+        accounts: [mockAccount3],
+        keyringId: 'keyring:2',
+        srpIndex: 2,
+        isSRPBackedUp: undefined,
       });
     });
   });
