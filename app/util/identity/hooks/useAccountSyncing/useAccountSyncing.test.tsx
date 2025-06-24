@@ -25,12 +25,13 @@ const arrangeMockState = (
       backgroundState: {
         KeyringController: {
           isUnlocked: stateOverrides.isUnlocked,
+          keyrings: [],
         },
         AuthenticationController: {
           isSignedIn: stateOverrides.isSignedIn,
         },
         UserStorageController: {
-          isProfileSyncingEnabled: stateOverrides.isBackupAndSyncEnabled,
+          isBackupAndSyncEnabled: stateOverrides.isBackupAndSyncEnabled,
           isAccountSyncingEnabled: stateOverrides.isAccountSyncingEnabled,
           isAccountSyncingReadyToBeDispatched:
             stateOverrides.isAccountSyncingReadyToBeDispatched,

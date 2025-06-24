@@ -36,15 +36,14 @@ import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { AddressBookControllerState } from '@metamask/address-book-controller';
 import {
   isEqualCaseInsensitive,
-  type NetworkType,
   toChecksumHexAddress,
+  type NetworkType,
 } from '@metamask/controller-utils';
 import type {
   NetworkClientId,
   NetworkState,
 } from '@metamask/network-controller';
 import {
-  AccountImportStrategy,
   KeyringObject,
   KeyringTypes,
 } from '@metamask/keyring-controller';
@@ -185,30 +184,6 @@ export function renderAccountName(
   return renderShortAddress(address);
 }
 
-/**
- * Imports an account from a private key
- *
- * @param {String} private_key - String corresponding to a private key
- * @returns {Promise} - Returns a promise
- */
-
-export async function importAccountFromPrivateKey(private_key: string) {
-  const { KeyringController } = Engine.context;
-  // Import private key
-  let pkey = private_key;
-  // Handle PKeys with 0x
-  if (pkey.length === 66 && pkey.substr(0, 2) === '0x') {
-    pkey = pkey.substr(2);
-  }
-  const importedAccountAddress =
-    await KeyringController.importAccountWithStrategy(
-      AccountImportStrategy.privateKey,
-      [pkey],
-    );
-  const checksummedAddress = toChecksumHexAddress(importedAccountAddress);
-  Engine.setSelectedAddress(checksummedAddress);
-}
-
 export function isHDOrFirstPartySnapAccount(account: InternalAccount) {
   if (
     account.metadata.keyring.type !== KeyringTypes.snap &&
@@ -306,6 +281,16 @@ export function isSnapAccount(address: string) {
  */
 export function isExternalHardwareAccount(address: string) {
   return isHardwareAccount(address, [ExtendedKeyringTypes.ledger]);
+}
+
+/**
+ * judge address is a private key account or not
+ *
+ * @param {InternalAccount} account - InternalAccount object
+ * @returns {Boolean} - Returns a boolean
+ */
+export function isPrivateKeyAccount(account: InternalAccount) {
+  return account.metadata.keyring.type === KeyringTypes.simple;
 }
 
 /**
@@ -473,22 +458,10 @@ export function isENS(name: string | undefined = undefined) {
 export function resemblesAddress(address: string) {
   return address && address.length === 2 + 20 * 2;
 }
-/**
- * Converts a hex address to a checksummed address if it is valid.
- * If the address is not a hex string, it returns the address as is.
- * If the address is empty or undefined, it returns undefined.
- * This function is a wrapper around ethereumjs-util.toChecksumAddress.
- * It is used to ensure that the address is in a valid format before
- * performing any operations on it.
- *
- * @returns {string} - Returns the checksummed address or undefined if input is invalid
- */
-export function safeToChecksumAddress(address: string) {
-  if (!address) return '';
-  if (isHexString(address)) {
-    return toChecksumHexAddress(address);
-  }
-  return address as string;
+
+export function safeToChecksumAddress(address?: string) {
+  if (!address) return undefined;
+  return toChecksumAddress(address) as Hex;
 }
 
 /**
@@ -764,7 +737,7 @@ export const getTokenDetails = async (
     tokenId,
     networkClientId,
   );
-  const { standard, name, symbol, decimals } = tokenData;
+  const { standard, name, symbol, decimals, balance } = tokenData;
   if (standard === ERC721 || standard === ERC1155) {
     return {
       name,
@@ -776,6 +749,7 @@ export const getTokenDetails = async (
     symbol,
     decimals,
     standard,
+    balance,
   };
 };
 

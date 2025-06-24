@@ -143,6 +143,8 @@ describe('useEditNonce', () => {
 
     const { result } = renderHook(() => useEditNonce());
 
+    result.current.setShowNonceModal(true);
+
     // Resolve the getNetworkNonce promise
     act(() => {
       resolveFn(42);

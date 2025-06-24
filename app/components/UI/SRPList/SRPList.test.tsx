@@ -14,6 +14,15 @@ import {
 import SRPList from './SRPList';
 import { fireEvent } from '@testing-library/react-native';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import useMetrics from '../../hooks/useMetrics/useMetrics';
+
+const mockTrackEvent = jest.fn();
+jest.mock('../../hooks/useMetrics/useMetrics', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
 
 jest.mock('../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
@@ -69,6 +78,10 @@ const getTestId = (selector: string, keyringId: string) =>
 describe('SRPList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useMetrics as jest.Mock).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+    });
   });
 
   it('renders lists', () => {
@@ -100,5 +113,33 @@ describe('SRPList', () => {
     );
 
     expect(mockOnKeyringSelect).toHaveBeenCalledWith(mockKeyringMetadata1.id);
+  });
+
+  it('tracks SECRET_RECOVERY_PHRASE_PICKER_CLICKED event when a SRP item is clicked', () => {
+    const { getByTestId } = renderWithProvider(
+      <SRPList onKeyringSelect={mockOnKeyringSelect} />,
+      {
+        state: initialState,
+      },
+    );
+
+    fireEvent.press(
+      getByTestId(
+        getTestId(
+          SRPListItemSelectorsIDs.SRP_LIST_ITEM,
+          mockKeyringMetadata1.id,
+        ),
+      ),
+    );
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
+      )
+        .addProperties({
+          button_type: 'srp_select',
+        })
+        .build(),
+    );
   });
 });

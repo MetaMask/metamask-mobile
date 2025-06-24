@@ -13,7 +13,6 @@ import TabBarComponent from '../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../fixtures/fixture-builder';
 import {
   withFixtures,
-  defaultGanacheOptions,
 } from '../fixtures/fixture-helper';
 import { loginToApp } from '../viewHelper';
 
@@ -165,7 +164,6 @@ const main = async () => {
     {
       dapp: true,
       fixture: new FixtureBuilder().withGanacheNetwork().build(),
-      ganacheOptions: defaultGanacheOptions,
       disableGanache: true,
       restartDevice: true,
       testSpecificMock,

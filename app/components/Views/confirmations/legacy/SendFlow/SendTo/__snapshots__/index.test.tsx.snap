@@ -3,9 +3,12 @@
 exports[`SendTo Component render matches snapshot 1`] = `
 <RNCSafeAreaView
   edges={
-    [
-      "bottom",
-    ]
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
+    }
   }
   style={
     {
@@ -669,7 +672,7 @@ exports[`SendTo Component render matches snapshot 1`] = `
           [
             [
               {
-                "borderRadius": 100,
+                "borderRadius": 12,
                 "justifyContent": "center",
                 "padding": 15,
               },

@@ -14,8 +14,8 @@ import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import { SolScope } from '@metamask/keyring-api';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
-import { isHardwareAccount } from '../../../../../util/address';
 import { strings } from '../../../../../../locales/i18n';
+import { isHardwareAccount } from '../../../../../util/address';
 
 // TODO remove this mock once we have a real implementation
 jest.mock('../../../../../selectors/confirmTransaction');
@@ -88,6 +88,7 @@ jest.mock('../../../../hooks/useAccounts', () => ({
         type: 'HD Key Tree',
         yOffset: 0,
         isSelected: true,
+        caipAccountId: 'eip155:1:0x1234567890123456789012345678901234567890',
       },
     ],
     ensByAccountAddress: {
@@ -800,4 +801,3 @@ describe('BridgeView', () => {
     });
   });
 });
-

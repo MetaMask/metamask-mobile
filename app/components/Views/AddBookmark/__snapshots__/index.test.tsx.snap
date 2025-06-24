@@ -198,7 +198,7 @@ exports[`AddBookmark should render correctly 1`] = `
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },
@@ -260,7 +260,7 @@ exports[`AddBookmark should render correctly 1`] = `
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },

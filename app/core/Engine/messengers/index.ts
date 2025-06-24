@@ -1,8 +1,13 @@
 import { noop } from 'lodash';
 import { getAccountsControllerMessenger } from './accounts-controller-messenger';
+import { getAccountTreeControllerMessenger } from '../../../multichain-accounts/messengers/account-tree-controller-messenger';
 import { getMultichainNetworkControllerMessenger } from './multichain-network-controller-messenger/multichain-network-controller-messenger';
 import { getCurrencyRateControllerMessenger } from './currency-rate-controller-messenger/currency-rate-controller-messenger';
 import { getAppMetadataControllerMessenger } from './app-metadata-controller-messenger';
+import {
+  getDeFiPositionsControllerInitMessenger,
+  getDeFiPositionsControllerMessenger,
+} from './defi-positions-controller-messenger/defi-positions-controller-messenger';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   getCronjobControllerMessenger,
@@ -11,6 +16,7 @@ import {
   getSnapControllerMessenger,
   getSnapInterfaceControllerMessenger,
   getSnapsRegistryMessenger,
+  getWebSocketServiceMessenger,
 } from './snaps';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -33,6 +39,10 @@ import { getSignatureControllerMessenger } from './signature-controller-messenge
 export const CONTROLLER_MESSENGERS = {
   AccountsController: {
     getMessenger: getAccountsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  AccountTreeController: {
+    getMessenger: getAccountTreeControllerMessenger,
     getInitMessenger: noop,
   },
   TransactionController: {
@@ -58,6 +68,10 @@ export const CONTROLLER_MESSENGERS = {
   SignatureController: {
     getMessenger: getSignatureControllerMessenger,
     getInitMessenger: noop,
+  },
+  DeFiPositionsController: {
+    getMessenger: getDeFiPositionsControllerMessenger,
+    getInitMessenger: getDeFiPositionsControllerInitMessenger,
   },
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   CronjobController: {
@@ -86,6 +100,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   NotificationServicesPushController: {
     getMessenger: getNotificationServicesPushControllerMessenger,
+    getInitMessenger: noop,
+  },
+  WebSocketService: {
+    getMessenger: getWebSocketServiceMessenger,
     getInitMessenger: noop,
   },
   ///: END:ONLY_INCLUDE_IF

@@ -1,3 +1,4 @@
+import { analytics } from '@metamask/sdk-analytics';
 import {
   MessageType,
   SendAnalytics,
@@ -72,6 +73,12 @@ async function connectToChannel({
   }
 
   instance.state.connecting[id] = true;
+  const anonId = originatorInfo?.anonId;
+
+  if (anonId) {
+    DevLogger.log(`[MM SDK Analytics] event=wallet_connection_request_received anonId=${anonId}`);
+    analytics.track('wallet_connection_request_received', { anon_id: anonId });
+  }
 
   try {
     instance.state.connections[id] = {
@@ -164,11 +171,20 @@ async function connectToChannel({
           res,
         );
         authorized = true;
+
+        if (anonId) {
+          DevLogger.log(`[MM SDK Analytics] event=wallet_connection_user_approved anonId=${anonId}`);
+          analytics.track('wallet_connection_user_approved', { anon_id: anonId });
+        }
       } catch (error) {
         DevLogger.log(
           `SDKConnect::connectToChannel - checkPermissions - error`,
           error,
         );
+        if (anonId) {
+          DevLogger.log(`[MM SDK Analytics] event=wallet_connection_user_rejected anonId=${anonId}`);
+          analytics.track('wallet_connection_user_rejected', { anon_id: anonId });
+        }
         // first needs to connect without key exchange to send the event
         await instance.state.connected[id].remote.reject({ channelId: id });
         // Send rejection event without awaiting

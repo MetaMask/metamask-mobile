@@ -27,6 +27,8 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
   </Text>
   <RCTScrollView
     collapsable={false}
+    handlerTag={-1}
+    handlerType="NativeViewGestureHandler"
     onGestureHandlerEvent={[Function]}
     onGestureHandlerStateChange={[Function]}
     style={
@@ -309,7 +311,7 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
             "alignSelf": "flex-start",
             "backgroundColor": "transparent",
             "borderColor": "#4459ff",
-            "borderRadius": 24,
+            "borderRadius": 12,
             "borderWidth": 1,
             "flex": 1,
             "flexDirection": "row",
@@ -348,7 +350,7 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
             "alignItems": "center",
             "alignSelf": "flex-start",
             "backgroundColor": "#4459ff",
-            "borderRadius": 24,
+            "borderRadius": 12,
             "flex": 1,
             "flexDirection": "row",
             "height": 48,
@@ -378,5 +380,6 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
       </TouchableOpacity>
     </View>
   </View>
+  <View />
 </View>
 `;

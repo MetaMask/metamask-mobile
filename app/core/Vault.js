@@ -2,7 +2,6 @@ import Engine from './Engine';
 import Logger from '../util/Logger';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { withLedgerKeyring } from './Ledger/Ledger';
-import { areAddressesEqual } from '../util/address';
 import {
   MultichainWalletSnapFactory,
   WalletClientType,
@@ -13,6 +12,7 @@ import {
   SolAccountType,
   SolScope,
 } from '@metamask/keyring-api';
+import { toFormattedAddress, areAddressesEqual } from '../util/address';
 
 /**
  * Restore the given serialized QR keyring.

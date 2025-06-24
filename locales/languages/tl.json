@@ -24,14 +24,31 @@
     "inline_alert_label": "Alerto",
     "review_alerts": "Suriin ang mga alerto",
     "review_alert": "Suriin ang alerto",
+    "upgrade_account": {
+      "title": "Ina-update ang iyong account",
+      "message": "Ina-update mo ang iyong account sa smart account. Hindi mapapalitan ang account address mo habang ina-unlock ang mas mabibilis na transaksyon at mas mabababang bayad sa network.",
+      "learn_more": "Matuto pa"
+    },
     "domain_mismatch": {
       "title": "Kahina-hinalang kahilingan sa pag-sign in",
       "message": "Ang site na humihiling ay hindi ang site kung saan ka nagsa-sign in. Maaaring isa itong pagtatangkang nakawin ang iyong mga kredensyal sa pag-login."
     },
     "insufficient_balance": {
-      "title": "Insufficient funds",
-      "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
-      "buy_action": "Buy %{nativeCurrency}"
+      "title": "Hindi sapat ang pondo",
+      "message": "Wala kang sapat na %{nativeCurrency} sa iyong account para bayaran ang mga bayarin sa network.",
+      "buy_action": "Bumili ng %{nativeCurrency}"
+    },
+    "signed_or_submitted": {
+      "message": "May nakaraang transaksyon na pinipirmahan o isinusumite pa."
+    },
+    "pending_transaction": {
+      "title": "Nakabinbing transaksyon",
+      "message": "Hindi makakapagpatuloy ang transaksyong ito hanggang hindi nakukumpleto ang naunang transaksyon.",
+      "learn_more": "Alamin kung paano kakanselahin o mapapabilis ang transaksyon."
+    },
+    "batched_unused_approvals": {
+      "title": "Hindi kinakailangang pahintulot",
+      "message": "Binibigyan mo ang ibang tao ng pahintulot na magwithdraw ng iyong mga token, kahit na hindi ito kinakailangan para sa transaksyong ito."
     }
   },
   "blockaid_banner": {
@@ -83,11 +100,11 @@
     "connector": "sa"
   },
   "autocomplete": {
-    "placeholder": "Search by token, site or address",
+    "placeholder": "Maghanap ayon sa token, site o address",
     "recents": "Mga Kamakailan",
     "favorites": "Mga Paborito",
     "sites": "Mga Site",
-    "tokens": "Tokens"
+    "tokens": "Mga Token"
   },
   "navigation": {
     "back": "Bumalik",
@@ -97,7 +114,7 @@
     "ok": "OK"
   },
   "onboarding": {
-    "title": "Pag-set up ng wallet",
+    "title": "Magsimula na tayo!",
     "sync_desc": "Kung nakakuha ka na ng extension ng MetaMask o ng ibang wallet, i-sync o i-import ito para mapamahalaan ang mga kasalukuyan mong asset.",
     "create_desc": "I-set up ang una mong wallet at simulang i-explore ang mga desentralisadong app.",
     "import": "Mag-import ng kasalukuyang wallet o gumawa ng panibago",
@@ -128,14 +145,16 @@
     "scan_step_3": "I-click ang “I-sync sa Mobile”",
     "scan_step_4": "I-scan ang QR code para simulan ang pag-sync",
     "success": "Matagumpay",
-    "your_wallet": "Matagumpay na nabura ang iyong wallet",
-    "delete_current": "Tinatanggal ang kasalukuyang wallet"
+    "your_wallet": "Your wallet was successfully reset",
+    "delete_current": "Reset current wallet",
+    "have_existing_wallet": "Mayroon na akong wallet",
+    "import_using_srp": "Import using Secret Recovery Phrase"
   },
   "onboarding_success": {
-    "title": "Congratulations!",
-    "description": "Ang iyong wallet ay protektado at handang gamitin. Maaari mong hanapin ang iyong Lihim na Parirala sa Pagbawai sa ",
+    "title": "Keep your Secret Recovery Phrase safe!",
+    "description": "This Secret Recovery Phrase can help you regain access if you ever forget your password or lose access to your login.",
     "description_bold": "Mga Setting > Seguridad at Pagkapribado.",
-    "description_continued": "Gumawa ng paalala sa iyong Lihim na Parirala sa Pagbawi sa isang ligtas na lugar. Kung mawala mo ito, walang makakatulong sa iyo na mabawi ito. Dagdag pa, hindi mo na maaaring ma-access ang iyong wallet kahit kailan.",
+    "description_continued": " you can keep this phrase safe so you never lose access to your money.",
     "learn_more": "Matuto pa",
     "learn_how": "Alamin kung paano",
     "leave_hint": "Mag-iwan ng hint para sa sarili mo?",
@@ -144,17 +163,29 @@
     "default_settings_footer": "Ang mga setting ay nakaayos para sa dali ng paggamit at seguridad.\nBaguhin ang mga ito anumang oras.",
     "no_srp_title": "Naitakda ang Paalala!",
     "no_srp_description": "Kung ikaw ay na-lock out sa app o kumuha ng bagong device, mawawala ang iyong mga pondo. Siguraduhing i-back up ang iyong Lihim na Parirala sa Pagbawi sa",
-    "import_title": "Handa na ang iyong Wallet",
-    "import_description": "Tandaan, kung mawala mo ang iyong Lihim na Parirala sa Pagbawi, mawawalan ka ng access sa iyong wallet. ",
-    "import_description2": "para itago nang ligtas ang mga grupo ng salita upang palagi mong ma-access ang iyong mga pondo.",
-    "done": "Tapos na"
+    "import_title": "Your Wallet is ready!",
+    "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
+    "import_description2": "you can keep this phrase safe so you never lose access to your money.",
+    "done": "Tapos na",
+    "create_hint": "Create a password hint",
+    "hint_title": "Password hint",
+    "hint_description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
+    "hint_description2": "Remember: If you lose your password, you won’t be able to use your wallet.",
+    "hint_button": "Create hint",
+    "hint_placeholder": "e.g. mom’s home",
+    "hint_saved": "Save",
+    "hint_saved_toast": "Password hint saved",
+    "remind_later": "We’ll remind you later",
+    "remind_later_description": "If you don’t back up your Secret Recovery Phrase, you’ll lose access to your funds if you get locked out of the app or get a new device.",
+    "remind_later_description2": "You can back up your wallets or see your Secret Recovery Phrase in",
+    "setting_security_privacy": "Settings > Security & Privacy"
   },
   "onboarding_carousel": {
     "title1": "Welcome sa MetaMask",
     "title2": "Pamahalaan ang iyong mga digital na asset",
     "title3": "Ang iyong gateway sa web3",
     "subtitle1": "Pinagkakatiwalaan ng milyon-milyon, ang MetaMask ay isang secure na wallet na nagbibigay-daan sa web3 na ma-access ng lahat.",
-    "subtitle2": "Mag-store, gumastos at magpadala ng mga digital na asset gaya ng token, ethereum, mga natatanging collectible.",
+    "subtitle2": "Mag-imbak, gumastos o magpadala ng mga digital asset gaya ng mga token, Ethereum, naiibang mga maaaring kolektahin.",
     "subtitle3": "Mag-log in sa MetaMask at gumawa ng mga transaksyon para mag-invest, kumita, maglaro, magbenta at higit pa!",
     "get_started": "Magsimula"
   },
@@ -250,18 +281,20 @@
   "login": {
     "title": "Maligayang Pagbabalik!",
     "password": "Password",
-    "unlock_button": "I-UNLOCK",
+    "password_placeholder": "Enter password",
+    "unlock_button": "Unlock",
     "go_back": "Hindi ma-unlock ang wallet? Puwede mong BURAHIN ang iyong kasalukuyang wallet at mag-set up ng panibago",
-    "reset_wallet": "I-reset ang Wallet",
+    "forgot_password": "Forgot password?",
     "cant_proceed": "Hindi ka makakapagpatuloy hanggang sa i-type mo ang salitang ‘Tanggalin’. Kapag ginawa ang aksyong ito, nangangahulugan ito ng pag-opt in para burahin ang iyong kasalukuyang wallet.",
-    "invalid_password": "Di-wastong password",
-    "type_delete": "I-type ang ‘%{delete}’ para tuluyang burahin ang kasalukuyang wallet",
-    "delete_my": "Tanggalin ang wallet ko",
-    "are_you_sure": "Sigurado ka bang gusto mong burahin ang wallet mo?",
-    "your_current_wallet": "Ang iyong kasalukuyang wallet, mga account at mga asset ay ",
-    "removed_from": "permanenteng naalis sa app na ito. ",
+    "invalid_password": "Password is incorrect, try again.",
+    "type_delete": "Type ‘%{erase}’ to confirm",
+    "erase_my": "Yes, reset wallet",
+    "cancel": "Cancel",
+    "are_you_sure": "Are you sure?",
+    "your_current_wallet": "Your wallet, accounts, and assets will be",
+    "removed_from": " permanently removed from this app",
     "this_action": "Hindi maa-undo ang aksyong ito.",
-    "you_can_only": "Mare-recover mo LANG ang wallet na ito gamit ang iyong ",
+    "you_can_only": "You can only get this wallet back with the info used when creating it, such as your Secret Recovery Phrase, Google account, or Apple account. MetaMask doesn’t have this info.",
     "recovery_phrase": "Lihim na Parirala sa Pagbawi ",
     "metamask_does_not": "Hindi hawak ng MetaMask ang iyong Lihim na Parirala sa Pagbawi.",
     "i_understand": "Nauunawaan ko, magpatuloy",
@@ -271,7 +304,21 @@
     "vault_error": "Error: Hindi ma-unlock nang wala ang nakaraang vault.",
     "clean_vault_error": "Nagkaroon ng error ang MetaMask dahil sa pag-abot sa limitasyon ng storage. Na-corrupt ang lokal na data. Paki-install ulit ang MetaMask at ibalik gamit ang iyong Lihim na Parirala sa Pagbawi.",
     "security_alert_title": "Panseguridad na Alerto",
-    "security_alert_desc": "Upang magpatuloy, kailangan mong i-on ang Passcode o anumang paraan ng pag-authenticate ng biometrics na sinusuportahan sa iyong device (FaceID, TouchID o Fingerprint)"
+    "security_alert_desc": "Upang magpatuloy, kailangan mong i-on ang Passcode o anumang paraan ng pag-authenticate ng biometrics na sinusuportahan sa iyong device (FaceID, TouchID o Fingerprint)",
+    "forgot_password_desc": "Forgot your password?",
+    "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
+    "forgot_password_point_1": "If you’re logged into MetaMask on a device with",
+    "forgot_password_point_1_bold": "biometrics turned on",
+    "forgot_password_point_1_1": "(like Face ID), you can reset your password there.",
+    "forgot_password_point_2": "If you have your",
+    "forgot_password_point_2_bold": "Secret Recovery Phrase,",
+    "forgot_password_point_2_1": "you can reset your current wallet and reimport using Secret Recovery Phrase.",
+    "reset_wallet": "Reset wallet",
+    "reset_wallet_desc": "Your wallet data will be",
+    "reset_wallet_desc_bold": "permanently erased",
+    "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
+    "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
+    "reset_wallet_desc_srp": "To restore your wallet, you can use your Secret Recovery Phrase. MetaMask doesn’t have this information."
   },
   "connect_hardware": {
     "title_select_hardware": "Magkonekta ng wallet na hardware",
@@ -285,9 +332,10 @@
     "error": "Error"
   },
   "choose_password": {
-    "title": "Gumawa ng password",
+    "title": "MetaMask password",
+    "description": "Unlocks MetaMask on this device only.",
     "subtitle": "Maa-unlock ng password na ito ang iyong MetaMask wallet sa device lang na ito.",
-    "password": "Bagong Password",
+    "password": "Create new password",
     "confirm_password": "Kumpirmahin ang password",
     "create_button": "Gumawa ng password",
     "import_with_seed_phrase": "I-import gamit ang Lihim na Parirala sa Pagbawi",
@@ -300,7 +348,7 @@
     "show": "Ipakita",
     "hide": "Itago",
     "seed_phrase": "Lihim na Parirala sa Pagbawi",
-    "must_be_at_least": "Dapat ay kahit {{number}} character lang",
+    "must_be_at_least": "Ang password ay dapat na mayroong hindi bababa sa {{number}} karakter",
     "remember_me": "Tandaan ako",
     "security_alert_title": "Panseguridad na Alerto",
     "security_alert_message": "Para magpatuloy, kailangan mong i-on ang Passcode o ang anumang paraan ng pag-authenticate ng biometrics na sinusuportahan ng iyong device (FaceID, TouchID o Fingerprint)",
@@ -308,7 +356,10 @@
     "learn_more": "Matuto pa.",
     "secure": "I-secure ang wallet",
     "confirm": "Kumpirmahin ang Lihim na Parirala sa Pagbawi",
-    "disable_biometric_error": "Hindi mo pinagana ang biometrics para sa app. I-update ang mga setting ng Tandaan Ako at subukang muli."
+    "disable_biometric_error": "Hindi mo pinagana ang biometrics para sa app. I-update ang mga setting ng Tandaan Ako at subukang muli.",
+    "create_password_cta": "Create password",
+    "steps": "Hakbang {{currentStep}} ng {{totalSteps}}",
+    "password_error": "Hindi tugma ang mga password. Subukan muli."
   },
   "reset_password": {
     "title": "Palitan ang password",
@@ -338,19 +389,42 @@
     "successfully_changed": "Matagumpay na napalitan ang iyong password"
   },
   "import_from_seed": {
-    "title": "I-import gamit ang Lihim na Parirala sa Pagbawi",
+    "title": "Mag-import ng wallet",
     "seed_phrase_placeholder": "Ilagay rito ang iyong Lihim na Parirala sa Pagbawi",
-    "new_password": "Bagong Password",
+    "create_new_password": "Create new password",
     "confirm_password": "Kumpirmahin ang password",
     "import_button": "I-IMPORT",
     "cancel_button": "Kanselahin",
     "password_length_error": "Ang password ay dapat na kahit 8 character lang",
     "password_dont_match": "Hindi magkatugma ang mga password",
     "seed_phrase_requirements": "Ang mga Lihim na Parirala sa Pagbawi ay naglalaman ng 12, 15, 18, 21, o 24 na salita",
-    "invalid_seed_phrase": "Di-wastong Lihim na Parirala sa Pagbawi",
+    "invalid_seed_phrase": "Walang nahanap na Secret Recovery Phrase.",
     "error": "Error",
     "invalid_qr_code_title": "Di-wastong QR Code",
-    "invalid_qr_code_message": "Ang QR code na ito ay hindi kumakatawan sa isang wastong Lihim na Parirala sa Pagbawi"
+    "invalid_qr_code_message": "Ang QR code na ito ay hindi kumakatawan sa isang wastong Lihim na Parirala sa Pagbawi",
+    "enter_your_secret_recovery_phrase": "Ilagay rito ang iyong Lihim na Parirala sa Pagbawi",
+    "metamask_password": "MetaMask password",
+    "metamask_password_description": "Unlocks MetaMask on this device only.",
+    "seed_phrase_required": "Kinakailangan ang Lihim na Parirala sa Pagbawi (Secret Recovery Phrase)",
+    "re_enter_password": "Ilagay muli ang iyong password",
+    "use_at_least_8_characters": "Gamitin ang hindi bababa sa 8 karakter",
+    "unlock_with_face_id": "I-unlock gamit ang Face ID?",
+    "learn_more": "If I forget this password, MetaMask can't recover it for me.",
+    "seed_phrase_length_error": "Ang Secret Recovery Phrase ay dapat na 12, 15, 18, 21, o 24 na salita",
+    "continue": "Magpatuloy",
+    "clear_all": "I-clear lahat",
+    "show_all": "Ipakita lahat",
+    "paste": "I-paste",
+    "hide_all": "Itago lahat",
+    "srp": "Lihim na Parirala sa Pagbawi (Secret Recovery Phrase)",
+    "srp_placeholder": "Magdagdag ng patlang sa pagitan ng bawat salita at tiyaking walang sinuman ang nakatingin 👀",
+    "learn_more_link": "Matuto pa",
+    "create_password_cta": "Create password",
+    "pass_flow": "Magpatuloy sa Daloy",
+    "steps": "Hakbang {{currentStep}} ng {{totalSteps}}",
+    "password_error": "Hindi tugma ang mga password. Subukan muli.",
+    "spellcheck_error": "Use only lowercase letters, check your spelling, and put the words in the original order.",
+    "enter_strong_password": "Maglagay ng matibay na password"
   },
   "bottom_tab_bar": {
     "dapps": "ÐApps",
@@ -396,7 +470,80 @@
     "network_missing_id": "Nawawala ang id ng chain."
   },
   "deposit": {
-    "title": "Magdeposito"
+    "title": "Magdeposito",
+    "selectRegion": "Select Region",
+    "chooseYourRegionToContinue": "Choose your region to continue",
+    "buildQuote": {
+      "payWith": "Pay with",
+      "unexpectedError": "An unexpected error occurred.",
+      "quoteFetchError": "Failed to fetch quote.",
+      "kycFormsFetchError": "Failed to fetch KYC forms."
+    },
+    "get_started": {
+      "title": "Top up your wallet with USDC",
+      "bullet_1_title": "Value-backed by the US dollar",
+      "bullet_1_description": "1:1 ratio backing with US dollars.",
+      "bullet_2_title": "Low volatility",
+      "bullet_2_description": "Maintains stable value for reliable transactions.",
+      "bullet_3_title": "Faster than banks",
+      "bullet_3_description": "Quick blockchain transfers beat traditional banking.",
+      "button": "Get started"
+    },
+    "enter_email": {
+      "title": "Ilagay ang iyong email",
+      "description": "Magpapadala kami ng anim na digit na code sa email mo para masigurong ikaw nga iyon.",
+      "input_label": "Email",
+      "input_placeholder": "name@domain.com",
+      "submit_button": "Magpadala ng email",
+      "loading": "Ipinapadala ang email...",
+      "validation_error": "Paki-lagay ang wastong valid email address"
+    },
+    "otp_code": {
+      "title": "Ilagay ang anim na digit na code",
+      "description": "Ilagay ang anim na digit na code na ipinadala namin sa {{email}}. Kung hindi mo ito makita sa iyong inbox, tingnan ang iyong spam folder.",
+      "submit_button": "Isumite",
+      "loading": "Vine-verify ang code...",
+      "invalid_code_error": "Di-wastong code",
+      "validation_error": "Ilagay ang wastong code"
+    },
+    "verify_identity": {
+      "title": "I-verify ang pagkakakilanlan mo",
+      "description": "Para magdeposito ng cash, kailangan naming i-verify ang pagkakakilanlan mo. Nakakatulong ito para manatiling ligtas ang account at pribado ang impormasyon mo.",
+      "privacy_policy_link": "Matuto kung paano namin pinoprotektahan ang pagkapribado mo sa aming Patakaran sa Pagkapribado.",
+      "button": "Magsimula"
+    },
+    "basic_info": {
+      "title": "Ilagay ang iyong pangunahing impormasyon",
+      "continue": "Magpatuloy",
+      "subtitle": "Upang magsimula sa pag-verify ng iyong pagkakakilanlan, kailangan namin ng ilan sa pangunahing impormasyon."
+    },
+    "enter_address": {
+      "title": "Ilagay ang iyong adres",
+      "subtitle": "Mangyaring ilagay ang pinakabago mong permanenteng adres.",
+      "continue": "Magpatuloy",
+      "address_line_1": "Linya ng adres 1",
+      "address_line_2": "Linya ng adres 2 (opsyonal)",
+      "state": "Estado/Rehiyon",
+      "city": "Lungsod",
+      "postal_code": "Postal/Zip Code",
+      "country": "Bansa"
+    },
+    "kyc_processing": {
+      "title": "Verifying your identity",
+      "heading": "Hang tight!\nWe’re verifying your identity now.",
+      "description": "You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.",
+      "button": "Browse tokens",
+      "error_heading": "We were unable to verify your identity.",
+      "error_description": "Try uploading your documents again and resubmit for verification.",
+      "error_button": "Retry verification",
+      "success_heading": "Identity successfully verified!",
+      "success_description": "You can now enter your payment info and complete your deposit.",
+      "success_button": "Complete your order"
+    },
+    "kyc_webview": {
+      "title": "Verifying your identity",
+      "webview_received_error": "WebView received error status code: {{code}}"
+    }
   },
   "receive": {
     "title": "Tumanggap"
@@ -444,8 +591,12 @@
       "subtitle": "Kontrolin kung paano ipapakita ang balanse mo sa mga setting"
     },
     "multisrp": {
-      "title": "Add multiple Secret Recovery Phrases",
-      "subtitle": "Import and use multiple wallets in MetaMask"
+      "title": "Magdagdag ng maramihang Secret Recovery Phrase",
+      "subtitle": "Mag-import at gumamit ng maramihang wallet sa MetaMask"
+    },
+    "solana": {
+      "title": "Sinusuportahan na ngayon ang Solana",
+      "subtitle": "Gumawa ng Solana account para magsimula"
     }
   },
   "wallet": {
@@ -453,6 +604,7 @@
     "tokens": "Mga Token",
     "collectible": "Nakokolekta",
     "collectibles": "Mga NFT",
+    "defi": "DeFi",
     "transactions": "MGA TRANSAKSYON",
     "no_collectibles": "Hindi makita ang iyong NFT?",
     "no_available_tokens": "Hindi mo ba nakikita ang iyong token?",
@@ -482,7 +634,8 @@
     "import": "I-import",
     "sort_by": "I-sort ayon sa",
     "filter_by": "I-filter ayon sa",
-    "current_network": "Kasalukuyang Network",
+    "current_network": "Kasalukuyang network",
+    "popular_networks": "Mga sikat na network",
     "all_networks": "Lahat ng Network",
     "declining_balance": "Bumababa ang balanse ({{currency}} high-low)",
     "alphabetically": "Paalpabeto (A-Z)",
@@ -534,7 +687,7 @@
     "logout_to_import_seed": "Kailangan mo munang mag-log out para makapag-import ng Lihim na Parirala sa Pagbawi.",
     "ready_to_explore": "Handa ka na bang simulang i-explore ang mga blockchain application?",
     "unable_to_load": "Hindi ma-load ang balanse",
-    "unable_to_find_conversion_rate": "hindi mahanap ang antas ng palitan",
+    "unable_to_find_conversion_rate": "walang rate ng conversion",
     "display_nft_media_desc": "Para mag-import ng NFT, i-on ang I-display ang NFT media sa Mga Setting > Seguridad at pagkapribado.",
     "display_nft_media_cta": "I-on ang I-display ng NFT media",
     "display_media_nft_warning": "Ang pagpapakita ng media at data ng NFT ay maaaring maglantad sa iyong IP address sa mga sentralisadong server. Mag-import lang ng NFT kung nauunawaan mo ang mga kaugnay na panganib.",
@@ -616,6 +769,19 @@
       "custom_security_tips": "Mga Tip sa Seguridad"
     }
   },
+  "defi_positions": {
+    "loading_positions": "Inilo-load ang mga posisyon sa DeFi...",
+    "no_positions": "Wala pang mga posisyon",
+    "error_cannot_load_page": "Hindi namin ma-load ang page na ito.",
+    "error_visit_again": "Subukang bisitahin muli mamaya.",
+    "single_token": "{{symbol}} lang",
+    "two_tokens": "{{symbol}} +1 pa",
+    "multiple_tokens": "{{symbol}} +{{count}} pa",
+    "supply": "Nasuplayan",
+    "stake": "Naka-stake",
+    "borrow": "Hiniram",
+    "reward": "Mga Reward"
+  },
   "terms_and_conditions": {
     "title": "Mga Tuntunin at Kundisyon",
     "description": "Sa pagpapatuloy, sumasang-ayon ka sa mga ito ",
@@ -636,9 +802,9 @@
     "action_description_1_prefix": "Pribado:",
     "action_description_2_prefix": "Pangkalahatan:",
     "action_description_3_prefix": "Opsyonal:",
-    "action_description_1_description": "ang mga click at view sa app ay nakaimbak, ngunit ang ibang detalye (tulad ng iyong address) ay hindi.",
-    "action_description_2_description": "pansamantala naming ginamit ang iyong IP address upang malaman ang pangkalahatang lokasyon (tulad ng iyong bansa o rehiyon), ngunit hindi ito iniimbak.",
-    "action_description_3_description": "ikaw ang magdedesisyon kung nais mong ibahagi o burahin ang iyong data sa paggamit sa pamamagitan ng mga setting anumang oras.",
+    "action_description_1_description": "Clicks and views on the app are stored, but other details (like your public address) are not.",
+    "action_description_2_description": "We temporarily use your IP address to detect a general location (like your country or region), but it's never stored.",
+    "action_description_3_description": "You decide if you want to share or delete your usage data via settings any time.",
     "cta_no_thanks": "Salamat nalang",
     "cta_i_agree": "Sumasang-ayon ako",
     "fine_print_1_legacy": "Ang data na ito ay pinagsama-sama at dahil dito ay wala nang pagkakilanlan para sa layunin ng General Data Protection Regulation (EU) 2016/679.",
@@ -696,7 +862,8 @@
     "circulating_supply": "Umiikot na supply",
     "all_time_high": "All time high",
     "all_time_low": "All time low",
-    "fully_diluted": "Fully diluted"
+    "fully_diluted": "Fully diluted",
+    "unknown": "Hindi Kilala"
   },
   "collectible": {
     "collectible_address": "Address",
@@ -730,8 +897,10 @@
     "receive": "TUMANGGAP"
   },
   "accounts": {
+    "srp_index": "SRP #{{index}}",
     "snap_account_tag": "Mga Snap (Beta)",
     "create_new_account": "Gumawa ng bagong account",
+    "new_account": "Bagong account",
     "import_account": "Mag-import ng account",
     "connect_hardware": "Ikonekta ang wallet na hardware",
     "imported": "Na-import",
@@ -800,7 +969,11 @@
       "solana_account_name": "Solana Account"
     },
     "error_messages": {
-      "failed_to_create_account": "Failed to create {{clientType}} account"
+      "failed_to_create_account": "Nabigo na gumawa ng {{clientType}} account"
+    },
+    "account_connect_create_initial_account": {
+      "description": "Ang Solana account ay kinakailangan para makakonekta sa site na ito.",
+      "button": "Gumawa ng Solana account"
     }
   },
   "toast": {
@@ -860,8 +1033,6 @@
     "reset_notifications_description": "Ang pag-reset sa mga notipikasyon, ay nangangahulungan na tinatanggal mo ang iyong mga storage key ng mga notipikasyon at inire-reset ang lahat ng iyong kasaysayan ng notipikasyon. Sigurado ka ba na gusto mo itong gawin?",
     "reset_notifications": "I-reset ang mga notipikasyon",
     "reset_notifications_success": "Tinanggal/nilikha muli ang storage key ng mga notipikasyon, at ini-reset ang kasaysayan ng mga notipikasyon.",
-    "enabling_profile_sync": "Pinapagana ang pag-sync ng profile...",
-    "disabling_profile_sync": "Hindi pinapagana ang pag-sync ng profile...",
     "notifications_dismiss_modal": "I-dismiss",
     "select_rpc_url": "Pumili ng RPC URL",
     "title": "Mga Setting",
@@ -909,9 +1080,9 @@
     "clear_browser_cookies_desc": "I-clear ang cookies ng browser",
     "clear": "I-CLEAR",
     "protect_cta": "Protektahan",
-    "protect_title": "Protektahan ang iyong wallet",
+    "protect_title": "Wallet recovery",
     "video_failed": "Nabigong Mag-load ang Video.",
-    "protect_desc": "Protekatahan ang iyong wallet sa pamamagitan ng pag-save ng iyong Lihim na Parirala sa Pagbawi sa isang lugar na tanging ikaw lang ang makaka-access at hindi mo makakalimutan. Tiyakin na itago ito offline para sa lubos na kaligtasan.",
+    "protect_desc": "Back up your Secret Recovery Phrase so you never lose access to your wallet. Be sure to store it in a safe place that only you can access and won’t forget.",
     "protect_desc_no_backup": "Ito ang pariralang may 12 salita ng wallet mo. Magagamit ang pariralang ito para makontrol ang lahat ng iyong account sa kasalukuyan at hinaharap, pati na ang kakayahang magpadala ng mga pondo sa iyong wallet. Panatilihing ligtas ang pagkakatago ng pariralang ito, HUWAG itong ibahagi sa kahit sino. Hindi ka matutulungan ng MetaMask na mabawi ang key na ito.",
     "learn_more": "Matuto pa.",
     "seedphrase_not_backed_up": "Mahalaga! Hindi na-back up ang Lihim na Parirala sa Pagbawi",
@@ -972,7 +1143,7 @@
     "no_permissions_desc": "Kapag ikinonekta mo ang isang account sa isang site o app, makikita mo ito dito.",
     "security_title": "Seguridad at Pagkapribado",
     "back": "Bumalik",
-    "security_desc": "Mga setting ng pagkapribado, MetaMetrics, pribadong key at Lihim na Parirala sa Pagbawi ng wallet",
+    "security_desc": "Privacy settings, MetaMetrics, private key, and Secret Recovery Phrase.",
     "networks_title": "Mga Network",
     "networks_default_title": "Default na Network",
     "network_delete": "Kapag tinanggal mo ang network na ito, kakailanganin mo itong idagdag muli para makita ang mga asset mo sa network na ito",
@@ -985,7 +1156,7 @@
     "network_rpc_url_label": "RPC URL",
     "network_rpc_name_label": "Pangalan ng RPC",
     "network_rpc_placeholder": "Bagong RPC Network",
-    "network_failover_rpc_url_label": "Failover RPC URL",
+    "network_failover_rpc_url_label": "Failover na RPC URL",
     "failover": "Failover",
     "network_chain_id_label": "ID ng Chain",
     "network_chain_id_placeholder": "ID ng Chain",
@@ -1118,7 +1289,9 @@
       "key": "Key",
       "add": "Idagdag",
       "update": "I-update",
-      "cancel": "Kanselahin"
+      "cancel": "Kanselahin",
+      "deposit_provider_logout_button": "Log out of {{depositProviderName}}",
+      "deposit_provider_logged_out": "Logged out of {{depositProviderName}}"
     },
     "request_feature": "Humiling ng feature",
     "contact_support": "Makipag-ugnayan sa suporta",
@@ -1135,7 +1308,7 @@
       "description": "I-overview at pamahalaan ang iyong mga snap",
       "snap_ui": {
         "link": {
-          "accessibilityHint": "Opens in a new tab"
+          "accessibilityHint": "Magbubukas sa bagong tab"
         }
       },
       "snap_settings": {
@@ -1194,7 +1367,13 @@
           "endowment:caveat:transaction-origin": "Tingnan ang mga pinagmulan ng mga website na nagmumungkahi ng mga transaksyon",
           "endowment:extend-runtime": "Pahabain ang runtime",
           "snap_dialog": "Magpakita ng mga custom na dialog",
-          "snap_manageAccounts": "Magdagdag at kontrolin ang mga Ethereum account"
+          "snap_manageAccounts": "Magdagdag at kontrolin ang mga Ethereum account",
+          "endowment:signature-insight": "Ipakita ang lagda ng insights modal",
+          "endowment:protocol": "Magbigay ng protocol data para sa isa o higit pang chain",
+          "snap_getPreferences": "Tingnan ang impormasyon gaya ng gusto mong wika at fiat currency",
+          "endowment:lifecycle-hooks": "Gamitin ang mga lifecycle hook",
+          "endowment:name-lookup": "Magbigay ng domain at mga address lookup",
+          "endowment:page-home": "Ipakita ang custom screen"
         }
       }
     },
@@ -1208,6 +1387,8 @@
     "blockaid_desc": "Ang tampok na ito ay nag-aalerto sa iyo ng masamang aktibidad sa pamamagitan ng aktibong pagsusuri sa mga transaksyon at paghiling ng pirma.",
     "security_alerts": "Mga alerto sa seguridad",
     "security_alerts_desc": "Inaalertuhan ka ng tampok na ito sa mga aktibidad na may masamang hangarin sa pamamagitan ng lokal na pagsusuri sa iyong mga transaksyon at kahilingan sa paglagda. Palaging gumawa ng sarili mong pag-iingat bago aprubahan ang anumang mga kahilingan. Walang garantiya na made-detect ng tampok na ito ang lahat ng aktibidad na may masamang hangarin. Sa pagpapagana sa tampok na ito, sumasang-ayon ka sa mga tuntunin ng paggamit ng provider.",
+    "dismiss_smart_account_update_heading": "Balewalain ang mungkahing \"Ilipat sa Smart Account\"",
+    "dismiss_smart_account_update_desc": "I-on ito para hindi na makita ang mungkahing \"Ilipat sa Smart Account\" sa alinmang account. Ang mga Smart account ay nagbubukas sa mas mabilis na mga transaksyon, nagpapababa sa bayarin sa network at mas flexible sa pagbabayad para sa mga ito.",
     "smart_transactions_opt_in_heading": "Mga Smart Transaction",
     "smart_transactions_opt_in_desc_supported_networks": "I-on ang mga Smart na Transaksyon para sa mas maaasahan at ligtas na mga transaksyon sa mga suportadong network.",
     "smart_transactions_learn_more": "Matuto pa.",
@@ -1351,7 +1532,8 @@
     "password_title": "Password",
     "password_desc": "Pumili ng mahirap hulaang password para ma-unlock ang MetaMask app sa iyong device. Kung makakalimutan mo ang password na ito, kakailanganin mo ang iyong Lihim na Parirala sa Pagbawi para ma-import ulit ang iyong wallet.",
     "password_learn_more": "Matuto pa.",
-    "change_password": "Palitan ang password"
+    "change_password": "Palitan ang password",
+    "password_hint": "Password hint"
   },
   "asset_overview": {
     "send_button": "Magpadala",
@@ -1508,7 +1690,7 @@
     "gas_fee_slow": "MABAGAL",
     "hex_data": "Hex na Data",
     "custom_nonce": "Nonce",
-    "custom_nonce_tooltip": "This is the transaction number of an account. Nonce for the first transaction is 0 and it increases in sequential order.",
+    "custom_nonce_tooltip": "Ito ang numero ng transaksyon ng isang account. Ang nonce para sa unang transaksyon ay 0 at tumataas ito sa sunod-sunod na pagkakaayos.",
     "this_is_an_advanced": "Isa itong advanced na feature na ginagamit para makansela o mapabilis ang anumang nakabinbing transaksyon.",
     "current_suggested_nonce": "Kasalukuyang iminumungkahing nonce:",
     "edit_transaction_nonce": "I-edit ang nonce ng transaksyon",
@@ -1763,6 +1945,8 @@
     "tx_review_staking_claim": "Claim sa Pag-stake",
     "tx_review_staking_deposit": "Deposito sa Pag-stake",
     "tx_review_staking_unstake": "I-unstake",
+    "tx_review_lending_deposit": "Lending Deposit",
+    "tx_review_lending_withdraw": "Lending Withdrawal",
     "sent_ether": "Nagpadala ng Ether",
     "self_sent_ether": "Nagpadala ka sa sarili mo ng Ether",
     "received_ether": "Nakatanggap ng Ether",
@@ -1786,7 +1970,7 @@
     "tx_details_not_available": "Hindi available",
     "smart_contract_interaction": "Interaksyon sa smart na kontrata",
     "swaps_transaction": "Transaksyon sa mga swap",
-    "bridge_transaction": "Bridge",
+    "bridge_transaction": "Mag-bridge",
     "approve": "Aprubahan",
     "increase_allowance": "Dagdag na Allowance",
     "set_approval_for_all": "Itakda ang Pag-apruba Para sa Lahat",
@@ -1829,8 +2013,44 @@
     "sign_description_2": "i-tap ang Kumuha ng Lagda",
     "sign_get_signature": "Kumuha ng Lagda",
     "transaction_id": "ID ng Transaksyon",
+    "network": "Network",
+    "request_from": "Kahilingan mula sa/kay",
     "network_fee": "Bayad sa Network",
-    "network_fee_tooltip": "Halagang binayaran para maproseso ang transaksyon sa network."
+    "network_fee_tooltip": "Halagang binayaran para maproseso ang transaksyon sa network.",
+    "smart_account_upgrade": "I-upgrade sa smart account",
+    "smart_account_downgrade": "Lumipat sa standard account",
+    "batched_transactions": "Mga naka-batch na transaksyon",
+    "gas_modal": {
+      "edit_network_fee": "I-edit ang bayad sa network",
+      "advanced_gas_fee": "Advanced na bayad sa network",
+      "site_suggested": "Iminungkahing site",
+      "advanced": "Advanced",
+      "low": "Mababa",
+      "medium": "Market",
+      "high": "Agresibo",
+      "network_suggested": "Iminungkahing network",
+      "gas_limit": "Limitasyon ng Gas",
+      "save": "I-save",
+      "max_base_fee": "Pinakamataas na Bayad sa Gas",
+      "priority_fee": "Bayad sa Priyoridad",
+      "current_priority_fee": "Kasalukuyan: {{min}} - {{max}} GWEI",
+      "historical_priority_fee": "12 oras: {{min}} - {{max}} GWEI",
+      "estimated_base_fee": "Kasalukuyan: {{value}} GWEI",
+      "historical_base_fee": "12 oras: {{min}} - {{max}} GWEI",
+      "gas_price": "Presyo ng gas",
+      "field_required": "Ang {{field}} ay kinakailangan",
+      "max_base_fee_required": "Ang pinakamataas na base fee ay kinakailangan",
+      "gas_price_required": "Ang presyo ng gas ay kinakailangan",
+      "priority_fee_required": "Ang bayad sa priyoridad ay kinakailangan",
+      "gas_limit_required": "Ang limit ng gas ay kinakailangan",
+      "only_numbers_allowed": "Mga numero lamang ang pinapayagan",
+      "negative_values_not_allowed": "Hindi pinapayagan ang mga negatibong halaga",
+      "max_base_fee_must_be_greater_than_priority_fee": "Ang pinakamataas na batayang babayaran o base fee ay mas malaki kaysa sa bayad sa priyoridad",
+      "gas_limit_too_low": "Ang limitasyon ng gas ay mas malaki sa 21000",
+      "priority_fee_too_high": "Ang bayad sa priyoridad ay mas mababa sa pinakamataas na batayang bayad o base fee",
+      "no_zero_value": "Ang {{field}} ay dapat na mas malaki kaysa sa 0",
+      "speed": "Bilis"
+    }
   },
   "smart_transactions": {
     "status_submitting_header": "Isinusumite ang iyong transaksyon",
@@ -1981,6 +2201,9 @@
     "permitted_networks_info_sheet_description": "Isa itong listahan ng mga network na binigyan mo ng mga pahintulot na gamitin sa site na ito. Pumili ng isa mula sa listahan o i-edit ang mga pahintulot sa network para sa site na ito.",
     "connect_an_account": "Magkonekta ng account"
   },
+  "account_dapp_connections": {
+    "account_summary_header": "Ikonekta ang website na ito sa MetaMask"
+  },
   "select": {
     "cancel": "Kanselahin",
     "done": "Tapos na"
@@ -2112,7 +2335,7 @@
     "info_text_2": "Matitiyak nitong ikaw lang ang makaka-access sa iyong mga pondo at na mare-recover mo ang iyong wallet kung maiwawala mo ang iyong device",
     "cta_text": "Gumawa ng Password",
     "creating_password": "Gumagawa ng password...",
-    "srp_list_selection": "Select Secret Recovery Phrase"
+    "srp_list_selection": "Pumili ng Secret Recovery Phrase"
   },
   "account_backup_step_1": {
     "remind_me_later": "Paalalahanan ako mamaya",
@@ -2122,16 +2345,21 @@
     "info_text_1_2": "Lihim na Parirala sa Pagbawi",
     "info_text_1_3": "sa isang mapagkakatiwalaan mong lugar.",
     "info_text_1_4": "Ito lang ang paraan para ma-recover ang iyong wallet sakaling ma-lock out ka sa app o makakuha ka ng bagong device.",
-    "cta_text": "Simulan",
+    "cta_text": "Get started",
     "cta_subText": "Lubos na inirerekomenda",
     "skip_button_cancel": "I-secure na",
     "skip_button_confirm": "Laktawan",
     "skip_title": "Laktawan ang seguridad ng account?",
-    "skip_check": "Nauunawaan ko na kung maiwawala ko ang aking Lihim na Parirala sa Pagbawi, hindi ko maa-access ang wallet ko.",
-    "what_is_seedphrase_title": "Ano ang 'Lihim na Parirala sa Pagbawi'",
-    "what_is_seedphrase_text_1": "Ang Lihim na Parirala sa Pagbawi ay isang set ng labindalawang salita na naglalaman ng lahat ng impormasyon tungkol sa iyong wallet, kasama ang iyong mga pondo. Para itong lihim na code na ginagamit para ma-access ang iyong buong wallet.",
+    "skip_check": "If you lose this Secret Recovery Phrase, you won’t be able to access this wallet.",
+    "what_is_seedphrase_title": "What’s a Secret Recovery Phrase?",
+    "what_is_seedphrase_text_1": "A Secret Recovery Phrase, also called a seed phrase or mnemonic, is a set of words that lets you access and control your crypto wallet. To move your wallet to MetaMask, you need this phrase.",
     "what_is_seedphrase_text_2": "Dapat mong panatilihing lihim at ligtas ang iyong Lihim na Parirala sa Pagbawi. Kung may makakakuha ng iyong Lihim na Parirala sa Pagbawi, makokontrol nila ang iyong mga account.",
-    "what_is_seedphrase_text_3": "I-save ito sa isang lugar na ikaw lang ang makaka-access. Kung maiwawala mo ito, hindi ka matutulungan ng MetaMask na ma-recover ito."
+    "what_is_seedphrase_text_3": "I-save ito sa isang lugar na ikaw lang ang makaka-access. Kung maiwawala mo ito, hindi ka matutulungan ng MetaMask na ma-recover ito.",
+    "what_is_seedphrase_text_4": "Anyone with your Secret Recovery Phrase can:",
+    "seedPhrase_point_1": "Take all your money",
+    "seedPhrase_point_2": "Confirm transactions",
+    "seedPhrase_point_3": "Change your login information",
+    "what_is_seedphrase_confirm": "Got it"
   },
   "account_backup_step_1B": {
     "title": "I-secure ang iyong wallet",
@@ -2222,25 +2450,40 @@
     "progressThree": "Kumpirmahin ang Lihim na Parirala sa Pagbawi"
   },
   "manual_backup_step_1": {
-    "action": "Isulat ang iyong Lihim na Parirala sa Pagbawi",
-    "info": "Ito ang iyong Lihim na Parirala sa Pagbawi. Isulat ito sa papel at itabi sa ligtas na lugar. Hihilingin sa iyong ilagay ulit ang pariralang ito (nang magkakasunod) sa susunod na hakbang.",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Save your Secret Recovery Phrase",
+    "info-1": "This is your",
+    "info-2": "Secret Recovery Phrase",
+    "info-3": "Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.",
+    "info-4": "Don’t share it with anyone, ever.",
     "continue": "Magpatuloy",
-    "reveal": "I-tap para ibunyag ang iyong Lihim na Parirala sa Pagbawi",
+    "reveal": "Tap to reveal",
     "watching": "Tiyaking walang ibang taong nakakakita sa iyong screen.",
     "view": "Tingnan",
     "confirm_password": "Kumpirmahin ang iyong password",
     "before_continiuing": "Bago magpatuloy, kailangan mong kumpirmahin ang iyong password",
-    "confirm": "KUMPIRMAHIN",
+    "enter_current_password": "Enter your current password",
+    "confirm": "Confirm",
     "got_it": "Nakuha ko",
-    "learn_more": "Matuto pa"
+    "learn_more": "Matuto pa",
+    "password": "Password"
   },
   "manual_backup_step_2": {
-    "action": "Kumpirmahin ang Lihim na Parirala sa Pagbawi",
-    "info": "Piliin ang bawat salita ayon sa pagkakasunud-sunod noong ipinakita sa iyo.",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Confirm your Secret Recovery Phrase",
+    "info": "Select the missing words in the correct order.",
     "complete": "Kumpletuhin ang Pag-back up",
-    "success": "Matagumpay mong naprotektahan ang iyong wallet. Tiyaking panatilihing ligtas ang iyong Lihim na Recovery Phrase, responsibilidad mo ito!"
+    "success": "Matagumpay mong naprotektahan ang iyong wallet. Tiyaking panatilihing ligtas ang iyong Lihim na Recovery Phrase, responsibilidad mo ito!",
+    "error-title": "Not quite right",
+    "error-description": "Double-check your Secret Recovery Phrase and try again.",
+    "success-title": "Perfect!",
+    "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
+    "success-button": "Got it",
+    "error-button": "Try again",
+    "continue": "Continue"
   },
   "manual_backup_step_3": {
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
     "congratulations": "Pagbati",
     "success": "Matagumpay mong naprotektahan ang iyong wallet. Tiyaking panatilihing ligtas ang iyong Lihim na Parirala sa Pagbawi, responsibilidad mo ito!",
     "hint": "Mag-iwan ng hint para sa sarili mo?",
@@ -2753,7 +2996,7 @@
     "minimum": "Ang pinakamababang deposito ay",
     "maximum": "Ang pinakamataas na deposito ay",
     "insufficient_balance": "Ang halagang ito ay mas mataas sa iyong balanse",
-    "insufficient_native_balance": "You don't have enough {{currency}} to cover the gas fees.",
+    "insufficient_native_balance": "Wala kang sapat na {{currency}} para takpan ang mga bayad sa gas.",
     "enter_larger_amount": "Maglagay ng mas malaking halaga para magpatuloy",
     "enter_smaller_amount": "Maglagay ng mas maliit na halaga para magpatuloy",
     "enter_lower_gas_fees": "Maglagay ng mas mababang halaga para bayaran ang gas fees",
@@ -2858,10 +3101,11 @@
       "sale_pending_title": "Pinoproseso ang pagbenta ng {{currency}}",
       "sale_pending_description": "Pinoproseso na ang iyong order.",
       "no_date": "Hindi Alam"
-    }
+    },
+    "deposit_order_title": "{{currency}} Deposit"
   },
   "swaps": {
-    "title": "Swap",
+    "title": "Mag-swap",
     "onboarding": {
       "get_the": "Makuha ang",
       "best_price": "pinakasulit na presyo",
@@ -3294,15 +3538,6 @@
     "enable_remember_me": "I-on ang Tandaan ako",
     "enable_remember_me_description": "Kapag naka-on ang tandaan ako, sinumang may access sa iyong telepono ay makaka-access sa iyong MetaMask account."
   },
-  "profile_sync": {
-    "title": "Pag-sync ng Profile",
-    "disable_warning": "Kapag in-off mo ang pag-sync ng profile, hindi ka makakatanggap ng mga notipikasyon.",
-    "enable_description": "Lilikha ng profile na gagamitin ng MetaMask upang i-sync ang ilang mga setting sa iyong mga device. Kailangan ito para makakuha ng mga notipikasyon. ",
-    "enable_description2": " upang matuto pa.",
-    "enable_privacy_link": "Matutunan kung paano namin protektahan ang iyong pagkapribado",
-    "bottomSheetTurnOn": "I-on ang Profile Sync",
-    "bottomSheetTurnOff": "I-off ang Profile Sync"
-  },
   "turn_off_remember_me": {
     "title": "Ilagay ang iyong password para i-off ang Tandaan ako",
     "placeholder": "Password",
@@ -3321,16 +3556,16 @@
     "description": "Ang awtomatikong pagtingin ng mga update ay maaaring ilantad ang iyong IP address sa mga GitHub server. Ipinapahiwatig lang nito na ginagamit ng iyong IP address ang MetaMask. Walang ibang impormasyon o address ng account ang nakalantad."
   },
   "terms_of_use_modal": {
-    "title": "Repasuhin ang aming pinakabagong Tuntunin ng Paggamit",
+    "title": "Repasuhin ang aming Mga Tuntunin ng Paggamit",
     "terms_of_use_check_description": "Sumasang-ayon ako sa Mga Tuntunin ng Paggamit, na nalalapat sa aking paggamit ng MetaMask at sa lahat ng mga tampok nito",
     "accept_cta": "Tanggapin",
-    "accept_helper_description": "Mangyaring mag-scroll upang basahin ang lahat ng mga seksyon"
+    "accept_helper_description": "Mangyaring mag-scroll upang basahin ang lahat ng mga seksyon",
+    "agree_cta": "Sumasang-ayon"
   },
   "update_needed": {
-    "title": "Kailangan ng mga update",
-    "description": "Pinataas namin ang seguridad para sa iyong wallet! Mangyaring maglaan ng ilang sandali upang protektahan ang iyong sarili at mag-update sa pinakabagong bersyon.",
-    "primary_action": "I-update sa pinakabagong bersyon",
-    "secondary_action": "Paalalahanan ako mamaya"
+    "title": "Magkaroon ng mga pinakabagong feature",
+    "description": "Ginawa naming mas ligtas at mas madaling gamitin, at dinagdagan ng ilang bagong feature ang wallet mo. I-update ngayon para manatiling protektado at magamit ang mga pinakabagong pagpapahusay.",
+    "primary_action": "I-update sa pinakabagong bersyon"
   },
   "enable_automatic_security_check_modal": {
     "title": "Awtomatikong suriin para sa mga update sa seguridad?",
@@ -3505,6 +3740,7 @@
     "connect_hardware_wallet": "Magkonekta ng account",
     "import_wallet_or_account": "Mag-import ng wallet o account",
     "add_account": "Gumawa ng bagong account",
+    "add_multichain_account": "Gumawa ng bagong {{networkName}} account",
     "create_an_account": "Gumawa ng bagong account",
     "add_new_account": "Ethereum account",
     "import_srp": "Lihim na Parirala sa Pagbawi",
@@ -3512,7 +3748,12 @@
     "import_account": "Pribadong key",
     "add_bitcoin_account_testnet": "Bitcoin testnet account",
     "add_bitcoin_account_mainnet": "Bitcoin account",
-    "add_solana_account": "Solana account"
+    "add_solana_account": "Solana account",
+    "switch_to_smart_account": "Lumipat sa Smart account",
+    "headers": {
+      "bitcoin": "Bitcoin",
+      "solana": "Solana"
+    }
   },
   "show_nft": {
     "show_nft_title": "Ipakita ang NFT",
@@ -3535,13 +3776,14 @@
     "title": "Solana sa MetaMask",
     "create_solana_account": "Gumawa ng Solana account",
     "not_now": "Hindi sa ngayon",
-    "got_it": "Nakuha ko",
+    "view_solana_account": "Tingnan ang Solana account",
     "feature_1_title": "Magpadala, tumanggap, at mag-swap ng mga token",
     "feature_1_description": "Maglipat at gumamit ng token gaya ng SOL, USDC, at marami pang iba sa mga transaksyon.",
     "feature_2_title": "Mag-import ng mga Solana account",
     "feature_2_description": "Mag-import ng Lihim na Parirala sa Pagbawi para i-migrate ang iyong Solana account mula sa ibang wallet.",
     "feature_3_title": "Marami pang parating na feature",
-    "feature_3_description": "Parating na ang mga Solana dapp, NFT, suporta sa hardware wallet, at marami pang iba."
+    "feature_3_description": "Parating na ang mga Solana dapp, NFT, suporta sa hardware wallet, at marami pang iba.",
+    "learn_more": "Matuto pa tungkol sa mga Solana account"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS gateway",
@@ -3572,9 +3814,80 @@
   "earn": {
     "empty_state_cta": {
       "heading": "Magpahiram ng {{tokenSymbol}} at kumita ng",
-      "body_prefix": "Maaari kang kumita ng hanggang",
-      "body_suffix": "kada taon sa pagpapahiram ng iyong {{tokenSymbol}}.",
-      "start_earning": "Magsimulang kumita"
+      "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
+      "annually": "annually.",
+      "learn_more": "Learn more.",
+      "earn": "Earn"
+    },
+    "service_interruption_banner": {
+      "maintenance_message": "Naka-down kami dahil sa maintenance. Magbabalik kami online sa lalong madaling panahon!"
+    },
+    "deposit": "Magdeposito",
+    "approve": "Aprubahan",
+    "approval": "Pag-apruba",
+    "confirm": "Kumpirmahin",
+    "cancel": "Kanselahin",
+    "transaction_submitted": "Naisumite ang Transaksyon",
+    "every_minute": "Kada minuto",
+    "immediate": "Agad",
+    "apr": "APR",
+    "protocol": "Protocol",
+    "receive_tooltip": "tumanggap ng tooltip",
+    "button": "button",
+    "receive": "Tumanggap",
+    "tooltip_content": {
+      "apr": {
+        "part_one": "Inaasahang taunang pagtaas ng halaga ng deposito mo, batay sa rate ng reward sa nakalipas na linggo.",
+        "part_two": "Tandaan: Nagbabago ang APR sa paglipas ng panahon."
+      },
+      "protocol": "Ang protocol ng pagpapautang ay isang smart contract na nagpapahintulot sa iyo na magpautang ng mga token para kumita ng mga reward. Pinahihintulutan din nito ang mga user na umutang ng mga token sa pamamagitan ng paglalagay ng ibang mga token bilang collateral, sa bayarin na ibinabayad sa mga nagpapautang.",
+      "reward_frequency": "Dalas kung kailan binibilang ang mga reward mo.",
+      "withdrawal_time": "Ang oras na itinatagal para ma-withdraw ang token mo mula sa protocol at maibalik ito sa iyong wallet",
+      "receive": "Ginagamit ang token na ito para subaybayan ang mga asset at reward mo. Huwag ilipat o i-trade ang mga ito, o hindi mo mawi-withdraw ang mga asset mo.",
+      "health_factor": {
+        "your_health_factor_measures_liquidation_risk": "Your Health Factor measures liquidation risk",
+        "above_two_dot_zero": "Above 2.0",
+        "safe_position": "Safe position",
+        "between_one_dot_five_and_2_dot_zero": "Between 1.5-2.0",
+        "medium_liquidation_risk": "Medium Liquidation risk",
+        "below_one_dot_five": "Below 1.5",
+        "higher_liquidation_risk": "Higher liquidation risk"
+      },
+      "lending_risk_aware_withdrawal_tooltip": {
+        "why_cant_i_withdraw_full_balance": "Why can't I withdraw my full balance?",
+        "your_withdrawal_amount_may_be_limited_by": "Your withdrawal amount may be limited by",
+        "pool_liquidity": "Pool Liquidity",
+        "not_enough_funds_available_in_the_lending_pool_right_now": "Not enough funds available in the lending pool right now.",
+        "existing_borrow_positions": "Existing Borrow Positions",
+        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "Withdrawing could put your existing loan positions at risk of liquidation."
+      }
+    },
+    "withdraw": "I-withdraw",
+    "deposit_more": "Magdeposito pa",
+    "earning": "Earning",
+    "withdrawal_time": "Withdrawal time",
+    "withdrawing_to": "Withdrawing to",
+    "network": "Network",
+    "health_factor": "Health factor",
+    "liquidation_risk": "Liquidation risk",
+    "insufficient_pool_liquidity": "Insufficient Pool Liquidity",
+    "available_to_withdraw": "available to withdraw",
+    "unknown": "unknown",
+    "how_it_works": "How it works",
+    "market_historic_apr_modal": {
+      "earn_rewards_on_your_token": "Earn rewards on your {{tokenSymbol}}",
+      "lend_and_earn_daily_rewards": "Lend your {{tokenSymbol}} with {{protocol}} and earn daily rewards. Rewards grow over time and APR varies.",
+      "withdraw_whenever_you_want": "Withdraw whenever you want",
+      "get_asset_back_in_your_wallet_instantly": "Get {{tokenSymbol}} back in your wallet instantly."
+    },
+    "amount_exceeds_safe_withdrawal_limit": "Amount exceeds safe withdrawal limit",
+    "view_earnings_history": {
+      "lending": "View position history",
+      "staking": "View earnings history"
+    },
+    "earnings_history_list_title": {
+      "lending": "Position history",
+      "staking": "Payout history"
     }
   },
   "stake": {
@@ -3676,13 +3989,11 @@
     "proceed_anyway": "Magpatuloy pa rin",
     "gas_cost_impact": "Epekto ng gastos sa gas",
     "select_a_token": "Pumili ng token",
-    "you_could_earn": "Maaari kang kumita",
+    "you_could_earn_up_to": "You could earn up to",
     "per_year_on_your_tokens": "kada taon sa iyong mga token",
     "deposit": "Magdeposito",
     "gas_cost_impact_warning": "Babala: aabot sa higit sa {{percentOverDeposit}}% ng deposito mo ang bayad sa gas ng transaksyon.",
-    "view_earnings_history": "Tingnan ang talaan ng mga kinita",
     "earnings_history_title": "{{ticker}} ang kinita",
-    "earnings_history_list_title": "Talaan ng payout",
     "apr": "ABR",
     "interactive_chart": {
       "timespan_buttons": {
@@ -3709,12 +4020,17 @@
     "basic_functionality": "Batayang kapakinabangan",
     "manage_networks": "Piliin ang iyong network",
     "manage_networks_body": "Gumagamit kami ng Infura bilang aming provider ng remote procedure call (RPC) para mag-alok ng pinakamaaasahan at pribadong access sa Ethereum data na aming makakaya. Maaari kang pumili ng iyong sariling RPC, ngunit tandaan na ang anumang RPC ay makakatanggap ng iyong IP address at Ethereum wallet upang gumawa ng mga transaksyon. Basahin ang aming ",
-    "manage_networks_body2": " para matuto pa tungkol sa kung paano pinangangasiwaan ng Infura ang data.",
+    "manage_networks_body2": " para matuto pa tungkol sa kung paano pinapangasiwaan ng Infura ang data para sa mga EVM account, para sa mga Solana account ",
+    "manage_networks_body3": "mag-click dito.",
     "functionality_body": "Nag-aalok ang MetaMask ng mga batayang tampok tulad ng mga detalye ng token at mga setting ng gas sa pamamagitan ng serbisyo sa internet. Kapag gumamit ka ng serbisyo sa internet, ibabahagi ang iyong IP address, sa kasong ito sa MetaMask. Tulad ito ng pagbisita mo sa anumang website. Ang MetaMask ay pansamantalang ginagamit ang datos na ito at hindi ibebenta ang iyong datos. Maaari kang gumamit ng VPN o i-off ang mga serbisyon ito, ngunit maaari itong makaapekto sa iyong karanasan sa MetaMask. Basahin ang aming ",
     "functionality_body2": " upang matuto pa.",
     "sheet": {
       "title_off": "I-off ang batayang kapakinabangan",
       "description_off": "Ibig sabihin nito hindi mo lubos na mao-optimize ang iyong oras sa MetaMask. Ang mga batayang tampok (tulad ng mga detalye ng token, optimal na settings ng gas, at iba pa) ay hindi magiging available para sa iyo.",
+      "description_off2": "Kapag in-off ito, madi-disable ang lahat ng feature sa loob ng",
+      "description_off2_related_features1": "seguridad at pagkapribado, backup at sync",
+      "description_off2_related_features1_and": "at",
+      "description_off2_related_features2": "mga notipikasyon.",
       "title_on": "I-on ang batayang kapakinabangan",
       "description_on": "Para ma-optimize ang iyong oras sa MetaMask, kailangan mong i-on ang feature na ito. Ang mga basic na function (tulad ng mga detalye ng token, optimal na mga setting ng gas, mga notification at iba pa) ay mahalaga sa karanasan sa web3.",
       "checkbox_label": "Nauunawaan ko at nais kong magpatuloy",
@@ -3737,7 +4053,7 @@
     "failed": "Mayroong error sa pag-load ng iyong pagtataya.",
     "fiat_not_available": "Hindi Available",
     "incoming_heading": "Nakatanggap ka ng",
-    "no_balance_changes": "Walang pagbabagong nahulaan para sa iyong wallet",
+    "no_balance_changes": "Walang mga pagbabago",
     "outgoing_heading": "Nagpadala ka ng",
     "reverted": "Ang transaksyon na ito ay malamang na mabigo",
     "title": "Tinatayang mga pagbabago",
@@ -3796,7 +4112,9 @@
       "primary_type": "Pangunahing uri",
       "request_from": "Kahilingan mula sa/kay",
       "signing_in_with": "Nagsa-sign in gamit ang",
-      "spender": "Gumagastos"
+      "spender": "Gumagastos",
+      "now": "Ngayon",
+      "switching_to": "Lumilipat Sa"
     },
     "title": {
       "signature": "Kahilingan sa paglagda",
@@ -3804,25 +4122,33 @@
       "permit_revoke": "Alisin ang pahintulot",
       "permit_NFTs": "Kahilingang mag-withdraw",
       "signature_siwe": "Kahilingan sa pag-sign in",
-      "contract_interaction": "Transaction request"
+      "contract_interaction": "Kahilingan sa transaksyon",
+      "transfer": "Kahilingan sa paglilipat",
+      "switch_account_type": "Pag-update ng account",
+      "approve": "Approve request"
     },
     "sub_title": {
       "permit": "Kailangan ng site na ito ng pahintulot para gastusin ang mga token mo.",
       "permit_NFTs": "Kailangan ng site na ito ng pahintulot para i-withdraw ang mga NFT mo.",
       "signature": "Suriin ang mga detalye ng kahilingan bago mo kumpirmahin.",
       "signature_siwe": "Hinihiling ng site na mag-sign in ka para patunayan na ikaw ang may-ari ng account na ito.",
-      "contract_interaction": "Review request details before you confirm."
+      "contract_interaction": "Suriin ang mga detalye ng kahilingan bago mo kumpirmahin.",
+      "switch_to_smart_account": "Lilipat ka sa isang smart account.",
+      "switch_to_standard_account": "Babalik ka sa isang standard account (EOA)."
     },
     "request_from": "Kahilingan mula sa/kay",
     "staking_from": "Pag-stake mula sa/kay",
     "signing_in_with": "Nagsa-sign in gamit ang",
     "message": "Mensahe",
     "personal_sign_tooltip": "Hinihingi ng site na ito ang iyong pirma",
-    "transaction_tooltip": "This site is asking for your transaction",
+    "transaction_tooltip": "Hinihingi ng site na ito ang iyong transaksyon",
     "details": "Mga detalye",
     "qr_get_sign": "Kumuha ng Lagda",
     "qr_scan_text": "I-scan gamit ang iyong wallet na hardware",
     "sign_with_ledger": "Pumirma gamit ang Ledger",
+    "smart_account": "Smart Account",
+    "smart_contract": "Smart contract",
+    "standard_account": "Standard Account",
     "siwe_message": {
       "url": "URL",
       "network": "Network",
@@ -3835,8 +4161,12 @@
       "resources": "Mga Mapagkukunan"
     },
     "simulation": {
+      "cancel": "Kanselahin",
       "decoded_tooltip_bid_nft": "Makikita ang NFT sa wallet mo, kapag tinanggap ang bid.",
       "decoded_tooltip_list_nft": "Asahan lang ang mga pagbabago kapag may bumili sa mga NFT mo.",
+      "edit_approval_limit_description": "Ilagay ang halagang komportable kang gastusin sa ngalan mo.",
+      "edit_approval_limit_title": "I-edit ang limit ng pag-apruba",
+      "edit_value_balance_info": "Balanse ng account:",
       "info_permit": "Binibigyan mo ng pahintulot ang gumagastos na gastusin ang ganito karaming token mula sa account mo.",
       "info_revoke": "Inaalis mo ang pahintulot ng ibang tao na gastusin ang mga token mula sa iyong account.",
       "label_change_type_bidding": "Nag-bid ka ng",
@@ -3847,16 +4177,43 @@
       "label_change_type_receive": "Nakatanggap ka ng",
       "label_change_type_revoke": "Ipawalang-bisa",
       "label_change_type_transfer": "Nagpadala ka ng",
+      "label_change_type_approve": "Inaaprubahan mo",
       "personal_sign_info": "Nagsa-sign in ka sa isang site at walang inaasahang pagbabago sa iyong account.",
+      "save": "I-save",
       "title": "Tinantyang mga pagbabago",
       "tooltip": "Ang tinantyang mga pagbabago ay ang maaaring mangyari kung magpapatuloy ka sa transaksyon ito. Ito ay isang hula lamang, hindi isang garantiya.",
       "unavailable": "Hindi available"
     },
+    "7702_functionality": {
+      "smartAccountLabel": "Smart Account",
+      "standardAccountLabel": "Standard Account",
+      "switch": "Lumipat",
+      "splashpage": {
+        "accept": "Oo",
+        "betterTransaction": "Mas mabibilis na transaksyon, mas mabababang bayarin",
+        "betterTransactionDescription": "Makatipid sa oras at pera sa pamamagitan ng pagpoproseso ng mga transaksyon nang sabay-sabay.",
+        "featuresDescription": "Hindi mapapalitan ang account address mo, at maaari kang bumalik sa dati anumang oras.",
+        "payToken": "Magbayad gamit ang kahit anong token, anumang oras",
+        "payTokenDescription": "Gamitin ang mga token na mayroon ka na para bayaran ang mga bayad sa network.",
+        "reject": "Hindi",
+        "requestFor": "Humiling ng",
+        "sameAccount": "Parehong account, mas smart na mga feature.",
+        "splashTitle": "Gumamit ng smart account?",
+        "upgradeBannerDescription": "Parehong address. Mas smart na mga feature.",
+        "upgradeBannerTitle": "Lumipat sa smart account"
+      },
+      "includes_transaction": "Kasama ang {{transactionCount}} (na) transaksyon"
+    },
     "unlimited": "Walang limitasyon",
+    "all": "Lahat",
     "none": "Wala",
-    "advanced_details": "Advanced details",
-    "interacting_with": "Interacting with",
-    "review": "Review"
+    "advanced_details": "Advanced na mga detalye",
+    "interacting_with": "Nakikipag-ugnayan sa",
+    "data": "Data",
+    "review": "Suriin",
+    "transferRequest": "Kahilingan sa paglilipat",
+    "nested_transaction_heading": "Transaksyon {{index}}",
+    "transaction": "Transaction"
   },
   "change_in_simulation_modal": {
     "title": "Nagbago ang mga resulta",
@@ -3877,6 +4234,8 @@
   },
   "bridge": {
     "continue": "Magpatuloy",
+    "confirm_bridge": "Kumpirmahin ang Bridge",
+    "confirm_swap": "Kumpirmahin ang Pag-swap",
     "terms_and_conditions": "Mga Tuntunin at Kundisyon",
     "select_token": "Pumili ng token",
     "select_network": "Pumili ng network",
@@ -3898,33 +4257,152 @@
     "quote_info_content": "Nag-aalok ang quote na ito ng pinakamainam na return mula sa aming paghahanap. Nakabatay ito sa rate ng pag-swap, kabilang ang mga bayad sa pag-bridge at 0.875% na bayad sa MetaMask, ngunit hindi ito mga bayad sa gas. Iba-iba ang mga bayad sa gas depende sa aktibidad ng network at pagiging kumplikado ng transaksyon.",
     "quote_info_title": "Bakit namin inirerekomenda ang quote na ito",
     "see_other_quotes": "Tingnan ang ibang mga quote",
-    "receive_at": "Receive at",
-    "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
-    "insufficient_funds": "Insufficient funds",
-    "select_amount": "Select amount",
-    "bridge_to": "Bridge to",
-    "title": "Bridge",
-    "submitting_transaction": "Submitting",
-    "fetching_quote": "Fetching quote"
+    "receive_at": "Natanggap sa",
+    "error_banner_description": "Hindi available ang ruta ng trade na ito sa ngayon. Subukang baguhin ang halaga, network, o token at hahanapin namin ang pinakamainam na solusyon.",
+    "insufficient_funds": "Hindi sapat ang pondo",
+    "select_amount": "Pumili ng halaga",
+    "bridge_to": "I-bridge sa",
+    "title": "Mag-bridge",
+    "submitting_transaction": "Isinusumite",
+    "fetching_quote": "Kumukuha ng quote",
+    "fee_disclaimer": "Includes 0.875% MM fee",
+    "hardware_wallet_not_supported": "Hindi pa sinusuportahan ang mga wallet na hardware. Gumamit ng hot wallet para magpatuloy.",
+    "hardware_wallet_not_supported_solana": "Hindi pa sinusuportahan ang mga wallet na hardware sa Solana. Gumamit ng hot wallet para magpatuloy."
   },
   "quote_expired_modal": {
-    "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
-    "get_new_quote": "Get new quote"
+    "title": "Available ang mga bagong quote",
+    "description": "Nag-a-update ang mga rate tuwing {{refreshRate}} (na) segundo, kaya mag-tap para Kumuha ng bagong quote kapag handa ka na.",
+    "get_new_quote": "Kumuha ng bagong quote"
   },
   "bridge_transaction_details": {
-    "status": "Status",
-    "date": "Date",
-    "total_gas_fee": "Total gas fee",
-    "estimated_completion": "Est. completion",
-    "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
-    "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
-    "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
-    "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
-    "view_on_block_explorer": "View on Block Explorer",
-    "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
-    "transaction_details": "Transaction Details",
-    "bridge_to_chain": "Bridge to {{chainName}}",
-    "recipient": "Recipient"
+    "status": "Katayuan",
+    "date": "Petsa",
+    "total_gas_fee": "Kabuuang bayad sa gas",
+    "estimated_completion": "Tinatayang Pagkumpleto",
+    "bridge_step_action_bridge_complete": "Ang {{destSymbol}} ay natanggap sa {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Tinatanggap ang {{destSymbol}} sa {{destChainName}}",
+    "bridge_step_action_swap_complete": "Nag-swap ng {{srcSymbol}} para sa {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Nagsu-swap ng {{srcSymbol}} para sa {{destSymbol}}",
+    "view_on_block_explorer": "Tingnan sa Block Explorer",
+    "block_explorer_description": "Ang transaksyon na ito ay naka-live sa dalawang network. Ipinapakita ng unang link ang pinagmulan; ipinapakita ng pangalawa ang pupuntahan sa sandaling makumpirma ito.",
+    "transaction_details": "Mga Detalye ng Transaksyon",
+    "bridge_to_chain": "I-bridge sa {{chainName}}",
+    "recipient": "Tatanggap"
+  },
+  "backupAndSync": {
+    "title": "I-backup at i-sync",
+    "description": "I-back up ang mga account at i-sync ang mga setting.",
+    "enabling": "I-enable ang backup at sync",
+    "disabling": "I-disable ang backup at sync",
+    "enable": {
+      "title": "I-on ang backup at sync",
+      "confirmation": "Kapag in-on mo ang backup at sync, mao-on din ang basic functionality. Gusto mo bang magpatuloy?",
+      "description": "Sa backup at sync, makakapagtago ka ng na-encrypt na data para sa mga custom na setting at feature mo. Pinapanatili nitong pareho ang karanasan mo sa MetaMask sa lahat ng device at ibinabalik ang mga setting at feature kung kailangan mong i-install muli ang MetaMask. Hindi nito naiba-back up ang iyong Secret Secovery Phrase.",
+      "updatePreferences": "Puwede mong i-update ang mga kagustuhan mo anumang oras sa",
+      "settingsPath": "Mga Setting > I-backup at i-sync."
+    },
+    "privacyLink": "Matutunan kung paano namin protektahan ang iyong privacy",
+    "features": {
+      "accounts": "Mga Account",
+      "contacts": "Contacts"
+    },
+    "manageWhatYouSync": {
+      "title": "Pamahalaan ang na-sync mo",
+      "description": "I-on ang na-sync mo sa mga device mo."
+    }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "Pumili ng asset"
+    },
+    "hideSentitiveInfo": {
+      "message": "Itago ang sensitibong impormasyon"
+    },
+    "doNotShare": {
+      "message": "Huwag itong ibahagi kahit kanino"
+    },
+    "revealSensitiveContent": {
+      "message": "Ipakita ang sensitibong nilalaman"
+    },
+    "show_more": "iba pa",
+    "show_less": "mas kaunti"
+  },
+  "multichain_accounts": {
+    "account_details": {
+      "header_title": "Mga Detalye ng Account",
+      "account_name": "Pangalan ng Account",
+      "account_address": "Address ng Account",
+      "wallet": "Wallet",
+      "private_key": "Pribadong key"
+    },
+    "accounts_list": {
+      "details": "Details"
+    },
+    "smart_account": {
+      "title": "Paganahin ang Smart Account",
+      "description": "You can enable smart account features on supported networks.",
+      "learn_more": "Matuto pa"
+    },
+    "edit_account_name": {
+      "title": "I-edit ang Pangalan ng Account",
+      "name": "Pangalan",
+      "save_button": "I-save",
+      "error_duplicate_name": "May ganito nang pangalan ng account"
+    },
+    "delete_account": {
+      "title": "Tanggalin ang Account",
+      "warning_title": "Ang account na ito ay aalisin mula sa MetaMask.",
+      "warning_description": "Tiyaking mayroon kang Lihim na Parirala sa Pagbawi (Secret Recovery Phrase) o pribadong key para sa account na ito bago alisin.",
+      "remove_button": "Alisin",
+      "cancel_button": "Kanselahin",
+      "error": "Bigong tanggalin ang account"
+    },
+    "share_address": {
+      "title": "Ibahagi ang Address",
+      "copy_address": "Kopyahin ang address",
+      "view_on_explorer_button": "Tingnan sa {{explorer}}",
+      "view_on_block_explorer": "Tingnan sa Block Explorer"
+    },
+    "export_credentials": {
+      "export_private_key": "Pribadong key",
+      "private_key_warning_title": "Huwag kailanman sabihin sa iba ang key na ito.",
+      "private_key_warning_description": "Maaaring manakaw ng sinumang may pribado mong key ang mga asset na nasa account mo.",
+      "credential_as_text": "Text",
+      "credential_as_qr": "QR code",
+      "export_mnemonic": "Mag-export ng mnemonic",
+      "backup": "Backup"
+    },
+    "reveal_private_key": {
+      "title": "Ipakita ang pribadong key",
+      "banner_title": "Huwag kailanman sabihin sa iba ang key na ito.",
+      "banner_description": "Maaaring manakaw ng sinumang may pribado mong key ang mga asset na nasa account mo.",
+      "enter_password": "Ilagay ang iyong password",
+      "password_placeholder": "Password",
+      "next": "Susunod",
+      "copy": "Kopyahin"
+    },
+    "reveal_srp": {
+      "header": "Pagsusulit sa seguridad",
+      "description": "Upang ibunyag ang iyong Lihim na Parirala sa Pagbawi, kailangan mong sagutin nang tama ang dalawang tanong",
+      "get_started": "Magsimula",
+      "learn_more": "Matuto pa"
+    }
+  },
+  "deep_link_modal": {
+    "private_link": {
+      "title": "Redirecting you to MetaMask",
+      "description": "You'll open {{pageTitle}} if you continue.",
+      "checkbox_label": "Don't remind me again"
+    },
+    "public_link": {
+      "title": "Proceed with caution",
+      "description": "You were sent here by a third party, not MetaMask. You'll open {{pageTitle}} if you continue."
+    },
+    "invalid": {
+      "title": "This page doesn't exist",
+      "description": "We can't find the page you're looking for."
+    },
+    "back_button": "Back",
+    "continue_button": "Continue"
   }
 }

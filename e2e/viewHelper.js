@@ -1,6 +1,5 @@
 'use strict';
 
-import EnableAutomaticSecurityChecksView from './pages/Onboarding/EnableAutomaticSecurityChecksView';
 import EnableDeviceNotificationsAlert from './pages/Onboarding/EnableDeviceNotificationsAlert';
 import ImportWalletView from './pages/Onboarding/ImportWalletView';
 import MetaMetricsOptIn from './pages/Onboarding/MetaMetricsOptInView';
@@ -9,7 +8,6 @@ import NetworkListModal from './pages/Network/NetworkListModal';
 import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
-import OnboardingWizardModal from './pages/Onboarding/OnboardingWizardModal';
 import SettingsView from './pages/Settings/SettingsView';
 import WalletView from './pages/wallet/WalletView';
 import Accounts from '../wdio/helpers/Accounts';
@@ -42,41 +40,39 @@ export const acceptTermOfUse = async () => {
   await TermsOfUseModal.tapAcceptButton();
   await Assertions.checkIfNotVisible(TermsOfUseModal.container);
 };
-export const closeOnboardingModals = async () => {
+
+/**
+ * Closes various onboarding modals and dialogs.
+ * @async
+ * @function closeOnboardingModals
+ * @param {('dismiss'|'create'|'viewAccount')} [solanaSheetAction='dismiss'] - Action to take for the Solana feature sheet.
+ *   - 'dismiss': Taps "Not now" on the Solana sheet.
+ *   - 'create': Taps "Create Account" on the Solana sheet.
+ *   - 'viewAccount': Intended to navigate to a view/manage existing account flow for Solana.
+ */
+export const closeOnboardingModals = async (solanaSheetAction = 'dismiss') => {
   /*
 These onboarding modals are becoming a bit wild. We need less of these so we don't
 have to have all these workarounds in the tests
   */
   await TestHelpers.delay(1000);
 
-  // Handle Onboarding wizard
-  try {
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
-    await OnboardingWizardModal.tapNoThanksButton();
-    await Assertions.checkIfNotVisible(OnboardingWizardModal.stepOneContainer);
-  } catch {
-    /* eslint-disable no-console */
-
-    console.log('The onboarding modal is not visible');
-  }
-
   try {
     await Assertions.checkIfVisible(ToastModal.container);
     await ToastModal.tapToastCloseButton();
     await Assertions.checkIfNotVisible(ToastModal.container);
   } catch {
-    /* eslint-disable no-undef */
-
+    // eslint-disable-next-line no-console
     console.log('The marketing toast is not visible');
   }
 
   // Handle Solana New feature sheet
-  try {
-    await SolanaNewFeatureSheet.swipeWithCarouselLogo();
-  } catch {
-    /* eslint-disable no-console */
-
-    console.log('The new Solana feature modal is not visible');
+  if (solanaSheetAction === 'dismiss') {
+    await SolanaNewFeatureSheet.tapNotNowButton();
+  } else if (solanaSheetAction === 'create') {
+    await SolanaNewFeatureSheet.tapCreateAccountButton();
+  } else if (solanaSheetAction === 'viewAccount') {
+    await SolanaNewFeatureSheet.tapViewAccountButton();
   }
 };
 
@@ -107,63 +103,94 @@ export const skipNotificationsDeviceSettings = async () => {
  * @param {string} [options.seedPhrase] - The secret recovery phrase to import the wallet. Defaults to a valid account's seed phrase.
  * @param {string} [options.password] - The password to set for the wallet. Defaults to a valid account's password.
  * @param {boolean} [options.optInToMetrics=true] - Whether to opt in to MetaMetrics. Defaults to true.
+ * @param {('dismiss'|'create'|'viewAccount')} [options.solanaSheetAction='dismiss'] - Action for the Solana feature sheet.
  * @returns {Promise<void>} Resolves when the wallet import process is complete.
  */
 export const importWalletWithRecoveryPhrase = async ({
   seedPhrase,
   password,
   optInToMetrics = true,
+  solanaSheetAction = 'dismiss',
 } = {}) => {
   // tap on import seed phrase button
   await Assertions.checkIfVisible(OnboardingCarouselView.container);
   await OnboardingCarouselView.tapOnGetStartedButton();
+  await acceptTermOfUse();
+
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
+  await TestHelpers.delay(3500);
+  // should import wallet with secret recovery phrase
+  await ImportWalletView.clearSecretRecoveryPhraseInputBox();
+  await ImportWalletView.enterSecretRecoveryPhrase(
+    seedPhrase ?? validAccount.seedPhrase,
+  );
+  await ImportWalletView.tapTitle();
+  await ImportWalletView.tapContinueButton();
+  await TestHelpers.delay(3500);
+
+  await CreatePasswordView.enterPassword(password ?? validAccount.password);
+  await CreatePasswordView.reEnterPassword(password ?? validAccount.password);
+  await CreatePasswordView.tapIUnderstandCheckBox();
+  await CreatePasswordView.tapCreatePasswordButton();
+
+  // Add delay for 1 second to avoid flakiness on ios
+  if (device.getPlatform() === 'ios') TestHelpers.delay(1000);
+
+  await Assertions.checkIfVisible(MetaMetricsOptIn.container);
   if (optInToMetrics) {
     await MetaMetricsOptIn.tapAgreeButton();
   } else {
     await MetaMetricsOptIn.tapNoThanksButton();
   }
 
-  await TestHelpers.delay(3500);
-  await acceptTermOfUse();
-  // should import wallet with secret recovery phrase
-  await ImportWalletView.clearSecretRecoveryPhraseInputBox();
-  await ImportWalletView.enterSecretRecoveryPhrase(
-    seedPhrase ?? validAccount.seedPhrase,
-  );
-  await ImportWalletView.enterPassword(password ?? validAccount.password);
-  await ImportWalletView.reEnterPassword(password ?? validAccount.password);
-
   //'Should dismiss Enable device Notifications checks alert'
   await TestHelpers.delay(3500);
+  await Assertions.checkIfVisible(OnboardingSuccessView.container);
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
   await skipNotificationsDeviceSettings();
-  // Should dismiss Automatic Security checks screen
-  await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
-  await EnableAutomaticSecurityChecksView.tapNoThanks();
+
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
-  await closeOnboardingModals();
+  await closeOnboardingModals(solanaSheetAction);
 };
 
-export const CreateNewWallet = async () => {
+/**
+ * Automates the process of creating a new wallet during onboarding.
+ *
+ * Steps performed:
+ * 1. Taps the "Get Started" button on the onboarding carousel.
+ * 2. Accepts the terms of use.
+ * 3. Selects the "Create Wallet" option.
+ * 4. Handles MetaMetrics opt-in based on the provided option.
+ * 5. Enters and confirms a password for the new wallet.
+ * 6. Acknowledges understanding of password requirements.
+ * 7. Proceeds through the "Secure your wallet" screen, opting to be reminded later.
+ * 8. Skips account security setup.
+ * 9. Completes onboarding success flow.
+ * 10. Dismisses device notification and automatic security check prompts.
+ * 11. Handles "Protect your wallet" modal and skips security setup again.
+ * 12. Closes any remaining onboarding modals.
+ *
+ * @async
+ * @param {Object} [options={}] - Configuration options for wallet creation.
+ * @param {boolean} [options.optInToMetrics=true] - Whether to opt in to MetaMetrics analytics.
+ * @returns {Promise<void>} Resolves when the wallet creation flow is complete.
+ */
+export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   //'should create new wallet'
 
   // tap on import seed phrase button
   await OnboardingCarouselView.tapOnGetStartedButton();
+  await acceptTermOfUse();
   await OnboardingView.tapCreateWallet();
 
-  await Assertions.checkIfVisible(MetaMetricsOptIn.container);
-  await MetaMetricsOptIn.tapAgreeButton();
-  await acceptTermOfUse();
-
   await Assertions.checkIfVisible(CreatePasswordView.container);
-  await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.enterPassword(validAccount.password);
   await CreatePasswordView.reEnterPassword(validAccount.password);
-  // await CreatePasswordView.tapCreatePasswordButton();
+  await CreatePasswordView.tapIUnderstandCheckBox();
+  await CreatePasswordView.tapCreatePasswordButton();
 
   // Check that we are on the Secure your wallet screen
   await Assertions.checkIfVisible(ProtectYourWalletView.container);
@@ -173,22 +200,26 @@ export const CreateNewWallet = async () => {
   await SkipAccountSecurityModal.tapSkipButton();
   await device.enableSynchronization();
   await TestHelpers.delay(3500);
+
+  await Assertions.checkIfVisible(MetaMetricsOptIn.container);
+  optInToMetrics
+    ? await MetaMetricsOptIn.tapAgreeButton()
+    : await MetaMetricsOptIn.tapNoThanksButton();
+
+  await Assertions.checkIfVisible(OnboardingSuccessView.container);
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
   await this.skipNotificationsDeviceSettings();
-  //'Should dismiss Automatic Security checks screen'
-  await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
-  await EnableAutomaticSecurityChecksView.tapNoThanks();
-
-  // 'should dismiss the onboarding wizard'
-  // dealing with flakiness on bitrise.
-  await this.closeOnboardingModals();
 
   // Dismissing to protect your wallet modal
   await Assertions.checkIfVisible(ProtectYourWalletModal.collapseWalletModal);
   await ProtectYourWalletModal.tapRemindMeLaterButton();
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
   await SkipAccountSecurityModal.tapSkipButton();
+
+  // 'should dismiss the onboarding wizard'
+  // dealing with flakiness on bitrise.
+  await this.closeOnboardingModals('dismiss');
 };
 
 export const addLocalhostNetwork = async () => {
@@ -263,10 +294,11 @@ export const waitForTestDappToLoad = async () => {
 
       await Assertions.webViewElementExists(TestDApp.DappConnectButton);
       return; // Success - page is fully loaded and interactive
-
     } catch (error) {
       if (attempt === MAX_RETRIES) {
-        throw new Error(`Test dapp failed to load after ${MAX_RETRIES} attempts: ${error.message}`);
+        throw new Error(
+          `Test dapp failed to load after ${MAX_RETRIES} attempts: ${error.message}`,
+        );
       }
       await TestHelpers.delay(RETRY_DELAY);
     }

@@ -306,8 +306,8 @@ export const checkWCPermissions = async ({
       if (!isAllowedChainId && allowSwitchingToNewChain) {
         // Preemptively add the chain to the permitted chains
         // This is to prevent a race condition where WalletConnect is told about the chain switch before permissions are updated
-        DevLogger.log(`WC::checkWCPermissions adding permitted chain for ${hostname}:`, hexChainIdString);
-        updatePermittedChains(hostname, [hexChainIdString]);
+        DevLogger.log(`WC::checkWCPermissions adding permitted chain for ${hostname}:`, caip2ChainId);
+        updatePermittedChains(getHostname(origin), [caip2ChainId]);
       }
 
       await switchToNetwork({
@@ -316,7 +316,6 @@ export const checkWCPermissions = async ({
         requestUserApproval: onRequestUserApproval(origin),
         analytics: {},
         origin,
-        isAddNetworkFlow: false,
         hooks: getRpcMethodMiddlewareHooks(origin),
       });
     } catch (error) {
@@ -328,8 +327,8 @@ export const checkWCPermissions = async ({
       if (!isAllowedChainId && allowSwitchingToNewChain) {
         // If we failed to switch to the network, remove the chain from the permitted chains
         // This is so we don't leave any dangling permissions if the user rejects the switch
-        DevLogger.log(`WC::checkWCPermissions removing permitted chain for ${hostname}:`, hexChainIdString);
-        removePermittedChain(hostname, hexChainIdString);
+        DevLogger.log(`WC::checkWCPermissions removing permitted chain for ${hostname}:`, caip2ChainId);
+        removePermittedChain(getHostname(origin), caip2ChainId);
       }
 
       return false;

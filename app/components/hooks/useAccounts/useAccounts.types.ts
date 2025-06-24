@@ -3,6 +3,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 
 // External dependencies.
 import { AvatarTokenProps } from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.types';
+import { CaipAccountId, CaipChainId } from '@metamask/utils';
 
 /**
  * Asset information associated with the account, which includes both the fiat balance and owned tokens.
@@ -51,9 +52,17 @@ export interface Account {
    */
   balanceError?: string;
   /**
+   * Account address in CAIP-10 format.
+   */
+  caipAccountId: CaipAccountId;
+  /**
    * Boolean that indicates if the account is loading.
    */
   isLoadingAccount: boolean;
+  /**
+   * Account scopes.
+   */
+  scopes: CaipChainId[];
 }
 
 /**

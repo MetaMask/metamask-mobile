@@ -1,3 +1,4 @@
+import { toChecksumAddress } from 'ethereumjs-util';
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -19,7 +20,8 @@ import {
 import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import stylesheet from './AddressFrom.styles';
 import { selectInternalEvmAccounts } from '../../../selectors/accountsController';
-import { toChecksumAddress } from 'ethereumjs-util';
+import useNetworkInfo from '../../Views/confirmations/hooks/useNetworkInfo';
+import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 
 interface Asset {
   isETH?: boolean;
@@ -37,10 +39,12 @@ interface AddressFromProps {
   dontWatchAsset?: boolean;
   from: string;
   origin?: string;
+  chainId?: string;
 }
 
 const AddressFrom = ({
   asset,
+  chainId,
   dontWatchAsset,
   from,
   origin,
@@ -48,7 +52,12 @@ const AddressFrom = ({
   const [accountName, setAccountName] = useState('');
 
   const { styles } = useStyles(stylesheet, {});
-  const { addressBalance } = useAddressBalance(asset, from, dontWatchAsset);
+  const { addressBalance } = useAddressBalance(
+    asset,
+    from,
+    dontWatchAsset,
+    isPerDappSelectedNetworkEnabled() ? chainId : undefined,
+  );
 
   const accountsByChainId = useSelector(selectAccountsByChainId);
 
@@ -56,6 +65,8 @@ const AddressFrom = ({
   const activeAddress = toChecksumAddress(from);
 
   const networkName = useSelector(selectEvmNetworkName);
+  const networkImage = useSelector(selectEvmNetworkImageSource);
+  const perDappNetworkInfo = useNetworkInfo(chainId);
 
   const useBlockieIcon = useSelector(
     // TODO: Replace "any" with type
@@ -74,7 +85,13 @@ const AddressFrom = ({
     }
   }, [accountsByChainId, internalAccounts, activeAddress, origin]);
 
-  const networkImage = useSelector(selectEvmNetworkImageSource);
+  const displayNetworkName = isPerDappSelectedNetworkEnabled()
+    ? perDappNetworkInfo.networkName
+    : networkName;
+
+  const displayNetworkImage = isPerDappSelectedNetworkEnabled()
+    ? perDappNetworkInfo.networkImage
+    : networkImage;
 
   const accountTypeLabel = getLabelTextByAddress(activeAddress);
 
@@ -91,11 +108,11 @@ const AddressFrom = ({
         accountName={accountName}
         accountBalanceLabel={strings('transaction.balance')}
         accountTypeLabel={accountTypeLabel as string}
-        accountNetwork={networkName}
+        accountNetwork={String(displayNetworkName)}
         badgeProps={{
           variant: BadgeVariant.Network,
-          name: networkName,
-          imageSource: networkImage,
+          name: displayNetworkName,
+          imageSource: displayNetworkImage,
         }}
         useBlockieIcon={useBlockieIcon}
       />

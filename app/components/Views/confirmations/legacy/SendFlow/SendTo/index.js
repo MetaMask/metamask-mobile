@@ -2,6 +2,7 @@ import React, { Fragment, PureComponent } from 'react';
 import { View, ScrollView, Alert, Platform, BackHandler } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import { toChecksumAddress } from 'ethereumjs-util';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AddressList from '../AddressList';
@@ -15,7 +16,6 @@ import { handleNetworkSwitch } from '../../../../../../util/networks/handleNetwo
 import {
   isENS,
   isValidHexAddress,
-  safeToChecksumAddress,
   validateAddressOrENS,
   areAddressesEqual,
 } from '../../../../../../util/address';
@@ -54,8 +54,8 @@ import {
   selectSelectedInternalAccountFormattedAddress,
 } from '../../../../../../selectors/accountsController';
 import AddToAddressBookWrapper from '../../../../../UI/AddToAddressBookWrapper';
-import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/utils';
-import { createBuyNavigationDetails } from '../../../../../UI/Ramp/routes/utils';
+import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
+import { createBuyNavigationDetails } from '../../../../../UI/Ramp/Aggregator/routes/utils';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
 import SendFlowAddressFrom from '../AddressFrom';
 import SendFlowAddressTo from '../AddressTo';
@@ -482,7 +482,7 @@ class SendFlow extends PureComponent {
 
   safeChecksumAddress = (address) => {
     try {
-      return safeToChecksumAddress(address);
+      return toChecksumAddress(address);
     } catch (error) {
       return address;
     }

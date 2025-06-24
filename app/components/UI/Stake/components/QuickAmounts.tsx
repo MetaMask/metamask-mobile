@@ -11,7 +11,7 @@ import {
 } from '../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
-import type { QuickAmount } from '../../Ramp/types';
+import type { QuickAmount } from '../../Ramp/Aggregator/types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useSelector } from 'react-redux';
 import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
@@ -35,6 +35,7 @@ const createStyles = (colors: Colors) =>
       justifyContent: 'center',
       paddingHorizontal: 16,
       alignItems: 'center',
+      borderRadius: 20,
     },
   });
 

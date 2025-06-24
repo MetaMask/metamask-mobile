@@ -20,8 +20,13 @@ import {
   isBtcTestnetAddress,
   ///: END:ONLY_INCLUDE_IF
 } from '../core/Multichain/utils';
+import { CaipAccountId, parseCaipChainId } from '@metamask/utils';
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 import { toFormattedAddress } from '../util/address';
+
+export type InternalAccountWithCaipAccountId = InternalAccount & {
+  caipAccountId: CaipAccountId;
+};
 
 /**
  *
@@ -61,6 +66,23 @@ export const selectInternalEvmAccounts = createSelector(
 );
 
 /**
+ * A memoized selector that returns internal accounts from the AccountsController,
+ * sorted by the order of KeyringController's keyring accounts,
+ * with an additional caipAccountId property
+ */
+export const selectInternalAccountsWithCaipAccountId = createDeepEqualSelector(
+  selectInternalAccounts,
+  (accounts): InternalAccountWithCaipAccountId[] =>
+    accounts.map((account) => {
+      const { namespace, reference } = parseCaipChainId(account.scopes[0]);
+      return {
+        ...account,
+        caipAccountId: `${namespace}:${reference}:${account.address}`,
+      };
+    }),
+);
+
+/**
  * A memoized selector that returns the selected internal account from the AccountsController
  */
 export const selectSelectedInternalAccount = createDeepEqualSelector(
@@ -84,6 +106,14 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
 );
 
 /**
+ * A memoized selector that returns the selected internal account id
+ */
+export const selectSelectedInternalAccountId = createSelector(
+  selectSelectedInternalAccount,
+  (account): string | undefined => account?.id,
+);
+
+/**
  * A memoized selector that returns the internal accounts sorted by the last selected timestamp
  */
 export const selectOrderedInternalAccountsByLastSelected = createSelector(
@@ -104,7 +134,8 @@ export const selectOrderedInternalAccountsByLastSelected = createSelector(
 
 export const getMemoizedInternalAccountByAddress = createDeepEqualSelector(
   [selectInternalAccounts, (_state, address) => address],
-  (internalAccounts, address) => internalAccounts.find((account) =>
+  (internalAccounts, address) =>
+    internalAccounts.find((account) =>
       isEqualCaseInsensitive(account.address, address),
     ),
 );

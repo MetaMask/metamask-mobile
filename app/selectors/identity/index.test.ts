@@ -3,6 +3,7 @@ import {
   selectIsBackupAndSyncUpdateLoading,
   selectIsAccountSyncingEnabled,
   selectIsAccountSyncingReadyToBeDispatched,
+  selectIsContactSyncingEnabled,
   selectIsSignedIn,
 } from './index';
 import { RootState } from '../../reducers';
@@ -15,9 +16,9 @@ describe('Notification Selectors', () => {
           isSignedIn: true,
         },
         UserStorageController: {
-          isProfileSyncingEnabled: true,
+          isBackupAndSyncEnabled: true,
           isAccountSyncingEnabled: true,
-          isProfileSyncingUpdateLoading: false,
+          isBackupAndSyncUpdateLoading: false,
           isAccountSyncingReadyToBeDispatched: false,
         },
       },
@@ -27,14 +28,14 @@ describe('Notification Selectors', () => {
   it('selectIsBackupAndSyncEnabled returns correct value', () => {
     expect(selectIsBackupAndSyncEnabled(mockState)).toEqual(
       mockState.engine.backgroundState.UserStorageController
-        .isProfileSyncingEnabled,
+        .isBackupAndSyncEnabled,
     );
   });
 
   it('selectIsBackupAndSyncUpdateLoading returns correct value', () => {
     expect(selectIsBackupAndSyncUpdateLoading(mockState)).toEqual(
       mockState.engine.backgroundState.UserStorageController
-        .isProfileSyncingUpdateLoading,
+        .isBackupAndSyncUpdateLoading,
     );
   });
 
@@ -49,6 +50,13 @@ describe('Notification Selectors', () => {
     expect(selectIsAccountSyncingReadyToBeDispatched(mockState)).toEqual(
       mockState.engine.backgroundState.UserStorageController
         .isAccountSyncingReadyToBeDispatched,
+    );
+  });
+
+  it('selectIsContactSyncingEnabled returns correct value', () => {
+    expect(selectIsContactSyncingEnabled(mockState)).toEqual(
+      mockState.engine.backgroundState.UserStorageController
+        .isContactSyncingEnabled,
     );
   });
 

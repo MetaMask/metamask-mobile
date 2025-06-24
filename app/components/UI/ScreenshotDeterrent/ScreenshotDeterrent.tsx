@@ -49,6 +49,11 @@ const ScreenshotDeterrentWithNavigation = ({
   }, [trackEvent, createEventBuilder]);
 
   const showScreenshotAlert = useCallback(() => {
+    if (isSRP) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SRP_SCREENSHOT_ATTEMPTED).build(),
+      );
+    }
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SCREENSHOT_WARNING).build(),
     );

@@ -10,10 +10,13 @@ import {
 import useEarnWithdrawInputHandlers from './useEarnWithdrawInput';
 import useBalance from '../../Stake/hooks/useBalance';
 import useInputHandler from './useInput';
-import { EarnTokenDetails } from './useEarnTokenDetails';
+import { EarnTokenDetails } from '../types/lending.types';
+import { EARN_EXPERIENCES } from '../constants/experiences';
+import useEarnDepositGasFee from './useEarnGasFee';
 
 jest.mock('../../Stake/hooks/useBalance');
 jest.mock('./useInput');
+jest.mock('./useEarnGasFee');
 
 jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(() => 'USD'),
@@ -28,9 +31,7 @@ describe('useEarnWithdrawInputHandlers', () => {
     isETH: true,
     balanceFiat: '2000',
     balanceFormatted: '1 ETH',
-    apr: '5%',
     balanceFiatNumber: 2000,
-    estimatedAnnualRewardsFormatted: '0.05 ETH',
     address: '0x1234567890123456789012345678901234567890',
     name: 'Ethereum',
     logo: 'https://example.com/eth-logo.png',
@@ -39,6 +40,25 @@ describe('useEarnWithdrawInputHandlers', () => {
     balance: '1',
     chainId: CHAIN_IDS.MAINNET,
     isNative: true,
+    tokenUsdExchangeRate: 2000,
+    experiences: [
+      {
+        type: EARN_EXPERIENCES.POOLED_STAKING,
+        apr: '5%',
+        estimatedAnnualRewardsFormatted: '0.05 ETH',
+        estimatedAnnualRewardsFiatNumber: 100,
+        estimatedAnnualRewardsTokenMinimalUnit: '50000000000000000',
+        estimatedAnnualRewardsTokenFormatted: '0.05 ETH',
+      },
+    ],
+    experience: {
+      type: EARN_EXPERIENCES.POOLED_STAKING,
+      apr: '5%',
+      estimatedAnnualRewardsFormatted: '0.05 ETH',
+      estimatedAnnualRewardsFiatNumber: 100,
+      estimatedAnnualRewardsTokenMinimalUnit: '50000000000000000',
+      estimatedAnnualRewardsTokenFormatted: '0.05 ETH',
+    },
   };
 
   const mockConversionRate = 2000; // 1 ETH = $2000
@@ -112,6 +132,15 @@ describe('useEarnWithdrawInputHandlers', () => {
       handleQuickAmountPress: jest.fn(),
       currentCurrency: 'USD',
     });
+
+    (useEarnDepositGasFee as jest.Mock).mockReturnValue({
+      estimatedEarnGasFeeWei: new BN4('100000000000000000'), // 0.1 ETH
+      isLoadingEarnGasFee: false,
+      isEarnGasFeeError: false,
+      getEstimatedEarnGasFee: jest
+        .fn()
+        .mockResolvedValue(new BN4('100000000000000000')),
+    });
   });
 
   it('should initialize with default values', () => {
@@ -172,7 +201,26 @@ describe('useEarnWithdrawInputHandlers', () => {
     const props = {
       earnToken: {
         ...mockEarnToken,
+        balanceMinimalUnit: '0',
         isETH: false,
+        experiences: [
+          {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '5%',
+            estimatedAnnualRewardsFormatted: '0.05 USDC',
+            estimatedAnnualRewardsFiatNumber: 100,
+            estimatedAnnualRewardsTokenMinimalUnit: '50000000000000000',
+            estimatedAnnualRewardsTokenFormatted: '0.05 USDC',
+          },
+        ],
+        experience: {
+          type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          apr: '5%',
+          estimatedAnnualRewardsFormatted: '0.05 USDC',
+          estimatedAnnualRewardsFiatNumber: 100,
+          estimatedAnnualRewardsTokenMinimalUnit: '50000000000000000',
+          estimatedAnnualRewardsTokenFormatted: '0.05 USDC',
+        },
       },
       conversionRate: mockConversionRate,
       exchangeRate: mockExchangeRate,
@@ -188,25 +236,35 @@ describe('useEarnWithdrawInputHandlers', () => {
     );
   });
 
-  it('should pass along isOverMaximum values correctly', () => {
-    (useInputHandler as jest.Mock).mockReturnValue({
-      amountToken: '1.5',
-      amountTokenMinimalUnit: new BN4('1500000000000000000'),
-      amountFiatNumber: '3000',
-      isFiat: false,
-      currencyToggleValue: '3000 USD',
-      isNonZeroAmount: true,
-      isOverMaximum: true,
-      handleKeypadChange: jest.fn(),
-      handleCurrencySwitch: jest.fn(),
-      percentageOptions: [],
-      handleQuickAmountPress: jest.fn(),
-      currentCurrency: 'USD',
+  it('should handle loading gas fee state', () => {
+    (useEarnDepositGasFee as jest.Mock).mockReturnValue({
+      estimatedEarnGasFeeWei: new BN4('100000000000000000'),
+      isLoadingEarnGasFee: true,
+      isEarnGasFeeError: false,
+      getEstimatedEarnGasFee: jest
+        .fn()
+        .mockResolvedValue(new BN4('100000000000000000')),
     });
 
     const { result } = renderHook();
 
-    expect(result.current.isOverMaximum.isOverMaximumEth).toBe(true);
-    expect(result.current.isOverMaximum.isOverMaximumToken).toBe(true);
+    expect(result.current.isOverMaximum.isOverMaximumEth).toBe(false);
+    expect(result.current.isOverMaximum.isOverMaximumToken).toBe(false);
+  });
+
+  it('should handle gas fee error state', () => {
+    (useEarnDepositGasFee as jest.Mock).mockReturnValue({
+      estimatedEarnGasFeeWei: new BN4('100000000000000000'),
+      isLoadingEarnGasFee: false,
+      isEarnGasFeeError: true,
+      getEstimatedEarnGasFee: jest
+        .fn()
+        .mockResolvedValue(new BN4('100000000000000000')),
+    });
+
+    const { result } = renderHook();
+
+    expect(result.current.isOverMaximum.isOverMaximumEth).toBe(false);
+    expect(result.current.isOverMaximum.isOverMaximumToken).toBe(false);
   });
 });

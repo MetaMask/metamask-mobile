@@ -10,17 +10,27 @@ import { BalanceChange } from '../types';
 import AmountPill from '../AmountPill/AmountPill';
 import AssetPill from '../AssetPill/AssetPill';
 import { IndividualFiatDisplay } from '../FiatDisplay/FiatDisplay';
+import EditRowValue from '../EditRowValue';
 import styleSheet from './BalanceChangeRow.styles';
 
 interface BalanceChangeRowProperties extends ViewProps {
-  label?: string;
-  showFiat?: boolean;
   balanceChange: BalanceChange;
+  editTexts?: {
+    title: string;
+    description: string;
+  };
+  enableEdit?: boolean;
+  label?: string;
+  onUpdate?: (balanceChange: BalanceChange, val: string) => void;
+  showFiat?: boolean;
 }
 
 const BalanceChangeRow: React.FC<BalanceChangeRowProperties> = ({
-  label,
   balanceChange,
+  editTexts,
+  enableEdit,
+  label,
+  onUpdate,
   showFiat,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -37,6 +47,13 @@ const BalanceChangeRow: React.FC<BalanceChangeRowProperties> = ({
       )}
       <View style={styles.pillContainer}>
         <View style={styles.pills}>
+          {enableEdit && onUpdate && editTexts && (
+            <EditRowValue
+              balanceChange={balanceChange}
+              editTexts={editTexts}
+              onUpdate={onUpdate}
+            />
+          )}
           <AmountPill
             asset={asset}
             amount={amount}

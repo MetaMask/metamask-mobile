@@ -10,12 +10,13 @@ import React, {
 import { InteractionManager, View } from 'react-native';
 
 // External dependencies.
-import AccountSelectorList from '../../UI/AccountSelectorList';
+import EvmAccountSelectorList from '../../UI/EvmAccountSelectorList';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import Engine from '../../../core/Engine';
+import { store } from '../../../store';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import { useAccounts } from '../../hooks/useAccounts';
@@ -29,18 +30,21 @@ import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wa
 import { selectPrivacyMode } from '../../../selectors/preferencesController';
 
 // Internal dependencies.
+import { useStyles } from '../../../component-library/hooks';
 import {
   AccountSelectorProps,
   AccountSelectorScreens,
 } from './AccountSelector.types';
-import styles from './AccountSelector.styles';
+import styleSheet from './AccountSelector.styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { TraceName, endTrace } from '../../../util/trace';
+import { TraceName, TraceOperation, endTrace, trace } from '../../../util/trace';
+import { getTraceTags } from '../../../util/sentry/tags';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
+  const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
   const routeParams = useMemo(() => route?.params, [route?.params]);
@@ -78,9 +82,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const [screen, setScreen] = useState<AccountSelectorScreens>(
     () => navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
   );
-  useEffect(() => {
-    endTrace({ name: TraceName.AccountList });
-  }, []);
   useEffect(() => {
     if (reloadAccounts) {
       dispatch(setReloadAccounts(false));
@@ -125,11 +126,32 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     [],
   );
 
+  // Tracing for the account list rendering:
+  const isAccountSelector = useMemo(() => screen === AccountSelectorScreens.AccountSelector, [screen]);
+  useEffect(() => {
+    if (isAccountSelector) {
+      trace({
+        name: TraceName.AccountList,
+        op: TraceOperation.AccountList,
+        tags: getTraceTags(store.getState()),
+      });
+    }
+  }, [isAccountSelector]);
+  // We want to track the full render of the account list, meaning when the full animation is done, so
+  // we hook the open animation and end the trace there.
+  const onOpen = useCallback(() => {
+    if (isAccountSelector) {
+      endTrace({
+        name: TraceName.AccountList,
+      });
+    }
+  }, [isAccountSelector]);
+
   const renderAccountSelector = useCallback(
     () => (
       <Fragment>
         <SheetHeader title={strings('accounts.accounts_title')} />
-        <AccountSelectorList
+        <EvmAccountSelectorList
           onSelectAccount={_onSelectAccount}
           onRemoveImportedAccount={onRemoveImportedAccount}
           accounts={accounts}
@@ -160,6 +182,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       privacyMode,
       disablePrivacyMode,
       handleAddAccount,
+      styles.sheet,
     ],
   );
 
@@ -179,7 +202,11 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     }
   }, [screen, renderAccountSelector, renderAddAccountActions]);
 
-  return <BottomSheet ref={sheetRef}>{renderAccountScreens()}</BottomSheet>;
+  return (
+    <BottomSheet style={styles.bottomSheetContent} ref={sheetRef} onOpen={onOpen}>
+      {renderAccountScreens()}
+    </BottomSheet>
+  );
 };
 
 export default React.memo(AccountSelector);
