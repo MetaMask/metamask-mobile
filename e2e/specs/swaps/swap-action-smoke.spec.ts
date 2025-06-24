@@ -135,6 +135,11 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
           'Max slippage 0%',
         );
       }
+
+      // The swap screen has many animations and transitions
+      // Disabling temporarily to speed up checks and taps on the swap confirm screen
+      await device.disableSynchronization();
+
       await QuoteView.tapOnGetQuotes();
       await Assertions.checkIfVisible(SwapView.quoteSummary);
       await Assertions.checkIfVisible(SwapView.gasFee);
