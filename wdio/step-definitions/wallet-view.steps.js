@@ -52,6 +52,18 @@ When(/^the account list should not be visible/, async () => {
   await AccountListComponent.isComponentNotDisplayed();
 });
 
+When(/^I tap on the networks filter/, async () => {
+  await driver.pause(3000);
+  await WalletMainScreen.tapTokenNetworkFilter();
+
+});
+
+When(/^I filter by popular networks/, async () => {
+  await WalletMainScreen.tapTokenNetworkFilterAll();
+
+});
+
+
 When(/^I dismiss the account list/, async () => {
   await AccountListComponent.isComponentDisplayed();
   await WalletMainScreen.tapIdenticon();

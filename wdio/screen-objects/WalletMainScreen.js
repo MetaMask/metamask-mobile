@@ -75,6 +75,27 @@ class WalletMainScreen {
     return Selectors.getXpathElementByText('Localhost 8545 now active.');
   }
 
+  get tokenNetworkFilter() {
+    return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
+  }
+
+  get sortBy() {
+    return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.SORT_BY);
+  }
+
+  get tokenNetworkFilterAll() {
+    return Selectors.getXpathElementByResourceId(
+      WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_ALL,
+    );
+  }
+
+  get tokenNetworkFilterCurrent() {
+    return Selectors.getXpathElementByResourceId(
+      WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_CURRENT,
+    );
+  }
+
+
   async tapImportTokensButton() {
     const importToken = await this.ImportToken;
     await importToken.waitForDisplayed();
@@ -176,6 +197,22 @@ class WalletMainScreen {
   async waitForNetworkModalToDisappear() {
     const element = await this.networkModal;
     await element.waitForExist({ reverse: true });
+  }
+
+  async tapTokenNetworkFilter() {
+    await Gestures.waitAndTap(this.tokenNetworkFilter);
+  }
+
+  async tapSortBy() {
+    await Gestures.waitAndTap(this.sortBy);
+  }
+
+  async tapTokenNetworkFilterAll() {
+    await Gestures.waitAndTap(this.tokenNetworkFilterAll);
+  }
+
+  async tapTokenNetworkFilterCurrent() {
+    await Gestures.waitAndTap(this.tokenNetworkFilterCurrent);
   }
 }
 

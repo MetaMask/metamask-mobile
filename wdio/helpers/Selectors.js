@@ -4,7 +4,21 @@ class Selectors {
       return $(`~${id}`);
     }
 
-    const platform = await driver.getPlatform();
+    let platform;
+    // Check if driver.getPlatform method exists
+    if (typeof driver.getPlatform === 'function') {
+      platform = await driver.getPlatform();
+    } else {
+      // Fallback: try to get platform from session
+      try {
+        const session = await browser.getSession();
+        platform = session.platformName;
+      } catch (error) {
+        // If that fails, assume Android for BrowserStack tests
+        platform = 'Android';
+      }
+    }
+    
     if (platform === 'Android') {
       return $(`~${id}`);
     } else if (platform === 'iOS') {
@@ -23,7 +37,18 @@ class Selectors {
   }
 
   static async getXpathElementByText(text) {
-    const platform = await driver.getPlatform();
+    let platform;
+    if (typeof driver.getPlatform === 'function') {
+      platform = await driver.getPlatform();
+    } else {
+      try {
+        const session = await browser.getSession();
+        platform = session.platformName;
+      } catch (error) {
+        platform = 'Android';
+      }
+    }
+    
     if (platform === 'iOS') {
       return await $(`//*[@name='${text}']`);
     }
@@ -34,7 +59,18 @@ class Selectors {
   }
 
   static async getXpathElementByTextContains(text) {
-    const platform = await driver.getPlatform();
+    let platform;
+    if (typeof driver.getPlatform === 'function') {
+      platform = await driver.getPlatform();
+    } else {
+      try {
+        const session = await browser.getSession();
+        platform = session.platformName;
+      } catch (error) {
+        platform = 'Android';
+      }
+    }
+    
     if (platform === 'iOS') {
       return await $(`//*[contains(@name, '${text}')]`);
     }
@@ -45,7 +81,18 @@ class Selectors {
   }
 
   static async getXpathElementByResourceId(id) {
-    const platform = await driver.getPlatform();
+    let platform;
+    if (typeof driver.getPlatform === 'function') {
+      platform = await driver.getPlatform();
+    } else {
+      try {
+        const session = await browser.getSession();
+        platform = session.platformName;
+      } catch (error) {
+        platform = 'Android';
+      }
+    }
+    
     if (platform === 'iOS') {
       return await $(`~${id}`);
     }

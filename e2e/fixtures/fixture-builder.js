@@ -1231,6 +1231,38 @@ class FixtureBuilder {
   }
 
   /**
+   * Enables profile syncing (backup and sync) with all required configurations.
+   * This includes authentication, user storage settings, and basic functionality.
+   * 
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
+   */
+  withProfileSyncingEnabled() {
+    // Enable AuthenticationController - user must be signed in for profile syncing
+    merge(this.fixture.state.engine.backgroundState.AuthenticationController, {
+      isSignedIn: true,
+    });
+
+    // Enable UserStorageController with all profile syncing features
+    merge(this.fixture.state.engine.backgroundState.UserStorageController, {
+      isBackupAndSyncEnabled: true,
+      isBackupAndSyncUpdateLoading: false,
+      isAccountSyncingEnabled: true,
+      isContactSyncingEnabled: true,
+      hasAccountSyncingSyncedAtLeastOnce: true,
+      isAccountSyncingReadyToBeDispatched: true,
+      isAccountSyncingInProgress: false,
+      isContactSyncingInProgress: false,
+    });
+
+    // Enable basic functionality in settings (required for profile syncing)
+    merge(this.fixture.state.settings, {
+      basicFunctionalityEnabled: true,
+    });
+
+    return this;
+  }
+
+  /**
    * Build and return the fixture object.
    * @returns {Object} - The built fixture object.
    */
