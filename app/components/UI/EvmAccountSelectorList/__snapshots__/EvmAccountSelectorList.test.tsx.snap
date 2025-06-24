@@ -51,6 +51,8 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
   }
   getItem={[Function]}
   getItemCount={[Function]}
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
   initialNumToRender={999}
   keyExtractor={[Function]}
   onContentSizeChange={[Function]}
@@ -904,6 +906,8 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
   }
   getItem={[Function]}
   getItemCount={[Function]}
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
   initialNumToRender={999}
   keyExtractor={[Function]}
   onContentSizeChange={[Function]}
@@ -1681,6 +1685,8 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
   }
   getItem={[Function]}
   getItemCount={[Function]}
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
   initialNumToRender={999}
   keyExtractor={[Function]}
   onContentSizeChange={[Function]}
@@ -2534,6 +2540,8 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
   }
   getItem={[Function]}
   getItemCount={[Function]}
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
   initialNumToRender={999}
   keyExtractor={[Function]}
   onContentSizeChange={[Function]}
