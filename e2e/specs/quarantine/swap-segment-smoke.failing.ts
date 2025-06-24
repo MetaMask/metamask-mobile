@@ -59,7 +59,6 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
       permissions: { notifications: 'YES' },
       launchArgs: {
         fixtureServerPort: `${getFixturesServerPort()}`,
-        sendMetaMetricsinE2E: true,
       },
     });
     await loginToApp();
@@ -162,7 +161,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
 
     await softAssert.checkAndCollect(
       () =>
-        Assertions.checkIfValueIsPresent(
+        Assertions.checkIfValueIsDefined(
           allAvailableQuotesOpenedEvent.properties.response_time,
         ),
       'All Available Quotes Opened: Check response_time',
@@ -170,7 +169,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
 
     await softAssert.checkAndCollect(
       () =>
-        Assertions.checkIfValueIsPresent(
+        Assertions.checkIfValueIsDefined(
           allAvailableQuotesOpenedEvent.properties.best_quote_source,
         ),
       'All Available Quotes Opened: Check best_quote_source',
@@ -178,7 +177,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
 
     await softAssert.checkAndCollect(
       () =>
-        Assertions.checkIfValueIsPresent(
+        Assertions.checkIfValueIsDefined(
           allAvailableQuotesOpenedEvent.properties.network_fees_USD,
         ),
       'All Available Quotes Opened: Check network_fees_USD',
@@ -186,7 +185,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
 
     await softAssert.checkAndCollect(
       () =>
-        Assertions.checkIfValueIsPresent(
+        Assertions.checkIfValueIsDefined(
           allAvailableQuotesOpenedEvent.properties.network_fees_ETH,
         ),
       'All Available Quotes Opened: Check network_fees_ETH',
@@ -194,7 +193,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
 
     await softAssert.checkAndCollect(
       () =>
-        Assertions.checkIfValueIsPresent(
+        Assertions.checkIfValueIsDefined(
           allAvailableQuotesOpenedEvent.properties.available_quotes,
         ),
       'All Available Quotes Opened: Check available_quotes',
@@ -202,7 +201,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
 
     await softAssert.checkAndCollect(
       () =>
-        Assertions.checkIfValueIsPresent(
+        Assertions.checkIfValueIsDefined(
           allAvailableQuotesOpenedEvent.properties.token_to_amount,
         ),
       'All Available Quotes Opened: Check token_to_amount',
@@ -231,7 +230,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
 
     await softAssert.checkAndCollect(
       () =>
-        Assertions.checkIfValueIsPresent(
+        Assertions.checkIfValueIsDefined(
           quotesRequestCancelledEvent.properties.responseTime,
         ),
       'Quotes Request Cancelled: Check responseTime',
