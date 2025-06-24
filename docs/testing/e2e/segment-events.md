@@ -11,17 +11,6 @@ import { getEventsPayloads } from './helpers';
 import { EVENT_NAME } from '../../../app/core/Analytics/MetaMetrics.events';
 ```
 
-## Required Launch Arguments
-
-To enable Segment event tracking in E2E tests, you must include the following launch argument:
-```javascript
-launchArgs: {
-  sendMetaMetricsinE2E: true
-}
-```
-
-Without this flag, the app will not send Segment events during testing.
-
 ## Two Approaches to Mocking Segment Events
 
 ### 1. Using withFixtures (Recommended for Most Cases)
@@ -34,12 +23,11 @@ const testSpecificMock = {
 };
 
 await withFixtures({
+  // The withOnboardingFixture will also make explicit for tests that events 
+  // will be checked
   fixture: new FixtureBuilder().withOnboardingFixture().build(),
   restartDevice: true,
   testSpecificMock,
-  launchArgs: {
-    sendMetaMetricsinE2E: true,
-  }
 }, async ({ mockServer }) => {
   // Your test code here
   
@@ -68,7 +56,6 @@ await TestHelpers.launchApp({
   delete: true,
   launchArgs: { 
     mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT), 
-    sendMetaMetricsinE2E: true 
   }
 });
 ```
@@ -99,12 +86,10 @@ await Assertions.checkIfObjectsMatch(
 ```
 
 ## Best Practices
-
-1. Always include `sendMetaMetricsinE2E: true` in launch arguments
-2. Use `getEventsPayloads` to retrieve and verify events
-3. Clean up mock servers after tests using `stopMockServer`
-4. Use appropriate assertions to verify event properties
-5. Consider testing both positive and negative cases (e.g., with and without metrics opt-in)
+1. Use `getEventsPayloads` to retrieve and verify events
+2. Clean up mock servers after tests using `stopMockServer`
+3. Use appropriate assertions to verify event properties
+4. Consider testing both positive and negative cases (e.g., with and without metrics opt-in)
 
 ## Important: MetaMetrics Opt-in State
 
@@ -133,12 +118,9 @@ await withFixtures({
 });
 ```
 
-Without this, Segment events will not be sent even if `sendMetaMetricsinE2E: true` is set in launch arguments.
-
 ## Troubleshooting
 
 If events are not being captured:
-1. Verify `sendMetaMetricsinE2E: true` is set in `launchArgs`
-2. Check mock server setup
-3. Ensure correct event names are being used
-4. If using injected state without onboarding, verify `withMetaMetricsOptIn()` is called
+1. Check mock server setup
+2. Ensure correct event names are being used
+3. If using injected state without onboarding, verify `withMetaMetricsOptIn()` is called
