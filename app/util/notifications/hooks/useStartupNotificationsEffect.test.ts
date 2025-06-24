@@ -10,8 +10,10 @@ import * as KeyringSelectors from '../../../selectors/keyringController';
 import * as SettingsSelectors from '../../../selectors/settings';
 // eslint-disable-next-line import/no-namespace
 import * as IdentitySelectors from '../../../selectors/identity';
-import { renderHookWithProvider } from '../../test/renderWithProvider';
 import storageWrapper from '../../../store/storage-wrapper';
+import { renderHookWithProvider } from '../../test/renderWithProvider';
+// eslint-disable-next-line import/no-namespace
+import * as Constants from '../constants/config';
 // eslint-disable-next-line import/no-namespace
 import * as NotificationHooks from './useNotifications';
 import { useStartupNotificationsEffect } from './useStartupNotificationsEffect';
@@ -89,6 +91,9 @@ describe('useStartupNotificationsEffect', () => {
       .spyOn(storageWrapper, 'getItem')
       .mockResolvedValue(undefined);
     const mockSetStorageItem = jest.spyOn(storageWrapper, 'setItem');
+    const mockIsFlagEnabled = jest
+      .spyOn(Constants, 'isNotificationsFeatureEnabled')
+      .mockReturnValue(true);
 
     return {
       hooks: arrangeHooks(),
@@ -96,6 +101,7 @@ describe('useStartupNotificationsEffect', () => {
       helpers: {
         mockGetStorageItem,
         mockSetStorageItem,
+        mockIsFlagEnabled,
       },
     };
   };
