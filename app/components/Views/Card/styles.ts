@@ -16,6 +16,11 @@ const createStyles = (theme: Theme, itemHeight: number, deviceWidth: number) =>
     balanceContainer: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    balanceTextContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
     },
     privacyIcon: {
       marginLeft: 8,

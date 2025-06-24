@@ -20,7 +20,8 @@ import { useSelector } from 'react-redux';
 import { selectCardFeature } from '../../../selectors/featureFlagController/card';
 import {
   fetchSupportedTokensBalances,
-  mapTokenBalancesToTokenKeys,
+  getGeoLocation,
+  mapTokenBalanceToTokenKey,
   TokenConfig,
 } from '../../UI/Card/card.utils';
 import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
@@ -44,6 +45,7 @@ import Loader from '../../../component-library/components-temp/Loader';
 const CardView = () => {
   const { PreferencesController } = Engine.context;
   const [refreshing, setRefreshing] = useState(false);
+  const [geolocation, setGeolocation] = useState<string | null>(null);
   const privacyMode = useSelector(selectPrivacyMode);
   const theme = useTheme();
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
@@ -51,20 +53,21 @@ const CardView = () => {
   const [supportedTokenBalances, setSupportedTokenBalances] = useState<{
     tokenConfigs: TokenConfig[];
     totalBalanceDisplay: string;
+    priorityToken: TokenConfig | null;
   } | null>(null);
   const itemHeight = 130;
   const { width: deviceWidth } = Dimensions.get('window');
   const styles = createStyles(theme, itemHeight, deviceWidth);
 
   const selectedTokenKey = useMemo(() => {
-    if (!supportedTokenBalances) {
+    if (!supportedTokenBalances?.priorityToken) {
       return null;
     }
 
-    return mapTokenBalancesToTokenKeys(
-      supportedTokenBalances.tokenConfigs,
+    return mapTokenBalanceToTokenKey(
+      supportedTokenBalances.priorityToken,
       theme.colors,
-    )[0];
+    );
   }, [supportedTokenBalances, theme]);
 
   const refreshTokens = useCallback(async () => {
@@ -75,12 +78,13 @@ const CardView = () => {
     }
 
     if (selectedAddress) {
-      const { balanceList, totalBalanceDisplay } =
+      const { balanceList, totalBalanceDisplay, priorityToken } =
         await fetchSupportedTokensBalances(selectedAddress, cardFeature);
 
       setSupportedTokenBalances({
         tokenConfigs: balanceList,
         totalBalanceDisplay,
+        priorityToken,
       });
 
       setRefreshing(false);
@@ -94,6 +98,15 @@ const CardView = () => {
 
     fetchBalances();
   }, [refreshTokens]);
+
+  useEffect(() => {
+    const fetchGeolocation = async () => {
+      const retrievedGeolocation = await getGeoLocation();
+      setGeolocation(retrievedGeolocation);
+    };
+
+    fetchGeolocation();
+  }, []);
 
   const toggleIsBalanceAndAssetsHidden = useCallback(
     (value: boolean) => {
@@ -114,26 +127,45 @@ const CardView = () => {
     <View style={styles.wrapper}>
       <View style={styles.defaultPadding}>
         <View style={styles.balanceContainer}>
-          <SensitiveText
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Long}
-            variant={TextVariant.HeadingLG}
-          >
-            {supportedTokenBalances?.tokenConfigs[0]?.balance
-              ? `${supportedTokenBalances?.tokenConfigs[0]?.balance} ${supportedTokenBalances?.tokenConfigs[0]?.symbol}`
-              : '0'}
-          </SensitiveText>
-          <TouchableOpacity
-            onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
-            testID="balance-container"
-          >
-            <Icon
-              style={styles.privacyIcon}
-              name={privacyMode ? IconName.EyeSlash : IconName.Eye}
-              size={IconSize.Md}
-              color={theme.colors.text.muted}
-            />
-          </TouchableOpacity>
+          <View style={styles.balanceTextContainer}>
+            <SensitiveText
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Long}
+              variant={TextVariant.HeadingLG}
+            >
+              {supportedTokenBalances?.priorityToken
+                ? `${supportedTokenBalances?.priorityToken?.balance} ${supportedTokenBalances?.priorityToken?.symbol}`
+                : '0'}
+            </SensitiveText>
+            <TouchableOpacity
+              onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
+              testID="balance-container"
+            >
+              <Icon
+                style={styles.privacyIcon}
+                name={privacyMode ? IconName.EyeSlash : IconName.Eye}
+                size={IconSize.Md}
+                color={theme.colors.text.muted}
+              />
+            </TouchableOpacity>
+          </View>
+          {geolocation && (
+            <View>
+              <Icon
+                name={IconName.Location}
+                size={IconSize.Md}
+                color={theme.colors.text.muted}
+                style={styles.privacyIcon}
+              />
+              <Text
+                variant={TextVariant.BodySM}
+                style={styles.privacyIcon}
+                testID="card-view-geolocation"
+              >
+                {geolocation}
+              </Text>
+            </View>
+          )}
         </View>
         <View style={styles.spendingWithContainer}>
           <Text

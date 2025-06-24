@@ -68,7 +68,7 @@ const CACHE_EXPIRATION = 15 * 60 * 1000;
 // Helper interface for token balances
 export interface TokenConfig {
   address: string;
-  contract: ethers.Contract;
+  contract?: ethers.Contract;
   decimals: number;
   symbol: string;
   name: string;
@@ -120,6 +120,80 @@ const getAllowanceState = (allowance: string): AllowanceState => {
   return AllowanceState.Limited;
 };
 
+/**
+ * Scans all Approval logs for the given tokens & spenders,
+ * then returns the TokenConfig whose most‐recent non-zero Approval wins.
+ */
+const getPriorityTokenAddress = async ({
+  provider,
+  supportedTokensAddresses,
+  owner,
+  spenders,
+}: {
+  provider: ethers.providers.JsonRpcProvider;
+  supportedTokensAddresses: string[];
+  owner: string;
+  spenders: string[];
+}): Promise<string | null> => {
+  const ABI = [
+    'event Approval(address indexed owner,address indexed spender,uint256 value)',
+  ];
+  const iface = new ethers.utils.Interface(ABI);
+  const approvalTopic = iface.getEventTopic('Approval');
+  const ownerTopic = ethers.utils.hexZeroPad(owner.toLowerCase(), 32);
+  const spenderTopics = spenders.map((s) =>
+    ethers.utils.hexZeroPad(s.toLowerCase(), 32),
+  );
+
+  const logsPerToken = await Promise.all(
+    supportedTokensAddresses.map((tokenAddress) =>
+      provider
+        .getLogs({
+          address: tokenAddress,
+          fromBlock: 0,
+          toBlock: 'latest',
+          topics: [approvalTopic, ownerTopic, spenderTopics],
+        })
+        .then((logs) =>
+          logs.map((log) => ({
+            ...log,
+            tokenAddress,
+          })),
+        ),
+    ),
+  );
+
+  const allLogs = logsPerToken.flat();
+  if (allLogs.length === 0) return null;
+
+  // sort chronologically
+  allLogs.sort((a, b) =>
+    a.blockNumber === b.blockNumber
+      ? a.logIndex - b.logIndex
+      : a.blockNumber - b.blockNumber,
+  );
+
+  // find the last non-zero Approval
+  for (let i = allLogs.length - 1; i >= 0; i--) {
+    const { args } = iface.parseLog(allLogs[i]);
+    const value = args.value as ethers.BigNumber;
+    if (!value.isZero()) {
+      const match = supportedTokensAddresses.find(
+        (tokenAddress) =>
+          tokenAddress.toLowerCase() === allLogs[i].tokenAddress.toLowerCase(),
+      );
+      return match ?? null;
+    }
+  }
+
+  return null;
+};
+
+/**
+ * mapCardFeatureToSupportedTokens - Maps the card feature configuration to supported tokens
+ * @param cardFeature - The card feature configuration
+ * @returns SupportedToken[] - Array of supported tokens
+ */
 export const mapCardFeatureToSupportedTokens = (
   cardFeature: CardFeature | null,
 ): SupportedToken[] => {
@@ -348,6 +422,7 @@ export const fetchSupportedTokensBalances = async (
 ): Promise<{
   balanceList: TokenConfig[];
   totalBalanceDisplay: string;
+  priorityToken: TokenConfig | null;
 }> => {
   const provider = createProvider();
   const supportedTokens = mapCardFeatureToSupportedTokens(cardFeature);
@@ -357,69 +432,60 @@ export const fetchSupportedTokensBalances = async (
     return {
       balanceList: [],
       totalBalanceDisplay: '0',
+      priorityToken: null,
     };
   }
 
-  const supportedTokensAddresses = supportedTokens.map(
-    (token) => token.address as string,
-  );
-
-  const balanceScanner = getBalanceScannerContract(provider);
+  const tokenAddrs = supportedTokens.map((t) => t.address as string);
+  const spenders = [FOXCONNECT_GLOBAL_ADDRESS, FOXCONNECT_US_ADDRESS];
+  const spendersAllowances: string[][] = tokenAddrs.map(() => [
+    FOXCONNECT_GLOBAL_ADDRESS,
+    FOXCONNECT_US_ADDRESS,
+  ]);
+  const scanner = getBalanceScannerContract(provider);
 
   try {
-    const spenders = supportedTokensAddresses.map(() => [
-      FOXCONNECT_GLOBAL_ADDRESS,
-      FOXCONNECT_US_ADDRESS,
-    ]);
-
-    const [tokensBalance, spendersAllowancesForTokens]: [
+    const [tokensBalance, spendersAllowancesForTokens, priorityTokenAddress]: [
       [boolean, string][],
       [boolean, string][][],
+      string | null,
     ] = await Promise.all([
-      balanceScanner.tokensBalance(address, supportedTokensAddresses),
-      balanceScanner.spendersAllowancesForTokens(
+      scanner.tokensBalance(address, tokenAddrs),
+      scanner.spendersAllowancesForTokens(
         address,
-        supportedTokensAddresses,
-        spenders,
+        tokenAddrs,
+        spendersAllowances,
       ),
+      getPriorityTokenAddress({
+        provider,
+        supportedTokensAddresses: tokenAddrs,
+        owner: address,
+        spenders,
+      }),
     ]);
 
-    const mappedBalanceList = tokensBalance.map((item, index) => {
-      const tokenInfo = supportedTokens[index];
+    const balanceList = tokensBalance.map((item, i) => {
+      const info = supportedTokens[i];
+      const [ok, hexBal] = item;
+      const rawBalance = ethers.BigNumber.from(ok ? hexBal : '0');
 
-      if (!tokenInfo) {
-        console.warn(
-          `Token info not found for index ${index}. Skipping balance.`,
-        );
-        return null;
-      }
-
-      const spendersAllowances = spendersAllowancesForTokens[index];
-      if (!spendersAllowances || spendersAllowances.length === 0) {
-        console.warn(
-          `No spenders allowances found for token at index ${index}. Skipping allowance state.`,
-        );
-        return null;
-      }
-
-      const [globalAllowance, usAllowance] = spendersAllowances.map(
-        (allowance) => allowance[1],
-      );
-      const allowanceState = BigNumber(usAllowance).isZero()
+      const [globalRaw, usRaw] = spendersAllowancesForTokens[i] || [];
+      const globalAllowance = globalRaw?.[1] ?? '0';
+      const usAllowance = usRaw?.[1] ?? '0';
+      const allowanceState = ethers.BigNumber.from(usAllowance).isZero()
         ? getAllowanceState(globalAllowance)
         : getAllowanceState(usAllowance);
+      const enabled = info.enabled !== undefined ? info.enabled : true;
 
-      const [success, hexBalance] = item;
-
-      const rawBalance = ethers.BigNumber.from(success ? hexBalance : 0);
       return {
-        address: tokenInfo.address as string,
-        decimals: tokenInfo.decimals || 18,
-        symbol: tokenInfo.symbol || '',
-        name: tokenInfo.name || '',
+        address: info.address as string,
+        decimals: info.decimals ?? 18,
+        enabled,
+        name: info.name ?? '',
+        symbol: info.symbol ?? '',
         balance: renderFromTokenMinimalUnit(
           rawBalance.toString(),
-          tokenInfo.decimals || 18,
+          info.decimals ?? 18,
         ),
         rawBalance,
         allowanceState,
@@ -428,31 +494,45 @@ export const fetchSupportedTokensBalances = async (
       };
     });
 
-    const balanceList = mappedBalanceList.filter(
-      (item): item is TokenConfig => item !== null,
+    // compute total display
+    const totalRaw = balanceList.reduce(
+      (sum, t) => sum.add(t.rawBalance),
+      ethers.BigNumber.from('0'),
     );
+    const totalBalanceDisplay = totalRaw.isZero()
+      ? 'No tokens available'
+      : `$${parseFloat(
+          renderFromTokenMinimalUnit(totalRaw.toString(), 6),
+        ).toFixed(2)}`;
 
-    const totalRawBalance = balanceList.reduce(
-      (total, token) => total.add(token.rawBalance),
-      ethers.BigNumber.from(0),
-    );
+    let priorityToken = null;
 
-    const hasNonZeroBalance = !totalRawBalance.isZero();
+    if (priorityTokenAddress) {
+      priorityToken =
+        balanceList.find(
+          (token) =>
+            token.address.toLowerCase() === priorityTokenAddress.toLowerCase(),
+        ) ?? null;
+      if (priorityToken) {
+        if (priorityToken.rawBalance.isZero()) {
+          Logger.log(
+            `Priority token ${priorityTokenAddress} has zero balance, selecting first available token`,
+          );
+          priorityToken = balanceList[0] || null;
+        }
 
-    // Format the total balance as a string for display with $ and 2 decimal places
-    let totalBalanceDisplay = 'No tokens available';
-    if (hasNonZeroBalance) {
-      // Convert to a decimal number with proper decimal places
-      const totalInDecimal = parseFloat(
-        renderFromTokenMinimalUnit(totalRawBalance.toString(), 6),
-      );
-      // Format with $ and 2 decimal places
-      totalBalanceDisplay = `$${totalInDecimal.toFixed(2)}`;
+        // Remove the priority token from the balance list
+        const index = balanceList.indexOf(priorityToken);
+        if (index > -1) {
+          balanceList.splice(index, 1);
+        }
+      }
     }
 
     return {
       balanceList,
       totalBalanceDisplay,
+      priorityToken,
     };
   } catch (error) {
     Logger.error(
@@ -597,6 +677,16 @@ const renderChip = (state: AllowanceState, colors: ThemeColors) => {
   return tagConfig[state];
 };
 
+export const mapTokenBalanceToTokenKey = (
+  tokenBalance: TokenConfig,
+  colors: ThemeColors,
+): FlashListAssetKey => ({
+  address: tokenBalance.address,
+  chainId: LINEA_CHAIN_ID, // Assuming LINEA_CHAIN_ID is the chain ID
+  isStaked: false,
+  tag: renderChip(tokenBalance.allowanceState, colors),
+});
+
 /**
  *
  * @param tokenBalances - Array of token balances to map
@@ -606,9 +696,23 @@ export const mapTokenBalancesToTokenKeys = (
   tokenBalances: TokenConfig[],
   colors: ThemeColors,
 ): FlashListAssetKey[] =>
-  tokenBalances.map((token) => ({
-    address: token.address,
-    chainId: LINEA_CHAIN_ID, // Assuming LINEA_CHAIN_ID is the chain ID for all tokens,
-    isStaked: false,
-    tag: renderChip(token.allowanceState, colors),
-  }));
+  tokenBalances.map((token) => mapTokenBalanceToTokenKey(token, colors));
+
+/**
+ * This function retrieves the user's geolocation using the Ramps Geolocation API.
+ */
+export const getGeoLocation = async (): Promise<string> => {
+  try {
+    const response = await fetch(
+      'https://on-ramp.uat-api.cx.metamask.io/geolocation',
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.text();
+  } catch (error) {
+    console.error('Error fetching geolocation:', error);
+    return '';
+  }
+};
