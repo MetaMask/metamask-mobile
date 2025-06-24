@@ -13,6 +13,7 @@ export async function submitSwapUnifiedUI(
     await QuoteView.enterAmount(quantity);
     await QuoteView.tapBridgeTo();
     await TestHelpers.delay(1000);
+    await QuoteView.selectNetwork('Tenderly - Mainnet');
     if (type !== 'native')
       await Assertions.checkIfVisible(QuoteView.token(sourceTokenSymbol));
     await QuoteView.selectToken(destTokenSymbol);
