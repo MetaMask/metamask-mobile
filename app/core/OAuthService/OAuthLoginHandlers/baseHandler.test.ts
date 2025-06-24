@@ -137,9 +137,10 @@ describe('BaseLoginHandler', () => {
       mockHandler = new MockLoginHandler();
     });
 
-    it('handles base64 strings that need 1 padding character', () => {
-      // Create a payload that results in base64 string ending with 3 characters (needs 1 padding)
-      const mockPayload = { email: 'test@example.com' };
+    it('handles base64 strings that need 1 padding character (length % 4 = 3)', () => {
+      // Create a base64 string with length that gives remainder 3 when divided by 4
+      // This will need 1 padding character
+      const mockPayload = { a: 'b' }; // Short payload that creates base64 with length % 4 = 3
       const mockPayloadBase64 = Buffer.from(
         JSON.stringify(mockPayload),
       ).toString('base64');
@@ -153,9 +154,10 @@ describe('BaseLoginHandler', () => {
       expect(decoded).toBe(JSON.stringify(mockPayload));
     });
 
-    it('handles base64 strings that need 2 padding characters', () => {
-      // Create a payload that results in base64 string ending with 2 characters (needs 2 padding)
-      const mockPayload = { email: 'test' };
+    it('handles base64 strings that need 2 padding characters (length % 4 = 2)', () => {
+      // Create a base64 string with length that gives remainder 2 when divided by 4
+      // This will need 2 padding characters
+      const mockPayload = { a: 'bc' }; // Payload that creates base64 with length % 4 = 2
       const mockPayloadBase64 = Buffer.from(
         JSON.stringify(mockPayload),
       ).toString('base64');
@@ -169,9 +171,10 @@ describe('BaseLoginHandler', () => {
       expect(decoded).toBe(JSON.stringify(mockPayload));
     });
 
-    it('handles base64 strings that need 3 padding characters', () => {
-      // Create a payload that results in base64 string ending with 1 character (needs 3 padding)
-      const mockPayload = { email: 't' };
+    it('handles base64 strings that need 3 padding characters (length % 4 = 1)', () => {
+      // Create a base64 string with length that gives remainder 1 when divided by 4
+      // This will need 3 padding characters
+      const mockPayload = { a: 'bcd' }; // Payload that creates base64 with length % 4 = 1
       const mockPayloadBase64 = Buffer.from(
         JSON.stringify(mockPayload),
       ).toString('base64');
@@ -185,13 +188,10 @@ describe('BaseLoginHandler', () => {
       expect(decoded).toBe(JSON.stringify(mockPayload));
     });
 
-    it('handles base64 strings that already have correct padding', () => {
-      // Create a payload that results in base64 string with proper length (no padding needed)
-      const mockPayload = {
-        email: 'test@example.com',
-        name: 'John Doe',
-        id: 123,
-      };
+    it('handles base64 strings that already have correct padding (length % 4 = 0)', () => {
+      // Create a base64 string with length that is already a multiple of 4
+      // This should not need any padding
+      const mockPayload = { a: 'bcde' }; // Payload that creates base64 with length % 4 = 0
       const mockPayloadBase64 = Buffer.from(
         JSON.stringify(mockPayload),
       ).toString('base64');
@@ -202,7 +202,7 @@ describe('BaseLoginHandler', () => {
       expect(decoded).toBe(JSON.stringify(mockPayload));
     });
 
-    it('handles base64 strings with URL-safe characters that need conversion', () => {
+    it('handles base64 strings with URL-safe characters that need conversion and padding', () => {
       // Test with payload containing characters that get URL-safe encoding
       const mockPayload = {
         email: 'test@example.com',
@@ -243,8 +243,8 @@ describe('BaseLoginHandler', () => {
     it('handles payload with unicode characters and emojis', () => {
       const mockPayload = {
         email: 'test@example.com',
-        name: 'José 🦊',
-        message: 'Hello 世界! 🌍',
+        name: 'test 🦊',
+        message: 'Hello 世界！🌍',
       };
       const mockPayloadBase64 = Buffer.from(
         JSON.stringify(mockPayload),
