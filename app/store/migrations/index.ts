@@ -175,25 +175,7 @@ export const migrationList: MigrationsList = {
   76: migration76,
   77: migration77,
   78: migration78,
-<<<<<<< HEAD
-||||||| parent of 96002c27b6 (feat: (fix) cp-7.47.2 migrate caip permission to include sessionProperties value (#16601))
   79: migration79,
-  80: migration80,
-  81: migration81,
-  82: migration82,
-  83: migration83,
-  84: migration84,
-  85: migration85,
-=======
-  79: migration79,
-  80: migration80,
-  81: migration81,
-  82: migration82,
-  83: migration83,
-  84: migration84,
-  85: migration85,
-  86: migration86,
->>>>>>> 96002c27b6 (feat: (fix) cp-7.47.2 migrate caip permission to include sessionProperties value (#16601))
 };
 
 // Enable both synchronous and asynchronous migrations
