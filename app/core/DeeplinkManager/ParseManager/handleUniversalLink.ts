@@ -65,26 +65,30 @@ async function handleUniversalLink({
   }
 
   if (hasSignature(validatedUrl)) {
-    const signatureResult = await verifyDeeplinkSignature(validatedUrl);
-    switch (signatureResult) {
-      case VALID:
-        DevLogger.log(
-          'DeepLinkManager:parse Verified signature for deeplink',
-          url,
-        );
-        isPrivateLink = true;
-        break;
-      case INVALID:
-      case MISSING:
-        DevLogger.log(
-          'DeepLinkManager:parse Invalid/Missing signature, ignoring deeplink',
-          url,
-        );
-        isPrivateLink = false;
-        break;
-      default:
-        isPrivateLink = false;
-        break;
+    try {
+      const signatureResult = await verifyDeeplinkSignature(validatedUrl);
+      switch (signatureResult) {
+        case VALID:
+          DevLogger.log(
+            'DeepLinkManager:parse Verified signature for deeplink',
+            url,
+          );
+          isPrivateLink = true;
+          break;
+        case INVALID:
+        case MISSING:
+          DevLogger.log(
+            'DeepLinkManager:parse Invalid/Missing signature, ignoring deeplink',
+            url,
+          );
+          isPrivateLink = false;
+          break;
+        default:
+          isPrivateLink = false;
+          break;
+      }
+    } catch (error) {
+      isPrivateLink = false;
     }
   }
 
@@ -99,10 +103,13 @@ async function handleUniversalLink({
   };
 
   const shouldProceed = await new Promise<boolean>((resolve) => {
-    const pageTitle: ACTIONS = validatedUrl.pathname.split('/')[1] as ACTIONS;
+    const pageTitle: ACTIONS = validatedUrl.pathname
+      .split('/')[1]
+      ?.toLowerCase() as ACTIONS;
+
     handleDeepLinkModalDisplay({
       linkType: linkType(),
-      pageTitle: pageTitle.charAt(0).toUpperCase() + pageTitle.slice(1),
+      pageTitle,
       onContinue: () => resolve(true),
       onBack: () => resolve(false),
     });
@@ -234,8 +241,6 @@ async function handleUniversalLink({
     urlObj.hostname === MM_IO_UNIVERSAL_LINK_HOST ||
     urlObj.hostname === MM_IO_UNIVERSAL_LINK_TEST_HOST
   ) {
-    // TODO: handle private links with signature verification https://github.com/MetaMask/metamask-mobile/issues/16040
-    // TODO: add interstitial modal for public links https://github.com/MetaMask/metamask-mobile/issues/15491
     switch (action) {
       case ACTIONS.HOME:
         instance._handleOpenHome();
