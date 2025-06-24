@@ -294,11 +294,6 @@ async function getAlternateGasFeesCapability(
     const { isSupported = false, relaySupportedForChain } = chainBatchSupport;
 
     const isSmartTransaction = getIsSmartTransaction(chainId);
-    console.log(
-      '======================',
-      isSmartTransaction,
-      chainBatchSupport,
-    );
 
     const alternateGasFees =
       simulationEnabled &&
