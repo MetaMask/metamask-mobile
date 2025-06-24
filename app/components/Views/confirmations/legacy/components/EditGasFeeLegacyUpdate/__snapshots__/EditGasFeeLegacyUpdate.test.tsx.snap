@@ -973,6 +973,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
             </TouchableOpacity>
           </View>
         </View>
+        <View />
       </View>
     </View>
   </RCTScrollView>

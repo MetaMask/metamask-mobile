@@ -6,6 +6,7 @@ export interface ValidState {
     backgroundState: Record<string, unknown>;
   };
   settings: Record<string, unknown>;
+  security: Record<string, unknown>;
 }
 
 export function ensureValidState<T>(

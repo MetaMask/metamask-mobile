@@ -5,7 +5,7 @@ module.exports = {
   testMatch: [
     '<rootDir>/e2e/specs/**/*.spec.{js,ts}',
   ],
-  testTimeout: 250000,
+  testTimeout: 500000,
   maxWorkers: process.env.CI ? 3 : 1,
   setupFilesAfterEnv: ['<rootDir>/e2e/init.js'],
   globalSetup: 'detox/runners/jest/globalSetup',

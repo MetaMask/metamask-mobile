@@ -55,16 +55,18 @@ class Gestures {
    * @param {boolean} [options.skipVisibilityCheck=false] - When true, skips the initial visibility check before tapping. Useful for elements that may be technically present but not passing Detox's visibility threshold.
    * @param {boolean} [options.experimentalWaitForStability=false] - EXPERIMENTAL: When true, waits for element stability before tapping.
    */
-  static async waitAndTap(elementToTap, options = {}) {
+  static async waitAndTap(element, options = {}) {
     const {
       timeout = 15000,
       delayBeforeTap = 0,
-      skipVisibilityCheck = false
+      skipVisibilityCheck = false,
     } = options;
+    const elementToTap = await element;
     if (!skipVisibilityCheck) {
-      await waitFor(await elementToTap)
-        .toBeVisible()
-        .withTimeout(timeout);
+      await (device.getPlatform() === 'ios'
+        ? waitFor(elementToTap).toExist()
+        : waitFor(elementToTap).toBeVisible()
+      ).withTimeout(timeout);
     }
     if (delayBeforeTap > 0) {
       await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.

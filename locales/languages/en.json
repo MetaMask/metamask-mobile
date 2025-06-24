@@ -515,7 +515,12 @@
     "basic_info": {
       "title": "Enter your basic info",
       "continue": "Continue",
-      "subtitle": "To begin verifying your identity, we need some basic information."
+      "subtitle": "To begin verifying your identity, we need some basic information.",
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "phone_number": "Phone Number",
+      "date_of_birth": "Date of Birth",
+      "social_security_number": "Social Security Number"
     },
     "enter_address": {
       "title": "Enter your address",

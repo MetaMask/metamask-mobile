@@ -429,7 +429,7 @@ const RevealPrivateCredential = ({
       <CustomTabView
         tabLabel={strings(`reveal_credential.text`)}
         style={styles.tabContent}
-        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW}
+        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT}
       >
         <Text style={styles.boldText}>
           {strings(`reveal_credential.${privCredentialName}`)}
@@ -465,7 +465,7 @@ const RevealPrivateCredential = ({
       <CustomTabView
         tabLabel={strings(`reveal_credential.qr_code`)}
         style={styles.tabContent}
-        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW}
+        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_QR_CODE}
       >
         <View
           style={styles.qrCodeWrapper}
@@ -616,7 +616,11 @@ const RevealPrivateCredential = ({
   const renderWarning = (privCredentialName: string) => (
     <View style={[styles.rowWrapper, styles.warningWrapper]}>
       <View style={[styles.warningRowWrapper]}>
-        <Icon style={styles.icon} name={IconName.EyeSlash} size={IconSize.Lg} />
+        <Icon
+          color={colors.error.default}
+          name={IconName.EyeSlash}
+          size={IconSize.Lg}
+        />
         {privCredentialName === PRIVATE_KEY ? (
           <Text style={styles.warningMessageText}>
             {strings(
@@ -664,7 +668,7 @@ const RevealPrivateCredential = ({
         // The cancel button here is not named correctly. When it is unlocked, the button is shown as "Done"
         showCancelButton={Boolean(showCancelButton || unlocked)}
       >
-        <>
+        <ScrollView>
           <View style={[styles.rowWrapper, styles.normalText]}>
             {isPrivateKey && account ? (
               <>
@@ -686,7 +690,6 @@ const RevealPrivateCredential = ({
               </>
             )}
           </View>
-
           {unlocked ? (
             renderTabView(credentialSlug)
           ) : (
@@ -694,7 +697,7 @@ const RevealPrivateCredential = ({
               {renderPasswordEntry()}
             </View>
           )}
-        </>
+        </ScrollView>
       </ActionView>
       {renderModal(isPrivateKey)}
 

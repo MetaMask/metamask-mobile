@@ -20,6 +20,8 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
       <View>
         <View
           collapsable={false}
+          handlerTag={-1}
+          handlerType="PanGestureHandler"
           onGestureHandlerEvent={[Function]}
           onGestureHandlerStateChange={[Function]}
           onLayout={[Function]}

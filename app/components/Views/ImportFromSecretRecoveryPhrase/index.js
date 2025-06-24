@@ -133,9 +133,9 @@ const ImportFromSecretRecoveryPhrase = ({
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
   const [seedPhrase, setSeedPhrase] = useState([]);
   const [seedPhraseInputFocusedIndex, setSeedPhraseInputFocusedIndex] =
-    useState(0);
+    useState(null);
   const [nextSeedPhraseInputFocusedIndex, setNextSeedPhraseInputFocusedIndex] =
-    useState(0);
+    useState(null);
   const [showAllSeedPhrase, setShowAllSeedPhrase] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [learnMore, setLearnMore] = useState(false);
@@ -170,23 +170,9 @@ const ImportFromSecretRecoveryPhrase = ({
     setErrorWordIndexes({});
     setShowAllSeedPhrase(false);
     setError('');
+    setSeedPhraseInputFocusedIndex(0);
+    setNextSeedPhraseInputFocusedIndex(0);
   }, []);
-
-  const handleSeedPhraseChange = useCallback(
-    (seedPhraseText) => {
-      setError('');
-      const text = formatSeedPhraseToSingleLine(seedPhraseText);
-      const trimmedText = text.trim();
-      const updatedTrimmedText = trimmedText.split(' ');
-
-      if (SRP_LENGTHS.includes(updatedTrimmedText.length)) {
-        setSeedPhrase(updatedTrimmedText);
-      } else {
-        setSeedPhrase(text.split(' '));
-      }
-    },
-    [setSeedPhrase],
-  );
 
   const handleSeedPhraseChangeAtIndex = useCallback(
     (seedPhraseText, index) => {
@@ -226,6 +212,30 @@ const ImportFromSecretRecoveryPhrase = ({
       }
     },
     [setSeedPhrase, setNextSeedPhraseInputFocusedIndex, seedPhrase],
+  );
+
+  const handleSeedPhraseChange = useCallback(
+    (seedPhraseText) => {
+      setError('');
+      const text = formatSeedPhraseToSingleLine(seedPhraseText);
+      const trimmedText = text.trim();
+      const updatedTrimmedText = trimmedText.split(' ');
+
+      if (SRP_LENGTHS.includes(updatedTrimmedText.length)) {
+        setSeedPhrase(updatedTrimmedText);
+      } else {
+        handleSeedPhraseChangeAtIndex(text, 0);
+      }
+
+      if (updatedTrimmedText.length > 1) {
+        // no focus on any input
+        setSeedPhraseInputFocusedIndex(null);
+        // blur of last ref
+        const lastRef = seedPhraseInputRefs.current.length - 1;
+        seedPhraseInputRefs.current[lastRef]?.blur();
+      }
+    },
+    [handleSeedPhraseChangeAtIndex, setSeedPhrase],
   );
 
   const onQrCodePress = useCallback(() => {
@@ -433,11 +443,24 @@ const ImportFromSecretRecoveryPhrase = ({
   }, [handleSeedPhraseChange]);
 
   const toggleShowAllSeedPhrase = () => {
+    seedPhraseInputRefs.current[seedPhraseInputFocusedIndex]?.blur();
+    setSeedPhraseInputFocusedIndex(null);
     setShowAllSeedPhrase((prev) => !prev);
   };
 
-  const hasSeedPhraseErrors = (seedPhraseArr) =>
-    seedPhraseArr.some((word) => word !== '' && !checkValidSeedWord(word));
+  const checkForWordErrors = useCallback(
+    (seedPhraseArr) => {
+      const errorsMap = {};
+      seedPhraseArr.forEach((word, index) => {
+        if (!checkValidSeedWord(word)) {
+          errorsMap[index] = true;
+        }
+      });
+      setErrorWordIndexes(errorsMap);
+      return errorsMap;
+    },
+    [setErrorWordIndexes],
+  );
 
   const validateSeedPhrase = () => {
     const phrase = seedPhrase.filter((item) => item !== '').join(' ');
@@ -455,7 +478,9 @@ const ImportFromSecretRecoveryPhrase = ({
       return false;
     }
 
-    if (hasSeedPhraseErrors(seedPhrase)) {
+    const wordErrorMap = checkForWordErrors(seedPhrase);
+    const hasWordErrors = Object.values(wordErrorMap).some(Boolean);
+    if (hasWordErrors) {
       setError(strings('import_from_seed.spellcheck_error'));
       return false;
     }
@@ -495,6 +520,8 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const onPressImport = async () => {
+    seedPhraseInputRefs.current[seedPhraseInputFocusedIndex]?.blur();
+
     const vaultSeed = await parseVaultValue(password, seedPhrase.join(' '));
     const parsedSeed = parseSeedPhrase(vaultSeed || seedPhrase.join(' '));
 
@@ -717,7 +744,6 @@ const ImportFromSecretRecoveryPhrase = ({
                             styles.seedPhraseDefaultInputPlaceholder
                           }
                           multiline
-                          autoFocus
                           onKeyPress={(e) => handleKeyPress(e, 0)}
                           autoComplete="off"
                           submitBehavior={'submit'}
@@ -740,6 +766,9 @@ const ImportFromSecretRecoveryPhrase = ({
                             data={seedPhrase}
                             numColumns={NUM_COLUMNS}
                             keyExtractor={(_, index) => index.toString()}
+                            onBlur={() => {
+                              setSeedPhraseInputFocusedIndex(null);
+                            }}
                             renderItem={({ item, index }) => (
                               <View
                                 style={[
@@ -800,7 +829,6 @@ const ImportFromSecretRecoveryPhrase = ({
                                   }
                                   autoCapitalize="none"
                                   numberOfLines={1}
-                                  autoFocus={index === seedPhrase.length - 1}
                                   testID={`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`}
                                   keyboardType="default"
                                   autoCorrect={false}

@@ -436,6 +436,8 @@ exports[`AddAsset component renders token view correctly 1`] = `
   <View>
     <RCTScrollView
       collapsable={false}
+      handlerTag={1}
+      handlerType="NativeViewGestureHandler"
       onGestureHandlerEvent={[Function]}
       onGestureHandlerStateChange={[Function]}
       style={
