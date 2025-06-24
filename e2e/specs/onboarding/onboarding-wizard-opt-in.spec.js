@@ -373,6 +373,7 @@ describe(
           }, 'Analytics Preference Selected (opt-out) tracked');
 
           softAssert.throwIfErrors();
+          await device.terminateApp();
         }
       );
     });
@@ -388,21 +389,10 @@ describe(
           },
         },
         async ({ mockServer }) => {
-          await device.terminateApp();
-          await TestHelpers.delay(3000);
-          await device.launchApp({ newInstance: true });
-          await TestHelpers.delay(5000);
-
-          try {
-            await Assertions.checkIfVisible(LoginView.container);
-            await LoginView.enterPassword(PASSWORD);
-          } catch (error) {
-            // Login screen not found, checking if already logged in
-          }
-          
+          await device.launchApp();
+          await LoginView.enterPassword(PASSWORD);
           await Assertions.checkIfVisible(WalletView.container);
           await TestHelpers.delay(2000);
-
           const events = await getEventsPayloads(mockServer, [
             EVENT_NAMES.ANALYTICS_PREFERENCE_SELECTED,
           ]);
