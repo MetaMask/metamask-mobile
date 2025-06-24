@@ -8,6 +8,18 @@ const mockExpoAuthSessionPromptAsync = jest.fn().mockResolvedValue({
     code: 'googleCode',
   },
 });
+
+jest.mock('./constants', () => ({
+  AuthServerUrl: 'https://auth.example.com',
+  AppRedirectUri: 'https://app.example.com',
+  IosGID: 'mock-ios-google-client-id',
+  IosGoogleRedirectUri: 'mock-ios-google-redirect-uri',
+  IosAppleClientId: 'mock-ios-apple-client-id',
+  AndroidGoogleWebGID: 'mock-android-google-client-id',
+  AppleWebClientId: 'mock-android-apple-client-id',
+  AppleServerRedirectUri: 'https://auth.example.com/api/v1/oauth/callback',
+}));
+
 jest.mock('expo-auth-session', () => ({
   AuthRequest: () => ({
     promptAsync: mockExpoAuthSessionPromptAsync,
