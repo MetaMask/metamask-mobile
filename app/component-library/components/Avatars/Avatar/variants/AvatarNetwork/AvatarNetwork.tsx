@@ -1,4 +1,5 @@
 /* eslint-disable react/prop-types */
+/* eslint-disable no-global-assign */
 
 // Third party dependencies.
 import React, { useCallback, useEffect, useState } from 'react';
@@ -6,9 +7,8 @@ import { Image, ImageSourcePropType } from 'react-native';
 
 // External dependencies.
 import AvatarBase from '../../foundation/AvatarBase';
-import Text from '../../../../Texts/Text';
+import Text, { TextVariant } from '../../../../Texts/Text';
 import { useStyles } from '../../../../../hooks';
-import { TEXTVARIANT_BY_AVATARSIZE } from '../../Avatar.constants';
 
 // Internal dependencies.
 import { AvatarNetworkProps } from './AvatarNetwork.types';
@@ -39,7 +39,7 @@ const AvatarNetwork = ({
   return (
     <AvatarBase size={size} style={styles.base} {...props}>
       {showFallback ? (
-        <Text style={styles.label} variant={TEXTVARIANT_BY_AVATARSIZE[size]}>
+        <Text style={styles.label} variant={TextVariant.BodyMD}>
           {chainNameFirstLetter}
         </Text>
       ) : (
