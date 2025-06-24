@@ -42,9 +42,13 @@
       "message": "Transaksi sebelumnya masih dalam proses penandatanganan atau pengiriman."
     },
     "pending_transaction": {
-      "title": "Pending transaction",
-      "message": "This transaction won't go through until the previous transaction is complete.",
-      "learn_more": "Learn how to cancel or speed up a transaction."
+      "title": "Transaksi tertunda",
+      "message": "Transaksi ini tidak akan berjalan sampai transaksi sebelumnya selesai.",
+      "learn_more": "Pelajari cara membatalkan atau mempercepat transaksi."
+    },
+    "batched_unused_approvals": {
+      "title": "Izin yang tidak diperlukan",
+      "message": "Anda memberikan izin kepada orang lain untuk menarik token, meskipun itu tidak diperlukan untuk transaksi ini."
     }
   },
   "blockaid_banner": {
@@ -110,7 +114,7 @@
     "ok": "Oke"
   },
   "onboarding": {
-    "title": "Pengaturan dompet",
+    "title": "Ayo mulai!",
     "sync_desc": "Jika Anda sudah memiliki ekstensi MetaMask atau dompet lain, sinkronkan atau impor untuk mengelola aset yang ada.",
     "create_desc": "Atur dompet pertama Anda dan mulailah menjelajahi aplikasi terdesentralisasi.",
     "import": "Impor dompet yang ada atau buat yang baru",
@@ -141,14 +145,16 @@
     "scan_step_3": "Klik “Sinkronkan dengan Ponsel”",
     "scan_step_4": "Pindai kode QR untuk mulai menyinkronkan",
     "success": "Berhasil",
-    "your_wallet": "Dompet Anda berhasil dihapus",
-    "delete_current": "Menghapus dompet saat ini"
+    "your_wallet": "Your wallet was successfully reset",
+    "delete_current": "Reset current wallet",
+    "have_existing_wallet": "Saya sudah memiliki dompet",
+    "import_using_srp": "Import using Secret Recovery Phrase"
   },
   "onboarding_success": {
-    "title": "Selamat!",
-    "description": "Dompet Anda terlindungi dan siap digunakan. Temukan Frasa Pemulihan Rahasia di ",
+    "title": "Keep your Secret Recovery Phrase safe!",
+    "description": "This Secret Recovery Phrase can help you regain access if you ever forget your password or lose access to your login.",
     "description_bold": "Pengaturan > Keamanan & Privasi.",
-    "description_continued": "Simpan pengingat Frasa Pemulihan Rahasia di tempat yang aman. Jika hilang, tidak ada yang bisa membantu Anda mendapatkannya kembali. Lebih buruknya, dompet Anda tidak dapat diakses lagi.",
+    "description_continued": " you can keep this phrase safe so you never lose access to your money.",
     "learn_more": "Selengkapnya",
     "learn_how": "Pelajari caranya",
     "leave_hint": "Tinggalkan petunjuk untuk diri sendiri?",
@@ -157,17 +163,29 @@
     "default_settings_footer": "Pengaturan dioptimalkan untuk kemudahan penggunaan dan keamanan.\nUbah pengaturan ini setiap saat.",
     "no_srp_title": "Pengingat diatur!",
     "no_srp_description": "Dana akan hilang jika Anda terkunci dari aplikasi atau menggunakan perangkat baru. Pastikan untuk mencadangkan Frasa Pemulihan Rahasia di",
-    "import_title": "Dompet Anda sudah siap",
-    "import_description": "Ingat, jika Frasa Pemulihan Rahasia hilang, akses ke dompet Anda akan hilang. ",
-    "import_description2": "untuk menjaga rangkaian kata ini tetap aman sehingga dana Anda dapat diakses setiap saat.",
-    "done": "Selesai"
+    "import_title": "Your Wallet is ready!",
+    "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
+    "import_description2": "you can keep this phrase safe so you never lose access to your money.",
+    "done": "Selesai",
+    "create_hint": "Create a password hint",
+    "hint_title": "Password hint",
+    "hint_description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
+    "hint_description2": "Remember: If you lose your password, you won’t be able to use your wallet.",
+    "hint_button": "Create hint",
+    "hint_placeholder": "e.g. mom’s home",
+    "hint_saved": "Save",
+    "hint_saved_toast": "Password hint saved",
+    "remind_later": "We’ll remind you later",
+    "remind_later_description": "If you don’t back up your Secret Recovery Phrase, you’ll lose access to your funds if you get locked out of the app or get a new device.",
+    "remind_later_description2": "You can back up your wallets or see your Secret Recovery Phrase in",
+    "setting_security_privacy": "Settings > Security & Privacy"
   },
   "onboarding_carousel": {
     "title1": "Selamat datang di MetaMask",
     "title2": "Kelola aset digital Anda",
     "title3": "Gerbang menuju web3",
     "subtitle1": "MetaMask merupakan dompet aman yang dipercaya oleh jutaan orang yang membuat dunia web3 dapat diakses oleh semua orang.",
-    "subtitle2": "Simpan, gunakan, dan kirim aset digital seperti token, ethereum, koleksi unik.",
+    "subtitle2": "Simpan, gunakan, dan kirim aset digital seperti token, Ethereum, koleksi unik.",
     "subtitle3": "Masuk melalui MetaMask dan lakukan transaksi untuk berinvestasi, menghasilkan, bermain game, menjual, dan banyak lagi!",
     "get_started": "Mulai"
   },
@@ -263,18 +281,20 @@
   "login": {
     "title": "Selamat Datang kembali!",
     "password": "Kata sandi",
-    "unlock_button": "BUKA",
+    "password_placeholder": "Enter password",
+    "unlock_button": "Unlock",
     "go_back": "Dompet tidak bisa dibuka? Anda dapat MENGHAPUS dompet saat ini dan mengatur yang baru",
-    "reset_wallet": "Reset Dompet",
+    "forgot_password": "Forgot password?",
     "cant_proceed": "Tindakan ini tidak dapat dilanjutkan sampai Anda mengetik kata 'Hapus'. Dengan tindakan ini, Anda memilih untuk menghapus dompet saat ini.",
-    "invalid_password": "Kata sandi tidak valid",
-    "type_delete": "Ketik ‘%{delete}’ untuk menghapus dompet saat ini secara permanen ",
-    "delete_my": "Hapus dompet saya",
-    "are_you_sure": "Yakin ingin menghapus dompet Anda?",
-    "your_current_wallet": "Dompet, akun, dan aset Anda saat ini akan",
-    "removed_from": "dihapus dari aplikasi ini secara permanen.",
+    "invalid_password": "Password is incorrect, try again.",
+    "type_delete": "Type ‘%{erase}’ to confirm",
+    "erase_my": "Yes, reset wallet",
+    "cancel": "Cancel",
+    "are_you_sure": "Are you sure?",
+    "your_current_wallet": "Your wallet, accounts, and assets will be",
+    "removed_from": " permanently removed from this app",
     "this_action": "Tindakan ini tidak dapat dibatalkan.",
-    "you_can_only": "Anda HANYA dapat memulihkan dompet ini dengan",
+    "you_can_only": "You can only get this wallet back with the info used when creating it, such as your Secret Recovery Phrase, Google account, or Apple account. MetaMask doesn’t have this info.",
     "recovery_phrase": "Frasa Pemulihan Rahasia",
     "metamask_does_not": "MetaMask tidak menyimpan Frasa Pemulihan Rahasia Anda.",
     "i_understand": "Saya mengerti, lanjutkan",
@@ -284,7 +304,21 @@
     "vault_error": "Kesalahan: Tidak dapat dibuka tanpa vault sebelumnya.",
     "clean_vault_error": "MetaMask mengalami kesalahan karena batas penyimpanan telah tercapai. Data lokal telah rusak. Instal ulang MetaMask dan pulihkan dengan Frasa Pemulihan Rahasia.",
     "security_alert_title": "Peringatan Keamanan",
-    "security_alert_desc": "Untuk melanjutkan, Anda harus mengaktifkan Kode Sandi atau metode autentikasi biometrik yang didukung perangkat Anda (FaceID, TouchID, atau Sidik Jari)"
+    "security_alert_desc": "Untuk melanjutkan, Anda harus mengaktifkan Kode Sandi atau metode autentikasi biometrik yang didukung perangkat Anda (FaceID, TouchID, atau Sidik Jari)",
+    "forgot_password_desc": "Forgot your password?",
+    "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
+    "forgot_password_point_1": "If you’re logged into MetaMask on a device with",
+    "forgot_password_point_1_bold": "biometrics turned on",
+    "forgot_password_point_1_1": "(like Face ID), you can reset your password there.",
+    "forgot_password_point_2": "If you have your",
+    "forgot_password_point_2_bold": "Secret Recovery Phrase,",
+    "forgot_password_point_2_1": "you can reset your current wallet and reimport using Secret Recovery Phrase.",
+    "reset_wallet": "Reset wallet",
+    "reset_wallet_desc": "Your wallet data will be",
+    "reset_wallet_desc_bold": "permanently erased",
+    "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
+    "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
+    "reset_wallet_desc_srp": "To restore your wallet, you can use your Secret Recovery Phrase. MetaMask doesn’t have this information."
   },
   "connect_hardware": {
     "title_select_hardware": "Hubungkan dompet perangkat keras",
@@ -298,9 +332,10 @@
     "error": "Kesalahan"
   },
   "choose_password": {
-    "title": "Buat kata sandi",
+    "title": "MetaMask password",
+    "description": "Unlocks MetaMask on this device only.",
     "subtitle": "Kata sandi ini akan membuka dompet MetaMask Anda hanya pada perangkat ini.",
-    "password": "Kata Sandi Baru",
+    "password": "Create new password",
     "confirm_password": "Konfirmasikan kata sandi",
     "create_button": "Buat kata sandi",
     "import_with_seed_phrase": "Impor dengan Frasa Pemulihan Rahasia",
@@ -313,7 +348,7 @@
     "show": "Tampilkan",
     "hide": "Sembunyikan",
     "seed_phrase": "Frasa Pemulihan Rahasia",
-    "must_be_at_least": "Minimal berisi {{number}} karakter",
+    "must_be_at_least": "Kata sandi minimal berisi {{number}} karakter",
     "remember_me": "Ingat saya",
     "security_alert_title": "Peringatan Keamanan",
     "security_alert_message": "Untuk melanjutkan, Anda harus mengaktifkan Kode Sandi atau metode autentikasi biometrik yang didukung di perangkat Anda (ID Wajah, ID Sentuh, atau Sidik Jari)",
@@ -321,7 +356,10 @@
     "learn_more": "Pelajari selengkapnya.",
     "secure": "Amankan dompet",
     "confirm": "Konfirmasikan Frasa Pemulihan Rahasia",
-    "disable_biometric_error": "Anda telah menonaktifkan biometrik untuk aplikasi ini. Perbarui pengaturan Ingatkan Saya dan coba lagi."
+    "disable_biometric_error": "Anda telah menonaktifkan biometrik untuk aplikasi ini. Perbarui pengaturan Ingatkan Saya dan coba lagi.",
+    "create_password_cta": "Create password",
+    "steps": "Langkah {{currentStep}} dari {{totalSteps}}",
+    "password_error": "Kata sandi tidak sesuai. Coba lagi."
   },
   "reset_password": {
     "title": "Ubah kata sandi",
@@ -351,19 +389,42 @@
     "successfully_changed": "Kata sandi Anda berhasil diubah"
   },
   "import_from_seed": {
-    "title": "Impor dari Frasa Pemulihan Rahasia",
+    "title": "Impor dompet",
     "seed_phrase_placeholder": "Masukkan Frasa Pemulihan Rahasia",
-    "new_password": "Kata Sandi Baru",
+    "create_new_password": "Create new password",
     "confirm_password": "Konfirmasikan kata sandi",
     "import_button": "IMPOR",
     "cancel_button": "Batal",
     "password_length_error": "Kata sandi harus memuat minimal 8 karakter",
     "password_dont_match": "Kata sandi tidak cocok",
     "seed_phrase_requirements": "Frasa Pemulihan Rahasia berisi 12, 15, 18, 21, atau 24 kata",
-    "invalid_seed_phrase": "Frasa Pemulihan Rahasia Tidak Valid",
+    "invalid_seed_phrase": "Frasa Pemulihan Rahasia tidak ditemukan.",
     "error": "Kesalahan",
     "invalid_qr_code_title": "Kode QR Tidak Valid",
-    "invalid_qr_code_message": "Kode QR ini tidak mewakili Frasa Pemulihan Rahasia yang valid"
+    "invalid_qr_code_message": "Kode QR ini tidak mewakili Frasa Pemulihan Rahasia yang valid",
+    "enter_your_secret_recovery_phrase": "Masukkan Frasa Pemulihan Rahasia",
+    "metamask_password": "MetaMask password",
+    "metamask_password_description": "Unlocks MetaMask on this device only.",
+    "seed_phrase_required": "Frasa Pemulihan Rahasia wajib diisi",
+    "re_enter_password": "Masukkan kembali kata sandi",
+    "use_at_least_8_characters": "Gunakan minimal 8 karakter",
+    "unlock_with_face_id": "Buka dengan ID Wajah?",
+    "learn_more": "If I forget this password, MetaMask can't recover it for me.",
+    "seed_phrase_length_error": "Frasa Pemulihan Rahasia harus terdiri dari 12, 15, 18, 21, atau 24 kata",
+    "continue": "Lanjutkan",
+    "clear_all": "Hapus semua",
+    "show_all": "Tampilkan semua",
+    "paste": "Tempel",
+    "hide_all": "Sembunyikan semua",
+    "srp": "Frasa Pemulihan Rahasia",
+    "srp_placeholder": "Tambahkan spasi di antara setiap kata dan pastikan tidak ada yang melihat 👀",
+    "learn_more_link": "Selengkapnya",
+    "create_password_cta": "Create password",
+    "pass_flow": "Lanjutkan dengan Flow",
+    "steps": "Langkah {{currentStep}} dari {{totalSteps}}",
+    "password_error": "Kata sandi tidak sesuai. Coba lagi.",
+    "spellcheck_error": "Use only lowercase letters, check your spelling, and put the words in the original order.",
+    "enter_strong_password": "Masukkan kata sandi yang kuat"
   },
   "bottom_tab_bar": {
     "dapps": "ÐApps",
@@ -410,6 +471,24 @@
   },
   "deposit": {
     "title": "Deposit",
+    "selectRegion": "Select Region",
+    "chooseYourRegionToContinue": "Choose your region to continue",
+    "buildQuote": {
+      "payWith": "Pay with",
+      "unexpectedError": "An unexpected error occurred.",
+      "quoteFetchError": "Failed to fetch quote.",
+      "kycFormsFetchError": "Failed to fetch KYC forms."
+    },
+    "get_started": {
+      "title": "Top up your wallet with USDC",
+      "bullet_1_title": "Value-backed by the US dollar",
+      "bullet_1_description": "1:1 ratio backing with US dollars.",
+      "bullet_2_title": "Low volatility",
+      "bullet_2_description": "Maintains stable value for reliable transactions.",
+      "bullet_3_title": "Faster than banks",
+      "bullet_3_description": "Quick blockchain transfers beat traditional banking.",
+      "button": "Get started"
+    },
     "enter_email": {
       "title": "Masukkan email Anda",
       "description": "Kami akan mengirimkan kode enam digit ke email Anda untuk memeriksa apakah ini memang Anda.",
@@ -434,20 +513,36 @@
       "button": "Mulai"
     },
     "basic_info": {
-      "title": "Enter your basic info",
-      "continue": "Continue",
-      "subtitle": "To begin verifying your identity, we need some basic information."
+      "title": "Masukkan info dasar Anda",
+      "continue": "Lanjutkan",
+      "subtitle": "Untuk mulai memverifikasi identitas Anda, kami memerlukan beberapa informasi dasar."
     },
     "enter_address": {
-      "title": "Enter your address",
-      "subtitle": "Please enter your most recent permanent address.",
-      "continue": "Continue",
-      "address_line_1": "Address line 1",
-      "address_line_2": "Address line 2 (optional)",
-      "state": "State/Region",
-      "city": "City",
-      "postal_code": "Postal/Zip Code",
-      "country": "Country"
+      "title": "Masukkan alamat",
+      "subtitle": "Masukkan alamat tetap terbaru.",
+      "continue": "Lanjutkan",
+      "address_line_1": "Baris alamat 1",
+      "address_line_2": "Baris alamat 2 (opsional)",
+      "state": "Negara Bagian/Wilayah",
+      "city": "Kota",
+      "postal_code": "Kode Pos/Zip",
+      "country": "Negara"
+    },
+    "kyc_processing": {
+      "title": "Verifying your identity",
+      "heading": "Hang tight!\nWe’re verifying your identity now.",
+      "description": "You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.",
+      "button": "Browse tokens",
+      "error_heading": "We were unable to verify your identity.",
+      "error_description": "Try uploading your documents again and resubmit for verification.",
+      "error_button": "Retry verification",
+      "success_heading": "Identity successfully verified!",
+      "success_description": "You can now enter your payment info and complete your deposit.",
+      "success_button": "Complete your order"
+    },
+    "kyc_webview": {
+      "title": "Verifying your identity",
+      "webview_received_error": "WebView received error status code: {{code}}"
     }
   },
   "receive": {
@@ -498,10 +593,6 @@
     "multisrp": {
       "title": "Tambahkan beberapa Frasa Pemulihan Rahasia",
       "subtitle": "Impor dan gunakan beberapa dompet di MetaMask"
-    },
-    "backupAndSync": {
-      "title": "Memperkenalkan pencadangan dan sinkronisasi",
-      "subtitle": "Cadangkan akun Anda dan sinkronkan pengaturan."
     },
     "solana": {
       "title": "Kini mendukung Solana",
@@ -711,9 +802,9 @@
     "action_description_1_prefix": "Pribadi:",
     "action_description_2_prefix": "Umum:",
     "action_description_3_prefix": "Opsional:",
-    "action_description_1_description": "klik dan tampilan pada aplikasi disimpan, tetapi tidak untuk detail lainnya (seperti alamat publik).",
-    "action_description_2_description": "kami menggunakan alamat IP sementara waktu untuk mendeteksi lokasi umum (seperti negara atau wilayah Anda), tetapi alamat tersebut tidak pernah disimpan.",
-    "action_description_3_description": "memutuskan jika Anda ingin membagikan atau menghapus data penggunaan melalui pengaturan setiap saat.",
+    "action_description_1_description": "Clicks and views on the app are stored, but other details (like your public address) are not.",
+    "action_description_2_description": "We temporarily use your IP address to detect a general location (like your country or region), but it's never stored.",
+    "action_description_3_description": "You decide if you want to share or delete your usage data via settings any time.",
     "cta_no_thanks": "Tidak, terima kasih",
     "cta_i_agree": "Saya setuju",
     "fine_print_1_legacy": "Data ini dikumpulkan sehingga bersifat anonim untuk tujuan Peraturan Perlindungan Data Umum (UE) 2016/679.",
@@ -772,7 +863,7 @@
     "all_time_high": "Tertinggi sepanjang waktu",
     "all_time_low": "Terendah sepanjang waktu",
     "fully_diluted": "Dicairkan sepenuhnya",
-    "unknown": "Unknown"
+    "unknown": "Tidak dikenal"
   },
   "collectible": {
     "collectible_address": "Alamat",
@@ -809,6 +900,7 @@
     "srp_index": "SRP #{{index}}",
     "snap_account_tag": "Snap (Beta)",
     "create_new_account": "Buat akun baru",
+    "new_account": "Akun baru",
     "import_account": "Impor akun",
     "connect_hardware": "Hubungkan dompet perangkat keras",
     "imported": "Diimpor",
@@ -878,6 +970,10 @@
     },
     "error_messages": {
       "failed_to_create_account": "Gagal membuat akun {{clientType}}"
+    },
+    "account_connect_create_initial_account": {
+      "description": "Akun Solana diperlukan untuk terhubung ke situs ini.",
+      "button": "Buat akun Solana"
     }
   },
   "toast": {
@@ -984,9 +1080,9 @@
     "clear_browser_cookies_desc": "Hapus cookie browser",
     "clear": "HAPUS",
     "protect_cta": "Lindungi",
-    "protect_title": "Lindungi dompet Anda",
+    "protect_title": "Wallet recovery",
     "video_failed": "Gagal Memuat Video.",
-    "protect_desc": "Lindungi dompet Anda dengan menyimpan Frasa Pemulihan Rahasia di tempat yang hanya bisa diakses oleh Anda dan tidak akan dilupakan. Pastikan untuk tetap offline demi keamanan yang optimal.",
+    "protect_desc": "Back up your Secret Recovery Phrase so you never lose access to your wallet. Be sure to store it in a safe place that only you can access and won’t forget.",
     "protect_desc_no_backup": "Ini merupakan frasa 12 kata dompet Anda. Frasa ini dapat digunakan untuk mengontrol semua akun saat ini dan di masa mendatang, termasuk kemampuan untuk mengirim dana di dompet Anda. Simpan frasa ini dengan aman, JANGAN bagikan kepada siapa pun. MetaMask tidak dapat membantu Anda memulihkan kunci ini.",
     "learn_more": "Pelajari selengkapnya.",
     "seedphrase_not_backed_up": "Penting! Frasa Pemulihan Rahasia belum dicadangkan",
@@ -1047,7 +1143,7 @@
     "no_permissions_desc": "Jika Anda menghubungkan akun ke situs atau aplikasi, Anda akan melihatnya di sini.",
     "security_title": "Keamanan dan Privasi",
     "back": "Kembali",
-    "security_desc": "Pengaturan privasi, MetaMetrics, kunci pribadi, dan Frasa Pemulihan Rahasia dompet",
+    "security_desc": "Privacy settings, MetaMetrics, private key, and Secret Recovery Phrase.",
     "networks_title": "Jaringan",
     "networks_default_title": "Jaringan Default",
     "network_delete": "Jika menghapus jaringan ini, Anda harus menambahkannya lagi untuk melihat aset di jaringan ini",
@@ -1193,7 +1289,9 @@
       "key": "Kunci",
       "add": "Tambah",
       "update": "Perbarui",
-      "cancel": "Batal"
+      "cancel": "Batal",
+      "deposit_provider_logout_button": "Log out of {{depositProviderName}}",
+      "deposit_provider_logged_out": "Logged out of {{depositProviderName}}"
     },
     "request_feature": "Minta fitur",
     "contact_support": "Hubungi dukungan",
@@ -1289,6 +1387,8 @@
     "blockaid_desc": "Fitur ini memperingatkan Anda tentang aktivitas jahat dengan meninjau permintaan transaksi dan tanda tangan secara aktif.",
     "security_alerts": "Peringatan keamanan",
     "security_alerts_desc": "Fitur ini memperingatkan Anda tentang aktivitas berbahaya dengan meninjau permintaan transaksi dan tanda tangan secara lokal. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan. Tidak ada jaminan bahwa fitur ini akan mendeteksi semua aktivitas berbahaya. Dengan mengaktifkan fitur ini, Anda menyetujui persyaratan penggunaan penyedia.",
+    "dismiss_smart_account_update_heading": "Tolak saran \"Beralih ke Akun Cerdas\"",
+    "dismiss_smart_account_update_desc": "Aktifkan ini agar saran \"Beralih ke Akun Cerdas\" tidak muncul lagi di akun mana pun. Akun cerdas memungkinkan transaksi yang lebih cepat, biaya jaringan yang lebih rendah, serta pembayaran yang lebih fleksibel untuk akun tersebut.",
     "smart_transactions_opt_in_heading": "Transaksi Pintar",
     "smart_transactions_opt_in_desc_supported_networks": "Aktifkan Transaksi Pintar untuk transaksi yang lebih andal dan aman pada jaringan yang didukung.",
     "smart_transactions_learn_more": "Selengkapnya.",
@@ -1432,7 +1532,8 @@
     "password_title": "Kata sandi",
     "password_desc": "Pilih kata sandi yang kuat untuk membuka aplikasi MetaMask di perangkat Anda. Jika kata sandi hilang, Anda memerlukan Frasa Pemulihan Rahasia untuk mengimpor kembali dompet Anda.",
     "password_learn_more": "Pelajari selengkapnya.",
-    "change_password": "Ubah kata sandi"
+    "change_password": "Ubah kata sandi",
+    "password_hint": "Password hint"
   },
   "asset_overview": {
     "send_button": "Kirim",
@@ -1810,13 +1911,7 @@
       "generic": "Situs web ini telah diblokir agar tidak membuka aplikasi eksternal secara otomatis"
     },
     "ipfs_gateway_off_title": "Gateway IPFS tidak aktif",
-    "ipfs_gateway_off_content": "Untuk melihat situs ini, aktifkan gateway IPFS di Pengaturan Privasi dan Keamanan.",
-    "toast": {
-      "solana_dapp_connection_coming_soon": {
-        "title": "Koneksi dapp Solana akan segera hadir",
-        "message": "Anda dapat terhubung ke dapp Solana pada ekstensi atau memperdagangkan token Solana di dalam aplikasi."
-      }
-    }
+    "ipfs_gateway_off_content": "Untuk melihat situs ini, aktifkan gateway IPFS di Pengaturan Privasi dan Keamanan."
   },
   "backup_alert": {
     "title": "Lindungi dompet Anda",
@@ -1850,6 +1945,8 @@
     "tx_review_staking_claim": "Klaim Stake",
     "tx_review_staking_deposit": "Deposit Stake",
     "tx_review_staking_unstake": "Batalkan stake",
+    "tx_review_lending_deposit": "Lending Deposit",
+    "tx_review_lending_withdraw": "Lending Withdrawal",
     "sent_ether": "Mengirim Ether",
     "self_sent_ether": "Mengirim Ether ke Diri Sendiri",
     "received_ether": "Menerima Ether",
@@ -1924,35 +2021,35 @@
     "smart_account_downgrade": "Beralih ke akun standar",
     "batched_transactions": "Transaksi batch",
     "gas_modal": {
-      "edit_network_fee": "Edit network fee",
-      "advanced_gas_fee": "Advanced network fee",
-      "site_suggested": "Site suggested",
-      "advanced": "Advanced",
-      "low": "Low",
-      "medium": "Market",
-      "high": "Aggressive",
-      "network_suggested": "Network suggested",
-      "gas_limit": "Gas Limit",
-      "save": "Save",
-      "max_base_fee": "Max Base Fee",
-      "priority_fee": "Priority Fee",
-      "current_priority_fee": "Current: {{min}} - {{max}} GWEI",
-      "historical_priority_fee": "12 hr: {{min}} - {{max}} GWEI",
-      "estimated_base_fee": "Current: {{value}} GWEI",
-      "historical_base_fee": "12 hr: {{min}} - {{max}} GWEI",
-      "gas_price": "Gas price",
-      "field_required": "{{field}} is required",
-      "max_base_fee_required": "Max base fee is required",
-      "gas_price_required": "Gas price is required",
-      "priority_fee_required": "Priority fee is required",
-      "gas_limit_required": "Gas limit is required",
-      "only_numbers_allowed": "Only numbers are allowed",
-      "negative_values_not_allowed": "Negative values are not allowed",
-      "max_base_fee_must_be_greater_than_priority_fee": "Max base fee must be greater than priority fee",
-      "gas_limit_too_low": "Gas limit must be greater than 21000",
-      "priority_fee_too_high": "Priority fee must be less than max base fee",
-      "no_zero_value": "{{field}} must be greater than 0",
-      "speed": "Speed"
+      "edit_network_fee": "Edit biaya jaringan",
+      "advanced_gas_fee": "Biaya jaringan lanjutan",
+      "site_suggested": "Situs yang disarankan",
+      "advanced": "Lanjutan",
+      "low": "Rendah",
+      "medium": "Pasar",
+      "high": "Agresif",
+      "network_suggested": "Jaringan yang disarankan",
+      "gas_limit": "Batas Gas",
+      "save": "Simpan",
+      "max_base_fee": "Biaya Dasar Maks",
+      "priority_fee": "Biaya Prioritas",
+      "current_priority_fee": "Saat ini: {{min}} - {{max}} GWEI",
+      "historical_priority_fee": "12 jam: {{min}} - {{max}} GWEI",
+      "estimated_base_fee": "Saat ini: {{value}} GWEI",
+      "historical_base_fee": "12 jam: {{min}} - {{max}} GWEI",
+      "gas_price": "Harga gas",
+      "field_required": "{{field}} wajib diisi",
+      "max_base_fee_required": "Biaya dasar maks wajib diisi",
+      "gas_price_required": "Harga gas wajib diisi",
+      "priority_fee_required": "Biaya prioritas wajib diisi",
+      "gas_limit_required": "Batas gas wajib diisi",
+      "only_numbers_allowed": "Hanya angka yang diizinkan",
+      "negative_values_not_allowed": "Nilai negatif tidak diizinkan",
+      "max_base_fee_must_be_greater_than_priority_fee": "Biaya dasar maks harus lebih besar dari biaya prioritas",
+      "gas_limit_too_low": "Batas gas harus lebih besar dari 21000",
+      "priority_fee_too_high": "Biaya prioritas harus kurang dari biaya dasar maks",
+      "no_zero_value": "{{field}} harus lebih besar dari 0",
+      "speed": "Kecepatan"
     }
   },
   "smart_transactions": {
@@ -2248,16 +2345,21 @@
     "info_text_1_2": "Frasa Pemulihan Rahasia",
     "info_text_1_3": "di tempat yang aman.",
     "info_text_1_4": "Ini merupakan satu-satunya cara untuk memulihkan dompet Anda jika aplikasi terkunci atau Anda memiliki perangkat baru.",
-    "cta_text": "Mulai",
+    "cta_text": "Get started",
     "cta_subText": "Sangat direkomendasikan",
     "skip_button_cancel": "Amankan sekarang",
     "skip_button_confirm": "Lewati",
     "skip_title": "Lewati keamanan akun?",
-    "skip_check": "Saya memahami bahwa jika saya kehilangan Frasa Pemulihan Rahasia, dompet saya tidak dapat diakses.",
-    "what_is_seedphrase_title": "Apa itu ‘Frasa Pemulihan Rahasia’",
-    "what_is_seedphrase_text_1": "Frasa Pemulihan Rahasia merupakan kumpulan dari 12 kata yang memuat semua informasi tentang dompet Anda, termasuk dana Anda. Ini seperti kode rahasia yang digunakan untuk mengakses seluruh dompet Anda.",
+    "skip_check": "If you lose this Secret Recovery Phrase, you won’t be able to access this wallet.",
+    "what_is_seedphrase_title": "What’s a Secret Recovery Phrase?",
+    "what_is_seedphrase_text_1": "A Secret Recovery Phrase, also called a seed phrase or mnemonic, is a set of words that lets you access and control your crypto wallet. To move your wallet to MetaMask, you need this phrase.",
     "what_is_seedphrase_text_2": "Anda harus merahasiakan dan mengamankan Frasa Pemulihan Rahasia. Jika seseorang mendapatkan Frasa Pemulihan Rahasia, mereka akan mendapatkan kendali atas akun Anda.",
-    "what_is_seedphrase_text_3": "Simpan di tempat yang aman dan hanya bisa diakses oleh Anda. Jika hilang, MetaMask sekali pun tidak dapat membantu Anda memulihkannya."
+    "what_is_seedphrase_text_3": "Simpan di tempat yang aman dan hanya bisa diakses oleh Anda. Jika hilang, MetaMask sekali pun tidak dapat membantu Anda memulihkannya.",
+    "what_is_seedphrase_text_4": "Anyone with your Secret Recovery Phrase can:",
+    "seedPhrase_point_1": "Take all your money",
+    "seedPhrase_point_2": "Confirm transactions",
+    "seedPhrase_point_3": "Change your login information",
+    "what_is_seedphrase_confirm": "Got it"
   },
   "account_backup_step_1B": {
     "title": "Amankan dompet Anda",
@@ -2348,25 +2450,40 @@
     "progressThree": "Konfirmasikan Frasa Pemulihan Rahasia"
   },
   "manual_backup_step_1": {
-    "action": "Tuliskan Frasa Pemulihan Rahasia",
-    "info": "Ini merupakan Frasa Pemulihan Rahasia Anda. Tuliskan di atas kertas dan simpan di tempat yang aman. Anda akan diminta untuk memasukkan kembali frasa ini (secara berurutan) pada langkah berikutnya.",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Save your Secret Recovery Phrase",
+    "info-1": "This is your",
+    "info-2": "Secret Recovery Phrase",
+    "info-3": "Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.",
+    "info-4": "Don’t share it with anyone, ever.",
     "continue": "Lanjutkan",
-    "reveal": "Ketuk untuk menampilkan Frasa Pemulihan Rahasia",
+    "reveal": "Tap to reveal",
     "watching": "Pastikan tidak ada yang melihat layar Anda.",
     "view": "Lihat",
     "confirm_password": "Konfirmasikan kata sandi Anda",
     "before_continiuing": "Sebelum melanjutkan, konfirmasikan kata sandi Anda terlebih dulu",
-    "confirm": "KONFIRMASIKAN",
+    "enter_current_password": "Enter your current password",
+    "confirm": "Confirm",
     "got_it": "Mengerti",
-    "learn_more": "Pelajari Selengkapnya"
+    "learn_more": "Pelajari Selengkapnya",
+    "password": "Password"
   },
   "manual_backup_step_2": {
-    "action": "Konfirmasikan Frasa Pemulihan Rahasia",
-    "info": "Pilih setiap kata sesuai urutan yang diberikan.",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Confirm your Secret Recovery Phrase",
+    "info": "Select the missing words in the correct order.",
     "complete": "Selesaikan Pencadangan",
-    "success": "Berhasil"
+    "success": "Berhasil",
+    "error-title": "Not quite right",
+    "error-description": "Double-check your Secret Recovery Phrase and try again.",
+    "success-title": "Perfect!",
+    "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
+    "success-button": "Got it",
+    "error-button": "Try again",
+    "continue": "Continue"
   },
   "manual_backup_step_3": {
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
     "congratulations": "Selamat",
     "success": "Dompet Anda telah terlindungi. Ingatlah untuk menjaga Frasa Pemulihan Rahasia agar tetap aman, ini merupakan tanggung jawab Anda!",
     "hint": "Tinggalkan petunjuk?",
@@ -2984,7 +3101,8 @@
       "sale_pending_title": "Pemrosesan penjualan {{currency}}",
       "sale_pending_description": "Pesanan sedang diproses.",
       "no_date": "Tidak dikenal"
-    }
+    },
+    "deposit_order_title": "{{currency}} Deposit"
   },
   "swaps": {
     "title": "Tukar",
@@ -3438,10 +3556,11 @@
     "description": "Memeriksa pembaruan secara otomatis dapat menampilkan alamat IP Anda ke server GitHub. Ini hanya menunjukkan bahwa alamat IP Anda sedang menggunakan MetaMask. Tidak ada alamat akun atau informasi lainnya yang ditampilkan."
   },
   "terms_of_use_modal": {
-    "title": "Tinjau Persyaratan Penggunaan terbaru kami",
+    "title": "Tinjau Ketentuan Penggunaan kami",
     "terms_of_use_check_description": "Saya menyetujui Ketentuan Penggunaan, yang berlaku untuk penggunaan saya atas MetaMask dan semua fiturnya",
     "accept_cta": "Terima",
-    "accept_helper_description": "Gulirkan layar untuk membaca semua bagian"
+    "accept_helper_description": "Gulirkan layar untuk membaca semua bagian",
+    "agree_cta": "Setuju"
   },
   "update_needed": {
     "title": "Dapatkan fitur terbaru",
@@ -3695,9 +3814,10 @@
   "earn": {
     "empty_state_cta": {
       "heading": "Pinjamkan {{tokenSymbol}} dan hasilkan",
-      "body_prefix": "Anda bisa menghasilkan hingga",
-      "body_suffix": "per tahun dengan meminjamkan {{tokenSymbol}} milik Anda.",
-      "start_earning": "Mulai menghasilkan"
+      "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
+      "annually": "annually.",
+      "learn_more": "Learn more.",
+      "earn": "Earn"
     },
     "service_interruption_banner": {
       "maintenance_message": "Kami sedang dalam perbaikan dan akan segera kembali online!"
@@ -3723,10 +3843,52 @@
       "protocol": "Protokol peminjaman adalah kontrak cerdas yang memungkinkan Anda meminjamkan token untuk memperoleh reward. Protokol ini juga memungkinkan pengguna meminjam token dengan menjadikan token lain sebagai agunan, dengan biaya yang dibayarkan kepada pemberi pinjaman.",
       "reward_frequency": "Frekuensi penghitungan reward Anda.",
       "withdrawal_time": "Waktu yang diperlukan untuk menarik token dari protokol dan mengembalikannya ke dompet Anda",
-      "receive": "Token ini digunakan untuk melacak aset dan reward. Jangan mentransfer atau memperdagangkannya, atau Anda tidak akan dapat menarik aset."
+      "receive": "Token ini digunakan untuk melacak aset dan reward. Jangan mentransfer atau memperdagangkannya, atau Anda tidak akan dapat menarik aset.",
+      "health_factor": {
+        "your_health_factor_measures_liquidation_risk": "Your Health Factor measures liquidation risk",
+        "above_two_dot_zero": "Above 2.0",
+        "safe_position": "Safe position",
+        "between_one_dot_five_and_2_dot_zero": "Between 1.5-2.0",
+        "medium_liquidation_risk": "Medium Liquidation risk",
+        "below_one_dot_five": "Below 1.5",
+        "higher_liquidation_risk": "Higher liquidation risk"
+      },
+      "lending_risk_aware_withdrawal_tooltip": {
+        "why_cant_i_withdraw_full_balance": "Why can't I withdraw my full balance?",
+        "your_withdrawal_amount_may_be_limited_by": "Your withdrawal amount may be limited by",
+        "pool_liquidity": "Pool Liquidity",
+        "not_enough_funds_available_in_the_lending_pool_right_now": "Not enough funds available in the lending pool right now.",
+        "existing_borrow_positions": "Existing Borrow Positions",
+        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "Withdrawing could put your existing loan positions at risk of liquidation."
+      }
     },
-    "withdraw": "Withdraw",
-    "deposit_more": "Deposit more"
+    "withdraw": "Tarik",
+    "deposit_more": "Deposit lagi",
+    "earning": "Earning",
+    "withdrawal_time": "Withdrawal time",
+    "withdrawing_to": "Withdrawing to",
+    "network": "Network",
+    "health_factor": "Health factor",
+    "liquidation_risk": "Liquidation risk",
+    "insufficient_pool_liquidity": "Insufficient Pool Liquidity",
+    "available_to_withdraw": "available to withdraw",
+    "unknown": "unknown",
+    "how_it_works": "How it works",
+    "market_historic_apr_modal": {
+      "earn_rewards_on_your_token": "Earn rewards on your {{tokenSymbol}}",
+      "lend_and_earn_daily_rewards": "Lend your {{tokenSymbol}} with {{protocol}} and earn daily rewards. Rewards grow over time and APR varies.",
+      "withdraw_whenever_you_want": "Withdraw whenever you want",
+      "get_asset_back_in_your_wallet_instantly": "Get {{tokenSymbol}} back in your wallet instantly."
+    },
+    "amount_exceeds_safe_withdrawal_limit": "Amount exceeds safe withdrawal limit",
+    "view_earnings_history": {
+      "lending": "View position history",
+      "staking": "View earnings history"
+    },
+    "earnings_history_list_title": {
+      "lending": "Position history",
+      "staking": "Payout history"
+    }
   },
   "stake": {
     "stake": "Stake",
@@ -3827,13 +3989,11 @@
     "proceed_anyway": "Tetap lanjutkan",
     "gas_cost_impact": "Dampak biaya gas",
     "select_a_token": "Pilih token",
-    "you_could_earn": "Anda bisa mendapatkan",
+    "you_could_earn_up_to": "You could earn up to",
     "per_year_on_your_tokens": "per tahun atas token Anda",
     "deposit": "Deposit",
     "gas_cost_impact_warning": "Peringatan: biaya gas transaksi akan mencapai lebih dari {{percentOverDeposit}}% dari deposit Anda.",
-    "view_earnings_history": "Lihat riwayat pendapatan",
     "earnings_history_title": "Pendapatan {{ticker}}",
-    "earnings_history_list_title": "Riwayat pembayaran",
     "apr": "APR",
     "interactive_chart": {
       "timespan_buttons": {
@@ -3893,7 +4053,7 @@
     "failed": "Terjadi kesalahan saat memuat estimasi Anda.",
     "fiat_not_available": "Tidak Tersedia",
     "incoming_heading": "Anda menerima",
-    "no_balance_changes": "Tidak ada perubahan yang terprediksi untuk dompet Anda",
+    "no_balance_changes": "Tidak ada perubahan",
     "outgoing_heading": "Anda mengirim",
     "reverted": "Transaksi ini kemungkinan besar akan gagal",
     "title": "Estimasi perubahan",
@@ -3964,7 +4124,8 @@
       "signature_siwe": "Permintaan masuk",
       "contract_interaction": "Permintaan transaksi",
       "transfer": "Permintaan transfer",
-      "switch_account_type": "Pembaruan akun"
+      "switch_account_type": "Pembaruan akun",
+      "approve": "Approve request"
     },
     "sub_title": {
       "permit": "Situs ini meminta izin untuk menggunakan token Anda.",
@@ -4000,12 +4161,12 @@
       "resources": "Sumber daya"
     },
     "simulation": {
-      "cancel": "Cancel",
+      "cancel": "Batal",
       "decoded_tooltip_bid_nft": "NFT akan terlihat di dompet Anda saat tawaran diterima.",
       "decoded_tooltip_list_nft": "Nantikan perubahan hanya jika seseorang membeli NFT Anda.",
-      "edit_approval_limit_description": "Enter the amount that you feel comfortable being spent on your behalf.",
-      "edit_approval_limit_title": "Edit approval limit",
-      "edit_value_balance_info": "Account balance:",
+      "edit_approval_limit_description": "Masukkan jumlah yang paling sesuai untuk digunakan atas nama Anda.",
+      "edit_approval_limit_title": "Edit batas persetujuan",
+      "edit_value_balance_info": "Saldo akun:",
       "info_permit": "Anda memberi izin kepada spender untuk menggunakan sejumlah token ini dari akun Anda.",
       "info_revoke": "Anda menghapus izin seseorang untuk menggunakan token dari akun Anda.",
       "label_change_type_bidding": "Anda menawar",
@@ -4018,7 +4179,7 @@
       "label_change_type_transfer": "Anda mengirim",
       "label_change_type_approve": "Anda menyetujui",
       "personal_sign_info": "Anda masuk ke sebuah situs dan tidak ada perubahan yang terprediksi pada akun Anda.",
-      "save": "Save",
+      "save": "Simpan",
       "title": "Estimasi perubahan",
       "tooltip": "Estimasi perubahan merupakan hal yang mungkin terjadi jika Anda melakukan transaksi ini. Ini hanyalah prediksi, bukan jaminan.",
       "unavailable": "Tidak tersedia"
@@ -4048,8 +4209,11 @@
     "none": "Kosong",
     "advanced_details": "Detail lanjutan",
     "interacting_with": "Berinteraksi dengan",
+    "data": "Data",
     "review": "Tinjau",
-    "transferRequest": "Permintaan transfer"
+    "transferRequest": "Permintaan transfer",
+    "nested_transaction_heading": "Transaksi {{index}}",
+    "transaction": "Transaction"
   },
   "change_in_simulation_modal": {
     "title": "Hasil telah berubah",
@@ -4102,7 +4266,8 @@
     "submitting_transaction": "Mengirim",
     "fetching_quote": "Mengambil kuotasi",
     "fee_disclaimer": "Termasuk biaya MM 0,875%",
-    "hardware_wallet_not_supported": "Dompet perangkat keras belum didukung untuk Solana. Gunakan hot wallet untuk melanjutkan."
+    "hardware_wallet_not_supported": "Dompet perangkat keras belum didukung. Gunakan hot wallet untuk melanjutkan.",
+    "hardware_wallet_not_supported_solana": "Dompet perangkat keras belum didukung untuk Solana. Gunakan hot wallet untuk melanjutkan."
   },
   "quote_expired_modal": {
     "title": "Kuotasi baru tersedia",
@@ -4138,7 +4303,8 @@
     },
     "privacyLink": "Pelajari cara kami melindungi privasi Anda",
     "features": {
-      "accounts": "Akun"
+      "accounts": "Akun",
+      "contacts": "Contacts"
     },
     "manageWhatYouSync": {
       "title": "Kelola yang Anda sinkronkan",
@@ -4163,60 +4329,80 @@
   },
   "multichain_accounts": {
     "account_details": {
-      "header_title": "Account Details",
-      "account_name": "Account Name",
-      "account_address": "Account Address",
-      "wallet": "Wallet",
-      "private_key": "Private key"
+      "header_title": "Detail Akun",
+      "account_name": "Nama Akun",
+      "account_address": "Alamat Akun",
+      "wallet": "Dompet",
+      "private_key": "Kunci pribadi"
+    },
+    "accounts_list": {
+      "details": "Details"
     },
     "smart_account": {
-      "title": "Enable Smart Account",
-      "description": "You can enable smart account features on supported networks. {{learnMore}}",
-      "learn_more": "Learn more"
+      "title": "Aktifkan Akun Cerdas",
+      "description": "You can enable smart account features on supported networks.",
+      "learn_more": "Selengkapnya"
     },
     "edit_account_name": {
-      "title": "Edit Account Name",
-      "name": "Name",
-      "save_button": "Save",
-      "error_duplicate_name": "This account name already exists"
+      "title": "Edit Nama Akun",
+      "name": "Nama",
+      "save_button": "Simpan",
+      "error_duplicate_name": "Nama akun ini sudah ada"
     },
     "delete_account": {
-      "title": "Remove Account",
-      "warning_title": "This account will be removed from MetaMask.",
-      "warning_description": "Make sure you have the Secret Recovery Phrase or private key for this account before removing.",
-      "remove_button": "Remove",
-      "cancel_button": "Cancel",
-      "error": "Failed to delete account"
+      "title": "Hapus Akun",
+      "warning_title": "Akun ini akan dihapus dari MetaMask.",
+      "warning_description": "Pastikan Anda memiliki Frasa Pemulihan Rahasia atau kunci pribadi untuk akun ini sebelum menghapusnya.",
+      "remove_button": "Hapus",
+      "cancel_button": "Batal",
+      "error": "Gagal menghapus akun"
     },
     "share_address": {
-      "title": "Share Address",
-      "copy_address": "Copy address",
-      "view_on_explorer_button": "View on {{explorer}}",
-      "view_on_block_explorer": "View on Block Explorer"
+      "title": "Bagikan Alamat",
+      "copy_address": "Salin alamat",
+      "view_on_explorer_button": "Lihat di {{explorer}}",
+      "view_on_block_explorer": "Lihat di Block Explorer"
     },
     "export_credentials": {
-      "export_private_key": "Private key",
-      "private_key_warning_title": "Never disclose this key.",
-      "private_key_warning_description": "Anyone with your private key can stead any assets held in your account.",
-      "credential_as_text": "Text",
-      "credential_as_qr": "QR code",
-      "export_mnemonic": "Export mnemonic",
-      "backup": "Backup"
+      "export_private_key": "Kunci pribadi",
+      "private_key_warning_title": "Jangan pernah mengungkapkan kunci ini.",
+      "private_key_warning_description": "Siapa pun yang memiliki kunci pribadi Anda dapat mengakses segala aset yang tersimpan di akun Anda.",
+      "credential_as_text": "Teks",
+      "credential_as_qr": "Kode QR",
+      "export_mnemonic": "Ekspor mnemonik",
+      "backup": "Cadangan"
     },
     "reveal_private_key": {
-      "title": "Show private key",
-      "banner_title": "Never disclose this key.",
-      "banner_description": "Anyone with your private key can stead any assets held in your account.",
-      "enter_password": "Enter your password",
-      "password_placeholder": "Password",
-      "next": "Next",
-      "copy": "Copy"
+      "title": "Tampilkan kunci pribadi",
+      "banner_title": "Jangan pernah mengungkapkan kunci ini.",
+      "banner_description": "Siapa pun yang memiliki kunci pribadi Anda dapat mengakses segala aset yang tersimpan di akun Anda.",
+      "enter_password": "Masukkan kata sandi",
+      "password_placeholder": "Kata sandi",
+      "next": "Berikutnya",
+      "copy": "Salin"
     },
     "reveal_srp": {
-      "header": "Security quiz",
-      "description": "To reveal your Secret Recovery Phrase, you need to correctly answer two questions",
-      "get_started": "Get started",
-      "learn_more": "Learn more"
+      "header": "Kuis keamanan",
+      "description": "Untuk mengungkapkan Frasa Pemulihan Rahasia, Anda perlu menjawab dua pertanyaan dengan benar",
+      "get_started": "Mulai",
+      "learn_more": "Selengkapnya"
     }
+  },
+  "deep_link_modal": {
+    "private_link": {
+      "title": "Redirecting you to MetaMask",
+      "description": "You'll open {{pageTitle}} if you continue.",
+      "checkbox_label": "Don't remind me again"
+    },
+    "public_link": {
+      "title": "Proceed with caution",
+      "description": "You were sent here by a third party, not MetaMask. You'll open {{pageTitle}} if you continue."
+    },
+    "invalid": {
+      "title": "This page doesn't exist",
+      "description": "We can't find the page you're looking for."
+    },
+    "back_button": "Back",
+    "continue_button": "Continue"
   }
 }

@@ -36,6 +36,7 @@ import {
 } from '../../../util/password';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
+import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import { setLockTime } from '../../../actions/settings';
@@ -84,7 +85,6 @@ import Text, {
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { CommonActions } from '@react-navigation/native';
 import {
   SRP_LENGTHS,
@@ -110,9 +110,9 @@ const ImportFromSecretRecoveryPhrase = ({
   passwordSet,
   setLockTime,
   seedphraseBackedUp,
+  saveOnboardingEvent,
   setOnboardingWizardStep,
   route,
-  dispatchSaveOnboardingEvent,
 }) => {
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
@@ -133,9 +133,9 @@ const ImportFromSecretRecoveryPhrase = ({
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
   const [seedPhrase, setSeedPhrase] = useState([]);
   const [seedPhraseInputFocusedIndex, setSeedPhraseInputFocusedIndex] =
-    useState(0);
+    useState(null);
   const [nextSeedPhraseInputFocusedIndex, setNextSeedPhraseInputFocusedIndex] =
-    useState(0);
+    useState(null);
   const [showAllSeedPhrase, setShowAllSeedPhrase] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [learnMore, setLearnMore] = useState(false);
@@ -160,7 +160,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
-    trackOnboarding(eventBuilder.build(), dispatchSaveOnboardingEvent);
+    trackOnboarding(eventBuilder.build(), saveOnboardingEvent);
   };
 
   const [errorWordIndexes, setErrorWordIndexes] = useState({});
@@ -170,23 +170,9 @@ const ImportFromSecretRecoveryPhrase = ({
     setErrorWordIndexes({});
     setShowAllSeedPhrase(false);
     setError('');
+    setSeedPhraseInputFocusedIndex(0);
+    setNextSeedPhraseInputFocusedIndex(0);
   }, []);
-
-  const handleSeedPhraseChange = useCallback(
-    (seedPhraseText) => {
-      setError('');
-      const text = formatSeedPhraseToSingleLine(seedPhraseText);
-      const trimmedText = text.trim();
-      const updatedTrimmedText = trimmedText.split(' ');
-
-      if (SRP_LENGTHS.includes(updatedTrimmedText.length)) {
-        setSeedPhrase(updatedTrimmedText);
-      } else {
-        setSeedPhrase(text.split(' '));
-      }
-    },
-    [setSeedPhrase],
-  );
 
   const handleSeedPhraseChangeAtIndex = useCallback(
     (seedPhraseText, index) => {
@@ -226,6 +212,30 @@ const ImportFromSecretRecoveryPhrase = ({
       }
     },
     [setSeedPhrase, setNextSeedPhraseInputFocusedIndex, seedPhrase],
+  );
+
+  const handleSeedPhraseChange = useCallback(
+    (seedPhraseText) => {
+      setError('');
+      const text = formatSeedPhraseToSingleLine(seedPhraseText);
+      const trimmedText = text.trim();
+      const updatedTrimmedText = trimmedText.split(' ');
+
+      if (SRP_LENGTHS.includes(updatedTrimmedText.length)) {
+        setSeedPhrase(updatedTrimmedText);
+      } else {
+        handleSeedPhraseChangeAtIndex(text, 0);
+      }
+
+      if (updatedTrimmedText.length > 1) {
+        // no focus on any input
+        setSeedPhraseInputFocusedIndex(null);
+        // blur of last ref
+        const lastRef = seedPhraseInputRefs.current.length - 1;
+        seedPhraseInputRefs.current[lastRef]?.blur();
+      }
+    },
+    [handleSeedPhraseChangeAtIndex, setSeedPhrase],
   );
 
   const onQrCodePress = useCallback(() => {
@@ -433,11 +443,24 @@ const ImportFromSecretRecoveryPhrase = ({
   }, [handleSeedPhraseChange]);
 
   const toggleShowAllSeedPhrase = () => {
+    seedPhraseInputRefs.current[seedPhraseInputFocusedIndex]?.blur();
+    setSeedPhraseInputFocusedIndex(null);
     setShowAllSeedPhrase((prev) => !prev);
   };
 
-  const hasSeedPhraseErrors = (seedPhraseArr) =>
-    seedPhraseArr.some((word) => word !== '' && !checkValidSeedWord(word));
+  const checkForWordErrors = useCallback(
+    (seedPhraseArr) => {
+      const errorsMap = {};
+      seedPhraseArr.forEach((word, index) => {
+        if (!checkValidSeedWord(word)) {
+          errorsMap[index] = true;
+        }
+      });
+      setErrorWordIndexes(errorsMap);
+      return errorsMap;
+    },
+    [setErrorWordIndexes],
+  );
 
   const validateSeedPhrase = () => {
     const phrase = seedPhrase.filter((item) => item !== '').join(' ');
@@ -455,7 +478,9 @@ const ImportFromSecretRecoveryPhrase = ({
       return false;
     }
 
-    if (hasSeedPhraseErrors(seedPhrase)) {
+    const wordErrorMap = checkForWordErrors(seedPhrase);
+    const hasWordErrors = Object.values(wordErrorMap).some(Boolean);
+    if (hasWordErrors) {
       setError(strings('import_from_seed.spellcheck_error'));
       return false;
     }
@@ -495,6 +520,8 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const onPressImport = async () => {
+    seedPhraseInputRefs.current[seedPhraseInputFocusedIndex]?.blur();
+
     const vaultSeed = await parseVaultValue(password, seedPhrase.join(' '));
     const parsedSeed = parseSeedPhrase(vaultSeed || seedPhrase.join(' '));
 
@@ -552,6 +579,7 @@ const ImportFromSecretRecoveryPhrase = ({
         track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
           wallet_setup_type: 'import',
           new_wallet: false,
+          account_type: 'imported',
         });
         !onboardingWizard && setOnboardingWizardStep(1);
 
@@ -601,6 +629,9 @@ const ImportFromSecretRecoveryPhrase = ({
     password !== '' && confirmPassword !== '' && password !== confirmPassword;
 
   const showWhatIsSeedPhrase = () => {
+    track(MetaMetricsEvents.SRP_DEFINITION_CLICKED, {
+      location: 'import_from_seed',
+    });
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SEEDPHRASE_MODAL,
     });
@@ -679,7 +710,12 @@ const ImportFromSecretRecoveryPhrase = ({
                       'import_from_seed.enter_your_secret_recovery_phrase',
                     )}
                   </Text>
-                  <TouchableOpacity onPress={showWhatIsSeedPhrase}>
+                  <TouchableOpacity
+                    onPress={showWhatIsSeedPhrase}
+                    testID={
+                      ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID
+                    }
+                  >
                     <Icon
                       name={IconName.Info}
                       size={IconSize.Md}
@@ -708,7 +744,6 @@ const ImportFromSecretRecoveryPhrase = ({
                             styles.seedPhraseDefaultInputPlaceholder
                           }
                           multiline
-                          autoFocus
                           onKeyPress={(e) => handleKeyPress(e, 0)}
                           autoComplete="off"
                           submitBehavior={'submit'}
@@ -731,6 +766,9 @@ const ImportFromSecretRecoveryPhrase = ({
                             data={seedPhrase}
                             numColumns={NUM_COLUMNS}
                             keyExtractor={(_, index) => index.toString()}
+                            onBlur={() => {
+                              setSeedPhraseInputFocusedIndex(null);
+                            }}
                             renderItem={({ item, index }) => (
                               <View
                                 style={[
@@ -791,11 +829,10 @@ const ImportFromSecretRecoveryPhrase = ({
                                   }
                                   autoCapitalize="none"
                                   numberOfLines={1}
-                                  autoFocus={index === seedPhrase.length - 1}
                                   testID={`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`}
                                   keyboardType="default"
                                   autoCorrect={false}
-                                  textContentType="none"
+                                  textContentType="oneTimeCode"
                                   spellCheck={false}
                                 />
                               </View>
@@ -1069,6 +1106,10 @@ ImportFromSecretRecoveryPhrase.propTypes = {
    */
   seedphraseBackedUp: PropTypes.func,
   /**
+   * Action to save onboarding event
+   */
+  saveOnboardingEvent: PropTypes.func,
+  /**
    * Action to set onboarding wizard step
    */
   setOnboardingWizardStep: PropTypes.func,
@@ -1079,7 +1120,6 @@ ImportFromSecretRecoveryPhrase.propTypes = {
   /**
    * Action to save onboarding event
    */
-  dispatchSaveOnboardingEvent: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({
@@ -1087,8 +1127,7 @@ const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
   passwordSet: () => dispatch(passwordSet()),
   seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
-  dispatchSaveOnboardingEvent: (...eventArgs) =>
-    dispatch(saveOnboardingEvent(eventArgs)),
+  saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
 });
 
 export default connect(

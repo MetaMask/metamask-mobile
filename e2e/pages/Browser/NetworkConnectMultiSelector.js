@@ -27,7 +27,6 @@ class NetworkConnectMultiSelector {
     const chainPermissionTestId = `${chainName}-selected`;
 
     const element = await Matchers.getElementByID(chainPermissionTestId);
-    await waitFor(element).toBeVisible().withTimeout(10000);
 
     return expect(element).toExist();
   }

@@ -280,6 +280,19 @@ describe('AccountBackupStep1', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
+  it('show what is seedphrase modal when srp link is pressed', () => {
+    (Engine.hasFunds as jest.Mock).mockReturnValue(true);
+    const { wrapper } = setupTest();
+    const srpLink = wrapper.getByTestId(
+      ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK,
+    );
+    expect(srpLink).toBeOnTheScreen();
+    fireEvent.press(srpLink);
+    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+      screen: 'SeedphraseModal',
+    });
+  });
+
   describe('skip functionality', () => {
     it('calls onConfirm when onboarding wizard exists', async () => {
       (Engine.hasFunds as jest.Mock).mockReturnValue(false);
@@ -341,7 +354,7 @@ describe('AccountBackupStep1', () => {
       );
     });
 
-    it('should handle skip when metrics is disabled', async () => {
+    it('handle skip when metrics is disabled', async () => {
       mockIsEnabled.mockReturnValue(false);
       (Engine.hasFunds as jest.Mock).mockReturnValue(false);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
@@ -368,6 +381,47 @@ describe('AccountBackupStep1', () => {
       expect(mockNavigate).toHaveBeenCalledWith('OptinMetrics', {
         onContinue: expect.any(Function),
       });
+
+      // Get the onConfirm function from the modal params
+      const modalParams2 = mockNavigate.mock.calls.find(
+        (call) => call[0] === 'OptinMetrics',
+      )[1];
+
+      // Call the onContinue function
+      await modalParams2.onContinue();
+
+      // Verify navigation to OnboardingSuccess
+      expect(mockDispatch).toHaveBeenCalledWith(
+        mockResetActionOnboardingSuccessWizard,
+      );
+    });
+
+    it('handle secure now button to goNext step when metrics is disabled', async () => {
+      mockIsEnabled.mockReturnValue(false);
+      (Engine.hasFunds as jest.Mock).mockReturnValue(false);
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+
+      const { wrapper } = setupTest();
+
+      // Find and press the "Remind me later" button
+      const remindLaterButton = wrapper.getByText(
+        strings('account_backup_step_1.remind_me_later'),
+      );
+      fireEvent.press(remindLaterButton);
+
+      // Get the onConfirm function from the modal params
+      const modalParams = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === 'RootModalFlow' &&
+          call[1].screen === 'SkipAccountSecurityModal',
+      )[1].params;
+
+      mockNavigate.mockClear();
+      // Call the onConfirm function (skip)
+      await modalParams.onCancel();
+
+      // Verify navigation to OnboardingSuccess
+      expect(mockNavigate).toHaveBeenCalledWith('ManualBackupStep1', {});
     });
   });
 });
