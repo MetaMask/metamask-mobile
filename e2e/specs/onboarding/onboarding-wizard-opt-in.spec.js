@@ -204,6 +204,41 @@ describe(
       await OnboardingSuccessView.tapDone();
     });
 
+    // Helper function to ensure we reach the wallet screen
+    const ensureWalletScreen = async () => {
+      try {
+        // First try to check if we're already on wallet screen
+        await Assertions.checkIfVisible(WalletView.container);
+        return;
+      } catch (error) {
+        console.log('Not on wallet screen, checking for intermediate screens...');
+      }
+
+      // Check for marketing consent modal
+      try {
+        await Assertions.checkIfVisible(ExperienceEnhancerBottomSheet.container);
+        await ExperienceEnhancerBottomSheet.tapIAgree();
+        console.log('Dismissed marketing consent modal');
+      } catch (error) {
+        console.log('No marketing consent modal found');
+      }
+
+      // Check for protect your wallet modal
+      try {
+        await Assertions.checkIfVisible(ProtectYourWalletModal.collapseWalletModal);
+        await TestHelpers.delay(1000);
+        await ProtectYourWalletModal.tapRemindMeLaterButton();
+        await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+        await SkipAccountSecurityModal.tapSkipButton();
+        console.log('Dismissed protect your wallet modal');
+      } catch (error) {
+        console.log('No protect your wallet modal found');
+      }
+
+      // Now check if we're on wallet screen
+      await Assertions.checkIfVisible(WalletView.container);
+    };
+
     it('should dismiss the marketing consent and track analytics', async () => {
       await withFixtures(
         {
@@ -299,7 +334,7 @@ describe(
 
     it('should check that metametrics is enabled in settings', async () => {
       await TestHelpers.delay(2000); // Wait for UI to stabilize
-      await Assertions.checkIfVisible(WalletView.container); // Ensure we're on wallet screen
+      await ensureWalletScreen(); // Use helper function to ensure we're on wallet screen
       await TabBarComponent.tapSettings();
       await TestHelpers.delay(2000); // Wait for settings to load
       await SettingsView.tapSecurityAndPrivacy();
@@ -379,7 +414,7 @@ describe(
 
     it('should verify metametrics is turned off', async () => {
       await TestHelpers.delay(2000); // Wait for UI to stabilize
-      await Assertions.checkIfVisible(WalletView.container); // Ensure we're on wallet screen
+      await ensureWalletScreen(); // Use helper function to ensure we're on wallet screen
       await TabBarComponent.tapSettings();
       await TestHelpers.delay(2000); // Wait for settings to load
       await SettingsView.tapSecurityAndPrivacy();
