@@ -12,17 +12,21 @@ import {
 } from './OAuthInterface';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import {
-  AuthConnectionId,
+  AuthConnectionConfig,
   AuthServerUrl,
   web3AuthNetwork as currentWeb3AuthNetwork,
-  GroupedAuthConnectionId,
 } from './OAuthLoginHandlers/constants';
 import { OAuthError, OAuthErrorType } from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
+import AppConstants from '../AppConstants';
 
 export interface OAuthServiceConfig {
-  authConnectionId: string;
-  groupedAuthConnectionId?: string;
+  authConnectionConfig: {
+    [key in AuthConnection]: {
+      authConnectionId: string;
+      groupedAuthConnectionId?: string;
+    };
+  };
   web3AuthNetwork: Web3AuthNetwork;
   authServerUrl: string;
 }
@@ -43,8 +47,7 @@ export class OAuthService {
     const {
       authServerUrl,
       web3AuthNetwork,
-      authConnectionId,
-      groupedAuthConnectionId,
+      authConnectionConfig,
     } = config;
     this.localState = {
       loginInProgress: false,
@@ -54,8 +57,7 @@ export class OAuthService {
       oauthLoginError: null,
     };
     this.config = {
-      authConnectionId,
-      groupedAuthConnectionId,
+      authConnectionConfig,
       web3AuthNetwork,
       authServerUrl,
     };
@@ -97,12 +99,13 @@ export class OAuthService {
         throw new Error('No user id found');
       }
 
+      const authConnectionConfig = this.config.authConnectionConfig[authConnection];
       const result =
         await Engine.context.SeedlessOnboardingController.authenticate({
           idTokens: Object.values(data.jwt_tokens),
           authConnection,
-          authConnectionId: this.config.authConnectionId,
-          groupedAuthConnectionId: this.config.groupedAuthConnectionId,
+          authConnectionId: authConnectionConfig.authConnectionId,
+          groupedAuthConnectionId: authConnectionConfig.groupedAuthConnectionId,
           userId,
           socialLoginEmail: accountName,
         });
@@ -194,8 +197,7 @@ export class OAuthService {
   };
 
   getAuthDetails = () => ({
-    authConnectionId: this.config.authConnectionId,
-    groupedAuthConnectionId: this.config.groupedAuthConnectionId,
+    authConnectionConfig: this.config.authConnectionConfig,
     userId: this.localState.userId,
   });
 
@@ -217,7 +219,6 @@ export class OAuthService {
 
 export default new OAuthService({
   web3AuthNetwork: currentWeb3AuthNetwork as Web3AuthNetwork,
-  authConnectionId: AuthConnectionId,
-  groupedAuthConnectionId: GroupedAuthConnectionId,
+  authConnectionConfig: AuthConnectionConfig,
   authServerUrl: AuthServerUrl,
 });
