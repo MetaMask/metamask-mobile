@@ -69,13 +69,14 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
         await TestHelpers.delay(2000);
         
         // Try to find the contacts screen
-        await Assertions.checkIfExists(ContactsView.container);
+        await Assertions.checkIfVisible(ContactsView.container);
         return; // Success, exit the retry loop
       } catch (error) {
-        console.log(`Attempt ${attempt} failed to navigate to contacts: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.log(`Attempt ${attempt} failed to navigate to contacts: ${errorMessage}`);
         
         if (attempt === maxRetries) {
-          throw new Error(`Failed to navigate to contacts after ${maxRetries} attempts. Last error: ${error.message}`);
+          throw new Error(`Failed to navigate to contacts after ${maxRetries} attempts. Last error: ${errorMessage}`);
         }
         
         // Wait before retrying
