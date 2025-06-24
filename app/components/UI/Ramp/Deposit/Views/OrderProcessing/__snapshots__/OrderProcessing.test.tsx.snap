@@ -288,7 +288,6 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
                   "gap": 3,
                 }
               }
-              testID="copy-order-id-button"
             >
               <Text
                 accessibilityRole="text"
@@ -424,7 +423,6 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
               "justifyContent": "center",
             }
           }
-          testID="view-details-button"
         >
           <Text
             accessibilityRole="text"
@@ -552,7 +550,6 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
                 null,
               ]
             }
-            testID="support-button"
           >
             <Text
               style={
@@ -955,7 +952,6 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
                   "gap": 3,
                 }
               }
-              testID="copy-order-id-button"
             >
               <Text
                 accessibilityRole="text"
@@ -1091,7 +1087,6 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
               "justifyContent": "center",
             }
           }
-          testID="view-details-button"
         >
           <Text
             accessibilityRole="text"
@@ -1491,7 +1486,6 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
                   "gap": 3,
                 }
               }
-              testID="copy-order-id-button"
             >
               <Text
                 accessibilityRole="text"
@@ -1627,7 +1621,6 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
               "justifyContent": "center",
             }
           }
-          testID="view-details-button"
         >
           <Text
             accessibilityRole="text"
