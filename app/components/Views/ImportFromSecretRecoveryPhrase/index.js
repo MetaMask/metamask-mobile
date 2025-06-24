@@ -898,7 +898,7 @@ const ImportFromSecretRecoveryPhrase = ({
                     onPress={handleContinueImportFlow}
                     width={ButtonWidthTypes.Full}
                     size={ButtonSize.Lg}
-                    isDisabled={isSRPContinueButtonDisabled}
+                    isDisabled={isSRPContinueButtonDisabled || Boolean(error)}
                     testID={ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID}
                   />
                 </View>
