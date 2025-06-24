@@ -3,14 +3,14 @@ import { convertHexToDecimal } from '@metamask/controller-utils';
 
 const log = createProjectLogger('transaction-relay');
 
-type RelayNetwork = {
+interface RelayNetwork {
   network: string;
   relayTransactions: boolean;
-};
+}
 
-type RelayNetworkResponse = {
+interface RelayNetworkResponse {
   [chainIdDecimal: string]: RelayNetwork;
-};
+}
 
 const BASE_URL = 'https://tx-sentinel-{0}.api.cx.metamask.io/';
 const ENDPOINT_NETWORKS = 'networks';

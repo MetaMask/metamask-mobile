@@ -266,8 +266,6 @@ export enum AtomicCapabilityStatus {
 async function getAlternateGasFeesCapability(
   chainIds: Hex[],
   batchSupport: IsAtomicBatchSupportedResult,
-  getIsSmartTransaction: (chainId: Hex) => boolean,
-  isRelaySupported: (chainId: Hex) => Promise<boolean>,
   messenger: EIP5792Messenger,
 ) {
   const simulationEnabled = messenger.call(
@@ -293,7 +291,10 @@ async function getAlternateGasFeesCapability(
 
     const { isSupported = false, relaySupportedForChain } = chainBatchSupport;
 
-    const isSmartTransaction = getIsSmartTransaction(chainId);
+    const isSmartTransaction = selectSmartTransactionsEnabled(
+      store.getState(),
+      chainId,
+    );
 
     const alternateGasFees =
       simulationEnabled &&
@@ -336,8 +337,6 @@ export async function getCapabilities(address: Hex, chainIds?: Hex[]) {
   const alternateGasFeesAcc = await getAlternateGasFeesCapability(
     chainIdsNormalized,
     batchSupport,
-    selectSmartTransactionsEnabled.bind(undefined, store.getState()),
-    isRelaySupported,
     controllerMessenger as unknown as EIP5792Messenger,
   );
 

@@ -487,7 +487,6 @@ describe('processSendCalls', () => {
         if (type === 'PreferencesController:getState')
           return { useTransactionSimulations: true };
       });
-      TransactionsSelectors;
       jest
         .spyOn(TransactionsSelectors, 'selectSmartTransactionsEnabled')
         .mockReturnValue(true);
