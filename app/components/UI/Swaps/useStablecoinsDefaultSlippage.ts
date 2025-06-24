@@ -4,6 +4,7 @@ import { Hex } from '@metamask/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import usePrevious from '../../hooks/usePrevious';
+import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 
 // USDC and USDT for now
 const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
@@ -47,6 +48,9 @@ const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
     '0x1d17CBcF0D6D143135aE902365D2E5e2A16538D4', // USDC
     '0x3355df6D4c9C3035724Fd0e3914dE96A5a83aaf4', // USDC.e
     '0x493257fD37EDB34451f62EDf8D2a0C418852bA4C', // USDT
+  ]),
+  [NETWORKS_CHAIN_ID.SEI]: new Set([
+    '0x3894085Ef7Ff0f0aeDf52E2A2704928d1Ec074F1', // USDC
   ]),
 };
 

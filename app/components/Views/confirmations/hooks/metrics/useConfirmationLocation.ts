@@ -39,8 +39,14 @@ const ConfirmationLocationMap = {
       case TransactionType.tokenMethodTransfer:
       case TransactionType.tokenMethodTransferFrom:
         return CONFIRMATION_EVENT_LOCATIONS.TRANSFER;
+      case TransactionType.tokenMethodApprove:
+      case TransactionType.tokenMethodIncreaseAllowance:
+      case TransactionType.tokenMethodSetApprovalForAll:
+        return CONFIRMATION_EVENT_LOCATIONS.APPROVE;
+      case TransactionType.deployContract:
+        return CONFIRMATION_EVENT_LOCATIONS.CONTRACT_DEPLOYMENT;
       default:
-        return undefined;
+        return CONFIRMATION_EVENT_LOCATIONS.CONTRACT_INTERACTION;
     }
   },
 };

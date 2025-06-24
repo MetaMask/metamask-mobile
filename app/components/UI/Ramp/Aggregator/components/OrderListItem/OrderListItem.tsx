@@ -2,8 +2,10 @@ import React from 'react';
 import { Image } from 'react-native';
 
 import createStyles from './OrderListItem.styles';
-
-import { FiatOrder, getProviderName } from '../../../../../../reducers/fiatOrders';
+import {
+  FiatOrder,
+  getProviderName,
+} from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { toDateFormat } from '../../../../../../util/date';
 import { addCurrencySymbol, renderFiat } from '../../../../../../util/number';
@@ -76,7 +78,13 @@ function OrderListItem({ order }: Props) {
   const styles = createStyles();
   const amount = getOrderAmount(order);
   const isBuy = order.orderType === 'BUY';
+  const isDeposit = order.provider === 'DEPOSIT';
+  const isPurchase = isBuy || isDeposit;
   const [statusColor, statusText] = getStatusColorAndText(order);
+
+  const aggregatorTitleKey = isBuy
+    ? 'fiat_on_ramp_aggregator.purchased_currency'
+    : 'fiat_on_ramp_aggregator.sold_currency';
 
   return (
     <ListItem
@@ -89,7 +97,7 @@ function OrderListItem({ order }: Props) {
     >
       <ListItemColumn>
         <Image
-          source={isBuy ? transactionIconReceived : transactionIconSent}
+          source={isPurchase ? transactionIconReceived : transactionIconSent}
           style={styles.icon}
           resizeMode="stretch"
         />
@@ -97,15 +105,16 @@ function OrderListItem({ order }: Props) {
 
       <ListItemColumn widthType={WidthType.Fill}>
         <Text variant={TextVariant.BodyMD}>
-          {getProviderName(order.provider, order.data)}:{' '}
-          {strings(
-            isBuy
-              ? 'fiat_on_ramp_aggregator.purchased_currency'
-              : 'fiat_on_ramp_aggregator.sold_currency',
-            {
-              currency: order.cryptocurrency,
-            },
-          )}
+          {isDeposit
+            ? strings('fiat_on_ramp_aggregator.deposit_order_title', {
+                currency: order.cryptocurrency,
+              })
+            : `${getProviderName(order.provider, order.data)}: ${strings(
+                aggregatorTitleKey,
+                {
+                  currency: order.cryptocurrency,
+                },
+              )}`}
         </Text>
         <Text variant={TextVariant.BodySMBold} color={statusColor}>
           {statusText}

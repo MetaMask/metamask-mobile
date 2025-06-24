@@ -20,4 +20,6 @@ export enum ONBOARDING_SUCCESS_FLOW {
   BACKED_UP_SRP = 'backedUpSRP',
   NO_BACKED_UP_SRP = 'noBackedUpSRP',
   IMPORT_FROM_SEED_PHRASE = 'importFromSeedPhrase',
+  SETTINGS_BACKUP = 'settingsBackup',
+  REMINDER_BACKUP = 'reminderBackup',
 }

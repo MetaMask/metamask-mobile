@@ -19,8 +19,12 @@ import {
   UpdateInterface,
   ResolveInterface,
   UpdateInterfaceState,
-  CancelBackgroundEvent,
-  GetBackgroundEvents,
+  Cancel,
+  Get,
+  WebSocketServiceOpenAction as WebSocketServiceOpenActionType,
+  WebSocketServiceCloseAction as WebSocketServiceCloseActionType,
+  WebSocketServiceGetAllAction as WebSocketServiceGetAllActionType,
+  WebSocketServiceSendMessageAction as WebSocketServiceSendMessageActionType,
 } from '@metamask/snaps-controllers';
 
 // SnapController Events
@@ -87,8 +91,20 @@ export const SnapInterfaceControllerUpdateInterfaceStateAction: UpdateInterfaceS
   'SnapInterfaceController:updateInterfaceState';
 
 // CronjobController Actions
-export const CronjobControllerCancelBackgroundEventAction: CancelBackgroundEvent['type'] =
-  'CronjobController:cancelBackgroundEvent';
+export const CronjobControllerCancelAction: Cancel['type'] =
+  'CronjobController:cancel';
 
-export const CronjobControllerGetBackgroundEventsAction: GetBackgroundEvents['type'] =
-  'CronjobController:getBackgroundEvents';
+export const CronjobControllerGetAction: Get['type'] = 'CronjobController:get';
+
+// WebSocketService Actions
+export const WebSocketServiceOpenAction: WebSocketServiceOpenActionType['type'] =
+  'WebSocketService:open';
+
+export const WebSocketServiceCloseAction: WebSocketServiceCloseActionType['type'] =
+  'WebSocketService:close';
+
+export const WebSocketServiceGetAllAction: WebSocketServiceGetAllActionType['type'] =
+  'WebSocketService:getAll';
+
+export const WebSocketServiceSendMessageAction: WebSocketServiceSendMessageActionType['type'] =
+  'WebSocketService:sendMessage';

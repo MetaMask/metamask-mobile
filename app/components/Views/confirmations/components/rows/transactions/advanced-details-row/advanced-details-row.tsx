@@ -1,4 +1,5 @@
 import React from 'react';
+import { Hex } from '@metamask/utils';
 
 import { ScrollView } from 'react-native-gesture-handler';
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
@@ -42,12 +43,13 @@ const AdvancedDetailsRow = () => {
   const { isBatched, isUpgrade, is7702transaction, isDowngrade } =
     use7702TransactionType();
 
-  if (!transactionMetadata?.txParams?.to) {
+  if (!transactionMetadata) {
     return null;
   }
 
-  const data = transactionMetadata.txParams.data ?? '';
-  const hasDataNeedsScroll = data.length > MAX_DATA_LENGTH_FOR_SCROLL;
+  const data = transactionMetadata?.txParams?.data;
+  const to = transactionMetadata?.txParams?.to;
+  const hasDataNeedsScroll = data && data.length > MAX_DATA_LENGTH_FOR_SCROLL;
 
   return (
     <>
@@ -68,16 +70,16 @@ const AdvancedDetailsRow = () => {
         }
         expandedContent={
           <>
-            {!isDowngrade && (
+            {!isDowngrade && to && (
               <InfoSection>
                 <InfoRow label={strings('stake.interacting_with')}>
                   {isBatched || isUpgrade ? (
                     <SmartContractWithLogo />
                   ) : (
                     <Name
-                      value={transactionMetadata.txParams.to}
+                      value={to}
                       type={NameType.EthereumAddress}
-                      variation={transactionMetadata.chainId}
+                      variation={transactionMetadata?.chainId as Hex}
                     />
                   )}
                 </InfoRow>
@@ -102,7 +104,7 @@ const AdvancedDetailsRow = () => {
               <InfoSection>
                 <InfoRow
                   label={strings('transaction.data')}
-                  copyText={transactionMetadata.txParams.data}
+                  copyText={data}
                   valueOnNewLine
                 >
                   {hasDataNeedsScroll ? (

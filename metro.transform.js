@@ -56,7 +56,7 @@ const experimentalFeatureSet = new Set(['experimental']);
  */
 function getBuildTypeFeatures() {
   const buildType = process.env.METAMASK_BUILD_TYPE ?? 'main';
-  const envType = process.env.METAMASK_ENVIRONMENT ?? 'prod';
+  const envType = process.env.METAMASK_ENVIRONMENT ?? 'production';
   switch (buildType) {
     case 'main':
       // TODO: Refactor this once we've abstracted environment away from build type
@@ -64,7 +64,7 @@ function getBuildTypeFeatures() {
         // Only include experimental features in experimental environment
         return experimentalFeatureSet;
       }
-      return envType === 'prod' ? mainFeatureSet : betaFeatureSet;
+      return envType === 'beta' ? betaFeatureSet : mainFeatureSet;
     case 'beta':
       return betaFeatureSet;
     case 'flask':

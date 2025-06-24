@@ -77,7 +77,7 @@ export const createRemoteFeatureFlagController = ({
   } else {
     remoteFeatureFlagController.updateRemoteFeatureFlags().then(() => {
       Logger.log('Feature flags updated');
-    });
+    }).catch((error) => Logger.log(error));
   }
   return remoteFeatureFlagController;
 };
