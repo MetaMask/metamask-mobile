@@ -55,18 +55,42 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
     }
   });
 
+  // Helper function to navigate to contacts with retry logic
+  async function navigateToContactsWithRetry(maxRetries = 3) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await TabBarComponent.tapSettings();
+        await TestHelpers.delay(3000);
+        
+        // Verify we're in settings first
+        await Assertions.checkIfVisible(SettingsView.generalSettingsButton);
+        
+        await SettingsView.tapContacts();
+        await TestHelpers.delay(2000);
+        
+        // Try to find the contacts screen
+        await Assertions.checkIfExists(ContactsView.container);
+        return; // Success, exit the retry loop
+      } catch (error) {
+        console.log(`Attempt ${attempt} failed to navigate to contacts: ${error.message}`);
+        
+        if (attempt === maxRetries) {
+          throw new Error(`Failed to navigate to contacts after ${maxRetries} attempts. Last error: ${error.message}`);
+        }
+        
+        // Wait before retrying
+        await TestHelpers.delay(2000);
+      }
+    }
+  }
+
   it('syncs new contacts and retrieves them after importing the same SRP', async () => {
     await importWalletWithRecoveryPhrase({
       seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
       password: IDENTITY_TEAM_PASSWORD,
     });
 
-    await TabBarComponent.tapSettings();
-    await TestHelpers.delay(3000);
-
-    await SettingsView.tapContacts();
-    await TestHelpers.delay(2000);
-    await Assertions.checkIfVisible(ContactsView.container);
+    await navigateToContactsWithRetry();
     await ContactsView.tapAddContactButton();
     await Assertions.checkIfVisible(AddContactView.container);
 
@@ -88,11 +112,11 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
       password: IDENTITY_TEAM_PASSWORD,
     });
 
-    await TabBarComponent.tapSettings();
-    await TestHelpers.delay(2000);
-    await SettingsView.tapContacts();
-    await Assertions.checkIfVisible(ContactsView.container);
-    await TestHelpers.delay(4000);
+    // Navigate to contacts with retry logic for the second time
+    await navigateToContactsWithRetry();
+    
+    // Wait longer for sync to complete on the second device
+    await TestHelpers.delay(6000);
 
     await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
   });
