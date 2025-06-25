@@ -52,11 +52,7 @@ const ListItemMultiSelectButton: React.FC<
         {...props}
       >
         <ListItem gap={gap} style={styles.containerColumn}>
-          <Checkbox
-            style={styles.checkbox}
-            isChecked={isSelected}
-            onPressIn={props.onPress}
-          />
+          <Checkbox isChecked={isSelected} onPressIn={props.onPress} />
           {children}
         </ListItem>
       </TouchableOpacity>

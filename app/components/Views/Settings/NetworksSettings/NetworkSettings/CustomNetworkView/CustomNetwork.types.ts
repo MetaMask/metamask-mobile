@@ -94,4 +94,8 @@ export interface CustomNetworkProps {
    * Allow network switch
    */
   allowNetworkSwitch?: boolean;
+  /**
+   * Use compact UI with icons instead of text
+   */
+  compactMode?: boolean;
 }

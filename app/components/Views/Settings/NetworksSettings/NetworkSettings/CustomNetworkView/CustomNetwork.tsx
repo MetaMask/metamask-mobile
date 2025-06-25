@@ -26,6 +26,10 @@ import { MultichainNetworkConfiguration } from '@metamask/multichain-network-con
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconSize,
+  IconName,
+} from '../../../../../../component-library/components/Icons/Icon';
 
 const CustomNetwork = ({
   showPopularNetworkModal,
@@ -43,6 +47,7 @@ const CustomNetwork = ({
   showCompletionMessage = true,
   hideWarningIcons = false,
   allowNetworkSwitch = true,
+  compactMode = false,
   listHeader = '',
 }: CustomNetworkProps) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
@@ -114,6 +119,15 @@ const CustomNetwork = ({
           onPress={() => showNetworkModal(networkConfiguration)}
         >
           <View style={styles.popularWrapper}>
+            {compactMode && (
+              <View style={styles.iconContainer}>
+                <Icon
+                  name={IconName.Add}
+                  size={IconSize.Lg}
+                  color={colors.icon.alternative}
+                />
+              </View>
+            )}
             <View style={styles.popularNetworkImage}>
               <AvatarNetwork
                 name={networkConfiguration.nickname}
@@ -144,15 +158,18 @@ const CustomNetwork = ({
                 onPress={toggleWarningModal}
               />
             ) : null}
+
             {displayContinue &&
             networkConfiguration.chainId === selectedChainId ? (
               <CustomText link>{strings('networks.continue')}</CustomText>
             ) : (
-              <CustomText link>
-                {networkConfiguration.isAdded
-                  ? strings('networks.switch')
-                  : strings('networks.add')}
-              </CustomText>
+              !compactMode && (
+                <Text variant={TextVariant.BodyMD}>
+                  {networkConfiguration.isAdded
+                    ? strings('networks.switch')
+                    : strings('networks.add')}
+                </Text>
+              )
             )}
           </View>
         </TouchableOpacity>

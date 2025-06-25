@@ -50,9 +50,6 @@ const styleSheet = (params: {
     buttonIcon: {
       paddingRight: 20,
     },
-    checkbox: {
-      marginRight: 8,
-    },
   });
 };
 

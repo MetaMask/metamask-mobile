@@ -166,6 +166,7 @@ const NetworkSelectorListTab = () => {
               allowNetworkSwitch={false}
               hideWarningIcons
               listHeader={strings('networks.additional_networks')}
+              compactMode
             />
           </View>
         }
