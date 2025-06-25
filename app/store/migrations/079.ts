@@ -1,64 +1,84 @@
-import { hasProperty, isObject } from '@metamask/utils';
-import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
+import { cloneDeep } from 'lodash';
+import { ensureValidState } from './util';
+import { hasProperty, isObject } from '@metamask/utils';
+
+// In-lined from @metamask/multichain
+const Caip25CaveatType = 'authorizedScopes';
+const Caip25EndowmentPermissionName = 'endowment:caip25';
 
 /**
- * Migration 79: Reset PhishingController phishingLists
- *
- * This migration resets only the phishingLists array in the PhishingController state
- * while preserving all other state properties. This allows the app to rebuild the lists
- * while maintaining user preferences and configuration.
+ * Migration to add sessionProperties property to CAIP-25 permission caveats
+ * @param state - The current MetaMask mobile state.
+ * @returns Migrated Redux state.
  */
-const migration = (state: unknown): unknown => {
-  const migrationVersion = 79;
+export default function migrate(oldState: unknown) {
+  const version = 79;
 
-  if (!ensureValidState(state, migrationVersion)) {
-    return state;
+  // Ensure the state is valid for migration
+  if (!ensureValidState(oldState, version)) {
+    return oldState;
   }
 
-  try {
-    if (
-      !hasProperty(state, 'engine') ||
-      !isObject(state.engine) ||
-      !hasProperty(state.engine, 'backgroundState') ||
-      !isObject(state.engine.backgroundState)
-    ) {
-      captureException(
-        new Error(
-          `Migration 079: Invalid engine state structure`,
-        ),
-      );
-      return state;
-    }
+  const newState = cloneDeep(oldState);
+  const { backgroundState } = newState.engine;
 
-    if (
-      !hasProperty(state.engine.backgroundState, 'PhishingController') ||
-      !isObject(state.engine.backgroundState.PhishingController)
-    ) {
-      captureException(
-        new Error(
-          `Migration 079: Invalid PhishingController state: '${JSON.stringify(
-            state.engine.backgroundState.PhishingController,
-          )}'`,
-        ),
-      );
-      return state;
-    }
-
-    // Only reset the phishingLists field to an empty array
-    // while preserving all other fields
-    state.engine.backgroundState.PhishingController.phishingLists = [];
-    state.engine.backgroundState.PhishingController.stalelistLastFetched = 0;
-
-    return state;
-  } catch (error) {
+  if (
+    !hasProperty(backgroundState, 'PermissionController') ||
+    !isObject(backgroundState.PermissionController)
+  ) {
     captureException(
       new Error(
-        `Migration 079: cleaning PhishingController state failed with error: ${error}`,
+        `Migration ${version}: typeof state.PermissionController is ${typeof backgroundState.PermissionController}`,
       ),
     );
-    return state;
+    return oldState;
   }
-};
 
-export default migration;
+  const {
+    PermissionController: { subjects },
+  } = backgroundState;
+
+  if (!isObject(subjects)) {
+    captureException(
+      new Error(
+        `Migration ${version}: typeof state.PermissionController.subjects is ${typeof subjects}`,
+      ),
+    );
+    return oldState;
+  }
+
+  for (const subject of Object.values(subjects)) {
+    if (
+      !isObject(subject) ||
+      !hasProperty(subject, 'permissions') ||
+      !isObject(subject.permissions)
+    ) {
+      continue;
+    }
+
+    const { permissions } = subject;
+    const caip25Permission = permissions[Caip25EndowmentPermissionName];
+
+    if (
+      !isObject(caip25Permission) ||
+      !Array.isArray(caip25Permission.caveats)
+    ) {
+      continue;
+    }
+
+    const caip25Caveat = caip25Permission.caveats.find(
+      (caveat) => caveat.type === Caip25CaveatType,
+    );
+
+    if (
+      caip25Caveat &&
+      isObject(caip25Caveat.value) &&
+      !hasProperty(caip25Caveat.value, 'sessionProperties')
+    ) {
+      caip25Caveat.value.sessionProperties = {};
+    }
+  }
+
+  return newState;
+}
