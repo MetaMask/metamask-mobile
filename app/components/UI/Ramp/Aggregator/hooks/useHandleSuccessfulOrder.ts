@@ -14,7 +14,7 @@ import useThunkDispatch from '../../../../hooks/useThunkDispatch';
 import { useRampSDK } from '../sdk';
 import { getNotificationDetails } from '../utils';
 import stateHasOrder from '../../utils/stateHasOrder';
-import useAnalytics from './useAnalytics';
+import useAnalytics from '../../hooks/useAnalytics';
 import { hexToBN, toHexadecimal } from '../../../../../util/number';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import Routes from '../../../../../constants/navigation/Routes';
