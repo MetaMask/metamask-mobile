@@ -160,12 +160,6 @@ class TestSnaps {
 
           const { open, origin, blockNumber } = JSON.parse(text);
 
-          console.log('Retrieved WebSocket state:', {
-            open,
-            origin,
-            blockNumber,
-          });
-
           const blockNumberMatch =
             typeof state.blockNumber === 'string'
               ? typeof blockNumber === state.blockNumber
@@ -178,7 +172,7 @@ class TestSnaps {
           return false;
         }
       },
-      { timeout: 20000, interval: 1000 },
+      { timeout: 10000, interval: 1000 },
     );
   }
 }

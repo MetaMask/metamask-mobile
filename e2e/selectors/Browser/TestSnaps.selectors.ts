@@ -21,6 +21,7 @@ export const TestSnapInputSelectorWebIDS = {
   messageEd25519Bip32Input: 'bip32Message-ed25519Bip32',
   messageEd25519Input: 'bip32Message-ed25519',
   messageSecp256k1Input: 'bip32Message-secp256k1',
+  webSocketUrlInput: 'webSocketUrl',
 };
 
 export const EntropyDropDownSelectorWebIDS = {

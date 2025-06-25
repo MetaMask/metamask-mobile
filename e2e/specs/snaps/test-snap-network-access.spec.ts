@@ -7,6 +7,7 @@ import Assertions from '../../utils/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import BrowserView from '../../pages/Browser/BrowserView';
 import TestSnaps from '../../pages/Browser/TestSnaps';
+import { AnvilPort } from '../../fixtures/utils';
 
 describe(FlaskBuildTests('Network Access Snap Tests'), () => {
   beforeAll(async () => {
@@ -45,11 +46,13 @@ describe(FlaskBuildTests('Network Access Snap Tests'), () => {
         );
 
         // Use WebSockets
+        const webSocketUrl = `ws://localhost:${AnvilPort()}`;
+        await TestSnaps.fillMessage('webSocketUrlInput', webSocketUrl)
         await TestSnaps.tapButton('startWebSocket');
 
         await TestSnaps.waitForWebSocketUpdate({
           open: true,
-          origin: 'ws://localhost:8545',
+          origin: webSocketUrl,
           blockNumber: 'number',
         });
 
