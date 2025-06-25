@@ -1,13 +1,7 @@
 import { captureException } from '@sentry/react-native';
-import { cloneDeep } from 'lodash';
-import {
-  NetworkConfiguration,
-  RpcEndpointType,
-} from '@metamask/network-controller';
-import { Hex } from '@metamask/utils';
-
-import { ensureValidState } from './util';
 import migrate from './082';
+import { cloneDeep } from 'lodash';
+import { ensureValidState } from './util';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -20,243 +14,550 @@ jest.mock('./util', () => ({
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 
-const createTestState = () => ({
-  engine: {
-    backgroundState: {
-      NetworkController: {
-        selectedNetworkClientId: 'mainnet',
-        networksMetadata: {},
-        networkConfigurationsByChainId: {
-          '0x1': {
-            chainId: '0x1',
-            rpcEndpoints: [
-              {
-                networkClientId: 'mainnet',
-                url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
-                type: 'infura',
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
-            blockExplorerUrls: ['https://etherscan.io'],
-            defaultBlockExplorerUrlIndex: 0,
-            name: 'Ethereum Mainnet',
-            nativeCurrency: 'ETH',
-          },
-          '0xaa36a7': {
-            chainId: '0xaa36a7',
-            rpcEndpoints: [
-              {
-                networkClientId: 'sepolia',
-                url: 'https://sepolia.infura.io/v3/{infuraProjectId}',
-                type: 'infura',
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
-            blockExplorerUrls: ['https://sepolia.etherscan.io'],
-            defaultBlockExplorerUrlIndex: 0,
-            name: 'Sepolia',
-            nativeCurrency: 'SepoliaETH',
-          },
-          '0xe705': {
-            chainId: '0xe705',
-            rpcEndpoints: [
-              {
-                networkClientId: 'linea-sepolia',
-                url: 'https://linea-sepolia.infura.io/v3/{infuraProjectId}',
-                type: 'infura',
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
-            blockExplorerUrls: ['https://sepolia.lineascan.build'],
-            defaultBlockExplorerUrlIndex: 0,
-            name: 'Linea Sepolia',
-            nativeCurrency: 'LineaETH',
-          },
-          '0xe708': {
-            chainId: '0xe708',
-            rpcEndpoints: [
-              {
-                networkClientId: 'linea-mainnet',
-                url: 'https://linea-mainnet.infura.io/v3/{infuraProjectId}',
-                type: 'infura',
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
-            blockExplorerUrls: ['https://lineascan.build'],
-            defaultBlockExplorerUrlIndex: 0,
-            name: 'Linea Mainnet',
-            nativeCurrency: 'ETH',
-          },
-          '0x18c6': {
-            chainId: '0x18c6',
-            rpcEndpoints: [
-              {
-                networkClientId: 'megaeth-testnet',
-                url: 'https://carrot.megaeth.com/rpc',
-                type: RpcEndpointType.Custom,
-                failoverUrls: [],
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
-            blockExplorerUrls: ['https://megaexplorer.xyz'],
-            defaultBlockExplorerUrlIndex: 0,
-            name: 'Mega Testnet',
-            nativeCurrency: 'MegaETH',
-          },
-        },
-      },
-    },
-  },
-});
-
-const createMonadTestnetConfiguration = (): NetworkConfiguration => ({
-  chainId: '0x279f',
-  rpcEndpoints: [
-    {
-      networkClientId: 'monad-testnet',
-      url: 'https://testnet-rpc.monad.xyz',
-      type: RpcEndpointType.Custom,
-      failoverUrls: [],
-    },
-  ],
-  defaultRpcEndpointIndex: 0,
-  blockExplorerUrls: ['https://testnet.monadexplorer.com'],
-  defaultBlockExplorerUrlIndex: 0,
-  name: 'Monad Testnet',
-  nativeCurrency: 'MON',
-});
-
-describe('Migration 77: Add `Monad Testnet`', () => {
+describe('Migration 82', () => {
   beforeEach(() => {
+    jest.restoreAllMocks();
     jest.resetAllMocks();
-  });
-
-  it('returns state unchanged if ensureValidState fails', () => {
-    const state = { some: 'state' };
-    mockedEnsureValidState.mockReturnValue(false);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toStrictEqual({ some: 'state' });
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('adds `Monad Testnet` as default network to state', () => {
-    const monadTestnetConfiguration = createMonadTestnetConfiguration();
-    const oldState = createTestState();
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const expectedData = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            ...oldState.engine.backgroundState.NetworkController,
-            networkConfigurationsByChainId: {
-              ...oldState.engine.backgroundState.NetworkController
-                .networkConfigurationsByChainId,
-              [monadTestnetConfiguration.chainId]: monadTestnetConfiguration,
-            },
-          },
-        },
-      },
-    };
-
-    const migratedState = migrate(oldState);
-
-    expect(migratedState).toStrictEqual(expectedData);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('replaces `Monad Testnet` NetworkConfiguration if there is one', () => {
-    const monadTestnetConfiguration = createMonadTestnetConfiguration();
-    const oldState = createTestState();
-    const networkConfigurationsByChainId = oldState.engine.backgroundState
-      .NetworkController.networkConfigurationsByChainId as Record<
-      Hex,
-      NetworkConfiguration
-    >;
-    networkConfigurationsByChainId[monadTestnetConfiguration.chainId] = {
-      ...monadTestnetConfiguration,
-      rpcEndpoints: [
-        {
-          networkClientId: 'some-client-id',
-          url: 'https://some-url.com/rpc',
-          type: RpcEndpointType.Custom,
-        },
-      ],
-    };
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const expectedData = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            ...oldState.engine.backgroundState.NetworkController,
-            networkConfigurationsByChainId: {
-              ...oldState.engine.backgroundState.NetworkController
-                .networkConfigurationsByChainId,
-              [monadTestnetConfiguration.chainId]: monadTestnetConfiguration,
-            },
-          },
-        },
-      },
-    };
-
-    const migratedState = migrate(oldState);
-
-    expect(migratedState).toStrictEqual(expectedData);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
   it.each([
     {
       state: {
-        engine: {},
-      },
-      test: 'empty engine state',
-    },
-    {
-      state: {
-        engine: {
-          backgroundState: {},
-        },
-      },
-      test: 'empty backgroundState',
-    },
-    {
-      state: {
         engine: {
           backgroundState: {
-            NetworkController: 'invalid',
+            TokenBalancesController: 'invalid',
           },
         },
       },
-      test: 'invalid NetworkController state',
+      test: 'invalid TokenBalancesController state',
+      expectedError:
+        "FATAL ERROR: Migration 82: Invalid TokenBalancesController state error: 'string'",
     },
     {
       state: {
         engine: {
           backgroundState: {
-            NetworkController: {
-              networkConfigurationsByChainId: 'invalid',
+            TokenBalancesController: {},
+          },
+        },
+      },
+      test: 'empty TokenBalancesController state',
+      expectedError:
+        "FATAL ERROR: Migration 82: Invalid TokenBalancesController state error: 'object'",
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            TokenBalancesController: {
+              tokenBalances: {},
+            },
+            TokensController: 'invalid',
+          },
+        },
+      },
+      test: 'invalid TokensController state',
+      expectedError:
+        "FATAL ERROR: Migration 82: Invalid TokensController state error: 'string'",
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            TokenBalancesController: {
+              tokenBalances: {},
+            },
+            TokensController: {},
+          },
+        },
+      },
+      test: 'empty TokensController state',
+      expectedError:
+        "FATAL ERROR: Migration 82: Invalid TokensController state error: 'object'",
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            TokenBalancesController: {
+              tokenBalances: {},
+            },
+            TokensController: {
+              allTokens: {},
             },
           },
         },
       },
-      test: 'invalid networkConfigurationsByChainId state',
+      test: 'TokensController state without allDetectedTokens and allIgnoredTokens',
+      expectedError:
+        "FATAL ERROR: Migration 82: Invalid TokensController state error: 'object'",
     },
-  ])('does not modify state if the state is invalid - $test', ({ state }) => {
-    const orgState = cloneDeep(state);
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            TokenBalancesController: {
+              tokenBalances: {},
+            },
+            TokensController: {
+              allTokens: {},
+              allDetectedTokens: {},
+              allIgnoredTokens: {},
+            },
+            AccountsController: 'invalid',
+          },
+        },
+      },
+      test: 'invalid accountsController state',
+      expectedError:
+        "FATAL ERROR: Migration 82: Invalid AccountsController state error: 'string'",
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            TokenBalancesController: {
+              tokenBalances: {},
+            },
+            TokensController: {
+              allTokens: {},
+              allDetectedTokens: {},
+              allIgnoredTokens: {},
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: 'invalid',
+              },
+            },
+          },
+        },
+      },
+      test: 'invalid accountsController accounts state',
+      expectedError:
+        "FATAL ERROR: Migration 82: Invalid AccountsController state error: 'object'",
+    },
+  ])(
+    'captures exception and returns state unchanged for invalid state - $test',
+    ({ state, expectedError }) => {
+      const orgState = cloneDeep(state);
+      mockedEnsureValidState.mockReturnValue(true);
+
+      const migratedState = migrate(state);
+
+      // State should be unchanged
+      expect(migratedState).toStrictEqual(orgState);
+      expect(mockedCaptureException).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expectedError,
+        }),
+      );
+    },
+  );
+
+  it('does not remove any tokens from state if all accounts in TokensController state exist in AccountsController state', () => {
     mockedEnsureValidState.mockReturnValue(true);
+    const testInternalAccountAddress = '0x123';
+    const oldState = {
+      engine: {
+        backgroundState: {
+          TokenBalancesController: {
+            tokenBalances: {
+              [testInternalAccountAddress]: {
+                '0x1': {
+                  '0x6B175474E89094C44Da98b954EedeAC495271d0F': {
+                    balance: '0x5',
+                  },
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [testInternalAccountAddress]: [
+                  {
+                    address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+                    aggregators: [],
+                    decimals: 18,
+                    image:
+                      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b175474e89094c44da98b954eedeac495271d0f.png',
+                    name: 'Dai',
+                    symbol: 'DAI',
+                  },
+                ],
+              },
+            },
+            allDetectedTokens: {},
+            allIgnoredTokens: {},
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: 'unknown-1',
+              accounts: {
+                'unknown-1': {
+                  id: 'unknown-1',
+                  type: 'eip155:eoa',
+                  address: testInternalAccountAddress,
+                  options: {},
+                  metadata: {
+                    name: 'Unknown Account',
+                    keyring: { type: 'HD Key Tree' },
+                    importTime: Date.now(),
+                  },
+                  methods: [],
+                  scopes: [],
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    const newStorage = migrate(oldState);
 
-    const migratedState = migrate(state);
+    expect(newStorage).toStrictEqual(oldState);
+  });
 
-    // State should be unchanged
-    expect(migratedState).toStrictEqual(orgState);
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        'Migration 82: NetworkController or networkConfigurationsByChainId not found in state',
-      ),
-    );
+  it('removes tokens from allTokens state and tokenBalances from TokenBalancesController state if the account does not exist in AccountsController state', () => {
+    mockedEnsureValidState.mockReturnValue(true);
+    const testInternalAccountAddress = '0x123';
+    const removedInternalAccountAddress = '0x456';
+    const oldState = {
+      engine: {
+        backgroundState: {
+          TokenBalancesController: {
+            tokenBalances: {
+              [testInternalAccountAddress]: {
+                '0x1': {
+                  '0x6B175474E89094C44Da98b954EedeAC495271d0F': {
+                    balance: '0x5',
+                  },
+                },
+              },
+              [removedInternalAccountAddress]: {
+                '0x1': {
+                  '0x22222474E89094C44Da98b954EedeAC495271d0F': {
+                    balance: '0x4',
+                  },
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [testInternalAccountAddress]: [
+                  {
+                    address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+                    aggregators: [],
+                    decimals: 18,
+                    image:
+                      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b175474e89094c44da98b954eedeac495271d0f.png',
+                    name: 'Dai',
+                    symbol: 'DAI',
+                  },
+                ],
+                [removedInternalAccountAddress]: [
+                  {
+                    address: '0x22222474E89094C44Da98b954EedeAC495271d0F',
+                    aggregators: [],
+                    decimals: 18,
+                    image:
+                      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b175474e89094c44da98b954eedeac495271d0f.png',
+                    name: 'Dai',
+                    symbol: 'DAI',
+                  },
+                ],
+              },
+            },
+            allDetectedTokens: {},
+            allIgnoredTokens: {},
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: 'id-1',
+              accounts: {
+                'id-1': {
+                  id: 'id-1',
+                  type: 'eip155:eoa',
+                  address: testInternalAccountAddress,
+                  options: {},
+                  metadata: {
+                    name: 'Unknown Account',
+                    keyring: { type: 'HD Key Tree' },
+                    importTime: Date.now(),
+                  },
+                  methods: [],
+                  scopes: [],
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    const newStorage = migrate(oldState);
+
+    expect(newStorage).toStrictEqual({
+      engine: {
+        backgroundState: {
+          TokenBalancesController: {
+            tokenBalances: {
+              [testInternalAccountAddress]: {
+                '0x1': {
+                  '0x6B175474E89094C44Da98b954EedeAC495271d0F': {
+                    balance: '0x5',
+                  },
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [testInternalAccountAddress]: [
+                  {
+                    address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+                    aggregators: [],
+                    decimals: 18,
+                    image:
+                      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b175474e89094c44da98b954eedeac495271d0f.png',
+                    name: 'Dai',
+                    symbol: 'DAI',
+                  },
+                ],
+              },
+            },
+            allDetectedTokens: {},
+            allIgnoredTokens: {},
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: 'id-1',
+              accounts: {
+                'id-1': {
+                  id: 'id-1',
+                  type: 'eip155:eoa',
+                  address: testInternalAccountAddress,
+                  options: {},
+                  metadata: {
+                    name: 'Unknown Account',
+                    keyring: { type: 'HD Key Tree' },
+                    importTime: Date.now(),
+                  },
+                  methods: [],
+                  scopes: [],
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  });
+
+  it('removes tokens from allTokens state and tokenBalances from TokenBalancesController state if the account does not exist in AccountsController state on different chains', () => {
+    mockedEnsureValidState.mockReturnValue(true);
+    const testInternalAccountAddress1 = '0x123';
+    const testInternalAccountAddress2 = '0x456';
+    const removedInternalAccountAddress = '0x789';
+    const oldState = {
+      engine: {
+        backgroundState: {
+          TokenBalancesController: {
+            tokenBalances: {
+              [testInternalAccountAddress1]: {
+                '0x1': {
+                  '0x6B175474E89094C44Da98b954EedeAC495271d0F': {
+                    balance: '0x5',
+                  },
+                },
+              },
+              [testInternalAccountAddress2]: {
+                '0x2': {
+                  '0x22222474E89094C44Da98b954EedeAC495271d0F': {
+                    balance: '0x4',
+                  },
+                },
+              },
+              [removedInternalAccountAddress]: {
+                '0x2': {
+                  '0x33333474E89094C44Da98b954EedeAC495271d0F': {
+                    balance: '0x4',
+                  },
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [testInternalAccountAddress1]: [
+                  {
+                    address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+                    aggregators: [],
+                    decimals: 18,
+                    image:
+                      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b175474e89094c44da98b954eedeac495271d0f.png',
+                    name: 'Dai',
+                    symbol: 'DAI',
+                  },
+                ],
+              },
+              '0x2': {
+                [testInternalAccountAddress2]: [
+                  {
+                    address: '0x22222474E89094C44Da98b954EedeAC495271d0F',
+                    aggregators: [],
+                    decimals: 18,
+                    image:
+                      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b175474e89094c44da98b954eedeac495271d0f.png',
+                    name: 'Dai',
+                    symbol: 'DAI',
+                  },
+                ],
+                [removedInternalAccountAddress]: [
+                  {
+                    address: '0x33333474E89094C44Da98b954EedeAC495271d0F',
+                    aggregators: [],
+                    decimals: 18,
+                    image:
+                      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b175474e89094c44da98b954eedeac495271d0f.png',
+                    name: 'Dai',
+                    symbol: 'DAI',
+                  },
+                ],
+              },
+            },
+            allDetectedTokens: {},
+            allIgnoredTokens: {},
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: 'id-1',
+              accounts: {
+                'id-1': {
+                  id: 'id-1',
+                  type: 'eip155:eoa',
+                  address: testInternalAccountAddress1,
+                  options: {},
+                  metadata: {
+                    name: 'Unknown Account',
+                    keyring: { type: 'HD Key Tree' },
+                    importTime: Date.now(),
+                  },
+                  methods: [],
+                  scopes: [],
+                },
+                'id-2': {
+                  id: 'id-2',
+                  type: 'eip155:eoa',
+                  address: testInternalAccountAddress2,
+                  options: {},
+                  metadata: {
+                    name: 'Unknown Account',
+                    keyring: { type: 'HD Key Tree' },
+                    importTime: Date.now(),
+                  },
+                  methods: [],
+                  scopes: [],
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    const newStorage = migrate(oldState);
+
+    expect(newStorage).toStrictEqual({
+      engine: {
+        backgroundState: {
+          TokenBalancesController: {
+            tokenBalances: {
+              [testInternalAccountAddress1]: {
+                '0x1': {
+                  '0x6B175474E89094C44Da98b954EedeAC495271d0F': {
+                    balance: '0x5',
+                  },
+                },
+              },
+              [testInternalAccountAddress2]: {
+                '0x2': {
+                  '0x22222474E89094C44Da98b954EedeAC495271d0F': {
+                    balance: '0x4',
+                  },
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [testInternalAccountAddress1]: [
+                  {
+                    address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+                    aggregators: [],
+                    decimals: 18,
+                    image:
+                      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b175474e89094c44da98b954eedeac495271d0f.png',
+                    name: 'Dai',
+                    symbol: 'DAI',
+                  },
+                ],
+              },
+              '0x2': {
+                [testInternalAccountAddress2]: [
+                  {
+                    address: '0x22222474E89094C44Da98b954EedeAC495271d0F',
+                    aggregators: [],
+                    decimals: 18,
+                    image:
+                      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b175474e89094c44da98b954eedeac495271d0f.png',
+                    name: 'Dai',
+                    symbol: 'DAI',
+                  },
+                ],
+              },
+            },
+            allDetectedTokens: {},
+            allIgnoredTokens: {},
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: 'id-1',
+              accounts: {
+                'id-1': {
+                  id: 'id-1',
+                  type: 'eip155:eoa',
+                  address: testInternalAccountAddress1,
+                  options: {},
+                  metadata: {
+                    name: 'Unknown Account',
+                    keyring: { type: 'HD Key Tree' },
+                    importTime: Date.now(),
+                  },
+                  methods: [],
+                  scopes: [],
+                },
+                'id-2': {
+                  id: 'id-2',
+                  type: 'eip155:eoa',
+                  address: testInternalAccountAddress2,
+                  options: {},
+                  metadata: {
+                    name: 'Unknown Account',
+                    keyring: { type: 'HD Key Tree' },
+                    importTime: Date.now(),
+                  },
+                  methods: [],
+                  scopes: [],
+                },
+              },
+            },
+          },
+        },
+      },
+    });
   });
 });

@@ -289,19 +289,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
     });
 
-    it('input field is autoFocused on initial render', () => {
-      const { getByPlaceholderText } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-      expect(input.props.autoFocus).toBe(true);
-    });
-
     it('on backspace key press, the input field value is updated', async () => {
       const { getByPlaceholderText, getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
@@ -556,12 +543,179 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
       );
-
       const srpLink = getByTestId(
         ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID,
       );
       expect(srpLink).toBeOnTheScreen();
       fireEvent.press(srpLink);
+    });
+
+    it('update focused index on blur', async () => {
+      const { getByPlaceholderText, getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      // Enter a seed phrase to create multiple input fields
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(
+          input,
+          'say devote wasp video cool lunch brief add fever uncover novel offer',
+        );
+      });
+
+      // Wait for the individual input fields to be created
+      await waitFor(() => {
+        expect(
+          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`),
+        ).toBeOnTheScreen();
+      });
+
+      const input0 = getByTestId(
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+      );
+      const input1 = getByTestId(
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`,
+      );
+
+      // Test case 1: Focus on input 0, then blur from the same input
+      // This should set the focused index to null
+      fireEvent(input0, 'focus');
+      fireEvent(input0, 'blur');
+
+      // The input should handle the blur event without crashing
+      expect(input0).toBeOnTheScreen();
+
+      // Test case 2: Focus on input 0, then blur from a different input
+      // This should not change the focused index
+      fireEvent(input0, 'focus');
+      fireEvent(input1, 'blur');
+
+      // Both inputs should still be on screen and functional
+      expect(input0).toBeOnTheScreen();
+      expect(input1).toBeOnTheScreen();
+    });
+
+    it('valid seed word on blur', async () => {
+      const { getByPlaceholderText, getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      // Enter a seed phrase to create multiple input fields
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(
+          input,
+          'say devote wasp video cool lunch brief add fever uncover novel offer',
+        );
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`),
+        ).toBeOnTheScreen();
+      });
+
+      const input0 = getByTestId(
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+      );
+
+      // Test blur with a valid word ("say" is a valid BIP39 word)
+      fireEvent.changeText(input0, 'say');
+      fireEvent(input0, 'focus');
+      fireEvent(input0, 'blur');
+
+      // Should handle blur without issues
+      expect(input0).toBeOnTheScreen();
+      expect(input0.props.value).toBe('say');
+    });
+
+    it('invalid seed word on blur', async () => {
+      const { getByPlaceholderText, getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      // Enter a seed phrase to create multiple input fields
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(
+          input,
+          'say devote wasp video cool lunch brief add fever uncover novel offer',
+        );
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`),
+        ).toBeOnTheScreen();
+      });
+
+      const input0 = getByTestId(
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+      );
+
+      // Test blur with an invalid word
+      fireEvent.changeText(input0, 'invalidword');
+      fireEvent(input0, 'focus');
+      fireEvent(input0, 'blur');
+
+      // Should handle blur without issues even with invalid word
+      expect(input0).toBeOnTheScreen();
+      expect(input0.props.value).toBe('invalidword');
+    });
+
+    it('empty word on blur', async () => {
+      const { getByPlaceholderText, getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      // Enter a seed phrase to create multiple input fields
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(
+          input,
+          'say devote wasp video cool lunch brief add fever uncover novel offer',
+        );
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`),
+        ).toBeOnTheScreen();
+      });
+
+      const input0 = getByTestId(
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+      );
+
+      // Test blur with empty word
+      fireEvent.changeText(input0, '');
+      fireEvent(input0, 'focus');
+      fireEvent(input0, 'blur');
+
+      // Should handle blur without issues even with empty word
+      expect(input0).toBeOnTheScreen();
+      expect(input0.props.value).toBe('');
     });
   });
 

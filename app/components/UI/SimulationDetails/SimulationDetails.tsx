@@ -132,8 +132,8 @@ const SimulationDetailsLayout: React.FC<{
 }> = ({ inHeader, children, isTransactionsRedesign, noBalanceChanges = false }) => {
   const { styles } = useStyles(styleSheet, { isTransactionsRedesign, noBalanceChanges });
   return (
-    <View 
-      style={isTransactionsRedesign ? styles.redesignedRowContainer : {}} 
+    <View
+      style={isTransactionsRedesign ? styles.redesignedRowContainer : {}}
       testID={ConfirmationRowComponentIDs.SIMULATION_DETAILS}
     >
       <View style={[styles.container]}>

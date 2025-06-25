@@ -1,4 +1,4 @@
-import { BRIDGE_PROD_API_BASE_URL, BridgeClientId, fetchBridgeTokens, formatChainIdToCaip, formatChainIdToHex, isSolanaChainId } from '@metamask/bridge-controller';
+import { BridgeClientId, fetchBridgeTokens, formatChainIdToCaip, formatChainIdToHex, isSolanaChainId } from '@metamask/bridge-controller';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { Hex, CaipChainId, isCaipChainId } from '@metamask/utils';
 import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
@@ -12,6 +12,7 @@ import { SwapsControllerState } from '@metamask/swaps-controller';
 import { selectTopAssetsFromFeatureFlags } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
+import { BRIDGE_API_BASE_URL } from '../../../../../constants/bridge';
 
 const MAX_TOP_TOKENS = 30;
 
@@ -19,10 +20,10 @@ interface UseTopTokensProps {
   chainId?: Hex | CaipChainId;
 }
 
-export const useTopTokens = ({ chainId }: UseTopTokensProps): { 
-  topTokens: BridgeToken[] | undefined, 
+export const useTopTokens = ({ chainId }: UseTopTokensProps): {
+  topTokens: BridgeToken[] | undefined,
   remainingTokens: BridgeToken[] | undefined,
-  pending: boolean 
+  pending: boolean
 } => {
   const swapsChainCache: SwapsControllerState['chainCache'] = useSelector(selectChainCache);
   const swapsTopAssets = useMemo(
@@ -78,7 +79,7 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): {
       chainId,
       BridgeClientId.MOBILE,
       handleFetch,
-      BRIDGE_PROD_API_BASE_URL,
+      BRIDGE_API_BASE_URL,
     );
 
     // Convert from BridgeAsset type to BridgeToken type
@@ -159,15 +160,15 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): {
       }
     }
 
-    return { 
-      topTokens: result, 
+    return {
+      topTokens: result,
       remainingTokens: remainingTokensList
     };
   }, [bridgeTokens, swapsTopAssets, topAssetsFromFeatureFlags]);
 
-  return { 
-    topTokens, 
+  return {
+    topTokens,
     remainingTokens,
-    pending: chainId ? (bridgeTokensPending || swapsTopAssetsPending) : false 
+    pending: chainId ? (bridgeTokensPending || swapsTopAssetsPending) : false
   };
 };

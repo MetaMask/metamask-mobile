@@ -113,13 +113,24 @@ export const currencyRateControllerMock = {
   },
 };
 
+export const nftControllerMock = {
+  engine: {
+    backgroundState: {
+      NftController: {
+        allNftContracts: {},
+      },
+    },
+  },
+};
+
 export const otherControllersMock = merge(
   {},
-  keyringControllerMock,
   accountsControllerMock,
   accountTrackerControllerMock,
-  multichainNetworkControllerMock,
-  tokenBalancesControllerMock,
-  networkControllerMock,
   currencyRateControllerMock,
+  keyringControllerMock,
+  networkControllerMock,
+  multichainNetworkControllerMock,
+  nftControllerMock,
+  tokenBalancesControllerMock,
 );

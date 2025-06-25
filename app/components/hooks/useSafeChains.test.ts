@@ -151,4 +151,4 @@ describe('rpcIdentifierUtility', () => {
     expect(result.safeChain).toEqual({ chainId: '', nativeCurrency: { symbol: '' } });
     expect(result.safeRPCUrl).toBe('Unknown rpcUrl');
   });
-}); 
+});

@@ -143,7 +143,7 @@ class WalletConnect2Session {
     });
 
     this.checkPendingRequests();
-    this.lastChainId = this.getCurrentChainId()
+    this.lastChainId = this.getCurrentChainId();
     // Subscribe to store changes to detect chain switches
     store.subscribe(this.onStoreChange.bind(this));
   }
@@ -541,11 +541,11 @@ class WalletConnect2Session {
       const chainId = this.getChainIdForCaipChainId(caip2ChainId);
       const currentChainId = this.getCurrentChainId();
       if (currentChainId !== chainId) {
-        const networkClientId = this.getNetworkClientIdForCaipChainId(caip2ChainId)
+        const networkClientId = this.getNetworkClientIdForCaipChainId(caip2ChainId);
         Engine.context.SelectedNetworkController.setNetworkClientIdForDomain(
           this.hostname,
           networkClientId
-        )
+        );
       }
     }
 

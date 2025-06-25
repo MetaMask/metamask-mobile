@@ -1,0 +1,18 @@
+diff --git a/node_modules/react-native-modal/dist/modal.js b/node_modules/react-native-modal/dist/modal.js
+index 74edee4..b2558b3 100644
+--- a/node_modules/react-native-modal/dist/modal.js
++++ b/node_modules/react-native-modal/dist/modal.js
+@@ -538,9 +538,10 @@ export class ReactNativeModal extends React.Component {
+                 this.makeBackdrop(),
+                 containerView));
+         }
+-        return (React.createElement(Modal, { transparent: true, animationType: 'none', visible: this.state.isVisible, onRequestClose: onBackButtonPress, ...otherProps },
+-            this.makeBackdrop(),
+-            avoidKeyboard ? (React.createElement(KeyboardAvoidingView, { behavior: Platform.OS === 'ios' ? 'padding' : undefined, pointerEvents: "box-none", style: computedStyle.concat([{ margin: 0 }]) }, containerView)) : (containerView)));
++        return (React.createElement(View, null,
++            React.createElement(Modal, { transparent: true, animationType: 'none', visible: this.state.isVisible, onRequestClose: onBackButtonPress, ...otherProps },
++                this.makeBackdrop(),
++                avoidKeyboard ? (React.createElement(KeyboardAvoidingView, { behavior: Platform.OS === 'ios' ? 'padding' : undefined, pointerEvents: "box-none", style: computedStyle.concat([{ margin: 0 }]) }, containerView)) : (containerView))));
+     }
+ }
+ export default ReactNativeModal;
