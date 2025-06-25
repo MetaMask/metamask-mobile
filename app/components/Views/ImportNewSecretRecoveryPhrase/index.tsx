@@ -232,9 +232,12 @@ const ImportNewSecretRecoveryPhrase = () => {
     setLoading(true);
     try {
       await lockAccountSyncing();
-      await importNewSecretRecoveryPhrase(secretRecoveryPhrase.join(' '));
+      const { discoveredAccountsCount } = await importNewSecretRecoveryPhrase(secretRecoveryPhrase.join(' '));
       setLoading(false);
       setSecretRecoveryPhrase(Array(numberOfWords).fill(''));
+
+      const totalAccounts = hdKeyrings.length + 1 + discoveredAccountsCount;
+
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
@@ -251,7 +254,11 @@ const ImportNewSecretRecoveryPhrase = () => {
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
-        ).build(),
+        )
+        .addProperties({
+          number_of_solana_accounts_discovered: totalAccounts,
+        })
+        .build(),
       );
       navigation.navigate('WalletView');
     } catch (e) {
