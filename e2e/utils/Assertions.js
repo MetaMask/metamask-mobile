@@ -1,4 +1,5 @@
 import { waitFor, element, by } from 'detox';
+import { Buffer } from 'buffer/';
 import Matchers from './Matchers';
 
 // Global timeout variable
@@ -160,12 +161,11 @@ class Assertions {
       // Check normalized versions for comparison
       const normalizedActual = actualText.replace(/\u00A0/g, ' ');
       const normalizedExpected = expectedText.replace(/\u00A0/g, ' ');
-      
+
       if (normalizedActual !== normalizedExpected) {
         // Provide detailed debugging information
         const actualBytes = Buffer.from(actualText, 'utf8').toString('hex');
         const expectedBytes = Buffer.from(expectedText, 'utf8').toString('hex');
-        
         throw new Error(
           `Text matching failed.\nExpected: "${expectedText}"\nActual: "${actualText}"\n` +
           `Expected (hex): ${expectedBytes}\nActual (hex): ${actualBytes}\n` +
