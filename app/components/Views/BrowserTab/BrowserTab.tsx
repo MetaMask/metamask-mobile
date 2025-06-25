@@ -968,13 +968,28 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
     [navigation, isHomepage, toggleUrlModal, tabId, injectHomePageScripts],
   );
 
-  const sendActiveAccount = useCallback(async () => {
-    notifyAllConnections({
-      method: NOTIFICATION_NAMES.accountsChanged,
-      params: permittedEvmAccountsList,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notifyAllConnections, permittedEvmAccountsList]);
+  const sendActiveAccount = useCallback(async (targetUrl?: string) => {
+    // Use the target URL if provided, otherwise use current resolved URL
+    const urlToCheck = targetUrl || resolvedUrlRef.current;
+    if (!urlToCheck) return;
+
+    const hostname = new URLParse(urlToCheck).hostname;
+    const permissionsControllerState = Engine.context.PermissionController.state;
+    
+    // Get permitted accounts specifically for the target hostname
+    const permittedAccountsForTarget = getPermittedEvmAddressesByHostname(
+      permissionsControllerState,
+      hostname,
+    );
+
+    // Only send account information if the target URL has explicit permissions
+    if (permittedAccountsForTarget.length > 0) {
+      notifyAllConnections({
+        method: NOTIFICATION_NAMES.accountsChanged,
+        params: permittedAccountsForTarget,
+      });
+    }
+  }, [notifyAllConnections]);
 
   /**
    * Website started to load
@@ -994,10 +1009,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
       // Cancel loading the page if we detect its a phishing page
       const isAllowed = await isAllowedOrigin(urlOrigin);
       if (!isAllowed) {
-        handleNotAllowedUrl(urlOrigin); // should this be activeUrl.current instead of url?
+        handleNotAllowedUrl(urlOrigin);
         return false;
       }
 
+      // FIXED: Only send active account for the specific URL being navigated to
+      // This ensures we only send account info to sites that have explicit permissions
+      sendActiveAccount(nativeEvent.url);
 
       iconRef.current = undefined;
       if (isHomepage(nativeEvent.url)) {
@@ -1005,7 +1023,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
       }
 
       initializeBackgroundBridge(urlOrigin, true);
-      sendActiveAccount();
     },
     [
       isAllowedOrigin,
@@ -1021,6 +1038,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
    * Check whenever permissions change / account changes for Dapp
    */
   useEffect(() => {
+    // FIXED: Only send to current resolved URL and only if it has permissions
     sendActiveAccount();
   }, [sendActiveAccount, permittedEvmAccountsList]);
 
