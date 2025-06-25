@@ -18,7 +18,6 @@ const deleteAccount = async () => {
   await DeleteAccount.tapDeleteAccount();
 };
 
-// TODO: fix this test
 describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
   beforeEach(async () => {
     await TestHelpers.reverseServerPort();

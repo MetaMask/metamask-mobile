@@ -24,7 +24,6 @@ const editName = async (newName: string) => {
   await Assertions.checkIfTextIsDisplayed(newName);
 };
 
-// TODO: fix this test
 describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
   beforeEach(async () => {
     await TestHelpers.reverseServerPort();

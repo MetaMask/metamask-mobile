@@ -37,7 +37,6 @@ const exportSrp = async () => {
   await completeSrpQuiz(defaultOptions.mnemonic);
 };
 
-// TODO: fix this test
 describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
   beforeEach(async () => {
     await TestHelpers.reverseServerPort();
