@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 import { selectIsIpfsGatewayEnabled } from '../../../../../../selectors/preferencesController';
 import { isIPFSUri } from '../../../../../../util/general';
 import AvatarBase from '../../foundation/AvatarBase';
-import Text, { TextVariant } from '../../../../Texts/Text';
+import Text from '../../../../Texts/Text';
 import { useStyles } from '../../../../../hooks';
 
 // Internal dependencies.
@@ -56,9 +56,7 @@ const AvatarToken = ({
   const tokenImage = () => (
     <AvatarBase size={size} style={styles.base} {...props}>
       {showFallback || isIpfsDisabledAndUriIsIpfs ? (
-        <Text style={styles.label}>
-          {tokenNameFirstLetter}
-        </Text>
+        <Text style={styles.label}>{tokenNameFirstLetter}</Text>
       ) : (
         <Image
           source={imageSource as ImageSourcePropType}

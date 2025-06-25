@@ -6,7 +6,7 @@ import { Image, ImageSourcePropType } from 'react-native';
 
 // External dependencies.
 import AvatarBase from '../../foundation/AvatarBase';
-import Text, { TextVariant } from '../../../../Texts/Text';
+import Text from '../../../../Texts/Text';
 import { useStyles } from '../../../../../hooks';
 
 // Internal dependencies.
@@ -38,9 +38,7 @@ const AvatarNetwork = ({
   return (
     <AvatarBase size={size} style={styles.base} {...props}>
       {showFallback ? (
-        <Text style={styles.label}>
-          {chainNameFirstLetter}
-        </Text>
+        <Text style={styles.label}>{chainNameFirstLetter}</Text>
       ) : (
         <Image
           source={imageSource as ImageSourcePropType}
