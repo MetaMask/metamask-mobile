@@ -5,7 +5,10 @@ import { useDepositSDK } from '../../sdk';
 import GetStarted from './GetStarted/GetStarted';
 import { useSelector } from 'react-redux';
 import { getOrders } from '../../../../../../reducers/fiatOrders';
-import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
+import {
+  FIAT_ORDER_STATES,
+  FIAT_ORDER_PROVIDERS,
+} from '../../../../../../constants/on-ramp';
 import { createOrderProcessingNavDetails } from '../OrderProcessing/OrderProcessing';
 
 const Root = () => {
@@ -29,8 +32,9 @@ const Root = () => {
 
     const pendingOrder = orders.find(
       (order) =>
-        order.state === FIAT_ORDER_STATES.CREATED ||
-        order.state === FIAT_ORDER_STATES.PENDING,
+        order.provider === FIAT_ORDER_PROVIDERS.DEPOSIT &&
+        (order.state === FIAT_ORDER_STATES.CREATED ||
+          order.state === FIAT_ORDER_STATES.PENDING),
     );
 
     if (pendingOrder) {
