@@ -40,6 +40,7 @@ import Avatar, {
 } from '../../../../../../component-library/components/Avatars/Avatar';
 import Loader from '../../../../../../component-library/components-temp/Loader/Loader';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { TRANSAK_SUPPORT_URL } from '../../constants';
 
 enum OrderStatus {
   PROCESSING = 'processing',
@@ -131,7 +132,7 @@ const OrderProcessing = () => {
 
   const handleContactSupport = useCallback(() => {
     // TODO: Discuss proper support feature
-    Linking.openURL('https://support.transak.com/');
+    Linking.openURL(TRANSAK_SUPPORT_URL);
   }, []);
 
   const handleViewInTransak = useCallback(() => {
