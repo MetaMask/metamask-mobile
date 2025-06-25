@@ -19,6 +19,7 @@ import {
 } from './utils/verifySignature';
 import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
+import { capitalize } from '../../../util/general';
 
 const {
   MM_UNIVERSAL_LINK_HOST,
@@ -103,9 +104,8 @@ async function handleUniversalLink({
   };
 
   const shouldProceed = await new Promise<boolean>((resolve) => {
-    const pageTitle: ACTIONS = validatedUrl.pathname
-      .split('/')[1]
-      ?.toLowerCase() as ACTIONS;
+    const pageTitle: string =
+      capitalize(validatedUrl.pathname.split('/')[1]?.toLowerCase()) || '';
 
     handleDeepLinkModalDisplay({
       linkType: linkType(),
