@@ -411,7 +411,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('on entering an invalid seed phrase, spellcheck error message is shown', async () => {
-      const { getByPlaceholderText, getByRole, queryByText } = renderScreen(
+      const { getByPlaceholderText, getByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
@@ -421,7 +421,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const input = getByPlaceholderText(
         strings('import_from_seed.srp_placeholder'),
       );
-      const continueButton = getByRole('button', { name: 'Continue' });
 
       // Invalid mnemonic
       const invalidMnemonic = 'invalid '.repeat(12).trim();
@@ -430,11 +429,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       await act(async () => {
         fireEvent.changeText(input, invalidMnemonic);
       });
-      // Press continue and verify error message
-      fireEvent.press(continueButton);
 
       await waitFor(() => {
-        const errorMessage = queryByText(
+        const errorMessage = getByText(
           strings('import_from_seed.spellcheck_error'),
         );
         expect(errorMessage).toBeOnTheScreen();

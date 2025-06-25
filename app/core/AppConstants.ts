@@ -237,5 +237,8 @@ export default {
     VERSION: 'v1',
     DEFAULT_FETCH_INTERVAL: 15 * 60 * 1000, // 15 minutes
   },
+  SEEDLESS_ONBOARDING: {
+    WEB3AUTH_NETWORK: process.env.WEB3AUTH_NETWORK,
+  },
   EIP_7702_PUBLIC_KEY: '0x3c7a1cCCe462e96D186B8ca9a1BCB2010C3dABa3',
 } as const;
