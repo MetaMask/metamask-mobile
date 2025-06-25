@@ -6,4 +6,5 @@ export const WalletDetailsIds = {
   REVEAL_SRP_BUTTON: 'wallet-details-reveal-srp-button',
   ACCOUNTS_LIST: 'wallet-details-accounts-list',
   ACCOUNT_ITEM: 'wallet-details-account-item',
+  ADD_ACCOUNT_BUTTON: 'wallet-details-add-account-button',
 };

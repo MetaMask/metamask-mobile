@@ -99,17 +99,18 @@ export const BaseWalletDetails = ({
   }, []);
 
   const renderAccountItem = (account: InternalAccount, index: number) => {
-    const totalAccounts = accounts.length;
+    const totalItemsCount = keyringId ? accounts.length + 1 : accounts.length; // Include add account item if keyringId exists
     const boxStyles: ViewStyle[] = [styles.accountBox];
     const balanceData = multichainBalancesForAllAccounts[account.id];
     const isAccountBalanceLoading =
       !balanceData || balanceData.isLoadingAccount;
     const accountBalance = balanceData?.displayBalance;
 
-    if (totalAccounts > 1) {
+    if (totalItemsCount > 1) {
       if (index === 0) {
         boxStyles.push(styles.firstAccountBox);
-      } else if (index === totalAccounts - 1) {
+      } else if (index === accounts.length - 1 && !keyringId) {
+        // Only make this the last item if there's no add account button
         boxStyles.push(styles.lastAccountBox);
       } else {
         boxStyles.push(styles.middleAccountBox as ViewStyle);
@@ -160,6 +161,48 @@ export const BaseWalletDetails = ({
               size={IconSize.Md}
               color={colors.text.alternative}
             />
+          </Box>
+        </Box>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderAddAccountItem = () => {
+    const totalItemsCount = accounts.length + 1;
+    const boxStyles: ViewStyle[] = [styles.accountBox];
+
+    if (totalItemsCount > 1) {
+      boxStyles.push(styles.lastAccountBox);
+    }
+
+    return (
+      <TouchableOpacity
+        key="add-account"
+        testID={WalletDetailsIds.ADD_ACCOUNT_BUTTON}
+        onPress={handleAddAccount}
+      >
+        <Box
+          style={boxStyles}
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          justifyContent={JustifyContent.spaceBetween}
+        >
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            gap={8}
+          >
+            <Icon
+              name={IconName.Add}
+              size={IconSize.Md}
+              color={colors.primary.default}
+            />
+            <Text
+              style={{ color: colors.primary.default }}
+              variant={TextVariant.BodyMDMedium}
+            >
+              {strings('multichain_accounts.wallet_details.add_account')}
+            </Text>
           </Box>
         </Box>
       </TouchableOpacity>
@@ -273,25 +316,8 @@ export const BaseWalletDetails = ({
           testID={WalletDetailsIds.ACCOUNTS_LIST}
         >
           {accounts.map((account, index) => renderAccountItem(account, index))}
+          {keyringId && renderAddAccountItem()}
         </View>
-        {keyringId && (
-          <TouchableOpacity onPress={handleAddAccount}>
-            <Box
-              flexDirection={FlexDirection.Row}
-              alignItems={AlignItems.center}
-              gap={8}
-            >
-              <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-                {strings('multichain_accounts.wallet_details.add_account')}
-              </Text>
-              <Icon
-                name={IconName.Add}
-                size={IconSize.Md}
-                color={colors.primary.default}
-              />
-            </Box>
-          </TouchableOpacity>
-        )}
 
         {children}
       </View>
