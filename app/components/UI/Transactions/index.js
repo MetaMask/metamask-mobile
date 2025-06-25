@@ -443,7 +443,7 @@ class Transactions extends PureComponent {
     }
   };
 
-  getItemLayout = (index) => ({
+  getItemLayout = (_data, index) => ({
     length: ROW_HEIGHT,
     offset: this.props.headerHeight + ROW_HEIGHT * index,
     index,
