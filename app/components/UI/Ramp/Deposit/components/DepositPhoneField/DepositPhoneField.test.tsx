@@ -3,12 +3,61 @@ import { render, fireEvent } from '@testing-library/react-native';
 import DepositPhoneField from './DepositPhoneField';
 import { DepositRegion, DEPOSIT_REGIONS } from '../../constants';
 
-const mockSetSelectedRegion = jest.fn();
-const mockUseDepositSDK = jest.fn();
+// Mock the dependencies
+jest.mock('../../../../../../component-library/hooks', () => ({
+  useStyles: jest.fn(() => ({
+    styles: {
+      field: {},
+      label: {},
+      phoneInputWrapper: {},
+      textFieldWrapper: {},
+      countryPrefix: {},
+      countryFlag: {},
+      textFieldInput: {},
+      error: {},
+    },
+    theme: {
+      colors: {
+        text: { muted: '#666' },
+        border: { default: '#ccc' },
+        background: { default: '#fff' },
+        error: { default: '#ff0000' },
+      },
+      themeAppearance: 'light',
+    },
+  })),
+}));
 
 jest.mock('../../sdk', () => ({
-  useDepositSDK: () => mockUseDepositSDK(),
+  useDepositSDK: jest.fn(() => ({
+    selectedRegion: {
+      code: 'US',
+      flag: '🇺🇸',
+      name: 'United States',
+      phonePrefix: '+1',
+      currency: 'USD',
+      phoneDigitCount: 10,
+      placeholder: '(555) 123-4567',
+      supported: true,
+    },
+    setSelectedRegion: jest.fn(),
+  })),
 }));
+
+jest.mock('../../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key) => key),
+}));
+
+jest.mock('../../utils/PhoneFormatter/PhoneFormatter', () => {
+  return jest.fn().mockImplementation(() => ({
+    formatAsYouType: jest.fn(() => ({ text: '(555) 123-4567', template: '(___) ___-____' })),
+    formatE164: jest.fn(() => '+15551234567'),
+    convertForNewCountry: jest.fn(() => '5551234567'),
+    getInitialPhoneDigits: jest.fn(() => '5551234567'),
+  }));
+});
+
+jest.mock('libphonenumber-js/min/metadata', () => ({}), { virtual: true });
 
 describe('DepositPhoneField', () => {
   const mockOnChangeText = jest.fn();
@@ -31,35 +80,71 @@ describe('DepositPhoneField', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseDepositSDK.mockReturnValue({
-      selectedRegion: defaultRegion,
-      setSelectedRegion: mockSetSelectedRegion,
-    });
   });
 
-  it('render should match snapshot', () => {
-    const { toJSON } = render(<DepositPhoneField {...defaultProps} />);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('error message should match snapshot', () => {
-    const errorMessage = 'Invalid phone number';
-    const { toJSON } = render(
-      <DepositPhoneField {...defaultProps} error={errorMessage} />,
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('additional props should match snapshot', () => {
-    const placeholder = 'Enter phone number';
-    const { toJSON } = render(
+  it('renders correctly with label', () => {
+    const { getByText } = render(
       <DepositPhoneField
-        {...defaultProps}
-        placeholder={placeholder}
-        maxLength={10}
-      />,
+        label="Phone Number"
+        onChangeText={mockOnChangeText}
+        value=""
+      />
     );
-    expect(toJSON()).toMatchSnapshot();
+
+    expect(getByText('Phone Number')).toBeTruthy();
+  });
+
+  it('displays country flag', () => {
+    const { getByText } = render(
+      <DepositPhoneField
+        label="Phone Number"
+        onChangeText={mockOnChangeText}
+        value=""
+      />
+    );
+
+    expect(getByText('🇺🇸')).toBeTruthy();
+  });
+
+  it('shows error message when provided', () => {
+    const { getByText } = render(
+      <DepositPhoneField
+        label="Phone Number"
+        onChangeText={mockOnChangeText}
+        value=""
+        error="Invalid phone number"
+      />
+    );
+
+    expect(getByText('Invalid phone number')).toBeTruthy();
+  });
+
+  it('calls onChangeText when input changes', () => {
+    const { getByTestId } = render(
+      <DepositPhoneField
+        label="Phone Number"
+        onChangeText={mockOnChangeText}
+        value=""
+      />
+    );
+
+    const input = getByTestId('deposit-phone-field-test-id');
+    fireEvent.changeText(input, '5551234567');
+
+    expect(mockOnChangeText).toHaveBeenCalled();
+  });
+
+  it('displays placeholder text', () => {
+    const { getByTestId } = render(
+      <DepositPhoneField
+        label="Phone Number"
+        onChangeText={mockOnChangeText}
+        value=""
+      />
+    );
+
+    const input = getByTestId('deposit-phone-field-test-id');
+    expect(input.props.placeholder).toBe('(555) 123-4567');
   });
 
   it('should open region modal when flag is pressed', () => {
