@@ -28,27 +28,30 @@ jest.mock('../../../../../../component-library/hooks', () => ({
   })),
 }));
 
+const mockSetSelectedRegion = jest.fn();
+const mockUseDepositSDK = jest.fn(() => ({
+  selectedRegion: {
+    code: 'US',
+    flag: '🇺🇸',
+    name: 'United States',
+    phonePrefix: '+1',
+    currency: 'USD',
+    phoneDigitCount: 10,
+    placeholder: '(555) 123-4567',
+    supported: true,
+  },
+  setSelectedRegion: mockSetSelectedRegion,
+}));
+
 jest.mock('../../sdk', () => ({
-  useDepositSDK: jest.fn(() => ({
-    selectedRegion: {
-      code: 'US',
-      flag: '🇺🇸',
-      name: 'United States',
-      phonePrefix: '+1',
-      currency: 'USD',
-      phoneDigitCount: 10,
-      placeholder: '(555) 123-4567',
-      supported: true,
-    },
-    setSelectedRegion: jest.fn(),
-  })),
+  useDepositSDK: mockUseDepositSDK,
 }));
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
-jest.mock('../../utils/PhoneFormatter/PhoneFormatter', () => {
+jest.mock('../../utils/PhoneFormatter', () => {
   return jest.fn().mockImplementation(() => ({
     formatAsYouType: jest.fn(() => ({ text: '(555) 123-4567', template: '(___) ___-____' })),
     formatE164: jest.fn(() => '+15551234567'),
@@ -71,6 +74,7 @@ describe('DepositPhoneField', () => {
     phoneDigitCount: 10,
     recommended: true,
     supported: true,
+    placeholder: '(555) 123-4567',
   };
 
   const defaultProps = {
@@ -179,6 +183,7 @@ describe('DepositPhoneField', () => {
       currency: 'EUR',
       phoneDigitCount: 10,
       supported: true,
+      placeholder: '+49 123 456789',
     };
 
     mockUseDepositSDK.mockReturnValue({

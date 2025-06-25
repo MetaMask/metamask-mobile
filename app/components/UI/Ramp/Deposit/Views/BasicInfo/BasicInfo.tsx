@@ -179,15 +179,9 @@ const BasicInfo = (): JSX.Element => {
             <DepositPhoneField
               label={strings('deposit.basic_info.phone_number')}
               value={formData.mobileNumber}
-            onChangeText={handleFormDataChange('mobileNumber')}
-            error={errors.mobileNumber}
-            testID="phone-number-input"
-            region={selectedRegion}
-              ref={phoneInputRef}
-              autoComplete="tel"
-              textContentType="telephoneNumber"
-              keyboardType="phone-pad"
-              onSubmitEditing={handleSubmitEditing(phoneInputRef)}
+              onChangeText={handleFormDataChange('mobileNumber')}
+              error={errors.mobileNumber}
+              testID="phone-number-input"
             />
 
             <DepositDateField

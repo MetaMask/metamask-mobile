@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+  useEffect,
+} from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 
 import Label from '../../../../../../component-library/components/Form/Label';
@@ -12,8 +18,7 @@ import {
 import { Theme } from '../../../../../../util/theme/models';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { CountryCode } from 'libphonenumber-js';
-import PhoneFormatter from '../../utils/PhoneFormatter/PhoneFormatter';
-import minMetadata from 'libphonenumber-js/min/metadata';
+import PhoneFormatter from '../../utils/PhoneFormatter';
 import { DepositRegion, DEPOSIT_REGIONS } from '../../constants';
 import RegionModal from '../RegionModal/RegionModal';
 import { useDepositSDK } from '../../sdk';
@@ -81,61 +86,84 @@ const DepositPhoneField: React.FC<PhoneFieldProps> = ({
   const { selectedRegion, setSelectedRegion } = useDepositSDK();
   const [isRegionModalVisible, setIsRegionModalVisible] = useState(false);
   const [displayValue, setDisplayValue] = useState('');
-  const [previousCountry, setPreviousCountry] = useState<CountryCode | undefined>();
-  
+  const hasInitializedRef = useRef(false);
+
   // Initialize PhoneFormatter
   const phoneFormatter = useRef<PhoneFormatter>();
-  
+
   useEffect(() => {
-    phoneFormatter.current = new PhoneFormatter(minMetadata, {
-      defaultCountry: selectedRegion?.code || 'US',
-      useNationalFormat: selectedRegion?.code !== 'US',
+    const defaultCountry = selectedRegion?.code || 'US';
+    phoneFormatter.current = new PhoneFormatter({
+      defaultCountry,
+      useNationalFormat: defaultCountry !== 'US',
     });
-  }, []);
+  }, [selectedRegion?.code]);
 
-  // Handle country change
   useEffect(() => {
-    if (phoneFormatter.current && selectedRegion?.code && previousCountry !== selectedRegion.code) {
-      const convertedValue = phoneFormatter.current.convertForNewCountry(
-        displayValue,
-        previousCountry || 'US',
-        selectedRegion.code,
-        selectedRegion.code !== 'US'
-      );
-      setDisplayValue(convertedValue);
-      setPreviousCountry(selectedRegion.code);
-    }
-  }, [selectedRegion?.code, previousCountry, displayValue]);
+    if (phoneFormatter.current && selectedRegion?.code) {
+      if (value) {
+        // If the value is in E164 format (starts with +), extract national digits first
+        let nationalDigits = value;
+        if (value.startsWith('+')) {
+          nationalDigits = phoneFormatter.current.stripCountryCallingCode(
+            value,
+            selectedRegion.code,
+          );
+        }
 
-  // Handle initial value
-  useEffect(() => {
-    if (value && phoneFormatter.current && selectedRegion?.code) {
-      const initialDigits = phoneFormatter.current.getInitialPhoneDigits({
-        value,
-        country: selectedRegion.code,
-        international: selectedRegion.code !== 'US',
-        useNationalFormat: selectedRegion.code !== 'US',
-      });
-      setDisplayValue(initialDigits);
+        // Format the national digits for display using formatAsYouType
+        const formatResult = phoneFormatter.current.formatAsYouType(
+          nationalDigits,
+          selectedRegion.code,
+          'NATIONAL',
+        );
+        console.log(
+          'setting display value from formatAsYouType',
+          formatResult.text,
+        );
+        setDisplayValue(formatResult.text);
+      } else {
+        console.log('setting display value to empty string');
+        setDisplayValue('');
+      }
+      hasInitializedRef.current = true;
     }
-  }, [value, selectedRegion?.code]);
+  }, [selectedRegion?.code]); // Only depend on region changes, not value changes
 
   const handlePhoneNumberChange = useCallback(
     (newValue: string) => {
       if (!phoneFormatter.current || !selectedRegion?.code) return;
 
-      // Format the input as user types
-      const formatResult = phoneFormatter.current.formatAsYouType(
-        newValue,
-        selectedRegion.code,
-        selectedRegion.code !== 'US' ? 'NATIONAL' : 'NATIONAL'
-      );
+      // Always scrub to digits only before formatting
+      const digitsOnly = newValue.replace(/\D/g, '');
 
-      setDisplayValue(formatResult.text);
-      
-      // Convert to E.164 format for the parent component
-      const e164Value = phoneFormatter.current.formatE164(formatResult.text, selectedRegion.code);
+      // For US, only apply AsYouType formatting when there are 4 or more digits
+      if (selectedRegion.code === 'US' && /(.?\d){4,}/.test(newValue)) {
+        const formatResult = phoneFormatter.current.formatAsYouType(
+          digitsOnly,
+          selectedRegion.code,
+          'NATIONAL',
+        );
+        setDisplayValue(formatResult.text);
+      } else if (selectedRegion.code === 'US') {
+        // For US with 3 or fewer digits, just use the raw input
+        setDisplayValue(newValue);
+      } else {
+        // For non-US countries, always apply formatting
+        const formatResult = phoneFormatter.current.formatAsYouType(
+          digitsOnly,
+          selectedRegion.code,
+          'NATIONAL',
+        );
+        setDisplayValue(formatResult.text);
+      }
+
+      const e164Value = phoneFormatter.current.formatE164(
+        digitsOnly,
+        selectedRegion.code,
+      );
       onChangeText(e164Value);
+
     },
     [onChangeText, selectedRegion?.code],
   );
@@ -149,10 +177,14 @@ const DepositPhoneField: React.FC<PhoneFieldProps> = ({
       if (!newRegion.supported) {
         return;
       }
+
+      // When region changes, clear the current input and let user start fresh
+      setDisplayValue('');
+      onChangeText('');
       setSelectedRegion(newRegion);
       setIsRegionModalVisible(false);
     },
-    [setSelectedRegion],
+    [setSelectedRegion, onChangeText],
   );
 
   const hideRegionModal = useCallback(() => {
