@@ -31,26 +31,22 @@ import {
   USD_CURRENCY,
   DepositFiatCurrency,
   EUR_CURRENCY,
+  DEPOSIT_REGIONS,
+  DepositRegion,
 } from '../../constants';
 import AccountSelector from '../../components/AccountSelector';
-import I18n, { strings } from '../../../../../../../locales/i18n';
+import { strings } from '../../../../../../../locales/i18n';
 import useDepositTokenExchange from '../../hooks/useDepositTokenExchange';
-import { getIntlNumberFormatter } from '../../../../../../util/intl';
 import {
   getTransakCryptoCurrencyId,
   getTransakFiatCurrencyId,
   getTransakChainId,
   getTransakPaymentMethodId,
+  formatCurrency,
 } from '../../utils';
-
-function formatAmount(
-  amount: number,
-  options: Intl.NumberFormatOptions,
-): string {
-  return getIntlNumberFormatter(I18n.locale, options).format(amount);
-}
 import { KycStatus } from '../../hooks/useUserDetailsPolling';
 import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
+import RegionModal from '../../components/RegionModal';
 
 const BuildQuote = () => {
   const navigation = useNavigation();
@@ -67,6 +63,12 @@ const BuildQuote = () => {
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
   const { isAuthenticated } = useDepositSDK();
   const [error, setError] = useState<string | null>();
+
+  const [isRegionModalVisible, setIsRegionModalVisible] =
+    useState<boolean>(false);
+  const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
+    DEPOSIT_REGIONS.find((region) => region.code === 'US') || null,
+  );
 
   const [{ error: quoteFetchError }, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false },
@@ -230,12 +232,27 @@ const BuildQuote = () => {
     // TODO: Implement payment method selection logic
   }, []);
 
-  const handleFiatPress = useCallback(() => {
-    // TODO: Implement fiat selection logic
-    // this is a temp UX to switch between USD and EUR
-    setFiatCurrency((current) =>
-      current.id === 'USD' ? EUR_CURRENCY : USD_CURRENCY,
-    );
+  const handleRegionPress = useCallback(() => {
+    setIsRegionModalVisible(true);
+  }, []);
+
+  const handleRegionSelect = useCallback((region: DepositRegion) => {
+    if (!region.supported) {
+      return;
+    }
+
+    setSelectedRegion(region);
+    setIsRegionModalVisible(false);
+
+    if (region.currency === 'USD') {
+      setFiatCurrency(USD_CURRENCY);
+    } else if (region.currency === 'EUR') {
+      setFiatCurrency(EUR_CURRENCY);
+    }
+  }, []);
+
+  const hideRegionModal = useCallback(() => {
+    setIsRegionModalVisible(false);
   }, []);
 
   const handleCryptoPress = useCallback(() => {
@@ -254,10 +271,11 @@ const BuildQuote = () => {
             <AccountSelector />
             <TouchableOpacity
               style={styles.fiatSelector}
-              onPress={handleFiatPress}
+              onPress={handleRegionPress}
             >
-              <View>
-                <Text variant={TextVariant.BodyMD}>{fiatCurrency.id}</Text>
+              <View style={styles.regionContent}>
+                <Text variant={TextVariant.BodyMD}>{selectedRegion?.flag}</Text>
+                <Text variant={TextVariant.BodyMD}>{selectedRegion?.code}</Text>
               </View>
             </TouchableOpacity>
           </View>
@@ -269,9 +287,7 @@ const BuildQuote = () => {
               numberOfLines={1}
               adjustsFontSizeToFit
             >
-              {formatAmount(amountAsNumber, {
-                style: 'currency',
-                currency: fiatCurrency.id,
+              {formatCurrency(amountAsNumber, fiatCurrency.id, {
                 currencyDisplay: 'narrowSymbol',
               })}
             </Text>
@@ -354,6 +370,15 @@ const BuildQuote = () => {
           </StyledButton>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
+      <RegionModal
+        isVisible={isRegionModalVisible}
+        title={strings('deposit.selectRegion')}
+        description={strings('deposit.chooseYourRegionToContinue')}
+        data={DEPOSIT_REGIONS}
+        dismiss={hideRegionModal}
+        onRegionPress={handleRegionSelect}
+        selectedRegion={selectedRegion}
+      />
     </ScreenLayout>
   );
 };

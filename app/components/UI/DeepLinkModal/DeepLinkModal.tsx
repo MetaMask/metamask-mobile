@@ -62,7 +62,7 @@ const DeepLinkModal = () => {
         description: string;
         checkboxLabel?: string;
         event: IMetaMetricsEvent;
-        eventContinue: IMetaMetricsEvent;
+        eventContinue?: IMetaMetricsEvent;
         eventDismiss: IMetaMetricsEvent;
     }> => ({
         public: {
@@ -84,7 +84,6 @@ const DeepLinkModal = () => {
             title: strings('deep_link_modal.invalid.title'),
             description: strings('deep_link_modal.invalid.description'),
             event: MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_VIEWED,
-            eventContinue: MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_CONTINUE_CLICKED,
             eventDismiss: MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_DISMISSED,
         },
     }), [pageTitle]);
@@ -118,14 +117,17 @@ const DeepLinkModal = () => {
 
     const onContinuePressed = useCallback(() => {
         dismissModal(() => {
-            trackEvent(
-                createEventBuilder(LINK_TYPE_MAP[linkType].eventContinue)
-                    .addProperties({
-                        ...generateDeviceAnalyticsMetaData(),
-                        pageTitle: pageTitle ?? '',
-                    })
-                    .build(),
-            );
+            const eventContinue = LINK_TYPE_MAP[linkType].eventContinue;
+            if (eventContinue) {
+                trackEvent(
+                    createEventBuilder(eventContinue)
+                        .addProperties({
+                            ...generateDeviceAnalyticsMetaData(),
+                            pageTitle,
+                        })
+                        .build(),
+                );
+            }
             onContinue?.();
         });
     }, [trackEvent, createEventBuilder, linkType, onContinue, pageTitle, LINK_TYPE_MAP]);
@@ -144,7 +146,7 @@ const DeepLinkModal = () => {
     }, [isChecked, trackEvent, createEventBuilder, dispatch]);
 
     const shouldShowCheckbox = linkType === 'private';
-    const primaryButtonLabel = linkType === 'invalid' ? strings('deep_link_modal.open_metamask_anyway') : strings('deep_link_modal.continue_button');
+    const shouldShowPrimaryButton = linkType !== 'invalid';
 
     return (
         <BottomSheet isFullscreen style={styles.screen} ref={bottomSheetRef} isInteractable={false}>
@@ -172,14 +174,14 @@ const DeepLinkModal = () => {
                     onPress={onDontRemindMeAgainPressed}
                 />
             </Box>}
-            <Button
+            {shouldShowPrimaryButton && <Button
                 variant={ButtonVariants.Primary}
                 size={ButtonSize.Lg}
                 width={ButtonWidthTypes.Full}
-                label={primaryButtonLabel}
+                label={strings('deep_link_modal.continue_button')}
                 onPress={onContinuePressed}
                 style={styles.actionButtonMargin}
-            />
+            />}
         </BottomSheet >
     );
 };
