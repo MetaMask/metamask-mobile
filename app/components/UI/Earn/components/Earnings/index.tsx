@@ -134,43 +134,47 @@ const EarningsContent = ({ asset }: EarningsProps) => {
             </Text>
           )}
         </View>
-        <View style={styles.keyValueRow}>
-          <View style={styles.keyValuePrimaryTextWrapperCentered}>
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              style={styles.keyValuePrimaryText}
-            >
-              {strings('stake.lifetime_rewards')}
-            </Text>
+        {experienceType === EARN_EXPERIENCES.POOLED_STAKING && (
+          <View style={styles.keyValueRow}>
+            <View style={styles.keyValuePrimaryTextWrapperCentered}>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                style={styles.keyValuePrimaryText}
+              >
+                {strings('stake.lifetime_rewards')}
+              </Text>
+            </View>
+            <View style={styles.keyValueSecondaryText}>
+              {isLoadingEarningsData ? (
+                <SkeletonPlaceholder>
+                  <SkeletonPlaceholder.Item
+                    width={100}
+                    height={20}
+                    borderRadius={6}
+                  />
+                  <SkeletonPlaceholder.Item
+                    width={100}
+                    height={20}
+                    borderRadius={6}
+                    marginTop={5}
+                  />
+                </SkeletonPlaceholder>
+              ) : (
+                <>
+                  <Text variant={TextVariant.BodyMD}>
+                    {lifetimeRewardsFiat}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodySMMedium}
+                    color={TextColor.Alternative}
+                  >
+                    {lifetimeRewards}
+                  </Text>
+                </>
+              )}
+            </View>
           </View>
-          <View style={styles.keyValueSecondaryText}>
-            {isLoadingEarningsData ? (
-              <SkeletonPlaceholder>
-                <SkeletonPlaceholder.Item
-                  width={100}
-                  height={20}
-                  borderRadius={6}
-                />
-                <SkeletonPlaceholder.Item
-                  width={100}
-                  height={20}
-                  borderRadius={6}
-                  marginTop={5}
-                />
-              </SkeletonPlaceholder>
-            ) : (
-              <>
-                <Text variant={TextVariant.BodyMD}>{lifetimeRewardsFiat}</Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Alternative}
-                >
-                  {lifetimeRewards}
-                </Text>
-              </>
-            )}
-          </View>
-        </View>
+        )}
         <View style={styles.keyValueRow}>
           <View style={styles.keyValuePrimaryTextWrapperCentered}>
             <Text
