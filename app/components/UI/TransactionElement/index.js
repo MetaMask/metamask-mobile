@@ -259,7 +259,11 @@ class TransactionElement extends PureComponent {
   onPressItem = () => {
     const { tx, i, onPressItem } = this.props;
     onPressItem(tx.id, i);
-    if (tx.type === 'bridge') {
+
+    const isUnifiedSwap =
+      tx.type === TransactionType.swap &&
+      this.props.bridgeTxHistoryData?.bridgeTxHistoryItem;
+    if (tx.type === TransactionType.bridge || isUnifiedSwap) {
       this.props.navigation.navigate(Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS, {
         evmTxMeta: tx,
       });
