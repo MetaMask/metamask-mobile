@@ -4,13 +4,14 @@ import { hasProperty } from '@metamask/utils';
 import { ensureValidState } from './util';
 
 /**
- * Migration 86: Add 'Seedless Onboarding default state' to seedless onboarding controller
+ * Migration 87: Add 'Seedless Onboarding default state' to seedless onboarding controller
  *
  * This migration add Seedless Onboarding default state to the seedless onboarding controller
- * as a default Seedless Onboarding State.
+ * as a default Seedless Onboarding State. 
+ * 
  */
 const migration = (state: unknown): unknown => {
-  const migrationVersion = 86;
+  const migrationVersion = 87;
 
   // Ensure the state is valid for migration
   if (!ensureValidState(state, migrationVersion)) {
