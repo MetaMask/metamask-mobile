@@ -5,7 +5,13 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -28,13 +34,9 @@ import useEarnWithdrawInput from '../../../Earn/hooks/useEarnWithdrawInput';
 import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
-import {
-  EVENT_LOCATIONS,
-  EVENT_PROVIDERS,
-} from '../../../Stake/constants/events';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import usePoolStakedUnstake from '../../../Stake/hooks/usePoolStakedUnstake';
 import { StakeNavigationParamsList } from '../../../Stake/types';
-import { withMetaMetrics } from '../../../Stake/utils/metaMetrics/withMetaMetrics';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
 import InputDisplay from '../../components/InputDisplay';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
@@ -52,6 +54,8 @@ import { renderFromTokenMinimalUnit } from '../../../../../util/number';
 import { TokenI } from '../../../Tokens/types';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { EarnTokenDetails } from '../../types/lending.types';
+import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
+import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
@@ -74,11 +78,26 @@ const EarnWithdrawInputView = () => {
 
   const conversionRate = useSelector(selectConversionRate) ?? 1;
   const contractExchangeRates = useSelector((state: RootState) =>
-    selectContractExchangeRatesByChainId(state, token.chainId as Hex),
+    selectContractExchangeRatesByChainId(state, token?.chainId as Hex),
   );
-  const exchangeRate = contractExchangeRates?.[token.address as Hex]?.price;
+  const network = useSelector((state: RootState) =>
+    selectNetworkConfigurationByChainId(state, token.chainId as Hex),
+  );
+
+  // We want to keep track of the last quick amount pressed before navigating to review.
+  const lastQuickAmountButtonPressed = useRef<string | null>(null);
+  const exchangeRate = contractExchangeRates?.[token?.address as Hex]?.price;
 
   const { trackEvent, createEventBuilder } = useMetrics();
+
+  const { shouldLogStablecoinEvent, shouldLogStakingEvent } =
+    useEarnAnalyticsEventLogging({
+      // Do we want to track the earnToken/underlying (e.g. USDC) or the receiptToken (e.g. aUSDC)?
+      earnToken: receiptToken,
+      isStablecoinLendingEnabled,
+      token,
+      actionType: 'withdrawal',
+    });
 
   const {
     isFiat,
@@ -99,6 +118,22 @@ const EarnWithdrawInputView = () => {
     conversionRate,
     exchangeRate,
   });
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EARN_INPUT_OPENED)
+        .addProperties({
+          action_type: 'withdrawal',
+          token: receiptToken?.symbol,
+          token_name: receiptToken?.name,
+          network: network?.name,
+          user_token_balance: receiptToken?.balanceFormatted,
+          experience: receiptToken?.experience?.type,
+        })
+        .build(),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [maxRiskAwareWithdrawalAmount, setMaxRiskAwareWithdrawalAmount] =
     useState('0');
@@ -156,12 +191,26 @@ const EarnWithdrawInputView = () => {
     // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-903
     // handleIconPress: ???,
   };
+  const backButtonAnalytics = shouldLogStablecoinEvent()
+    ? {
+        event: MetaMetricsEvents.EARN_INPUT_BACK_BUTTON_CLICKED,
+        experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        location: EVENT_LOCATIONS.EARN_WITHDRAWAL_INPUT_VIEW,
+      }
+    : {
+        event: MetaMetricsEvents.UNSTAKE_CANCEL_CLICKED,
+        experience: EARN_EXPERIENCES.POOLED_STAKING,
+        location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
+      };
+
   const earnNavBarEventOptions = {
     backButtonEvent: {
-      event: MetaMetricsEvents.UNSTAKE_CANCEL_CLICKED,
+      event: backButtonAnalytics.event,
       properties: {
         selected_provider: EVENT_PROVIDERS.CONSENSYS,
-        location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
+        location: backButtonAnalytics.location,
+        experience: backButtonAnalytics.experience,
+        token: token.symbol,
       },
     },
     // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-903
@@ -194,6 +243,51 @@ const EarnWithdrawInputView = () => {
     );
   }, [navigation, theme.colors, navBarOptions, navBarEventOptions]);
 
+  // This component rerenders to recalculate gas estimate which causes duplicate events to fire.
+  // This ref will allow one insufficient funds error to fire per visit to the page.
+  const isSendingInsufficientFundsMetaMetric = useRef(false);
+
+  useEffect(() => {
+    const emitInsufficientFundsMetaMetric = () => {
+      // track insufficient balance for stablecoin lending withdrawals
+      if (shouldLogStablecoinEvent()) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.EARN_INPUT_INSUFFICIENT_BALANCE)
+            .addProperties({
+              provider: EVENT_PROVIDERS.CONSENSYS,
+              location: EVENT_LOCATIONS.EARN_WITHDRAWAL_INPUT_VIEW,
+              token_name: token.name,
+              token: token.symbol,
+              network: network?.name,
+              experience: receiptToken?.experience?.type,
+              action_type: 'withdrawal',
+            })
+            .build(),
+        );
+      }
+    };
+
+    if (
+      isOverMaximum.isOverMaximumEth ||
+      (isOverMaximum.isOverMaximumToken &&
+        !isSendingInsufficientFundsMetaMetric.current)
+    ) {
+      isSendingInsufficientFundsMetaMetric.current = true;
+      emitInsufficientFundsMetaMetric();
+    }
+  }, [
+    shouldLogStablecoinEvent,
+    createEventBuilder,
+    receiptToken?.experience?.type,
+    isOverMaximum?.isOverMaximumEth,
+    isOverMaximum?.isOverMaximumToken,
+    network?.name,
+    token.chainId,
+    token.name,
+    token.symbol,
+    trackEvent,
+  ]);
+
   const [
     isSubmittingStakeWithdrawalTransaction,
     setIsSubmittingStakeWithdrawalTransaction,
@@ -205,6 +299,22 @@ const EarnWithdrawInputView = () => {
   );
 
   const handleLendingWithdrawalFlow = useCallback(async () => {
+    if (shouldLogStablecoinEvent()) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EARN_REVIEW_BUTTON_CLICKED)
+          .addProperties({
+            action_type: 'withdrawal',
+            token: receiptToken?.symbol,
+            network: network?.name,
+            user_token_balance: receiptToken?.balanceFormatted,
+            transaction_value: `${amountToken} ${receiptToken?.symbol}`,
+            lastQuickAmountButtonPressed: lastQuickAmountButtonPressed.current,
+            experience: receiptToken?.experience?.type,
+          })
+          .build(),
+      );
+    }
+
     // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-1044
     // We likely want to inform the user if this data is missing and the withdrawal fails.
     if (
@@ -245,11 +355,16 @@ const EarnWithdrawInputView = () => {
       setIsSubmittingStakeWithdrawalTransaction(false);
     }
   }, [
+    shouldLogStablecoinEvent,
     activeAccount?.address,
     amountFiatNumber,
+    amountToken,
     amountTokenMinimalUnit,
+    createEventBuilder,
     navigation,
+    network?.name,
     receiptToken,
+    trackEvent,
   ]);
 
   const handleUnstakeWithdrawalFlow = useCallback(async () => {
@@ -260,6 +375,9 @@ const EarnWithdrawInputView = () => {
       selected_provider: EVENT_PROVIDERS.CONSENSYS,
       tokens_to_stake_native_value: amountToken,
       tokens_to_stake_usd_value: amountFiatNumber,
+      lastQuickAmountButtonPressed: lastQuickAmountButtonPressed.current,
+      network: network?.name,
+      experience: EARN_EXPERIENCES.POOLED_STAKING,
     };
 
     if (isStakingDepositRedesignedEnabled) {
@@ -320,6 +438,7 @@ const EarnWithdrawInputView = () => {
     confirmationRedesignFlags?.staking_confirmations,
     createEventBuilder,
     navigation,
+    network?.name,
     trackEvent,
   ]);
 
@@ -410,6 +529,107 @@ const EarnWithdrawInputView = () => {
     receiptToken?.symbol,
   ]);
 
+  const handleCurrencySwitchWithTracking = useCallback(() => {
+    // Call the original handler first
+    handleCurrencySwitch();
+
+    // Track events based on flow type
+    if (shouldLogStablecoinEvent()) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EARN_INPUT_CURRENCY_SWITCH_CLICKED)
+          .addProperties({
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            text: 'Currency Switch Clicked',
+            location: EVENT_LOCATIONS.EARN_WITHDRAWAL_INPUT_VIEW,
+            // We want to track the currency switching to. Not the current currency.
+            currency_type: isFiat ? 'native' : 'fiat',
+            experience: receiptToken?.experience?.type,
+          })
+          .build(),
+      );
+    } else if (shouldLogStakingEvent()) {
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.UNSTAKE_INPUT_CURRENCY_SWITCH_CLICKED,
+        )
+          .addProperties({
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            text: 'Currency Switch Trigger',
+            location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
+            // We want to track the currency switching to. Not the current currency.
+            currency_type: isFiat ? 'native' : 'fiat',
+            experience: receiptToken?.experience?.type,
+          })
+          .build(),
+      );
+    }
+  }, [
+    handleCurrencySwitch,
+    shouldLogStablecoinEvent,
+    shouldLogStakingEvent,
+    trackEvent,
+    createEventBuilder,
+    isFiat,
+    receiptToken?.experience?.type,
+  ]);
+
+  const handleQuickAmountPressWithTracking = useCallback(
+    ({ value }: { value: number }) => {
+      lastQuickAmountButtonPressed.current =
+        value === 1 ? 'MAX' : `${value * 100}%`;
+
+      // call the original handler first
+      handleQuickAmountPress({ value });
+
+      // track events based on flow type
+      if (shouldLogStablecoinEvent()) {
+        const isMax = Boolean(lastQuickAmountButtonPressed.current === 'MAX');
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.EARN_INPUT_VALUE_CHANGED)
+            .addProperties({
+              action_type: 'withdrawal',
+              input_value: isMax ? 'MAX' : `${value * 100}%`,
+              is_max: isMax,
+              token: receiptToken?.symbol,
+              network: network?.name,
+              user_token_balance: receiptToken?.balanceFormatted,
+              experience: receiptToken?.experience?.type,
+            })
+            .build(),
+        );
+      } else if (shouldLogStakingEvent()) {
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.UNSTAKE_INPUT_QUICK_AMOUNT_CLICKED,
+          )
+            .addProperties({
+              location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
+              amount: value,
+              is_max: value === 1,
+              mode: isFiat ? 'fiat' : 'native',
+              experience: EARN_EXPERIENCES.POOLED_STAKING,
+              user_token_balance: receiptToken?.balanceFormatted,
+              token: receiptToken?.symbol,
+              network: network?.name,
+            })
+            .build(),
+        );
+      }
+    },
+    [
+      handleQuickAmountPress,
+      shouldLogStablecoinEvent,
+      shouldLogStakingEvent,
+      trackEvent,
+      createEventBuilder,
+      receiptToken?.symbol,
+      receiptToken?.balanceFormatted,
+      receiptToken?.experience?.type,
+      network?.name,
+      isFiat,
+    ],
+  );
+
   return (
     <ScreenLayout style={styles.container}>
       <InputDisplay
@@ -421,16 +641,7 @@ const EarnWithdrawInputView = () => {
         isFiat={isFiat}
         asset={token}
         currentCurrency={currentCurrency}
-        handleCurrencySwitch={withMetaMetrics(handleCurrencySwitch, {
-          event: MetaMetricsEvents.UNSTAKE_INPUT_CURRENCY_SWITCH_CLICKED,
-          properties: {
-            selected_provider: EVENT_PROVIDERS.CONSENSYS,
-            text: 'Currency Switch Trigger',
-            location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
-            // We want to track the currency switching to. Not the current currency.
-            currency_type: isFiat ? 'native' : 'fiat',
-          },
-        })}
+        handleCurrencySwitch={handleCurrencySwitchWithTracking}
         currencyToggleValue={currencyToggleValue}
         maxWithdrawalAmount={maxRiskAwareWithdrawalText}
         error={
@@ -449,17 +660,7 @@ const EarnWithdrawInputView = () => {
       )}
       <QuickAmounts
         amounts={percentageOptions}
-        onAmountPress={({ value }: { value: number }) =>
-          withMetaMetrics(handleQuickAmountPress, {
-            event: MetaMetricsEvents.UNSTAKE_INPUT_QUICK_AMOUNT_CLICKED,
-            properties: {
-              location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
-              amount: value,
-              is_max: value === 1,
-              mode: isFiat ? 'fiat' : 'native',
-            },
-          })({ value })
-        }
+        onAmountPress={handleQuickAmountPressWithTracking}
       />
       <Keypad
         value={isFiat ? amountFiatNumber : amountToken}

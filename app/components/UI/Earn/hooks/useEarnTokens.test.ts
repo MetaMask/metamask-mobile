@@ -373,7 +373,7 @@ describe('useEarnTokens', () => {
       expect(result.current.getPairedEarnTokens(mockAWethToken)).toBeDefined();
     });
 
-    it('returns undefined for earn tokens when pooled-staking and stablecoin lending are disabled', () => {
+    it('returns undefined for non eth earn tokens when pooled-staking and stablecoin lending are disabled', () => {
       mockSelectPooledStakingEnabledFlag.mockReturnValue(false);
       mockSelectStablecoinLendingEnabledFlag.mockReturnValue(false);
 
@@ -381,10 +381,10 @@ describe('useEarnTokens', () => {
         state: mockState,
       });
 
-      expect(result.current.getEarnToken(mockEthToken)).toBeUndefined();
+      expect(result.current.getEarnToken(mockEthToken)).toBeDefined();
       expect(result.current.getEarnToken(mockStakedEthToken)).toBeUndefined();
       expect(result.current.getOutputToken(mockEthToken)).toBeUndefined();
-      expect(result.current.getOutputToken(mockStakedEthToken)).toBeUndefined();
+      expect(result.current.getOutputToken(mockStakedEthToken)).toBeDefined();
       expect(result.current.getEarnToken(mockUsdcToken)).toBeUndefined();
       expect(result.current.getEarnToken(mockUsdtToken)).toBeUndefined();
       expect(result.current.getEarnToken(mockWethToken)).toBeUndefined();
@@ -393,32 +393,32 @@ describe('useEarnTokens', () => {
   });
 
   describe('Pooled-Staking Tokens', () => {
-    it('filters out pooled-staking tokens when pooled-staking feature flag is disabled', () => {
+    it('does not filter out pooled-staking tokens when pooled-staking feature flag is disabled', () => {
       mockSelectPooledStakingEnabledFlag.mockReturnValue(false);
 
       const { result } = renderHookWithProvider(() => useEarnTokens(), {
         state: mockState,
       });
 
-      expect(result.current.getEarnToken(mockEthToken)).toBeUndefined();
+      expect(result.current.getEarnToken(mockEthToken)).toBeDefined();
       expect(result.current.getEarnToken(mockStakedEthToken)).toBeUndefined();
       expect(result.current.getOutputToken(mockEthToken)).toBeUndefined();
-      expect(result.current.getOutputToken(mockStakedEthToken)).toBeUndefined();
+      expect(result.current.getOutputToken(mockStakedEthToken)).toBeDefined();
       expect(
         result.current.getPairedEarnTokens(mockEthToken).earnToken,
-      ).toBeUndefined();
+      ).toBeDefined();
       expect(
         result.current.getPairedEarnTokens(mockEthToken).outputToken,
-      ).toBeUndefined();
+      ).toBeDefined();
       expect(
         result.current.getPairedEarnTokens(mockStakedEthToken).outputToken,
-      ).toBeUndefined();
+      ).toBeDefined();
       expect(
         result.current.getPairedEarnTokens(mockStakedEthToken).earnToken,
-      ).toBeUndefined();
+      ).toBeDefined();
     });
 
-    it("filters out pooled-staking tokens when user isn't eligible to pool-stake", () => {
+    it("does not filter out pooled-staking tokens when user isn't eligible to pool-stake", () => {
       const { result } = renderHookWithProvider(() => useEarnTokens(), {
         state: {
           ...mockState,
@@ -439,22 +439,22 @@ describe('useEarnTokens', () => {
         },
       });
 
-      expect(result.current.getEarnToken(mockEthToken)).toBeUndefined();
+      expect(result.current.getEarnToken(mockEthToken)).toBeDefined();
       expect(result.current.getEarnToken(mockStakedEthToken)).toBeUndefined();
       expect(result.current.getOutputToken(mockEthToken)).toBeUndefined();
-      expect(result.current.getOutputToken(mockStakedEthToken)).toBeUndefined();
+      expect(result.current.getOutputToken(mockStakedEthToken)).toBeDefined();
       expect(
         result.current.getPairedEarnTokens(mockEthToken).earnToken,
-      ).toBeUndefined();
+      ).toBeDefined();
       expect(
         result.current.getPairedEarnTokens(mockEthToken).outputToken,
-      ).toBeUndefined();
+      ).toBeDefined();
       expect(
         result.current.getPairedEarnTokens(mockStakedEthToken).outputToken,
-      ).toBeUndefined();
+      ).toBeDefined();
       expect(
         result.current.getPairedEarnTokens(mockStakedEthToken).earnToken,
-      ).toBeUndefined();
+      ).toBeDefined();
     });
   });
 

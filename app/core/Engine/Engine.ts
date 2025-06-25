@@ -40,7 +40,7 @@ import {
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import {
   AcceptOptions,
-  ApprovalController,
+  AddApprovalOptions,
 } from '@metamask/approval-controller';
 import { HdKeyring } from '@metamask/eth-hd-keyring';
 import { SelectedNetworkController } from '@metamask/selected-network-controller';
@@ -127,7 +127,6 @@ import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
 import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
 import {
-  ApprovalType,
   ChainId,
   handleFetch,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -190,6 +189,7 @@ import { logEngineCreation } from './utils/logger';
 import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
 import { accountTreeControllerInit } from '../../multichain-accounts/controllers/account-tree-controller';
+import { ApprovalControllerInit } from './controllers/approval-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
 import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
@@ -226,6 +226,11 @@ import {
 } from './controllers/multichain-router/constants';
 import { ErrorReportingService } from '@metamask/error-reporting-service';
 import { captureException } from '@sentry/react-native';
+import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
+
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
+///: END:ONLY_INCLUDE_IF
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -292,19 +297,6 @@ export class Engine {
     const isBasicFunctionalityToggleEnabled = () =>
       selectBasicFunctionalityEnabled(store.getState());
 
-    const approvalController = new ApprovalController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'ApprovalController',
-        allowedEvents: [],
-        allowedActions: [],
-      }),
-      showApprovalRequest: () => undefined,
-      typesExcludedFromRateLimiting: [
-        ApprovalType.Transaction,
-        ApprovalType.WatchAsset,
-      ],
-    });
-
     const preferencesController = new PreferencesController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'PreferencesController',
@@ -339,7 +331,7 @@ export class Engine {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const errorReportingService = new ErrorReportingService({
       messenger: errorReportingServiceMessenger,
-      captureException: (error) => captureException(error as Error),
+      captureException,
     });
 
     const networkControllerMessenger = this.controllerMessenger.getRestricted({
@@ -775,11 +767,15 @@ export class Engine {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         placeholder?: any,
       ) =>
-        approvalController.addAndShowApprovalRequest({
-          origin,
-          type,
-          requestData: { content, placeholder },
-        }),
+        this.controllerMessenger.call<'ApprovalController:addRequest'>(
+          'ApprovalController:addRequest',
+          {
+            origin,
+            type,
+            requestData: { content, placeholder },
+          },
+          true,
+        ),
       showInAppNotification: (origin: string, args: NotificationArgs) => {
         Logger.log(
           'Snaps/ showInAppNotification called with args: ',
@@ -800,8 +796,12 @@ export class Engine {
         this.controllerMessenger,
         'SnapInterfaceController:updateInterface',
       ),
-      requestUserApproval:
-        approvalController.addAndShowApprovalRequest.bind(approvalController),
+      requestUserApproval: (opts: AddApprovalOptions) =>
+        this.controllerMessenger.call<'ApprovalController:addRequest'>(
+          'ApprovalController:addRequest',
+          opts,
+          true,
+        ),
       hasPermission: (origin: string, target: string) =>
         this.controllerMessenger.call<'PermissionController:hasPermission'>(
           'PermissionController:hasPermission',
@@ -889,10 +889,10 @@ export class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'PermissionController',
         allowedActions: [
-          `${approvalController.name}:addRequest`,
-          `${approvalController.name}:hasRequest`,
-          `${approvalController.name}:acceptRequest`,
-          `${approvalController.name}:rejectRequest`,
+          `ApprovalController:addRequest`,
+          `ApprovalController:hasRequest`,
+          `ApprovalController:acceptRequest`,
+          `ApprovalController:rejectRequest`,
           ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
           `SnapController:getPermitted`,
           `SnapController:install`,
@@ -1013,6 +1013,48 @@ export class Engine {
                 .addProperties({
                   profile_id: profileId,
                   situation_message: situationMessage,
+                })
+                .build(),
+            );
+          },
+        },
+        contactSyncing: {
+          onContactUpdated: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                  feature_name: 'Contacts Sync',
+                  action: 'Contacts Sync Contact Updated',
+                })
+                .build(),
+            );
+          },
+          onContactDeleted: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                  feature_name: 'Contacts Sync',
+                  action: 'Contacts Sync Contact Deleted',
+                })
+                .build(),
+            );
+          },
+          onContactSyncErroneousSituation(profileId, situationMessage) {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                  feature_name: 'Contacts Sync',
+                  action: 'Contacts Sync Erroneous Situation',
+                  additional_description: situationMessage,
                 })
                 .build(),
             );
@@ -1180,7 +1222,6 @@ export class Engine {
     });
 
     const existingControllersByName = {
-      ApprovalController: approvalController,
       KeyringController: this.keyringController,
       NetworkController: networkController,
       PreferencesController: preferencesController,
@@ -1197,6 +1238,7 @@ export class Engine {
         AccountsController: accountsControllerInit,
         AccountTreeController: accountTreeControllerInit,
         AppMetadataController: appMetadataControllerInit,
+        ApprovalController: ApprovalControllerInit,
         GasFeeController: GasFeeControllerInit,
         TransactionController: TransactionControllerInit,
         SignatureController: SignatureControllerInit,
@@ -1212,12 +1254,16 @@ export class Engine {
         NotificationServicesController: notificationServicesControllerInit,
         NotificationServicesPushController:
           notificationServicesPushControllerInit,
+        WebSocketService: WebSocketServiceInit,
         ///: END:ONLY_INCLUDE_IF
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
         MultichainAssetsController: multichainAssetsControllerInit,
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
         MultichainBalancesController: multichainBalancesControllerInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
+        ///: END:ONLY_INCLUDE_IF
+        ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+        SeedlessOnboardingController: seedlessOnboardingControllerInit,
         ///: END:ONLY_INCLUDE_IF
       },
       persistedState: initialState as EngineState,
@@ -1228,10 +1274,14 @@ export class Engine {
 
     const accountsController = controllersByName.AccountsController;
     const accountTreeController = controllersByName.AccountTreeController;
+    const approvalController = controllersByName.ApprovalController;
     const gasFeeController = controllersByName.GasFeeController;
     const signatureController = controllersByName.SignatureController;
     const transactionController = controllersByName.TransactionController;
-
+    ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+    const seedlessOnboardingController =
+      controllersByName.SeedlessOnboardingController;
+    ///: END:ONLY_INCLUDE_IF
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
     this.gasFeeController = gasFeeController;
@@ -1247,6 +1297,7 @@ export class Engine {
     const snapController = controllersByName.SnapController;
     const snapInterfaceController = controllersByName.SnapInterfaceController;
     const snapsRegistry = controllersByName.SnapsRegistry;
+    const webSocketService = controllersByName.WebSocketService;
     const notificationServicesController =
       controllersByName.NotificationServicesController;
     const notificationServicesPushController =
@@ -1285,6 +1336,7 @@ export class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    snapController.init();
     // Notification Setup
     notificationServicesController.init();
     ///: END:ONLY_INCLUDE_IF
@@ -1532,6 +1584,7 @@ export class Engine {
       SubjectMetadataController: this.subjectMetadataController,
       AuthenticationController: authenticationController,
       UserStorageController: userStorageController,
+      WebSocketService: webSocketService,
       NotificationServicesController: notificationServicesController,
       NotificationServicesPushController: notificationServicesPushController,
       ///: END:ONLY_INCLUDE_IF
@@ -1582,6 +1635,9 @@ export class Engine {
       BridgeStatusController: bridgeStatusController,
       EarnController: earnController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
+      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+      SeedlessOnboardingController: seedlessOnboardingController,
+      ///: END:ONLY_INCLUDE_IF
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1659,15 +1715,17 @@ export class Engine {
     this.controllerMessenger.subscribe(
       `${snapController.name}:snapTerminated`,
       (truncatedSnap) => {
-        const approvals = Object.values(
-          approvalController.state.pendingApprovals,
-        ).filter(
+        const pendingApprovals = this.controllerMessenger.call(
+          'ApprovalController:getState',
+        ).pendingApprovals;
+        const approvals = Object.values(pendingApprovals).filter(
           (approval) =>
             approval.origin === truncatedSnap.id &&
             approval.type.startsWith(RestrictedMethods.snap_dialog),
         );
         for (const approval of approvals) {
-          approvalController.reject(
+          this.controllerMessenger.call<'ApprovalController:rejectRequest'>(
+            'ApprovalController:rejectRequest',
             approval.id,
             new Error('Snap was terminated.'),
           );
@@ -2301,6 +2359,9 @@ export default {
       BridgeStatusController,
       EarnController,
       DeFiPositionsController,
+      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+      SeedlessOnboardingController,
+      ///: END:ONLY_INCLUDE_IF
     } = instance.datamodel.state;
 
     return {
@@ -2354,6 +2415,9 @@ export default {
       BridgeStatusController,
       EarnController,
       DeFiPositionsController,
+      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+      SeedlessOnboardingController,
+      ///: END:ONLY_INCLUDE_IF
     };
   },
 

@@ -399,6 +399,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "cacheTimestamp": 0,
         "remoteFeatureFlags": {},
       },
+      "SeedlessOnboardingController": {
+        "socialBackupsMetadata": [],
+      },
       "SelectedNetworkController": {
         "domains": {},
       },
@@ -537,6 +540,8 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "isAccountSyncingReadyToBeDispatched": false,
         "isBackupAndSyncEnabled": true,
         "isBackupAndSyncUpdateLoading": false,
+        "isContactSyncingEnabled": true,
+        "isContactSyncingInProgress": false,
       },
     },
   },

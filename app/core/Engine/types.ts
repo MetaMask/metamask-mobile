@@ -167,6 +167,9 @@ import {
   CronjobControllerActions,
   CronjobController,
   MultichainRouterActions,
+  WebSocketService,
+  WebSocketServiceActions,
+  WebSocketServiceEvents,
 } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -260,6 +263,15 @@ import {
   EarnControllerEvents,
   EarnControllerState,
 } from '@metamask/earn-controller';
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+import {
+  SeedlessOnboardingController,
+  SeedlessOnboardingControllerState,
+  SeedlessOnboardingControllerEvents,
+} from '@metamask/seedless-onboarding-controller';
+import { EncryptionKey } from '../Encryptor/types';
+///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+
 import { Hex } from '@metamask/utils';
 
 import { CONTROLLER_MESSENGERS } from './messengers';
@@ -275,7 +287,7 @@ import {
   AccountTreeController,
   AccountTreeControllerState,
   AccountTreeControllerActions,
-  AccountTreeControllerEvents
+  AccountTreeControllerEvents,
 } from '@metamask/account-tree-controller';
 
 /**
@@ -334,6 +346,7 @@ type GlobalActions =
   | NotificationServicesControllerMessengerActions
   | NotificationServicesPushControllerActions
   | CronjobControllerActions
+  | WebSocketServiceActions
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerActions
@@ -386,6 +399,7 @@ type GlobalEvents =
   | NotificationServicesControllerMessengerEvents
   | NotificationServicesPushControllerEvents
   | CronjobControllerEvents
+  | WebSocketServiceEvents
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerEvents
@@ -416,8 +430,11 @@ type GlobalEvents =
   | BridgeStatusControllerEvents
   | EarnControllerEvents
   | AppMetadataControllerEvents
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  | SeedlessOnboardingControllerEvents
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   | DeFiPositionsControllerEvents
-  | AccountTreeControllerEvents
+  | AccountTreeControllerEvents;
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -479,6 +496,7 @@ export type Controllers = {
   NotificationServicesPushController: NotificationServicesPushController;
   SnapInterfaceController: SnapInterfaceController;
   CronjobController: CronjobController;
+  WebSocketService: WebSocketService,
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -493,6 +511,9 @@ export type Controllers = {
   BridgeController: BridgeController;
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 };
 
 /**
@@ -558,6 +579,9 @@ export type EngineState = {
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  SeedlessOnboardingController: SeedlessOnboardingControllerState;
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 };
 
 /** Controller names */
@@ -594,6 +618,7 @@ export type ControllersToInitialize =
   | 'SnapController'
   | 'SnapInterfaceController'
   | 'SnapsRegistry'
+  | 'WebSocketService'
   | 'NotificationServicesController'
   | 'NotificationServicesPushController'
   | 'AppMetadataController'
@@ -605,13 +630,17 @@ export type ControllersToInitialize =
   | 'MultichainTransactionsController'
   ///: END:ONLY_INCLUDE_IF
   | 'AccountTreeController'
-  | 'CurrencyRateController'
   | 'AccountsController'
-  | 'MultichainNetworkController'
-  | 'TransactionController'
+  | 'ApprovalController'
+  | 'CurrencyRateController'
+  | 'DeFiPositionsController'
   | 'GasFeeController'
+  | 'MultichainNetworkController'
   | 'SignatureController'
-  | 'DeFiPositionsController';
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  | 'SeedlessOnboardingController'
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+  | 'TransactionController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
