@@ -3,6 +3,7 @@ import { MESSAGE_TYPE } from '../createTracingMiddleware';
 import {
   trackDappViewedEvent,
 } from '../../util/metrics';
+import { isSnapId } from '@metamask/snaps-utils';
 
 const requestEthereumAccounts = {
   methodNames: [MESSAGE_TYPE.ETH_REQUEST_ACCOUNTS],
@@ -87,7 +88,10 @@ async function requestEthereumAccountsHandler(
   // because the accounts will not be in order of lastSelected
   ethAccounts = getAccounts({ ignoreLock: true });
 
-  trackDappViewedEvent(origin, ethAccounts.length);
+  if (!isSnapId(origin)) {
+    // Origin is actually a hostname here, this should change in the future.
+    trackDappViewedEvent({ hostname: origin, numberOfConnectedAccounts: ethAccounts.length });
+  }
 
   res.result = ethAccounts;
   return end();
