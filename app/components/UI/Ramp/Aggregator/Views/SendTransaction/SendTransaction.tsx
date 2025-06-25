@@ -55,7 +55,7 @@ import { addTransaction } from '../../../../../../util/transaction-controller';
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { safeToChecksumAddress } from '../../../../../../util/address';
 import { generateTransferData } from '../../../../../../util/transactions';
-import useAnalytics from '../../hooks/useAnalytics';
+import useAnalytics from '../../../hooks/useAnalytics';
 import { toHex } from '@metamask/controller-utils';
 import { RAMPS_SEND } from '../../constants';
 import { selectNetworkClientId } from '../../../../../../selectors/networkController';
