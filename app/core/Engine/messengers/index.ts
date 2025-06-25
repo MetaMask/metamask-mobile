@@ -37,6 +37,7 @@ import { getSignatureControllerMessenger } from './signature-controller-messenge
 import { getSeedlessOnboardingControllerMessenger } from './seedless-onboarding-controller-messenger';
 ///: END:ONLY_INCLUDE_IF
 
+import { getApprovalControllerMessenger } from './approval-controller-messenger';
 /**
  * The messengers for the controllers that have been.
  */
@@ -47,6 +48,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   AccountTreeController: {
     getMessenger: getAccountTreeControllerMessenger,
+    getInitMessenger: noop,
+  },
+  ApprovalController: {
+    getMessenger: getApprovalControllerMessenger,
     getInitMessenger: noop,
   },
   TransactionController: {

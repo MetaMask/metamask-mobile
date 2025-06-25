@@ -57,16 +57,16 @@ export class MockttpNotificationTriggerServer {
     };
   };
 
-  setupServer = (server: Mockttp) => {
+  setupServer = async (server: Mockttp) => {
     // Mobile uses a API url proxy, where all subsequent calls need to pulled out from this proxy API
-    server
+    await server
       .forPost('/proxy')
       .matching((request) =>
         getDecodedProxiedURL(request.url).includes(GET_CONFIG_URL),
       )
       .thenCallback((request) => this.getConfig(request));
 
-    server
+    await server
       .forPost('/proxy')
       .matching((request) =>
         getDecodedProxiedURL(request.url).includes(UPDATE_CONFIG_URL),

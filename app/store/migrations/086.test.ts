@@ -1,10 +1,6 @@
-import { captureException } from '@sentry/react-native';
-import { cloneDeep } from 'lodash';
-
-import { ensureValidState } from './util';
 import migrate from './086';
-
-const migrationVersion = 86;
+import { ensureValidState } from './util';
+import { captureException } from '@sentry/react-native';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -17,78 +13,163 @@ jest.mock('./util', () => ({
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 
-const createTestState = () => ({
-  engine: {
-    backgroundState: {},
-  },
-});
+const migrationVersion = 86;
 
-describe(`Migration ${migrationVersion}: Add Seedless Onboarding default state`, () => {
+describe(`Migration ${migrationVersion}: Remove Automatic Security Checks state`, () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
 
   it('returns state unchanged if ensureValidState fails', () => {
     const state = { some: 'state' };
+
     mockedEnsureValidState.mockReturnValue(false);
 
     const migratedState = migrate(state);
 
-    expect(migratedState).toStrictEqual({ some: 'state' });
+    expect(migratedState).toBe(state);
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('adds Seedless Onboarding default state to state', () => {
-    const oldState = createTestState();
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const expectedData = {
+  it('captures exception if security state is invalid', () => {
+    const state = {
       engine: {
         backgroundState: {
-          SeedlessOnboardingController: {
-            socialBackupsMetadata: [],
-          },
+          // security is missing
         },
       },
     };
 
-    const migratedState = migrate(oldState);
-
-    expect(migratedState).toStrictEqual(expectedData);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it.each([
-    {
-      state: {
-        engine: {
-          backgroundState: {
-            SeedlessOnboardingController: 'invalid',
-          },
-        },
-      },
-      test: 'invalid SeedlessOnboardingController state',
-    },
-    {
-      state: {
-        engine: {
-          backgroundState: {
-            SeedlessOnboardingController: {
-              socialBackupsMetadata: 'invalid',
-            },
-          },
-        },
-      },
-      test: 'invalid socialBackupsMetadata state',
-    },
-  ])('does not modify state if the state is invalid - $test', ({ state }) => {
-    const orgState = cloneDeep(state);
     mockedEnsureValidState.mockReturnValue(true);
 
     const migratedState = migrate(state);
 
-    // State should be unchanged
-    expect(migratedState).toStrictEqual(orgState);
+    expect(migratedState).toEqual(state);
+    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
+      `Migration ${migrationVersion}: Invalid security state`,
+    );
+  });
+
+  it('removes automatic security checks properties while preserving other fields', () => {
+    interface TestState {
+      engine: {
+        backgroundState: {
+          OtherController: {
+            shouldStayUntouched: boolean;
+          };
+        };
+      };
+      security: {
+        automaticSecurityChecksEnabled: boolean;
+        hasUserSelectedAutomaticSecurityCheckOption: boolean;
+        isAutomaticSecurityChecksModalOpen: boolean;
+        otherSecurityProperty: string;
+      };
+    }
+
+    const state: TestState = {
+      engine: {
+        backgroundState: {
+          OtherController: {
+            shouldStayUntouched: true,
+          },
+        },
+      },
+      security: {
+        automaticSecurityChecksEnabled: true,
+        hasUserSelectedAutomaticSecurityCheckOption: false,
+        isAutomaticSecurityChecksModalOpen: true,
+        otherSecurityProperty: 'should remain',
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state) as typeof state;
+
+    // Automatic security check properties should be removed
+    expect(migratedState.security).not.toHaveProperty(
+      'automaticSecurityChecksEnabled',
+    );
+    expect(migratedState.security).not.toHaveProperty(
+      'hasUserSelectedAutomaticSecurityCheckOption',
+    );
+    expect(migratedState.security).not.toHaveProperty(
+      'isAutomaticSecurityChecksModalOpen',
+    );
+
+    // Other security properties should remain unchanged
+    expect(migratedState.security.otherSecurityProperty).toBe('should remain');
+
+    // Other controllers should remain untouched
+    expect(migratedState.engine.backgroundState.OtherController).toEqual({
+      shouldStayUntouched: true,
+    });
+
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('handles state where some automatic security check properties are missing', () => {
+    const state = {
+      engine: {
+        backgroundState: {},
+      },
+      security: {
+        automaticSecurityChecksEnabled: true,
+        // hasUserSelectedAutomaticSecurityCheckOption is missing
+        // isAutomaticSecurityChecksModalOpen is missing
+        otherSecurityProperty: 'should remain',
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state) as typeof state;
+
+    // Should remove the existing property
+    expect(migratedState.security).not.toHaveProperty(
+      'automaticSecurityChecksEnabled',
+    );
+
+    // Other properties should remain
+    expect(migratedState.security.otherSecurityProperty).toBe('should remain');
+
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('handles state where no automatic security check properties exist', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          OtherController: {
+            shouldStayUntouched: true,
+          },
+        },
+      },
+      security: {
+        otherSecurityProperty: 'should remain',
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state) as typeof state;
+
+    // Should not add any properties
+    expect(migratedState.security).not.toHaveProperty(
+      'automaticSecurityChecksEnabled',
+    );
+    expect(migratedState.security).not.toHaveProperty(
+      'hasUserSelectedAutomaticSecurityCheckOption',
+    );
+    expect(migratedState.security).not.toHaveProperty(
+      'isAutomaticSecurityChecksModalOpen',
+    );
+
+    // Other properties should remain
+    expect(migratedState.security.otherSecurityProperty).toBe('should remain');
+
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 });

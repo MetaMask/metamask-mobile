@@ -630,16 +630,17 @@ export type ControllersToInitialize =
   | 'MultichainTransactionsController'
   ///: END:ONLY_INCLUDE_IF
   | 'AccountTreeController'
-  | 'CurrencyRateController'
   | 'AccountsController'
-  | 'MultichainNetworkController'
-  | 'TransactionController'
+  | 'ApprovalController'
+  | 'CurrencyRateController'
+  | 'DeFiPositionsController'
   | 'GasFeeController'
+  | 'MultichainNetworkController'
   | 'SignatureController'
   ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   | 'SeedlessOnboardingController'
   ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
-  | 'DeFiPositionsController';
+  | 'TransactionController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
