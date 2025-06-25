@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect, useRef, FC } from 'react';
-import { TextInput, View, TouchableOpacity } from 'react-native';
+import { TextInput, View, TouchableOpacity, Linking } from 'react-native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
@@ -25,6 +25,7 @@ import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createVerifyIdentityNavDetails } from '../VerifyIdentity/VerifyIdentity';
 import { useDepositSDK } from '../../sdk';
 import Row from '../../../Aggregator/components/Row';
+import { TRANSAK_SUPPORT_URL } from '../../constants';
 
 export interface OtpCodeParams {
   quote: BuyQuote;
@@ -151,7 +152,7 @@ const OtpCode = () => {
   }, [resendOtp, resetAttemptCount]);
 
   const handleContactSupport = useCallback(() => {
-    // navigate user to the contact support screen
+    Linking.openURL(TRANSAK_SUPPORT_URL);
   }, []);
 
   const handleSubmit = useCallback(async () => {
