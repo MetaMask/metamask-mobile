@@ -1,5 +1,6 @@
 import { blacklistURLs } from '../resources/blacklistURLs.json';
 import { waitFor } from 'detox';
+// eslint-disable-next-line import/no-nodejs-modules
 import { setTimeout as asyncSetTimeout } from 'node:timers/promises';
 
 export default class Utilities {
