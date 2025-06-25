@@ -1,7 +1,6 @@
-import { captureException } from '@sentry/react-native';
-import { cloneDeep } from 'lodash';
-import { ensureValidState } from './util';
 import migrate from './079';
+import { ensureValidState } from './util';
+import { captureException } from '@sentry/react-native';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -14,91 +13,335 @@ jest.mock('./util', () => ({
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 
-const createTestState = () => ({
-  engine: {
-    backgroundState: {
-      UserStorageController: {
-        isProfileSyncingEnabled: true,
-        isProfileSyncingUpdateLoading: false,
-      },
-    },
-  },
-});
+const migrationVersion = 79;
 
-describe('Migration 79: Update profile sync state properties to backup and sync ones', () => {
+describe(`Migration ${migrationVersion}: Add sessionProperties property to CAIP-25 permission caveats`, () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
 
   it('returns state unchanged if ensureValidState fails', () => {
     const state = { some: 'state' };
+
     mockedEnsureValidState.mockReturnValue(false);
 
     const migratedState = migrate(state);
 
-    expect(migratedState).toStrictEqual(state);
+    expect(migratedState).toBe(state);
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('copies and deletes specified properties from UserStorageController', () => {
-    const oldState = createTestState();
+  it('captures exception if PermissionController is missing', () => {
+    const state = {
+      engine: {
+        backgroundState: {},
+      },
+    };
+
     mockedEnsureValidState.mockReturnValue(true);
 
-    const expectedData = {
+    const migratedState = migrate(state);
+
+    expect(migratedState).toEqual(state);
+    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
+      `Migration ${migrationVersion}: typeof state.PermissionController is undefined`,
+    );
+  });
+
+  it('captures exception if PermissionController is not object', () => {
+    const state = {
       engine: {
         backgroundState: {
-          UserStorageController: {
-            isBackupAndSyncEnabled: true,
-            isBackupAndSyncUpdateLoading: false,
-          },
+          PermissionController: 'foobar'
         },
       },
     };
 
-    const migratedState = migrate(oldState);
+    mockedEnsureValidState.mockReturnValue(true);
 
-    expect(migratedState).toStrictEqual(expectedData);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
+    const migratedState = migrate(state);
+
+    expect(migratedState).toEqual(state);
+    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
+      `Migration ${migrationVersion}: typeof state.PermissionController is string`,
+    );
   });
 
-  it.each([
-    {
-      state: {
-        engine: {
-          backgroundState: {
-            UserStorageController: 'invalid',
-          },
+  it('captures exception if subjects is not object', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: 'foobar'
+          }
         },
       },
-      test: 'invalid UserStorageController state',
-      expectedError:
-        "FATAL ERROR: Migration 79: Invalid UserStorageController state error: 'string'",
-    },
-    {
-      state: {
-        engine: {
-          backgroundState: {},
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    expect(migratedState).toEqual(state);
+    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
+      `Migration ${migrationVersion}: typeof state.PermissionController.subjects is string`,
+    );
+  });
+
+  it('returns state unchanged if the subject is not an object', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+            'test.com': 'foobar'
+            }
+          }
         },
       },
-      test: 'invalid UserStorageController state',
-      expectedError:
-        "FATAL ERROR: Migration 79: Invalid UserStorageController state error: 'undefined'",
-    },
-  ])(
-    'captures exception and returns state unchanged for invalid state - $test',
-    ({ state, expectedError }) => {
-      const orgState = cloneDeep(state);
-      mockedEnsureValidState.mockReturnValue(true);
+    };
 
-      const migratedState = migrate(state);
+    mockedEnsureValidState.mockReturnValue(true);
 
-      // State should be unchanged
-      expect(migratedState).toStrictEqual(orgState);
-      expect(mockedCaptureException).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expectedError,
-        }),
-      );
-    },
-  );
+    const migratedState = migrate(state);
+
+    expect(migratedState).toEqual(state);
+  });
+
+  it('returns state unchanged if the subject is missing permissions', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+            'test.com': {}
+            }
+          }
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    expect(migratedState).toEqual(state);
+  });
+
+  it('returns state unchanged if the subject permissions is not an object', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+            'test.com': {
+              permissions: 'foobar'
+            }
+          }
+        }
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    expect(migratedState).toEqual(state);
+  });
+
+  it('returns state unchanged if there is no `endowment:caip25` permission', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+            'test.com': {
+              permissions: {
+              }
+            }
+          }
+        }
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    expect(migratedState).toEqual(state);
+  });
+
+  it('returns state unchanged if the `endowment:caip25` permission is not an object', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+            'test.com': {
+              permissions: {
+                'endowment:caip25': 'foobar'
+              }
+            }
+          }
+          }
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    expect(migratedState).toEqual(state);
+  });
+
+  it('returns state unchanged if the `endowment:caip25` permission caveats is not an array', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+            'test.com': {
+              permissions: {
+                'endowment:caip25': {
+                  caveats: 'foobar'
+                }
+              }
+            }
+          }
+          }
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    expect(migratedState).toEqual(state);
+  });
+
+  it('returns the state with empty object sessionProperties added to the caip-25 permission if missing', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+            'test.com': {
+              permissions: {
+                'endowment:caip25': {
+                  caveats: [{
+                    type: 'authorizedScopes',
+                    value: {
+                      requiredScopes: {},
+                      optionalScopes: {},
+                      isMultichainOrigin: true,
+                    }
+                  }]
+                }
+              }
+            }
+            }
+          }
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    expect(migratedState).toEqual({
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+            'test.com': {
+              permissions: {
+                'endowment:caip25': {
+                  caveats: [{
+                    type: 'authorizedScopes',
+                    value: {
+                      requiredScopes: {},
+                      optionalScopes: {},
+                      isMultichainOrigin: true,
+                      sessionProperties: {}
+                    }
+                  }]
+                }
+              }
+            }
+            }
+          }
+        },
+      },
+    });
+  });
+
+  it('returns the state with sessionProperties unchanged on the caip-25 permission if exists', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+            'test.com': {
+              permissions: {
+                'endowment:caip25': {
+                  caveats: [{
+                    type: 'authorizedScopes',
+                    value: {
+                      requiredScopes: {},
+                      optionalScopes: {},
+                      isMultichainOrigin: true,
+                      sessionProperties: {
+                        foo: 'bar'
+                      }
+                    }
+                  }]
+                }
+              }
+            }
+            }
+          }
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    expect(migratedState).toEqual({
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+            'test.com': {
+              permissions: {
+                'endowment:caip25': {
+                  caveats: [{
+                    type: 'authorizedScopes',
+                    value: {
+                      requiredScopes: {},
+                      optionalScopes: {},
+                      isMultichainOrigin: true,
+                      sessionProperties: {
+                        foo: 'bar'
+                      }
+                    }
+                  }]
+                }
+              }
+            }
+          }
+        }
+        },
+      },
+    });
+  });
 });
