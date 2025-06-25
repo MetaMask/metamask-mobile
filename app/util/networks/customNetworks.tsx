@@ -280,6 +280,7 @@ export const NETWORK_CHAIN_ID: {
   readonly SOPHON_TESTNET: '0x1fa72e78';
   readonly BERACHAIN: '0x138de';
   readonly EDU: '0xa3c3';
+  readonly ABSTRACT: '0xab5';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -302,6 +303,7 @@ export const NETWORK_CHAIN_ID: {
   SOPHON_TESTNET: '0x1fa72e78',
   BERACHAIN: '0x138de',
   EDU: '0xa3c3',
+  ABSTRACT: '0xab5',
   ...CHAIN_IDS,
 };
 
@@ -329,4 +331,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.SOPHON_TESTNET]: require('../../images/sophon-testnet.png'),
   [NETWORK_CHAIN_ID.BERACHAIN]: require('../../images/berachain.png'),
   [NETWORK_CHAIN_ID.EDU]: require('../../images/edu.png'),
+  [NETWORK_CHAIN_ID.ABSTRACT]: require('../../images/abstract.png'),
 };

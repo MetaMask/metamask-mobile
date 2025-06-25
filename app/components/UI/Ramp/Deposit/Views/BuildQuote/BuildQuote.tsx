@@ -35,25 +35,18 @@ import {
   DepositRegion,
 } from '../../constants';
 import AccountSelector from '../../components/AccountSelector';
-import I18n, { strings } from '../../../../../../../locales/i18n';
+import { strings } from '../../../../../../../locales/i18n';
 import useDepositTokenExchange from '../../hooks/useDepositTokenExchange';
-import { getIntlNumberFormatter } from '../../../../../../util/intl';
 import {
   getTransakCryptoCurrencyId,
   getTransakFiatCurrencyId,
   getTransakChainId,
   getTransakPaymentMethodId,
+  formatCurrency,
 } from '../../utils';
 import { KycStatus } from '../../hooks/useUserDetailsPolling';
 import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
 import RegionModal from '../../components/RegionModal';
-
-function formatAmount(
-  amount: number,
-  options: Intl.NumberFormatOptions,
-): string {
-  return getIntlNumberFormatter(I18n.locale, options).format(amount);
-}
 
 const BuildQuote = () => {
   const navigation = useNavigation();
@@ -298,9 +291,7 @@ const BuildQuote = () => {
               numberOfLines={1}
               adjustsFontSizeToFit
             >
-              {formatAmount(amountAsNumber, {
-                style: 'currency',
-                currency: fiatCurrency.id,
+              {formatCurrency(amountAsNumber, fiatCurrency.id, {
                 currencyDisplay: 'narrowSymbol',
               })}
             </Text>
