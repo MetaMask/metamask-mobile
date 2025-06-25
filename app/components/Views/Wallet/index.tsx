@@ -343,7 +343,7 @@ const Wallet = ({
     navigate(Routes.SOLANA_NEW_FEATURE_CONTENT, {
       screen: Routes.SOLANA_NEW_FEATURE_CONTENT,
     });
-  }, []);
+  }, [navigate]);
   ///: END:ONLY_INCLUDE_IF
 
   useEffect(() => {
