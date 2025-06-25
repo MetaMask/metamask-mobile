@@ -134,6 +134,10 @@ export const MOCK_USDT_MAINNET_ASSET = createMockToken(
   ),
 );
 
+export const MOCK_USDT_BASE_MAINNET_ASSET = createMockToken(
+  getCreateMockTokenOptions(CHAIN_IDS.BASE, TOKENS_WITH_DEFAULT_OPTIONS.USDT),
+);
+
 export const MOCK_AUSDT_MAINNET_ASSET = createMockToken({
   chainId: '0x1',
   symbol: 'AUSDT',

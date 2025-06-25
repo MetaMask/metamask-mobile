@@ -76,7 +76,6 @@ export const sortByHighestApr = (tokensToSort: EarnTokenDetails[]) =>
     (a, b) => parseFloat(b.experience.apr) - parseFloat(a.experience.apr),
   );
 
-// TODO: Add tests
 export const tokenRequiresAllowanceReset = (
   chainId: string,
   symbol: string,
