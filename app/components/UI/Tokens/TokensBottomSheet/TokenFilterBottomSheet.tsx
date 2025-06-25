@@ -8,6 +8,8 @@ import ScrollableTabView, {
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { CaipChainId } from '@metamask/utils';
 
+import hideKeyFromUrl from '../../../../util/hideKeyFromUrl';
+import { ExtendedNetwork } from '../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { useStyles } from '../../../../component-library/hooks/useStyles';
 import {
   EvmAndMultichainNetworkConfigurationsWithCaipChainId,
@@ -25,6 +27,8 @@ import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { getNetworkImageSource } from '../../../../util/networks';
 import NetworkMultiSelectList from '../../NetworkMultiSelectList/NetworkMultiSelectList';
+import { PopularList } from '../../../../util/networks/customNetworks';
+import CustomNetwork from '../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 
 const NetworkSelectorListTab = () => {
   const { colors } = useTheme();
@@ -33,7 +37,10 @@ const NetworkSelectorListTab = () => {
     selectNetworkConfigurationsByCaipChainId,
   );
 
+  const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
+  const [popularNetwork, setPopularNetwork] = useState<ExtendedNetwork>();
   const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>([]);
+  const [showWarningModal, setShowWarningModal] = useState(false);
   const [isLoading] = useState(false);
 
   const onSelectNetwork = useCallback(
@@ -49,19 +56,42 @@ const NetworkSelectorListTab = () => {
     [selectedChainIds, setSelectedChainIds],
   );
 
-  const networks = Object.entries(networkConfigurations).map(
-    ([key, network]: [
-      string,
-      EvmAndMultichainNetworkConfigurationsWithCaipChainId,
-    ]) => ({
-      id: key,
-      name: network.name,
-      isSelected: false,
-      imageSource: getNetworkImageSource({
-        chainId: network.caipChainId,
-      }),
-      caipChainId: network.caipChainId,
-    }),
+  const showNetworkModal = (networkConfiguration: ExtendedNetwork) => {
+    setShowPopularNetworkModal(true);
+    setPopularNetwork({
+      ...networkConfiguration,
+      formattedRpcUrl: networkConfiguration.warning
+        ? null
+        : hideKeyFromUrl(networkConfiguration.rpcUrl),
+    });
+  };
+
+  const onCancel = useCallback(() => {
+    setShowPopularNetworkModal(false);
+    setPopularNetwork(undefined);
+  }, []);
+
+  const toggleWarningModal = () => {
+    setShowWarningModal(!showWarningModal);
+  };
+
+  const networks = useMemo(
+    () =>
+      Object.entries(networkConfigurations).map(
+        ([key, network]: [
+          string,
+          EvmAndMultichainNetworkConfigurationsWithCaipChainId,
+        ]) => ({
+          id: key,
+          name: network.name,
+          isSelected: false,
+          imageSource: getNetworkImageSource({
+            chainId: network.caipChainId,
+          }),
+          caipChainId: network.caipChainId,
+        }),
+      ),
+    [networkConfigurations],
   );
 
   const areAllNetworksSelected = networks.every(({ caipChainId }) =>
@@ -120,6 +150,25 @@ const NetworkSelectorListTab = () => {
         networks={networks}
         selectedChainIds={selectedChainIds}
         onSelectNetwork={onSelectNetwork}
+        additionalNetworksComponent={
+          <View style={styles.customNetworkContainer}>
+            <CustomNetwork
+              isNetworkModalVisible={showPopularNetworkModal}
+              closeNetworkModal={onCancel}
+              selectedNetwork={popularNetwork}
+              toggleWarningModal={toggleWarningModal}
+              showNetworkModal={showNetworkModal}
+              switchTab={undefined}
+              shouldNetworkSwitchPopToWallet={false}
+              customNetworksList={PopularList}
+              showCompletionMessage={false}
+              showPopularNetworkModal
+              allowNetworkSwitch={false}
+              hideWarningIcons
+              listHeader={strings('networks.additional_networks')}
+            />
+          </View>
+        }
       />
     </View>
   );

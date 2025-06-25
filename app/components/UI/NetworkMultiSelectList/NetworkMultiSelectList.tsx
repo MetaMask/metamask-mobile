@@ -15,9 +15,6 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import { isTestNet } from '../../../util/networks';
 
 // Internal dependencies.
@@ -25,23 +22,20 @@ import {
   NetworkConnectMultiSelectorProps,
   Network,
   NetworkListItem,
-  SectionHeader,
+  AdditionalNetworkSection,
+  NetworkListItemType,
 } from './NetworkMultiSelectList.types.ts';
 import styleSheet from './NetworkMultiSelectList.styles';
 
 const NetworkMultiSelectList = ({
   onSelectNetwork,
   networks = [],
-  additionalNetworks = [],
   isLoading = false,
   selectedChainIds,
   renderRightAccessory,
   isSelectionDisabled,
   isAutoScrollEnabled = true,
-  showSectionHeaders = true,
-  showDefaultNetworksHeader = false,
-  defaultNetworksTitle = 'Default Networks',
-  additionalNetworksTitle = 'Additional Networks',
+  additionalNetworksComponent,
   ...props
 }: NetworkConnectMultiSelectorProps) => {
   const networksLengthRef = useRef<number>(0);
@@ -60,60 +54,45 @@ const NetworkMultiSelectList = ({
 
     // Add default networks section
     if (networks.length > 0) {
-      if (showSectionHeaders && showDefaultNetworksHeader) {
-        data.push({
-          id: 'default-header',
-          title: defaultNetworksTitle,
-          type: 'header',
-        } as SectionHeader);
-      }
       data.push(...networks);
     }
 
-    // Add additional networks section
-    if (additionalNetworks.length > 0) {
-      if (showSectionHeaders) {
-        data.push({
-          id: 'additional-header',
-          title: additionalNetworksTitle,
-          type: 'header',
-        } as SectionHeader);
-      }
-      data.push(...additionalNetworks);
+    // Add additional network section if provided
+    if (additionalNetworksComponent) {
+      data.push({
+        id: 'additional-network-section',
+        type: NetworkListItemType.AdditionalNetworkSection,
+        component: additionalNetworksComponent,
+      } as AdditionalNetworkSection);
     }
 
     return data;
-  }, [
-    networks,
-    additionalNetworks,
-    showSectionHeaders,
-    showDefaultNetworksHeader,
-    defaultNetworksTitle,
-    additionalNetworksTitle,
-  ]);
+  }, [networks, additionalNetworksComponent]);
 
   const getKeyExtractor = (item: NetworkListItem) => {
-    if ('type' in item && item.type === 'header') {
+    if (
+      'type' in item &&
+      item.type === NetworkListItemType.AdditionalNetworkSection
+    ) {
       return item.id;
     }
     return (item as Network).id;
   };
 
-  const isHeaderItem = (item: NetworkListItem): item is SectionHeader =>
-    'type' in item && item.type === 'header';
+  const isAdditionalNetworkSection = (
+    item: NetworkListItem,
+  ): item is AdditionalNetworkSection =>
+    'type' in item &&
+    item.type === NetworkListItemType.AdditionalNetworkSection;
 
   const renderNetworkItem: ListRenderItem<NetworkListItem> = useCallback(
     ({ item }) => {
-      // Render section header
-      if (isHeaderItem(item)) {
-        return (
-          <View style={styles.sectionHeader}>
-            <Text variant={TextVariant.BodyMDBold}>{item.title}</Text>
-          </View>
-        );
+      // Render additional network section
+      if (isAdditionalNetworkSection(item)) {
+        return <View>{item.component}</View>;
       }
 
-      // Render network item
+      // Render selectable network items
       const { caipChainId, name, isSelected, imageSource } = item as Network;
       const isDisabled = isLoading || isSelectionDisabled;
 
@@ -157,26 +136,20 @@ const NetworkMultiSelectList = ({
       renderRightAccessory,
       isSelectionDisabled,
       onSelectNetwork,
-      styles.sectionHeader,
     ],
   );
 
   const onContentSizeChanged = useCallback(() => {
-    if (!combinedData.length || !isAutoScrollEnabled) return;
-    if (networksLengthRef.current !== combinedData.length) {
-      const selectedNetwork = combinedData.find(
-        (item) => !isHeaderItem(item) && (item as Network).isSelected,
-      ) as Network | undefined;
-
-      if (selectedNetwork) {
-        networkListRef?.current?.scrollToOffset({
-          offset: selectedNetwork.yOffset ?? 0,
-          animated: false,
-        });
-      }
-      networksLengthRef.current = combinedData.length;
+    if (!networks.length || !isAutoScrollEnabled) return;
+    if (networksLengthRef.current !== networks.length) {
+      const selectedNetwork = networks.find(({ isSelected }) => isSelected);
+      networkListRef?.current?.scrollToOffset({
+        offset: selectedNetwork?.yOffset ?? 0,
+        animated: false,
+      });
+      networksLengthRef.current = networks.length;
     }
-  }, [combinedData, isAutoScrollEnabled]);
+  }, [networks, isAutoScrollEnabled]);
 
   return (
     <FlashList

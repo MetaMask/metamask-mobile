@@ -3,7 +3,6 @@ import { Theme } from '../../../util/theme/models';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
-  const { colors } = theme;
 
   return StyleSheet.create({
     // bottom sheet
@@ -17,11 +16,6 @@ const createStyles = (params: { theme: Theme }) => {
     networkList: {
       marginHorizontal: 6,
       flex: 1,
-    },
-    sectionHeader: {
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      backgroundColor: colors.background.alternative,
     },
   });
 };

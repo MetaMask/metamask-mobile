@@ -23,6 +23,9 @@ import { useSafeChains } from '../../../../../../components/hooks/useSafeChains'
 import { isNonEvmChainId } from '../../../../../../core/Multichain/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
+import Text, {
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 
 const CustomNetwork = ({
   showPopularNetworkModal,
@@ -39,6 +42,8 @@ const CustomNetwork = ({
   displayContinue,
   showCompletionMessage = true,
   hideWarningIcons = false,
+  allowNetworkSwitch = true,
+  listHeader = '',
 }: CustomNetworkProps) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const selectedChainId = useSelector(selectChainId);
@@ -71,7 +76,7 @@ const CustomNetwork = ({
 
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const styles = createStyles();
+  const styles = createStyles({ colors });
   const filteredPopularList = showAddedNetworks
     ? supportedNetworkList
     : supportedNetworkList.filter((n) => !n.isAdded);
@@ -84,6 +89,11 @@ const CustomNetwork = ({
 
   return (
     <>
+      {listHeader && filteredPopularList.length > 0 && (
+        <Text style={styles.listHeader} variant={TextVariant.BodyMDBold}>
+          {listHeader}
+        </Text>
+      )}
       {isNetworkModalVisible && selectedNetwork && (
         <NetworkModals
           showPopularNetworkModal={showPopularNetworkModal}
@@ -94,6 +104,7 @@ const CustomNetwork = ({
           shouldNetworkSwitchPopToWallet={shouldNetworkSwitchPopToWallet}
           onNetworkSwitch={onNetworkSwitch}
           safeChains={safeChains}
+          allowNetworkSwitch={allowNetworkSwitch}
         />
       )}
       {filteredPopularList.map((networkConfiguration, index) => (

@@ -77,6 +77,7 @@ interface NetworkProps {
   onReject?: () => void;
   onAccept?: () => void;
   autoSwitchNetwork?: boolean;
+  allowNetworkSwitch?: boolean;
 }
 
 const NetworkModals = (props: NetworkProps) => {
@@ -100,6 +101,7 @@ const NetworkModals = (props: NetworkProps) => {
     onReject,
     onAccept,
     autoSwitchNetwork,
+    allowNetworkSwitch = true,
   } = props;
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
 
@@ -474,7 +476,7 @@ const NetworkModals = (props: NetworkProps) => {
                   onReject?.();
                   onClose();
                 }}
-                onConfirm={addNetwork}
+                onConfirm={allowNetworkSwitch ? addNetwork : closeModal}
                 isCustomNetwork={!showPopularNetworkModal}
               />
             </View>

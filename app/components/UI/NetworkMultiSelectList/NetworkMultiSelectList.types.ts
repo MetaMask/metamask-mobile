@@ -1,6 +1,11 @@
 import { CaipChainId } from '@metamask/utils';
 import { ImageSourcePropType } from 'react-native';
 
+export enum NetworkListItemType {
+  Network = 'network',
+  AdditionalNetworkSection = 'additional-network-section',
+}
+
 export interface Network {
   id: string;
   name: string;
@@ -10,13 +15,13 @@ export interface Network {
   caipChainId: CaipChainId;
 }
 
-export interface SectionHeader {
+export interface AdditionalNetworkSection {
   id: string;
-  title: string;
-  type: 'header';
+  type: NetworkListItemType.AdditionalNetworkSection;
+  component: React.ReactNode;
 }
 
-export type NetworkListItem = Network | SectionHeader;
+export type NetworkListItem = Network | AdditionalNetworkSection;
 
 export interface NetworkConnectMultiSelectorProps {
   onSelectNetwork?: (caipChainId: CaipChainId, isSelected: boolean) => void;
@@ -30,8 +35,5 @@ export interface NetworkConnectMultiSelectorProps {
   ) => React.ReactNode;
   isSelectionDisabled?: boolean;
   isAutoScrollEnabled?: boolean;
-  showSectionHeaders?: boolean;
-  showDefaultNetworksHeader?: boolean;
-  defaultNetworksTitle?: string;
-  additionalNetworksTitle?: string;
+  additionalNetworksComponent?: React.ReactNode;
 }

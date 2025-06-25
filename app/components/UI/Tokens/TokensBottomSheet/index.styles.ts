@@ -59,6 +59,10 @@ const createStyles = (params: { theme: Theme }) => {
       paddingBottom: 4,
       flex: 1,
     },
+    // custom network
+    customNetworkContainer: {
+      paddingHorizontal: 16,
+    },
   });
 };
 
