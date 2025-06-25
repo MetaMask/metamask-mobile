@@ -39,7 +39,7 @@ const AvatarNetwork = ({
   return (
     <AvatarBase size={size} style={styles.base} {...props}>
       {showFallback ? (
-        <Text style={styles.label} variant={TextVariant.BodyMD}>
+        <Text style={styles.label}>
           {chainNameFirstLetter}
         </Text>
       ) : (
