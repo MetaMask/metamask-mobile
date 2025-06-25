@@ -63,7 +63,7 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
     }
   });
 
-  it('syncs new contacts and retrieves them after importing the same SRP', async () => {
+    it('syncs new contacts and retrieves them after importing the same SRP', async () => {
     await importWalletWithRecoveryPhrase({
       seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
       password: IDENTITY_TEAM_PASSWORD,
@@ -71,8 +71,9 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
 
     await TabBarComponent.tapSettings();
     await TestHelpers.delay(2000);
-    await Assertions.checkIfVisible(SettingsView.contactsSettingsButton);
+    await device.disableSynchronization();
     await SettingsView.tapContacts();
+    await device.enableSynchronization();
     await Assertions.checkIfVisible(ContactsView.container);
     await ContactsView.tapAddContactButton();
     await Assertions.checkIfVisible(AddContactView.container);
@@ -100,8 +101,9 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
 
     await TabBarComponent.tapSettings();
     await TestHelpers.delay(2000);
-    await Assertions.checkIfVisible(SettingsView.contactsSettingsButton);
+    await device.disableSynchronization();
     await SettingsView.tapContacts();
+    await device.enableSynchronization();
     await Assertions.checkIfVisible(ContactsView.container);
     await TestHelpers.delay(4000);
 
