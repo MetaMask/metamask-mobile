@@ -17,6 +17,9 @@ const styleSheet = () =>
       flexDirection: 'column',
       marginLeft: 16,
     },
+    network_name: {
+      width: 170,
+    },
     button_section: {
       flexDirection: 'row',
       justifyContent: 'flex-end',

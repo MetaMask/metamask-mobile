@@ -144,7 +144,7 @@ const AccountNetworkRow = ({
             variant={TextVariant.BodyMDBold}
             numberOfLines={1}
             ellipsizeMode="tail"
-            style={{ width: 170 }}
+            style={styles.network_name}
           >
             {name}
           </Text>
