@@ -5,6 +5,7 @@ import {
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 import TestHelpers from '../../helpers';
+import Assertions from '../../utils/Assertions';
 
 class WalletView {
   get container() {
@@ -35,6 +36,10 @@ class WalletView {
 
   get accountIcon() {
     return Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ICON);
+  }
+
+  get eyeSlashIcon() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.EYE_SLASH_ICON);
   }
 
   get notificationBellIcon() {
@@ -347,6 +352,14 @@ class WalletView {
   async tapOnDeFiPosition(positionName) {
     const elem = Matchers.getElementByText(positionName);
     await Gestures.waitAndTap(elem);
+  }
+
+  async getBalanceText() {
+    const balanceElement = this.totalBalance;
+    await Assertions.checkIfVisible(balanceElement);
+    
+    const balanceAttributes = await (await balanceElement).getAttributes();
+    return balanceAttributes.text || balanceAttributes.label;
   }
 }
 
