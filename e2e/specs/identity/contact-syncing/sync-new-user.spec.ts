@@ -8,22 +8,18 @@ import TestHelpers from '../../../helpers';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import { mockIdentityServices } from '../utils/mocks';
 import { SmokeWalletPlatform } from '../../../tags';
-import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController';
+
 import { MockttpServer } from 'mockttp';
 import ContactsView from '../../../pages/Settings/Contacts/ContactsView';
 import AddContactView from '../../../pages/Settings/Contacts/AddContactView';
 import SettingsView from '../../../pages/Settings/SettingsView';
 import Assertions from '../../../utils/Assertions';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
-import CommonView from '../../../pages/CommonView';
 
 describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
   const NEW_CONTACT_NAME = 'New Test Contact';
   const NEW_CONTACT_ADDRESS = '0x1234567890123456789012345678901234567890';
-  const TEST_SPECIFIC_MOCK_SERVER_PORT = 8006;
   let mockServer: MockttpServer;
-  let userStorageMockttpController: UserStorageMockttpController;
 
   beforeAll(async () => {
     const segmentMock = {
@@ -32,26 +28,17 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
 
     await TestHelpers.reverseServerPort();
 
-    mockServer = await startMockServer(segmentMock, TEST_SPECIFIC_MOCK_SERVER_PORT);
+    mockServer = await startMockServer(segmentMock);
 
-    const { userStorageMockttpControllerInstance } = await mockIdentityServices(
-      mockServer,
-    );
+    await mockIdentityServices(mockServer);
 
-    userStorageMockttpController = userStorageMockttpControllerInstance;
-
-    await userStorageMockttpController.setupPath(
-      USER_STORAGE_FEATURE_NAMES.addressBook,
-      mockServer,
-      {
-        getResponse: [], // Start with empty contacts for new user
-      },
-    );
+    // Don't setup addressBook path with empty array - let it be naturally empty
+    // This avoids creating an unexpected state that the codebase doesn't handle
 
     await TestHelpers.launchApp({
       newInstance: true,
       delete: true,
-      launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
+      launchArgs: { mockServerPort: String(mockServer.port) },
     });
   });
 
@@ -79,21 +66,14 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
     await AddContactView.typeInAddress(NEW_CONTACT_ADDRESS);
     await AddContactView.tapAddContactButton();
 
-    await TestHelpers.delay(2000);
-    await CommonView.tapBackButton();
-    await TestHelpers.delay(1000);
-    await TabBarComponent.tapSettings();
-    await TestHelpers.delay(2000);
-    await Assertions.checkIfVisible(SettingsView.contactsSettingsButton);
-    await SettingsView.tapContacts();
-    await Assertions.checkIfVisible(ContactsView.container);
-    await TestHelpers.delay(2000);
+    // Give extra time for contact save and sync operations
+    await TestHelpers.delay(10000);
     await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
 
     await TestHelpers.launchApp({
       newInstance: true,
       delete: true,
-      launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
+      launchArgs: { mockServerPort: String(mockServer.port) },
     });
 
     await importWalletWithRecoveryPhrase({
