@@ -973,7 +973,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
 
     const hostname = new URLParse(urlToCheck).hostname;
     const permissionsControllerState = Engine.context.PermissionController.state;
-    
+
     // Get permitted accounts specifically for the target hostname
     const permittedAccountsForTarget = getPermittedEvmAddressesByHostname(
       permissionsControllerState,
