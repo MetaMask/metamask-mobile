@@ -66,7 +66,7 @@ import {
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
-import { tokenRequiresAllowanceReset } from '../../utils';
+import { doesTokenRequireAllowanceReset } from '../../utils';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -280,22 +280,13 @@ const EarnInputView = () => {
       ? allowanceMinimalTokenUnitBN.toString()
       : '0';
 
-    // const needsAllowanceIncrease = new BigNumber(
-    //   allowanceMinimalTokenUnit ?? '',
-    // ).isLessThan(amountTokenMinimalUnitString);
-
     const needsAllowanceIncrease = (() => {
-      const isEdgeCaseToken = tokenRequiresAllowanceReset(
-        earnToken.chainId,
-        earnToken.symbol,
-      );
-
       const isExistingAllowanceLowerThanNeeded = new BigNumber(
         allowanceMinimalTokenUnit ?? '',
       ).isLessThan(amountTokenMinimalUnitString);
 
       if (
-        isEdgeCaseToken &&
+        doesTokenRequireAllowanceReset(earnToken.chainId, earnToken.symbol) &&
         isExistingAllowanceLowerThanNeeded &&
         allowanceMinimalTokenUnit !== '0'
       )

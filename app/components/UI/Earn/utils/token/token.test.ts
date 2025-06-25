@@ -3,7 +3,7 @@ import {
   getEstimatedAnnualRewards,
   sortByHighestRewards,
   sortByHighestApr,
-  tokenRequiresAllowanceReset,
+  doesTokenRequireAllowanceReset,
 } from '.';
 import {
   createMockEarnToken,
@@ -206,25 +206,25 @@ describe('tokenUtils', () => {
     });
   });
 
-  describe('tokenRequiresAllowanceReset', () => {
+  describe('doesTokenRequireAllowanceReset', () => {
     describe('Ethereum mainnet', () => {
       it('returns true when token requires allowance reset', () => {
         const { chainId, symbol } = MOCK_USDT_MAINNET_ASSET;
-        const result = tokenRequiresAllowanceReset(chainId, symbol);
+        const result = doesTokenRequireAllowanceReset(chainId, symbol);
 
         expect(result).toBe(true);
       });
 
       it("returns false when token doesn't require allowance reset", () => {
         const { chainId, symbol } = MOCK_USDC_MAINNET_ASSET;
-        const result = tokenRequiresAllowanceReset(chainId, symbol);
+        const result = doesTokenRequireAllowanceReset(chainId, symbol);
 
         expect(result).toBe(false);
       });
 
       it('returns false when chainId is undefined', () => {
         const { symbol } = MOCK_USDC_MAINNET_ASSET;
-        const result = tokenRequiresAllowanceReset(
+        const result = doesTokenRequireAllowanceReset(
           undefined as unknown as string,
           symbol,
         );
@@ -234,7 +234,7 @@ describe('tokenUtils', () => {
 
       it('returns false when symbol is undefined', () => {
         const { chainId } = MOCK_USDC_MAINNET_ASSET;
-        const result = tokenRequiresAllowanceReset(
+        const result = doesTokenRequireAllowanceReset(
           chainId,
           undefined as unknown as string,
         );
@@ -245,14 +245,14 @@ describe('tokenUtils', () => {
     describe('Non-Mainnet Networks (Base)', () => {
       it("returns false when token doesn't require allowance reset", () => {
         const { chainId, symbol } = MOCK_USDT_BASE_MAINNET_ASSET;
-        const result = tokenRequiresAllowanceReset(chainId, symbol);
+        const result = doesTokenRequireAllowanceReset(chainId, symbol);
 
         expect(result).toBe(false);
       });
 
       it('returns false when chainId is undefined', () => {
         const { symbol } = MOCK_USDT_BASE_MAINNET_ASSET;
-        const result = tokenRequiresAllowanceReset(
+        const result = doesTokenRequireAllowanceReset(
           undefined as unknown as string,
           symbol,
         );
@@ -262,7 +262,7 @@ describe('tokenUtils', () => {
 
       it('returns false when symbol is undefined', () => {
         const { chainId } = MOCK_USDT_BASE_MAINNET_ASSET;
-        const result = tokenRequiresAllowanceReset(
+        const result = doesTokenRequireAllowanceReset(
           chainId,
           undefined as unknown as string,
         );

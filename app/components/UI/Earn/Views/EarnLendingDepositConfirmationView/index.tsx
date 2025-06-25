@@ -26,7 +26,7 @@ import { TokenI } from '../../../Tokens/types';
 import useEarnToken from '../../hooks/useEarnToken';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { EARN_LENDING_ACTIONS } from '../../types/lending.types';
-import { parseFloatSafe, tokenRequiresAllowanceReset } from '../../utils';
+import { parseFloatSafe, doesTokenRequireAllowanceReset } from '../../utils';
 import ConfirmationFooter from './components/ConfirmationFooter';
 import DepositInfoSection from './components/DepositInfoSection';
 import DepositReceiveSection from './components/DepositReceiveSection';
@@ -106,7 +106,7 @@ const EarnLendingDepositConfirmationView = () => {
     if (!earnToken?.chainId || !earnToken?.symbol) return false;
     return (
       // Is one of the edge case tokens that requires setting allowance to zero before it can be increased.
-      tokenRequiresAllowanceReset(earnToken.chainId, earnToken.symbol) &&
+      doesTokenRequireAllowanceReset(earnToken.chainId, earnToken.symbol) &&
       // If allowance is zero we don't need a reset
       allowanceMinimalTokenUnit !== '0' &&
       // No need to reset if user has available allowance
@@ -600,7 +600,7 @@ const EarnLendingDepositConfirmationView = () => {
 
     setIsApprovalLoading(true);
 
-    const amount = tokenRequiresAllowanceReset(
+    const amount = doesTokenRequireAllowanceReset(
       earnToken?.chainId,
       earnToken.symbol,
     )
