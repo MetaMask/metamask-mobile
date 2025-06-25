@@ -1,6 +1,6 @@
 import { captureException } from '@sentry/react-native';
 import { ensureValidState } from './util';
-import migrate from './087';
+import migrate from './088';
 import { EXISTING_USER } from '../../constants/storage';
 import StorageWrapper from '../storage-wrapper';
 import { userInitialState } from '../../reducers/user';
