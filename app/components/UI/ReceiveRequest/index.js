@@ -34,6 +34,7 @@ import { getDecimalChainId } from '../../../util/networks';
 import QRAccountDisplay from '../../Views/QRAccountDisplay';
 import PNG_MM_LOGO_PATH from '../../../images/branding/fox.png';
 import { isEthAddress } from '../../../util/address';
+import { endTrace, TraceName } from '../../../util/trace';
 
 const { height: windowHeight, width: windowWidth } = Dimensions.get('window');
 
@@ -236,6 +237,12 @@ class ReceiveRequest extends PureComponent {
         .build(),
     );
   };
+
+  componentDidMount() {
+    endTrace({
+      name: TraceName.ReceiveModal,
+    });
+  }
 
   render() {
     const theme = this.context || mockTheme;
