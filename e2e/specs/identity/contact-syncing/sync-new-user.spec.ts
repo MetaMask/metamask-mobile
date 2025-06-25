@@ -16,6 +16,7 @@ import AddContactView from '../../../pages/Settings/Contacts/AddContactView';
 import SettingsView from '../../../pages/Settings/SettingsView';
 import Assertions from '../../../utils/Assertions';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
+import CommonView from '../../../pages/CommonView';
 
 describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
   const NEW_CONTACT_NAME = 'New Test Contact';
@@ -50,10 +51,7 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
     await TestHelpers.launchApp({
       newInstance: true,
       delete: true,
-      launchArgs: {
-        mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT),
-        sendMetaMetricsinE2E: true,
-      },
+      launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
     });
   });
 
@@ -77,22 +75,22 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
     await ContactsView.tapAddContactButton();
     await Assertions.checkIfVisible(AddContactView.container);
 
-        await AddContactView.typeInName(NEW_CONTACT_NAME);
+    await AddContactView.typeInName(NEW_CONTACT_NAME);
     await AddContactView.typeInAddress(NEW_CONTACT_ADDRESS);
     await AddContactView.tapAddContactButton();
 
-    // Give extra time for contact save and navigation back to contacts screen
-    // Skip container check and go straight to contact verification
-    await TestHelpers.delay(4000);
+    await TestHelpers.delay(2000);
+    await CommonView.tapBackButton();
+    await TestHelpers.delay(1000);
+    await SettingsView.tapContacts();
+    await Assertions.checkIfVisible(ContactsView.container);
+    await TestHelpers.delay(2000);
     await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
 
     await TestHelpers.launchApp({
       newInstance: true,
       delete: true,
-      launchArgs: {
-        mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT),
-        sendMetaMetricsinE2E: true,
-      },
+      launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
     });
 
     await importWalletWithRecoveryPhrase({
