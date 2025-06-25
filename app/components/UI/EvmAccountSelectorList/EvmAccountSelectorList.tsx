@@ -6,6 +6,7 @@ import {
   ListRenderItem,
   View,
   ViewStyle,
+  Text,
 } from 'react-native';
 import { CaipChainId } from '@metamask/utils';
 import { FlatList } from 'react-native-gesture-handler';
@@ -13,7 +14,7 @@ import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
-
+import { FlashList } from '@shopify/flash-list';
 // External dependencies.
 import Cell, {
   CellVariant,
@@ -222,6 +223,118 @@ const EvmAccountSelectorList = ({
     [navigate],
   );
 
+  const renderItem = ({ item, index }: { item: Account; index: number }) => {
+    const {
+      name,
+      address,
+      assets,
+      type,
+      isSelected,
+      balanceError,
+      scopes,
+      isLoadingAccount,
+    } = item;
+
+    const partialAccount = {
+      address,
+      scopes,
+    };
+    const shortAddress = formatAddress(address, 'short');
+    const tagLabel = getLabelTextByAddress(address);
+    const ensName = ensByAccountAddress[address];
+    const accountName = isDefaultAccountName(name) && ensName ? ensName : name;
+    const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
+    let cellVariant = CellVariant.SelectWithMenu;
+
+    if (isMultiSelect) {
+      cellVariant = CellVariant.MultiSelect;
+    }
+    if (isSelectWithoutMenu) {
+      cellVariant = CellVariant.Select;
+    }
+    let isSelectedAccount = isSelected;
+    if (selectedAddressesLookup) {
+      isSelectedAccount = selectedAddressesLookup.has(
+        toFormattedAddress(address),
+      );
+    }
+
+    const cellStyle: ViewStyle = {
+      opacity: isLoading ? 0.5 : 1,
+    };
+    if (!isMultiSelect) {
+      cellStyle.alignItems = 'center';
+    }
+
+    const handleLongPress = () => {
+      onLongPress({
+        address,
+        isAccountRemoveable:
+          type === KeyringTypes.simple ||
+          (type === KeyringTypes.snap && !isSolanaAddress(address)),
+        isSelected: isSelectedAccount,
+        index,
+      });
+    };
+
+    const handlePress = () => {
+      onSelectAccount?.(address, isSelectedAccount);
+    };
+
+    const handleButtonClick = () => {
+      if (useMultichainAccountDesign) {
+        const account =
+          Engine.context.AccountsController.getAccountByAddress(address);
+
+        if (!account) return;
+
+        navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS, {
+          account,
+        });
+        return;
+      }
+
+      onNavigateToAccountActions(address);
+    };
+
+    const buttonProps = {
+      onButtonClick: handleButtonClick,
+      buttonTestId: `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${index}`,
+    };
+
+    const avatarProps = {
+      variant: AvatarVariant.Account as const,
+      type: accountAvatarType,
+      accountAddress: address,
+    };
+
+    return (
+      <Cell
+        key={address}
+        onLongPress={handleLongPress}
+        variant={cellVariant}
+        isSelected={isSelectedAccount}
+        title={accountName}
+        titleProps={{
+          style: styles.titleText,
+        }}
+        secondaryText={shortAddress}
+        showSecondaryTextIcon={false}
+        tertiaryText={balanceError}
+        onPress={handlePress}
+        avatarProps={avatarProps}
+        tagLabel={tagLabel}
+        disabled={isDisabled}
+        style={cellStyle}
+        buttonProps={buttonProps}
+      >
+        {renderRightAccessory?.(address, accountName) ||
+          (assets &&
+            renderAccountBalances(assets, partialAccount, isLoadingAccount))}
+      </Cell>
+    );
+  };
+
   const renderAccountItem: ListRenderItem<Account> = useCallback(
     ({
       item: {
@@ -381,7 +494,52 @@ const EvmAccountSelectorList = ({
     }
   }, [accounts, selectedAddresses, isAutoScrollEnabled]);
 
-  return (
+  const PerfList = (
+    <View style={styles.root}>
+      <FlashList
+        ref={accountListRef}
+        data={accounts}
+        keyExtractor={getKeyExtractor}
+        renderItem={renderItem}
+        testID={ACCOUNT_SELECTOR_LIST_TESTID}
+        estimatedItemSize={80}
+        onContentSizeChange={onContentSizeChanged}
+        showsVerticalScrollIndicator={true}
+        ListEmptyComponent={() => (
+          <View style={{ padding: 20, alignItems: 'center' }}>
+            <Text>No accounts found ({accounts.length} accounts)</Text>
+          </View>
+        )}
+      />
+    </View>
+  );
+
+  /*
+            <FlashList
+              data={txList}
+              renderItem={renderTransactionItem}
+              keyExtractor={(item) => item.id}
+              ListHeaderComponent={header}
+              ListEmptyComponent={renderEmptyList}
+              ListFooterComponent={footer}
+              style={baseStyles.flexGrow}
+              estimatedItemSize={200}
+              refreshControl={
+                enableRefresh ? (
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    colors={[colors.primary.default]}
+                    tintColor={colors.icon.default}
+                  />
+                ) : undefined
+              }
+              onScroll={onScroll}
+              scrollEnabled={!isChartBeingTouched}
+            />
+  */
+  const testFlashList = true;
+  return testFlashList ? (PerfList): (
     <FlatList
       ref={accountListRef}
       onContentSizeChange={onContentSizeChanged}

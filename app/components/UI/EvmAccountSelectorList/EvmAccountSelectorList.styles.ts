@@ -11,9 +11,14 @@ import { StyleSheet } from 'react-native';
  */
 const styleSheet = () =>
   StyleSheet.create({
+    root: {
+      height: 1000,
+    },
     balancesContainer: {
       alignItems: 'flex-end',
       flexDirection: 'column',
+    },
+    flexGrow: {
     },
     balanceLabel: { textAlign: 'right', fontWeight: '500' },
     titleText: { fontWeight: '500' },
