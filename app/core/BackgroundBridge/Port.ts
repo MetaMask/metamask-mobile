@@ -19,11 +19,6 @@ class Port extends EventEmitter {
   }
 
   postMessage = (msg: object, origin = '*') => {
-    const { activeTab, tabs } = store.getState().browser;
-    const currentActiveTab = tabs.find((tab: { id: number; url: string }) => tab.id === activeTab);
-    const currentActiveParsedUrl = new URL(currentActiveTab.url);
-    const currentActiveOrigin = currentActiveParsedUrl.origin;
-    if (currentActiveOrigin !== origin) return;
     const js = this._isMainFrame
       ? JS_POST_MESSAGE_TO_PROVIDER(msg, origin)
       : JS_IFRAME_POST_MESSAGE_TO_PROVIDER(msg, origin);
