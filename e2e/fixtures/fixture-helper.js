@@ -178,7 +178,7 @@ export const stopFixtureServer = async (fixtureServer) => {
  * @param {Object} options - An object containing configuration options.
  * @param {Object} options.fixture - The fixture to load.
  * @param {boolean} [options.dapp] - The dapp to load.
- * @param {boolean} [options.multichainDapp=false] 
+ * @param {boolean} [options.multichainDapp=false]
  * @param {Object} [options.ganacheOptions] - The test specific mock to load for test.
  * @param {import('detox/detox').LanguageAndLocale} [options.languageAndLocale] - The language and locale to use for the app.
  * @param {Object} [options.launchArgs] - Additional launch arguments for the app.

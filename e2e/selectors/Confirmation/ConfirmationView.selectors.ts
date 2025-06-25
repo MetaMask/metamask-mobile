@@ -62,4 +62,4 @@ export const AlertModalSelectorsText = {
 
 export const AlertTypeIDs = {
   INLINE_ALERT: 'inline-alert',
-} as const; 
+} as const;

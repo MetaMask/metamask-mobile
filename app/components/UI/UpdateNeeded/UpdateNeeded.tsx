@@ -112,15 +112,15 @@ const UpdateNeeded = () => {
         <Image
           style={styles.headerLogo}
           source={metamaskName}
-          resizeMode='contain'
+          resizeMode="contain"
         />
       </HeaderBase>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.images}>
           <Image source={foxLogo}
             style={styles.foxImage}
-            resizeMethod='auto'
-            resizeMode='contain'
+            resizeMethod="auto"
+            resizeMode="contain"
           />
         </View>
         <Text variant={TextVariant.HeadingLG} style={styles.title}>

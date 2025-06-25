@@ -20,10 +20,10 @@ interface UseTopTokensProps {
   chainId?: Hex | CaipChainId;
 }
 
-export const useTopTokens = ({ chainId }: UseTopTokensProps): { 
-  topTokens: BridgeToken[] | undefined, 
+export const useTopTokens = ({ chainId }: UseTopTokensProps): {
+  topTokens: BridgeToken[] | undefined,
   remainingTokens: BridgeToken[] | undefined,
-  pending: boolean 
+  pending: boolean
 } => {
   const swapsChainCache: SwapsControllerState['chainCache'] = useSelector(selectChainCache);
   const swapsTopAssets = useMemo(
@@ -160,15 +160,15 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): {
       }
     }
 
-    return { 
-      topTokens: result, 
+    return {
+      topTokens: result,
       remainingTokens: remainingTokensList
     };
   }, [bridgeTokens, swapsTopAssets, topAssetsFromFeatureFlags]);
 
-  return { 
-    topTokens, 
+  return {
+    topTokens,
     remainingTokens,
-    pending: chainId ? (bridgeTokensPending || swapsTopAssetsPending) : false 
+    pending: chainId ? (bridgeTokensPending || swapsTopAssetsPending) : false
   };
 };

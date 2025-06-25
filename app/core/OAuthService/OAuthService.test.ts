@@ -22,11 +22,11 @@ jest.mock('./OAuthLoginHandlers/constants', () => ({
   AndroidGoogleWebGID: 'mock-android-google-client-id',
   AppleWebClientId: 'mock-android-apple-client-id',
   AuthConnectionConfig: {
-    ["google"]: {
+    'google': {
       authConnectionId: 'mock-auth-connection-id',
       groupedAuthConnectionId: 'mock-grouped-auth-connection-id',
     },
-    ["apple"]: {
+    'apple': {
       authConnectionId: 'mock-auth-connection-id',
       groupedAuthConnectionId: 'mock-grouped-auth-connection-id',
     },

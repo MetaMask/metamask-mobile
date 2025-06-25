@@ -67,4 +67,4 @@ export const AuthConnectionConfig: Record<AuthConnection, {
     authConnectionId: AppConstants.SEEDLESS_ONBOARDING.APPLE_AUTH_CONNECTION_ID,
     groupedAuthConnectionId: AppConstants.SEEDLESS_ONBOARDING.APPLE_GROUPED_AUTH_CONNECTION_ID,
   },
-}
+};

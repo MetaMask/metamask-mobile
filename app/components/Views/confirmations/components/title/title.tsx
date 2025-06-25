@@ -96,7 +96,7 @@ const getTitleAndSubTitle = (
       };
     }
     case ApprovalType.Transaction: {
-      
+
       if (isDowngrade || isUpgradeOnly) {
         return {
           title: strings('confirm.title.switch_account_type'),

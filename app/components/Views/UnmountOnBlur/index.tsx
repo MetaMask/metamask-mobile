@@ -19,11 +19,11 @@ export interface UnmountOnBlurProps {
 /**
  * UnmountOnBlur component that conditionally renders its children
  * based on whether the current screen is focused or not.
- * 
+ *
  * This is useful for optimizing performance by unmounting heavy components
  * when they are not visible, or for preventing background operations
  * when the screen is not active.
- * 
+ *
  * @param props - The component props
  * @returns JSX element or null
  */
@@ -40,4 +40,4 @@ export const UnmountOnBlur: React.FC<UnmountOnBlurProps> = ({
   return children;
 };
 
-export default UnmountOnBlur; 
+export default UnmountOnBlur;

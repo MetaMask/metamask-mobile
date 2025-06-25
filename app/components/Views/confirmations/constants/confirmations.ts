@@ -51,4 +51,4 @@ export const FULL_SCREEN_CONFIRMATIONS = [
   TransactionType.stakingUnstake,
   TransactionType.tokenMethodTransfer,
   TransactionType.tokenMethodTransferFrom,
-]
+];

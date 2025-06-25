@@ -8,4 +8,3 @@ export interface GasOption {
     value: string;
     valueInFiat?: string;
   }
-  

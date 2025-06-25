@@ -49,7 +49,7 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
 
                     // Test with multiple networks to verify different chain IDs
                     const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.ETHEREUM_POLYGON;
-                    
+
                     await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
                     // Verify session has both chains
@@ -62,7 +62,7 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
                     await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.METHOD_INVOCATION);
 
                     const method = 'eth_chainId';
-                    
+
                     // Expected chain IDs in hex format
                     const expectedResults = {
                         [MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET]: '"0x1"',  // Ethereum = 1
@@ -73,7 +73,7 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
                     for (const chainId of networksToTest) {
                         // Invoke the method on this chain
                         const invoked = await MultichainTestDApp.invokeMethodOnChain(chainId, method);
-                        
+
                         if (!invoked) {
                             throw new Error(`Failed to invoke ${method} on chain ${chainId}`);
                         }
@@ -81,16 +81,16 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
                         // Get the result - use index 0 since we're only invoking once per chain
                         // The index is for multiple invocations of the same method on the same chain
                         const resultIndex = 0; // Always 0 for first invocation
-                        
+
                         const resultText = await MultichainTestDApp.getInvokeMethodResult(chainId, method, resultIndex);
-                        
+
                         if (!resultText) {
                             console.log(`Looking for element ID: invoke-method-eip155-${chainId}-${method}-result-${resultIndex}`);
                             throw new Error(`Failed to get result for ${method} on chain ${chainId}. Element not found.`);
                         }
-                        
+
                         const matches = resultText === expectedResults[chainId];
-                        
+
                         if (!matches) {
                             console.log(`Result text: ${resultText}`);
                             console.log(`Expected: ${expectedResults[chainId]}`);
@@ -132,7 +132,7 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
                     if (!resultText) {
                         throw new Error(`Failed to get result for ${method} on chain ${chainId}. Element not found.`);
                     }
-                    
+
                     // Verify it's a valid hex string (should start with "0x)
                     if (!resultText.includes('"0x')) {
                         console.log(`eth_getBalance result: ${resultText}`);
@@ -173,7 +173,7 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
                     if (!resultText) {
                         throw new Error(`Failed to get result for ${method} on chain ${chainId}. Element not found.`);
                     }
-                    
+
                     // Verify it's a valid hex string (should start with "0x)
                     if (!resultText.includes('"0x')) {
                         console.log(`eth_gasPrice result: ${resultText}`);
@@ -284,7 +284,7 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
                         if (!resultText) {
                             throw new Error(`Failed to get result for ${method} on chain ${chainId}. Element not found.`);
                         }
-                        
+
                         // Verify the result based on method type
                         if (method === 'eth_chainId' && resultText !== '"0x1"') {
                             console.log(`${method} result: ${resultText}`);

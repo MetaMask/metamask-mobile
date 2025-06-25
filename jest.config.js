@@ -23,22 +23,22 @@ process.env.MM_SMART_ACCOUNT_UI_ENABLED = 'true';
 
 
 
-process.env.AUTH_SERVER_URL="https://api-develop-torus-byoa.web3auth.io"
-process.env.WEB3AUTH_NETWORK="sapphire_devnet"
+process.env.AUTH_SERVER_URL = 'https://api-develop-torus-byoa.web3auth.io';
+process.env.WEB3AUTH_NETWORK = 'sapphire_devnet';
 
-process.env.ANDROID_APPLE_CLIENT_ID="com.web3auth.appleloginextension"
-process.env.ANDROID_GOOGLE_CLIENT_ID="882363291751-2a37cchrq9oc1lfj1p419otvahnbhguv.apps.googleusercontent.com"
-process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID="882363291751-2a37cchrq9oc1lfj1p419otvahnbhguv.apps.googleusercontent.com"
+process.env.ANDROID_APPLE_CLIENT_ID = 'com.web3auth.appleloginextension';
+process.env.ANDROID_GOOGLE_CLIENT_ID = '882363291751-2a37cchrq9oc1lfj1p419otvahnbhguv.apps.googleusercontent.com';
+process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID = '882363291751-2a37cchrq9oc1lfj1p419otvahnbhguv.apps.googleusercontent.com';
 
-process.env.IOS_APPLE_CLIENT_ID="io.metamask.MetaMask"
-process.env.IOS_GOOGLE_CLIENT_ID="882363291751-nbbp9n0o307cfil1lup766g1s99k0932.apps.googleusercontent.com"
+process.env.IOS_APPLE_CLIENT_ID = 'io.metamask.MetaMask';
+process.env.IOS_GOOGLE_CLIENT_ID = '882363291751-nbbp9n0o307cfil1lup766g1s99k0932.apps.googleusercontent.com';
 
-process.env.IOS_GOOGLE_REDIRECT_URI='com.googleusercontent.apps.882363291751-nbbp9n0o307cfil1lup766g1s99k0932:/oauth2redirect/google'
+process.env.IOS_GOOGLE_REDIRECT_URI = 'com.googleusercontent.apps.882363291751-nbbp9n0o307cfil1lup766g1s99k0932:/oauth2redirect/google';
 
-process.env.APPLE_AUTH_CONNECTION_ID='byoa-server'
-process.env.GOOGLE_AUTH_CONNECTION_ID='byoa-server'
-process.env.APPLE_GROUPED_AUTH_CONNECTION_ID='mm-seedless-onboarding'
-process.env.GOOGLE_GROUPED_AUTH_CONNECTION_ID='mm-seedless-onboarding'
+process.env.APPLE_AUTH_CONNECTION_ID = 'byoa-server';
+process.env.GOOGLE_AUTH_CONNECTION_ID = 'byoa-server';
+process.env.APPLE_GROUPED_AUTH_CONNECTION_ID = 'mm-seedless-onboarding';
+process.env.GOOGLE_GROUPED_AUTH_CONNECTION_ID = 'mm-seedless-onboarding';
 
 
 const config = {
