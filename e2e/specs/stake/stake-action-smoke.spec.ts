@@ -19,7 +19,7 @@ import StakeView from '../../pages/Stake/StakeView';
 import StakeConfirmView from '../../pages/Stake/StakeConfirmView';
 import SendView from '../../pages/Send/SendView';
 import AmountView from '../../pages/Send/AmountView';
-import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
+import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import ImportAccountView from '../../pages/importAccount/ImportAccountView';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
@@ -98,7 +98,7 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
     await SendView.tapNextButton();
     await AmountView.typeInTransactionAmount(AMOUNT_TO_SEND);
     await AmountView.tapNextButton();
-    await TransactionConfirmationView.tapConfirmButton();
+    await FooterActions.tapConfirmButton();
     await TabBarComponent.tapActivity();
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfElementToHaveText(
