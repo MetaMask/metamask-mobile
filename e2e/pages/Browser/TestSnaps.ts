@@ -94,16 +94,16 @@ class TestSnaps {
     );
   }
 
-  async selectEntropySource(
+  async selectInDropdown(
     selector: keyof typeof EntropyDropDownSelectorWebIDS,
-    entropySource: string,
+    text: string,
   ) {
     const webElement = (await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       EntropyDropDownSelectorWebIDS[selector],
     )) as IndexableWebElement;
 
-    const source = await this.getOptionValueByText(webElement, entropySource);
+    const source = await this.getOptionValueByText(webElement, text);
 
     await webElement.runScript(
       (el, value) => {
