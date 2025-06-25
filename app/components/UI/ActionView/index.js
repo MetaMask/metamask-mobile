@@ -25,7 +25,6 @@ const getStyles = (colors) =>
       flex: 0,
       flexDirection: 'row',
       paddingVertical: 16,
-      paddingHorizontal: 24,
     },
     button: {
       flex: 1,
@@ -116,7 +115,7 @@ export default function ActionView({
               onPress={onConfirmPress}
               containerStyle={[
                 styles.button,
-                styles.confirm,
+                showCancelButton && styles.confirm,
                 confirmButtonState === ConfirmButtonState.Error
                   ? styles.confirmButtonError
                   : {},
