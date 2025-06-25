@@ -1,11 +1,5 @@
-import React, {
-  useState,
-  useCallback,
-  useMemo,
-  useRef,
-  useEffect,
-} from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useCallback, useMemo, forwardRef } from 'react';
+import { View, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 
 import Label from '../../../../../../component-library/components/Form/Label';
 import Text, {
@@ -17,20 +11,21 @@ import {
 } from '../../../../../../component-library/components/Form/TextField/TextField.types';
 import { Theme } from '../../../../../../util/theme/models';
 import { useStyles } from '../../../../../../component-library/hooks';
-import { AsYouType, CountryCode } from 'libphonenumber-js';
-import PhoneFormatter from '../../utils/PhoneFormatter';
+import { CountryCode } from 'libphonenumber-js';
+import usePhoneFormatter from '../../hooks/usePhoneFormatter';
 import { DepositRegion, DEPOSIT_REGIONS } from '../../constants';
 import RegionModal from '../RegionModal/RegionModal';
 import { useDepositSDK } from '../../sdk';
 import { strings } from '../../../../../../../locales/i18n';
 import Input from '../../../../../../component-library/components/Form/TextField/foundation/Input/Input';
-import { composeProviders } from 'redux-saga-test-plan/providers';
 
 interface PhoneFieldProps
   extends Omit<TextFieldProps, 'size' | 'onChangeText'> {
   label: string;
+  value?: string;
   onChangeText: (text: string) => void;
   error?: string;
+  onSubmitEditing?: () => void;
 }
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -77,65 +72,41 @@ const styleSheet = (params: { theme: Theme }) => {
   });
 };
 
-const DepositPhoneField: React.FC<PhoneFieldProps> = ({
+const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(({
   label,
+  value = '',
   onChangeText,
   error,
-  value,
-}) => {
+  onSubmitEditing,
+}, ref) => {
   const { styles, theme } = useStyles(styleSheet, {});
   const { selectedRegion, setSelectedRegion } = useDepositSDK();
   const [isRegionModalVisible, setIsRegionModalVisible] = useState(false);
-  const [displayValue, setDisplayValue] = useState('');
-  const hasInitializedRef = useRef(false);
 
-  // Initialize PhoneFormatter
-  const phoneFormatter = useRef<PhoneFormatter>();
+  const phoneFormatter = usePhoneFormatter(
+    (selectedRegion?.code as CountryCode) || 'US',
+  );
 
-  useEffect(() => {
-    phoneFormatter.current = new PhoneFormatter();
-    setDisplayValue('');
-    handlePhoneNumberChange('');
-  }, [selectedRegion?.code]);
+  const displayValue = useMemo(() => {
+    if (!value || !selectedRegion?.code) return '';
+
+    try {
+      const digitsOnly = value.replace(/\D/g, '');
+      return phoneFormatter.formatAsYouType(digitsOnly);
+    } catch (formattingError) {
+      console.warn('Error formatting phone number:', formattingError);
+      return value;
+    }
+  }, [value, selectedRegion?.code, phoneFormatter]);
 
   const handlePhoneNumberChange = useCallback(
     (newValue: string) => {
-      if (!phoneFormatter.current || !selectedRegion?.code) return;
-
-      // Always scrub to digits only before formatting
+      if (!selectedRegion?.code) return;
       const digitsOnly = newValue.replace(/\D/g, '');
-
-      // For US, only apply AsYouType formatting when there are 4 or more digits
-      if (selectedRegion.code === 'US') {
-        if (digitsOnly.length >= 4) {
-          const formatResult = phoneFormatter.current.formatAsYouType(
-            digitsOnly,
-            selectedRegion.code,
-          );
-          console.log('formatResult', formatResult);
-          setDisplayValue(formatResult.text);
-        } else {
-          // For US with 3 or fewer digits, just use the raw input
-          setDisplayValue(newValue);
-        }
-      } else {
-        // For non-US countries, always apply formatting
-        const formatResult = phoneFormatter.current.formatAsYouType(
-          digitsOnly,
-          selectedRegion.code,
-        );
-        console.log('formatResult', formatResult);
-
-        setDisplayValue(formatResult.text);
-      }
-
-      const e164Value = phoneFormatter.current.formatE164(
-        digitsOnly,
-        selectedRegion.code,
-      );
+      const e164Value = phoneFormatter.formatE164(digitsOnly);
       onChangeText(e164Value);
     },
-    [onChangeText, selectedRegion?.code],
+    [onChangeText, selectedRegion?.code, phoneFormatter],
   );
 
   const handleFlagPress = useCallback(() => {
@@ -147,9 +118,6 @@ const DepositPhoneField: React.FC<PhoneFieldProps> = ({
       if (!newRegion.supported) {
         return;
       }
-
-      // When region changes, clear the current input and let user start fresh
-      setDisplayValue('');
       onChangeText('');
       setSelectedRegion(newRegion);
       setIsRegionModalVisible(false);
@@ -160,13 +128,6 @@ const DepositPhoneField: React.FC<PhoneFieldProps> = ({
   const hideRegionModal = useCallback(() => {
     setIsRegionModalVisible(false);
   }, []);
-
-  const placeholder = useMemo(() => {
-    return (
-      selectedRegion?.placeholder ||
-      strings('deposit.basic_info.enter_phone_number')
-    );
-  }, [selectedRegion]);
 
   return (
     <>
@@ -193,7 +154,14 @@ const DepositPhoneField: React.FC<PhoneFieldProps> = ({
               isStateStylesDisabled
               value={displayValue}
               onChangeText={handlePhoneNumberChange}
-              placeholder={placeholder}
+              placeholder={
+                selectedRegion?.placeholder ||
+                strings('deposit.basic_info.enter_phone_number')
+              }
+              ref={ref}
+              autoFocus={false}
+              onSubmitEditing={onSubmitEditing}
+              returnKeyType="next"
             />
           </View>
         </View>
@@ -210,6 +178,6 @@ const DepositPhoneField: React.FC<PhoneFieldProps> = ({
       />
     </>
   );
-};
+});
 
 export default DepositPhoneField;

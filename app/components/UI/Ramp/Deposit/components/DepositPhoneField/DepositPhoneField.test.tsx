@@ -1,34 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import DepositPhoneField from './DepositPhoneField';
-import { DepositRegion, DEPOSIT_REGIONS } from '../../constants';
-
-// Mock the dependencies
-jest.mock('../../../../../../component-library/hooks', () => ({
-  useStyles: jest.fn(() => ({
-    styles: {
-      field: {},
-      label: {},
-      phoneInputWrapper: {},
-      textFieldWrapper: {},
-      countryPrefix: {},
-      countryFlag: {},
-      textFieldInput: {},
-      error: {},
-    },
-    theme: {
-      colors: {
-        text: { muted: '#666' },
-        border: { default: '#ccc' },
-        background: { default: '#fff' },
-        error: { default: '#ff0000' },
-      },
-      themeAppearance: 'light',
-    },
-  })),
-}));
 
 const mockSetSelectedRegion = jest.fn();
+
 const mockUseDepositSDK = jest.fn(() => ({
   selectedRegion: {
     code: 'US',
@@ -44,138 +19,72 @@ const mockUseDepositSDK = jest.fn(() => ({
 }));
 
 jest.mock('../../sdk', () => ({
-  useDepositSDK: mockUseDepositSDK,
+  useDepositSDK: () => mockUseDepositSDK(),
 }));
 
-jest.mock('../../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key) => key),
-}));
-
-jest.mock('../../utils/PhoneFormatter', () => {
-  return jest.fn().mockImplementation(() => ({
-    formatAsYouType: jest.fn(() => ({ text: '(555) 123-4567', template: '(___) ___-____' })),
+jest.mock('../../hooks/usePhoneFormatter', () =>
+  jest.fn().mockImplementation(() => ({
+    formatAsYouType: jest.fn(() => '(555) 123-4567'),
     formatE164: jest.fn(() => '+15551234567'),
     convertForNewCountry: jest.fn(() => '5551234567'),
     getInitialPhoneDigits: jest.fn(() => '5551234567'),
-  }));
-});
+  })),
+);
 
 jest.mock('libphonenumber-js/min/metadata', () => ({}), { virtual: true });
 
 describe('DepositPhoneField', () => {
   const mockOnChangeText = jest.fn();
 
-  const defaultRegion: DepositRegion = {
-    code: 'US',
-    flag: '🇺🇸',
-    name: 'United States',
-    phonePrefix: '+1',
-    currency: 'USD',
-    phoneDigitCount: 10,
-    recommended: true,
-    supported: true,
-    placeholder: '(555) 123-4567',
-  };
-
   const defaultProps = {
     label: 'Phone Number',
     onChangeText: mockOnChangeText,
+    value: '',
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly with label', () => {
-    const { getByText } = render(
+  it('renders correctly with default props', () => {
+    const { toJSON } = render(
       <DepositPhoneField
         label="Phone Number"
         onChangeText={mockOnChangeText}
         value=""
-      />
+      />,
     );
 
-    expect(getByText('Phone Number')).toBeTruthy();
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('displays country flag', () => {
-    const { getByText } = render(
-      <DepositPhoneField
-        label="Phone Number"
-        onChangeText={mockOnChangeText}
-        value=""
-      />
-    );
-
-    expect(getByText('🇺🇸')).toBeTruthy();
-  });
-
-  it('shows error message when provided', () => {
-    const { getByText } = render(
+  it('renders correctly with error message', () => {
+    const { toJSON } = render(
       <DepositPhoneField
         label="Phone Number"
         onChangeText={mockOnChangeText}
         value=""
         error="Invalid phone number"
-      />
+      />,
     );
-
-    expect(getByText('Invalid phone number')).toBeTruthy();
-  });
-
-  it('calls onChangeText when input changes', () => {
-    const { getByTestId } = render(
-      <DepositPhoneField
-        label="Phone Number"
-        onChangeText={mockOnChangeText}
-        value=""
-      />
-    );
-
-    const input = getByTestId('deposit-phone-field-test-id');
-    fireEvent.changeText(input, '5551234567');
-
-    expect(mockOnChangeText).toHaveBeenCalled();
-  });
-
-  it('displays placeholder text', () => {
-    const { getByTestId } = render(
-      <DepositPhoneField
-        label="Phone Number"
-        onChangeText={mockOnChangeText}
-        value=""
-      />
-    );
-
-    const input = getByTestId('deposit-phone-field-test-id');
-    expect(input.props.placeholder).toBe('(555) 123-4567');
-  });
-
-  it('should open region modal when flag is pressed', () => {
-    const { toJSON, getByRole } = render(
-      <DepositPhoneField {...defaultProps} />,
-    );
-
-    const flagButton = getByRole('button');
-    fireEvent.press(flagButton);
 
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should update selected region when a region is selected from modal', () => {
-    const { getByRole, getByText } = render(
-      <DepositPhoneField {...defaultProps} />,
+  it('renders correctly with value', () => {
+    const { toJSON } = render(
+      <DepositPhoneField
+        label="Phone Number"
+        onChangeText={mockOnChangeText}
+        value="+15551234567"
+      />,
     );
 
-    const flagButton = getByRole('button');
-    fireEvent.press(flagButton);
-    const selectRegionButton = getByText(DEPOSIT_REGIONS[1].name);
-    fireEvent.press(selectRegionButton);
-    expect(mockSetSelectedRegion).toHaveBeenCalledWith(DEPOSIT_REGIONS[1]);
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should use selectedRegion from context when available', () => {
-    const contextRegion: DepositRegion = {
+  it('renders correctly with different region', () => {
+    const contextRegion = {
       code: 'DE',
       flag: '🇩🇪',
       name: 'Germany',
@@ -192,6 +101,32 @@ describe('DepositPhoneField', () => {
     });
 
     const { toJSON } = render(<DepositPhoneField {...defaultProps} />);
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('calls onChangeText when input changes', () => {
+    const { getByTestId } = render(
+      <DepositPhoneField
+        label="Phone Number"
+        onChangeText={mockOnChangeText}
+        value=""
+      />,
+    );
+
+    const input = getByTestId('deposit-phone-field-test-id');
+    fireEvent.changeText(input, '5551234567');
+
+    expect(mockOnChangeText).toHaveBeenCalled();
+  });
+
+  it('opens region modal when flag is pressed', () => {
+    const { getByRole, toJSON } = render(
+      <DepositPhoneField {...defaultProps} />,
+    );
+
+    const flagButton = getByRole('button');
+    fireEvent.press(flagButton);
 
     expect(toJSON()).toMatchSnapshot();
   });

@@ -118,9 +118,19 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
       [onChangeText, onSubmitEditing],
     );
 
+    const handleDonePress = useCallback(() => {
+      // Use pendingDateSelection if available, otherwise use current value or default date
+      const dateToProcess = pendingDateSelection || getValidDate(value) || DEFAULT_DATE;
+      processSelectedDate(dateToProcess);
+    }, [pendingDateSelection, value, processSelectedDate]);
+
     const preventModalDismissal = () => {
       // Prevents touch events from bubbling up to the outer TouchableWithoutFeedback
     };
+
+    // Determine what to display in the text field
+    const displayValue = value ? formatDate(getValidDate(value)) : '';
+    const placeholder = formatDate(DEFAULT_DATE);
 
     return (
       <>
@@ -135,8 +145,8 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
                 />
               }
               label={label}
-              placeholder={formatDate(DEFAULT_DATE)}
-              value={formatDate(getValidDate(value))}
+              placeholder={placeholder}
+              value={displayValue}
               error={error}
               containerStyle={containerStyle}
               ref={ref || fieldRef}
@@ -177,9 +187,7 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
                       />
                       <Button
                         title="Done"
-                        onPress={() => {
-                          processSelectedDate(pendingDateSelection);
-                        }}
+                        onPress={handleDonePress}
                         color={theme.colors.primary.default}
                       />
                     </View>

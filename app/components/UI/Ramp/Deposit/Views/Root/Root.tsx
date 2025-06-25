@@ -6,7 +6,7 @@ import GetStarted from './GetStarted/GetStarted';
 
 const Root = () => {
   const navigation = useNavigation();
-  const [initialRoute] = useState<string>(Routes.DEPOSIT.BASIC_INFO);
+  const [initialRoute] = useState<string>(Routes.DEPOSIT.BUILD_QUOTE);
   const { checkExistingToken, getStarted } = useDepositSDK();
   const hasCheckedToken = useRef(false);
 
