@@ -348,12 +348,15 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
         </RCTScrollView>
         <View
           style={
-            {
-              "flex": 0,
-              "flexDirection": "row",
-              "paddingHorizontal": 24,
-              "paddingVertical": 16,
-            }
+            [
+              {
+                "flex": 0,
+                "flexDirection": "row",
+                "paddingHorizontal": 16,
+                "paddingVertical": 16,
+              },
+              undefined,
+            ]
           }
         >
           <TouchableOpacity
@@ -378,9 +381,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                     {
                       "flex": 1,
                     },
-                    {
-                      "marginLeft": 8,
-                    },
+                    false,
                     {},
                     {},
                   ],
@@ -782,12 +783,15 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
         </RCTScrollView>
         <View
           style={
-            {
-              "flex": 0,
-              "flexDirection": "row",
-              "paddingHorizontal": 24,
-              "paddingVertical": 16,
-            }
+            [
+              {
+                "flex": 0,
+                "flexDirection": "row",
+                "paddingHorizontal": 16,
+                "paddingVertical": 16,
+              },
+              undefined,
+            ]
           }
         >
           <TouchableOpacity
@@ -812,9 +816,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                     {
                       "flex": 1,
                     },
-                    {
-                      "marginLeft": 8,
-                    },
+                    false,
                     {},
                     {},
                   ],
@@ -1379,12 +1381,15 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
         </RCTScrollView>
         <View
           style={
-            {
-              "flex": 0,
-              "flexDirection": "row",
-              "paddingHorizontal": 24,
-              "paddingVertical": 16,
-            }
+            [
+              {
+                "flex": 0,
+                "flexDirection": "row",
+                "paddingHorizontal": 16,
+                "paddingVertical": 16,
+              },
+              undefined,
+            ]
           }
         >
           <TouchableOpacity
@@ -1409,9 +1414,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
                     {
                       "flex": 1,
                     },
-                    {
-                      "marginLeft": 8,
-                    },
+                    false,
                     {},
                     {},
                   ],
@@ -1976,12 +1979,15 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
         </RCTScrollView>
         <View
           style={
-            {
-              "flex": 0,
-              "flexDirection": "row",
-              "paddingHorizontal": 24,
-              "paddingVertical": 16,
-            }
+            [
+              {
+                "flex": 0,
+                "flexDirection": "row",
+                "paddingHorizontal": 16,
+                "paddingVertical": 16,
+              },
+              undefined,
+            ]
           }
         >
           <TouchableOpacity
@@ -2006,9 +2012,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
                     {
                       "flex": 1,
                     },
-                    {
-                      "marginLeft": 8,
-                    },
+                    false,
                     {},
                     {},
                   ],
