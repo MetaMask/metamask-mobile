@@ -15,6 +15,7 @@ import ContactsView from '../../../pages/Settings/Contacts/ContactsView';
 import AddContactView from '../../../pages/Settings/Contacts/AddContactView';
 import SettingsView from '../../../pages/Settings/SettingsView';
 import Assertions from '../../../utils/Assertions';
+import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 
 describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
   const NEW_CONTACT_NAME = 'New Test Contact';
@@ -24,9 +25,13 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
   let userStorageMockttpController: UserStorageMockttpController;
 
   beforeAll(async () => {
+    const segmentMock = {
+      POST: [mockEvents.POST.segmentTrack],
+    };
+
     await TestHelpers.reverseServerPort();
 
-    mockServer = await startMockServer({}, TEST_SPECIFIC_MOCK_SERVER_PORT);
+    mockServer = await startMockServer(segmentMock, TEST_SPECIFIC_MOCK_SERVER_PORT);
 
     const { userStorageMockttpControllerInstance } = await mockIdentityServices(
       mockServer,
@@ -45,7 +50,10 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
     await TestHelpers.launchApp({
       newInstance: true,
       delete: true,
-      launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
+      launchArgs: {
+        mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT),
+        sendMetaMetricsinE2E: true,
+      },
     });
   });
 
@@ -62,17 +70,20 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
     });
 
     await TabBarComponent.tapSettings();
-    await TestHelpers.delay(1000);
+    await TestHelpers.delay(5000);
     await SettingsView.tapContacts();
+    await TestHelpers.delay(5000);
     await Assertions.checkIfVisible(ContactsView.container);
     await ContactsView.tapAddContactButton();
+    await TestHelpers.delay(5000);
     await Assertions.checkIfVisible(AddContactView.container);
 
     await AddContactView.typeInName(NEW_CONTACT_NAME);
     await AddContactView.typeInAddress(NEW_CONTACT_ADDRESS);
     await AddContactView.tapAddContactButton();
+    await TestHelpers.delay(5000);
     await Assertions.checkIfVisible(ContactsView.container);
-    await TestHelpers.delay(4000);
+    await TestHelpers.delay(5000);
     await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
 
     await TestHelpers.launchApp({
@@ -87,10 +98,11 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
     });
 
     await TabBarComponent.tapSettings();
-    await TestHelpers.delay(1000);
+    await TestHelpers.delay(2000);
     await SettingsView.tapContacts();
+    await TestHelpers.delay(5000);
     await Assertions.checkIfVisible(ContactsView.container);
-    await TestHelpers.delay(4000);
+    await TestHelpers.delay(5000);
 
     await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
   });
