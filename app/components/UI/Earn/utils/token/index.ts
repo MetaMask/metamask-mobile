@@ -4,6 +4,7 @@ import {
   renderFromTokenMinimalUnit,
 } from '../../../../../util/number';
 import { EarnTokenDetails } from '../../types/lending.types';
+import { TOKENS_REQUIRING_ALLOWANCE_RESET } from '../../constants/token';
 
 export const getEstimatedAnnualRewards = (
   apr: string,
@@ -74,3 +75,12 @@ export const sortByHighestApr = (tokensToSort: EarnTokenDetails[]) =>
   [...tokensToSort].sort(
     (a, b) => parseFloat(b.experience.apr) - parseFloat(a.experience.apr),
   );
+
+// TODO: Add tests
+export const tokenRequiresAllowanceReset = (
+  chainId: string,
+  symbol: string,
+) => {
+  if (!chainId || !symbol) return false;
+  return TOKENS_REQUIRING_ALLOWANCE_RESET[chainId].includes(symbol);
+};
