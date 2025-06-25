@@ -278,14 +278,17 @@ const BuildQuote = () => {
     setIsRegionModalVisible(false);
   }, []);
 
-  const handleSelectAssetId = useCallback((assetId: string) => {
-    const selectedToken = supportedTokens.find(
-      (token) => token.assetId === assetId,
-    );
-    if (selectedToken) {
-      setCryptoCurrency(selectedToken);
-    }
-  }, []);
+  const handleSelectAssetId = useCallback(
+    (assetId: string) => {
+      const selectedToken = supportedTokens.find(
+        (token) => token.assetId === assetId,
+      );
+      if (selectedToken) {
+        setCryptoCurrency(selectedToken);
+      }
+    },
+    [supportedTokens],
+  );
 
   const handleCryptoPress = useCallback(
     () =>
