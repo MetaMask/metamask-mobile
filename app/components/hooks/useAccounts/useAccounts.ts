@@ -44,8 +44,8 @@ const useAccounts = ({
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
-  const { multichainBalancesForAllAccounts } =
-    useMultichainBalancesForAllAccounts();
+  // const { multichainBalancesForAllAccounts } =
+  //   useMultichainBalancesForAllAccounts();
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
@@ -115,36 +115,36 @@ const useAccounts = ({
   );
 
   // Memoize the balance calculation to prevent it from causing re-renders
-  const accountBalances = useMemo(() => {
-    const balances: Record<
-      string,
-      {
-        displayBalance: string;
-        balanceError: string | undefined;
-        isLoadingAccount: boolean;
-      }
-    > = {};
-
-    internalAccounts.forEach((account) => {
-      const balanceForAccount = multichainBalancesForAllAccounts?.[account.id];
-      const displayBalance = balanceForAccount
-        ? `${balanceForAccount.displayBalance}\n${balanceForAccount.totalNativeTokenBalance} ${balanceForAccount.nativeTokenUnit}`
-        : '';
-
-      const error =
-        balanceForAccount.totalFiatBalance !== undefined
-          ? checkBalanceError?.(balanceForAccount.totalFiatBalance.toString())
-          : undefined;
-
-      balances[account.id] = {
-        displayBalance,
-        balanceError: typeof error === 'string' ? error : undefined,
-        isLoadingAccount: balanceForAccount.isLoadingAccount,
-      };
-    });
-
-    return balances;
-  }, [internalAccounts, multichainBalancesForAllAccounts, checkBalanceError]);
+  // const accountBalances = useMemo(() => {
+  //   const balances: Record<
+  //     string,
+  //     {
+  //       displayBalance: string;
+  //       balanceError: string | undefined;
+  //       isLoadingAccount: boolean;
+  //     }
+  //   > = {};
+  //
+  //   internalAccounts.forEach((account) => {
+  //     const balanceForAccount = multichainBalancesForAllAccounts?.[account.id];
+  //     const displayBalance = balanceForAccount
+  //       ? `${balanceForAccount.displayBalance}\n${balanceForAccount.totalNativeTokenBalance} ${balanceForAccount.nativeTokenUnit}`
+  //       : '';
+  //
+  //     const error =
+  //       balanceForAccount.totalFiatBalance !== undefined
+  //         ? checkBalanceError?.(balanceForAccount.totalFiatBalance.toString())
+  //         : undefined;
+  //
+  //     balances[account.id] = {
+  //       displayBalance,
+  //       balanceError: typeof error === 'string' ? error : undefined,
+  //       isLoadingAccount: balanceForAccount.isLoadingAccount,
+  //     };
+  //   });
+  //
+  //   return balances;
+  // }, [internalAccounts, multichainBalancesForAllAccounts, checkBalanceError]);
 
   const getAccounts = useCallback(() => {
     if (!isMountedRef.current) return;
@@ -160,6 +160,7 @@ const useAccounts = ({
         if (isSelected) {
           selectedIndex = index;
         }
+        const accountBalances = {};
 
         const accountBalance = accountBalances[internalAccount.id] || {
           displayBalance: '',
@@ -208,7 +209,7 @@ const useAccounts = ({
     internalAccounts,
     fetchENSNames,
     selectedInternalAccount?.address,
-    accountBalances, // Use the memoized balances instead of multichainBalancesForAllAccounts
+    // accountBalances, // Use the memoized balances instead of multichainBalancesForAllAccounts
     isMultiAccountBalancesEnabled,
   ]);
 
