@@ -26,12 +26,6 @@ const styleSheet = () => {
       marginBottom: 16,
     },
     /**
-     * Container for the submit button
-     */
-    buttonContainer: {
-      marginTop: 8,
-    },
-    /**
      * Submit button styling
      */
     button: {

@@ -58,7 +58,7 @@ export function SamplePetNamesForm({
   const { styles } = useStyles(styleSheet, {});
 
   const {
-    onSubmit: formOnSubmit,
+    onSubmit,
     isValid,
     name,
     setName,
@@ -67,16 +67,6 @@ export function SamplePetNamesForm({
   } = useSamplePetNamesForm(chainId, initialAddress, initialName);
   const { trackEvent } = useMetrics();
   const { petNames } = useSamplePetNames(chainId);
-
-  const performUpdate = () => {
-    // Use the controller's assignPetname method
-    Engine.context.SamplePetnamesController.assignPetname(
-      chainId as Hex,
-      address as Hex,
-      name,
-    );
-    formOnSubmit();
-  };
 
   const submit = () => {
     const isEditMode =
@@ -95,7 +85,7 @@ export function SamplePetNamesForm({
             .addProperties({ name })
             .build(),
         );
-        performUpdate();
+        onSubmit();
       } else {
         // User manually entered duplicate address - show alert with options
         trackErrorAsAnalytics(
@@ -122,7 +112,7 @@ export function SamplePetNamesForm({
                     .addProperties({ name })
                     .build(),
                 );
-                performUpdate();
+                onSubmit();
               },
             },
           ],
@@ -138,7 +128,7 @@ export function SamplePetNamesForm({
           .addSensitiveProperties({ address })
           .build(),
       );
-      performUpdate();
+      onSubmit();
     }
   };
 
