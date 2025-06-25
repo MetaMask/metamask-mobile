@@ -35,8 +35,11 @@ process.env.IOS_GOOGLE_CLIENT_ID = '882363291751-nbbp9n0o307cfil1lup766g1s99k093
 
 process.env.IOS_GOOGLE_REDIRECT_URI = 'com.googleusercontent.apps.882363291751-nbbp9n0o307cfil1lup766g1s99k0932:/oauth2redirect/google';
 
-process.env.APPLE_AUTH_CONNECTION_ID = 'byoa-server';
-process.env.GOOGLE_AUTH_CONNECTION_ID = 'byoa-server';
+process.env.ANDROID_APPLE_AUTH_CONNECTION_ID = 'byoa-server';
+process.env.ANDROID_GOOGLE_AUTH_CONNECTION_ID = 'byoa-server';
+process.env.IOS_APPLE_AUTH_CONNECTION_ID = 'byoa-server';
+process.env.IOS_GOOGLE_AUTH_CONNECTION_ID = 'byoa-server';
+
 process.env.APPLE_GROUPED_AUTH_CONNECTION_ID = 'mm-seedless-onboarding';
 process.env.GOOGLE_GROUPED_AUTH_CONNECTION_ID = 'mm-seedless-onboarding';
 
