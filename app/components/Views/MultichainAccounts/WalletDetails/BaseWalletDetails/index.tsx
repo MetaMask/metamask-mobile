@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './styles';
@@ -13,6 +13,7 @@ import Icon, {
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
 import { TouchableOpacity, View, ViewStyle } from 'react-native';
+import Modal from 'react-native-modal';
 import { WalletDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/WalletDetails';
 import {
   AlignItems,
@@ -34,6 +35,7 @@ import { useSelector } from 'react-redux';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { useWalletInfo } from '../hooks/useWalletInfo';
 import Routes from '../../../../../constants/navigation/Routes';
+import WalletAddAccountActions from './WalletAddAccountActions';
 
 interface BaseWalletDetailsProps {
   wallet: AccountWallet;
@@ -47,6 +49,7 @@ export const BaseWalletDetails = ({
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
+  const [showAddAccountModal, setShowAddAccountModal] = useState(false);
 
   const accountAvatarType = useSelector(
     (state: RootState) => state.settings.useBlockieIcon,
@@ -86,10 +89,14 @@ export const BaseWalletDetails = ({
   }, [navigation]);
 
   const handleAddAccount = useCallback(() => {
-    navigation.navigate(Routes.SHEET.WALLET_ADD_ACCOUNT_ACTIONS, {
-      keyringId,
-    });
-  }, [keyringId, navigation]);
+    if (keyringId) {
+      setShowAddAccountModal(true);
+    }
+  }, [keyringId]);
+
+  const handleCloseAddAccountModal = useCallback(() => {
+    setShowAddAccountModal(false);
+  }, []);
 
   const renderAccountItem = (account: InternalAccount, index: number) => {
     const totalAccounts = accounts.length;
@@ -267,24 +274,53 @@ export const BaseWalletDetails = ({
         >
           {accounts.map((account, index) => renderAccountItem(account, index))}
         </View>
-        <TouchableOpacity onPress={handleAddAccount}>
-          <Box
-            flexDirection={FlexDirection.Row}
-            alignItems={AlignItems.center}
-            gap={8}
-          >
-            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-              {strings('multichain_accounts.wallet_details.add_account')}
-            </Text>
-            <Icon
-              name={IconName.Add}
-              size={IconSize.Md}
-              color={colors.icon.alternative}
-            />
-          </Box>
-        </TouchableOpacity>
+        {keyringId && (
+          <TouchableOpacity onPress={handleAddAccount}>
+            <Box
+              flexDirection={FlexDirection.Row}
+              alignItems={AlignItems.center}
+              gap={8}
+            >
+              <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+                {strings('multichain_accounts.wallet_details.add_account')}
+              </Text>
+              <Icon
+                name={IconName.Add}
+                size={IconSize.Md}
+                color={colors.icon.alternative}
+              />
+            </Box>
+          </TouchableOpacity>
+        )}
+
         {children}
       </View>
+
+      {keyringId && (
+        <Modal
+          isVisible={showAddAccountModal}
+          style={styles.modalStyle}
+          animationIn="slideInUp"
+          animationOut="slideOutDown"
+          onBackdropPress={handleCloseAddAccountModal}
+          onBackButtonPress={handleCloseAddAccountModal}
+          swipeDirection="down"
+          onSwipeComplete={handleCloseAddAccountModal}
+          backdropOpacity={0.5}
+        >
+          <View
+            style={[
+              styles.modalContent,
+              { backgroundColor: colors.background.default },
+            ]}
+          >
+            <WalletAddAccountActions
+              keyringId={keyringId}
+              onBack={handleCloseAddAccountModal}
+            />
+          </View>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 };

@@ -137,7 +137,6 @@ import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
 import AddNewAccountBottomSheet from '../../Views/AddNewAccount/AddNewAccountBottomSheet';
-import WalletAddAccountActionsBottomSheet from '../../Views/MultichainAccounts/WalletDetails/BaseWalletDetails/WalletAddAccountActionsBottomSheet';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
 import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
@@ -337,10 +336,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.ADD_ACCOUNT}
       component={AddNewAccountBottomSheet}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.WALLET_ADD_ACCOUNT_ACTIONS}
-      component={WalletAddAccountActionsBottomSheet}
     />
     <Stack.Screen name={Routes.SHEET.SDK_LOADING} component={SDKLoadingModal} />
     <Stack.Screen
