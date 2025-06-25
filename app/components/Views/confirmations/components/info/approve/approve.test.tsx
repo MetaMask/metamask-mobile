@@ -76,6 +76,7 @@ describe('Approve', () => {
       state: approveERC20TransactionStateMock,
     });
 
+
     expect(getByText('Network Fee')).toBeDefined();
     expect(getByText('Advanced details')).toBeDefined();
   });
