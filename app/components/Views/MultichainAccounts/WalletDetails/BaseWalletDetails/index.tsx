@@ -287,7 +287,7 @@ export const BaseWalletDetails = ({
               <Icon
                 name={IconName.Add}
                 size={IconSize.Md}
-                color={colors.icon.alternative}
+                color={colors.primary.default}
               />
             </Box>
           </TouchableOpacity>
