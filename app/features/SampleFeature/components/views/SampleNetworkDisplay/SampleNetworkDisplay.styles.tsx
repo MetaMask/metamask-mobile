@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../../../util/theme/models';
 
 /**
  * StyleSheet for the SampleNetworkDisplay component
@@ -9,7 +10,8 @@ import { StyleSheet } from 'react-native';
  *
  * @sampleFeature do not use in production code
  */
-const styleSheet = () => {
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
   
   return StyleSheet.create({
     /**
@@ -27,7 +29,7 @@ const styleSheet = () => {
      * Network name text style (placeholder for future customization)
      */
     text: {
-      // Add any text styling here if needed
+      color: theme.colors.text.default,
     },
   });
 };

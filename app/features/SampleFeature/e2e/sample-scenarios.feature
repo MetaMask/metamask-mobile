@@ -7,7 +7,7 @@ Feature: Sample Feature Manual Test Scenarios
     Given I am logged into MetaMask Mobile
     And I have at least one network configured
 
-  @sample-feature @navigation
+  @sample-feature @navigation @e2e-automated
   Scenario: Access the Sample Feature screen
     Given I am on the Wallet home screen
     When I tap on the Settings tab
@@ -20,7 +20,7 @@ Feature: Sample Feature Manual Test Scenarios
     And I should see the Counter section
     And I should see the Pet Names section
 
-  @sample-feature @counter
+  @sample-feature @counter @e2e-automated
   Scenario: Test the counter increment functionality
     Given I am on the Sample Feature screen
     And I can see the Counter section with title "Counter"

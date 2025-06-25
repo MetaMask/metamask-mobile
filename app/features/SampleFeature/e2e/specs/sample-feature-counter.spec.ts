@@ -31,10 +31,21 @@ describe(Regression('Sample Feature'), () => {
     await stopFixtureServer(fixtureServer);
   });
 
-  it('Navigates to sample feature', async () => {
-    // Verify Sample Feature screen is visible
-    await SampleFeatureView.isVisible();
-    await Assertions.checkIfVisible(SampleFeatureView.title);
-    await Assertions.checkIfVisible(SampleFeatureView.description);
+  it('displays counter feature', async () => {
+    await Assertions.checkIfVisible(SampleFeatureView.counterTitle);
+    await Assertions.checkIfVisible(SampleFeatureView.counterValue);
+    await Assertions.checkIfVisible(SampleFeatureView.incrementButton);
+  });
+
+  it('increments counter', async () => {
+    await Assertions.checkIfVisible(SampleFeatureView.counterTitle);
+    await Assertions.checkIfVisible(SampleFeatureView.counterValue);
+    await Assertions.checkIfVisible(SampleFeatureView.incrementButton);
+
+    await SampleFeatureView.tapIncrementButton();
+    await Assertions.checkIfElementToHaveText(SampleFeatureView.counterValue, 'Value: 1');
+
+    await SampleFeatureView.tapIncrementButton();
+    await Assertions.checkIfElementToHaveText(SampleFeatureView.counterValue, 'Value: 2');
   });
 });

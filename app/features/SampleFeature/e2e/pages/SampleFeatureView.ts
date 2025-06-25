@@ -31,6 +31,11 @@ class SampleFeatureView {
     return Matchers.getElementByID(SampleFeatureSelectorsIDs.SAMPLE_COUNTER_PANE_INCREMENT_BUTTON);
   }
 
+  get networkImage() {
+    // Assuming the network image has a testID
+    return Matchers.getElementByID('network-avatar-image');
+  }
+
   async tapIncrementButton(): Promise<void> {
     await Gestures.waitAndTap(this.incrementButton);
   }

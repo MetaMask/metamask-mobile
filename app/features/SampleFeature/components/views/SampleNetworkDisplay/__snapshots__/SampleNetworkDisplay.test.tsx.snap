@@ -40,7 +40,11 @@ exports[`SampleNetworkDisplay matches rendered snapshot 1`] = `
     />
   </View>
   <Text
-    style={{}}
+    style={
+      {
+        "color": "#121314",
+      }
+    }
   >
     My test network
   </Text>
