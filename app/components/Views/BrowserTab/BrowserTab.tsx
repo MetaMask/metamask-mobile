@@ -1013,7 +1013,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
         return false;
       }
 
-      // FIXED: Only send active account for the specific URL being navigated to
+      // Only send active account for the specific URL being navigated to
       // This ensures we only send account info to sites that have explicit permissions
       sendActiveAccount(nativeEvent.url);
 
@@ -1038,7 +1038,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
    * Check whenever permissions change / account changes for Dapp
    */
   useEffect(() => {
-    // FIXED: Only send to current resolved URL and only if it has permissions
     sendActiveAccount();
   }, [sendActiveAccount, permittedEvmAccountsList]);
 
