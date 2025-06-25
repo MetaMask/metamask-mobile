@@ -17,6 +17,7 @@ class Port extends EventEmitter {
     this._isMainFrame = isMainFrame;
   }
 
+  // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   postMessage = (msg: any, origin = '*') => {
     const js = this._isMainFrame
