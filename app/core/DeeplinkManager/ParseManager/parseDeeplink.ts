@@ -33,21 +33,21 @@ async function parseDeeplink({
   onHandled?: () => void;
 }) {
   try {
-    // Validate URL format before creating URL object
-    if (!url || !url.includes('://') || url.split('://')[1].length === 0) {
-      throw new Error('Invalid URL format');
-    }
+    // // Validate URL format before creating URL object
+    // if (!url || !url.includes('://') || url.split('://')[1].length === 0) {
+    //   throw new Error('Invalid URL format');
+    // }
 
     const validatedUrl = new URL(url);
 
-    // Additional validation for hostname
-    if (
-      !validatedUrl.hostname ||
-      validatedUrl.hostname.includes('?') ||
-      validatedUrl.hostname.includes('&')
-    ) {
-      throw new Error('Invalid hostname');
-    }
+    // // Additional validation for hostname
+    // if (
+    //   !validatedUrl.hostname ||
+    //   validatedUrl.hostname.includes('?') ||
+    //   validatedUrl.hostname.includes('&')
+    // ) {
+    //   throw new Error('Invalid hostname');
+    // }
 
     let isPrivateLink = false;
     if (hasSignature(validatedUrl)) {
