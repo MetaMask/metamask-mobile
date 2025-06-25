@@ -1,4 +1,3 @@
-import { Platform } from 'react-native';
 import { ACTIONS, PROTOCOLS } from '../../../constants/deeplinks';
 import AppConstants from '../../AppConstants';
 import { AuthConnection } from '../OAuthInterface';
@@ -65,28 +64,42 @@ export enum SupportedPlatforms {
   IOS = 'ios',
 }
 
-export const AuthConnectionConfig: Record<SupportedPlatforms, Record<AuthConnection, {
-  authConnectionId: string;
-  groupedAuthConnectionId?: string;
-}>> = {
+export const AuthConnectionConfig: Record<
+  SupportedPlatforms,
+  Record<
+    AuthConnection,
+    {
+      authConnectionId: string;
+      groupedAuthConnectionId?: string;
+    }
+  >
+> = {
   [SupportedPlatforms.Android]: {
     [AuthConnection.Google]: {
-      authConnectionId: AppConstants.SEEDLESS_ONBOARDING.ANDROID_GOOGLE_AUTH_CONNECTION_ID,
-      groupedAuthConnectionId: AppConstants.SEEDLESS_ONBOARDING.GOOGLE_GROUPED_AUTH_CONNECTION_ID,
+      authConnectionId:
+        AppConstants.SEEDLESS_ONBOARDING.ANDROID_GOOGLE_AUTH_CONNECTION_ID,
+      groupedAuthConnectionId:
+        AppConstants.SEEDLESS_ONBOARDING.GOOGLE_GROUPED_AUTH_CONNECTION_ID,
     },
     [AuthConnection.Apple]: {
-      authConnectionId: AppConstants.SEEDLESS_ONBOARDING.ANDROID_APPLE_AUTH_CONNECTION_ID,
-      groupedAuthConnectionId: AppConstants.SEEDLESS_ONBOARDING.APPLE_GROUPED_AUTH_CONNECTION_ID,
+      authConnectionId:
+        AppConstants.SEEDLESS_ONBOARDING.ANDROID_APPLE_AUTH_CONNECTION_ID,
+      groupedAuthConnectionId:
+        AppConstants.SEEDLESS_ONBOARDING.APPLE_GROUPED_AUTH_CONNECTION_ID,
     },
   },
   [SupportedPlatforms.IOS]: {
     [AuthConnection.Google]: {
-      authConnectionId: AppConstants.SEEDLESS_ONBOARDING.IOS_GOOGLE_AUTH_CONNECTION_ID,
-      groupedAuthConnectionId: AppConstants.SEEDLESS_ONBOARDING.GOOGLE_GROUPED_AUTH_CONNECTION_ID,
+      authConnectionId:
+        AppConstants.SEEDLESS_ONBOARDING.IOS_GOOGLE_AUTH_CONNECTION_ID,
+      groupedAuthConnectionId:
+        AppConstants.SEEDLESS_ONBOARDING.GOOGLE_GROUPED_AUTH_CONNECTION_ID,
     },
     [AuthConnection.Apple]: {
-      authConnectionId: AppConstants.SEEDLESS_ONBOARDING.IOS_APPLE_AUTH_CONNECTION_ID,
-      groupedAuthConnectionId: AppConstants.SEEDLESS_ONBOARDING.APPLE_GROUPED_AUTH_CONNECTION_ID,
+      authConnectionId:
+        AppConstants.SEEDLESS_ONBOARDING.IOS_APPLE_AUTH_CONNECTION_ID,
+      groupedAuthConnectionId:
+        AppConstants.SEEDLESS_ONBOARDING.APPLE_GROUPED_AUTH_CONNECTION_ID,
     },
   },
 };
