@@ -229,11 +229,6 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();
 
-  await Assertions.checkIfVisible(MetaMetricsOptIn.container);
-  optInToMetrics
-    ? await MetaMetricsOptIn.tapAgreeButton()
-    : await MetaMetricsOptIn.tapNoThanksButton();
-
   // 'should dismiss the onboarding wizard'
   // dealing with flakiness on bitrise.
   await closeOnboardingModals('dismiss');
