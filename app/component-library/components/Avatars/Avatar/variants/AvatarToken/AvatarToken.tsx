@@ -56,7 +56,7 @@ const AvatarToken = ({
   const tokenImage = () => (
     <AvatarBase size={size} style={styles.base} {...props}>
       {showFallback || isIpfsDisabledAndUriIsIpfs ? (
-        <Text style={styles.label} variant={TextVariant.BodyMD}>
+        <Text style={styles.label}>
           {tokenNameFirstLetter}
         </Text>
       ) : (
