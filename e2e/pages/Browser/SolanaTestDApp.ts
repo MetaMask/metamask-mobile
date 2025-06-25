@@ -5,7 +5,11 @@ import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.sel
 import Browser from './BrowserView';
 import Gestures from '../../utils/Gestures';
 import { waitFor } from 'detox';
-import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors';
+import {
+  SOLANA_TEST_TIMEOUTS,
+  SolanaTestDappSelectorsWebIDs,
+} from '../../selectors/Browser/SolanaTestDapp.selectors';
+import TestHelpers from '../../helpers';
 
 // Use the same port as the regular test dapp - the solanaDapp flag controls which dapp is served
 export const SOLANA_TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
@@ -65,21 +69,9 @@ class SolanaTestDApp {
     );
   }
 
-  get cancelTransactionButtonSelector() {
-    return Matchers.getElementByID(
-      SolanaTestDappSelectorsWebIDs.CANCEL_TRANSACTION_BUTTON,
-    );
-  }
-
   get confirmSignMessageButtonSelector() {
     return Matchers.getElementByID(
       SolanaTestDappSelectorsWebIDs.CONFIRM_SIGN_MESSAGE_BUTTON,
-    );
-  }
-
-  get cancelSignMessageButtonSelector() {
-    return Matchers.getElementByID(
-      SolanaTestDappSelectorsWebIDs.CANCEL_SIGN_MESSAGE_BUTTON,
     );
   }
 
@@ -139,12 +131,14 @@ class SolanaTestDApp {
 
   getSignMessageTest() {
     return {
-      signMessage: async () =>
+      signMessage: async () => {
+        await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.METHOD_INVOCATION);
         await this.tapButton(
           await getTestElement(dataTestIds.testPage.signMessage.signMessage, {
             tag: 'button',
           }),
-        ),
+        );
+      },
       getSignedMessage: async () =>
         (
           await getTestElement(dataTestIds.testPage.signMessage.signedMessage, {
@@ -156,18 +150,22 @@ class SolanaTestDApp {
 
   getSendSolTest() {
     return {
-      signTransaction: async () =>
+      signTransaction: async () => {
+        await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.METHOD_INVOCATION);
         await this.tapButton(
           await getTestElement(dataTestIds.testPage.sendSol.signTransaction, {
             tag: 'button',
           }),
-        ),
-      sendTransaction: async () =>
+        );
+      },
+      sendTransaction: async () => {
+        await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.METHOD_INVOCATION);
         await this.tapButton(
           await getTestElement(dataTestIds.testPage.sendSol.sendTransaction, {
             tag: 'button',
           }),
-        ),
+        );
+      },
       getSignedTransaction: async () =>
         (
           await getTestElement(dataTestIds.testPage.sendSol.signedTransaction, {
@@ -184,24 +182,22 @@ class SolanaTestDApp {
   }
 
   async confirmTransaction(): Promise<void> {
+    await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.DEFAULT_DELAY);
     await Gestures.waitAndTap(this.confirmTransactionButtonSelector);
   }
 
-  async cancelTransaction(): Promise<void> {
-    await Gestures.waitAndTap(this.cancelTransactionButtonSelector);
-  }
-
   async confirmSignMessage(): Promise<void> {
+    await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.DEFAULT_DELAY);
     await Gestures.waitAndTap(this.confirmSignMessageButtonSelector);
-  }
-
-  async cancelSignMessage(): Promise<void> {
-    await Gestures.waitAndTap(this.cancelSignMessageButtonSelector);
   }
 
   async tapCancelButton(): Promise<void> {
     const cancelButton = element(by.text('Cancel'));
-    await waitFor(cancelButton).toBeVisible().withTimeout(10000);
+    await waitFor(cancelButton)
+      .toBeVisible()
+      .withTimeout(SOLANA_TEST_TIMEOUTS.ELEMENT_VISIBILITY)
+      .catch();
+    await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.DEFAULT_DELAY);
     await cancelButton.tap();
   }
 }

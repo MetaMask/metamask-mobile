@@ -22,3 +22,13 @@ export const SolanaTestDappSelectorsWebIDs: SolanaTestDappWebIDs = {
     'confirm-sign-message-confirm-snap-footer-button',
   CANCEL_SIGN_MESSAGE_BUTTON: 'confirm-sign-message-cancel-snap-footer-button',
 };
+
+/**
+ * Timeout constants for solana tests
+ */
+export const SOLANA_TEST_TIMEOUTS = {
+  CONNECTION: 2000,
+  DEFAULT_DELAY: 2000,
+  METHOD_INVOCATION: 3000,
+  ELEMENT_VISIBILITY: 5000,
+};

@@ -22,9 +22,7 @@ describe(
         const sendSolTest = SolanaTestDApp.getSendSolTest();
         await sendSolTest.signTransaction();
 
-        await Assertions.checkIfTextIsDisplayed('Transaction request');
-
-        await SolanaTestDApp.cancelTransaction();
+        await SolanaTestDApp.tapCancelButton();
       });
     });
 
@@ -41,7 +39,7 @@ describe(
 
         await Assertions.checkIfTextIsDisplayed('Transaction request');
 
-        await SolanaTestDApp.cancelTransaction();
+        await SolanaTestDApp.tapCancelButton();
       });
     });
   },

@@ -4,6 +4,7 @@ import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
 import ConnectedAccountsModal from '../../../pages/Browser/ConnectedAccountsModal';
 import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
+import { SOLANA_TEST_TIMEOUTS } from '../../../selectors/Browser/SolanaTestDapp.selectors';
 import Assertions from '../../../utils/Assertions';
 
 export const account1Short = 'CEQ8...Yrrd';
@@ -30,7 +31,7 @@ export const connectSolanaTestDapp = async (
   }
 
   // Click connect button
-  await TestHelpers.delay(1000);
+  await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.CONNECTION);
   await ConnectBottomSheet.tapConnectButton();
 };
 
