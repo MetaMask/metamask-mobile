@@ -1,5 +1,4 @@
 /* eslint-disable react/prop-types */
-/* eslint-disable no-global-assign */
 
 // Third party dependencies.
 import React, { useCallback, useEffect, useState } from 'react';
