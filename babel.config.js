@@ -14,7 +14,7 @@ module.exports = {
         target: '18',
         sources: (filename) => {
           // Match file paths or directories to include in the React Compiler.
-          const pathsToInclude = ['app/components/Nav'];
+          const pathsToInclude = ['app/components/Nav', 'app/components/UI/DeepLinkModal'];
           return pathsToInclude.some((path) => filename.includes(path));
         },
       },

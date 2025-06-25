@@ -12,6 +12,7 @@ beforeEach(() => {
   process.env = { ...originalEnv };
   process.env.FEATURE_FLAG_REDESIGNED_SIGNATURES = undefined;
   process.env.FEATURE_FLAG_REDESIGNED_STAKING_TRANSACTIONS = undefined;
+  process.env.FEATURE_FLAG_REDESIGNED_CONTRACT_DEPLOYMENT = undefined;
   process.env.FEATURE_FLAG_REDESIGNED_CONTRACT_INTERACTION = undefined;
   process.env.FEATURE_FLAG_REDESIGNED_TRANSFER = undefined;
 });
@@ -25,6 +26,7 @@ const confirmationRedesignFlagsDefaultValues: ConfirmationRedesignRemoteFlags = 
   approve: true,
   signatures: true,
   staking_confirmations: true,
+  contract_deployment: true,
   contract_interaction: true,
   transfer: true,
 };
@@ -33,6 +35,7 @@ const mockedConfirmationRedesignFlags: ConfirmationRedesignRemoteFlags = {
   approve: false,
   signatures: false,
   staking_confirmations: true,
+  contract_deployment: true,
   contract_interaction: true,
   transfer: false,
 };
@@ -114,6 +117,7 @@ describe('Confirmation Redesign Feature Flags', () => {
       approve: false, // undefined, defaults to false
       signatures: false, // explicitly set to false
       staking_confirmations: true, // undefined, defaults to true
+      contract_deployment: true, // undefined, defaults to true
       contract_interaction: true, // undefined, defaults to true
       transfer: true, // undefined, defaults to true
     };
@@ -146,6 +150,7 @@ describe('Confirmation Redesign Feature Flags', () => {
     const expectedKillSwitchValues: ConfirmationRedesignRemoteFlags = {
       signatures: false,
       staking_confirmations: false,
+      contract_deployment: false,
       contract_interaction: false,
       transfer: false,
       approve: false,
