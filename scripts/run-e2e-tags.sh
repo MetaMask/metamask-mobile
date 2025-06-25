@@ -9,10 +9,21 @@ BASE_DIR="./e2e/specs"
 
 # If E2E_TEST_FILE is set, use it directly
 if [[ -n "${E2E_TEST_FILE:-}" ]]; then
+    if [[ -z "$E2E_TEST_FILE" ]]; then
+        echo "[ERROR] E2E_TEST_FILE is set but empty. Please provide a valid file path or comma-separated list of files."
+        exit 1
+    fi
     echo "E2E_TEST_FILE is set: $E2E_TEST_FILE"
     # Support comma-separated list of files
     IFS=',' read -ra FILES <<< "$E2E_TEST_FILE"
     TEST_FILES="${FILES[*]}"
+    # Check that all files exist
+    for file in "${FILES[@]}"; do
+        if [[ ! -f "$file" ]]; then
+            echo "[ERROR] Specified test file does not exist: $file"
+            exit 1
+        fi
+    done
     echo -e "\nRunning specified test file(s): $TEST_FILES"
 else
     echo "Searching for tests with pattern: $TEST_SUITE_TAG"
@@ -30,7 +41,7 @@ else
 
     # Check if any files were found
     if [ ${#matching_files[@]} -eq 0 ]; then
-        echo " No test files found containing pattern: $TEST_SUITE_TAG"
+        echo "[ERROR] No test files found containing pattern: $TEST_SUITE_TAG"
         exit 1
     fi
 
