@@ -22,6 +22,7 @@ describe(FlaskBuildTests('Network Access Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        // @ts-expect-error Type for this property does not exist yet.
         localNodeOptions: [{ type: 'anvil', options: { blockTime: 2 } }],
       },
       async () => {
