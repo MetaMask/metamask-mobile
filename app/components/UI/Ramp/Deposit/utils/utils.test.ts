@@ -19,10 +19,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn(),
 }));
 
-jest.mock('../../../../../util/number', () => ({
-  renderNumber: jest.fn((value: string) => value),
-}));
-
 describe('formatUSPhoneNumber', () => {
   it('should return empty string for empty input', () => {
     expect(formatUSPhoneNumber('')).toBe('');
