@@ -18,7 +18,6 @@ import {
 } from './OAuthLoginHandlers/constants';
 import { OAuthError, OAuthErrorType } from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
-import AppConstants from '../AppConstants';
 
 export interface OAuthServiceConfig {
   authConnectionConfig: {
@@ -44,11 +43,7 @@ export class OAuthService {
   public config: OAuthServiceConfig;
 
   constructor(config: OAuthServiceConfig) {
-    const {
-      authServerUrl,
-      web3AuthNetwork,
-      authConnectionConfig,
-    } = config;
+    const { authServerUrl, web3AuthNetwork, authConnectionConfig } = config;
     this.localState = {
       loginInProgress: false,
       userId: undefined,
@@ -99,7 +94,8 @@ export class OAuthService {
         throw new Error('No user id found');
       }
 
-      const authConnectionConfig = this.config.authConnectionConfig[authConnection];
+      const authConnectionConfig =
+        this.config.authConnectionConfig[authConnection];
       const result =
         await Engine.context.SeedlessOnboardingController.authenticate({
           idTokens: Object.values(data.jwt_tokens),
