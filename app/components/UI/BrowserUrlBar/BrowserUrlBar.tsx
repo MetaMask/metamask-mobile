@@ -34,6 +34,7 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import TabCountIcon from '../Tabs/TabCountIcon';
+import { RootState } from '../../../reducers';
 
 const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
   (
@@ -50,6 +51,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       isUrlBarFocused,
       discoveryMode,
       showTabs,
+      newTab,
     },
     ref,
   ) => {
@@ -180,10 +182,21 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       onChangeText(clearedText);
     };
 
+    const tabCount = useSelector((state: RootState) => state.browser.tabs.length);
+    const onTabsButtonPress = () => {
+      if (discoveryMode) {
+        if (tabCount === 0) {
+          newTab();
+        } else {
+          showTabs();
+        }
+      }
+    };
+
     let rightButton: React.ReactNode;
     if (discoveryMode) {
       rightButton = (
-        <TouchableOpacity style={styles.newTabButton} onPress={showTabs}>
+        <TouchableOpacity style={styles.newTabButton} onPress={onTabsButtonPress}>
           <TabCountIcon />
         </TouchableOpacity>
       );

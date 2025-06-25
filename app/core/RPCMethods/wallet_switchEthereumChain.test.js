@@ -149,6 +149,7 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
   });
 
   it('should not change network permissions and should switch without user approval when chain is already permitted', async () => {
+    const origin = 'https://test.com';
     const spyOnGrantPermissionsIncremental = jest.spyOn(
       Engine.context.PermissionController,
       'grantPermissionsIncremental',
@@ -178,21 +179,23 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
     });
     otherOptions.hooks.hasApprovalRequestsForOrigin.mockReturnValue(false);
 
-    const spyOnSetActiveNetwork = jest.spyOn(
-      Engine.context.MultichainNetworkController,
-      'setActiveNetwork',
+    const spyOnSetNetworkClientIdForDomain = jest.spyOn(
+      Engine.context.SelectedNetworkController,
+      'setNetworkClientIdForDomain',
     );
 
     await wallet_switchEthereumChain({
       req: {
         params: [{ chainId: '0x64' }],
+        origin,
       },
       ...otherOptions,
     });
 
     expect(otherOptions.requestUserApproval).not.toHaveBeenCalled();
     expect(spyOnGrantPermissionsIncremental).not.toHaveBeenCalled();
-    expect(spyOnSetActiveNetwork).toHaveBeenCalledWith(
+    expect(spyOnSetNetworkClientIdForDomain).toHaveBeenCalledWith(
+      origin,
       'test-network-configuration-id',
     );
   });
@@ -214,9 +217,9 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
       .spyOn(Engine.context.NetworkController, 'getNetworkClientById')
       .mockReturnValue({ configuration: { chainId: '0x1' } });
 
-    const spyOnSetActiveNetwork = jest.spyOn(
-      Engine.context.MultichainNetworkController,
-      'setActiveNetwork',
+    const spyOnSetNetworkClientIdForDomain = jest.spyOn(
+      Engine.context.SelectedNetworkController,
+      'setNetworkClientIdForDomain',
     );
 
     otherOptions.hooks.hasApprovalRequestsForOrigin.mockReturnValue(true);
@@ -264,7 +267,8 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
         origin,
       },
     });
-    expect(spyOnSetActiveNetwork).toHaveBeenCalledWith(
+    expect(spyOnSetNetworkClientIdForDomain).toHaveBeenCalledWith(
+      origin,
       'test-network-configuration-id',
     );
   });

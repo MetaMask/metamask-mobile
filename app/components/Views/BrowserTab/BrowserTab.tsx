@@ -120,6 +120,7 @@ import {
 import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import { toHex } from '@metamask/controller-utils';
 import { parseCaipAccountId } from '@metamask/utils';
+import { tokenDiscoveryBrowserEnabled } from '../../../selectors/featureFlagController/tokenDiscoveryBrowser';
 
 /**
  * Tab component for the in-app browser
@@ -138,8 +139,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
   initialUrl,
   ipfsGateway,
   newTab,
-  homePageUrl,
+  goToDiscovery,
   activeChainId,
+  homePageUrl,
 }) => {
   // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1148,11 +1150,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
     onSubmitEditingRef.current = onSubmitEditing;
   }, [onSubmitEditing]);
 
+  const isTokenDiscoveryBrowserEnabled = useSelector(tokenDiscoveryBrowserEnabled);
+
   /**
    * Go to home page, reload if already on homepage
    */
   const goToHomepage = useCallback(async () => {
-    onSubmitEditing(homePageUrl);
+    if (isTokenDiscoveryBrowserEnabled) {
+      goToDiscovery();
+    } else {
+      onSubmitEditing(homePageUrl);
+    }
     toggleOptionsIfNeeded();
     triggerDappViewedEvent(resolvedUrlRef.current);
     trackEvent(createEventBuilder(MetaMetricsEvents.DAPP_HOME).build());
@@ -1161,8 +1169,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
     triggerDappViewedEvent,
     trackEvent,
     createEventBuilder,
-    onSubmitEditing,
+    goToDiscovery,
     homePageUrl,
+    isTokenDiscoveryBrowserEnabled,
+    onSubmitEditing,
   ]);
 
   /**

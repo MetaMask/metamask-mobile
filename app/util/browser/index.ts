@@ -2,7 +2,6 @@ import { Linking } from 'react-native';
 import isUrl from 'is-url';
 import Url from 'url-parse';
 import { regex, hasProtocol } from '../../util/regex';
-import AppConstants from '../../core/AppConstants';
 
 /**
  * Returns URL prefixed with protocol
@@ -173,5 +172,3 @@ export const appendURLParams = (
 
   return url;
 };
-
-export const isTokenDiscoveryBrowserEnabled = () => AppConstants.TOKEN_DISCOVERY_BROWSER_ENABLED;

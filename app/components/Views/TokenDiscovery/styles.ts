@@ -6,6 +6,11 @@ export const styleSheet = ({ theme: { colors } }: { theme: Theme }) => StyleShee
             ...baseStyles.flexGrow,
             backgroundColor: colors.background.default,
         },
+        loadingContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
     });
 
 export default styleSheet;
