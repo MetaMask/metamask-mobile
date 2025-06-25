@@ -68,6 +68,7 @@ export enum TraceName {
   QRTabSwitcher = 'QR Tab Switcher',
   // Earn
   EarnDepositScreen = 'Earn Deposit Screen',
+  EarnWithdrawScreen = 'Earn Withdraw Screen',
 }
 
 export enum TraceOperation {

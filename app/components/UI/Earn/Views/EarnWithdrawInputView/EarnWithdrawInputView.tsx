@@ -57,6 +57,7 @@ import { EarnTokenDetails } from '../../types/lending.types';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { ScrollView } from 'react-native-gesture-handler';
+import { endTrace, TraceName } from 'app/util/trace';
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
@@ -134,6 +135,11 @@ const EarnWithdrawInputView = () => {
         .build(),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    // End trace when first render is complete
+    endTrace({ name: TraceName.EarnWithdrawScreen });
   }, []);
 
   const [maxRiskAwareWithdrawalAmount, setMaxRiskAwareWithdrawalAmount] =

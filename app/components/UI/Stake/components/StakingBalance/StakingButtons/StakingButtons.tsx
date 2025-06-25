@@ -56,6 +56,7 @@ const StakingButtons = ({
   );
 
   const onUnstakePress = async () => {
+    trace({ name: TraceName.EarnWithdrawScreen });
     await handleIsStakingSupportedChain();
     navigate('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,

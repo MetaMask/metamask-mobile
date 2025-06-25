@@ -128,7 +128,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   };
 
   const handleNavigateToWithdrawalInputScreen = async () => {
-    trace({ name: TraceName.EarnDepositScreen });
+    trace({ name: TraceName.EarnWithdrawScreen });
     emitLendingActionButtonMetaMetric('withdrawal');
     const networkClientId = getNetworkClientId(asset);
     if (!networkClientId) return;
@@ -146,6 +146,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   };
 
   const handleNavigateToDepositInputScreen = async () => {
+    trace({ name: TraceName.EarnDepositScreen });
     emitLendingActionButtonMetaMetric('deposit');
     const networkClientId = getNetworkClientId(asset);
     if (!networkClientId) return;
