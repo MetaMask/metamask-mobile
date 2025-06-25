@@ -667,7 +667,7 @@ class ChoosePassword extends PureComponent {
                     {strings('choose_password.title')}
                   </Text>
                   <Text
-                    variant={TextVariant.BodySM}
+                    variant={TextVariant.BodyMD}
                     color={TextColor.Alternative}
                   >
                     {strings('choose_password.description')}
