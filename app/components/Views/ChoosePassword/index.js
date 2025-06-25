@@ -211,9 +211,9 @@ class ChoosePassword extends PureComponent {
      */
     seedphraseNotBackedUp: PropTypes.func,
     /**
-     * Redux dispatch function
+     * Action to set existing user flag
      */
-    dispatch: PropTypes.func,
+    setExistingUser: PropTypes.func,
     /**
      * Action to save onboarding event
      */
