@@ -1,31 +1,63 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { View, TouchableOpacity } from 'react-native';
+import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import styleSheet from './BuildQuote.styles';
+
+import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
+import Keypad from '../../../../../Base/Keypad';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
-import StyledButton from '../../../../StyledButton';
-import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import { useNavigation } from '@react-navigation/native';
-import { getDepositNavbarOptions } from '../../../../Navbar';
-import { useStyles } from '../../../../../hooks/useStyles';
-import styleSheet from './BuildQuote.styles';
-import { useDepositSDK } from '../../sdk';
-import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
-import { createProviderWebviewNavDetails } from '../ProviderWebview/ProviderWebview';
-import { createBasicInfoNavDetails } from '../BasicInfo/BasicInfo';
-import { createKycWebviewNavDetails } from '../KycWebview/KycWebview';
-import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
-import { View, TouchableOpacity, Image } from 'react-native';
-import Keypad from '../../../../../Base/Keypad';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
+import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
+
+import AccountSelector from '../../components/AccountSelector';
+import RegionModal from '../../components/RegionModal';
+
+import { useDepositSDK } from '../../sdk';
+import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
+import useDepositTokenExchange from '../../hooks/useDepositTokenExchange';
+import { KycStatus } from '../../hooks/useUserDetailsPolling';
+import { useStyles } from '../../../../../hooks/useStyles';
+import useSupportedTokens from '../../hooks/useSupportedTokens';
+
+import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
+import { createProviderWebviewNavDetails } from '../ProviderWebview/ProviderWebview';
+import { createBasicInfoNavDetails } from '../BasicInfo/BasicInfo';
+import { createKycWebviewNavDetails } from '../KycWebview/KycWebview';
+import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
+import { createTokenSelectorModalNavigationDetails } from '../Modals/TokenSelectorModal/TokenSelectorModal';
+
+import {
+  getTransakCryptoCurrencyId,
+  getTransakFiatCurrencyId,
+  getTransakChainId,
+  getTransakPaymentMethodId,
+  formatCurrency,
+} from '../../utils';
+import { getNetworkImageSource } from '../../../../../../util/networks';
+import { strings } from '../../../../../../../locales/i18n';
+import { getDepositNavbarOptions } from '../../../../Navbar';
+
+import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
 import {
   DEBIT_CREDIT_PAYMENT_METHOD,
   USDC_TOKEN,
-  USDT_TOKEN,
-  SUPPORTED_DEPOSIT_TOKENS,
   DepositCryptoCurrency,
   DepositPaymentMethod,
   USD_CURRENCY,
@@ -34,23 +66,12 @@ import {
   DEPOSIT_REGIONS,
   DepositRegion,
 } from '../../constants';
-import AccountSelector from '../../components/AccountSelector';
-import { strings } from '../../../../../../../locales/i18n';
-import useDepositTokenExchange from '../../hooks/useDepositTokenExchange';
-import {
-  getTransakCryptoCurrencyId,
-  getTransakFiatCurrencyId,
-  getTransakChainId,
-  getTransakPaymentMethodId,
-  formatCurrency,
-} from '../../utils';
-import { KycStatus } from '../../hooks/useUserDetailsPolling';
-import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
-import RegionModal from '../../components/RegionModal';
 
 const BuildQuote = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
+
+  const supportedTokens = useSupportedTokens();
 
   const [paymentMethod] = useState<DepositPaymentMethod>(
     DEBIT_CREDIT_PAYMENT_METHOD,
@@ -69,6 +90,8 @@ const BuildQuote = () => {
   const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
     DEPOSIT_REGIONS.find((region) => region.code === 'US') || null,
   );
+
+  const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
 
   const [{ error: quoteFetchError }, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false },
@@ -99,7 +122,7 @@ const BuildQuote = () => {
     fiatCurrency,
     fiatAmount: amount,
     token: cryptoCurrency,
-    tokens: SUPPORTED_DEPOSIT_TOKENS,
+    tokens: supportedTokens,
   });
 
   useEffect(() => {
@@ -255,13 +278,30 @@ const BuildQuote = () => {
     setIsRegionModalVisible(false);
   }, []);
 
-  const handleCryptoPress = useCallback(() => {
-    // TODO: Implement crypto selection logic
-    // this is a temp UX to switch between USDC and USDT
-    setCryptoCurrency((current) =>
-      current.symbol === 'USDC' ? USDT_TOKEN : USDC_TOKEN,
+  const handleSelectAssetId = useCallback((assetId: string) => {
+    const selectedToken = supportedTokens.find(
+      (token) => token.assetId === assetId,
     );
+    if (selectedToken) {
+      setCryptoCurrency(selectedToken);
+    }
   }, []);
+
+  const handleCryptoPress = useCallback(
+    () =>
+      navigation.navigate(
+        ...createTokenSelectorModalNavigationDetails({
+          selectedAssetId: cryptoCurrency.assetId,
+          handleSelectAssetId,
+        }),
+      ),
+    [cryptoCurrency, navigation, handleSelectAssetId],
+  );
+
+  const networkName = allNetworkConfigurations[cryptoCurrency.chainId]?.name;
+  const networkImageSource = getNetworkImageSource({
+    chainId: cryptoCurrency.chainId,
+  });
 
   return (
     <ScreenLayout>
@@ -305,13 +345,30 @@ const BuildQuote = () => {
 
             <TouchableOpacity onPress={handleCryptoPress}>
               <View style={styles.cryptoPill}>
-                <Image
-                  source={{ uri: cryptoCurrency.logo }}
-                  style={styles.tokenLogo}
-                />
-                <Text variant={TextVariant.HeadingLG} style={styles.cryptoText}>
+                <BadgeWrapper
+                  badgePosition={BadgePosition.BottomRight}
+                  badgeElement={
+                    <BadgeNetwork
+                      name={networkName}
+                      imageSource={networkImageSource}
+                    />
+                  }
+                >
+                  <AvatarToken
+                    name={cryptoCurrency.name}
+                    imageSource={{ uri: cryptoCurrency.iconUrl }}
+                    size={AvatarSize.Md}
+                  />
+                </BadgeWrapper>
+                <Text variant={TextVariant.HeadingLG}>
                   {cryptoCurrency.symbol}
                 </Text>
+
+                <Icon
+                  name={IconName.ArrowDown}
+                  size={IconSize.Sm}
+                  color={theme.colors.icon.alternative}
+                />
               </View>
             </TouchableOpacity>
             {error && (
@@ -360,14 +417,13 @@ const BuildQuote = () => {
       </ScreenLayout.Body>
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
-          <StyledButton
-            type="confirm"
+          <Button
+            size={ButtonSize.Lg}
             onPress={handleOnPressContinue}
-            accessibilityRole="button"
-            accessible
-          >
-            Continue
-          </StyledButton>
+            label={'Continue'}
+            variant={ButtonVariants.Primary}
+            width={ButtonWidthTypes.Full}
+          ></Button>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
       <RegionModal
