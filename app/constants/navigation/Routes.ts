@@ -111,6 +111,7 @@ const Routes = {
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
     ADD_ACCOUNT: 'AddAccount',
+    WALLET_ADD_ACCOUNT_ACTIONS: 'WalletAddAccountActions',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
     CONFIRM_TURN_ON_BACKUP_AND_SYNC: 'ConfirmTurnOnBackupAndSync',

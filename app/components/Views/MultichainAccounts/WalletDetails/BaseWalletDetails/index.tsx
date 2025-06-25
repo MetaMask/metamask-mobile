@@ -85,6 +85,12 @@ export const BaseWalletDetails = ({
     });
   }, [navigation]);
 
+  const handleAddAccount = useCallback(() => {
+    navigation.navigate(Routes.SHEET.WALLET_ADD_ACCOUNT_ACTIONS, {
+      keyringId,
+    });
+  }, [keyringId, navigation]);
+
   const renderAccountItem = (account: InternalAccount, index: number) => {
     const totalAccounts = accounts.length;
     const boxStyles: ViewStyle[] = [styles.accountBox];
@@ -261,6 +267,22 @@ export const BaseWalletDetails = ({
         >
           {accounts.map((account, index) => renderAccountItem(account, index))}
         </View>
+        <TouchableOpacity onPress={handleAddAccount}>
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            gap={8}
+          >
+            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+              {strings('multichain_accounts.wallet_details.add_account')}
+            </Text>
+            <Icon
+              name={IconName.Add}
+              size={IconSize.Md}
+              color={colors.icon.alternative}
+            />
+          </Box>
+        </TouchableOpacity>
         {children}
       </View>
     </SafeAreaView>
