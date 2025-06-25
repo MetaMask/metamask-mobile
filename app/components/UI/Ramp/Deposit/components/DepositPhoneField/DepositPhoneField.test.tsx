@@ -3,10 +3,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import DepositPhoneField from './DepositPhoneField';
 import { formatUSPhoneNumber } from '../../utils';
 
-jest.mock('../../utils', () => ({
-  formatUSPhoneNumber: jest.fn(),
-}));
-
 const DEPOSIT_PHONE_FIELD_TEST_ID = 'deposit-phone-field-test-id';
 
 describe('DepositPhoneField', () => {
@@ -65,12 +61,12 @@ describe('DepositPhoneField', () => {
     expect(mockOnChangeText).toHaveBeenCalledWith(phoneNumber);
   });
 
-  it('should call formatUSPhoneNumber and pass raw value to onChangeText', () => {
+  it('should format phone number correctly and pass raw value to onChangeText', () => {
     const { getByTestId } = render(<DepositPhoneField {...defaultProps} />);
     const textField = getByTestId(DEPOSIT_PHONE_FIELD_TEST_ID);
     const inputPhoneNumber = '1234567890';
     fireEvent.changeText(textField, inputPhoneNumber);
-    expect(formatUSPhoneNumber).toHaveBeenCalledWith(inputPhoneNumber);
     expect(mockOnChangeText).toHaveBeenCalledWith(inputPhoneNumber);
+    expect(formatUSPhoneNumber(inputPhoneNumber)).toBe('(123) 456-7890');
   });
 });
