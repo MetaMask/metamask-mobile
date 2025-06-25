@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { View, Text, FlatList, ListRenderItem, RefreshControl } from 'react-native';
+import { View, Text, FlatList, ListRenderItem, RefreshControl, ActivityIndicator } from 'react-native';
 import { useStyles } from '../../../component-library/hooks';
 import { styleSheet } from './styles';
 import searchDiscoveryStylesheet from '../../UI/SearchDiscoveryResult/styles';
@@ -33,12 +33,18 @@ export const TokenDiscovery: React.FC<TokenDiscoveryProps> = ({ onSelect }) => {
             <View style={searchDiscoveryStyles.categoryWrapper}>
                 <Text style={searchDiscoveryStyles.categoryTitle}>Popular Tokens</Text>
             </View>
-            <FlatList<MoralisTokenResponseItem>
-                data={results}
-                renderItem={renderItem}
-                keyExtractor={(item) => `${item.chain_id}-${item.token_address}`}
-                refreshControl={<RefreshControl refreshing={isLoading} onRefresh={fetchPopularTokens} />}
-            />
+            {isLoading && results.length === 0 ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" />
+                </View>
+            ) : (
+                <FlatList<MoralisTokenResponseItem>
+                    data={results}
+                    renderItem={renderItem}
+                    keyExtractor={(item) => `${item.chain_id}-${item.token_address}`}
+                    refreshControl={<RefreshControl refreshing={isLoading && results.length > 0} onRefresh={fetchPopularTokens} />}
+                />
+            )}
         </View>
     );
 };

@@ -23,11 +23,12 @@ import useThunkDispatch, { ThunkAction } from '../../hooks/useThunkDispatch';
 import processOrder from './orderProcessor';
 import processCustomOrderIdData from './Aggregator/orderProcessor/customOrderId';
 import { aggregatorOrderToFiatOrder } from './Aggregator/orderProcessor/aggregator';
-import { trackEvent } from './Aggregator/hooks/useAnalytics';
+import { trackEvent } from './hooks/useAnalytics';
 import { CustomIdData } from '../../../reducers/fiatOrders/types';
 import { callbackBaseUrl } from './Aggregator/sdk';
 import useFetchRampNetworks from './Aggregator/hooks/useFetchRampNetworks';
-import { getNotificationDetails, stateHasOrder } from './Aggregator/utils';
+import getNotificationDetails from './utils/getNotificationDetails';
+import stateHasOrder from './utils/stateHasOrder';
 import Routes from '../../../constants/navigation/Routes';
 import getOrderAnalyticsPayload from './utils/getOrderAnalyticsPayload';
 
