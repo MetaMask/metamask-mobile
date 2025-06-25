@@ -21,7 +21,13 @@ import { isE2E } from './app/util/test/utils.js';
 
 import { Performance } from './app/core/Performance';
 import { handleCustomError, setReactNativeDefaultHandler } from './app/core/ErrorHandler';
+import { setPerformanceMonitoringEnabled } from './app/util/performanceMonitor';
+
 Performance.setupPerformanceObservers();
+
+if (!isE2E) {
+  setPerformanceMonitoringEnabled(true);
+}
 
 LogBox.ignoreAllLogs();
 // List of warnings that we're ignoring

@@ -53,6 +53,7 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 
+
 const IMAGE_RATIO = 250 / 200;
 const DEVICE_WIDTH = Dimensions.get('window').width;
 const DEVICE_HEIGHT = Dimensions.get('window').height;
