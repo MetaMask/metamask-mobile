@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { ACTIONS, PROTOCOLS } from '../../../constants/deeplinks';
 import AppConstants from '../../AppConstants';
 import { AuthConnection } from '../OAuthInterface';
@@ -13,8 +14,10 @@ if (
   !AppConstants.SEEDLESS_ONBOARDING.IOS_GOOGLE_CLIENT_ID ||
   !AppConstants.SEEDLESS_ONBOARDING.IOS_GOOGLE_REDIRECT_URI ||
   !AppConstants.SEEDLESS_ONBOARDING.IOS_APPLE_CLIENT_ID ||
-  !AppConstants.SEEDLESS_ONBOARDING.APPLE_AUTH_CONNECTION_ID ||
-  !AppConstants.SEEDLESS_ONBOARDING.GOOGLE_AUTH_CONNECTION_ID ||
+  !AppConstants.SEEDLESS_ONBOARDING.ANDROID_APPLE_AUTH_CONNECTION_ID ||
+  !AppConstants.SEEDLESS_ONBOARDING.ANDROID_GOOGLE_AUTH_CONNECTION_ID ||
+  !AppConstants.SEEDLESS_ONBOARDING.IOS_APPLE_AUTH_CONNECTION_ID ||
+  !AppConstants.SEEDLESS_ONBOARDING.IOS_GOOGLE_AUTH_CONNECTION_ID ||
   !AppConstants.SEEDLESS_ONBOARDING.APPLE_GROUPED_AUTH_CONNECTION_ID ||
   !AppConstants.SEEDLESS_ONBOARDING.GOOGLE_GROUPED_AUTH_CONNECTION_ID ||
   !AppConstants.SEEDLESS_ONBOARDING.AUTH_SERVER_URL
@@ -29,8 +32,10 @@ if (
     IOS_GOOGLE_CLIENT_ID: ${AppConstants.SEEDLESS_ONBOARDING.IOS_GOOGLE_CLIENT_ID}\n
     IOS_GOOGLE_REDIRECT_URI: ${AppConstants.SEEDLESS_ONBOARDING.IOS_GOOGLE_REDIRECT_URI}\n
     IOS_APPLE_CLIENT_ID: ${AppConstants.SEEDLESS_ONBOARDING.IOS_APPLE_CLIENT_ID}\n
-    APPLE_AUTH_CONNECTION_ID: ${AppConstants.SEEDLESS_ONBOARDING.APPLE_AUTH_CONNECTION_ID}\n
-    GOOGLE_AUTH_CONNECTION_ID: ${AppConstants.SEEDLESS_ONBOARDING.GOOGLE_AUTH_CONNECTION_ID}\n
+    ANDROID_APPLE_AUTH_CONNECTION_ID: ${AppConstants.SEEDLESS_ONBOARDING.ANDROID_APPLE_AUTH_CONNECTION_ID}\n
+    ANDROID_GOOGLE_AUTH_CONNECTION_ID: ${AppConstants.SEEDLESS_ONBOARDING.ANDROID_GOOGLE_AUTH_CONNECTION_ID}\n
+    IOS_APPLE_AUTH_CONNECTION_ID: ${AppConstants.SEEDLESS_ONBOARDING.IOS_APPLE_AUTH_CONNECTION_ID}\n
+    IOS_GOOGLE_AUTH_CONNECTION_ID: ${AppConstants.SEEDLESS_ONBOARDING.IOS_GOOGLE_AUTH_CONNECTION_ID}\n
     APPLE_GROUPED_AUTH_CONNECTION_ID: ${AppConstants.SEEDLESS_ONBOARDING.APPLE_GROUPED_AUTH_CONNECTION_ID}\n
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: ${AppConstants.SEEDLESS_ONBOARDING.GOOGLE_GROUPED_AUTH_CONNECTION_ID}\n
     AUTH_SERVER_URL: ${AppConstants.SEEDLESS_ONBOARDING.AUTH_SERVER_URL}\n
@@ -55,16 +60,33 @@ export const AppleWebClientId =
 
 export const AppleServerRedirectUri = `${AuthServerUrl}/api/v1/oauth/callback`;
 
-export const AuthConnectionConfig: Record<AuthConnection, {
+export enum SupportedPlatforms {
+  Android = 'android',
+  IOS = 'ios',
+}
+
+export const AuthConnectionConfig: Record<SupportedPlatforms, Record<AuthConnection, {
   authConnectionId: string;
   groupedAuthConnectionId?: string;
-}> = {
-  [AuthConnection.Google]: {
-    authConnectionId: AppConstants.SEEDLESS_ONBOARDING.GOOGLE_AUTH_CONNECTION_ID,
-    groupedAuthConnectionId: AppConstants.SEEDLESS_ONBOARDING.GOOGLE_GROUPED_AUTH_CONNECTION_ID,
+}>> = {
+  [SupportedPlatforms.Android]: {
+    [AuthConnection.Google]: {
+      authConnectionId: AppConstants.SEEDLESS_ONBOARDING.ANDROID_GOOGLE_AUTH_CONNECTION_ID,
+      groupedAuthConnectionId: AppConstants.SEEDLESS_ONBOARDING.GOOGLE_GROUPED_AUTH_CONNECTION_ID,
+    },
+    [AuthConnection.Apple]: {
+      authConnectionId: AppConstants.SEEDLESS_ONBOARDING.ANDROID_APPLE_AUTH_CONNECTION_ID,
+      groupedAuthConnectionId: AppConstants.SEEDLESS_ONBOARDING.APPLE_GROUPED_AUTH_CONNECTION_ID,
+    },
   },
-  [AuthConnection.Apple]: {
-    authConnectionId: AppConstants.SEEDLESS_ONBOARDING.APPLE_AUTH_CONNECTION_ID,
-    groupedAuthConnectionId: AppConstants.SEEDLESS_ONBOARDING.APPLE_GROUPED_AUTH_CONNECTION_ID,
+  [SupportedPlatforms.IOS]: {
+    [AuthConnection.Google]: {
+      authConnectionId: AppConstants.SEEDLESS_ONBOARDING.IOS_GOOGLE_AUTH_CONNECTION_ID,
+      groupedAuthConnectionId: AppConstants.SEEDLESS_ONBOARDING.GOOGLE_GROUPED_AUTH_CONNECTION_ID,
+    },
+    [AuthConnection.Apple]: {
+      authConnectionId: AppConstants.SEEDLESS_ONBOARDING.IOS_APPLE_AUTH_CONNECTION_ID,
+      groupedAuthConnectionId: AppConstants.SEEDLESS_ONBOARDING.APPLE_GROUPED_AUTH_CONNECTION_ID,
+    },
   },
 };
