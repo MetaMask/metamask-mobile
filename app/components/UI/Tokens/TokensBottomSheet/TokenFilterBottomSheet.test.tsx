@@ -118,13 +118,13 @@ describe('TokenFilterBottomSheet', () => {
     const { queryByText } = render(<TokenFilterBottomSheet />);
 
     expect(queryByText('Popular networks')).toBeTruthy();
-    expect(queryByText('Current Network')).toBeTruthy();
+    expect(queryByText('Current network')).toBeTruthy();
   });
 
   it('sets filter to All Networks and closes bottom sheet when first option is pressed', async () => {
-    const { queryByText } = render(<TokenFilterBottomSheet />);
+    const { getByText } = render(<TokenFilterBottomSheet />);
 
-    fireEvent.press(queryByText('Popular networks'));
+    fireEvent.press(getByText('Popular networks'));
 
     await waitFor(() => {
       expect(
@@ -134,9 +134,9 @@ describe('TokenFilterBottomSheet', () => {
   });
 
   it('sets filter to Current Network and closes bottom sheet when second option is pressed', async () => {
-    const { queryByText } = render(<TokenFilterBottomSheet />);
+    const { getByText } = render(<TokenFilterBottomSheet />);
 
-    fireEvent.press(queryByText('Current Network'));
+    fireEvent.press(getByText('Current network'));
 
     await waitFor(() => {
       expect(
@@ -163,6 +163,6 @@ describe('TokenFilterBottomSheet', () => {
 
     const { queryByText } = render(<TokenFilterBottomSheet />);
 
-    expect(queryByText('Current Network')).toBeTruthy();
+    expect(queryByText('Current network')).toBeTruthy();
   });
 });

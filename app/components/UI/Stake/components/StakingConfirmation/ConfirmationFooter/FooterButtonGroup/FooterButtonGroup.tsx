@@ -23,7 +23,6 @@ import {
 } from './FooterButtonGroup.types';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import usePoolStakedUnstake from '../../../../hooks/usePoolStakedUnstake';
-import usePooledStakes from '../../../../hooks/usePooledStakes';
 import {
   MetaMetricsEvents,
   useMetrics,
@@ -66,7 +65,6 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
   const activeAccount = useSelector(selectSelectedInternalAccount);
 
   const { attemptDepositTransaction } = usePoolStakedDeposit();
-  const { refreshPooledStakes } = usePooledStakes();
 
   const { attemptUnstakeTransaction } = usePoolStakedUnstake();
 
@@ -143,12 +141,11 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
         'TransactionController:transactionConfirmed',
         () => {
           submitTxMetaMetric(STAKING_TX_METRIC_EVENTS[action].CONFIRMED);
-          refreshPooledStakes();
         },
         (transactionMeta) => transactionMeta.id === transactionId,
       );
     },
-    [action, navigate, refreshPooledStakes, submitTxMetaMetric],
+    [action, navigate, submitTxMetaMetric],
   );
 
   const handleConfirmation = async () => {
@@ -179,6 +176,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
       let transactionId: string | undefined;
 
       if (isStaking) {
+        if (!attemptDepositTransaction) return;
         const txRes = await attemptDepositTransaction(
           valueWei,
           activeAccount.address,
@@ -230,6 +228,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
             {strings('stake.cancel')}
           </Text>
         }
+        testID="cancel-button"
         style={styles.button}
         variant={ButtonVariants.Secondary}
         width={ButtonWidthTypes.Full}
@@ -243,6 +242,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
             {strings('stake.continue')}
           </Text>
         }
+        testID="continue-button"
         style={styles.button}
         variant={ButtonVariants.Primary}
         width={ButtonWidthTypes.Full}

@@ -34,23 +34,22 @@ export const validateAccountsController: ValidationCheck = (rootState) => {
   const { selectedAccount, accounts } = accountsState.internalAccounts;
 
   // 2. Confirm there is at least one account
-  if (!accounts || Object.keys(accounts).length === 0) {
+  const hasAccounts = accounts && Object.keys(accounts).length > 0;
+  if (!hasAccounts) {
     errors.push(
       `${LOG_TAG}: AccountsController No accounts found in internalAccounts.accounts.`,
     );
-    return errors;
   }
 
   // 3. Check that selectedAccount is non-empty
-  if (!selectedAccount) {
+  if (selectedAccount === undefined || selectedAccount === '') {
     errors.push(
-      `${LOG_TAG}: AccountsController selectedAccount is missing or empty.`,
+      `${LOG_TAG}: AccountsController selectedAccount is missing or empty. selectedAccount: ${selectedAccount}`,
     );
-    return errors;
   }
 
   // 4. Confirm the selectedAccount ID exists in internalAccounts.accounts
-  if (!accounts[selectedAccount]) {
+  if (hasAccounts && selectedAccount && !accounts[selectedAccount]) {
     errors.push(
       `${LOG_TAG}: AccountsController The selectedAccount '${selectedAccount}' does not exist in the accounts record.`,
     );

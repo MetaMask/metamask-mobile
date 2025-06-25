@@ -1,21 +1,61 @@
 import { NativeModules } from 'react-native';
 import mockRNAsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
-import { configure } from '@testing-library/react-native';
 /* eslint-disable import/no-namespace */
 import { mockTheme } from '../theme';
 import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
-
-// Disables React-18 Concurrent Rerendering
-// our existing tests and components handle effects and loading states in a way that does not support concurrent roots
-// TODO requires a large refactor
-// More Info: https://react.dev/blog/2022/03/08/react-18-upgrade-guide#updates-to-client-rendering-apis
-configure({ concurrentRoot: false });
+import '@shopify/flash-list/jestSetup';
 
 Enzyme.configure({ adapter: new Adapter() });
 
-jest.mock('react-native-quick-crypto', () => ({}));
+// Mock the redux-devtools-expo-dev-plugin module
+jest.mock('redux-devtools-expo-dev-plugin', () => {});
+
+jest.mock('react-native-quick-crypto', () => ({
+  getRandomValues: jest.fn((array) => {
+    for (let i = 0; i < array.length; i++) {
+      array[i] = Math.floor(Math.random() * 256);
+    }
+    return array;
+  }),
+  subtle: {
+    importKey: jest.fn((format, keyData, algorithm, extractable, keyUsages) => {
+      return Promise.resolve({
+        format,
+        keyData,
+        algorithm,
+        extractable,
+        keyUsages,
+      });
+    }),
+    deriveBits: jest.fn((algorithm, baseKey, length) => {
+      const derivedBits = new Uint8Array(length);
+      for (let i = 0; i < length; i++) {
+        derivedBits[i] = Math.floor(Math.random() * 256);
+      }
+      return Promise.resolve(derivedBits);
+    }),
+    exportKey: jest.fn((format, key) => {
+      return Promise.resolve(new Uint8Array([1, 2, 3, 4]));
+    }),
+    encrypt: jest.fn((algorithm, key, data) => {
+      return Promise.resolve(
+        new Uint8Array([
+          123, 34, 116, 101, 115, 116, 34, 58, 34, 100, 97, 116, 97, 34, 125,
+        ]),
+      );
+    }),
+    decrypt: jest.fn((algorithm, key, data) => {
+      return Promise.resolve(
+        new Uint8Array([
+          123, 34, 116, 101, 115, 116, 34, 58, 34, 100, 97, 116, 97, 34, 125,
+        ]),
+      );
+    }),
+  },
+}));
+
 jest.mock('react-native-blob-jsi-helper', () => ({}));
 
 jest.mock('react-native', () => {
@@ -194,9 +234,7 @@ jest.mock('react-native-branch', () => ({
 }));
 jest.mock('react-native-sensors', () => 'RNSensors');
 jest.mock('@metamask/react-native-search-api', () => 'SearchApi');
-jest.mock('react-native-reanimated', () =>
-  require('react-native-reanimated/mock'),
-);
+
 jest.mock('react-native-background-timer', () => 'RNBackgroundTimer');
 jest.mock(
   '@react-native-async-storage/async-storage',
@@ -204,14 +242,32 @@ jest.mock(
 );
 jest.mock('@react-native-cookies/cookies', () => 'RNCookies');
 
+/**
+ * Mock the reanimated module temporarily while the infinite style issue is being investigated
+ * Issue: https://github.com/software-mansion/react-native-reanimated/issues/6645
+ */
+jest.mock('react-native-reanimated', () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require('react-native-reanimated/mock'),
+);
+
 NativeModules.RNGestureHandlerModule = {
-  attachGestureHandler: jest.fn(),
-  createGestureHandler: jest.fn(),
-  dropGestureHandler: jest.fn(),
-  updateGestureHandler: jest.fn(),
-  forceTouchAvailable: jest.fn(),
-  State: {},
-  Directions: {},
+  getConstants: jest.fn(() => ({
+    State: {
+      UNDETERMINED: 0,
+      FAILED: 1,
+      BEGAN: 2,
+      CANCELLED: 3,
+      ACTIVE: 4,
+      END: 5,
+    },
+    Directions: {
+      RIGHT: 1,
+      LEFT: 2,
+      UP: 4,
+      DOWN: 8,
+    },
+  })),
 };
 
 NativeModules.RNCNetInfo = {
@@ -265,8 +321,6 @@ jest.mock(
   'react-native/Libraries/Components/TextInput/TextInput',
   () => 'TextInput',
 );
-
-jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
 
 jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
   runAfterInteractions: jest.fn(),
@@ -348,7 +402,7 @@ jest.mock('../../store/storage-wrapper', () => ({
 }));
 
 // eslint-disable-next-line import/no-commonjs
-require('react-native-reanimated/lib/module/reanimated2/jestUtils').setUpTests();
+require('react-native-reanimated').setUpTests();
 global.__reanimatedWorkletInit = jest.fn();
 global.__DEV__ = false;
 
@@ -412,4 +466,110 @@ jest.mock('@react-native-firebase/messaging', () => {
   };
 
   return module;
+});
+
+jest.mock('../../core/Analytics/MetaMetricsTestUtils', () => {
+  return {
+    default: {
+      getInstance: jest.fn().mockReturnValue({
+        trackEvent: jest.fn(),
+      }),
+    },
+  };
+});
+
+jest.mock('react-native/Libraries/TurboModule/TurboModuleRegistry', () => {
+  const originalModule = jest.requireActual(
+    'react-native/Libraries/TurboModule/TurboModuleRegistry',
+  );
+  return {
+    getEnforcing: (name) => {
+      if (name === 'RNGestureHandlerModule') {
+        return {
+          attachGestureHandler: jest.fn(),
+          createGestureHandler: jest.fn(),
+          dropGestureHandler: jest.fn(),
+          updateGestureHandler: jest.fn(),
+          forceTouchAvailable: jest.fn(),
+          install: jest.fn(),
+          flushOperations: jest.fn(),
+          State: {
+            UNDETERMINED: 0,
+            FAILED: 1,
+            BEGAN: 2,
+            CANCELLED: 3,
+            ACTIVE: 4,
+            END: 5,
+          },
+          Directions: {
+            RIGHT: 1,
+            LEFT: 2,
+            UP: 4,
+            DOWN: 8,
+          },
+          getConstants: () => ({
+            State: {
+              UNDETERMINED: 0,
+              FAILED: 1,
+              BEGAN: 2,
+              CANCELLED: 3,
+              ACTIVE: 4,
+              END: 5,
+            },
+            Directions: {
+              RIGHT: 1,
+              LEFT: 2,
+              UP: 4,
+              DOWN: 8,
+            },
+          }),
+        };
+      }
+      return originalModule.getEnforcing(name);
+    },
+    get: (name) => {
+      if (name === 'RNGestureHandlerModule') {
+        return {
+          attachGestureHandler: jest.fn(),
+          createGestureHandler: jest.fn(),
+          dropGestureHandler: jest.fn(),
+          updateGestureHandler: jest.fn(),
+          forceTouchAvailable: jest.fn(),
+          install: jest.fn(),
+          flushOperations: jest.fn(),
+          State: {
+            UNDETERMINED: 0,
+            FAILED: 1,
+            BEGAN: 2,
+            CANCELLED: 3,
+            ACTIVE: 4,
+            END: 5,
+          },
+          Directions: {
+            RIGHT: 1,
+            LEFT: 2,
+            UP: 4,
+            DOWN: 8,
+          },
+          getConstants: () => ({
+            State: {
+              UNDETERMINED: 0,
+              FAILED: 1,
+              BEGAN: 2,
+              CANCELLED: 3,
+              ACTIVE: 4,
+              END: 5,
+            },
+            Directions: {
+              RIGHT: 1,
+              LEFT: 2,
+              UP: 4,
+              DOWN: 8,
+            },
+          }),
+        };
+      }
+      return originalModule.get?.(name);
+    },
+  };
 });

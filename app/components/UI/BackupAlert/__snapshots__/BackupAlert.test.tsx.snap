@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`BackupAlert should render correctly 1`] = `
+exports[`BackupAlert render matches snapshot 1`] = `
 <View
   style={
     [
@@ -54,6 +54,7 @@ exports[`BackupAlert should render correctly 1`] = `
       >
         <SvgMock
           color="#121314"
+          fill="currentColor"
           height={20}
           name="Notification"
           style={

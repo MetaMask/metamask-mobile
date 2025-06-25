@@ -133,6 +133,11 @@ export async function removeLabel(label: string) {
   }
 }
 
+export function isMergeFromMainBranch(commitMessage: string): boolean {
+  const mergeFromMainCommitMessagePrefix = `Merge branch 'main' into`;
+  return commitMessage.startsWith(mergeFromMainCommitMessagePrefix);
+}
+
 export async function getLatestAssociatedBitriseComment(commitHashes: string[]): Promise<GithubComment | undefined> {
 
   // Get all Bitrise comments
@@ -145,16 +150,48 @@ export async function getLatestAssociatedBitriseComment(commitHashes: string[]):
 
   console.log(`Checking if recent commits have Bitrise comments: ${commitHashes}`);
 
-  // Iterate through each commit hash to find the first matching Bitrise comment
-  // Return the first matching comment as our commits are sorted by newest to oldest
-  for (let i = 0; i < commitHashes.length; i++) {
-    const foundComment = comments.find(comment => comment.commitSha === commitHashes[i]);
-    if (foundComment) {
-      return foundComment;
+  // Check if the latest commit has a Bitrise comment
+  if (commitHashes.length > 0) {
+    const latestCommit = commitHashes[0];
+    const latestCommitComment = comments.find(comment => comment.commitSha === latestCommit);
+    
+    if (latestCommitComment) {
+      console.log(`Found Bitrise comment for latest commit: ${latestCommit}`);
+      return latestCommitComment;
+    }
+    
+    // If we're here, the latest commit doesn't have a Bitrise comment
+    // Get commit messages to check if they're merge commits
+    const { owner, repo, number: pullRequestNumber } = context.issue;
+    const { data: commits } = await getOctokitInstance().rest.pulls.listCommits({
+      owner,
+      repo,
+      pull_number: pullRequestNumber
+    });
+    
+    // Create a map of commit SHA to commit message
+    const commitMessages = new Map<string, string>();
+    commits.forEach(commit => {
+      commitMessages.set(commit.sha, commit.commit.message);
+    });
+    
+    // Check older commits, but only consider those that are merge commits from main
+    for (let i = 1; i < commitHashes.length; i++) {
+      const commitHash = commitHashes[i];
+      const commitMessage = commitMessages.get(commitHash) || '';
+      
+      // Only consider this commit if it's a merge from main
+      if (isMergeFromMainBranch(commitMessage)) {
+        const foundComment = comments.find(comment => comment.commitSha === commitHash);
+        if (foundComment) {
+          console.log(`Found Bitrise comment for merge commit: ${commitHash}`);
+          return foundComment;
+        }
+      }
     }
   }
 
-  return undefined
+  return undefined;
 }
 
 export async function getBitriseTestStatus(bitriseComment: GithubComment): Promise<BitriseTestStatus> {

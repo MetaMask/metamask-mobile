@@ -14,6 +14,14 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('react-native-scrollable-tab-view', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  DefaultTabBar: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+}));
+
 const mockInitialState = {
   wizard: {
     step: 1,
@@ -25,6 +33,45 @@ const mockInitialState = {
     },
   },
 };
+
+jest.mock('../../../components/hooks/useAccounts', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const { KeyringTypes } = require('@metamask/keyring-controller');
+
+  return {
+    useAccounts: () => ({
+      accounts: [
+        {
+          name: 'Account 1',
+          address: '0x0000000000000000000000000000000000000001',
+          type: KeyringTypes.hd,
+          yOffset: 0,
+          isSelected: true,
+          assets: {
+            fiatBalance: '$0.00\n0 ETH',
+          },
+          balanceError: undefined,
+          caipAccountId: `eip155:0:0x0000000000000000000000000000000000000001`,
+        },
+      ],
+      evmAccounts: [
+        {
+          name: 'Account 1',
+          address: '0x0000000000000000000000000000000000000001',
+          type: KeyringTypes.hd,
+          yOffset: 0,
+          isSelected: true,
+          assets: {
+            fiatBalance: '$0.00\n0 ETH',
+          },
+          balanceError: undefined,
+          caipAccountId: `eip155:0:0x0000000000000000000000000000000000000001`,
+        },
+      ],
+      ensByAccountAddress: {},
+    }),
+  };
+});
 
 describe('SwitchCustomNetwork', () => {
   it('should render correctly', () => {

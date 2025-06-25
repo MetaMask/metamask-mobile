@@ -44,7 +44,7 @@ export const MOCK_KEYRING_METADATA: KeyringMetadata[] = [
  *   }
  * }
  */
-export const MOCK_KEYRINGS_WITH_METADATA: (KeyringObject & {
+export const MOCK_KEYRINGS: (KeyringObject & {
   metadata: KeyringMetadata;
 })[] = [
   {
@@ -64,23 +64,7 @@ export const MOCK_KEYRINGS_WITH_METADATA: (KeyringObject & {
   },
 ];
 
-export const MOCK_KEYRINGS: KeyringObject[] = [
-  {
-    accounts: MOCK_SIMPLE_ACCOUNTS,
-    type: KeyringTypes.simple,
-  },
-  {
-    accounts: MOCK_QR_ACCOUNTS,
-    type: KeyringTypes.qr,
-  },
-  {
-    accounts: MOCK_HD_ACCOUNTS,
-    type: KeyringTypes.hd,
-  },
-];
-
 export const MOCK_KEYRING_CONTROLLER: KeyringControllerState = {
   isUnlocked: true,
   keyrings: MOCK_KEYRINGS,
-  keyringsMetadata: MOCK_KEYRING_METADATA,
 };

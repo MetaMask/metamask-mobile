@@ -44,7 +44,11 @@ export default {
     },
   },
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
+  MM_IO_UNIVERSAL_LINK_HOST: 'link.metamask.io',
+  MM_IO_UNIVERSAL_LINK_TEST_HOST: 'link-test.metamask.io',
   MM_DEEP_ITMS_APP_LINK: 'https://metamask.app.link/skAH3BaF99',
+  MM_DEEP_LINK_PUBLIC_KEY_X: 'nFiE3X_J5n5OJJSlLK95kSByhfLrSJmRxjEtBaP3TD8',
+  MM_DEEP_LINK_PUBLIC_KEY_Y: 'RBeepuE1D3or2SdzjsFcHU-l2rrNb46ZW_4wCXCLSaY',
   SAI_ADDRESS: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
   HOMEPAGE_URL: 'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile/',
   OLD_HOMEPAGE_URL_HOST: 'home.metamask.io',
@@ -92,6 +96,7 @@ export default {
     LIVENESS_POLLING_FREQUENCY: 5 * 60 * 1000,
     POLL_COUNT_LIMIT: 4,
     DEFAULT_SLIPPAGE: 2,
+    DEFAULT_SLIPPAGE_STABLECOINS: 0.5,
     CACHE_AGGREGATOR_METADATA_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOKENS_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOP_ASSETS_THRESHOLD: 5 * 60 * 1000,
@@ -136,9 +141,15 @@ export default {
       'https://support.metamask.io/privacy-and-security/privacy-best-practices',
     SMART_TXS:
       'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
+    SMART_ACCOUNTS: 'https://metamask.io/smart-accounts/',
     STAKING_RISK_DISCLOSURE: 'https://consensys.io/staking-risk-disclosures',
+    EARN_RISK_DISCLOSURE: 'https://consensys.io/earn-risk-disclosures',
+    ADD_SOLANA_ACCOUNT_PRIVACY_POLICY:
+      'https://support.metamask.io/configure/accounts/how-to-add-accounts-in-your-wallet/#solana-accounts',
   },
-  DECODING_API_URL: process.env.DECODING_API_URL || 'https://signature-insights.api.cx.metamask.io/v1',
+  DECODING_API_URL:
+    process.env.DECODING_API_URL ||
+    'https://signature-insights.api.cx.metamask.io/v1',
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
       'EthQuery - RPC Error - This service is not available in your country',
@@ -215,6 +226,7 @@ export default {
     'price-api',
     'price.api',
     'phishing-detection',
+    'dapp-scanning',
     'infura.io',
     'static.metafi',
     'static.cx',
@@ -225,4 +237,7 @@ export default {
     VERSION: 'v1',
     DEFAULT_FETCH_INTERVAL: 15 * 60 * 1000, // 15 minutes
   },
+  TOKEN_DISCOVERY_BROWSER_ENABLED:
+    process.env.TOKEN_DISCOVERY_BROWSER_ENABLED === 'true',
+  EIP_7702_PUBLIC_KEY: '0x3c7a1cCCe462e96D186B8ca9a1BCB2010C3dABa3',
 } as const;

@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import React, { useMemo } from 'react';
+import {
+  View,
+  RefreshControl,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+} from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 import { CaipChainId, Transaction } from '@metamask/keyring-api';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
 import Text from '../../../component-library/components/Texts/Text';
 import { baseStyles } from '../../../styles/common';
 import {
@@ -19,107 +20,178 @@ import {
 import { selectSolanaAccountTransactions } from '../../../selectors/multichain/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
-import { getBlockExplorerName } from '../../../util/networks';
 import styles from './MultichainTransactionsView.styles';
+import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
+import { updateIncomingTransactions } from '../../../util/transaction-controller';
+import MultichainTransactionsFooter from './MultichainTransactionsFooter';
+import PriceChartContext, {
+  PriceChartProvider,
+} from '../../UI/AssetOverview/PriceChart/PriceChart.context';
 
-const MultichainTransactionsView = () => {
+interface MultichainTransactionsViewProps {
+  /**
+   * Override transactions instead of using selector
+   */
+  transactions?: Transaction[];
+  /**
+   * Optional header component
+   */
+  header?: React.ReactElement;
+  /**
+   * Override navigation instance
+   */
+  navigation?: NavigationProp<Record<string, object | undefined>>;
+  /**
+   * Override selected address
+   */
+  selectedAddress?: string;
+  /**
+   * Chain ID for block explorer links
+   */
+  chainId?: string;
+  /**
+   * Enable refresh functionality
+   */
+  enableRefresh?: boolean;
+  /**
+   * Custom empty message
+   */
+  emptyMessage?: string;
+  /**
+   * Show disclaimer footer
+   */
+  showDisclaimer?: boolean;
+  /**
+   * Scroll event handler
+   */
+  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+}
+
+const MultichainTransactionsView = ({
+  transactions,
+  header,
+  navigation,
+  selectedAddress,
+  chainId,
+  enableRefresh = false,
+  emptyMessage,
+  showDisclaimer = false,
+  onScroll,
+}: MultichainTransactionsViewProps) => {
   const { colors } = useTheme();
   const style = styles(colors);
-  const navigation = useNavigation();
-  const selectedAddress = useSelector(
+  const defaultNavigation = useNavigation();
+  const nav = navigation ?? defaultNavigation;
+
+  const defaultSelectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const [loading, setLoading] = useState(true);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const address = selectedAddress ?? defaultSelectedAddress;
+
   const solanaAccountTransactions = useSelector(
     selectSolanaAccountTransactions,
   );
 
-  useEffect(() => {
-    setLoading(true);
+  const txList = useMemo(
+    () => transactions ?? solanaAccountTransactions?.transactions,
+    [transactions, solanaAccountTransactions],
+  );
 
-    // use the selector selectSolanaAccountTransactions
-    // simple timeout to simulate loading
-    const timer = setTimeout(() => {
-      // check if solanaAccountTransactions is an object with transactions property
-      if (
-        solanaAccountTransactions &&
-        'transactions' in solanaAccountTransactions
-      ) {
-        setTransactions(solanaAccountTransactions.transactions);
-      } else {
-        setTransactions([]);
-      }
-      setLoading(false);
-    }, 500);
+  const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
-    return () => clearTimeout(timer);
-  }, [solanaAccountTransactions]);
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(async () => {
+    if (!enableRefresh) return;
+
+    setRefreshing(true);
+    try {
+      await updateIncomingTransactions();
+    } catch (error) {
+      console.warn('Error refreshing transactions:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [enableRefresh]);
 
   const renderEmptyList = () => (
     <View style={style.emptyContainer}>
       <Text style={[style.emptyText, { color: colors.text.default }]}>
-        {strings('wallet.no_transactions')}
+        {emptyMessage ?? strings('wallet.no_transactions')}
       </Text>
     </View>
   );
 
-  const renderViewMore = () => {
-    const chainId = nonEvmNetworkChainIdByAccountAddress(selectedAddress || '');
-    const url = getAddressUrl(selectedAddress || '', chainId as CaipChainId);
+  const currentChainId =
+    chainId ?? nonEvmNetworkChainIdByAccountAddress(address ?? '');
+  const url = getAddressUrl(address ?? '', currentChainId as CaipChainId);
 
-    return (
-      <View style={style.viewMoreWrapper}>
-        <Button
-          variant={ButtonVariants.Link}
-          size={ButtonSize.Lg}
-          label={`${strings(
-            'transactions.view_full_history_on',
-          )} ${getBlockExplorerName(url)}`}
-          style={style.viewMoreButton}
-          onPress={() => {
-            navigation.navigate('Webview', {
-              screen: 'SimpleWebview',
-              params: { url },
-            });
-          }}
-        />
-      </View>
-    );
-  };
-
-  const renderTransactionItem = ({ item }: { item: Transaction }) => (
-    <MultichainTransactionListItem
-      transaction={item}
-      selectedAddress={selectedAddress || ''}
-      navigation={navigation}
+  const footer = (
+    <MultichainTransactionsFooter
+      url={url}
+      hasTransactions={(txList?.length ?? 0) > 0}
+      showDisclaimer={showDisclaimer}
+      onViewMore={() => {
+        nav.navigate('Webview', {
+          screen: 'SimpleWebview',
+          params: { url },
+        });
+      }}
     />
   );
 
-  if (loading) {
+  const renderTransactionItem = ({
+    item,
+    index,
+  }: {
+    item: Transaction;
+    index: number;
+  }) => {
+    const srcTxHash = item.id;
+    const bridgeHistoryItem = bridgeHistoryItemsBySrcTxHash[srcTxHash];
+
     return (
-      <View style={style.loader}>
-        <ActivityIndicator
-          size="large"
-          color={colors.primary.default}
-          testID={`transactions-loading-indicator`}
-        />
-      </View>
+      <MultichainTransactionListItem
+        transaction={item}
+        bridgeHistoryItem={bridgeHistoryItem}
+        selectedAddress={address ?? ''}
+        navigation={nav}
+        index={index}
+      />
     );
-  }
+  };
 
   return (
-    <View style={style.wrapper}>
-      <FlashList
-        data={transactions}
-        renderItem={renderTransactionItem}
-        keyExtractor={(item) => item.id}
-        ListEmptyComponent={renderEmptyList}
-        style={baseStyles.flexGrow}
-        ListFooterComponent={transactions.length > 0 ? renderViewMore() : null}
-        estimatedItemSize={200}
-      />
-    </View>
+    <PriceChartProvider>
+      <View style={style.wrapper}>
+        <PriceChartContext.Consumer>
+          {({ isChartBeingTouched }) => (
+            <FlashList
+              data={txList}
+              renderItem={renderTransactionItem}
+              keyExtractor={(item) => item.id}
+              ListHeaderComponent={header}
+              ListEmptyComponent={renderEmptyList}
+              ListFooterComponent={footer}
+              style={baseStyles.flexGrow}
+              estimatedItemSize={200}
+              refreshControl={
+                enableRefresh ? (
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    colors={[colors.primary.default]}
+                    tintColor={colors.icon.default}
+                  />
+                ) : undefined
+              }
+              onScroll={onScroll}
+              scrollEnabled={!isChartBeingTouched}
+            />
+          )}
+        </PriceChartContext.Consumer>
+      </View>
+    </PriceChartProvider>
   );
 };
 

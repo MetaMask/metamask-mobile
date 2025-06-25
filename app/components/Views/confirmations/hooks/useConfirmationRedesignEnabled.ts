@@ -5,25 +5,22 @@ import {
 } from '@metamask/transaction-controller';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+
 import {
-  type ConfirmationRedesignRemoteFlags,
+  ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
-} from '../../../../selectors/featureFlagController';
+} from '../../../../selectors/featureFlagController/confirmations';
 import { isHardwareAccount } from '../../../../util/address';
 import { isStakingConfirmation } from '../utils/confirm';
+import {
+  REDESIGNED_APPROVE_TYPES,
+  REDESIGNED_CONTRACT_INTERACTION_TYPES,
+  REDESIGNED_SIGNATURE_TYPES,
+  REDESIGNED_TRANSACTION_TYPES,
+  REDESIGNED_TRANSFER_TYPES,
+} from '../constants/confirmations';
 import useApprovalRequest from './useApprovalRequest';
-import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
-
-const REDESIGNED_SIGNATURE_TYPES = [
-  ApprovalType.EthSignTypedData,
-  ApprovalType.PersonalSign,
-];
-
-export const REDESIGNED_TRANSACTION_TYPES = [
-  TransactionType.stakingDeposit,
-  TransactionType.stakingUnstake,
-  TransactionType.stakingClaim,
-];
+import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 
 function isRedesignedSignature({
   approvalRequestType,
@@ -50,9 +47,9 @@ function isRedesignedTransaction({
   fromAddress: string;
   transactionMetadata?: TransactionMeta;
 }) {
-  const isTransactionTypeRedesigned = REDESIGNED_TRANSACTION_TYPES.includes(
-    transactionMetadata?.type as TransactionType,
-  );
+  const transactionType = transactionMetadata?.type as TransactionType;
+  const isTransactionTypeRedesigned =
+    REDESIGNED_TRANSACTION_TYPES.includes(transactionType);
 
   if (
     !isTransactionTypeRedesigned ||
@@ -63,20 +60,48 @@ function isRedesignedTransaction({
     return false;
   }
 
-  if (isStakingConfirmation(transactionMetadata?.type as string)) {
+  if (isStakingConfirmation(transactionType)) {
     return confirmationRedesignFlags?.staking_confirmations;
+  }
+
+  if (REDESIGNED_CONTRACT_INTERACTION_TYPES.includes(transactionType)) {
+    return confirmationRedesignFlags?.contract_interaction;
+  }
+
+  if (
+    transactionType === TransactionType.revokeDelegation ||
+    transactionType === TransactionType.batch
+  ) {
+    return true;
+  }
+
+  if (REDESIGNED_TRANSFER_TYPES.includes(transactionType)) {
+    return confirmationRedesignFlags?.transfer;
+  }
+
+  if (REDESIGNED_APPROVE_TYPES.includes(transactionType)) {
+    return confirmationRedesignFlags?.approve;
+  }
+
+  if (transactionType === TransactionType.deployContract) {
+    return confirmationRedesignFlags?.contract_deployment;
   }
 
   return false;
 }
 
+function isBatchTransaction(approvalRequestType: ApprovalType) {
+  return approvalRequestType === ApprovalType.TransactionBatch;
+}
+
 export const useConfirmationRedesignEnabled = () => {
   const { approvalRequest } = useApprovalRequest();
-  const fromAddress = approvalRequest?.requestData?.from;
   const transactionMetadata = useTransactionMetadataRequest();
   const confirmationRedesignFlags = useSelector(
     selectConfirmationRedesignFlags,
   );
+  const fromAddress =
+    transactionMetadata?.txParams?.from ?? approvalRequest?.requestData?.from;
 
   const approvalRequestType = approvalRequest?.type as ApprovalType;
 
@@ -91,13 +116,9 @@ export const useConfirmationRedesignEnabled = () => {
         confirmationRedesignFlags,
         fromAddress,
         transactionMetadata,
-      }),
-    [
-      approvalRequestType,
-      confirmationRedesignFlags,
-      fromAddress,
-      transactionMetadata,
-    ],
+      }) ||
+      isBatchTransaction(approvalRequestType),
+    [approvalRequestType, confirmationRedesignFlags, fromAddress, transactionMetadata],
   );
 
   return { isRedesignedEnabled };

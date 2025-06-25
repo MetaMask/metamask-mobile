@@ -263,7 +263,13 @@ exports[`QuotesView should render quote screen 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -271,6 +277,7 @@ exports[`QuotesView should render quote screen 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -347,6 +354,9 @@ exports[`QuotesView should render quote screen 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -846,6 +856,7 @@ exports[`QuotesView should render quote screen 1`] = `
                             </View>
                             <Text
                               allowFontScaling={false}
+                              selectable={false}
                               style={
                                 [
                                   {
@@ -868,7 +879,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                 ]
                               }
                             >
-                              
+                              
                             </Text>
                             <View
                               style={
@@ -1170,6 +1181,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                    
                                   <Text
                                     allowFontScaling={false}
+                                    selectable={false}
                                     style={
                                       [
                                         {
@@ -1398,6 +1410,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                       >
                                         <Text
                                           allowFontScaling={false}
+                                          selectable={false}
                                           style={
                                             [
                                               {
@@ -1416,7 +1429,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                             ]
                                           }
                                         >
-                                          
+                                          󰋼
                                         </Text>
                                       </TouchableOpacity>
                                     </View>
@@ -1725,6 +1738,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                       Quotes include a 0% MetaMask fee 
                                       <Text
                                         allowFontScaling={false}
+                                        selectable={false}
                                         style={
                                           [
                                             {
@@ -1745,7 +1759,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                           ]
                                         }
                                       >
-                                        
+                                        󰋼
                                       </Text>
                                     </Text>
                                   </TouchableOpacity>
@@ -1761,7 +1775,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                 [
                                   [
                                     {
-                                      "borderRadius": 100,
+                                      "borderRadius": 12,
                                       "justifyContent": "center",
                                       "padding": 15,
                                     },
@@ -1865,267 +1879,15 @@ exports[`QuotesView should render quote screen 1`] = `
                               </Text>
                             </TouchableOpacity>
                           </View>
-                          <Modal
-                            animationType="none"
-                            deviceHeight={null}
-                            deviceWidth={null}
-                            hardwareAccelerated={false}
-                            hideModalContentWhileAnimating={false}
-                            onBackdropPress={[Function]}
-                            onModalHide={[Function]}
-                            onModalWillHide={[Function]}
-                            onModalWillShow={[Function]}
-                            onRequestClose={[Function]}
-                            onSwipeComplete={[Function]}
-                            panResponderThreshold={4}
-                            scrollHorizontal={false}
-                            scrollOffset={0}
-                            scrollOffsetMax={0}
-                            scrollTo={null}
-                            statusBarTranslucent={false}
-                            supportedOrientations={
-                              [
-                                "portrait",
-                                "landscape",
-                              ]
-                            }
-                            swipeDirection="down"
-                            swipeThreshold={100}
-                            transparent={true}
-                            visible={false}
-                          />
-                          <Modal
-                            animationType="none"
-                            deviceHeight={null}
-                            deviceWidth={null}
-                            hardwareAccelerated={false}
-                            hideModalContentWhileAnimating={false}
-                            onBackdropPress={[Function]}
-                            onModalHide={[Function]}
-                            onModalWillHide={[Function]}
-                            onModalWillShow={[Function]}
-                            onRequestClose={[Function]}
-                            onSwipeComplete={[Function]}
-                            panResponderThreshold={4}
-                            scrollHorizontal={false}
-                            scrollOffset={0}
-                            scrollOffsetMax={0}
-                            scrollTo={null}
-                            statusBarTranslucent={false}
-                            supportedOrientations={
-                              [
-                                "portrait",
-                                "landscape",
-                              ]
-                            }
-                            swipeDirection="down"
-                            swipeThreshold={100}
-                            transparent={true}
-                            visible={false}
-                          />
-                          <Modal
-                            animationType="none"
-                            deviceHeight={null}
-                            deviceWidth={null}
-                            hardwareAccelerated={false}
-                            hideModalContentWhileAnimating={false}
-                            onBackdropPress={[Function]}
-                            onModalHide={[Function]}
-                            onModalWillHide={[Function]}
-                            onModalWillShow={[Function]}
-                            onRequestClose={[Function]}
-                            onSwipeComplete={[Function]}
-                            panResponderThreshold={4}
-                            scrollHorizontal={false}
-                            scrollOffset={0}
-                            scrollOffsetMax={0}
-                            scrollTo={null}
-                            statusBarTranslucent={false}
-                            supportedOrientations={
-                              [
-                                "portrait",
-                                "landscape",
-                              ]
-                            }
-                            swipeDirection="down"
-                            swipeThreshold={100}
-                            transparent={true}
-                            visible={false}
-                          />
-                          <Modal
-                            animationType="none"
-                            deviceHeight={null}
-                            deviceWidth={null}
-                            hardwareAccelerated={false}
-                            hideModalContentWhileAnimating={false}
-                            onBackdropPress={[Function]}
-                            onModalHide={[Function]}
-                            onModalWillHide={[Function]}
-                            onModalWillShow={[Function]}
-                            onRequestClose={[Function]}
-                            onSwipeComplete={[Function]}
-                            panResponderThreshold={4}
-                            scrollHorizontal={false}
-                            scrollOffset={0}
-                            scrollOffsetMax={0}
-                            scrollTo={null}
-                            statusBarTranslucent={false}
-                            supportedOrientations={
-                              [
-                                "portrait",
-                                "landscape",
-                              ]
-                            }
-                            swipeDirection="down"
-                            swipeThreshold={100}
-                            transparent={true}
-                            visible={false}
-                          />
-                          <Modal
-                            animationType="none"
-                            deviceHeight={null}
-                            deviceWidth={null}
-                            hardwareAccelerated={false}
-                            hideModalContentWhileAnimating={false}
-                            onBackdropPress={[Function]}
-                            onModalHide={[Function]}
-                            onModalWillHide={[Function]}
-                            onModalWillShow={[Function]}
-                            onRequestClose={[Function]}
-                            onSwipeComplete={[Function]}
-                            panResponderThreshold={4}
-                            scrollHorizontal={false}
-                            scrollOffset={0}
-                            scrollOffsetMax={0}
-                            scrollTo={null}
-                            statusBarTranslucent={false}
-                            supportedOrientations={
-                              [
-                                "portrait",
-                                "landscape",
-                              ]
-                            }
-                            swipeDirection="down"
-                            swipeThreshold={100}
-                            transparent={true}
-                            visible={false}
-                          />
-                          <Modal
-                            animationType="none"
-                            deviceHeight={null}
-                            deviceWidth={null}
-                            hardwareAccelerated={false}
-                            hideModalContentWhileAnimating={false}
-                            onBackdropPress={[Function]}
-                            onModalHide={[Function]}
-                            onModalWillHide={[Function]}
-                            onModalWillShow={[Function]}
-                            onRequestClose={[Function]}
-                            onSwipeComplete={[Function]}
-                            panResponderThreshold={4}
-                            scrollHorizontal={false}
-                            scrollOffset={0}
-                            scrollOffsetMax={0}
-                            scrollTo={null}
-                            statusBarTranslucent={false}
-                            supportedOrientations={
-                              [
-                                "portrait",
-                                "landscape",
-                              ]
-                            }
-                            swipeDirection="down"
-                            swipeThreshold={100}
-                            transparent={true}
-                            visible={false}
-                          />
-                          <Modal
-                            animationType="none"
-                            deviceHeight={null}
-                            deviceWidth={null}
-                            hardwareAccelerated={false}
-                            hideModalContentWhileAnimating={false}
-                            onBackdropPress={[Function]}
-                            onModalHide={[Function]}
-                            onModalWillHide={[Function]}
-                            onModalWillShow={[Function]}
-                            onRequestClose={[Function]}
-                            onSwipeComplete={[Function]}
-                            panResponderThreshold={4}
-                            scrollHorizontal={false}
-                            scrollOffset={0}
-                            scrollOffsetMax={0}
-                            scrollTo={null}
-                            statusBarTranslucent={false}
-                            supportedOrientations={
-                              [
-                                "portrait",
-                                "landscape",
-                              ]
-                            }
-                            swipeDirection="down"
-                            swipeThreshold={100}
-                            transparent={true}
-                            visible={false}
-                          />
-                          <Modal
-                            animationType="none"
-                            deviceHeight={null}
-                            deviceWidth={null}
-                            hardwareAccelerated={false}
-                            hideModalContentWhileAnimating={false}
-                            onBackdropPress={[Function]}
-                            onModalHide={[Function]}
-                            onModalWillHide={[Function]}
-                            onModalWillShow={[Function]}
-                            onRequestClose={[Function]}
-                            onSwipeComplete={[Function]}
-                            panResponderThreshold={4}
-                            scrollHorizontal={false}
-                            scrollOffset={0}
-                            scrollOffsetMax={0}
-                            scrollTo={null}
-                            statusBarTranslucent={false}
-                            supportedOrientations={
-                              [
-                                "portrait",
-                                "landscape",
-                              ]
-                            }
-                            swipeDirection="down"
-                            swipeThreshold={100}
-                            transparent={true}
-                            visible={false}
-                          />
-                          <Modal
-                            animationType="none"
-                            deviceHeight={null}
-                            deviceWidth={null}
-                            hardwareAccelerated={false}
-                            hideModalContentWhileAnimating={false}
-                            onBackdropPress={[Function]}
-                            onModalHide={[Function]}
-                            onModalWillHide={[Function]}
-                            onModalWillShow={[Function]}
-                            onRequestClose={[Function]}
-                            onSwipeComplete={[Function]}
-                            panResponderThreshold={4}
-                            scrollHorizontal={false}
-                            scrollOffset={0}
-                            scrollOffsetMax={0}
-                            scrollTo={null}
-                            statusBarTranslucent={false}
-                            supportedOrientations={
-                              [
-                                "portrait",
-                                "landscape",
-                              ]
-                            }
-                            swipeDirection="down"
-                            swipeThreshold={100}
-                            transparent={true}
-                            visible={false}
-                          />
+                          <View />
+                          <View />
+                          <View />
+                          <View />
+                          <View />
+                          <View />
+                          <View />
+                          <View />
+                          <View />
                         </View>
                       </RCTScrollView>
                     </RCTSafeAreaView>

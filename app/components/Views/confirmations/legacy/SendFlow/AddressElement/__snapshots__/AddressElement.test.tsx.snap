@@ -110,7 +110,7 @@ exports[`AddressElement should render correctly 1`] = `
           }
         }
       >
-        0xd018...78E7
+        0xd0185...a78E7
       </Text>
     </View>
   </View>

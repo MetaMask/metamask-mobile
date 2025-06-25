@@ -71,7 +71,7 @@ describe('validateAccountsController', () => {
       createMockState({
         internalAccounts: {
           accounts: {},
-          selectedAccount: '',
+          selectedAccount: 'dummy-account',
         },
       }) as RootState,
     );
@@ -107,7 +107,38 @@ describe('validateAccountsController', () => {
       }) as RootState,
     );
     expect(errors).toEqual([
-      `${LOG_TAG}: AccountsController selectedAccount is missing or empty.`,
+      `${LOG_TAG}: AccountsController selectedAccount is missing or empty. selectedAccount: `,
+    ]);
+  });
+
+  it('returns error if selectedAccount is undefined', () => {
+    const errors = validateAccountsController(
+      createMockState({
+        internalAccounts: {
+          accounts: {
+            'account-1': {
+              id: 'account-1',
+              address: '0x123',
+              type: 'eip155:eoa',
+              scopes: [EthScope.Eoa],
+              options: {} as Record<string, Json>,
+              methods: [],
+              metadata: {
+                name: 'Account 1',
+                lastSelected: 0,
+                importTime: Date.now(),
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+              },
+            },
+          },
+          selectedAccount: undefined as unknown as string,
+        },
+      }) as RootState,
+    );
+    expect(errors).toEqual([
+      `${LOG_TAG}: AccountsController selectedAccount is missing or empty. selectedAccount: undefined`,
     ]);
   });
 

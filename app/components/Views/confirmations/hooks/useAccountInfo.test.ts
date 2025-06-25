@@ -6,9 +6,9 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../../reducers';
 import useAccountInfo from './useAccountInfo';
-
+import { Hex } from '@metamask/utils';
 jest.mock('../../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
 }));
 
 const MOCK_ADDRESS = '0x0';
@@ -24,9 +24,11 @@ const mockInitialState: DeepPartial<RootState> = {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTrackerController: {
-        accounts: {
-          [MOCK_ADDRESS]: {
-            balance: '0x5',
+        accountsByChainId: {
+          '0x1': {
+            [MOCK_ADDRESS]: {
+              balance: '0x5',
+            },
           },
         },
       },
@@ -43,7 +45,7 @@ jest.mock('react-redux', () => ({
 describe('useAccountInfo', () => {
   it('should return existing address from accounts controller', async () => {
     const { result } = renderHookWithProvider(
-      () => useAccountInfo(MOCK_ADDRESS),
+      () => useAccountInfo(MOCK_ADDRESS, '0x1' as Hex),
       {
         state: mockInitialState,
       },

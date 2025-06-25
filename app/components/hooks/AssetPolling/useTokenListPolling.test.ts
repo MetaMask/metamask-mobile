@@ -168,4 +168,48 @@ describe('useTokenListPolling', () => {
       mockedTokenListController.stopPollingByPollingToken,
     ).toHaveBeenCalledTimes(1);
   });
+
+  it('Should not poll when evm is not selected', async () => {
+    renderHookWithProvider(() => useTokenListPolling(), {
+      state: {
+        ...state,
+        engine: {
+          ...state.engine,
+          backgroundState: {
+            ...state.engine.backgroundState,
+            MultichainNetworkController: {
+              ...state.engine.backgroundState.MultichainNetworkController,
+              isEvmSelected: false,
+            },
+          },
+        },
+      },
+    });
+
+    const mockedTokenListController = jest.mocked(
+      Engine.context.TokenListController,
+    );
+    expect(mockedTokenListController.startPolling).toHaveBeenCalledTimes(0);
+  });
+
+  it('polls with provided chain ids', () => {
+    renderHookWithProvider(
+      () => useTokenListPolling({ chainIds: ['0x1', '0x89'] }),
+      {
+        state,
+      },
+    );
+
+    const mockedTokenListController = jest.mocked(
+      Engine.context.TokenListController,
+    );
+
+    expect(mockedTokenListController.startPolling).toHaveBeenCalledTimes(2);
+    expect(mockedTokenListController.startPolling).toHaveBeenNthCalledWith(1, {
+      chainId: '0x1',
+    });
+    expect(mockedTokenListController.startPolling).toHaveBeenNthCalledWith(2, {
+      chainId: '0x89',
+    });
+  });
 });

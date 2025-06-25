@@ -5,6 +5,13 @@ import { renderScreen } from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
 import { ExperimentalSelectorsIDs } from '../../../../e2e/selectors/Settings/ExperimentalView.selectors';
 
+jest.mock('../../../core/WalletConnect/WalletConnectV2', () => ({
+  isWC2Enabled: false,
+  getInstance: jest.fn().mockResolvedValue({
+    getSessions: () => [],
+  }),
+}));
+
 describe('WalletConnectSessions', () => {
   it('does not render when not ready', () => {
     const { toJSON } = renderScreen(WalletConnectSessions, {
@@ -20,6 +27,7 @@ describe('WalletConnectSessions', () => {
       name: Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW,
     });
 
+    // Wait for the component to be ready and render the empty state
     await waitFor(() => {
       const emptyMessage = getByTestId(ExperimentalSelectorsIDs.CONTAINER);
       expect(emptyMessage).toBeTruthy();

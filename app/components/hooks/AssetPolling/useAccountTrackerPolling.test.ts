@@ -84,10 +84,7 @@ describe('useAccountTrackerPolling', () => {
       2,
     );
     expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledWith({
-      networkClientId: 'selectedNetworkClientId',
-    });
-    expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledWith({
-      networkClientId: 'otherNetworkClientId',
+      networkClientIds: ['otherNetworkClientId'],
     });
 
     unmount();
@@ -99,14 +96,10 @@ describe('useAccountTrackerPolling', () => {
   it('should use provided network client IDs when specified, even with portfolio view enabled', () => {
     jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
 
-    const specificNetworkClientIds = [
-      { networkClientId: 'specificNetworkClientId' },
-    ];
-
     const { unmount } = renderHookWithProvider(
       () =>
         useAccountTrackerPolling({
-          networkClientIds: specificNetworkClientIds,
+          networkClientIds: ['specificNetworkClientId'],
         }),
       { state },
     );
@@ -119,27 +112,13 @@ describe('useAccountTrackerPolling', () => {
       1,
     );
     expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledWith({
-      networkClientId: 'specificNetworkClientId',
+      networkClientIds: ['specificNetworkClientId'],
     });
 
     unmount();
     expect(
       mockedAccountTrackerController.stopPollingByPollingToken,
     ).toHaveBeenCalledTimes(1);
-  });
-
-  it('should return accountsByChainId from the state', () => {
-    const { result } = renderHookWithProvider(
-      () => useAccountTrackerPolling(),
-      {
-        state,
-      },
-    );
-
-    expect(result.current.accountsByChainId).toEqual({
-      '0x1': {},
-      '0x2': {},
-    });
   });
 
   it('should poll only for current network if selected one is not popular', () => {
@@ -204,12 +183,66 @@ describe('useAccountTrackerPolling', () => {
       1,
     );
     expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledWith({
-      networkClientId: 'otherNetworkClientId',
+      networkClientIds: ['otherNetworkClientId'],
     });
 
     unmount();
     expect(
       mockedAccountTrackerController.stopPollingByPollingToken,
     ).toHaveBeenCalledTimes(1);
+  });
+
+  it('Should not poll when evm is not selected', async () => {
+    renderHookWithProvider(() => useAccountTrackerPolling(), {
+      state: {
+        ...state,
+        engine: {
+          ...state.engine,
+          backgroundState: {
+            ...state.engine.backgroundState,
+            MultichainNetworkController: {
+              ...state.engine.backgroundState.MultichainNetworkController,
+              isEvmSelected: false,
+            },
+          },
+        },
+      },
+    });
+
+    const mockedAccountTrackerController = jest.mocked(
+      Engine.context.AccountTrackerController,
+    );
+    expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledTimes(
+      0,
+    );
+  });
+
+  it('polls with provided network client ids', () => {
+    renderHookWithProvider(
+      () =>
+        useAccountTrackerPolling({
+          networkClientIds: [
+            'specificNetworkClientId1',
+            'specificNetworkClientId2',
+          ],
+        }),
+      {
+        state,
+      },
+    );
+
+    const mockedAccountTrackerController = jest.mocked(
+      Engine.context.AccountTrackerController,
+    );
+
+    expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledTimes(
+      2,
+    );
+    expect(mockedAccountTrackerController.startPolling).toHaveBeenNthCalledWith(1, {
+      networkClientIds: ['specificNetworkClientId1'],
+    });
+    expect(mockedAccountTrackerController.startPolling).toHaveBeenNthCalledWith(2, {
+      networkClientIds: ['specificNetworkClientId2'],
+    });
   });
 });

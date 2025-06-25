@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeCore } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import SettingsView from '../../pages/Settings/SettingsView';
 import ContactsView from '../../pages/Settings/Contacts/ContactsView';
 import AddContactView from '../../pages/Settings/Contacts/AddContactView';
@@ -16,7 +16,7 @@ import { withFixtures } from '../../fixtures/fixture-helper';
 
 const MEMO = 'Address for testing 123123123';
 
-describe(SmokeCore('Relaunch App after Adding Address to Contact Book'), () => {
+describe(SmokeWalletPlatform('Relaunch App after Adding Address to Contact Book'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();

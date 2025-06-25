@@ -13,17 +13,19 @@ const mockInitialState: DeepPartial<RootState> = {
     backgroundState: {
       ...backgroundState,
       AccountTrackerController: {
-        accounts: {
-          '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': {
-            balance: '200',
-          },
-          '0x519d2CE57898513F676a5C3b66496c3C394c9CC7': {
-            balance: '200',
+        accountsByChainId: {
+          '0x1': {
+            '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': {
+              balance: '200',
+            },
+            '0x519d2CE57898513F676a5C3b66496c3C394c9CC7': {
+              balance: '200',
+            },
           },
         },
       },
       TokenBalancesController: {
-        tokenBalances: { },
+        tokenBalances: {},
       },
       PreferencesController: {
         selectedAddress: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',

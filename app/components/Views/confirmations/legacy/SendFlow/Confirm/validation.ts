@@ -49,14 +49,17 @@ export const validateSufficientTokenBalance = (
 };
 
 export const validateSufficientBalance = (
-  weiBalance: BN4,
-  totalTransactionValue: BN4,
+  weiBalance: string,
+  totalTransactionValue: string,
   ticker: string,
 ) => {
-  if (validateBalance(weiBalance, totalTransactionValue)) {
+  const weiBalanceBN = hexToBN(weiBalance);
+  const totalTransactionValueBN = hexToBN(totalTransactionValue);
+
+  if (validateBalance(weiBalanceBN, totalTransactionValueBN)) {
     return generateInsufficientBalanceMessage(
-      weiBalance,
-      totalTransactionValue,
+      weiBalanceBN,
+      totalTransactionValueBN,
       ticker,
     );
   }

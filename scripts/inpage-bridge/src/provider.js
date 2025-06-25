@@ -8,6 +8,13 @@ const ReactNativePostMessageStream = require('./ReactNativePostMessageStream');
 const INPAGE = 'metamask-inpage';
 const CONTENT_SCRIPT = 'metamask-contentscript';
 const PROVIDER = 'metamask-provider';
+const MULTICHAIN_PROVIDER = 'metamask-multichain-provider';
+
+// Flag that tracks if the inpage provider has been notified that
+// the wallet background ready to receive requests and that the
+// inpage provider should retry and pending requests it has not
+// yet received a response for.
+let metamaskConnectSent;
 
 // Setup stream for content script communication
 const metamaskStream = new ReactNativePostMessageStream({
@@ -38,7 +45,6 @@ const init = () => {
     enumerable: false,
     writable: false,
   });
-
 }
 
 // Functions
@@ -56,6 +62,7 @@ function setupProviderStreams() {
   const appStream = new MobilePortStream({
     name: CONTENT_SCRIPT,
   });
+  appStream.on('data', backgroundBridgeStreamMessageListener);
 
   // create and connect channel muxes
   // so we can handle the channels individually
@@ -74,6 +81,7 @@ function setupProviderStreams() {
 
   // forward communication across inpage-background for these channels only
   forwardTrafficBetweenMuxes(PROVIDER, pageMux, appMux);
+  forwardTrafficBetweenMuxes(MULTICHAIN_PROVIDER, pageMux, appMux);
 
   // add web3 shim
   shimWeb3(window.ethereum);
@@ -110,6 +118,36 @@ function logStreamDisconnectWarning(remoteLabel, err) {
   }
   console.warn(warningMsg);
   console.error(err);
+}
+
+/**
+ * The function notifies inpage when the background bridge stream connection is ready. When the
+ * 'metamask_chainChanged' method is received from the background bridge, it implies that the
+ * background state is completely initialized and it is ready to process method calls.
+ * This is used as a notification to replay any pending messages.
+ *
+ * @param msg - instance of message received
+ */
+function backgroundBridgeStreamMessageListener(msg) {
+  if (
+    !metamaskConnectSent &&
+    msg.data.method === 'metamask_chainChanged'
+  ) {
+    metamaskConnectSent = true;
+    window.postMessage(
+      {
+        target: INPAGE,
+        data: {
+          name: PROVIDER,
+          data: {
+            jsonrpc: '2.0',
+            method: 'METAMASK_EXTENSION_CONNECT_CAN_RETRY',
+          },
+        },
+      },
+      window.location.origin,
+    );
+  }
 }
 
 /**

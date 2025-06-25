@@ -103,7 +103,6 @@ export function useNotificationOnClick(
 }
 
 export function NotificationsListItem(props: NotificationsListItemProps) {
-  const { styles } = useStyles();
   const onNotificationClick = useNotificationOnClick(props);
 
   const menuItemState = useMemo(() => {
@@ -123,8 +122,6 @@ export function NotificationsListItem(props: NotificationsListItemProps) {
   return (
     <NotificationMenuItem.Root
       handleOnPress={() => onNotificationClick(props.notification)}
-      styles={styles}
-      simultaneousHandlers={undefined}
       isRead={props.notification.isRead}
       testID={NotificationMenuViewSelectorsIDs.ITEM(props.notification.id)}
     >
@@ -164,6 +161,7 @@ function useNotificationListProps(props: {
         initialNumToRender: 10,
         maxToRenderPerBatch: 2,
         onEndReachedThreshold: 0.5,
+        testID: NotificationMenuViewSelectorsIDs.ITEM_LIST_SCROLLVIEW,
       };
 
       return { ...listProps, tabLabel: tabLabel ?? '' };

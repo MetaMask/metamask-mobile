@@ -23,7 +23,10 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { RootState } from '../../../../../reducers';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { getTimeDifferenceFromNow } from '../../../../../util/date';
-import { isPortfolioViewEnabled } from '../../../../../util/networks';
+import {
+  getDecimalChainId,
+  isPortfolioViewEnabled,
+} from '../../../../../util/networks';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import AssetElement from '../../../AssetElement';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
@@ -50,6 +53,10 @@ import UnstakingBanner from './StakingBanners/UnstakeBanner/UnstakeBanner';
 import StakingButtons from './StakingButtons/StakingButtons';
 import StakingCta from './StakingCta/StakingCta';
 import { filterExitRequests } from './utils';
+import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import PercentageChange from '../../../../../component-library/components-temp/Price/PercentageChange';
+import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
+import StakingEarnings from '../StakingEarnings';
 
 export interface StakingBalanceProps {
   asset: TokenI;
@@ -67,6 +74,8 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
 
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+
   const { isEligible: isEligibleForPooledStaking } = useStakingEligibility();
 
   const { isStakingSupportedChain } = useStakingChainByChainId(
@@ -75,20 +84,24 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
 
   const { trackEvent, createEventBuilder } = useMetrics();
 
+  const decimalChainId = getDecimalChainId(asset.chainId);
   const {
     pooledStakesData,
     exchangeRate,
     hasStakedPositions,
     hasEthToUnstake,
     isLoadingPooledStakesData,
-  } = usePooledStakes();
+  } = usePooledStakes(decimalChainId);
 
-  const { vaultApyAverages, isLoadingVaultApyAverages } = useVaultApyAverages();
+  const { vaultApyAverages, isLoadingVaultApyAverages } =
+    useVaultApyAverages(decimalChainId);
 
   const {
     formattedStakedBalanceETH: stakedBalanceETH,
     formattedStakedBalanceFiat: stakedBalanceFiat,
   } = useBalance(asset.chainId as Hex);
+
+  const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
   const { unstakingRequests, claimableRequests } = useMemo(() => {
     const exitRequests = pooledStakesData?.exitRequests ?? [];
@@ -180,19 +193,23 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
           <ClaimBanner
             claimableAmount={claimableWei}
             style={styles.bannerStyles}
+            asset={asset}
           />
         )}
 
-        {!hasStakedPositions && !isLoadingVaultApyAverages && (
-          <StakingCta
-            style={styles.stakingCta}
-            estimatedRewardRate={formatPercent(vaultApyAverages.oneWeek, {
-              inputFormat: CommonPercentageInputUnits.PERCENTAGE,
-              outputFormat: PercentageOutputFormat.PERCENT_SIGN,
-              fixed: 1,
-            })}
-          />
-        )}
+        {!hasStakedPositions &&
+          !isLoadingVaultApyAverages &&
+          isPooledStakingEnabled && (
+            <StakingCta
+              chainId={asset.chainId as Hex}
+              style={styles.stakingCta}
+              estimatedRewardRate={formatPercent(vaultApyAverages.oneWeek, {
+                inputFormat: CommonPercentageInputUnits.PERCENTAGE,
+                outputFormat: PercentageOutputFormat.PERCENT_SIGN,
+                fixed: 1,
+              })}
+            />
+          )}
 
         <StakingButtons
           asset={asset}
@@ -236,17 +253,21 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
               <NetworkMainAssetLogo style={styles.ethLogo} />
             )}
           </BadgeWrapper>
-          <Text
-            style={styles.balances}
-            variant={TextVariant.BodyLGMedium}
-            testID="staked-ethereum-label"
-          >
-            {strings('stake.staked_ethereum')}
-          </Text>
+          <View style={styles.balances}>
+            <Text variant={TextVariant.BodyMD} testID="staked-ethereum-label">
+              {strings('stake.staked_ethereum')}
+            </Text>
+            <Text>
+              <PercentageChange value={pricePercentChange1d ?? 0} />
+            </Text>
+          </View>
         </AssetElement>
       )}
 
       <View style={styles.container}>{renderStakingContent()}</View>
+      <View style={styles.stakingEarnings}>
+        <StakingEarnings asset={asset} />
+      </View>
     </View>
   );
 };

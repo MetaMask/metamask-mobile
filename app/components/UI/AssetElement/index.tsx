@@ -2,21 +2,21 @@
 import React from 'react';
 import { TouchableOpacity, StyleSheet, Platform, View } from 'react-native';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
-import SkeletonText from '../Ramp/components/SkeletonText';
+import SkeletonText from '../Ramp/Aggregator/components/SkeletonText';
 import { TokenI } from '../Tokens/types';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../component-library/components/Texts/SensitiveText';
+import { fontStyles } from '../../../styles/common';
+import { useTheme } from '../../../util/theme';
+import { Colors } from '../../../util/theme/models';
 import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,
   TOKEN_RATE_UNDEFINED,
 } from '../Tokens/constants';
-import { Colors } from '../../../util/theme/models';
-import { fontStyles } from '../../../styles/common';
-import { useTheme } from '../../../util/theme';
-import SensitiveText, {
-  SensitiveTextLength,
-} from '../../../component-library/components/Texts/SensitiveText';
 import { BALANCE_TEST_ID, SECONDARY_BALANCE_TEST_ID } from './index.constants';
 
 interface AssetElementProps {
@@ -25,8 +25,11 @@ interface AssetElementProps {
   onPress?: (asset: TokenI) => void;
   onLongPress?: ((asset: TokenI) => void) | null;
   balance?: string;
+  balanceVariant?: TextVariant;
   secondaryBalance?: string;
+  secondaryBalanceVariant?: TextVariant;
   privacyMode?: boolean;
+  disabled?: boolean;
 }
 
 const createStyles = (colors: Colors) =>
@@ -35,11 +38,11 @@ const createStyles = (colors: Colors) =>
       flex: 1,
       flexDirection: 'row',
       paddingHorizontal: 15,
-      paddingVertical: 10,
+      paddingVertical: 14,
       alignItems: 'flex-start',
     },
     arrow: {
-      flex: 1,
+      flexShrink: 0,
       alignSelf: 'flex-end',
       alignItems: 'flex-end',
     },
@@ -53,7 +56,6 @@ const createStyles = (colors: Colors) =>
       color: colors.text.alternative,
       paddingHorizontal: 0,
       ...fontStyles.normal,
-      textTransform: 'uppercase',
     },
   });
 
@@ -68,6 +70,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
   onPress,
   onLongPress,
   privacyMode = false,
+  disabled = false,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -84,6 +87,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
   // when privacyMode is true, we should hide the balance and the fiat
   return (
     <TouchableOpacity
+      disabled={disabled}
       onPress={handleOnPress}
       onLongPress={handleOnLongPress}
       style={styles.itemWrapper}
@@ -98,7 +102,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
               asset?.hasBalanceError ||
               asset.balanceFiat === TOKEN_RATE_UNDEFINED
                 ? TextVariant.BodySM
-                : TextVariant.BodyLGMedium
+                : TextVariant.BodyMD
             }
             isHidden={privacyMode}
             length={SensitiveTextLength.Medium}
@@ -114,7 +118,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
         )}
         {secondaryBalance ? (
           <SensitiveText
-            variant={TextVariant.BodyMD}
+            variant={TextVariant.BodySMMedium}
             style={styles.secondaryBalance}
             isHidden={privacyMode}
             length={SensitiveTextLength.Short}

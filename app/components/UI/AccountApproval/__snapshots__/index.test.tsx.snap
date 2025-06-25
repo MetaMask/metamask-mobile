@@ -101,6 +101,7 @@ exports[`AccountApproval should render correctly 1`] = `
     >
       <Text
         allowFontScaling={false}
+        selectable={false}
         style={
           [
             {
@@ -360,7 +361,7 @@ exports[`AccountApproval should render correctly 1`] = `
             }
           >
             (
-            0xC496...a756
+            0xC4966...4a756
             )
           </Text>
         </View>
@@ -412,7 +413,7 @@ exports[`AccountApproval should render correctly 1`] = `
         [
           [
             {
-              "borderRadius": 100,
+              "borderRadius": 12,
               "justifyContent": "center",
               "padding": 15,
             },
@@ -474,7 +475,7 @@ exports[`AccountApproval should render correctly 1`] = `
         [
           [
             {
-              "borderRadius": 100,
+              "borderRadius": 12,
               "justifyContent": "center",
               "padding": 15,
             },

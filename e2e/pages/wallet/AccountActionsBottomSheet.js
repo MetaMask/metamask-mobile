@@ -18,6 +18,12 @@ class AccountActionsBottomSheet {
     );
   }
 
+  get showSrp() {
+    return Matchers.getElementByID(
+      AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE,
+    );
+  }
+
   async tapEditAccount() {
     await Gestures.waitAndTap(this.editAccount);
   }
@@ -26,11 +32,15 @@ class AccountActionsBottomSheet {
     await Gestures.waitAndTap(this.showPrivateKey);
   }
 
+  async tapShowSRP() {
+    await Gestures.waitAndTap(this.showSrp);
+  }
+
   async renameActiveAccount(newName) {
     await this.tapEditAccount();
     await Gestures.clearField(EditAccountNameView.accountNameInput);
-    await TestHelpers.typeTextAndHideKeyboard(
-      EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT,
+    await Gestures.typeTextAndHideKeyboard(
+      EditAccountNameView.accountNameInput,
       newName,
     );
     await EditAccountNameView.tapSave();

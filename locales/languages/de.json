@@ -1,4 +1,56 @@
 {
+  "alert_system": {
+    "alert_modal": {
+      "title": "Benachrichtigung",
+      "checkbox_label": "Ich bin mir des Risikos bewusst und möchte trotzdem fortfahren",
+      "got_it_btn": "Verstanden",
+      "alert_details": "Benachrichtigungsdetails"
+    },
+    "confirm_modal": {
+      "title": "Anfrage mit hohem Risiko",
+      "checkbox_label": "Ich bin mir der Benachrichtigung bewusst und möchte trotzdem fortfahren",
+      "review_alerts": "Alle Benachrichtigungen überprüfen",
+      "message": "Wir empfehlen Ihnen, diese Anfrage abzulehnen. Wenn Sie fortfahren, könnten Sie Ihre Assets gefährden.",
+      "title_blockaid": "Ihre Assets könnten gefährdet sein",
+      "blockaid": {
+        "message": "Wenn Sie diese Anfrage bestätigen, besteht die Gefahr, dass Sie Ihre Assets verlieren. Wir empfehlen Ihnen, diese Anfrage abzubrechen.",
+        "message1": "Wenn Sie diese Anfrage bestätigen, erlauben Sie einem Betrüger, Ihre Assets abzuheben und auszugeben. Sie erhalten sie nicht zurück.",
+        "message2": "Sie senden Ihre Assets an einen Betrüger. Wenn Sie so weitermachen, werden Sie diese Assets verlieren.",
+        "message3": "Wenn Sie fortfahren, könnten alle von Ihnen auf OpenSea gelisteten Assets gefährdet sein.",
+        "message4": "Wenn Sie fortfahren, könnten alle von Ihnen auf Blur gelisteten Assets gefährdet sein.",
+        "message5": "Sie interagieren mit einer bösartigen Website. Wenn Sie fortfahren, werden Sie Ihre Assets verlieren."
+      }
+    },
+    "inline_alert_label": "Benachrichtigung",
+    "review_alerts": "Benachrichtigungen überprüfen",
+    "review_alert": "Benachrichtigung überprüfen",
+    "upgrade_account": {
+      "title": "Aktualisierung Ihres Kontos",
+      "message": "Sie aktualisieren Ihr Konto auf ein Smart-Konto. Sie behalten dieselbe Kontoadresse und profitieren zugleich von schnelleren Transaktionen und niedrigeren Netzwerkgebühren.",
+      "learn_more": "Erfahren Sie mehr"
+    },
+    "domain_mismatch": {
+      "title": "Verdächtige Anmeldeanfrage",
+      "message": "Die Website, die die Anfrage stellt, ist nicht die Website, bei der Sie sich anmelden. Es könnte sich um einen Versuch handeln, Ihre Anmeldedaten zu stehlen."
+    },
+    "insufficient_balance": {
+      "title": "Unzureichende Gelder",
+      "message": "Sie haben nicht genügend %{nativeCurrency} auf Ihrem Konto, um die Netzwerkgebühren zu bezahlen.",
+      "buy_action": "%{nativeCurrency} kaufen"
+    },
+    "signed_or_submitted": {
+      "message": "Eine vorherige Transaktion wird noch unterzeichnet oder übermittelt."
+    },
+    "pending_transaction": {
+      "title": "Ausstehende Transaktion",
+      "message": "Diese Transaktion wird erst ausgeführt, wenn die vorherige Transaktion abgeschlossen ist.",
+      "learn_more": "Erfahren Sie, wie Sie eine Transaktion abbrechen oder beschleunigen."
+    },
+    "batched_unused_approvals": {
+      "title": "Unnötige Genehmigung",
+      "message": "Sie erteilen jemand anderem die Genehmigung, Ihre Token abzuheben, obwohl dies für diese Transaktion nicht erforderlich ist."
+    }
+  },
   "blockaid_banner": {
     "approval_farming_description": "Wenn Sie diese Anfrage genehmigen, könnten Dritte, die für Betrügereien bekannt sind, alle Ihre Assets an sich reißen.",
     "blur_farming_description": "Wenn Sie diese Anfrage genehmigen, kann jemand Ihre auf Blur aufgeführten Assets stehlen.",
@@ -48,10 +100,11 @@
     "connector": "bei"
   },
   "autocomplete": {
-    "placeholder": "",
+    "placeholder": "Suche nach Token, Website oder Adresse",
     "recents": "Aktuelle",
     "favorites": "Favoriten",
-    "sites": "Websites"
+    "sites": "Websites",
+    "tokens": "Tokens"
   },
   "navigation": {
     "back": "Zurück",
@@ -61,7 +114,7 @@
     "ok": "OK"
   },
   "onboarding": {
-    "title": "Wallet-Setup",
+    "title": "Lassen Sie uns anfangen!",
     "sync_desc": "Falls Sie die MetaMask-Erweiterung bereit auf einer anderen Wallet verwenden, synchronisieren oder importieren Sie dieses, um Ihre existierende Assets zu verwalten.",
     "create_desc": "Richten Sie Ihre erste Wallet ein und entdecken Sie, was es mit dezentralisierten Apps auf sich hat.",
     "import": "Existierende Wallet importieren oder eine neue erstellen",
@@ -92,14 +145,16 @@
     "scan_step_3": "Klicken Sie auf „Mit Mobilgerät synchronisieren“.",
     "scan_step_4": "Scannen Sie den QR-Code, um mit der Synchronisierung zu beginnen.",
     "success": "Erfolg",
-    "your_wallet": "Ihre Wallet wurde erfolgreich gelöscht.",
-    "delete_current": "Aktuelle Wallet wird gelöscht"
+    "your_wallet": "Your wallet was successfully reset",
+    "delete_current": "Reset current wallet",
+    "have_existing_wallet": "Ich habe eine bestehende Wallet",
+    "import_using_srp": "Import using Secret Recovery Phrase"
   },
   "onboarding_success": {
-    "title": "Glückwunsch!",
-    "description": "Ihre Wallet ist geschützt und einsatzbereit. Sie finden Ihre geheime Wiederherstellungsphrase unter ",
+    "title": "Keep your Secret Recovery Phrase safe!",
+    "description": "This Secret Recovery Phrase can help you regain access if you ever forget your password or lose access to your login.",
     "description_bold": "Einstellungen > Sicherheit und Datenschutz.",
-    "description_continued": "Bewahren Sie eine Erinnerung an Ihre geheime Wiederherstellungsphrase an einem sicheren Ort auf. Wenn Sie sie verlieren, kann Ihnen niemand helfen, sie wiederzubekommen. Schlimmer noch, Sie werden nie wieder Zugang zu Ihrer Wallet haben.",
+    "description_continued": " you can keep this phrase safe so you never lose access to your money.",
     "learn_more": "Mehr erfahren",
     "learn_how": "Erfahren Sie, wie es funktioniert",
     "leave_hint": "Sich selbst einen Hinweis hinterlassen?",
@@ -108,17 +163,29 @@
     "default_settings_footer": "Die Einstellungen sind für Benutzerfreundlichkeit und Sicherheit optimiert.\nSie können diese jederzeit ändern.",
     "no_srp_title": "Erinnerung eingestellt!",
     "no_srp_description": "Wenn Sie aus der App ausgesperrt werden oder ein neues Gerät erhalten, verlieren Sie Ihre Gelder. Sichern Sie unbedingt Ihre geheime Wiederherstellungsphrase in",
-    "import_title": "Ihre Wallet ist bereit",
-    "import_description": "Denken Sie daran: Wenn Sie Ihre geheime Wiederherstellungsphrase verlieren, verlieren Sie den Zugang zu Ihrer Wallet. ",
-    "import_description2": "um diese Reihe von Wörtern sicher aufzubewahren, damit Sie jederzeit auf Ihre Gelder zugreifen können.",
-    "done": "Fertig"
+    "import_title": "Your Wallet is ready!",
+    "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
+    "import_description2": "you can keep this phrase safe so you never lose access to your money.",
+    "done": "Fertig",
+    "create_hint": "Create a password hint",
+    "hint_title": "Password hint",
+    "hint_description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
+    "hint_description2": "Remember: If you lose your password, you won’t be able to use your wallet.",
+    "hint_button": "Create hint",
+    "hint_placeholder": "e.g. mom’s home",
+    "hint_saved": "Save",
+    "hint_saved_toast": "Password hint saved",
+    "remind_later": "We’ll remind you later",
+    "remind_later_description": "If you don’t back up your Secret Recovery Phrase, you’ll lose access to your funds if you get locked out of the app or get a new device.",
+    "remind_later_description2": "You can back up your wallets or see your Secret Recovery Phrase in",
+    "setting_security_privacy": "Settings > Security & Privacy"
   },
   "onboarding_carousel": {
     "title1": "Willkommen bei MetaMask",
     "title2": "Verwalten Sie Ihre digitalen Assets.",
     "title3": "Ihr Gateway zu web3",
     "subtitle1": "MetaMask ist eine sichere Wallet, der Millionen vertrauen und die die Welt von web3 für alle zugänglich macht.",
-    "subtitle2": "Sie können digitale Assets wie Token, Ethereum und einzigartige Sammlerstücke speichern, ausgeben und versenden.",
+    "subtitle2": "Speichern, geben Sie digitale Assets wie Token, Ethereum und einzigartige Sammlerstücke aus und senden Sie sie.",
     "subtitle3": "Melden Sie sich bei MetaMask an und führen Sie Transaktionen durch, um zu investieren, Geld zu verdienen, Spiele zu spielen und mehr!",
     "get_started": "Fangen Sie an"
   },
@@ -214,18 +281,20 @@
   "login": {
     "title": "Willkommen zurück!",
     "password": "Passwort",
-    "unlock_button": "ENTSPERREN",
+    "password_placeholder": "Enter password",
+    "unlock_button": "Unlock",
     "go_back": "Wallet lässt sich nicht entsperren? Sie können Ihre aktuelle Wallet LÖSCHEN und eine neue einrichten.",
-    "reset_wallet": "Wallet zurücksetzen",
+    "forgot_password": "Forgot password?",
     "cant_proceed": "Sie können nicht fortfahren, bevor Sie das Wort „Löschen (Delete)“ eingeben. Mit dieser Aktion entscheiden Sie sich dazu, Ihre aktuelle Wallet zu löschen.",
-    "invalid_password": "Ungültiges Passwort",
-    "type_delete": "Geben Sie „%{delete}“ ein, um Ihre aktuelle Wallet endgültig zu löschen.",
-    "delete_my": "Meine Wallet löschen",
-    "are_you_sure": "Sind Sie sicher, dass Sie Ihre Wallet löschen möchten?",
-    "your_current_wallet": "Ihre aktuelle Wallet, Konten und Assets werden",
-    "removed_from": "endgültig von dieser App entfernt.",
+    "invalid_password": "Password is incorrect, try again.",
+    "type_delete": "Type ‘%{erase}’ to confirm",
+    "erase_my": "Yes, reset wallet",
+    "cancel": "Cancel",
+    "are_you_sure": "Are you sure?",
+    "your_current_wallet": "Your wallet, accounts, and assets will be",
+    "removed_from": " permanently removed from this app",
     "this_action": "Diese Aktion kann nicht rückgängig gemacht werden.",
-    "you_can_only": "Sie können Ihre Wallet NUR mit Ihrer",
+    "you_can_only": "You can only get this wallet back with the info used when creating it, such as your Secret Recovery Phrase, Google account, or Apple account. MetaMask doesn’t have this info.",
     "recovery_phrase": "Geheime Wiederherstellungsphrase",
     "metamask_does_not": "MetaMask speichert Ihre geheime Wiederherstellungsphrase nicht.",
     "i_understand": "Ich verstehe, fortfahren",
@@ -235,7 +304,21 @@
     "vault_error": "Fehler: Kann ohne vorherigen Vault nicht entsperrt werden.",
     "clean_vault_error": "MetaMask stieß auf einen Fehler aufgrund einer Ausreizung des Speicherlimits. Die lokalen Daten sind beschädigt. Bitte installieren Sie MetaMask erneut und stellen Sie es mit Ihrer geheimen Wiederherstellungsphrase wieder her.",
     "security_alert_title": "Sicherheitsbenachrichtigung",
-    "security_alert_desc": "Um fortzufahren, müssen Sie den Passcode oder eine andere von Ihrem Gerät unterstützte biometrische Authentifizierungsmethode (FaceID, TouchID oder Fingerabdruck) aktivieren."
+    "security_alert_desc": "Um fortzufahren, müssen Sie den Passcode oder eine andere von Ihrem Gerät unterstützte biometrische Authentifizierungsmethode (FaceID, TouchID oder Fingerabdruck) aktivieren.",
+    "forgot_password_desc": "Forgot your password?",
+    "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
+    "forgot_password_point_1": "If you’re logged into MetaMask on a device with",
+    "forgot_password_point_1_bold": "biometrics turned on",
+    "forgot_password_point_1_1": "(like Face ID), you can reset your password there.",
+    "forgot_password_point_2": "If you have your",
+    "forgot_password_point_2_bold": "Secret Recovery Phrase,",
+    "forgot_password_point_2_1": "you can reset your current wallet and reimport using Secret Recovery Phrase.",
+    "reset_wallet": "Reset wallet",
+    "reset_wallet_desc": "Your wallet data will be",
+    "reset_wallet_desc_bold": "permanently erased",
+    "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
+    "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
+    "reset_wallet_desc_srp": "To restore your wallet, you can use your Secret Recovery Phrase. MetaMask doesn’t have this information."
   },
   "connect_hardware": {
     "title_select_hardware": "Verbinden Sie eine Hardware-Wallet",
@@ -249,9 +332,10 @@
     "error": "Fehler"
   },
   "choose_password": {
-    "title": "Passwort erstellen",
+    "title": "MetaMask password",
+    "description": "Unlocks MetaMask on this device only.",
     "subtitle": "Dieses Passwort wird Ihre MetaMask-Wallet nur auf diesem Gerät entsperren.",
-    "password": "Neues Passwort",
+    "password": "Create new password",
     "confirm_password": "Passwort bestätigen",
     "create_button": "Passwort erstellen",
     "import_with_seed_phrase": "Über geheime Wiederherstellungsphrase importieren",
@@ -264,7 +348,7 @@
     "show": "Anzeigen",
     "hide": "Verbergen",
     "seed_phrase": "Geheime Wiederherstellungsphrase",
-    "must_be_at_least": "Muss eine Länge von mindestens {{number}} Zeichen haben",
+    "must_be_at_least": "Das Passwort muss mindestens {{number}} Zeichen lang sein",
     "remember_me": "Angemeldet bleiben",
     "security_alert_title": "Sicherheitsbenachrichtigung",
     "security_alert_message": "Um fortzufahren, müssen Sie den Passcode oder eine andere von Ihrem Gerät unterstützte biometrische Authentifizierungsmethode (FaceID, TouchID oder Fingerabdruck) aktivieren.",
@@ -272,7 +356,10 @@
     "learn_more": "Mehr erfahren.",
     "secure": "Wallet sichern",
     "confirm": "Geheime Wiederherstellungsphrase bestätigen",
-    "disable_biometric_error": "Sie haben Biometrisch-Funktionen für diese App deaktiviert. Aktualisieren Sie Ihre „Angemeldet bleiben“-Einstellungen und versuchen Sie es erneut."
+    "disable_biometric_error": "Sie haben Biometrisch-Funktionen für diese App deaktiviert. Aktualisieren Sie Ihre „Angemeldet bleiben“-Einstellungen und versuchen Sie es erneut.",
+    "create_password_cta": "Create password",
+    "steps": "Schritt {{currentStep}} von {{totalSteps}}",
+    "password_error": "Passwörter stimmen nicht überein. Versuchen Sie es erneut."
   },
   "reset_password": {
     "title": "Passwort ändern",
@@ -302,19 +389,42 @@
     "successfully_changed": "Ihr Password wurde erfolgreich geändert."
   },
   "import_from_seed": {
-    "title": "Import von geheimer Wiederherstellungsphrase",
+    "title": "Wallet importieren",
     "seed_phrase_placeholder": "Geben Sie Ihre geheime Wiederherstellungsphrase ein.",
-    "new_password": "Neues Passwort",
+    "create_new_password": "Create new password",
     "confirm_password": "Passwort bestätigen",
     "import_button": "IMPORTIEREN",
     "cancel_button": "Stornieren",
     "password_length_error": "Das Passwort muss eine Länge von mindestens 8 Zeichen haben.",
     "password_dont_match": "Passwörter stimmen nicht überein",
     "seed_phrase_requirements": "Geheime Wiederherstellungsphrasen enthalten 12, 15. 18, 21 oder 24 Wörter.",
-    "invalid_seed_phrase": "Ungültige geheime Wiederherstellungsphrase",
+    "invalid_seed_phrase": "Geheime Wiederherstellungsphrase nicht gefunden.",
     "error": "Fehler",
     "invalid_qr_code_title": "Ungültiger QR-Code",
-    "invalid_qr_code_message": "Dieser QR-Code repräsentiert keine gültige geheime Wiederherstellungsphrase."
+    "invalid_qr_code_message": "Dieser QR-Code repräsentiert keine gültige geheime Wiederherstellungsphrase.",
+    "enter_your_secret_recovery_phrase": "Geben Sie Ihre geheime Wiederherstellungsphrase ein",
+    "metamask_password": "MetaMask password",
+    "metamask_password_description": "Unlocks MetaMask on this device only.",
+    "seed_phrase_required": "Geheime Wiederherstellungsphrase ist erforderlich",
+    "re_enter_password": "Passwort erneut eingeben",
+    "use_at_least_8_characters": "Verwenden Sie mindestens 8 Zeichen",
+    "unlock_with_face_id": "Mit Face ID entsperren?",
+    "learn_more": "If I forget this password, MetaMask can't recover it for me.",
+    "seed_phrase_length_error": "Geheime Wiederherstellungsphrase muss 12, 15, 18, 21 oder 24 Wörter umfassen",
+    "continue": "Fortfahren",
+    "clear_all": "Alle löschen",
+    "show_all": "Alle anzeigen",
+    "paste": "Einfügen",
+    "hide_all": "Alle verbergen",
+    "srp": "Geheime Wiederherstellungsphrase",
+    "srp_placeholder": "Fügen Sie zwischen jedem Wort ein Leerzeichen ein und stellen Sie sicher, dass niemand zusieht 👀",
+    "learn_more_link": "Mehr erfahren",
+    "create_password_cta": "Create password",
+    "pass_flow": "Mit Flow fortfahren",
+    "steps": "Schritt {{currentStep}} von {{totalSteps}}",
+    "password_error": "Passwörter stimmen nicht überein. Versuchen Sie es erneut.",
+    "spellcheck_error": "Use only lowercase letters, check your spelling, and put the words in the original order.",
+    "enter_strong_password": "Geben Sie ein starkes Passwort ein"
   },
   "bottom_tab_bar": {
     "dapps": "ÐApps",
@@ -360,7 +470,80 @@
     "network_missing_id": "Fehlende Chain-ID."
   },
   "deposit": {
-    "title": "Einzahlen"
+    "title": "Einzahlen",
+    "selectRegion": "Select Region",
+    "chooseYourRegionToContinue": "Choose your region to continue",
+    "buildQuote": {
+      "payWith": "Pay with",
+      "unexpectedError": "An unexpected error occurred.",
+      "quoteFetchError": "Failed to fetch quote.",
+      "kycFormsFetchError": "Failed to fetch KYC forms."
+    },
+    "get_started": {
+      "title": "Top up your wallet with USDC",
+      "bullet_1_title": "Value-backed by the US dollar",
+      "bullet_1_description": "1:1 ratio backing with US dollars.",
+      "bullet_2_title": "Low volatility",
+      "bullet_2_description": "Maintains stable value for reliable transactions.",
+      "bullet_3_title": "Faster than banks",
+      "bullet_3_description": "Quick blockchain transfers beat traditional banking.",
+      "button": "Get started"
+    },
+    "enter_email": {
+      "title": "Geben Sie Ihre E-Mail-Adr. ein",
+      "description": "Wir werden Ihnen einen sechsstelligen Code an Ihre E-Mail senden, um zu überprüfen, ob Sie es sind.",
+      "input_label": "E-Mail-Adr.",
+      "input_placeholder": "name@domain.com",
+      "submit_button": "E-Mail senden",
+      "loading": "E-Mail wird gesendet ...",
+      "validation_error": "Bitte geben Sie eine gültige E-Mail-Adresse ein"
+    },
+    "otp_code": {
+      "title": "Sechsstelligen Code eingeben",
+      "description": "Geben Sie den 6-stelligen Code ein, den wir an {{email}} gesandt haben. Falls der Code nicht in Ihrem Posteingang erscheint, überprüfen Sie Ihren Spam-Ordner.",
+      "submit_button": "Absenden",
+      "loading": "Code wird verifiziert ...",
+      "invalid_code_error": "Ungültiger Code",
+      "validation_error": "Geben Sie bitte einen gültigen Code ein"
+    },
+    "verify_identity": {
+      "title": "Verifizieren Sie Ihre Identität",
+      "description": "Um Bargeld einzahlen zu können, müssen wir Ihre Identität verifizieren. Dies trägt dazu bei, Ihr Konto zu schützen und Ihre Daten vertraulich zu halten.",
+      "privacy_policy_link": "Erfahren Sie in unserer Datenschutzerklärung, wie wir Ihre Privatsphäre schützen.",
+      "button": "Erste Schritte"
+    },
+    "basic_info": {
+      "title": "Geben Sie Ihre grundlegenden Informationen ein",
+      "continue": "Fortfahren",
+      "subtitle": "Um mit der Überprüfung Ihrer Identität zu beginnen, benötigen wir einige grundlegende Informationen."
+    },
+    "enter_address": {
+      "title": "Geben Sie Ihre Adresse ein",
+      "subtitle": "Bitte geben Sie Ihre letzte ständige Adresse ein.",
+      "continue": "Fortfahren",
+      "address_line_1": "Adresszeile 1",
+      "address_line_2": "Adresszeile 2 (optional)",
+      "state": "Bundesland/Region",
+      "city": "Stadt",
+      "postal_code": "Postleitzahl",
+      "country": "Land"
+    },
+    "kyc_processing": {
+      "title": "Verifying your identity",
+      "heading": "Hang tight!\nWe’re verifying your identity now.",
+      "description": "You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.",
+      "button": "Browse tokens",
+      "error_heading": "We were unable to verify your identity.",
+      "error_description": "Try uploading your documents again and resubmit for verification.",
+      "error_button": "Retry verification",
+      "success_heading": "Identity successfully verified!",
+      "success_description": "You can now enter your payment info and complete your deposit.",
+      "success_button": "Complete your order"
+    },
+    "kyc_webview": {
+      "title": "Verifying your identity",
+      "webview_received_error": "WebView received error status code: {{code}}"
+    }
   },
   "receive": {
     "title": "Empfangen"
@@ -382,38 +565,46 @@
     "description": "Wir unterstützen nun mehrere RPCs für ein einzelnes Netzwerk. Ihr aktuellster RPC (ferngesteuerter Prozeduraufruf) wurde standardmäßig ausgewählt, um widersprüchliche Informationen aufzulösen",
     "accept": "Akzeptieren"
   },
-  "nft_details": {
-    "bought_for": "Gekauft für",
-    "highest_floor_price": "Höchster Tiefstpreis",
-    "data_unavailable": "Daten nicht verfügbar",
-    "price_unavailable": "Preis nicht verfügbar",
-    "rank": "Rang",
-    "contract_address": "Contract-Adresse",
-    "token_id": "Token-ID",
-    "token_symbol": "Token-Symbol",
-    "token_standard": "Token-Standard",
-    "date_created": "Datum erstellt",
-    "unique_token_holders": "Einzigartige Token-Inhaber",
-    "tokens_in_collection": "Tokens in der Sammlung",
-    "creator_address": "Adresse des Erstellers",
-    "last_sold": "Zuletzt verkauft",
-    "highest_current_bid": "Höchstes aktuelles Gebot",
-    "options": {
-      "view_on_os": "Auf Opensea ansehen",
-      "remove_nft": "NFT entfernen"
-    },
-    "attributes": "Attribute",
-    "disclaimer": "Haftungsausschluss: MetaMask bezieht die Mediendatei aus der Quell-URL. Diese URL wird manchmal durch den Markt, auf dem die NFT geprägt wurde, geändert."
-  },
   "qr_tab_switcher": {
     "scanner_tab": "QR-Code scannen",
     "receive_tab": "Ihr QR-Code"
+  },
+  "banner": {
+    "bridge": {
+      "title": "Bereit zum Bridgen?",
+      "subtitle": "Bewegen Sie sich über 9 Ketten, alles innerhalb Ihrer Wallet"
+    },
+    "card": {
+      "title": "MetaMask-Karte",
+      "subtitle": "In ausgewählten Regionen verfügbar"
+    },
+    "fund": {
+      "title": "Zahlen Sie Mittel auf Ihre Wallet ein",
+      "subtitle": "Token hinzufügen oder übertragen, um loszulegen"
+    },
+    "cashout": {
+      "title": "Auszahlen mit MetaMask",
+      "subtitle": "Verkaufen Sie Ihre Krypto für Bargeld"
+    },
+    "aggregated": {
+      "title": "Ihr Kontostand wird aggregiert",
+      "subtitle": "Kontrollieren Sie Ihre Kontostandansicht in den Einstellungen"
+    },
+    "multisrp": {
+      "title": "Mehrere geheime Wiederherstellungsphrasen hinzufügen",
+      "subtitle": "Mehrere Wallets in MetaMask importieren und verwenden"
+    },
+    "solana": {
+      "title": "Solana wird jetzt unterstützt",
+      "subtitle": "Erstellen Sie ein Solana-Konto, um loszulegen"
+    }
   },
   "wallet": {
     "title": "Wallet",
     "tokens": "TOKEN",
     "collectible": "Sammlerstück",
     "collectibles": "NFTs",
+    "defi": "DeFi",
     "transactions": "TRANSAKTIONEN",
     "no_collectibles": "Sehen Sie Ihr NFT nicht?",
     "no_available_tokens": "Sehen Sie Ihr Token nicht?",
@@ -444,6 +635,7 @@
     "sort_by": "Sortieren nach",
     "filter_by": "Filtern nach",
     "current_network": "Aktuelles Netzwerk",
+    "popular_networks": "Beliebte Netzwerke",
     "all_networks": "Alle Netzwerke",
     "declining_balance": "Abnehmender Kontostand ({{currency}} hoch-niedrig)",
     "alphabetically": "Alphabetisch (A-Z)",
@@ -495,7 +687,7 @@
     "logout_to_import_seed": "Sie müssen sich erst abmelden, um eine geheime Wiederherstellungsphrase zu importieren.",
     "ready_to_explore": "Sind Sie bereit, mit der Erforschung von Blockchain-Applikationen zu beginnen?",
     "unable_to_load": "Guthaben konnte nicht geladen werden",
-    "unable_to_find_conversion_rate": "Finden des Umrechungswechselkurs nicht möglich",
+    "unable_to_find_conversion_rate": "Kein Umrechnungskurs",
     "display_nft_media_desc": "Zum NFT-Import aktivieren Sie „NFT-Medien anzeigen“ unter Einstellungen > Sicherheit und Datenschutz.",
     "display_nft_media_cta": "„NFT-Medien anzeigen“ aktivieren",
     "display_media_nft_warning": "Das Anzeigen von NFT-Medien und -Daten könnte Ihre IT-Adresse an zentralisierte Server weitergeben. Importieren Sie nur dann ein NFT, wenn Sie sich über die damit verbundenen Risiken im Klaren sind.",
@@ -524,6 +716,29 @@
       "token_details": "Token-Details",
       "remove_token": "Token entfernen"
     }
+  },
+  "nft_details": {
+    "bought_for": "Gekauft für",
+    "highest_floor_price": "Höchster Tiefstpreis",
+    "data_unavailable": "Daten nicht verfügbar",
+    "price_unavailable": "Preis nicht verfügbar",
+    "rank": "Rang",
+    "contract_address": "Contract-Adresse",
+    "token_id": "Token-ID",
+    "token_symbol": "Token-Symbol",
+    "token_standard": "Token-Standard",
+    "date_created": "Datum erstellt",
+    "unique_token_holders": "Einzigartige Token-Inhaber",
+    "tokens_in_collection": "Tokens in der Sammlung",
+    "creator_address": "Adresse des Erstellers",
+    "last_sold": "Zuletzt verkauft",
+    "highest_current_bid": "Höchstes aktuelles Gebot",
+    "options": {
+      "view_on_os": "Auf Opensea ansehen",
+      "remove_nft": "NFT entfernen"
+    },
+    "attributes": "Attribute",
+    "disclaimer": "Haftungsausschluss: MetaMask bezieht die Mediendatei aus der Quell-URL. Diese URL wird manchmal durch den Markt, auf dem die NFT geprägt wurde, geändert."
   },
   "activity_view": {
     "title": "Aktivität"
@@ -554,6 +769,19 @@
       "custom_security_tips": "Sicherheitstipps"
     }
   },
+  "defi_positions": {
+    "loading_positions": "DeFi-Positionen werden geladen ...",
+    "no_positions": "Noch keine Positionen",
+    "error_cannot_load_page": "Wir konnten diese Seite nicht laden.",
+    "error_visit_again": "Versuchen Sie es später erneut.",
+    "single_token": "Nur {{symbol}}",
+    "two_tokens": "{{symbol}} +1 weiterer",
+    "multiple_tokens": "{{symbol}} +{{count}} weitere",
+    "supply": "Versorgt",
+    "stake": "Eingesetzt",
+    "borrow": "Geliehen",
+    "reward": "Belohnungen"
+  },
   "terms_and_conditions": {
     "title": "Geschäftsbedingungen",
     "description": "Wenn Sie fortfahren, stimmen Sie den",
@@ -574,9 +802,9 @@
     "action_description_1_prefix": "Privat:",
     "action_description_2_prefix": "Allgemein:",
     "action_description_3_prefix": "Optional:",
-    "action_description_1_description": "Klicks und Aufrufe der App werden gespeichert, andere Details (wie Ihre öffentliche Adresse) jedoch nicht.",
-    "action_description_2_description": "Wir verwenden Ihre IP-Adresse vorübergehend, um einen allgemeinen Standort zu ermitteln (z. B. Ihr Land oder Ihre Region), aber er wird niemals gespeichert.",
-    "action_description_3_description": "Sie können jederzeit über die Einstellungen entscheiden, ob Sie Ihre Nutzungsdaten freigeben oder löschen möchten.",
+    "action_description_1_description": "Clicks and views on the app are stored, but other details (like your public address) are not.",
+    "action_description_2_description": "We temporarily use your IP address to detect a general location (like your country or region), but it's never stored.",
+    "action_description_3_description": "You decide if you want to share or delete your usage data via settings any time.",
     "cta_no_thanks": "Nein, danke!",
     "cta_i_agree": "Ich stimme zu",
     "fine_print_1_legacy": "Diese Daten werden gesammelt und sind daher im Rahmen der Datenschutz-Grundverordnung (EU) 2016/679 anonym.",
@@ -634,7 +862,8 @@
     "circulating_supply": "Zirkulierende Versorgung",
     "all_time_high": "Allzeithoch",
     "all_time_low": "Allzeittief",
-    "fully_diluted": "Vollständig verwässert"
+    "fully_diluted": "Vollständig verwässert",
+    "unknown": "Unbekannt"
   },
   "collectible": {
     "collectible_address": "Adresse",
@@ -668,8 +897,10 @@
     "receive": "EMPFANGEN"
   },
   "accounts": {
+    "srp_index": "GWP #{{index}}",
     "snap_account_tag": "Snaps (Beta)",
     "create_new_account": "Neues Konto erstellen",
+    "new_account": "Neues Konto",
     "import_account": "Ein Konto importieren",
     "connect_hardware": "Hardware-Wallet verknüpfen",
     "imported": "Importiert",
@@ -693,6 +924,7 @@
     "select_accounts_description": "Wählen Sie das/die Konto/Konten, das/die Sie auf dieser Website verwenden möchten:",
     "connect_multiple_accounts": "Mehrere Konten verbinden",
     "connect_more_accounts": "Mehr Konten verbinden",
+    "add": "Hinzufügen",
     "cancel": "Stornieren",
     "connect": "Verbinden",
     "connect_with_count": "{{countLabel}} verbinden",
@@ -720,7 +952,29 @@
     "potential_threat": "Mögliche Bedrohungen umfassen",
     "fake_metamask": "Fake-Version von MetaMask",
     "srp_theft": "Diebstahl der geheimen Wiederherstellungsphrase oder des Passworts",
-    "malicious_transactions": "Böswillige Transaktionen, die zu gestohlenen Assets führen"
+    "malicious_transactions": "Böswillige Transaktionen, die zu gestohlenen Assets führen",
+    "secret_recovery_phrase": "Geheime Wiederherstellungsphrase",
+    "account_name": "Kontoname",
+    "select_secret_recovery_phrase": "Geheime Wiederherstellungsphrase auswählen",
+    "reveal_secret_recovery_phrase": "Geheime Wiederherstellungsphrase offenlegen",
+    "add_new_hd_account_helper_text": "Die geheime Wiederherstellungsphrase, aus der Ihr neues Konto generiert wird",
+    "accounts": "Konten",
+    "show_accounts": "Anzeigen",
+    "hide_accounts": "Verbergen",
+    "labels": {
+      "bitcoin_testnet_account_name": "Bitcoin-Testnet-Konto",
+      "bitcoin_account_name": "Bitcoin-Konto",
+      "solana_devnet_account_name": "Solana-Devnet-Konto",
+      "solana_testnet_account_name": "Solana-Testnet-Konto",
+      "solana_account_name": "Solana-Konto"
+    },
+    "error_messages": {
+      "failed_to_create_account": "Erstellung von {{clientType}}-Konto fehlgeschlagen"
+    },
+    "account_connect_create_initial_account": {
+      "description": "Für die Verbindung mit dieser Website ist ein Solana-Konto erforderlich.",
+      "button": "Solana-Konto erstellen"
+    }
   },
   "toast": {
     "connected_and_active": "verbunden und aktiv.",
@@ -773,13 +1027,12 @@
   },
   "app_settings": {
     "enabling_notifications": "Benachrichtigungen aktivieren ...",
-    "disabling_notifications": "Benachrichtigungen deaktivieren ...",
+    "updating_notifications": "Aktualisierung der Benachrichtigungen ...",
+    "updating_account_settings": "Aktualisierung der Kontoeinstellungen ...",
     "reset_notifications_title": "Benachrichtigungen zurücksetzen",
     "reset_notifications_description": "Das Zurücksetzen von Benachrichtigungen führt zum Löschen Ihrer Speicherschlüssel für Benachrichtigungen sowie zum Zurücksetzen Ihres gesamten Benachrichtigungsverlaufs. Möchten Sie diesen Vorgang wirklich fortsetzen?",
     "reset_notifications": "Benachrichtigungen zurücksetzen",
     "reset_notifications_success": "Der Speicherungsschlüssel für Benachrichtigungen wurde gelöscht/neu erstellt und der Benachrichtigungsverlauf zurückgesetzt.",
-    "enabling_profile_sync": "Aktivierung der Profilsynchronisierung ...",
-    "disabling_profile_sync": "Deaktivierung der Profilsynchronisierung ...",
     "notifications_dismiss_modal": "Verwerfen",
     "select_rpc_url": "RPC-URL auswählen",
     "title": "Einstellungen",
@@ -827,9 +1080,9 @@
     "clear_browser_cookies_desc": "Browser-Cookies löschen",
     "clear": "LÖSCHEN",
     "protect_cta": "Schützen",
-    "protect_title": "Schützen Sie Ihre Wallet.",
+    "protect_title": "Wallet recovery",
     "video_failed": "Video konnte nicht geladen werden.",
-    "protect_desc": "Schützen Sie Ihre Wallet, indem Sie Ihre geheime Wiederherstellungsphrase an einem Ort speichern, zu dem nur Sie Zugriff haben und den Sie nicht vergessen werden. Bewahren Sie sie zur Gewährleistung der größtmöglichen Sicherheit offline auf.",
+    "protect_desc": "Back up your Secret Recovery Phrase so you never lose access to your wallet. Be sure to store it in a safe place that only you can access and won’t forget.",
     "protect_desc_no_backup": "Dies ist die 12-Worte-Phrase Ihrer Wallet. Diese Phrase kann verwendet werden, um die Kontrolle über alle Ihre aktuellen und zukünftigen Konten zu erlangen, einschließlich der Möglichkeit, Gelder auf Ihre Wallet zu überweisen. Bewahren Sie diese Phrase sicher auf, TEILEN SIE sie mit niemanden. MetaMask kann Ihnen nicht dabei helfen, diesen Schlüssel wiederzufinden.",
     "learn_more": "Mehr erfahren.",
     "seedphrase_not_backed_up": "Wichtig! Es wurde kein Backup der geheimen Wiederherstellungsphrase erstellt.",
@@ -864,6 +1117,7 @@
     "notifications_title": "Benachrichtigungen",
     "notifications_desc": "Verwalten Sie Ihre Benachrichtigungen",
     "allow_notifications": "Benachrichtigungen erlauben",
+    "enable_push_notifications": "Push-Benachrichtigungen aktivieren",
     "allow_notifications_desc": "Bleiben Sie mit Benachrichtigungen stets darüber auf dem Laufenden, was in Ihrer Wallet passiert. Zur Nutzung von Benachrichtigungen verwenden wir ein Profil, um bestimmte Einstellungen auf Ihren Geräten zu synchronisieren.",
     "notifications_opts": {
       "customize_session_title": "Passen Sie Ihre Benachrichtigungen an",
@@ -889,7 +1143,7 @@
     "no_permissions_desc": "Wenn Sie ein Konto mit einer Website oder einer App verbinden, wird es hier angezeigt.",
     "security_title": "Sicherheit und Datenschutz",
     "back": "Zurück",
-    "security_desc": "Datenschutzeinstellungen, MetaMetrics, privater Schlüssel und geheime Wiederherstellungsphrase für die Wallet",
+    "security_desc": "Privacy settings, MetaMetrics, private key, and Secret Recovery Phrase.",
     "networks_title": "Netzwerke",
     "networks_default_title": "Standardnetzwerk",
     "network_delete": "Wenn Sie dieses Netzwerk löschen, müssen Sie es erneut hinzufügen, um Ihre Assets in diesem Netzwerk anzuzeigen",
@@ -902,6 +1156,8 @@
     "network_rpc_url_label": "RPC-URL",
     "network_rpc_name_label": "RPC-Name",
     "network_rpc_placeholder": "Neues RPC-Netzwerk",
+    "network_failover_rpc_url_label": "RPC-URL-Failover",
+    "failover": "Failover",
     "network_chain_id_label": "Chain-ID",
     "network_chain_id_placeholder": "Chain-ID",
     "network_symbol_label": "Symbol",
@@ -918,6 +1174,7 @@
     "remove_network": "Entfernen",
     "cancel_remove_network": "Stornieren",
     "info_title": "Über MetaMask",
+    "info_title_beta": "Über MetaMask Beta",
     "info_title_flask": "Über MetaMask Flask",
     "experimental_title": "Experimentell",
     "experimental_desc": "WalletConnect und mehr ...",
@@ -1032,7 +1289,9 @@
       "key": "Schlüssel",
       "add": "Hinzufügen",
       "update": "Update",
-      "cancel": "Stornieren"
+      "cancel": "Stornieren",
+      "deposit_provider_logout_button": "Log out of {{depositProviderName}}",
+      "deposit_provider_logged_out": "Logged out of {{depositProviderName}}"
     },
     "request_feature": "Eine Funktion anfragen",
     "contact_support": "Support kontaktieren",
@@ -1047,6 +1306,11 @@
     "snaps": {
       "title": "Snaps",
       "description": "Überblicken und verwalten Sie Ihre Snaps",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Öffnet in einem neuen Tab"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Snap entfernen",
         "remove_snap_section_description": "Diese Aktion löscht den Snap, seine Daten und die ihm erteilten Berechtigungen.",
@@ -1103,7 +1367,13 @@
           "endowment:caveat:transaction-origin": "Ursprünge von Websites ansehen, die Transaktionen vorschlagen",
           "endowment:extend-runtime": "Laufzeit verlängern",
           "snap_dialog": "Benutzerdefinierte Dialoge anzeigen",
-          "snap_manageAccounts": "Ethereum-Konten hinzufügen und kontrollieren"
+          "snap_manageAccounts": "Ethereum-Konten hinzufügen und kontrollieren",
+          "endowment:signature-insight": "Modale Anzeige von Signatur-Einsichten",
+          "endowment:protocol": "Bereitstellung von Protokolldaten zu einer oder mehreren Chains",
+          "snap_getPreferences": "Anzeige von Details wie Ihre bevorzugte Sprache und Fiat-Währung",
+          "endowment:lifecycle-hooks": "Verwendung von Lifecycle-Hooks",
+          "endowment:name-lookup": "Bereitstellung von Domain- und Adressabfragen",
+          "endowment:page-home": "Anzeige eines benutzerdefinierten Bildschirms"
         }
       }
     },
@@ -1117,7 +1387,10 @@
     "blockaid_desc": "Diese Funktion warnt Sie durch die aktive Überprüfung von Transaktions- und Signaturanfragen vor bösartigen Aktivitäten.",
     "security_alerts": "Sicherheitsbenachrichtigungen",
     "security_alerts_desc": "Diese Funktion warnt Sie vor bösartigen Aktivitäten, indem sie Ihre Transaktions- und Signaturanfragen lokal überprüft. Führen Sie immer Ihre eigene Prüfung durch, bevor Sie Anfragen genehmigen. Es gibt keine Garantie dafür, dass diese Funktion alle bösartigen Aktivitäten erkennt. Mit der Aktivierung dieser Funktion erklären Sie sich mit den Nutzungsbedingungen des Anbieters einverstanden.",
+    "dismiss_smart_account_update_heading": "Vorschlag „Zum Smart-Konto wechseln“ ablehnen",
+    "dismiss_smart_account_update_desc": "Schalten Sie dies ein, um den Vorschlag „Zum Smart-Konto wechseln“ für kein Konto mehr anzuzeigen. Smart-Konten ermöglichen schnellere Transaktionen, niedrigere Netzwerkgebühren und mehr Flexibilität bei der Zahlung.",
     "smart_transactions_opt_in_heading": "Smart Transactions",
+    "smart_transactions_opt_in_desc_supported_networks": "Schalten Sie Smart Transactions für zuverlässigere und sicherere Transaktionen auf unterstützten Netzwerken ein.",
     "smart_transactions_learn_more": "Erfahren Sie mehr.",
     "simulation_details": "Geschätzte Kontostandänderungen",
     "simulation_details_description": "Schalten Sie dies ein, um die Kontostandänderungen von Transaktionen zu schätzen, bevor Sie sie bestätigen. Dies ist keine Garantie für das endgültige Ergebnis Ihrer Transaktionen. ",
@@ -1259,7 +1532,8 @@
     "password_title": "Passwort",
     "password_desc": "Legen Sie ein starkes Passwort fest, um die MetaMask-App auf Ihrem Gerät zu aktivieren. Wenn Sie dieses Passwort verlieren, benötigen Sie Ihre geheime Wiederherstellungsphrase, um Ihre Wallet erneut zu importieren.",
     "password_learn_more": "Mehr erfahren.",
-    "change_password": "Passwort ändern"
+    "change_password": "Passwort ändern",
+    "password_hint": "Password hint"
   },
   "asset_overview": {
     "send_button": "Senden",
@@ -1280,8 +1554,8 @@
       "swap": "Swapping wird für dieses Konto nicht unterstützt",
       "bridge": "Bridging wird für dieses Konto nicht unterstützt",
       "send": "Senden wird für dieses Konto nicht unterstützt",
-      "earn": "Verdienen wird für dieses Konto nicht unterstützt",
-      "action": "Diese Aktion wird für dieses Konto nicht unterstützt"
+      "action": "Diese Aktion wird für dieses Konto nicht unterstützt",
+      "earn": "Verdienen wird für dieses Konto nicht unterstützt"
     },
     "description": "Beschreibung",
     "totalSupply": "Gesamtvorrat",
@@ -1416,6 +1690,7 @@
     "gas_fee_slow": "LANGSAM",
     "hex_data": "Hex-Daten",
     "custom_nonce": "Nonce",
+    "custom_nonce_tooltip": "Dies ist die Transaktionsnummer eines Kontos. Der Nonce für die erste Transaktion beträgt 0 und steigt in sequenzieller Reihenfolge an.",
     "this_is_an_advanced": "Dies ist eine erweiterte Funktion zum Stornieren oder Beschleunigen ausstehender Transaktionen.",
     "current_suggested_nonce": "Aktuelle empfohlene Nonce:",
     "edit_transaction_nonce": "Transaktions-Nonce anpassen",
@@ -1595,7 +1870,6 @@
     "share": "Teilen",
     "bookmark": "Lesezeichen erstellen",
     "add_to_favorites": "Zu Favoriten hinzufügen",
-    "go_to_favorites": "Zu Favoriten gehen",
     "error": "Fehler",
     "cancel": "Stornieren",
     "go_back": "Zurück",
@@ -1617,6 +1891,9 @@
     "tabs_done": "Fertig",
     "no_tabs_title": "Keine offenen Tabs",
     "no_tabs_desc": "Öffnen Sie einen neuen Tab, um im dezentralisieren Web zu surfen.",
+    "got_it": "Verstanden",
+    "max_tabs_title": "Maximale Anzahl an Tabs erreicht",
+    "max_tabs_desc": "Derzeit können nur fünf Tabs gleichzeitig geöffnet werden. Bitte schließen Sie vorhandene Tabs, bevor Sie neue hinzufügen.",
     "failed_to_resolve_ens_name": "Wir konnten diesen ENS-Namen nicht auflösen.",
     "remove_bookmark_title": "Favoriten entfernen",
     "remove_bookmark_msg": "Möchten Sie diese Seite wirklich aus Ihren Favoriten entfernen?",
@@ -1668,6 +1945,8 @@
     "tx_review_staking_claim": "Staking-Anspruch",
     "tx_review_staking_deposit": "Staking-Einzahlung",
     "tx_review_staking_unstake": "Unstaken",
+    "tx_review_lending_deposit": "Lending Deposit",
+    "tx_review_lending_withdraw": "Lending Withdrawal",
     "sent_ether": "Ether senden",
     "self_sent_ether": "Senden Sie sich selbst Ether.",
     "received_ether": "Ether empfangen",
@@ -1682,12 +1961,16 @@
     "sent_collectible": "Sammlerstück senden",
     "sent": "Versendet",
     "received": "Empfangen",
+    "receive": "Empfangen",
+    "swap": "Swap",
+    "send": "Senden",
     "contract_deploy": "Contract-Einsatz",
     "to_contract": "Neuer Contract",
     "tx_details_free": "Kostenlos",
     "tx_details_not_available": "Nicht verfügbar",
     "smart_contract_interaction": "Smart Contract-Interaktion",
     "swaps_transaction": "Swaps-Transaktion",
+    "bridge_transaction": "Bridge",
     "approve": "Genehmigen",
     "increase_allowance": "Zulage erhöhen",
     "set_approval_for_all": "Erlaubnis für alle erteilen",
@@ -1705,6 +1988,7 @@
     "gas_price": "Gas-Preis (GWEI)",
     "base_fee": "Grundgebühr (GWEI)",
     "priority_fee": "Prioritätsgebühr (GWEI)",
+    "multichain_priority_fee": "Prioritätsgebühr",
     "max_fee": "Max. Gebühr pro Gas",
     "total": "Gesamt",
     "view_on": "ANSEHEN AUF",
@@ -1728,7 +2012,45 @@
     "sign_description_1": "Nachdem Sie sich mit Ihrer Hardware-Wallet angemeldet haben,",
     "sign_description_2": "tippen Sie auf „Signatur abrufen“.",
     "sign_get_signature": "Signatur abrufen",
-    "network_fee": "Netzwerkgebühr"
+    "transaction_id": "Transaktions-ID",
+    "network": "Netzwerk",
+    "request_from": "Anfrage von",
+    "network_fee": "Netzwerkgebühr",
+    "network_fee_tooltip": "Der für die Bearbeitung der Transaktion im Netzwerk gezahlte Betrag.",
+    "smart_account_upgrade": "Auf Smart-Konto upgraden",
+    "smart_account_downgrade": "Zum Standardkonto wechseln",
+    "batched_transactions": "Gestapelte Transaktionen",
+    "gas_modal": {
+      "edit_network_fee": "Netzwerk-Gebühr bearbeiten",
+      "advanced_gas_fee": "Erweiterte Netzwerkgebühr",
+      "site_suggested": "Website vorgeschlagen",
+      "advanced": "Erweitert",
+      "low": "Niedrig",
+      "medium": "Markt",
+      "high": "Aggressiv",
+      "network_suggested": "Netzwerk vorgeschlagen",
+      "gas_limit": "Gas-Limit",
+      "save": "Speichern",
+      "max_base_fee": "Max. Grundgebühr",
+      "priority_fee": "Prioritätsgebühr",
+      "current_priority_fee": "Aktuell: {{min}} bis {{max}} GWEI",
+      "historical_priority_fee": "12 Std.: {{min}} bis {{max}} GWEI",
+      "estimated_base_fee": "Aktuell: {{value}} GWEI",
+      "historical_base_fee": "12 Std.: {{min}} bis {{max}} GWEI",
+      "gas_price": "Gas-Preis",
+      "field_required": "{{field}} ist erforderlich",
+      "max_base_fee_required": "Max. Grundgebühr ist erforderlich",
+      "gas_price_required": "Gas-Preis ist erforderlich",
+      "priority_fee_required": "Prioritätsgebühr ist erforderlich",
+      "gas_limit_required": "Gas-Limit ist erforderlich",
+      "only_numbers_allowed": "Nur Zahlen sind erlaubt",
+      "negative_values_not_allowed": "Negative Werte sind nicht erlaubt",
+      "max_base_fee_must_be_greater_than_priority_fee": "Max. Grundgebühr muss höher sein als die Prioritätsgebühr",
+      "gas_limit_too_low": "Gas-Limit muss größer als 21000 sein",
+      "priority_fee_too_high": "Prioritätsgebühr muss niedriger sein als die max. Grundgebühr",
+      "no_zero_value": "{{field}} muss größer als 0 sein",
+      "speed": "Geschwindigkeit"
+    }
   },
   "smart_transactions": {
     "status_submitting_header": "Übermittlung Ihrer Transaktion",
@@ -1840,6 +2162,7 @@
     "you_can": "Sie können aber auch",
     "add_network": "weitere Netzwerke manuell hinzufügen.",
     "add_specific_network": "{{network_name}} hinzufügen",
+    "update_network": "{{network_name}} aktualisieren",
     "select_network": "Netzwerk wählen",
     "enabled_networks": "Aktivierte Netzwerke",
     "additional_networks": "Zusätzliche Netzwerke",
@@ -1875,7 +2198,11 @@
     "this_site_cant": "Diese Website kann nicht mit Ihrem aktuellen Netzwerk verwendet werden. Fügen Sie Netzwerkgenehmigungen hinzu oder wählen Sie ein bereits genehmigtes Netzwerk.",
     "non_permitted_network_description": "Diese Website kann nicht mit Ihrem aktuellen Netzwerk verwendet werden. Fügen Sie Netzwerkgenehmigungen hinzu oder wählen Sie ein bereits genehmigtes Netzwerk.",
     "edit_permissions": "Genehmigungen bearbeiten",
-    "permitted_networks_info_sheet_description": "Dies ist eine Liste der von Ihnen zuvor für diese Website genehmigten Netzwerke. Wählen Sie eines aus der Liste aus oder bearbeiten Sie die Netzwerkgenehmigungen für diese Website."
+    "permitted_networks_info_sheet_description": "Dies ist eine Liste der von Ihnen zuvor für diese Website genehmigten Netzwerke. Wählen Sie eines aus der Liste aus oder bearbeiten Sie die Netzwerkgenehmigungen für diese Website.",
+    "connect_an_account": "Ein Konto verbinden"
+  },
+  "account_dapp_connections": {
+    "account_summary_header": "Diese Website mit MetaMask verbinden"
   },
   "select": {
     "cancel": "Stornieren",
@@ -1966,6 +2293,31 @@
     "title": "Konto erfolgreich importiert!",
     "description_one": "Sie können Ihr Konto nun in MetaMask einsehen."
   },
+  "import_new_secret_recovery_phrase": {
+    "title": "Geheime Wiederherstellungsphrase importieren",
+    "description": "Geben Sie die geheime Wiederherstellungsphrase Ihrer Wallets ein. Sie können jede geheime Wiederherstellungsphrase von Ethereum, Solana oder Bitcoin importieren.",
+    "subtitle": "Fügen Sie Ihre geheime Wiederherstellungsphrase ein",
+    "cta_text": "Fortfahren",
+    "paste": "Einfügen",
+    "clear": "Alle löschen",
+    "srp_number_of_words_option_title": "Anzahl der Wörter",
+    "12_word_option": "Ich habe eine 12-Wort-Phrase",
+    "24_word_option": "Ich habe eine 24-Wort-Phrase",
+    "error_title": "Etwas ist schiefgelaufen",
+    "error_message": "Wir konnten die geheime Wiederherstellungsphrase nicht importieren. Bitte überprüfen Sie, ob Sie sie korrekt eingegeben haben.",
+    "error_empty_message": "Sie müssen Ihre geheime Wiederherstellungsphrase eingeben.",
+    "error_number_of_words_error_message": "Geheime Wiederherstellungsphrasen enthalten 12 oder 24 Wörter",
+    "error_srp_is_case_sensitive": "Ungültige Eingabe! Bei der geheimen Wiederherstellungsphrase wird zwischen Groß- und Kleinschreibung unterschieden.",
+    "error_srp_word_error_1": "Wort ",
+    "error_srp_word_error_2": " ist falsch oder falsch geschrieben.",
+    "error_multiple_srp_word_error_1": "Wort ",
+    "error_multiple_srp_word_error_2": " und ",
+    "error_multiple_srp_word_error_3": " sind falsch oder falsch geschrieben.",
+    "error_invalid_srp": "Geheime Wiederherstellungsphrase ungültig",
+    "error_duplicate_srp": "Diese geheime Wiederherstellungsphrase wurde bereits importiert.",
+    "success_1": "Geheime Wiederherstellungsphrase",
+    "success_2": "importiert"
+  },
   "first_incoming_transaction": {
     "title": "{{asset}} wurde Ihrem Konto gutgeschrieben.",
     "amount": "Betrag:",
@@ -1982,7 +2334,8 @@
     "info_text_1": "Nehmen Sie sich etwas Zeit, um die Einrichtung Ihrer MetaMask-Wallet abzuschließen.",
     "info_text_2": "Dadurch wird sichergestellt, dass nur Sie auf Ihre Gelder zugreifen können, und Sie können Ihre Wallet wiederherstellen, wenn Sie Ihr Gerät verlieren.",
     "cta_text": "Passwort erstellen",
-    "creating_password": "Passwort wird erstellt ..."
+    "creating_password": "Passwort wird erstellt ...",
+    "srp_list_selection": "Geheime Wiederherstellungsphrase auswählen"
   },
   "account_backup_step_1": {
     "remind_me_later": "Später erinnern",
@@ -1992,16 +2345,21 @@
     "info_text_1_2": "Geheime Wiederherstellungsphrase",
     "info_text_1_3": "an einem sicheren Ort aufbewahren bzw. speichern.",
     "info_text_1_4": "Dies ist die einzige Möglichkeit, auf die Sie Ihre Wallet wiederherstellen können, wenn Sie aus der App ausgesperrt werden oder ein neues Gerät kaufen.",
-    "cta_text": "Start",
+    "cta_text": "Get started",
     "cta_subText": "Nachdrücklich empfohlen",
     "skip_button_cancel": "Jetzt sichern",
     "skip_button_confirm": "Überspringen",
     "skip_title": "Kontosicherheit überspringen?",
-    "skip_check": "Ich bin mir bewusst, dass ich nicht auf mein Konto zugreifen kann, wenn ich meine geheime Wiederherstellungsphrase verliere.",
-    "what_is_seedphrase_title": "Was ist eine „geheime Wiederherstellungsphrase“?",
-    "what_is_seedphrase_text_1": "Eine geheime Wiederherstellungsphrase ist eine Kombination aus 12 Worten, die alle Informationen über Ihre Wallet beinhalten, einschließlich Ihrer Gelder. Es ist ein Geheimcode, um vollständig auf Ihre Wallet zugreifen zu können.",
+    "skip_check": "If you lose this Secret Recovery Phrase, you won’t be able to access this wallet.",
+    "what_is_seedphrase_title": "What’s a Secret Recovery Phrase?",
+    "what_is_seedphrase_text_1": "A Secret Recovery Phrase, also called a seed phrase or mnemonic, is a set of words that lets you access and control your crypto wallet. To move your wallet to MetaMask, you need this phrase.",
     "what_is_seedphrase_text_2": "Sie müssen Ihre geheime Wiederherstellungsphrase an einem geheimen und sicheren Ort aufbewahren. Wenn jemand ihre geheime Wiederherstellungsphrase in die Hände bekommt, erhält diese Person die vollständige Kontrolle über Ihre Konten.",
-    "what_is_seedphrase_text_3": "Bewahren Sie sie an einem Ort auf, zu dem nur Sie Zugang haben. Wenn Sie sie verlieren, kann Ihnen nicht einmal MetaMask dabei helfen, sie wiederherzustellen."
+    "what_is_seedphrase_text_3": "Bewahren Sie sie an einem Ort auf, zu dem nur Sie Zugang haben. Wenn Sie sie verlieren, kann Ihnen nicht einmal MetaMask dabei helfen, sie wiederherzustellen.",
+    "what_is_seedphrase_text_4": "Anyone with your Secret Recovery Phrase can:",
+    "seedPhrase_point_1": "Take all your money",
+    "seedPhrase_point_2": "Confirm transactions",
+    "seedPhrase_point_3": "Change your login information",
+    "what_is_seedphrase_confirm": "Got it"
   },
   "account_backup_step_1B": {
     "title": "Sichern Sie Ihre Wallet.",
@@ -2092,25 +2450,40 @@
     "progressThree": "Geheime Wiederherstellungsphrase bestätigen"
   },
   "manual_backup_step_1": {
-    "action": "Schreiben Sie Ihre geheime Wiederherstellungsphrase auf.",
-    "info": "Dies ist Ihre geheime Wiederherstellungsphrase. Schreiben Sie sie auf ein Blatt Papier und bewahren Sie sie an einem sicheren Ort auf. Im nächsten Schritt werden Sie aufgefordert, diese Phrase (in der richtigen Reihenfolge) erneut einzugeben.",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Save your Secret Recovery Phrase",
+    "info-1": "This is your",
+    "info-2": "Secret Recovery Phrase",
+    "info-3": "Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.",
+    "info-4": "Don’t share it with anyone, ever.",
     "continue": "Weiter",
-    "reveal": "Zum Einsehen Ihrer geheime Wiederherstellungsphrase tippen",
+    "reveal": "Tap to reveal",
     "watching": "Stellen Sie sicher, dass Ihnen niemand auf den Bildschirm schaut.",
     "view": "Ansehen",
     "confirm_password": "Bestätigen Sie Ihr Passwort.",
     "before_continiuing": "Bevor Sie fortfahren können, müssen Sie Ihr Passwort bestätigen.",
-    "confirm": "BESTÄTIGEN",
+    "enter_current_password": "Enter your current password",
+    "confirm": "Confirm",
     "got_it": "Verstanden",
-    "learn_more": "Mehr erfahren"
+    "learn_more": "Mehr erfahren",
+    "password": "Password"
   },
   "manual_backup_step_2": {
-    "action": "Geheime Wiederherstellungsphrase bestätigen",
-    "info": "Wählen Sie jedes Wort in der Reihenfolge aus, in der es Ihnen gezeigt wurde.",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Confirm your Secret Recovery Phrase",
+    "info": "Select the missing words in the correct order.",
     "complete": "Backup abschließen",
-    "success": "Erfolg"
+    "success": "Erfolg",
+    "error-title": "Not quite right",
+    "error-description": "Double-check your Secret Recovery Phrase and try again.",
+    "success-title": "Perfect!",
+    "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
+    "success-button": "Got it",
+    "error-button": "Try again",
+    "continue": "Continue"
   },
   "manual_backup_step_3": {
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
     "congratulations": "Glückwunsch",
     "success": "Sie haben Ihre Wallet erfolgreich geschützt. Denken Sie daran, ihre geheime Wiederherstellungsphrase sicher aufzubewahren. Die Verantwortung dafür liegt bei ihnen!",
     "hint": "Sich selbst einen Hinweis hinterlassen?",
@@ -2136,7 +2509,15 @@
     "continue_on_your_own": "indem Sie auf eigenes Risiko fortfahren.",
     "file_an_issue_intro": "Wenn Sie der Meinung sind, dass diese Domain fälschlicherweise aufgelistet wurde, oder wenn eine legitime, blockierte Webseite ihre Sicherheitsprobleme gelöst hat,",
     "file_an_issue": "melden Sie sich bitte bei uns.",
-    "back_to_safety": "Zurück zu Sicherheit"
+    "back_to_safety": "Zurück zu Sicherheit",
+    "site_might_be_harmful": "Diese Website könnte gefährlich sein",
+    "metamask_flagged_site": "MetaMask hat die Website, die Sie besuchen möchten, als potenziell irreführend gekennzeichnet. Angreifer könnten Sie zu gefährlichen Handlungen verleiten.",
+    "you_may_proceed_anyway": "Sie können auch",
+    "proceed_anyway": "trotzdem fortfahren",
+    "but_please_do_so_at_your_own_risk": "aber bitte tun Sie dies auf eigene Gefahr.",
+    "report_detection_problem": "Ein Erkennungsproblem melden",
+    "share_on_twitter": "Wenn Sie dies hilfreich fanden, teilen Sie es auf X!",
+    "share_text": "MetaMask hat mich vor dem Besuch einer potenziell gefährlichen Website geschützt: {{url}}. Bleiben Sie sicher!"
   },
   "notifications": {
     "timeout": "Zeitüberschreitung",
@@ -2227,7 +2608,7 @@
     "lido_stake_completed_title": "Stake abschließen",
     "lido_withdrawal_requested_title": "Auszahlung angefordert",
     "lido_withdrawal_completed_title": "Auszahlung abgeschlossen",
-    "lido_stake_ready_to_be_withdrawn_title": "Stake bereit für die Auszahlung ",
+    "lido_stake_ready_to_be_withdrawn_title": "Stake bereit für die Auszahlung",
     "erc721_sent_title": "NFT gesendet",
     "erc721_received_title": "NFT empfangen",
     "erc1155_sent_title": "NFT gesendet",
@@ -2261,36 +2642,30 @@
     "lido_withdrawal_completed_message": "Unstaking abschließen",
     "lido_stake_ready_to_be_withdrawn_message": "Auszahlung angefordert",
     "push_notification_content": {
+      "funds_sent_title": "Gelder gesendet",
+      "funds_sent_description": "Sie haben erfolgreich {{amount}} {{symbol}} gesendet",
+      "funds_sent_default_description": "Sie haben erfolgreich einige Tokens gesendet",
+      "funds_received_title": "Gelder empfangen",
+      "funds_received_description": "Sie haben {{amount}} {{symbol}} empfangen",
+      "funds_received_default_description": "Sie haben einige Tokens empfangen",
       "metamask_swap_completed_title": "Swap abgeschlossen",
       "metamask_swap_completed_description": "Ihr MetaMask-Swap war erfolgreich",
-      "erc20_sent_title": "Gelder gesendet",
-      "erc20_sent_description": "Sie haben erfolgreich {{amount}} {{token}} gesendet",
-      "erc20_received_title": "Gelder empfangen",
-      "erc20_received_description": "Sie haben {{amount}} {{token}} empfangen",
-      "eth_sent_title": "Gelder gesendet",
-      "eth_sent_description": "Sie haben erfolgreich {{amount}} ETH gesendet",
-      "eth_received_title": "Gelder empfangen",
-      "eth_received_description": "Sie haben {{amount}} {{token}} empfangen",
+      "nft_sent_title": "NFT gesendet",
+      "nft_sent_description": "Sie haben erfolgreich ein NFT gesendet",
+      "nft_received_title": "NFT empfangen",
+      "nft_received_description": "Sie haben neue NFTs empfangen",
       "rocketpool_stake_completed_title": "Stake abgeschlossen",
       "rocketpool_stake_completed_description": "Ihr RocketPool-Stake war erfolgreich",
       "rocketpool_unstake_completed_title": "Unstake abgeschlossen",
       "rocketpool_unstake_completed_description": "Ihr RocketPool-Unstake war erfolgreich",
       "lido_stake_completed_title": "Stake abschließen",
       "lido_stake_completed_description": "Ihr Lido-Stake war erfolgreich",
+      "lido_stake_ready_to_be_withdrawn_title": "Stake bereit für die Auszahlung",
+      "lido_stake_ready_to_be_withdrawn_description": "Ihr Lido-Stake steht nun zur Auszahlung bereit",
       "lido_withdrawal_requested_title": "Auszahlung angefordert",
       "lido_withdrawal_requested_description": "Ihr Lido-Auszahlungsanfrage wurde eingereicht",
       "lido_withdrawal_completed_title": "Auszahlung abgeschlossen",
-      "lido_withdrawal_completed_description": "Ihre Lido-Auszahlung war erfolgreich",
-      "lido_stake_ready_to_be_withdrawn_title": "Stake bereit für die Auszahlung ",
-      "lido_stake_ready_to_be_withdrawn_description": "Ihr Lido-Stake steht nun zur Auszahlung bereit",
-      "erc721_sent_title": "NFT gesendet",
-      "erc721_sent_description": "Sie haben erfolgreich ein NFT gesendet",
-      "erc721_received_title": "NFT empfangen",
-      "erc721_received_description": "Sie haben ein neues NFT empfangen",
-      "erc1155_sent_title": "NFT gesendet",
-      "erc1155_sent_description": "Sie haben erfolgreich ein NFT gesendet",
-      "erc1155_received_title": "NFT empfangen",
-      "erc1155_received_description": "Sie haben ein neues NFT empfangen"
+      "lido_withdrawal_completed_description": "Ihre Lido-Auszahlung war erfolgreich"
     },
     "prompt_title": "Push-Benachrichtigungen erhalten",
     "notifications_enabled_error_title": "Etwas ist schiefgelaufen",
@@ -2588,6 +2963,8 @@
     "one_more_option": "1 weitere Option",
     "more_options": "{{count}} weitere Optionen",
     "previously_used": "Zuvor verwendet",
+    "best_rate": "Bester Wechselkurs",
+    "most_reliable": "Am zuverlässigsten",
     "quotes_timeout": "Angebote-Timeout",
     "request_new_quotes": "Bitte fragen Sie neue Angebote an, um den besten Kurs zu bekommen.",
     "terms_of_service": "Nutzungsbedingungen",
@@ -2602,6 +2979,7 @@
     "done": "Fertig",
     "fetching_quotes": "Angebote einholen",
     "select_a_quote": "Angebot auswählen",
+    "recommended_quote": "Empfohlener Kurs",
     "select_a_cryptocurrency": "Kryptowährung auswählen",
     "select_a_cryptocurrency_description": "Wählen Sie aus einer Liste der bei {{network}} verfügbaren Tokens.",
     "search_by_cryptocurrency": "Nach Kryptowährung suchen",
@@ -2618,6 +2996,7 @@
     "minimum": "Die Mindesteinzahlung beträgt",
     "maximum": "Die Höchsteinzahlung beträgt",
     "insufficient_balance": "Dieser Betrag ist höher als Ihr Kontostand",
+    "insufficient_native_balance": "Sie haben nicht genug {{currency}}, um die Gas-Gebühren zu decken.",
     "enter_larger_amount": "Geben Sie zum Fortfahren einen größeren Betrag ein",
     "enter_smaller_amount": "Geben Sie zum Fortfahren einen kleineren Betrag ein",
     "enter_lower_gas_fees": "Geben Sie einen niedrigeren Betrag für die Gas-Gebühren ein",
@@ -2722,9 +3101,11 @@
       "sale_pending_title": "{{currency}}-Verkaufsabwicklung",
       "sale_pending_description": "Ihre Order wird soeben verarbeitet.",
       "no_date": "Unbekannt"
-    }
+    },
+    "deposit_order_title": "{{currency}} Deposit"
   },
   "swaps": {
+    "title": "Swap",
     "onboarding": {
       "get_the": "Sichern Sie sich den",
       "best_price": "bester Preis",
@@ -2764,7 +3145,7 @@
     "token_to_verify": "um zu verifizieren, dass es sich um das gewünschte Token handelt.",
     "continue": "Weiter",
     "select_a_token": "Token wählen",
-    "search_token": "Token suchen",
+    "search_token": "Name des Tokens eingeben oder Adresse einfügen",
     "no_tokens_result": "Keine Tokens, die mit „{{searchString}}“ übereinstimmen.",
     "find_token_address": "Token-Adresse finden",
     "cant_find_token": "Sie können ein Token nicht finden?",
@@ -2816,12 +3197,12 @@
     "n_quotes": "{{numberOfQuotes}} Notierungen",
     "view_details": "Detail ansehen",
     "estimated_gas_fee": "Geschätzte Gas-Gebühr",
-    "gas_fee": "Gas fee",
-    "included": "included",
+    "gas_fee": "Gas-Gebühr",
+    "included": "eingeschlossen",
     "max_gas_fee": "Maximale Gas-Gebühr",
     "edit": "Bearbeiten",
     "quotes_include_fee": "Angebote beinhalten eine MetaMask-Gebühr in Höhe von {{fee}} %.",
-    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
+    "quotes_include_gas_and_metamask_fee": "Angebot umfasst Gas und eine MetaMask-Gebühr von {{fee}} %",
     "tap_to_swap": "Zum Tauschen tippen",
     "swipe_to_swap": "Zum Tauschen wischen",
     "swipe_to": "Wischen, um zu",
@@ -2891,8 +3272,8 @@
     "high_recommendation": "Swaps sind normalerweise zeitkritisch. „Hoch“ wird Ihnen dabei helfen, möglichen Verluste durch Änderungen der Marktzustände zu vermeiden.",
     "recommended": "Empfohlen",
     "recommended_gas": "Empfohlene Gas-Gebühr",
-    "gas_included_tooltip_explanation": "This quote incorporates gas fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
-    "gas_included_tooltip_explanation_link_text": "Learn more about gas fees",
+    "gas_included_tooltip_explanation": "Dieses Angebot berücksichtigt die Gas-Gebühren, indem der gesendete oder empfangene Tokenbetrag entsprechend angepasst wird. Sie können ETH als separate Transaktion in Ihrer Aktivitätsliste erhalten.",
+    "gas_included_tooltip_explanation_link_text": "Erfahren Sie mehr über Gas-Gebühren",
     "gas_education_title": "Geschätzte Gas-Gebühren",
     "gas_education_1": "Gas-Gebühren werden an Crypto-Miner gezahlt, die Transaktionen auf dem",
     "gas_education_2_ethereum": "Ethereum-Netzwerk verarbeiten.",
@@ -2981,6 +3362,8 @@
     "title_new_network": "Neues Netzwerk hinzugefügt",
     "switch_warning": "Dadurch wird das ausgewählte Netzwerk in MetaMask auf ein zuvor hinzugefügtes Netzwerk umgestellt:",
     "add_network_and_give_dapp_permission_warning": "Sie fügen dieses Netzwerk zu MetaMask hinzu und geben {{dapp_origin}} die Genehmigung, es zu nutzen.",
+    "update_network_and_give_dapp_permission_warning": "Sie aktualisieren dieses Netzwerk in MetaMask und erteilen {{dapp_origin}} die Genehmigung, es zu nutzen.",
+    "request_update_network_url": "{{dapp_origin}} ersucht um die Aktualisierung Ihrer Standard-Netzwerk-URL. Sie können die Standardeinstellungen und Netzwerkinformationen jederzeit bearbeiten.",
     "available": "ist jetzt in der Netzwerkauswahl verfügbar.",
     "cancel": "Stornieren",
     "switch": "Netzwerk wechseln"
@@ -3143,7 +3526,9 @@
     "enable_token_detection": "Automatische Token-Erkennung einschalten",
     "token_detection_mainnet_title": "Die Token-Erkennung ist aktiviert, sodass viele Tokens automatisch in Ihrer Wallet auftauchen werden.",
     "token_detection_mainnet_link": "Sie können Tokens auch manuell hinzufügen.",
-    "or": "oder"
+    "or": "oder",
+    "non_evm_first_description": "Das native Asset dieses Netzwerks ist {{ticker}}. Dieses Asset wird für die Transaktionsgebühr verwendet.",
+    "non_evm_second_description": "Sie werden Ihre Assets verlieren, wenn Sie versuchen, sie von einem anderen Netzwerk bzw. an ein anderes Netzwerk zu senden."
   },
   "download_files": {
     "error": "Anhang konnte nicht heruntergeladen werden.",
@@ -3152,15 +3537,6 @@
   "remember_me": {
     "enable_remember_me": "„Angemeldet bleiben“ aktivieren",
     "enable_remember_me_description": "Wenn „Angemeldet bleiben“ aktiviert ist, kann jeder, der Zugriff zu Ihrem Handy hat, auf Ihr MetaMask-Konto zugreifen."
-  },
-  "profile_sync": {
-    "title": "Profilsynchronisierung",
-    "disable_warning": "Wenn Sie die Profilsynchronisierung deaktivieren, können Sie keine Benachrichtigungen empfangen.",
-    "enable_description": "Erstellt ein Profil, über das MetaMask bestimmte Einstellungen zwischen Ihren Geräten synchronisiert. Dies ist für den Erhalt von Benachrichtigungen erforderlich. ",
-    "enable_description2": " um mehr zu erfahren.",
-    "enable_privacy_link": "Erfahren Sie, wie wir Ihre Privatsphäre schützen",
-    "bottomSheetTurnOn": "Einschalten der Profilsynchronisierung",
-    "bottomSheetTurnOff": "Ausschalten der Profilsynchronisierung"
   },
   "turn_off_remember_me": {
     "title": "Geben Sie Ihr Passwort ein, um „Angemeldet bleiben“ zu deaktivieren.",
@@ -3180,16 +3556,16 @@
     "description": "Die automatische Suche nach Updates kann Ihre IP-Adresse den GitHub-Servern preisgeben. Dies zeigt nur an, dass Ihre IP-Adresse MetaMask verwendet. Es werden keine anderen Informationen oder Kontoadressen offengelegt."
   },
   "terms_of_use_modal": {
-    "title": "Prüfen Sie unsere aktuellsten Nutzungsbedingungen",
+    "title": "Prüfen Sie unsere Nutzungsbedingungen",
     "terms_of_use_check_description": "Ich akzeptiere die Nutzungsbedingungen, die meine Nutzung von MetaMask und allen seinen Funktionen betreffen",
     "accept_cta": "Akzeptieren",
-    "accept_helper_description": "Bitte scrollen, um alle Sektionen zu lesen."
+    "accept_helper_description": "Bitte scrollen, um alle Sektionen zu lesen.",
+    "agree_cta": "Zustimmen"
   },
   "update_needed": {
-    "title": "Updates nötig",
-    "description": "Wir haben die Sicherheit für Ihre Wallet erhöht! Bitte nehmen Sie sich einen Moment Zeit, um sich selbst zu schützen und nehmen Sie ein Update auf die neueste Version vor.",
-    "primary_action": "Auf neueste Version aktualisieren",
-    "secondary_action": "Später erinnern"
+    "title": "Erhalten Sie die neuesten Funktionen",
+    "description": "Wir haben Ihre Wallet sicherer und übersichtlicher gestaltet und einige neue Funktionen hinzugefügt. Aktualisieren Sie jetzt, um geschützt zu bleiben und unsere jüngsten Verbesserungen zu nutzen.",
+    "primary_action": "Auf neueste Version aktualisieren"
   },
   "enable_automatic_security_check_modal": {
     "title": "Automatisch nach Sicherheitsupdates suchen?",
@@ -3361,13 +3737,23 @@
   "account_actions": {
     "edit_name": "Kontonamen bearbeiten",
     "add_account_or_hardware_wallet": "Konto oder Hardware-Wallet hinzufügen",
-    "add_account": "Konto hinzufügen",
-    "add_new_account": "Neues Konto hinzufügen",
-    "add_hardware_wallet": "Hardware-Wallet hinzufügen",
-    "import_account": "Konto importieren",
-    "add_bitcoin_account_testnet": "Ein neues Bitcoin-Konto hinzufügen (Testnet)",
-    "add_bitcoin_account_mainnet": "Ein neues Bitcoin-Konto hinzufügen (Beta)",
-    "add_solana_account": "Ein neues Solana-Konto hinzufügen (Beta)"
+    "connect_hardware_wallet": "Ein Konto verbinden",
+    "import_wallet_or_account": "Eine Wallet oder ein Konto importieren",
+    "add_account": "Neues Konto erstellen",
+    "add_multichain_account": "Ein neues {{networkName}}-Konto erstellen",
+    "create_an_account": "Neues Konto erstellen",
+    "add_new_account": "Ethereum-Konto",
+    "import_srp": "Geheime Wiederherstellungsphrase",
+    "add_hardware_wallet": "Hardware-Wallet",
+    "import_account": "Privater Schlüssel",
+    "add_bitcoin_account_testnet": "Bitcoin-Testnet-Konto",
+    "add_bitcoin_account_mainnet": "Bitcoin-Konto",
+    "add_solana_account": "Solana-Konto",
+    "switch_to_smart_account": "Zum Smart-Konto wechseln",
+    "headers": {
+      "bitcoin": "Bitcoin",
+      "solana": "Solana"
+    }
   },
   "show_nft": {
     "show_nft_title": "NFT anzeigen",
@@ -3385,6 +3771,19 @@
     "show_display_nft_media_content_3": "Durch die Anzeige von NFT-Medien und -Daten wird Ihre IP-Adresse an OpenSea oder andere Dritte weitergegeben. Die automatische NFT-Erkennung beruht auf dieser Funktion und ist nicht verfügbar, wenn sie deaktiviert ist.",
     "show_display_nft_media_content_4": "Sie können „NFT-Medien anzeigen“ hier deaktivieren:",
     "show_display_nft_media_content_5": "Einstellungen > Sicherheit und Datenschutz."
+  },
+  "solana_new_feature_content": {
+    "title": "Solana auf MetaMask",
+    "create_solana_account": "Solana-Konto erstellen",
+    "not_now": "Nicht jetzt",
+    "view_solana_account": "Solana-Konto anzeigen",
+    "feature_1_title": "Tokens senden, empfangen und tauschen",
+    "feature_1_description": "Übertragen und handeln Sie mit Tokens wie SOL, USDC und viele mehr.",
+    "feature_2_title": "Solana-Konten importieren",
+    "feature_2_description": "Importieren Sie eine geheime Wiederherstellungsphrase, um Ihr Solana-Konto von einer anderen Wallet zu migrieren.",
+    "feature_3_title": "Weitere Funktionen in Kürze",
+    "feature_3_description": "Solana-DApps, NFTs, Hardware-Wallet-Unterstützung und vieles mehr in Kürze verfügbar.",
+    "learn_more": "Erfahren Sie mehr über Solana-Konten"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS-Gateway",
@@ -3412,6 +3811,85 @@
     "error_title": "Installieren fehlgeschlagen",
     "error_description": "Installation von {{snap}} fehlgeschlagen."
   },
+  "earn": {
+    "empty_state_cta": {
+      "heading": "Verleihen Sie {{tokenSymbol}} und verdienen Sie",
+      "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
+      "annually": "annually.",
+      "learn_more": "Learn more.",
+      "earn": "Earn"
+    },
+    "service_interruption_banner": {
+      "maintenance_message": "Wir sind wegen Wartungsarbeiten nicht erreichbar. Wir sind bald wieder online!"
+    },
+    "deposit": "Einzahlung",
+    "approve": "Genehmigen",
+    "approval": "Genehmigung",
+    "confirm": "Bestätigen",
+    "cancel": "Stornieren",
+    "transaction_submitted": "Transaktion übermittelt",
+    "every_minute": "Jede Minute",
+    "immediate": "Sofort",
+    "apr": "Effektiver Jahreszins",
+    "protocol": "Protokoll",
+    "receive_tooltip": "Kurzinfo erhalten",
+    "button": "Schaltfläche",
+    "receive": "Empfangen",
+    "tooltip_content": {
+      "apr": {
+        "part_one": "Erwarteter Jahreszuwachs des Wertes Ihrer Einzahlung, ausgehend von der Belohnungsrate der letzten Woche.",
+        "part_two": "Hinweis: Der effektive Jahreszins variiert stetig."
+      },
+      "protocol": "Ein Verleihprotokoll ist ein Smart Contract, der das Verleihen von Token erlaubt, um Belohnungen zu erhalten. Darüber hinaus können Nutzer Token leihen, indem sie andere Token als Sicherheit hinterlegen, und zwar gegen eine an die Leihgeber zu zahlende Gebühr.",
+      "reward_frequency": "Häufigkeit der Verbuchung Ihrer Belohnungen.",
+      "withdrawal_time": "Die benötigte Zeit, um Ihren Token aus dem Protokoll zu entnehmen und ihn wieder in Ihre Wallet zurückzubekommen",
+      "receive": "Dieser Token wird zur Überwachung Ihrer Assets und Belohnungen genutzt. Übertragen Sie ihn nicht und handeln Sie nicht damit, sonst können Sie sich Ihre Assets nicht auszahlen lassen.",
+      "health_factor": {
+        "your_health_factor_measures_liquidation_risk": "Your Health Factor measures liquidation risk",
+        "above_two_dot_zero": "Above 2.0",
+        "safe_position": "Safe position",
+        "between_one_dot_five_and_2_dot_zero": "Between 1.5-2.0",
+        "medium_liquidation_risk": "Medium Liquidation risk",
+        "below_one_dot_five": "Below 1.5",
+        "higher_liquidation_risk": "Higher liquidation risk"
+      },
+      "lending_risk_aware_withdrawal_tooltip": {
+        "why_cant_i_withdraw_full_balance": "Why can't I withdraw my full balance?",
+        "your_withdrawal_amount_may_be_limited_by": "Your withdrawal amount may be limited by",
+        "pool_liquidity": "Pool Liquidity",
+        "not_enough_funds_available_in_the_lending_pool_right_now": "Not enough funds available in the lending pool right now.",
+        "existing_borrow_positions": "Existing Borrow Positions",
+        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "Withdrawing could put your existing loan positions at risk of liquidation."
+      }
+    },
+    "withdraw": "Auszahlen",
+    "deposit_more": "Mehr einzahlen",
+    "earning": "Earning",
+    "withdrawal_time": "Withdrawal time",
+    "withdrawing_to": "Withdrawing to",
+    "network": "Network",
+    "health_factor": "Health factor",
+    "liquidation_risk": "Liquidation risk",
+    "insufficient_pool_liquidity": "Insufficient Pool Liquidity",
+    "available_to_withdraw": "available to withdraw",
+    "unknown": "unknown",
+    "how_it_works": "How it works",
+    "market_historic_apr_modal": {
+      "earn_rewards_on_your_token": "Earn rewards on your {{tokenSymbol}}",
+      "lend_and_earn_daily_rewards": "Lend your {{tokenSymbol}} with {{protocol}} and earn daily rewards. Rewards grow over time and APR varies.",
+      "withdraw_whenever_you_want": "Withdraw whenever you want",
+      "get_asset_back_in_your_wallet_instantly": "Get {{tokenSymbol}} back in your wallet instantly."
+    },
+    "amount_exceeds_safe_withdrawal_limit": "Amount exceeds safe withdrawal limit",
+    "view_earnings_history": {
+      "lending": "View position history",
+      "staking": "View earnings history"
+    },
+    "earnings_history_list_title": {
+      "lending": "Position history",
+      "staking": "Payout history"
+    }
+  },
   "stake": {
     "stake": "Anteil",
     "earn": "Verdienen",
@@ -3430,12 +3908,18 @@
       "stake_annual_rate_tooltip": "Kurzinfo zur jährlichen Rate"
     },
     "estimated_annual_rewards": "Geschätzte jährliche Belohnungen",
+    "estimated_annual_reward": "Geschätzte jährliche Belohnung",
+    "reward_frequency": "Belohnungshäufigkeit",
+    "reward_frequency_tooltip": "Ihr gestakter Kontostand wird alle {{frequency}} aktualisiert, um neue Belohnungen zu berücksichtigen.",
+    "withdrawal_time": "Auszahlungszeit",
     "metamask_pool": "MetaMask Pool",
     "enter_amount": "Betrag eingeben",
     "review": "Überprüfen",
     "not_enough_eth": "Nicht genügend ETH",
+    "not_enough_token": "Nicht genügend {{ticker}}",
     "balance": "Kontostand",
     "stake_eth_and_earn": "ETH staken und verdienen",
+    "how_it_works": "Wie es funktioniert",
     "stake_any_amount_of_eth": "Staken Sie jeden ETH-Betrag.",
     "no_minimum_required": "Kein Minimum erforderlich.",
     "earn_eth_rewards": "Verdienen Sie ETH-Belohnungen.",
@@ -3480,6 +3964,8 @@
     "unstake_input_banner_description": "Im Durchschnitt dauert es weniger als 3 Tage, bis die ungestakten ETH beansprucht werden können, in Ausnahmefällen kann es aber auch bis zu 11 Tage dauern.",
     "max": "Max.",
     "staking_from": "Staking von",
+    "advanced_details": "Erweiterte Details",
+    "ethereum_mainnet": "Ethereum Mainnet",
     "interacting_with": "Interaktion mit",
     "12_hours": "12 Stunden",
     "terms_of_service": "Nutzungsbedingungen",
@@ -3491,18 +3977,23 @@
     "you_receive": "Sie erhalten",
     "up_to_n": "Bis zu {{count}}",
     "unstaking_to": "Unstaken bis",
+    "claiming_to": "Einfordern auf",
     "max_modal": {
       "title": "Max.",
-      "description": "Max. ist der Gesamtbetrag an von Ihnen gehaltenen ETH, abzüglich der für den Einsatz erforderlichen Gas-Gebühr. Es empfiehlt sich, einige zusätzliche ETH in Ihrer Wallet für zukünftige Transaktionen aufzubewahren."
+      "eth": {
+        "description": "Max. ist der Gesamtbetrag an von Ihnen gehaltenen ETH abzüglich der für das Staken erforderlichen Gas-Gebühr. Es empfiehlt sich, einige zusätzliche ETH in Ihrer Wallet für zukünftige Transaktionen aufzubewahren."
+      }
     },
     "use_max": "Max. verwenden",
     "estimated_unstaking_time": "1 bis 11 Tage",
     "proceed_anyway": "Trotzdem fortfahren",
     "gas_cost_impact": "Auswirkungen auf Gas-Kosten",
+    "select_a_token": "Ein Token wählen",
+    "you_could_earn_up_to": "You could earn up to",
+    "per_year_on_your_tokens": "pro Jahr auf Ihre Tokens",
+    "deposit": "Einzahlung",
     "gas_cost_impact_warning": "Achtung: Die Transaktionsgaskosten belaufen sich auf mehr als {{percentOverDeposit}} % Ihrer Einzahlung.",
-    "view_earnings_history": "Verdienstverlauf anzeigen",
     "earnings_history_title": "{{ticker}} Einnahmen",
-    "earnings_history_list_title": "Auszahlungsverlauf",
     "apr": "APR",
     "interactive_chart": {
       "timespan_buttons": {
@@ -3529,12 +4020,17 @@
     "basic_functionality": "Grundfunktionalität",
     "manage_networks": "Wählen Sie Ihr Netzwerk",
     "manage_networks_body": "Wir verwenden Infura als RPC-Anbieter (Remote Procedure Call), um einen möglichst zuverlässigen und privaten Zugriff auf Ethereum-Daten zu ermöglichen. Sie können Ihren eigenen RPC auswählen, bedenken Sie aber, dass RPC Ihre IP-Adresse und Ihre Ethereum-Wallet erhalten wird, um Transaktionen durchzuführen. Lesen Sie unsere ",
-    "manage_networks_body2": " um mehr darüber zu erfahren, wie Infura mit Daten umgeht.",
+    "manage_networks_body2": " um mehr darüber zu erfahren, wie Infura die Daten für EVM-Konten verarbeitet, für Solana-Konten  ",
+    "manage_networks_body3": "klicken Sie hier.",
     "functionality_body": "MetaMask bietet grundlegende Funktionen wie Token-Details und Gas-Einstellungen über Internetdienste. Wenn Sie Internetdienste nutzen, wird Ihre IP-Adresse weitergegeben, in diesem Fall an MetaMask. Das ist genau so, wie wenn Sie eine beliebige Website besuchen. MetaMask verwendet diese Daten vorübergehend und verkauft Ihre Daten niemals. Sie können ein VPN verwenden oder diese Dienste abschalten, aber das kann Ihr MetaMask-Erlebnis beeinträchtigen. Lesen Sie unsere ",
     "functionality_body2": " um mehr zu erfahren.",
     "sheet": {
       "title_off": "Grundfunktionalität ausschalten",
       "description_off": "Dies bedeutet, dass Sie Ihre Zeit auf MetaMask nicht vollständig optimieren können. Grundlegende Funktionen (wie Token-Details, optimale Gas-Einstellungen und andere) stehen Ihnen nicht zur Verfügung.",
+      "description_off2": "Das Ausschalten dieser Funktion deaktiviert auch alle Funktionen innerhalb von",
+      "description_off2_related_features1": "Sicherheit und Datenschutz, Backup und Synchronisierung",
+      "description_off2_related_features1_and": "und",
+      "description_off2_related_features2": "Benachrichtigungen.",
       "title_on": "Grundfunktionalität einschalten",
       "description_on": "Um Ihre Zeit auf MetaMask zu optimieren, müssen Sie diese Funktion einschalten. Grundlegende Funktionen (wie Token-Details, optimale Gas-Einstellungen, Benachrichtigungen und andere) sind für das Web3-Erlebnis wichtig.",
       "checkbox_label": "Ich verstehe und möchte fortfahren",
@@ -3557,7 +4053,7 @@
     "failed": "Es ist ein Fehler beim Laden Ihrer Schätzung aufgetreten.",
     "fiat_not_available": "Nicht verfügbar",
     "incoming_heading": "Sie erhalten",
-    "no_balance_changes": "Keine Änderungen für Ihre Wallet prognostiziert",
+    "no_balance_changes": "Keine Änderungen",
     "outgoing_heading": "Sie senden",
     "reverted": "Diese Transaktion wird wahrscheinlich scheitern",
     "title": "Geschätzte Änderungen",
@@ -3599,27 +4095,60 @@
     }
   },
   "confirm": {
-    "reject": "Ablehnen",
+    "cancel": "Stornieren",
     "confirm": "Bestätigen",
+    "staking_footer": {
+      "part1": "Indem Sie fortfahren, bestätigen Sie unsere ",
+      "terms_of_use": "Nutzungsbedingungen",
+      "part2": " und ",
+      "risk_disclosure": "Risikoaufklärung",
+      "part3": "."
+    },
+    "label": {
+      "account": "Konto",
+      "balance": "Kontostand",
+      "interacting_with": "Interaktion mit",
+      "network": "Netzwerk",
+      "primary_type": "Primäre Art",
+      "request_from": "Anfrage von",
+      "signing_in_with": "Anmelden mit",
+      "spender": "Spender",
+      "now": "Jetzt",
+      "switching_to": "Wechseln zu"
+    },
     "title": {
       "signature": "Signaturanfrage",
-      "signature_siwe": "Anmeldeanfrage"
+      "permit": "Ausgabenobergrenzeanfrage",
+      "permit_revoke": "Genehmigung entfernen",
+      "permit_NFTs": "Auszahlungsanfrage",
+      "signature_siwe": "Anmeldeanfrage",
+      "contract_interaction": "Transaktionsanfrage",
+      "transfer": "Übertragungsanfrage",
+      "switch_account_type": "Konto-Update",
+      "approve": "Approve request"
     },
     "sub_title": {
+      "permit": "Diese Website möchte die Genehmigung, Ihre Tokens auszugeben.",
+      "permit_NFTs": "Diese Website möchte die Genehmigung, Ihre NFTs auszuzahlen.",
       "signature": "Überprüfen Sie vor der Bestätigung die Details der Anfrage.",
-      "signature_siwe": "Eine Website verlangt von Ihnen, sich anzumelden, um zu beweisen, dass Sie der Inhaber dieses Kontos sind."
+      "signature_siwe": "Eine Website verlangt von Ihnen, sich anzumelden, um zu beweisen, dass Sie der Inhaber dieses Kontos sind.",
+      "contract_interaction": "Überprüfen Sie vor der Bestätigung die Anfragedetails.",
+      "switch_to_smart_account": "Sie wechseln zu einem Smart-Konto.",
+      "switch_to_standard_account": "Sie wechseln zu einem Standardkonto (EOA) zurück."
     },
     "request_from": "Anfrage von",
+    "staking_from": "Staking von",
     "signing_in_with": "Anmelden mit",
     "message": "Nachricht",
-    "primary_type": "Primäre Art",
     "personal_sign_tooltip": "Diese Website ersucht um Ihre Signatur",
+    "transaction_tooltip": "Diese Website fragt nach Ihrer Transaktion",
     "details": "Details",
-    "account": "Konto",
-    "balance": "Kontostand",
-    "network": "Netzwerk",
     "qr_get_sign": "Signatur abrufen",
     "qr_scan_text": "Mit Ihrer Hardware-Wallet scannen",
+    "sign_with_ledger": "Mit Ledger unterzeichnen",
+    "smart_account": "Smart-Konto",
+    "smart_contract": "Smart Contract",
+    "standard_account": "Standardkonto",
     "siwe_message": {
       "url": "URL",
       "network": "Netzwerk",
@@ -3632,9 +4161,14 @@
       "resources": "Ressourcen"
     },
     "simulation": {
+      "cancel": "Abbrechen",
       "decoded_tooltip_bid_nft": "Der NFT wird in Ihrer Wallet angezeigt, sobald das Gebot akzeptiert wird.",
       "decoded_tooltip_list_nft": "Änderungen sind nur zu erwarten, wenn jemand Ihre NFTs kauft.",
+      "edit_approval_limit_description": "Geben Sie den Betrag ein, den Sie gerne in Ihrem Namen ausgeben würden.",
+      "edit_approval_limit_title": "Genehmigungslimit bearbeiten",
+      "edit_value_balance_info": "Kontoguthaben:",
       "info_permit": "Sie erteilen dem Spender die Genehmigung, diese Menge an Tokens von Ihrem Konto auszugeben.",
+      "info_revoke": "Sie entziehen jemandem die Genehmigung, Tokens von Ihrem Konto auszugeben.",
       "label_change_type_bidding": "Sie bieten",
       "label_change_type_listing": "Sie listen auf",
       "label_change_type_nft_listing": "Listenpreis",
@@ -3643,13 +4177,43 @@
       "label_change_type_receive": "Sie empfangen",
       "label_change_type_revoke": "Widerrufen",
       "label_change_type_transfer": "Sie senden",
+      "label_change_type_approve": "Sie genehmigen",
       "personal_sign_info": "Sie melden sich bei einer Website an und es sind keine Änderungen an Ihrem Konto vorgesehen.",
+      "save": "Speichern",
       "title": "Geschätzte Änderungen",
       "tooltip": "Die geschätzten Änderungen beziehen sich auf das, was passieren könnte, wenn Sie diese Transaktion durchführen. Es handelt sich hierbei lediglich um eine Prognose, nicht um eine Garantie.",
       "unavailable": "Nicht verfügbar"
     },
+    "7702_functionality": {
+      "smartAccountLabel": "Smart-Konto",
+      "standardAccountLabel": "Standardkonto",
+      "switch": "Wechseln",
+      "splashpage": {
+        "accept": "Ja",
+        "betterTransaction": "Schnellere Transaktionen, niedrigere Gebühren",
+        "betterTransactionDescription": "Sparen Sie Zeit und Geld, indem Sie Transaktionen gebündelt abwickeln.",
+        "featuresDescription": "Behalten Sie die gleiche Kontoadresse bei, damit Sie jederzeit zurückwechseln können.",
+        "payToken": "Bezahlen Sie jederzeit und mit jedem Token",
+        "payTokenDescription": "Nutzen Sie die bereits verfügbaren Token, um die Netzwerkgebühren zu decken.",
+        "reject": "Nein",
+        "requestFor": "Anfrage für",
+        "sameAccount": "Gleiches Konto, intelligentere Funktionen.",
+        "splashTitle": "Smart-Konto verwenden?",
+        "upgradeBannerDescription": "Gleiche Adresse, intelligentere Funktionen.",
+        "upgradeBannerTitle": "Zum Smart-Konto wechseln"
+      },
+      "includes_transaction": "Umfasst {{transactionCount}} Transaktionen"
+    },
     "unlimited": "Unbegrenzt",
-    "none": "Keine"
+    "all": "Alle",
+    "none": "Keine",
+    "advanced_details": "Erweiterte Details",
+    "interacting_with": "Interaktion mit",
+    "data": "Daten",
+    "review": "Überprüfen",
+    "transferRequest": "Übertragungsanfrage",
+    "nested_transaction_heading": "Transaktion {{index}}",
+    "transaction": "Transaction"
   },
   "change_in_simulation_modal": {
     "title": "Ergebnisse haben sich geändert",
@@ -3662,5 +4226,183 @@
     "input_title": "Kontoname",
     "add_account_button": "Konto hinzufügen",
     "name_taken_message": "Dieser Kontoname existiert bereits"
+  },
+  "smart_transactions_migration": {
+    "title": "Transaktionen sind jetzt noch smarter",
+    "link": "Höhere Erfolgsraten",
+    "description": " und MEV-Schutz. Jetzt standardmäßig aktiviert."
+  },
+  "bridge": {
+    "continue": "Fortfahren",
+    "confirm_bridge": "Bridge bestätigen",
+    "confirm_swap": "Swap bestätigen",
+    "terms_and_conditions": "Geschäftsbedingungen",
+    "select_token": "Token auswählen",
+    "select_network": "Netzwerk wählen",
+    "all_networks": "Alle Netzwerke",
+    "num_networks": "{{numNetworks}} Netzwerke",
+    "one_network": "1 Netzwerk",
+    "select_all_networks": "Alle auswählen",
+    "deselect_all_networks": "Alle abwählen",
+    "see_all": "Alle sehen",
+    "apply": "Anwenden",
+    "slippage": "Slippage",
+    "slippage_info": "Wenn der Preis sich zwischen dem Zeitpunkt Ihrer Order und deren Bestätigung ändert, bezeichnet man dies als „Slippage“. Ihr Swap wird automatisch storniert, wenn diese Slippage die von Ihnen hier festgelegte Toleranz überschreitet.",
+    "network_fee": "Netzwerkgebühr",
+    "estimated_time": "Geschätzte Zeit",
+    "quote": "Preisangabe",
+    "quote_details": "Details der Preisangabe",
+    "price_impact": "Preisauswirkungen",
+    "time": "Zeit",
+    "quote_info_content": "Dieses Angebot bietet die beste Rendite aus unserer Suche. Es basiert auf dem Swap-Satz, einschließlich Bridging-Gebühren und einer MetaMask-Gebühr von 0,875 %, aber ohne Gas-Gebühren. Die Gas-Gebühren variieren je nach Netzwerkaktivität und Transaktionskomplexität.",
+    "quote_info_title": "Warum wir dieses Angebot empfehlen",
+    "see_other_quotes": "Andere Angebote sehen",
+    "receive_at": "Empfangen bei",
+    "error_banner_description": "Diese Handelsroute ist derzeit nicht verfügbar. Versuchen Sie, den Betrag, das Netzwerk oder das Token zu ändern, und wir finden die beste Option.",
+    "insufficient_funds": "Unzureichende Gelder",
+    "select_amount": "Betrag auswählen",
+    "bridge_to": "Bridge zu",
+    "title": "Bridge",
+    "submitting_transaction": "Absenden",
+    "fetching_quote": "Angebot einholen",
+    "fee_disclaimer": "Einschließlich 0,875 % MM-Gebühr",
+    "hardware_wallet_not_supported": "Hardware-Wallets werden noch nicht unterstützt. Verwenden Sie eine Hot Wallet, um fortzufahren.",
+    "hardware_wallet_not_supported_solana": "Hardware-Wallets werden für Solana noch nicht unterstützt. Verwenden Sie eine Hot Wallet, um fortzufahren."
+  },
+  "quote_expired_modal": {
+    "title": "Neue Angebote sind verfügbar",
+    "description": "Die Preise werden alle {{refreshRate}} Sekunden aktualisiert. Tippen Sie also auf „Neues Angebot einholen“, wenn Sie bereit sind.",
+    "get_new_quote": "Neues Angebot einholen"
+  },
+  "bridge_transaction_details": {
+    "status": "Status",
+    "date": "Datum",
+    "total_gas_fee": "Gesamte Gas-Gebühr",
+    "estimated_completion": "Geschätzte Fertigstellung",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} empfangen bei {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Empfangen von {{destSymbol}} bei {{destChainName}}",
+    "bridge_step_action_swap_complete": "{{srcSymbol}} für {{destSymbol}} geswappt",
+    "bridge_step_action_swap_pending": "Swappen von {{srcSymbol}} für {{destSymbol}}",
+    "view_on_block_explorer": "Im Block-Explorer anzeigen",
+    "block_explorer_description": "Diese Transaktion findet in zwei Netzwerken statt. Der erste Link zeigt die Quelle; der zweite zeigt das Ziel an, sobald sie bestätigt wurde.",
+    "transaction_details": "Transaktionsdetails",
+    "bridge_to_chain": "Bridge zu {{chainName}}",
+    "recipient": "Empfänger"
+  },
+  "backupAndSync": {
+    "title": "Backup und Synchronisierung",
+    "description": "Sichern Sie Ihre Konten und Synchronisierungseinstellungen.",
+    "enabling": "Backup und Synchronisierung aktivieren",
+    "disabling": "Backup und Synchronisierung deaktivieren",
+    "enable": {
+      "title": "Backup und Synchronisierung einschalten",
+      "confirmation": "Durch Einschalten von Backup und Synchronisierung aktivieren Sie auch die Grundfunktionalität. Möchten Sie fortfahren?",
+      "description": "Mit Backup und Synchronisierung können wir verschlüsselte Daten für Ihre benutzerdefinierten Einstellungen und Funktionen speichern. Dadurch bleibt Ihr MetaMask-Erlebnis auf allen Geräten gleich und die Einstellungen und Funktionen werden bei eventueller Neuinstallation von MetaMask wiederhergestellt. Ihre geheime Wiederherstellungsphrase wird dabei nicht gesichert.",
+      "updatePreferences": "Sie können Ihre Einstellungen jederzeit aktualisieren unter",
+      "settingsPath": "Einstellungen > Backup und Synchronisierung."
+    },
+    "privacyLink": "Erfahren Sie, wie wir Ihre Privatsphäre schützen",
+    "features": {
+      "accounts": "Konten",
+      "contacts": "Contacts"
+    },
+    "manageWhatYouSync": {
+      "title": "Verwalten Sie, was Sie synchronisieren",
+      "description": "Schalten Sie ein, was Sie zwischen Ihren Geräten synchronisieren."
+    }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "Ein Asset auswählen"
+    },
+    "hideSentitiveInfo": {
+      "message": "Sensible Daten verbergen"
+    },
+    "doNotShare": {
+      "message": "Dies nicht mit anderen teilen"
+    },
+    "revealSensitiveContent": {
+      "message": "Sensible Inhalte anzeigen"
+    },
+    "show_more": "Mehr",
+    "show_less": "Weniger"
+  },
+  "multichain_accounts": {
+    "account_details": {
+      "header_title": "Kontodetails",
+      "account_name": "Kontoname",
+      "account_address": "Kontoadresse",
+      "wallet": "Wallet",
+      "private_key": "Privater Schlüssel"
+    },
+    "accounts_list": {
+      "details": "Details"
+    },
+    "smart_account": {
+      "title": "Smart-Konto aktivieren",
+      "description": "You can enable smart account features on supported networks.",
+      "learn_more": "Mehr erfahren"
+    },
+    "edit_account_name": {
+      "title": "Kontonamen bearbeiten",
+      "name": "Name",
+      "save_button": "Speichern",
+      "error_duplicate_name": "Dieser Kontoname existiert bereits"
+    },
+    "delete_account": {
+      "title": "Konto entfernen",
+      "warning_title": "Dieses Konto wird von MetaMask entfernt.",
+      "warning_description": "Stellen Sie sicher, dass Sie die geheime Wiederherstellungsphrase oder den privaten Schlüssel für dieses Konto haben, bevor Sie es entfernen.",
+      "remove_button": "Entfernen",
+      "cancel_button": "Abbrechen",
+      "error": "Löschen des Kontos fehlgeschlagen"
+    },
+    "share_address": {
+      "title": "Adresse teilen",
+      "copy_address": "Adresse kopieren",
+      "view_on_explorer_button": "Auf {{explorer}} anzeigen",
+      "view_on_block_explorer": "Im Block-Explorer anzeigen"
+    },
+    "export_credentials": {
+      "export_private_key": "Privater Schlüssel",
+      "private_key_warning_title": "Geben Sie diesen Schlüssel niemals preis.",
+      "private_key_warning_description": "Jeder, der über Ihren privaten Schlüssel verfügt, kann auf alle Assets auf Ihrem Konto zugreifen.",
+      "credential_as_text": "Text",
+      "credential_as_qr": "QR-Code",
+      "export_mnemonic": "Mnemonik exportieren",
+      "backup": "Backup"
+    },
+    "reveal_private_key": {
+      "title": "Privaten Schlüssel anzeigen",
+      "banner_title": "Geben Sie diesen Schlüssel niemals preis.",
+      "banner_description": "Jeder, der über Ihren privaten Schlüssel verfügt, kann auf alle Assets auf Ihrem Konto zugreifen.",
+      "enter_password": "Geben Sie Ihr Passwort ein",
+      "password_placeholder": "Passwort",
+      "next": "Weiter",
+      "copy": "Kopieren"
+    },
+    "reveal_srp": {
+      "header": "Sicherheitsquiz",
+      "description": "Zur Enthüllung Ihrer geheimen Wiederherstellungsphrase müssen Sie zwei Fragen beantworten.",
+      "get_started": "Erste Schritte",
+      "learn_more": "Mehr erfahren"
+    }
+  },
+  "deep_link_modal": {
+    "private_link": {
+      "title": "Redirecting you to MetaMask",
+      "description": "You'll open {{pageTitle}} if you continue.",
+      "checkbox_label": "Don't remind me again"
+    },
+    "public_link": {
+      "title": "Proceed with caution",
+      "description": "You were sent here by a third party, not MetaMask. You'll open {{pageTitle}} if you continue."
+    },
+    "invalid": {
+      "title": "This page doesn't exist",
+      "description": "We can't find the page you're looking for."
+    },
+    "back_button": "Back",
+    "continue_button": "Continue"
   }
 }

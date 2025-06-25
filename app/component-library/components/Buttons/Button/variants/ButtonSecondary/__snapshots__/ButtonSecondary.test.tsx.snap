@@ -14,7 +14,7 @@ exports[`ButtonSecondary should render correctly 1`] = `
       "alignSelf": "flex-start",
       "backgroundColor": "transparent",
       "borderColor": "#4459ff",
-      "borderRadius": 20,
+      "borderRadius": 12,
       "borderWidth": 1,
       "flexDirection": "row",
       "height": 40,
@@ -25,6 +25,7 @@ exports[`ButtonSecondary should render correctly 1`] = `
 >
   <SvgMock
     color="#4459ff"
+    fill="currentColor"
     height={16}
     name="Bank"
     style={

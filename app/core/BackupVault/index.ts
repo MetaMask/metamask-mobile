@@ -1,5 +1,5 @@
 export {
   backupVault,
   getVaultFromBackup,
-  resetVaultBackup,
+  clearAllVaultBackups,
 } from './backupVault';

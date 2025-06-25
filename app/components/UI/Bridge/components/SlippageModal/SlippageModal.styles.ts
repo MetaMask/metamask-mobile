@@ -24,6 +24,9 @@ const createStyles = ({ colors }: Theme) =>
       paddingHorizontal: 24,
       paddingVertical: 16,
     },
+    segmentedControl: {
+      gap: 8,
+    },
   });
 
 export default createStyles;

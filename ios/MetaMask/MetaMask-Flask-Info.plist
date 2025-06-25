@@ -105,8 +105,10 @@
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
-		<string>armv7</string>
+		<string>arm64</string>
 	</array>
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleDefault</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -123,6 +125,8 @@
 	<key>branch_universal_link_domains</key>
 	<array>
 		<string>metamask.app.link</string>
+		<string>link.metamask.io</string>
+		<string>link-test.metamask.io</string>
 		<string>metamask-alternate.app.link</string>
 		<string>metamask.test.app.link</string>
 		<string>metamask-alternate.test.app.link</string>

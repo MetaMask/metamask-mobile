@@ -12,10 +12,12 @@ import Text, {
 import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
+import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
   displaySwapsButton: boolean | undefined;
+  displayBridgeButton: boolean | undefined;
   swapsIsLive: boolean | undefined;
   onBuy: () => void;
   goToSwaps: () => void;
@@ -27,6 +29,7 @@ export interface AssetDetailsActionsProps {
 export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   displayBuyButton,
   displaySwapsButton,
+  displayBridgeButton,
   swapsIsLive,
   onBuy,
   goToSwaps,
@@ -34,6 +37,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   onSend,
   onReceive,
 }) => {
+  const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
 
@@ -59,7 +63,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         <View style={styles.buttonWrapper}>
           <WalletAction
             iconName={IconName.SwapHorizontal}
-            onPress={goToSwaps}
+            onPress={() => goToSwaps()}
             iconStyle={styles.icon}
             containerStyle={styles.containerStyle}
             iconSize={AvatarSize.Lg}
@@ -71,34 +75,38 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           </Text>
         </View>
       )}
-      <View style={styles.buttonWrapper}>
-        <WalletAction
-          iconName={IconName.Bridge}
-          onPress={goToBridge}
-          iconStyle={styles.icon}
-          containerStyle={styles.containerStyle}
-          iconSize={AvatarSize.Lg}
-          disabled={!canSignTransactions}
-          actionID={TokenOverviewSelectorsIDs.BRIDGE_BUTTON}
-        />
-        <Text variant={TextVariant.BodyMD}>
-          {strings('asset_overview.bridge')}
-        </Text>
-      </View>
-      <View style={styles.buttonWrapper}>
-        <WalletAction
-          iconName={IconName.Arrow2Upright}
-          onPress={onSend}
-          iconStyle={styles.icon}
-          containerStyle={styles.containerStyle}
-          iconSize={AvatarSize.Lg}
-          disabled={!canSignTransactions}
-          actionID={TokenOverviewSelectorsIDs.SEND_BUTTON}
-        />
-        <Text variant={TextVariant.BodyMD}>
-          {strings('asset_overview.send_button')}
-        </Text>
-      </View>
+      {displayBridgeButton ? (
+        <View style={styles.buttonWrapper}>
+          <WalletAction
+            iconName={IconName.Bridge}
+            onPress={goToBridge}
+            iconStyle={styles.icon}
+            containerStyle={styles.containerStyle}
+            iconSize={AvatarSize.Lg}
+            disabled={!canSignTransactions}
+            actionID={TokenOverviewSelectorsIDs.BRIDGE_BUTTON}
+          />
+          <Text variant={TextVariant.BodyMD}>
+            {strings('asset_overview.bridge')}
+          </Text>
+        </View>
+      ) : null}
+      {isEvmNetworkSelected && (
+        <View style={styles.buttonWrapper}>
+          <WalletAction
+            iconName={IconName.Arrow2UpRight}
+            onPress={onSend}
+            iconStyle={styles.icon}
+            containerStyle={styles.containerStyle}
+            iconSize={AvatarSize.Lg}
+            disabled={!canSignTransactions}
+            actionID={TokenOverviewSelectorsIDs.SEND_BUTTON}
+          />
+          <Text variant={TextVariant.BodyMD}>
+            {strings('asset_overview.send_button')}
+          </Text>
+        </View>
+      )}
       <View style={styles.buttonWrapper}>
         <WalletAction
           iconName={IconName.QrCode}

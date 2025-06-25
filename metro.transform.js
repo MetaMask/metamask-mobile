@@ -20,10 +20,22 @@ const availableFeatures = new Set([
   'keyring-snaps',
   'multi-srp',
   'bitcoin',
+  'solana',
 ]);
 
-const mainFeatureSet = new Set(['preinstalled-snaps']);
-const betaFeatureSet = new Set(['beta', 'preinstalled-snaps', 'keyring-snaps']);
+const mainFeatureSet = new Set([
+  'preinstalled-snaps',
+  'keyring-snaps',
+  'multi-srp',
+  'solana',
+]);
+const betaFeatureSet = new Set([
+  'beta',
+  'preinstalled-snaps',
+  'keyring-snaps',
+  'multi-srp',
+  'solana',
+]);
 const flaskFeatureSet = new Set([
   'flask',
   'preinstalled-snaps',
@@ -31,6 +43,7 @@ const flaskFeatureSet = new Set([
   'keyring-snaps',
   'multi-srp',
   'bitcoin',
+  'solana',
 ]);
 
 /**
@@ -41,9 +54,10 @@ const flaskFeatureSet = new Set([
  */
 function getBuildTypeFeatures() {
   const buildType = process.env.METAMASK_BUILD_TYPE ?? 'main';
+  const envType = process.env.METAMASK_ENVIRONMENT ?? 'production';
   switch (buildType) {
     case 'main':
-      return mainFeatureSet;
+      return envType === 'beta' ? betaFeatureSet : mainFeatureSet;
     case 'beta':
       return betaFeatureSet;
     case 'flask':

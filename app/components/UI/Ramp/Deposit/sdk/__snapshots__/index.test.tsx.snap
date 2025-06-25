@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Deposit SDK Context DepositSDKProvider renders and provides context values 1`] = `
+<Text>
+  API Key: test-provider-api-key, Frontend Auth: test-provider-frontend-auth
+</Text>
+`;
+
+exports[`Deposit SDK Context useDepositSDK provides access to the NativeRampsSdk instance 1`] = `
+<Text>
+  Test Component
+</Text>
+`;

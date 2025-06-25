@@ -181,7 +181,7 @@ exports[`AccountOverview should render correctly 1`] = `
               }
             }
           >
-            0xe7E1...B0a1
+            0xe7E12...6B0a1
           </Text>
         </TouchableOpacity>
       </View>

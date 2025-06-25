@@ -150,7 +150,13 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -234,6 +241,9 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -600,7 +610,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                                 "alignItems": "center",
                                 "alignSelf": "center",
                                 "backgroundColor": "transparent",
-                                "borderRadius": 24,
+                                "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",
@@ -611,6 +621,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={16}
                               name="Copy"
                               style={
@@ -656,7 +667,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -707,33 +718,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
+                      <View />
                     </RCTSafeAreaView>
                   </View>
                 </View>
@@ -897,7 +882,13 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -905,6 +896,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -981,6 +973,9 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1347,7 +1342,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                                 "alignItems": "center",
                                 "alignSelf": "center",
                                 "backgroundColor": "transparent",
-                                "borderRadius": 24,
+                                "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",
@@ -1358,6 +1353,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={16}
                               name="Copy"
                               style={
@@ -1403,7 +1399,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -1454,33 +1450,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
+                      <View />
                     </RCTSafeAreaView>
                   </View>
                 </View>
@@ -1644,7 +1614,13 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1652,6 +1628,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -1728,6 +1705,9 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2094,7 +2074,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                                 "alignItems": "center",
                                 "alignSelf": "center",
                                 "backgroundColor": "transparent",
-                                "borderRadius": 24,
+                                "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",
@@ -2105,6 +2085,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={16}
                               name="Copy"
                               style={
@@ -2150,7 +2131,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -2201,33 +2182,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
+                      <View />
                     </RCTSafeAreaView>
                   </View>
                 </View>

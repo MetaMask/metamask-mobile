@@ -10,6 +10,8 @@ interface Asset {
 }
 
 export interface ApproveTransactionHeaderI {
+  chainId?: string;
+  networkClientId?: string;
   origin?: string;
   url: string;
   currentEnsName?: string;

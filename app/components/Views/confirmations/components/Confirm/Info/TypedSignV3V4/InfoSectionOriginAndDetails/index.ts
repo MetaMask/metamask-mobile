@@ -1,1 +1,0 @@
-export { InfoSectionOriginAndDetails } from './InfoSectionOriginAndDetails';

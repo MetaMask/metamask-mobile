@@ -31,15 +31,16 @@ const useNetworkInfo = (chainId?: string) => {
 
   const rpcUrl = rpcEndpoints[defaultRpcEndpointIndex].url;
   const rpcName = rpcEndpoints[defaultRpcEndpointIndex].name ?? rpcUrl;
+  const networkNativeCurrency = networkConfiguration.nativeCurrency;
 
   const networkName = nickname || rpcName;
 
-  //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
   const networkImage = getNetworkImageSource({ chainId: chainId?.toString() });
 
   return {
     networkName,
     networkImage,
+    networkNativeCurrency,
   };
 };
 

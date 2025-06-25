@@ -7,7 +7,7 @@ export interface GatewayWithAvailability {
 
 export interface HeadingProps {
   first?: boolean;
-  children: React.FC;
+  children: React.ReactNode;
 }
 
 export interface SecuritySettingsParams {

@@ -54,7 +54,7 @@ jest.mock('../../../core/Engine', () => ({
       updateExchangeRatesByChainId: jest.fn(() => Promise.resolve()),
     },
   },
-  getTotalFiatAccountBalance: jest.fn(),
+  getTotalEvmFiatAccountBalance: jest.fn(),
 }));
 
 jest.mock('../../../selectors/networkController', () => ({
@@ -191,7 +191,7 @@ describe('AssetOptions Component', () => {
       return {};
     });
     jest.clearAllMocks();
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
     jest.useFakeTimers();
   });
 

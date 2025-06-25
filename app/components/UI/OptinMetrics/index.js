@@ -2,18 +2,15 @@ import React, { PureComponent } from 'react';
 import {
   View,
   SafeAreaView,
-  Text,
   StyleSheet,
   ScrollView,
   BackHandler,
   Alert,
-  Linking,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles } from '../../../styles/common';
-import Entypo from 'react-native-vector-icons/Entypo';
-import { getOptinMetricsNavbarOptions } from '../Navbar';
 import { strings } from '../../../../locales/i18n';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
@@ -39,75 +36,51 @@ import Routes from '../../../constants/navigation/Routes';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../util/metrics';
-import {
-    UserProfileProperty
-} from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../component-library/components/Icons/Icon';
+import { getConfiguredCaipChainIds } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
     root: {
       ...baseStyles.flexGrow,
       backgroundColor: colors.background.default,
-    },
-    checkIcon: {
-      color: colors.success.default,
-    },
-    crossIcon: {
-      color: colors.error.default,
+      paddingTop: 24,
     },
     checkbox: {
       display: 'flex',
       flexDirection: 'row',
-      alignItems: 'center',
-      gap: 15,
+      alignItems: 'flex-start',
+      gap: 16,
       marginRight: 25,
-    },
-    icon: {
-      marginRight: 5,
     },
     action: {
       flex: 0,
       flexDirection: 'row',
-      paddingVertical: 10,
-      alignItems: 'center',
-    },
-    title: {
-      ...fontStyles.bold,
-      color: colors.text.default,
-      fontSize: 22,
+      alignItems: 'flex-start',
+      gap: 16,
     },
     description: {
-      ...fontStyles.normal,
-      color: colors.text.default,
       flex: 1,
     },
-    descriptionBold: {
-      ...fontStyles.bold,
-    },
-    content: {
-      ...fontStyles.normal,
-      fontSize: 14,
-      color: colors.text.default,
-      paddingVertical: 10,
-    },
-    linkText: {
-      ...fontStyles.normal,
-      fontSize: 14,
-      color: colors.info.default,
-      paddingVertical: 10,
-    },
     wrapper: {
-      marginTop: 10,
       marginHorizontal: 20,
+      flex: 1,
+      flexDirection: 'column',
+      rowGap: 16,
     },
     privacyPolicy: {
       ...fontStyles.normal,
-      fontSize: 14,
+      fontSize: 12,
       color: colors.text.muted,
-      marginTop: 10,
-    },
-    link: {
-      textDecorationLine: 'underline',
     },
     actionContainer: {
       flexDirection: 'row',
@@ -127,6 +100,13 @@ const createStyles = ({ colors }) =>
     },
     confirm: {
       marginLeft: 8,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: colors.border.muted,
+    },
+    title: {
+      fontWeight: '700',
     },
   });
 
@@ -168,18 +148,20 @@ class OptinMetrics extends PureComponent {
      * Used to control the action buttons state.
      */
     isActionEnabled: false,
+    /**
+     * Tracks the scroll view's content height.
+     */
+    scrollViewContentHeight: undefined,
+    /**
+     * Tracks when scroll view has scrolled to end.
+     * Needed to prevent scroll event from setting state multiple times.
+     */
+    isEndReached: false,
+    /**
+     * Tracks the scroll view's height.
+     */
+    scrollViewHeight: undefined,
   };
-
-  /**
-   * Tracks when scroll view has scrolled to end.
-   * Needed to prevent scroll event from setting state multiple times.
-   */
-  isEndReached = false;
-
-  /**
-   * Tracks the scroll view's content height.
-   */
-  scrollViewContentHeight = undefined;
 
   getStyles = () => {
     const { colors, typography } = this.context;
@@ -207,20 +189,28 @@ class OptinMetrics extends PureComponent {
         };
       });
 
-  updateNavBar = () => {
-    const { navigation } = this.props;
-    const colors = this.context.colors;
-    navigation.setOptions(getOptinMetricsNavbarOptions(colors));
-  };
-
   componentDidMount() {
-    this.updateNavBar();
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
   }
 
-  componentDidUpdate = () => {
-    this.updateNavBar();
-  };
+  componentDidUpdate(_, prevState) {
+    const { scrollViewContentHeight, isEndReached, scrollViewHeight } =
+      this.state;
+
+    // Only run this check if any of the relevant values have changed
+    if (
+      prevState.scrollViewContentHeight !== scrollViewContentHeight ||
+      prevState.isEndReached !== isEndReached ||
+      prevState.scrollViewHeight !== scrollViewHeight
+    ) {
+      if (scrollViewContentHeight === undefined || isEndReached) return;
+
+      // Check if content fits view port of scroll view
+      if (scrollViewHeight >= scrollViewContentHeight) {
+        this.onScrollEndReached();
+      }
+    }
+  }
 
   componentWillUnmount() {
     BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
@@ -267,21 +257,25 @@ class OptinMetrics extends PureComponent {
     return (
       <View style={styles.action} key={i}>
         {action === 0 ? (
-          <Entypo
-            name="check"
-            size={20}
-            style={[styles.icon, styles.checkIcon]}
+          <Icon
+            name={IconName.CheckBold}
+            size={IconSize.Lg}
+            color={IconColor.Success}
           />
         ) : (
-          <Entypo
-            name="cross"
-            size={24}
-            style={[styles.icon, styles.crossIcon]}
+          <Icon
+            name={IconName.CircleX}
+            size={IconSize.Lg}
+            color={IconColor.Error}
           />
         )}
         <Text style={styles.description}>
-          <Text style={styles.descriptionBold}>{prefix}</Text>
-          {description}
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            {prefix}
+          </Text>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {description}
+          </Text>
         </Text>
       </View>
     );
@@ -292,14 +286,18 @@ class OptinMetrics extends PureComponent {
 
     return (
       <View style={styles.action} key={i}>
-        <Entypo
-          name="check"
-          size={20}
-          style={[styles.icon, styles.checkIcon]}
+        <Icon
+          name={IconName.CheckBold}
+          size={IconSize.Lg}
+          color={IconColor.Success}
         />
         <Text style={styles.description}>
-          <Text style={styles.descriptionBold}>{prefix + ' '}</Text>
-          {description}
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            {prefix + ' '}
+          </Text>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {description}
+          </Text>
         </Text>
       </View>
     );
@@ -356,17 +354,20 @@ class OptinMetrics extends PureComponent {
       metrics
         .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
         .addProperties({
-            [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean( isDataCollectionForMarketingEnabled ),
-            is_metrics_opted_in: true,
-            location: 'onboarding_metametrics',
-            updated_after_onboarding: false,
+          [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
+            isDataCollectionForMarketingEnabled,
+          ),
+          is_metrics_opted_in: true,
+          location: 'onboarding_metametrics',
+          updated_after_onboarding: false,
         })
         .build(),
     );
 
     await metrics.addTraitsToUser({
-        ...generateDeviceAnalyticsMetaData(),
-        ...generateUserSettingsAnalyticsMetaData(),
+      ...generateDeviceAnalyticsMetaData(),
+      ...generateUserSettingsAnalyticsMetaData(),
+      [UserProfileProperty.CHAIN_IDS]: getConfiguredCaipChainIds(),
     });
 
     // track onboarding events that were stored before user opted in
@@ -445,14 +446,16 @@ class OptinMetrics extends PureComponent {
     if (isPastPrivacyPolicyDate) {
       return (
         <View>
-          <Text style={styles.privacyPolicy}>
-            <Text>{strings('privacy_policy.fine_print_1') + ' '}</Text>
-            <Button
-              variant={ButtonVariants.Link}
-              label={strings('privacy_policy.privacy_policy_button')}
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            {strings('privacy_policy.fine_print_1') + ' '}
+            <Text
+              color={TextColor.Primary}
+              variant={TextVariant.BodySM}
               onPress={this.openPrivacyPolicy}
-            />
-            <Text>{' ' + strings('privacy_policy.fine_print_2')}</Text>
+            >
+              {strings('privacy_policy.privacy_policy_button')}
+            </Text>
+            {' ' + strings('privacy_policy.fine_print_2')}
           </Text>
         </View>
       );
@@ -507,7 +510,6 @@ class OptinMetrics extends PureComponent {
           style={styles.button}
           label={strings('privacy_policy.cta_no_thanks')}
           size={ButtonSize.Lg}
-          disabled={!isActionEnabled}
         />
         <View style={styles.buttonDivider} />
         <Button
@@ -517,7 +519,6 @@ class OptinMetrics extends PureComponent {
           style={styles.button}
           label={strings('privacy_policy.cta_i_agree')}
           size={ButtonSize.Lg}
-          disabled={!isActionEnabled}
         />
       </View>
     );
@@ -527,7 +528,7 @@ class OptinMetrics extends PureComponent {
    * Triggered when scroll view has reached end of content.
    */
   onScrollEndReached = () => {
-    this.isEndReached = true;
+    this.setState({ isEndReached: true });
     this.setState({ isActionEnabled: true });
   };
 
@@ -537,7 +538,8 @@ class OptinMetrics extends PureComponent {
    * @param {number} _
    * @param {number} height
    */
-  onContentSizeChange = (_, height) => (this.scrollViewContentHeight = height);
+  onContentSizeChange = (_, height) =>
+    this.setState({ scrollViewContentHeight: height });
 
   /**
    * Layout event for the ScrollView.
@@ -545,11 +547,8 @@ class OptinMetrics extends PureComponent {
    * @param {Object} event
    */
   onLayout = ({ nativeEvent }) => {
-    if (this.scrollViewContentHeight === undefined || this.isEndReached) return;
     const scrollViewHeight = nativeEvent.layout.height;
-    // Check if content fits view port of scroll view.
-    if (scrollViewHeight >= this.scrollViewContentHeight)
-      this.onScrollEndReached();
+    this.setState({ scrollViewHeight });
   };
 
   /**
@@ -558,19 +557,18 @@ class OptinMetrics extends PureComponent {
    * @param {Object} event
    */
   onScroll = ({ nativeEvent }) => {
-    if (this.isEndReached) return;
+    if (this.state.isEndReached) return;
     const currentYOffset = nativeEvent.contentOffset.y;
-    const paddingAllowance = 16;
+    const paddingAllowance = Platform.select({
+      ios: 16,
+      android: 32,
+    });
     const endThreshold =
       nativeEvent.contentSize.height -
       nativeEvent.layoutMeasurement.height -
       paddingAllowance;
     // Check when scroll has reached the end.
     if (currentYOffset >= endThreshold) this.onScrollEndReached();
-  };
-
-  handleLink = () => {
-    Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
   };
 
   render() {
@@ -582,26 +580,27 @@ class OptinMetrics extends PureComponent {
     const styles = this.getStyles();
 
     return (
-      <SafeAreaView
-        style={styles.root}
-        testID={MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID}
-      >
+      <SafeAreaView style={styles.root}>
         <ScrollView
           style={styles.root}
           scrollEventThrottle={150}
           onContentSizeChange={this.onContentSizeChange}
           onLayout={this.onLayout}
           onScroll={this.onScroll}
+          testID={MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID}
         >
           <View style={styles.wrapper}>
             <Text
+              variant={TextVariant.DisplayMD}
+              color={TextColor.Default}
               style={styles.title}
               testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID}
             >
               {strings('privacy_policy.description_title')}
             </Text>
             <Text
-              style={styles.content}
+              variant={TextVariant.BodyMD}
+              color={TextColor.Default}
               testID={
                 MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID
               }
@@ -610,16 +609,6 @@ class OptinMetrics extends PureComponent {
                 isPastPrivacyPolicyDate
                   ? 'privacy_policy.description_content_1'
                   : 'privacy_policy.description_content_1_legacy',
-              )}
-            </Text>
-            <Text style={styles.linkText} onPress={this.handleLink}>
-              {strings('privacy_policy.description_content_3')}
-            </Text>
-            <Text style={styles.content}>
-              {strings(
-                isPastPrivacyPolicyDate
-                  ? 'privacy_policy.description_content_2'
-                  : 'privacy_policy.description_content_2_legacy',
               )}
             </Text>
             {this.actionsList.map((action, i) =>
@@ -647,11 +636,15 @@ class OptinMetrics extends PureComponent {
                     )
                   }
                 />
-                <Text style={styles.content}>
+                <Text
+                  variant={TextVariant.BodySMMedium}
+                  color={TextColor.Default}
+                >
                   {strings('privacy_policy.checkbox')}
                 </Text>
               </TouchableOpacity>
             ) : null}
+            <View style={styles.divider} />
             {this.renderPrivacyPolicy()}
           </View>
         </ScrollView>
@@ -662,6 +655,9 @@ class OptinMetrics extends PureComponent {
 }
 
 OptinMetrics.contextType = ThemeContext;
+OptinMetrics.navigationOptions = {
+  headerShown: false,
+};
 
 const mapStateToProps = (state) => ({
   events: state.onboarding.events,

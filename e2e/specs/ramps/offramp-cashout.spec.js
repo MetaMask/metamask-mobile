@@ -3,7 +3,7 @@ import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import TestHelpers from '../../helpers';
-import { SmokeRamps } from '../../tags';
+import { SmokeTrade } from '../../tags';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import Assertions from '../../utils/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -15,7 +15,7 @@ const PaymentMethods = {
     SEPA_BANK_TRANSFER: 'SEPA Bank Transfer',
   };
 
-describe(SmokeRamps('Off-Ramp Cashout destination'), () => {
+describe(SmokeTrade('Off-Ramp Cashout destination'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });

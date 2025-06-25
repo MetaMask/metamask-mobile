@@ -34,11 +34,9 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-describe('ProfileSyncingModal', () => {
+describe('ResetNotificationsModal', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(
-      <ResetNotificationsModal />,
-    );
+    const { toJSON } = renderWithProvider(<ResetNotificationsModal />);
     expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
+  Platform,
   KeyboardAvoidingView,
   ActivityIndicator,
   Alert,
@@ -54,6 +55,9 @@ import { recreateVaultWithNewPassword } from '../../../core/Vault';
 import Logger from '../../../util/Logger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
+
+import { MetaMetricsEvents, MetaMetrics } from '../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -395,6 +399,19 @@ class ResetPassword extends PureComponent {
 
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
       this.props.passwordSet();
+
+      // Track password changed event
+      const { biometryChoice, passwordStrength } = this.state;
+      const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
+      const eventBuilder = MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PASSWORD_CHANGED,
+      ).addProperties({
+        biometry_type: this.state.biometryType,
+        biometrics_enabled: Boolean(biometryChoice),
+        password_strength: passwordStrengthWord,
+      });
+      MetaMetrics.getInstance().trackEvent(eventBuilder.build());
+
       this.setState({ loading: false });
       InteractionManager.runAfterInteractions(() => {
         this.props.navigation.navigate('SecuritySettings');
@@ -530,7 +547,7 @@ class ResetPassword extends PureComponent {
     return (
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
-        behavior={'padding'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <KeyboardAwareScrollView style={baseStyles.flexGrow} enableOnAndroid>
           <View style={styles.confirmPasswordWrapper}>
@@ -735,9 +752,7 @@ class ResetPassword extends PureComponent {
                       false: colors.border.default,
                     }}
                     boxType="square"
-                    testID={
-                      ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID
-                    }
+                    testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                   />
                   <Text
                     variant={TextVariant.BodyMD}

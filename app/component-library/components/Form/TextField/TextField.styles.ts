@@ -30,20 +30,18 @@ const styleSheet = (params: {
   }
 
   return StyleSheet.create({
-    base: Object.assign(
-      {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderRadius: 8,
-        height: Number(size),
-        borderWidth: 1,
-        borderColor,
-        opacity: isDisabled ? 0.5 : 1,
-        paddingHorizontal: 16,
-        backgroundColor: theme.colors.background.default,
-      } as ViewStyle,
-      style,
-    ) as ViewStyle,
+    base: Object.assign({
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderRadius: 8,
+      height: Number(size),
+      borderWidth: 1,
+      borderColor,
+      opacity: isDisabled ? 0.5 : 1,
+      paddingHorizontal: 16,
+      backgroundColor: theme.colors.background.default,
+      ...StyleSheet.flatten(style),
+    } as ViewStyle) as ViewStyle,
     startAccessory: {
       marginRight: 8,
     },

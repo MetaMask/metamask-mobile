@@ -68,6 +68,7 @@ export default function ActionView({
   style = undefined,
   confirmButtonState = ConfirmButtonState.Normal,
   scrollViewTestID,
+  contentContainerStyle,
 }) {
   const { colors } = useTheme();
   confirmText = confirmText || strings('action_view.confirm');
@@ -81,6 +82,7 @@ export default function ActionView({
         resetScrollToCoords={{ x: 0, y: 0 }}
         keyboardShouldPersistTaps={keyboardShouldPersistTaps}
         testID={scrollViewTestID}
+        contentContainerStyle={contentContainerStyle}
       >
         <TouchableWithoutFeedback
           style={baseStyles.flexGrow}
@@ -149,6 +151,7 @@ ActionView.defaultProps = {
   cancelTestID: '',
   showCancelButton: true,
   showConfirmButton: true,
+  contentContainerStyle: undefined,
 };
 
 ActionView.propTypes = {
@@ -226,4 +229,8 @@ ActionView.propTypes = {
    * Optional TestID for the parent scroll View
    */
   scrollViewTestID: PropTypes.string,
+  /**
+   * Optional View styles. Applies to scroll view
+   */
+  contentContainerStyle: PropTypes.object,
 };

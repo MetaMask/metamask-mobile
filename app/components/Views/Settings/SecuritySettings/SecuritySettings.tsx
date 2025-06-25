@@ -39,7 +39,6 @@ import {
   DeleteMetaMetricsData,
   DeleteWalletData,
   RememberMeOptionSection,
-  AutomaticSecurityChecks,
   ProtectYourWallet,
   LoginOptionsSettings,
   RevealPrivateKey,
@@ -72,11 +71,9 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
-import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
 import Routes from '../../../../constants/navigation/Routes';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
-import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
 import { RootState } from '../../../../reducers';
 import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
@@ -115,7 +112,6 @@ const Settings: React.FC = () => {
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [hintText, setHintText] = useState('');
-  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
@@ -506,20 +502,6 @@ const Settings: React.FC = () => {
     />
   );
 
-  const toggleProfileSyncing = async () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.SETTINGS_UPDATED)
-        .addProperties({
-          settings_group: 'security_privacy',
-          settings_type: 'profile_syncing',
-          old_value: isProfileSyncingEnabled,
-          new_value: !isProfileSyncingEnabled,
-          was_notifications_on: isNotificationEnabled,
-        })
-        .build(),
-    );
-  };
-
   const toggleBasicFunctionality = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
@@ -574,7 +556,6 @@ const Settings: React.FC = () => {
             handleSwitchToggle={toggleBasicFunctionality}
           />
         </View>
-        <ProfileSyncingComponent handleSwitchToggle={toggleProfileSyncing} />
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
@@ -620,16 +601,6 @@ const Settings: React.FC = () => {
           </View>
         )}
         <IPFSGatewaySettings />
-        <Text
-          variant={TextVariant.BodyLGMedium}
-          color={TextColor.Alternative}
-          style={styles.subHeading}
-        >
-          {strings('app_settings.security_check_subheading')}
-        </Text>
-        <View style={styles.halfSetting}>
-          <AutomaticSecurityChecks />
-        </View>
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}

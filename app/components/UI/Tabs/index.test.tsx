@@ -25,6 +25,43 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
+jest.mock('../../../components/hooks/useAccounts', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const { KeyringTypes } = require('@metamask/keyring-controller');
+
+  return {
+    useAccounts: () => ({
+      accounts: [
+        {
+          name: 'Account 1',
+          address: '0x0000000000000000000000000000000000000001',
+          type: KeyringTypes.hd,
+          yOffset: 0,
+          isSelected: true,
+          assets: {
+            fiatBalance: '$0.00\n0 ETH',
+          },
+          balanceError: undefined,
+        },
+      ],
+      evmAccounts: [
+        {
+          name: 'Account 1',
+          address: '0x0000000000000000000000000000000000000001',
+          type: KeyringTypes.hd,
+          yOffset: 0,
+          isSelected: true,
+          assets: {
+            fiatBalance: '$0.00\n0 ETH',
+          },
+          balanceError: undefined,
+        },
+      ],
+      ensByAccountAddress: {},
+    }),
+  };
+});
+
 describe('Tabs', () => {
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(

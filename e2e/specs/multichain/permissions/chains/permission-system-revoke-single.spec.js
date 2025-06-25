@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../../../../helpers';
-import { SmokeMultiChainPermissions } from '../../../../tags';
+import { SmokeNetworkExpansion } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import NetworkListModal from '../../../../pages/Network/NetworkListModal';
@@ -10,7 +10,7 @@ import { withFixtures } from '../../../../fixtures/fixture-helper';
 import { loginToApp } from '../../../../viewHelper';
 import Assertions from '../../../../utils/Assertions';
 
-describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
+describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
@@ -34,10 +34,11 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
 
         // Step 2: Navigate to test dApp and open network settings
         await Browser.navigateToTestDApp();
-        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
 
         // Step 3: Navigate through permission management flow
         await ConnectedAccountsModal.tapManagePermissionsButton();
+        await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
         await ConnectedAccountsModal.tapSelectAllNetworksButton();
         await ConnectedAccountsModal.tapDeselectAllNetworksButton();
@@ -45,7 +46,7 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
         await ConnectedAccountsModal.tapConfirmDisconnectNetworksButton();
 
         // Step 4: Verify UI state after permission removal
-        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
         await Assertions.checkIfVisible(NetworkListModal.networkScroll);
         await NetworkListModal.swipeToDismissModal();

@@ -150,7 +150,13 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -234,6 +241,9 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -569,6 +579,7 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                                                 </Text>
                                                 <Text
                                                   allowFontScaling={false}
+                                                  selectable={false}
                                                   style={
                                                     [
                                                       {
@@ -587,7 +598,7 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                                                     ]
                                                   }
                                                 >
-                                                  
+                                                  
                                                 </Text>
                                               </View>
                                             </TouchableOpacity>
@@ -617,7 +628,7 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                                       [
                                         [
                                           {
-                                            "borderRadius": 100,
+                                            "borderRadius": 12,
                                             "justifyContent": "center",
                                             "padding": 15,
                                           },
@@ -678,7 +689,7 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                                       [
                                         [
                                           {
-                                            "borderRadius": 100,
+                                            "borderRadius": 12,
                                             "justifyContent": "center",
                                             "padding": 15,
                                           },

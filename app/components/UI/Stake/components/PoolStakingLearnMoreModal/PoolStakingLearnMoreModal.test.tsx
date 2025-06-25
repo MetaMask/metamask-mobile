@@ -1,7 +1,7 @@
-import React, { ReactElement } from 'react';
+import React from 'react';
 import PoolStakingLearnMoreModal from '.';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/mockData';
+import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/stakeMockData';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   MOCK_VAULT_APY_AVERAGES,
@@ -9,7 +9,6 @@ import {
 } from './mockVaultRewards';
 import { AreaChart } from 'react-native-svg-charts';
 import { fireLayoutEvent } from '../../../../../util/testUtils/react-native-svg-charts';
-import { screen } from '@testing-library/react-native';
 import { INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID } from './InteractiveTimespanChart';
 
 jest.mock('@react-navigation/native', () => {
@@ -19,6 +18,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: jest.fn(),
     }),
+    useRoute: jest.fn().mockReturnValue({ params: { chainId: '1' } }),
   };
 });
 
@@ -65,13 +65,9 @@ describe('PoolStakingLearnMoreModal', () => {
     const chartContainer = getByTestId(
       INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID,
     );
-    const areaChart = chartContainer.find(
-      (child: ReactElement) => child.type === AreaChart,
-    );
+    const areaChart = chartContainer.find((child) => child.type === AreaChart);
 
     fireLayoutEvent(areaChart);
-
-    screen.debug();
 
     expect(toJSON()).toMatchSnapshot();
   });

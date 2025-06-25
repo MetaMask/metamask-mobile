@@ -59,7 +59,7 @@ describe('useTokenRatesPolling', () => {
 
     expect(mockedTokenRatesController.startPolling).toHaveBeenCalledTimes(1);
     expect(mockedTokenRatesController.startPolling).toHaveBeenCalledWith({
-      chainId: '0x1',
+      chainIds: ['0x1'],
     });
 
     expect(
@@ -119,7 +119,7 @@ describe('useTokenRatesPolling', () => {
 
     expect(mockedTokenRatesController.startPolling).toHaveBeenCalledTimes(1);
     expect(mockedTokenRatesController.startPolling).toHaveBeenCalledWith({
-      chainId: '0x82750',
+      chainIds: ['0x82750'],
     });
 
     expect(
@@ -129,5 +129,49 @@ describe('useTokenRatesPolling', () => {
     expect(
       mockedTokenRatesController.stopPollingByPollingToken,
     ).toHaveBeenCalledTimes(1);
+  });
+
+  it('Should not poll when evm is not selected', async () => {
+    renderHookWithProvider(() => useTokenRatesPolling(), {
+      state: {
+        ...state,
+        engine: {
+          ...state.engine,
+          backgroundState: {
+            ...state.engine.backgroundState,
+            MultichainNetworkController: {
+              ...state.engine.backgroundState.MultichainNetworkController,
+              isEvmSelected: false,
+            },
+          },
+        },
+      },
+    });
+
+    const mockedTokenRatesController = jest.mocked(
+      Engine.context.TokenRatesController,
+    );
+    expect(mockedTokenRatesController.startPolling).toHaveBeenCalledTimes(0);
+  });
+
+  it('polls with provided chain ids', () => {
+    renderHookWithProvider(
+      () => useTokenRatesPolling({ chainIds: ['0x1', '0x89'] }),
+      {
+        state,
+      },
+    );
+
+    const mockedTokenRatesController = jest.mocked(
+      Engine.context.TokenRatesController,
+    );
+
+    expect(mockedTokenRatesController.startPolling).toHaveBeenCalledTimes(2);
+    expect(mockedTokenRatesController.startPolling).toHaveBeenNthCalledWith(1, {
+      chainIds: ['0x1'],
+    });
+    expect(mockedTokenRatesController.startPolling).toHaveBeenNthCalledWith(2, {
+      chainIds: ['0x89'],
+    });
   });
 });

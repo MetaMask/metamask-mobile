@@ -16,6 +16,38 @@ import Engine from '../../../../../core/Engine';
 import * as networks from '../../../../../util/networks';
 const { PreferencesController } = Engine.context;
 
+jest.mock(
+  '../../../../../util/metrics/MultichainAPI/networkMetricUtils',
+  () => ({
+    removeItemFromChainIdList: jest.fn().mockReturnValue({
+      chain_id_list: ['eip155:1'],
+    }),
+  }),
+);
+
+jest.mock('../../../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn(() => ({
+        build: jest.fn(),
+      })),
+    })),
+  }),
+  withMetricsAwareness: (Component: unknown) => Component,
+}));
+
+jest.mock('../../../../../core/Analytics', () => ({
+  MetaMetrics: {
+    getInstance: jest.fn().mockReturnValue({
+      addTraitsToUser: jest.fn(),
+    }),
+  },
+  MetaMetricsEvents: {
+    NETWORK_REMOVED: 'Network Removed',
+  },
+}));
+
 // Mock the entire module
 jest.mock('../../../../../util/networks/isNetworkUiRedesignEnabled', () => ({
   isNetworkUiRedesignEnabled: jest.fn(),
@@ -87,7 +119,7 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
       rpcEndpoints: [
         {
           networkClientId: 'mainnet',
-          type: 'Custom',
+          type: 'custom',
           url: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
         },
       ],
@@ -96,7 +128,13 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
     '0x5': {
       chainId: '0x5',
       name: 'Goerli',
-      rpcEndpoints: [{ url: 'https://goerli.infura.io/v3/{infuraProjectId}' }],
+      rpcEndpoints: [
+        {
+          networkClientId: 'goerli',
+          type: 'custom',
+          url: 'https://goerli.infura.io/v3/{infuraProjectId}',
+        },
+      ],
     },
   },
   networkOnboardedState: { '0x1': true, '0xe708': true },
@@ -616,62 +654,6 @@ describe('NetworkSettings', () => {
     instance.onChainIdBlur();
     expect(wrapper.state('isChainIdFieldFocused')).toBe(false);
   });
-
-  describe('getDecimalChainId', () => {
-    let wrapperTest;
-    // Do not need to mock entire Engine. Only need subset of data for testing purposes.
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let instanceTest: any;
-
-    beforeEach(() => {
-      wrapperTest = shallow(
-        <Provider store={store}>
-          <ThemeContext.Provider value={mockTheme}>
-            <NetworkSettings {...SAMPLE_NETWORKSETTINGS_PROPS} />
-          </ThemeContext.Provider>
-        </Provider>,
-      )
-        .find(NetworkSettings)
-        .dive();
-
-      instanceTest = wrapperTest.instance();
-    });
-
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('should return the chainId as is if it is falsy', () => {
-      expect(instanceTest.getDecimalChainId(null)).toBe(null);
-      expect(instanceTest.getDecimalChainId(undefined)).toBe(undefined);
-    });
-
-    it('should return the chainId as is if it is not a string', () => {
-      expect(instanceTest.getDecimalChainId(123)).toBe(123);
-    });
-
-    it('should return the chainId as is if it does not start with 0x', () => {
-      expect(instanceTest.getDecimalChainId('123')).toBe('123');
-      expect(instanceTest.getDecimalChainId('abc')).toBe('abc');
-    });
-
-    it('should convert hex chainId to decimal string', () => {
-      expect(instanceTest.getDecimalChainId('0x1')).toBe('1');
-      expect(instanceTest.getDecimalChainId('0xa')).toBe('10');
-      expect(instanceTest.getDecimalChainId('0x64')).toBe('100');
-      expect(instanceTest.getDecimalChainId('0x12c')).toBe('300');
-    });
-
-    it('should handle edge cases for hex chainId conversion', () => {
-      expect(instanceTest.getDecimalChainId('0x0')).toBe('0');
-      expect(instanceTest.getDecimalChainId('0xff')).toBe('255');
-      expect(instanceTest.getDecimalChainId('0x7fffffffffffffff')).toBe(
-        '9223372036854776000',
-      );
-    });
-  });
-
   describe('NetworkSettings additional tests', () => {
     beforeEach(() => {
       wrapper = shallow(
@@ -980,7 +962,11 @@ describe('NetworkSettings', () => {
       // Set complete form state
       wrapper.setState({
         rpcUrls: [
-          { url: 'http://localhost:8545', type: 'custom', name: 'test' },
+          {
+            url: 'http://localhost:8545',
+            type: 'custom',
+            name: 'test',
+          },
         ],
         rpcUrl: 'http://localhost:8545',
         chainId: '0x1',
@@ -1131,6 +1117,7 @@ describe('NetworkSettings', () => {
       // Call the function
       await instance.onRpcUrlChangeWithName(
         'https://example.com',
+        undefined,
         'Test Network',
         'Custom',
       );
@@ -1156,6 +1143,7 @@ describe('NetworkSettings', () => {
 
       await instance.onRpcUrlChangeWithName(
         'https://example.com',
+        undefined,
         null,
         'Custom',
       );
@@ -1175,6 +1163,7 @@ describe('NetworkSettings', () => {
 
       await instance.onRpcUrlChangeWithName(
         'https://example.com',
+        undefined,
         'Test Network',
         'Custom',
       );
@@ -1396,7 +1385,13 @@ describe('NetworkSettings', () => {
 
       await instance.handleNetworkUpdate({
         rpcUrl: 'http://localhost:8080',
-        rpcUrls: [{ url: 'http://localhost:8080', type: 'custom', name: '' }],
+        rpcUrls: [
+          {
+            url: 'http://localhost:8080',
+            type: 'custom',
+            name: '',
+          },
+        ],
         blockExplorerUrls: ['https://etherscan.io'],
         isNetworkExists: [],
         chainId: '0x1',
@@ -1415,7 +1410,11 @@ describe('NetworkSettings', () => {
           name: undefined,
           nativeCurrency: undefined,
           rpcEndpoints: [
-            { name: '', type: 'custom', url: 'http://localhost:8080' },
+            {
+              name: '',
+              type: 'custom',
+              url: 'http://localhost:8080',
+            },
           ],
         }),
         { replacementSelectedRpcEndpointIndex: 0 },
@@ -1430,14 +1429,20 @@ describe('NetworkSettings', () => {
         chainId: '0x1',
         name: 'Mainnet',
         rpcEndpoints: [
-          { url: 'https://mainnet.infura.io/v3/{infuraProjectId}' },
+          {
+            url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+          },
         ],
       },
       '0x5': {
         chainId: '0x5',
         name: 'Goerli',
         rpcEndpoints: [
-          { url: 'https://goerli.infura.io/v3/{infuraProjectId}' },
+          {
+            type: 'custom',
+            networkClientId: 'goerli',
+            url: 'https://goerli.infura.io/v3/{infuraProjectId}',
+          },
         ],
       },
     };
@@ -1458,6 +1463,24 @@ describe('NetworkSettings', () => {
       expect(result).toEqual([]);
     });
 
+    it('should return an empty array if the RPC URL does not exist with no rpcEndpointUrls present', async () => {
+      const rpcUrl = 'https://random.network.io';
+      const instance = wrapper.instance();
+
+      wrapper.setProps({
+        networkConfigurations: {
+          '0x1': {
+            chainId: '0x1',
+            name: 'Mainnet',
+          },
+        },
+      });
+
+      const result = await instance.checkIfRpcUrlExists(rpcUrl);
+
+      expect(result).toEqual([]);
+    });
+
     it('should return multiple networks if multiple RPC URLs match', async () => {
       const instance = wrapper.instance();
 
@@ -1466,7 +1489,11 @@ describe('NetworkSettings', () => {
         chainId: '0x2',
         name: 'Another Network',
         rpcEndpoints: [
-          { url: 'https://goerli.infura.io/v3/{infuraProjectId}' },
+          {
+            type: 'custom',
+            networkClientId: 'goerli',
+            url: 'https://goerli.infura.io/v3/{infuraProjectId}',
+          },
         ],
       };
 

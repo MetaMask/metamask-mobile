@@ -63,6 +63,9 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
   >
     <View
       collapsable={false}
+      enabled={true}
+      handlerTag={-1}
+      handlerType="PanGestureHandler"
       onGestureHandlerEvent={[Function]}
       onGestureHandlerStateChange={[Function]}
       onLayout={[Function]}
@@ -74,7 +77,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
             "borderTopLeftRadius": 8,
             "borderTopRightRadius": 8,
             "borderWidth": 1,
-            "maxHeight": NaN,
+            "maxHeight": 1334,
             "overflow": "hidden",
             "paddingBottom": undefined,
             "shadowColor": "#0000001a",
@@ -126,6 +129,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
       >
         <SvgMock
           color="#9a6300"
+          fill="currentColor"
           height={32}
           name="Danger"
           style={
@@ -332,7 +336,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
                 "borderColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "borderWidth": 1,
                 "flex": 1,
                 "flexDirection": "row",
@@ -371,7 +375,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "flex": 1,
                 "flexDirection": "row",
                 "height": 48,

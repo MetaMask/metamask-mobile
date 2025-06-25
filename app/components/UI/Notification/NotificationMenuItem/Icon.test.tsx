@@ -22,7 +22,7 @@ const mockInitialState = {
 
 describe('NotificationIcon', () => {
   const walletNotification = {
-    badgeIcon: IconName.Send2,
+    badgeIcon: IconName.Send,
     imageUrl: SVG_ETH_LOGO_PATH,
   };
 

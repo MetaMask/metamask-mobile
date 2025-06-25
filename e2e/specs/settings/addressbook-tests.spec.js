@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeCore } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import SendView from '../../pages/Send/SendView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import ContactsView from '../../pages/Settings/Contacts/ContactsView';
@@ -21,6 +21,8 @@ import CommonView from '../../pages/CommonView';
 import enContent from '../../../locales/languages/en.json';
 import DeleteContactBottomSheet from '../../pages/Settings/Contacts/DeleteContactBottomSheet';
 import Assertions from '../../utils/Assertions';
+import { startMockServer } from '../../api-mocking/mock-server';
+import { mockIdentityServices } from '../identity/utils/mocks';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
@@ -28,16 +30,29 @@ const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 const MEMO = 'Test adding ENS';
 const fixtureServer = new FixtureServer();
 
-describe(SmokeCore('Addressbook Tests'), () => {
+describe(SmokeWalletPlatform('Addressbook Tests'), () => {
+  const TEST_SPECIFIC_MOCK_SERVER_PORT = 8099;
+  let mockServer;
+
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
+
+    mockServer = await startMockServer({}, TEST_SPECIFIC_MOCK_SERVER_PORT);
+    await mockIdentityServices(mockServer);
+
     const fixture = new FixtureBuilder().build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await TestHelpers.launchApp({
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+      newInstance: true,
+      delete: true,
+      launchArgs: {
+        fixtureServerPort: `${getFixturesServerPort()}`,
+        mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT),
+      },
     });
     await loginToApp();
+    await TestHelpers.delay(4000);
   });
 
   beforeEach(() => {
@@ -109,14 +124,11 @@ describe(SmokeCore('Addressbook Tests'), () => {
     await ContactsView.tapOnAlias('Myth'); // Tap on Myth address
     await AddContactView.tapEditButton();
     await AddContactView.typeInName('Moon'); // Change name from Myth to Moon
-    await AddContactView.tapEditContactCTA();
+    await TestHelpers.delay(1500);
 
-    // because tapping edit contact is slow to load on bitrise
-    try {
-      await Assertions.checkIfVisible(ContactsView.container);
-    } catch {
-      await AddContactView.tapEditContactCTA();
-      await Assertions.checkIfVisible(ContactsView.container);
+    await AddContactView.tapEditContactCTA();
+    if (device.getPlatform() === 'ios') {
+      await AddContactView.tapEditContactCTA(); // Because on CI, tapping the edit contact button requires a double tap for iOS
     }
     await ContactsView.isContactAliasVisible('Moon'); // Check that Ibrahim address is saved in the address book
     await ContactsView.isContactAliasNotVisible('Myth'); // Ensure Myth is not visible

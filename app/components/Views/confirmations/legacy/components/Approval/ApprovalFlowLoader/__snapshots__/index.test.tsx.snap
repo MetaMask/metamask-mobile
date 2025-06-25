@@ -50,6 +50,7 @@ exports[`ApprovalFlowLoader should render correctly 1`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -66,7 +67,7 @@ exports[`ApprovalFlowLoader should render correctly 1`] = `
             ]
           }
         >
-          
+          󰝲
         </Text>
       </View>
     </View>

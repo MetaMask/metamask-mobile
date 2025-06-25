@@ -4,15 +4,22 @@ import {
   ImportTokenViewSelectorsIDs,
   ImportTokenViewSelectorsText,
 } from '../../../selectors/wallet/ImportTokenView.selectors';
-import TestHelpers from '../../../helpers';
 
 class ImportTokensView {
   get searchTokenResult() {
-    return Matchers.getElementByID(ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT);
+    return Matchers.getElementByID(
+      ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT,
+    );
   }
 
   get nextButton() {
     return Matchers.getElementByID(ImportTokenViewSelectorsIDs.NEXT_BUTTON);
+  }
+
+  get networkInput() {
+    return Matchers.getElementByID(
+      ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON,
+    );
   }
 
   get symbolInput() {
@@ -28,7 +35,9 @@ class ImportTokensView {
   }
 
   get customTokenTab() {
-    return Matchers.getElementByText(ImportTokenViewSelectorsText.CUSTOM_TOKEN_TAB);
+    return Matchers.getElementByText(
+      ImportTokenViewSelectorsText.CUSTOM_TOKEN_TAB,
+    );
   }
 
   get searchTokenBar() {
@@ -60,11 +69,19 @@ class ImportTokensView {
   }
 
   async tapOnToken() {
-    await Gestures.TapAtIndex(this.searchTokenResult, 0);
+    await Gestures.tapAtIndex(this.searchTokenResult, 0);
   }
 
   async tapOnNextButton() {
     await Gestures.waitAndTap(this.nextButton);
+  }
+
+  async tapOnNetworkInput() {
+    await Gestures.waitAndTap(this.networkInput);
+  }
+
+  async tapNetworkOption(networkName) {
+    await Gestures.waitAndTap(Matchers.getElementByText(networkName));
   }
 }
 

@@ -14,8 +14,9 @@ export default (params: { theme: Theme }) => {
       borderColor: theme.colors.border.default,
     },
     startAccessoryContainer: {
-      marginRight: 8,
+      paddingRight: 16,
       flexDirection: 'row',
+      maxWidth: 210,
       alignItems: 'center',
     },
     endAccessoryContainer: {
