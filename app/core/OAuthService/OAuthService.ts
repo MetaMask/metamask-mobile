@@ -25,7 +25,7 @@ import { Platform } from 'react-native';
 export interface OAuthServiceConfig {
   authConnectionConfig: {
     [key in SupportedPlatforms]: {
-      [key in AuthConnection]: {
+      [key1 in AuthConnection]: {
         authConnectionId: string;
         groupedAuthConnectionId?: string;
       };

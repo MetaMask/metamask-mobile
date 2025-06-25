@@ -1,4 +1,3 @@
-import { Platform } from 'react-native';
 import { ACTIONS, PROTOCOLS } from '../../../constants/deeplinks';
 import AppConstants from '../../AppConstants';
 import { AuthConnection } from '../OAuthInterface';
