@@ -52,9 +52,11 @@ Ensure that these devices are set up. You can change the default devices at any 
 
   After downloading the prebuilt apps, update your local environment variables so that the prebuilds are picked up in the [.detoxrc.js](../../.detoxrc.js) file:
 
-  - `PREBULT_IOS_APP_PATH` for iOS
-  - `PREBULT_ANDROID_APP_PATH` for Android APK
-  - `PREBULT_ANDROID_TEST_APP_PATH` for Android test APK (needs to be set when using prebuilds)
+  - `PREBUILT_IOS_APP_PATH` for iOS
+  - `PREBUILT_ANDROID_APP_PATH` for Android APK
+  - `PREBUILT_ANDROID_TEST_APP_PATH` for Android test APK
+    - Needs to be set when using prebuilds
+    - This should use the test APK file in the `outputs.zip` file from the Android Runway bucket
 
 - **Option #2 - Building locally**:
 
