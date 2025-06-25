@@ -48,20 +48,22 @@ const createStyles = (params: { theme: Theme }) => {
       borderColor: colors.border.muted,
       marginBottom: 8,
     },
-    // select all
-    selectAllText: {
-      marginLeft: 0,
-      marginVertical: 12,
-      color: colors.primary.default,
-      paddingHorizontal: 16,
+    networkMenu: {
+      alignItems: 'center',
     },
-    bodyContainer: {
-      paddingBottom: 4,
+    // custom network styles
+    container: {
       flex: 1,
     },
-    // custom network
-    customNetworkContainer: {
+    addNetworkButtonContainer: {
       paddingHorizontal: 16,
+      paddingVertical: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    addNetworkButton: {},
+    iconContainer: {
+      marginRight: 14,
     },
   });
 };

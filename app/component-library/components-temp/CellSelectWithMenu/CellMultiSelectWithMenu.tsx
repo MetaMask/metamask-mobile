@@ -53,7 +53,7 @@ const CellMultiSelectWithMenu = ({
           />
         ) : null}
 
-        <View style={styles.cellBaseInfo}>
+        <View style={styles.cellMultiSelectBaseInfo}>
           {title === undefined || typeof title === 'string' ? (
             <Text
               numberOfLines={1}

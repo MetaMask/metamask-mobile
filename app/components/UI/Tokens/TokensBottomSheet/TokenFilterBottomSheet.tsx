@@ -1,192 +1,203 @@
-import { View } from 'react-native';
+// third party dependencies
+import { View, ImageSourcePropType, TouchableOpacity } from 'react-native';
 import React, { useRef, useMemo, useCallback, useState } from 'react';
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import ScrollableTabView, {
   ChangeTabProperties,
 } from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { CaipChainId } from '@metamask/utils';
 
-import hideKeyFromUrl from '../../../../util/hideKeyFromUrl';
-import { ExtendedNetwork } from '../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
+// external dependencies
+import { useTheme } from '../../../../util/theme';
+import { strings } from '../../../../../locales/i18n';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { useStyles } from '../../../../component-library/hooks/useStyles';
-import {
-  EvmAndMultichainNetworkConfigurationsWithCaipChainId,
-  selectNetworkConfigurationsByCaipChainId,
-} from '../../../../selectors/networkController';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
-import { useTheme } from '../../../../util/theme';
-import createStyles from './index.styles';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../locales/i18n';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
-import { getNetworkImageSource } from '../../../../util/networks';
-import NetworkMultiSelectList from '../../NetworkMultiSelectList/NetworkMultiSelectList';
-import { PopularList } from '../../../../util/networks/customNetworks';
-import CustomNetwork from '../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
+import NetworkMultiSelect from '../../NetworkMultiSelect/NetworkMultiSelect';
+import AccountAction from '../../../Views/AccountAction';
 
-const NetworkSelectorListTab = () => {
+// internal dependencies
+import createStyles from './index.styles';
+import { NetworkMenuModal } from './TokenFilterBottomSheet.types';
+
+// Custom Network Selector
+import {
+  selectCustomNetworkConfigurationsByCaipChainId,
+  selectNetworkConfigurationsByCaipChainId,
+} from '../../../../selectors/networkController';
+import { useSelector } from 'react-redux';
+import Cell, {
+  CellVariant,
+} from '../../../../component-library/components/Cells/Cell';
+import {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../component-library/components/Avatars/Avatar';
+import { getNetworkImageSource } from '../../../../util/networks';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../component-library/components/Icons/Icon';
+import Routes from '../../../../constants/navigation/Routes';
+import ReusableModal, { ReusableModalRef } from '../../ReusableModal';
+
+export interface CustomNetworkItem {
+  id: string;
+  name: string;
+  isSelected: boolean;
+  yOffset?: number;
+  imageSource: ImageSourcePropType;
+  caipChainId: CaipChainId;
+}
+
+interface CustomNetworkSelectorProps {
+  openModal: (networkMenuModal: NetworkMenuModal) => void;
+}
+
+const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, { colors });
-  const networkConfigurations = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
+  const { navigate } = useNavigation();
+
+  const customNetworkConfigurations = useSelector(
+    selectCustomNetworkConfigurationsByCaipChainId,
   );
 
-  const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
-  const [popularNetwork, setPopularNetwork] = useState<ExtendedNetwork>();
-  const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>([]);
-  const [showWarningModal, setShowWarningModal] = useState(false);
-  const [isLoading] = useState(false);
+  const [selectedNetwork, setSelectedNetwork] = useState('');
 
-  const onSelectNetwork = useCallback(
-    (currentChainId: CaipChainId) => {
-      if (selectedChainIds.includes(currentChainId)) {
-        setSelectedChainIds(
-          selectedChainIds.filter((_chainId) => _chainId !== currentChainId),
-        );
-      } else {
-        setSelectedChainIds([...selectedChainIds, currentChainId]);
-      }
-    },
-    [selectedChainIds, setSelectedChainIds],
-  );
-
-  const showNetworkModal = (networkConfiguration: ExtendedNetwork) => {
-    setShowPopularNetworkModal(true);
-    setPopularNetwork({
-      ...networkConfiguration,
-      formattedRpcUrl: networkConfiguration.warning
-        ? null
-        : hideKeyFromUrl(networkConfiguration.rpcUrl),
+  const goToNetworkSettings = useCallback(() => {
+    navigate(Routes.ADD_NETWORK, {
+      shouldNetworkSwitchPopToWallet: false,
+      shouldShowPopularNetworks: false,
     });
-  };
+  }, [navigate]);
 
-  const onCancel = useCallback(() => {
-    setShowPopularNetworkModal(false);
-    setPopularNetwork(undefined);
-  }, []);
-
-  const toggleWarningModal = () => {
-    setShowWarningModal(!showWarningModal);
-  };
-
-  const networks = useMemo(
+  const customNetworks = useMemo(
     () =>
-      Object.entries(networkConfigurations).map(
-        ([key, network]: [
-          string,
-          EvmAndMultichainNetworkConfigurationsWithCaipChainId,
-        ]) => ({
-          id: key,
-          name: network.name,
-          isSelected: false,
-          imageSource: getNetworkImageSource({
-            chainId: network.caipChainId,
-          }),
-          caipChainId: network.caipChainId,
+      customNetworkConfigurations.map((network) => ({
+        id: network.caipChainId,
+        name: network.name,
+        caipChainId: network.caipChainId,
+        isSelected: selectedNetwork === network.caipChainId,
+        imageSource: getNetworkImageSource({
+          chainId: network.caipChainId,
         }),
-      ),
-    [networkConfigurations],
+      })),
+    [customNetworkConfigurations, selectedNetwork],
   );
 
-  const areAllNetworksSelected = networks.every(({ caipChainId }) =>
-    selectedChainIds.includes(caipChainId),
-  );
-  const areAnyNetworksSelected = Boolean(selectedChainIds.length > 0);
-  const areNoNetworksSelected = !areAnyNetworksSelected;
-
-  const renderSelectAllCheckbox = useCallback((): React.JSX.Element | null => {
-    const areSomeNetworksSelectedButNotAll =
-      areAnyNetworksSelected && !areAllNetworksSelected;
-
-    const selectAll = () => {
-      if (isLoading) return;
-      const allSelectedChainIds = networks.map(
-        ({ caipChainId }) => caipChainId,
-      );
-      setSelectedChainIds(allSelectedChainIds);
-    };
-
-    const unselectAll = () => {
-      if (isLoading) return;
-      setSelectedChainIds([]);
-    };
-
-    const onPress = () => {
-      areAllNetworksSelected ? unselectAll() : selectAll();
-    };
-
-    return (
-      <View>
-        <Text
-          style={styles.selectAllText}
-          onPress={onPress}
-          variant={TextVariant.BodyMD}
+  const renderNetworkItem: ListRenderItem<CustomNetworkItem> = useCallback(
+    ({ item }) => {
+      const { name, caipChainId } = item;
+      return (
+        <View
+          testID={`${name}-${selectedNetwork ? 'selected' : 'not-selected'}`}
         >
-          {areSomeNetworksSelectedButNotAll || areAllNetworksSelected
-            ? strings('networks.deselect_all')
-            : strings('networks.select_all')}
+          <Cell
+            variant={CellVariant.SelectWithMenu}
+            isSelected={selectedNetwork === caipChainId}
+            title={name}
+            onPress={() => setSelectedNetwork(caipChainId)}
+            avatarProps={{
+              variant: AvatarVariant.Network,
+              name,
+              imageSource: item.imageSource as ImageSourcePropType,
+              size: AvatarSize.Sm,
+            }}
+            buttonIcon={IconName.MoreVertical}
+            buttonProps={{
+              onButtonClick: () => {
+                openModal({
+                  isVisible: true,
+                  caipChainId,
+                  displayEdit: false,
+                  networkTypeOrRpcUrl: name,
+                  isReadOnly: false,
+                });
+              },
+            }}
+          ></Cell>
+        </View>
+      );
+    },
+    [selectedNetwork, openModal],
+  );
+
+  const renderFooter = useCallback(
+    () => (
+      <TouchableOpacity
+        style={styles.addNetworkButtonContainer}
+        onPress={goToNetworkSettings}
+      >
+        <Icon
+          name={IconName.Add}
+          size={IconSize.Lg}
+          color={colors.icon.alternative}
+          style={styles.iconContainer}
+        />
+
+        <Text
+          variant={TextVariant.BodyMD}
+          color={colors.text.alternative}
+          style={styles.addNetworkButton}
+        >
+          {strings('app_settings.network_add_custom_network')}
         </Text>
-      </View>
-    );
-  }, [
-    areAllNetworksSelected,
-    areAnyNetworksSelected,
-    networks,
-    isLoading,
-    setSelectedChainIds,
-    styles.selectAllText,
-  ]);
+      </TouchableOpacity>
+    ),
+    [
+      goToNetworkSettings,
+      colors.icon.alternative,
+      colors.text.alternative,
+      styles.addNetworkButton,
+      styles.addNetworkButtonContainer,
+      styles.iconContainer,
+    ],
+  );
 
   return (
-    <View style={styles.bodyContainer}>
-      {renderSelectAllCheckbox()}
-      <NetworkMultiSelectList
-        networks={networks}
-        selectedChainIds={selectedChainIds}
-        onSelectNetwork={onSelectNetwork}
-        additionalNetworksComponent={
-          <View style={styles.customNetworkContainer}>
-            <CustomNetwork
-              isNetworkModalVisible={showPopularNetworkModal}
-              closeNetworkModal={onCancel}
-              selectedNetwork={popularNetwork}
-              toggleWarningModal={toggleWarningModal}
-              showNetworkModal={showNetworkModal}
-              switchTab={undefined}
-              shouldNetworkSwitchPopToWallet={false}
-              customNetworksList={PopularList}
-              showCompletionMessage={false}
-              showPopularNetworkModal
-              allowNetworkSwitch={false}
-              hideWarningIcons
-              listHeader={strings('networks.additional_networks')}
-              compactMode
-            />
-          </View>
-        }
+    <View style={styles.container}>
+      <FlashList
+        data={customNetworks}
+        renderItem={renderNetworkItem}
+        keyExtractor={(item) => item.caipChainId}
+        estimatedItemSize={60}
+        ListFooterComponent={renderFooter}
       />
     </View>
   );
 };
 
-const MockCustomTab = () => (
-  <View>
-    <Text>Custom</Text>
-  </View>
-);
+const initialNetworkMenuModal: NetworkMenuModal = {
+  isVisible: false,
+  caipChainId: 'eip155:1',
+  displayEdit: false,
+  networkTypeOrRpcUrl: '',
+  isReadOnly: false,
+};
 
 const TokenFilterBottomSheet = () => {
+  const networkMenuSheetRef = useRef<BottomSheetRef>(null);
+  const sheetRef = useRef<ReusableModalRef>(null);
+
   const navigation = useNavigation();
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, { colors });
-  const sheetRef = useRef<BottomSheetRef>(null);
   const { trackEvent, createEventBuilder } = useMetrics();
+
+  const networkConfigurations = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
+
+  const [showNetworkMenuModal, setNetworkMenuModal] =
+    useState<NetworkMenuModal>(initialNetworkMenuModal);
 
   const onChangeTab = useCallback(
     async (obj: ChangeTabProperties) => {
@@ -242,23 +253,80 @@ const TokenFilterBottomSheet = () => {
     [navigation],
   );
 
+  const openModal = useCallback((networkMenuModal: NetworkMenuModal) => {
+    setNetworkMenuModal({
+      ...networkMenuModal,
+      isVisible: true,
+    });
+    networkMenuSheetRef.current?.onOpenBottomSheet();
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setNetworkMenuModal(initialNetworkMenuModal);
+  }, []);
+
+  const removeRpcUrl = (caipChainId: CaipChainId) => {
+    const networkConfiguration = networkConfigurations[caipChainId];
+
+    if (!networkConfiguration) {
+      throw new Error(`Unable to find network with chain id ${caipChainId}`);
+    }
+
+    closeModal();
+    // closeRpcModal();
+
+    // setShowConfirmDeleteModal({
+    //   isVisible: true,
+    //   networkName: networkConfiguration.name ?? '',
+    //   chainId: networkConfiguration.chainId,
+    // });
+  };
+
   return (
-    <BottomSheet shouldNavigateBack ref={sheetRef}>
-      <View style={styles.bottomSheetWrapper}>
-        <View>
-          <Text variant={TextVariant.HeadingMD} style={styles.bottomSheetTitle}>
-            {strings('wallet.networks')}
-          </Text>
-          <ScrollableTabView
-            renderTabBar={renderTabBar}
-            onChangeTab={onChangeTab}
-          >
-            <NetworkSelectorListTab {...defaultTabProps} />
-            <MockCustomTab {...customTabProps} />
-          </ScrollableTabView>
+    <ReusableModal ref={sheetRef}>
+      <BottomSheet
+        ref={networkMenuSheetRef}
+        onClose={closeModal}
+        shouldNavigateBack={false}
+      >
+        <View style={styles.networkMenu}>
+          <AccountAction
+            actionTitle={strings('transaction.edit')}
+            iconName={IconName.Edit}
+            onPress={() => {
+              navigation.navigate(Routes.ADD_NETWORK, {
+                shouldNetworkSwitchPopToWallet: false,
+                shouldShowPopularNetworks: false,
+                network: showNetworkMenuModal.networkTypeOrRpcUrl,
+              });
+            }}
+          />
         </View>
-      </View>
-    </BottomSheet>
+      </BottomSheet>
+
+      <BottomSheet shouldNavigateBack>
+        <View style={styles.bottomSheetWrapper}>
+          <View>
+            <Text
+              variant={TextVariant.HeadingMD}
+              style={styles.bottomSheetTitle}
+            >
+              {strings('wallet.networks')}
+            </Text>
+            <ScrollableTabView
+              renderTabBar={renderTabBar}
+              onChangeTab={onChangeTab}
+            >
+              <NetworkMultiSelect {...defaultTabProps} openModal={openModal} />
+              <CustomNetworkSelector
+                {...customTabProps}
+                openModal={openModal}
+              />
+            </ScrollableTabView>
+          </View>
+        </View>
+      </BottomSheet>
+    </ReusableModal>
   );
 };
 

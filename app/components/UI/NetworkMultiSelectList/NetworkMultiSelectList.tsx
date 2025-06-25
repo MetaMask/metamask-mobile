@@ -36,17 +36,14 @@ const NetworkMultiSelectList = ({
   isSelectionDisabled,
   isAutoScrollEnabled = true,
   additionalNetworksComponent,
+  openModal,
   ...props
 }: NetworkConnectMultiSelectorProps) => {
-  const networksLengthRef = useRef<number>(0);
-  const { styles } = useStyles(styleSheet, {});
-  /**
-   * Ref for the FlashList component.
-   * The type of the ref is not explicitly defined.
-   */
-  // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const networkListRef = useRef<any>(null);
+  const networksLengthRef = useRef<number>(0);
+
+  const { styles } = useStyles(styleSheet, {});
 
   // Combine networks and additional networks with section headers
   const combinedData: NetworkListItem[] = useMemo(() => {
@@ -124,6 +121,17 @@ const NetworkMultiSelectList = ({
             }}
             buttonIcon={IconName.MoreVertical}
             disabled={isDisabled}
+            buttonProps={{
+              onButtonClick: () => {
+                openModal({
+                  isVisible: true,
+                  caipChainId,
+                  displayEdit: false,
+                  networkTypeOrRpcUrl: name,
+                  isReadOnly: false,
+                });
+              },
+            }}
           >
             {renderRightAccessory?.(caipChainId, name)}
           </Cell>
@@ -136,6 +144,7 @@ const NetworkMultiSelectList = ({
       renderRightAccessory,
       isSelectionDisabled,
       onSelectNetwork,
+      openModal,
     ],
   );
 
