@@ -16,7 +16,7 @@ import SkipAccountSecurityModal from '../../pages/Onboarding/SkipAccountSecurity
 import ProtectYourWalletModal from '../../pages/Onboarding/ProtectYourWalletModal';
 import { acceptTermOfUse } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import CommonView from '../../pages/CommonView';
+// import CommonView from '../../pages/CommonView';
 import Assertions from '../../utils/Assertions';
 import ExperienceEnhancerBottomSheet from '../../pages/Onboarding/ExperienceEnhancerBottomSheet';
 import { withFixtures } from '../../fixtures/fixture-helper';
@@ -27,6 +27,7 @@ import {
   findEvent,
 } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
+import { MockttpServer } from 'mockttp';
 
 const PASSWORD = '12345678';
 
@@ -61,11 +62,8 @@ describe(
           fixture: new FixtureBuilder().withOnboardingFixture().build(),
           restartDevice: true,
           testSpecificMock,
-          launchArgs: {
-            sendMetaMetricsinE2E: true,
-          },
         },
-        async ({ mockServer }) => {
+        async ({ mockServer }: { mockServer: MockttpServer }) => {
           await OnboardingCarouselView.tapOnGetStartedButton();
           await acceptTermOfUse();
           await OnboardingView.tapCreateWallet();
@@ -75,12 +73,12 @@ describe(
             EVENT_NAMES.ONBOARDING_STARTED,
           ]);
           const softAssert = new SoftAssert();
-          softAssert.checkAndCollect(async () => {
-            await Assertions.checkIfValueIsPresent(findEvent(events, EVENT_NAMES.WELCOME_MESSAGE_VIEWED));
+          await softAssert.checkAndCollect(async () => {
+            await Assertions.checkIfValueIsDefined(findEvent(events, EVENT_NAMES.WELCOME_MESSAGE_VIEWED));
           }, 'Welcome Message Viewed tracked');
 
-          softAssert.checkAndCollect(async () => {
-            await Assertions.checkIfValueIsPresent(findEvent(events, EVENT_NAMES.ONBOARDING_STARTED));
+          await softAssert.checkAndCollect(async () => {
+            await Assertions.checkIfValueIsDefined(findEvent(events, EVENT_NAMES.ONBOARDING_STARTED));
           }, 'Onboarding Started tracked');
 
           softAssert.throwIfErrors();
@@ -94,11 +92,8 @@ describe(
           fixture: new FixtureBuilder().build(),
           restartDevice: false,
           testSpecificMock,
-          launchArgs: {
-            sendMetaMetricsinE2E: true,
-          },
         },
-        async ({ mockServer }) => {
+        async ({ mockServer }: { mockServer: MockttpServer }) => {
           await Assertions.checkIfVisible(CreatePasswordView.container);
           await CreatePasswordView.enterPassword(PASSWORD);
           await CreatePasswordView.reEnterPassword(PASSWORD);
@@ -112,20 +107,20 @@ describe(
             EVENT_NAMES.WALLET_SETUP_COMPLETED,
           ]);
           const softAssert = new SoftAssert();
-          softAssert.checkAndCollect(async () => {
-            await Assertions.checkIfValueIsPresent(findEvent(events, EVENT_NAMES.WALLET_CREATION_ATTEMPTED));
+          await softAssert.checkAndCollect(async () => {
+            await Assertions.checkIfValueIsDefined(findEvent(events, EVENT_NAMES.WALLET_CREATION_ATTEMPTED));
           }, 'Wallet Creation Attempted tracked');
 
-          softAssert.checkAndCollect(async () => {
-            await Assertions.checkIfValueIsPresent(findEvent(events, EVENT_NAMES.WALLET_CREATED));
+          await softAssert.checkAndCollect(async () => {
+            await Assertions.checkIfValueIsDefined(findEvent(events, EVENT_NAMES.WALLET_CREATED));
           }, 'Wallet Created tracked');
 
-          softAssert.checkAndCollect(async () => {
-            await Assertions.checkIfValueIsPresent(findEvent(events, EVENT_NAMES.WALLET_PASSWORD_CREATED));
+          await softAssert.checkAndCollect(async () => {
+            await Assertions.checkIfValueIsDefined(findEvent(events, EVENT_NAMES.WALLET_PASSWORD_CREATED));
           }, 'Wallet Password Created tracked');
 
-          softAssert.checkAndCollect(async () => {
-            await Assertions.checkIfValueIsPresent(findEvent(events, EVENT_NAMES.WALLET_SETUP_COMPLETED));
+          await softAssert.checkAndCollect(async () => {
+            await Assertions.checkIfValueIsDefined(findEvent(events, EVENT_NAMES.WALLET_SETUP_COMPLETED));
           }, 'Wallet Setup Completed tracked');
 
           softAssert.throwIfErrors();
@@ -139,11 +134,8 @@ describe(
           fixture: new FixtureBuilder().build(),
           restartDevice: false,
           testSpecificMock,
-          launchArgs: {
-            sendMetaMetricsinE2E: true,
-          },
         },
-        async ({ mockServer }) => {
+        async ({ mockServer }: { mockServer: MockttpServer }) => {
           await Assertions.checkIfVisible(ProtectYourWalletView.container);
           await ProtectYourWalletView.tapOnRemindMeLaterButton();
           await SkipAccountSecurityModal.tapIUnderstandCheckBox();
@@ -154,12 +146,12 @@ describe(
             EVENT_NAMES.WALLET_SECURITY_SKIP_CONFIRMED,
           ]);
           const softAssert = new SoftAssert();
-          softAssert.checkAndCollect(async () => {
-            await Assertions.checkIfValueIsPresent(findEvent(events, EVENT_NAMES.WALLET_SECURITY_SKIP_INITIATED));
+          await softAssert.checkAndCollect(async () => {
+            await Assertions.checkIfValueIsDefined(findEvent(events, EVENT_NAMES.WALLET_SECURITY_SKIP_INITIATED));
           }, 'Wallet Security Skip Initiated tracked');
 
-          softAssert.checkAndCollect(async () => {
-            await Assertions.checkIfValueIsPresent(findEvent(events, EVENT_NAMES.WALLET_SECURITY_SKIP_CONFIRMED));
+          await softAssert.checkAndCollect(async () => {
+            await Assertions.checkIfValueIsDefined(findEvent(events, EVENT_NAMES.WALLET_SECURITY_SKIP_CONFIRMED));
           }, 'Wallet Security Skip Confirmed tracked');
 
           softAssert.throwIfErrors();
@@ -173,11 +165,8 @@ describe(
           fixture: new FixtureBuilder().build(),
           restartDevice: false,
           testSpecificMock,
-          launchArgs: {
-            sendMetaMetricsinE2E: true,
-          },
         },
-        async ({ mockServer }) => {
+        async ({ mockServer }: { mockServer: MockttpServer }) => {
           await Assertions.checkIfVisible(MetaMetricsOptIn.container);
           await MetaMetricsOptIn.tapAgreeButton();
 
@@ -185,9 +174,9 @@ describe(
             EVENT_NAMES.ANALYTICS_PREFERENCE_SELECTED,
           ]);
           const softAssert = new SoftAssert();
-          softAssert.checkAndCollect(async () => {
+          await softAssert.checkAndCollect(async () => {
             const e = findEvent(events, EVENT_NAMES.ANALYTICS_PREFERENCE_SELECTED);
-            await Assertions.checkIfValueIsPresent(e);
+            await Assertions.checkIfValueIsDefined(e);
             if (e) {
               await Assertions.checkIfObjectContains(e.properties, {
                 analytics_preference: true,
@@ -206,17 +195,21 @@ describe(
 
     // Helper function to ensure we reach the wallet screen
     const ensureWalletScreen = async () => {
-      try {
-        // First try to check if we're already on wallet screen
-        await Assertions.checkIfVisible(WalletView.container);
-        return;
-      } catch (error) {
-        // Not on wallet screen, checking for intermediate screens
-      }
+      // try {
+      //   // First try to check if we're already on wallet screen
+      //   // Even if the above fails, this likely passes because it is rendered anyhow regardless of having modals in front of it
+      //   // we should instead get a more robust way to check if we're on the wallet screen and no modals are in front of it
+      //   await Assertions.checkIfVisible(WalletView.container);
+      //   console.warn('wallet screen was found');
+      //   return;
+      // } catch (error) {
+      //   // Not on wallet screen, checking for intermediate screens
+      // }
 
       // Check for marketing consent modal
       try {
         await Assertions.checkIfVisible(ExperienceEnhancerBottomSheet.container);
+        console.warn('marketing consent modal was found');
         await ExperienceEnhancerBottomSheet.tapIAgree();
         // Dismissed marketing consent modal
       } catch (error) {
@@ -226,6 +219,7 @@ describe(
       // Check for protect your wallet modal
       try {
         await Assertions.checkIfVisible(ProtectYourWalletModal.collapseWalletModal);
+        console.warn('protect your wallet modal was found');
         await TestHelpers.delay(1000);
         await ProtectYourWalletModal.tapRemindMeLaterButton();
         await SkipAccountSecurityModal.tapIUnderstandCheckBox();
@@ -236,6 +230,7 @@ describe(
       }
 
       // Now check if we're on wallet screen
+      // Even if the above fails, this likely passes because it is rendered anyhow regardless of having modals in front of it
       await Assertions.checkIfVisible(WalletView.container);
     };
 
@@ -245,11 +240,8 @@ describe(
           fixture: new FixtureBuilder().build(),
           restartDevice: false,
           testSpecificMock,
-          launchArgs: {
-            sendMetaMetricsinE2E: true,
-          },
         },
-        async ({ mockServer }) => {
+        async ({ mockServer }: { mockServer: MockttpServer }) => {
           await TestHelpers.delay(1000);
           const softAssert = new SoftAssert();
 
@@ -260,9 +252,9 @@ describe(
             const events = await getEventsPayloads(mockServer, [
               EVENT_NAMES.ANALYTICS_PREFERENCE_SELECTED,
             ]);
-            softAssert.checkAndCollect(async () => {
+            await softAssert.checkAndCollect(async () => {
               const e = findEvent(events, EVENT_NAMES.ANALYTICS_PREFERENCE_SELECTED);
-              await Assertions.checkIfValueIsPresent(e);
+              await Assertions.checkIfValueIsDefined(e);
               if (e) {
                 await Assertions.checkIfObjectContains(e.properties, {
                   has_marketing_consent: true,
@@ -276,7 +268,7 @@ describe(
             const events = await getEventsPayloads(mockServer, [
               EVENT_NAMES.ANALYTICS_PREFERENCE_SELECTED,
             ]);
-            softAssert.checkAndCollect(async () => {
+            await softAssert.checkAndCollect(async () => {
               await Assertions.checkIfArrayHasLength(events, 0);
             }, 'No marketing consent event should exist if not shown');
           }
@@ -292,11 +284,8 @@ describe(
           fixture: new FixtureBuilder().build(),
           restartDevice: false,
           testSpecificMock,
-          launchArgs: {
-            sendMetaMetricsinE2E: true,
-          },
         },
-        async ({ mockServer }) => {
+        async ({ mockServer }: { mockServer: MockttpServer }) => {
           const softAssert = new SoftAssert();
 
           try {
@@ -310,18 +299,18 @@ describe(
             const events = await getEventsPayloads(mockServer, [
               EVENT_NAMES.WALLET_SECURITY_REMINDER_DISMISSED,
             ]);
-            softAssert.checkAndCollect(async () => {
-              await Assertions.checkIfValueIsPresent(findEvent(events, EVENT_NAMES.WALLET_SECURITY_REMINDER_DISMISSED));
+            await softAssert.checkAndCollect(async () => {
+              await Assertions.checkIfValueIsDefined(findEvent(events, EVENT_NAMES.WALLET_SECURITY_REMINDER_DISMISSED));
             }, 'Wallet Security Reminder Dismissed tracked');
 
           } catch (error) {
             // Ensure we're on the wallet screen even if modal didn't appear
             await Assertions.checkIfVisible(WalletView.container);
-            
+
             const events = await getEventsPayloads(mockServer, [
               EVENT_NAMES.WALLET_SECURITY_REMINDER_DISMISSED,
             ]);
-            softAssert.checkAndCollect(async () => {
+            await softAssert.checkAndCollect(async () => {
               await Assertions.checkIfArrayHasLength(events, 0);
             }, 'No wallet security reminder event should exist if modal not shown');
           }
@@ -339,7 +328,7 @@ describe(
       await SettingsView.tapSecurityAndPrivacy();
       await SecurityAndPrivacy.scrollToMetaMetrics();
       await TestHelpers.delay(2000);
-      await Assertions.checkIfToggleIsOn(SecurityAndPrivacy.metaMetricsToggle);
+      await Assertions.checkIfToggleIsOn(SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>);
     });
 
     it('should disable metametrics and track preference change', async () => {
@@ -348,23 +337,22 @@ describe(
           fixture: new FixtureBuilder().build(),
           restartDevice: false,
           testSpecificMock,
-          launchArgs: {
-            sendMetaMetricsinE2E: true,
-          },
         },
-        async ({ mockServer }) => {
+        async ({ mockServer }: { mockServer: MockttpServer }) => {
           await SecurityAndPrivacy.tapMetaMetricsToggle();
           await TestHelpers.delay(1500);
-          await CommonView.tapOkAlert();
-          await Assertions.checkIfToggleIsOff(SecurityAndPrivacy.metaMetricsToggle);
+          // we may have a race condition here
+          // We can stop any actions and still check for the events afterwards
+          // await CommonView.tapOkAlert();
+          // await Assertions.checkIfToggleIsOff(SecurityAndPrivacy.metaMetricsToggle);
 
           const events = await getEventsPayloads(mockServer, [
             EVENT_NAMES.ANALYTICS_PREFERENCE_SELECTED,
           ]);
           const softAssert = new SoftAssert();
-          softAssert.checkAndCollect(async () => {
+          await softAssert.checkAndCollect(async () => {
             const e = findEvent(events, EVENT_NAMES.ANALYTICS_PREFERENCE_SELECTED);
-            await Assertions.checkIfValueIsPresent(e);
+            await Assertions.checkIfValueIsDefined(e);
             if (e) {
               await Assertions.checkIfObjectContains(e.properties, {
                 analytics_preference: false,
@@ -373,7 +361,6 @@ describe(
           }, 'Analytics Preference Selected (opt-out) tracked');
 
           softAssert.throwIfErrors();
-          await device.terminateApp();
         }
       );
     });
@@ -384,31 +371,51 @@ describe(
           fixture: new FixtureBuilder().build(),
           restartDevice: false,
           testSpecificMock,
-          launchArgs: {
-            sendMetaMetricsinE2E: true,
-          },
         },
-        async ({ mockServer }) => {
-          await device.launchApp();
+        async ({ mockServer }: { mockServer: MockttpServer }) => {
           await LoginView.enterPassword(PASSWORD);
           await Assertions.checkIfVisible(WalletView.container);
           await TestHelpers.delay(2000);
+          // We should get the events without any event so that
+          // we verify that the list is empty
           const events = await getEventsPayloads(mockServer, [
             EVENT_NAMES.ANALYTICS_PREFERENCE_SELECTED,
           ]);
+
           await Assertions.checkIfArrayHasLength(events, 0);
         }
       );
     });
 
     it('should verify metametrics is turned off', async () => {
-      await TestHelpers.delay(2000); // Wait for UI to stabilize
+
+      // We don't need synchronization here as we just need to navigate to the toggle
+      await device.disableSynchronization();
+      await TestHelpers.delay(500); // Wait for UI to stabilize
       await ensureWalletScreen(); // Use helper function to ensure we're on wallet screen
       await TabBarComponent.tapSettings();
-      await TestHelpers.delay(2000); // Wait for settings to load
-      await SettingsView.tapSecurityAndPrivacy();
+      await TestHelpers.delay(500); // Wait for settings to load
+      await SettingsView.tapSecurityAndPrivacy(); // ANIMATION HERE, we need to be careful with this
+
+      // ignore
+      // let isMetaMetricsVisible = false;
+      // while (!isMetaMetricsVisible) {
+      //   try {
+      //     await Assertions.checkIfVisible(SecurityAndPrivacy.metaMetricsToggle);
+      //     isMetaMetricsVisible = true;
+      //   } catch (error) {
+      //     console.warn('meta metrics toggle not found, trying again in 100ms');
+      //     // No meta metrics toggle found
+      //     await TestHelpers.delay(100); // Wait for UI to stabilize
+      //   }
+      // }
+
+      // Theres an animation here that we need to wait for
+      // we need to be careful with this and should find a better way to handle this
+      await TestHelpers.delay(500);
+
       await SecurityAndPrivacy.scrollToMetaMetrics();
-      await Assertions.checkIfToggleIsOff(SecurityAndPrivacy.metaMetricsToggle);
+      await Assertions.checkIfToggleIsOff(SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>);
     });
   }
 );
