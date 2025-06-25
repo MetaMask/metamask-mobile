@@ -61,6 +61,13 @@ pipelines:
       - build_e2e_flask_ios_android: {}
       - run_e2e_flask_ios_android: {}
       - notify: {}
+  #Run single suits or test files
+  run_single_test_suite_ios_android:
+    stages:
+      - build_smoke_e2e_ios_android_stage: {}
+      - run_single_e2e_ios_android_stage: {}
+      - notify: {}
+  run_single_test_suite_android:
   #Run E2E test suite for Android only
   run_e2e_android_pipeline:
     stages:
@@ -235,7 +242,10 @@ stages:
       - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_flask_build_tests_ios: {}
       - run_tag_flask_build_tests_android: {}
-      
+  run_single_e2e_ios_android_stage:
+    workflows:
+      - run_single_ios_e2e_test: {}
+      - run_single_android_e2e_test: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
       - run_ios_api_specs: {}
@@ -955,7 +965,14 @@ workflows:
       bitrise.io:
         machine_type_id: elite-xl
         stack: linux-docker-android-22.04
-
+  
+  run_single_android_e2e_test:
+    after_run:
+      - android_e2e_test
+  run_single_ios_e2e_test:
+    after_run:
+      - ios_e2e_test
+      
   android_e2e_test:
     before_run:
       - setup
@@ -1008,13 +1025,13 @@ workflows:
                 #!/usr/bin/env bash
                 export METAMASK_ENVIRONMENT='local'
                  node -v
-                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
-                echo "ANVIL VERSION"
-                node_modules/.bin/anvil --version
-                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                  IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:android:run:qa-release e2e/specs/flask/
-                else
-                ./scripts/run-e2e-tags.sh
+                if [ -n "${E2E_TEST_FILE:-}" ]; then
+                  echo "[INFO] Running only specified E2E_TEST_FILE(s): $E2E_TEST_FILE"
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release $E2E_TEST_FILE
+                elif [ -n "${TEST_SUITE_TAG:-}" ]; then
+                  echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
+                  ./scripts/run-e2e-tags.sh
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release $E2E_TEST_FILE
                 fi
       - custom-test-results-export@1:
           title: Export test results
