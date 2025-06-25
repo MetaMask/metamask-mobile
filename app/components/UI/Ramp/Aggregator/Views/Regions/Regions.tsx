@@ -24,7 +24,7 @@ import { createBuildQuoteNavDetails } from '../BuildQuote/BuildQuote';
 
 import { useRampSDK } from '../../sdk';
 import { Region } from '../../types';
-import useAnalytics from '../../hooks/useAnalytics';
+import useAnalytics from '../../../hooks/useAnalytics';
 import useRegions from '../../hooks/useRegions';
 
 import ListItem from '../../../../../../component-library/components/List/ListItem';
