@@ -67,7 +67,6 @@ pipelines:
       - build_smoke_e2e_ios_android_stage: {}
       - run_single_e2e_ios_android_stage: {}
       - notify: {}
-  run_single_test_suite_android:
   #Run E2E test suite for Android only
   run_e2e_android_pipeline:
     stages:
