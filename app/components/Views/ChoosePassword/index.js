@@ -558,7 +558,7 @@ class ChoosePassword extends PureComponent {
     this.setState({
       password: val,
       passwordStrength: passInfo.score,
-      confirmPassword: '',
+      confirmPassword: val === '' ? '' : this.state.confirmPassword,
     });
   };
 

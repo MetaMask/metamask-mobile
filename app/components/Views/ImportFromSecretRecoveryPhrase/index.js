@@ -394,7 +394,9 @@ const ImportFromSecretRecoveryPhrase = ({
 
     setPassword(value);
     setPasswordStrength(passInfo.score);
-    setConfirmPassword('');
+    if (value === '') {
+      setConfirmPassword('');
+    }
   };
 
   const onPasswordConfirmChange = (value) => {
