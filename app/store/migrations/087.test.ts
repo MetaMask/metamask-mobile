@@ -1,6 +1,6 @@
 import { captureException } from '@sentry/react-native';
 import { ensureValidState } from './util';
-import migrate from './086';
+import migrate from './087';
 import { EXISTING_USER } from '../../constants/storage';
 import StorageWrapper from '../storage-wrapper';
 import { userInitialState } from '../../reducers/user';
@@ -131,7 +131,7 @@ describe('Migration 086', () => {
     expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
     expect(mockedCaptureException).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: 'Migration 86: User state is missing or invalid. Expected object, got: undefined',
+        message: 'Migration 87: User state is missing or invalid. Expected object, got: undefined',
       }),
     );
   });
@@ -157,7 +157,7 @@ describe('Migration 086', () => {
     expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
     expect(mockedCaptureException).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: 'Migration 86: User state is missing or invalid. Expected object, got: string',
+        message: 'Migration 87: User state is missing or invalid. Expected object, got: string',
       }),
     );
   });
