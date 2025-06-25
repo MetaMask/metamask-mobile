@@ -31,7 +31,7 @@ Feature: Sample Feature Manual Test Scenarios
     Then the counter value should update to "Value: 2"
     And the counter value should persist over sessions and app restart
 
-  @sample-feature @petnames @create
+  @sample-feature @petnames @create @e2e-automated
   Scenario: Create a new pet name
     Given I am on the Sample Feature screen
     And I am connected to "Ethereum Mainnet" network
@@ -40,7 +40,7 @@ Feature: Sample Feature Manual Test Scenarios
     And I enter "Alice" in the Name field
     And I tap on the "Add Pet Name" button
     Then I should see "Alice" in the pet names list
-    And the list should show "Alice" with truncated address "0x086473...c6E05"
+    And the list should show "Alice" with truncated address "0x08647...c6E05"
     And the pet name should be associated with the current network
 
   @sample-feature @petnames @validation
@@ -98,7 +98,7 @@ Feature: Sample Feature Manual Test Scenarios
     Then I should see "Mainnet Wallet" in the pet names list
     And I should not see "Linea Wallet" in the pet names list
 
-  @sample-feature @petnames @multiple-entries
+  @sample-feature @petnames @multiple-entries @e2e-automated
   Scenario: Manage multiple pet names
     Given I am on the Sample Feature screen
     When I create the following pet names:
@@ -109,9 +109,9 @@ Feature: Sample Feature Manual Test Scenarios
     Then I should see all 3 pet names in the list
     And the list should display the following:
       | Truncated Address | Name      |
-      | 0x086473...c6E05  | Alice     |
-      | 0x4AE1Ed...A0E44  | Bob       |
-      | 0xA8c238...77eC1  | Charlie   |
+      | 0x08647...c6E05   | Alice     |
+      | 0x4AE1E...A0E44   | Bob       |
+      | 0xA8c23...77eC1   | Charlie   |
 
   @sample-feature @ui-elements
   Scenario: Verify UI elements and styling
