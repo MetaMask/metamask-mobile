@@ -330,11 +330,17 @@ exports[`ManualBackupStep1 render matches snapshot 1`] = `
           </View>
           <View
             style={
-              {
-                "flex": 0,
-                "flexDirection": "row",
-                "paddingVertical": 16,
-              }
+              [
+                {
+                  "flex": 0,
+                  "flexDirection": "row",
+                  "paddingHorizontal": 16,
+                  "paddingVertical": 16,
+                },
+                {
+                  "paddingHorizontal": 0,
+                },
+              ]
             }
           >
             <TouchableOpacity
