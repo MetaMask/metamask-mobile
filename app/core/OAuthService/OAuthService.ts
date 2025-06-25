@@ -15,16 +15,21 @@ import {
   AuthConnectionConfig,
   AuthServerUrl,
   web3AuthNetwork as currentWeb3AuthNetwork,
+  SupportedPlatforms,
 } from './OAuthLoginHandlers/constants';
 import { OAuthError, OAuthErrorType } from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
+import { Platform } from 'react-native';
+
 
 export interface OAuthServiceConfig {
   authConnectionConfig: {
-    [key in AuthConnection]: {
-      authConnectionId: string;
-      groupedAuthConnectionId?: string;
-    };
+    [key in SupportedPlatforms]: {
+      [key in AuthConnection]: {
+        authConnectionId: string;
+        groupedAuthConnectionId?: string;
+      };
+    }
   };
   web3AuthNetwork: Web3AuthNetwork;
   authServerUrl: string;
@@ -94,8 +99,10 @@ export class OAuthService {
         throw new Error('No user id found');
       }
 
+
       const authConnectionConfig =
-        this.config.authConnectionConfig[authConnection];
+        this.config.authConnectionConfig[Platform.OS as SupportedPlatforms]?.[authConnection];
+
       const result =
         await Engine.context.SeedlessOnboardingController.authenticate({
           idTokens: Object.values(data.jwt_tokens),
