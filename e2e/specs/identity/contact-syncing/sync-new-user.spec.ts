@@ -82,6 +82,9 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
     await TestHelpers.delay(2000);
     await CommonView.tapBackButton();
     await TestHelpers.delay(1000);
+    await TabBarComponent.tapSettings();
+    await TestHelpers.delay(2000);
+    await Assertions.checkIfVisible(SettingsView.contactsSettingsButton);
     await SettingsView.tapContacts();
     await Assertions.checkIfVisible(ContactsView.container);
     await TestHelpers.delay(2000);
