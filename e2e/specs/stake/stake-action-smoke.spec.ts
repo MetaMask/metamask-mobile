@@ -67,7 +67,7 @@ interface MockConfig {
 
 const fixtureServer: FixtureServer = new FixtureServer();
 
-describe.skip(SmokeTrade('Stake from Actions'), (): void => {
+describe(SmokeTrade('Stake from Actions'), (): void => {
   const FIRST_ROW: number = 0;
   const AMOUNT_TO_SEND: string = '.005';
   let mockServer: MockttpServer;
