@@ -36,6 +36,14 @@ type BrowserUrlBarPropsBase = {
 };
 
 export type BrowserUrlBarProps = BrowserUrlBarPropsBase & (
-  | { discoveryMode?: false; showTabs?: never }
-  | {discoveryMode: true, showTabs: () => void}
+  | {
+      discoveryMode?: false;
+      showTabs?: never;
+      newTab?: never;
+    }
+  | {
+      discoveryMode: true;
+      showTabs: () => void;
+      newTab: (url?: string) => void;
+    }
 );

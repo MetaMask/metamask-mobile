@@ -84,6 +84,8 @@ export const Browser = (props) => {
   const { accounts, ensByAccountAddress } = useAccounts();
   const [_tabIdleTimes, setTabIdleTimes] = useState({});
   const [shouldShowTabs, setShouldShowTabs] = useState(false);
+  const isTokenDiscoveryBrowserEnabled = useSelector(tokenDiscoveryBrowserEnabled);
+  const [showDiscovery, setShowDiscovery] = useState(isTokenDiscoveryBrowserEnabled);
 
   const accountAvatarType = useSelector((state) =>
     state.settings.useBlockieIcon
@@ -104,22 +106,18 @@ export const Browser = (props) => {
     [isEnabled, isDataCollectionForMarketingEnabled],
   );
 
-  const isTokenDiscoveryBrowserEnabled = useSelector(tokenDiscoveryBrowserEnabled);
-
   const newTab = useCallback(
     (url, linkType) => {
       // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
       if (tabs.length >= MAX_BROWSER_TABS) {
         navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
       } else {
-        const newTabUrl = isTokenDiscoveryBrowserEnabled
-          ? undefined
-          : url || homePageUrl();
         // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
-        createNewTab(newTabUrl, linkType);
+        createNewTab(url || homePageUrl(), linkType);
       }
+      setShowDiscovery(false);
     },
-    [tabs, navigation, createNewTab, homePageUrl, isTokenDiscoveryBrowserEnabled],
+    [tabs, navigation, createNewTab, homePageUrl],
   );
 
   const [currentUrl, setCurrentUrl] = useState(browserUrl || homePageUrl());
@@ -146,9 +144,30 @@ export const Browser = (props) => {
       url: tab.url,
       isArchived: false,
     });
+    setShowDiscovery(false);
   };
 
   const hasAccounts = useRef(Boolean(accounts.length));
+
+  const lastNavigatedToBrowserTimestamp = useRef(null);
+
+  // Show the discovery view when the user navigates to the browser screen while already being on it
+  useEffect(() => {
+    const currentNavigationTimestamp = route.params?.timestamp;
+    if (
+      isTokenDiscoveryBrowserEnabled &&
+      currentNavigationTimestamp &&
+      lastNavigatedToBrowserTimestamp.current !== null &&
+      lastNavigatedToBrowserTimestamp.current !== currentNavigationTimestamp
+    ) {
+      setShowDiscovery(true);
+    }
+    lastNavigatedToBrowserTimestamp.current = currentNavigationTimestamp;
+  }, [route.params?.timestamp, isTokenDiscoveryBrowserEnabled]);
+
+  const goToDiscovery = useCallback(() => {
+    setShowDiscovery(true);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -251,7 +270,7 @@ export const Browser = (props) => {
     () => {
       const newTabUrl = route.params?.newTabUrl;
       const existingTabId = route.params?.existingTabId;
-      if (!newTabUrl && !existingTabId) {
+      if (!newTabUrl && !existingTabId && !isTokenDiscoveryBrowserEnabled) {
         // Nothing from deeplink, carry on.
         const activeTab = tabs.find((tab) => tab.id === activeTabId);
         if (activeTab) {
@@ -353,6 +372,10 @@ export const Browser = (props) => {
     if (tabs.length) {
       triggerCloseAllTabs();
       setCurrentUrl(null);
+      if (isTokenDiscoveryBrowserEnabled) {
+        setShowDiscovery(true);
+        setShouldShowTabs(false);
+      }
     }
   };
 
@@ -374,6 +397,10 @@ export const Browser = (props) => {
         });
       } else {
         setCurrentUrl(null);
+        if (isTokenDiscoveryBrowserEnabled) {
+          setShowDiscovery(true);
+          setShouldShowTabs(false);
+        }
       }
     }
 
@@ -413,7 +440,7 @@ export const Browser = (props) => {
           if (activeTabId !== tab.id) return null;
 
           // If the tab is the active tab, render it
-          return (tab.url || !isTokenDiscoveryBrowserEnabled) ? (
+          return (
             <BrowserTab
               key={`tab_${tab.id}`}
               id={tab.id}
@@ -424,14 +451,7 @@ export const Browser = (props) => {
               newTab={newTab}
               isInTabsView={shouldShowTabs}
               homePageUrl={homePageUrl()}
-            />
-          ) : (
-            <DiscoveryTab
-              key={`tab_${tab.id}`}
-              id={tab.id}
-              showTabs={showTabsView}
-              newTab={newTab}
-              updateTabInfo={updateTabInfo}
+              goToDiscovery={goToDiscovery}
             />
           );
         }),
@@ -443,16 +463,24 @@ export const Browser = (props) => {
       updateTabInfo,
       showTabsView,
       activeTabId,
-      isTokenDiscoveryBrowserEnabled,
+      goToDiscovery,
     ],
   );
+
+  const renderDiscoveryTab = useCallback(() => (
+      <DiscoveryTab
+        showTabs={showTabsView}
+        newTab={newTab}
+        updateTabInfo={updateTabInfo}
+      />
+    ), [showTabsView, newTab, updateTabInfo]);
 
   return (
     <View
       style={styles.browserContainer}
       testID={BrowserViewSelectorsIDs.BROWSER_SCREEN_ID}
     >
-      {renderBrowserTabWindows()}
+      {showDiscovery ? renderDiscoveryTab() : renderBrowserTabWindows()}
       {renderTabList()}
     </View>
   );
