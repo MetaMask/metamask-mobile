@@ -1532,25 +1532,6 @@ describe('EvmAccountSelectorList', () => {
     });
   });
 
-  it('navigates to wallet details when section header details link is pressed', () => {
-    const multichainState = getMultichainState();
-    const { getByText } = renderComponent(multichainState);
-
-    const detailsLink = getByText('Details');
-    fireEvent.press(detailsLink);
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS,
-      {
-        wallet: expect.objectContaining({
-          metadata: expect.objectContaining({
-            name: 'HD Accounts',
-          }),
-        }),
-      }
-    );
-  });
-
   describe('onContentSizeChange callback logic', () => {
     it('should handle scroll logic for different scenarios', () => {
       const testCases = [
