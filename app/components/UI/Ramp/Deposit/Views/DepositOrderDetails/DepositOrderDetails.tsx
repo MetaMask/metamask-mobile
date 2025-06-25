@@ -67,9 +67,7 @@ const DepositOrderDetails = () => {
   }, [theme, navigation]);
 
   const dispatchUpdateFiatOrder = useCallback(
-    (updatedOrder: FiatOrder) => {
-      dispatch(updateFiatOrder(updatedOrder));
-    },
+    (updatedOrder: FiatOrder) => dispatch(updateFiatOrder(updatedOrder)),
     [dispatch],
   );
 
@@ -109,24 +107,18 @@ const DepositOrderDetails = () => {
     if (order?.state === FIAT_ORDER_STATES.CREATED) {
       handleOnRefresh();
     }
-    // only run on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useInterval(
-    () => {
-      handleOnRefresh({ fromInterval: true });
-    },
-    {
-      delay:
-        !isLoading &&
-        !isRefreshingInterval &&
-        order &&
-        order.state === FIAT_ORDER_STATES.CREATED
-          ? AppConstants.FIAT_ORDERS.POLLING_FREQUENCY
-          : null,
-    },
-  );
+  useInterval(() => handleOnRefresh({ fromInterval: true }), {
+    delay:
+      !isLoading &&
+      !isRefreshingInterval &&
+      order &&
+      order.state === FIAT_ORDER_STATES.CREATED
+        ? AppConstants.FIAT_ORDERS.POLLING_FREQUENCY
+        : null,
+  });
 
   if (!order) {
     return <ScreenLayout />;
