@@ -18,6 +18,7 @@ import { TokenI } from '../../../../Tokens/types';
 import { EVENT_LOCATIONS } from '../../../constants/events';
 import useStakingChain from '../../../hooks/useStakingChain';
 import styleSheet from './StakingButtons.styles';
+import { trace, TraceName } from 'app/util/trace';
 
 interface StakingButtonsProps extends Pick<ViewProps, 'style'> {
   asset: TokenI;
@@ -75,6 +76,7 @@ const StakingButtons = ({
   };
 
   const onStakePress = async () => {
+    trace({ name: TraceName.EarnDepositScreen });
     await handleIsStakingSupportedChain();
     navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE,

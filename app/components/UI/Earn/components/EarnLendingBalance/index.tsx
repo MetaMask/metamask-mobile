@@ -37,6 +37,7 @@ import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags
 import Earnings from '../Earnings';
 import EarnEmptyStateCta from '../EmptyStateCta';
 import styleSheet from './EarnLendingBalance.styles';
+import { trace, TraceName } from 'app/util/trace';
 
 export const EARN_LENDING_BALANCE_TEST_IDS = {
   RECEIPT_TOKEN_BALANCE_ASSET_LOGO: 'receipt-token-balance-asset-logo',
@@ -127,6 +128,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   };
 
   const handleNavigateToWithdrawalInputScreen = async () => {
+    trace({ name: TraceName.EarnDepositScreen });
     emitLendingActionButtonMetaMetric('withdrawal');
     const networkClientId = getNetworkClientId(asset);
     if (!networkClientId) return;
