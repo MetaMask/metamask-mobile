@@ -1,3 +1,4 @@
+import TestHelpers from '../../../helpers';
 import BrowserView from '../../../pages/Browser/BrowserView';
 import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
 import ConnectedAccountsModal from '../../../pages/Browser/ConnectedAccountsModal';
@@ -29,6 +30,7 @@ export const connectSolanaTestDapp = async (
   }
 
   // Click connect button
+  await TestHelpers.delay(1000);
   await ConnectBottomSheet.tapConnectButton();
 };
 
