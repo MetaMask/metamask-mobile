@@ -236,6 +236,21 @@ describe('handleDeeplinkSaga', () => {
     it('should skip handling deeplink', async () => {
       // Triggered by CHECK_FOR_DEEPLINK action
       await expectSaga(handleDeeplinkSaga)
+        .withState({
+          onboarding: { completedOnboarding: false },
+          user: {},
+          engine: { backgroundState: {} },
+          confirmation: {},
+          navigation: {},
+          security: {},
+          sdk: {},
+          inpageProvider: {},
+          confirmationMetrics: {},
+          originThrottling: {},
+          notifications: {},
+          bridge: {},
+          banners: {},
+        })
         .dispatch(checkForDeeplink())
         .silentRun();
 
@@ -253,6 +268,21 @@ describe('handleDeeplinkSaga', () => {
 
         // Triggered by CHECK_FOR_DEEPLINK action
         await expectSaga(handleDeeplinkSaga)
+          .withState({
+            onboarding: { completedOnboarding: false },
+            user: {},
+            engine: { backgroundState: {} },
+            confirmation: {},
+            navigation: {},
+            security: {},
+            sdk: {},
+            inpageProvider: {},
+            confirmationMetrics: {},
+            originThrottling: {},
+            notifications: {},
+            bridge: {},
+            banners: {},
+          })
           .dispatch(checkForDeeplink())
           .silentRun();
 
@@ -312,7 +342,21 @@ describe('handleDeeplinkSaga', () => {
 
           // Triggered by CHECK_FOR_DEEPLINK action
           await expectSaga(handleDeeplinkSaga)
-            .withState({ onboarding: { completedOnboarding: true } })
+            .withState({
+              onboarding: { completedOnboarding: true },
+              user: {},
+              engine: { backgroundState: {} },
+              confirmation: {},
+              navigation: {},
+              security: {},
+              sdk: {},
+              inpageProvider: {},
+              confirmationMetrics: {},
+              originThrottling: {},
+              notifications: {},
+              bridge: {},
+              banners: {},
+            })
             .dispatch(checkForDeeplink())
             .silentRun();
 
