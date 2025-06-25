@@ -287,8 +287,6 @@ describe('decodeSwapsTx', () => {
             bridgeId: '1inch',
             srcChainId: 1,
             destChainId: 1,
-            aggregator: '1inch',
-            aggregatorType: 'AGG',
             srcAsset: {
               address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
               chainId: 1,
@@ -297,8 +295,6 @@ describe('decodeSwapsTx', () => {
               symbol: 'USDC',
               decimals: 6,
               name: 'USDC',
-              coingeckoId: 'usd-coin',
-              occurrences: 17,
               iconUrl:
                 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
             },
@@ -310,9 +306,6 @@ describe('decodeSwapsTx', () => {
               symbol: 'ETH',
               decimals: 18,
               name: 'Ethereum',
-              coingeckoId: 'ethereum',
-              aggregators: [],
-              occurrences: 100,
               iconUrl:
                 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
               metadata: {},
@@ -330,12 +323,8 @@ describe('decodeSwapsTx', () => {
                   symbol: 'ETH',
                   decimals: 18,
                   name: 'Ethereum',
-                  coingeckoId: 'ethereum',
-                  aggregators: [],
-                  occurrences: 100,
                   iconUrl:
-                    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-                  metadata: {},
+                    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png'
                 },
               },
             },
@@ -482,9 +471,6 @@ describe('decodeBridgeTx', () => {
               symbol: 'ETH',
               decimals: 18,
               name: 'Ethereum',
-              coingeckoId: 'ethereum',
-              aggregators: [],
-              occurrences: 100,
               iconUrl:
                 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
               metadata: {},
@@ -499,9 +485,6 @@ describe('decodeBridgeTx', () => {
               symbol: 'ETH',
               decimals: 18,
               name: 'Ether',
-              coingeckoId: 'ethereum',
-              aggregators: [],
-              occurrences: 100,
               iconUrl:
                 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/10/slip44/614.png',
               metadata: {},
@@ -517,9 +500,6 @@ describe('decodeBridgeTx', () => {
                   symbol: 'ETH',
                   decimals: 18,
                   name: 'Ethereum',
-                  coingeckoId: 'ethereum',
-                  aggregators: [],
-                  occurrences: 100,
                   iconUrl:
                     'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
                   metadata: {},
@@ -546,9 +526,6 @@ describe('decodeBridgeTx', () => {
                   symbol: 'ETH',
                   decimals: 18,
                   name: 'Ethereum',
-                  coingeckoId: 'ethereum',
-                  aggregators: [],
-                  occurrences: 100,
                   iconUrl:
                     'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
                   metadata: {},
@@ -560,9 +537,6 @@ describe('decodeBridgeTx', () => {
                   symbol: 'ETH',
                   decimals: 18,
                   name: 'Ether',
-                  coingeckoId: 'ethereum',
-                  aggregators: [],
-                  occurrences: 100,
                   iconUrl:
                     'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/10/slip44/614.png',
                   metadata: {},
@@ -603,9 +577,6 @@ describe('decodeBridgeTx', () => {
                 symbol: 'ETH',
                 decimals: 18,
                 name: 'Ethereum',
-                coingeckoId: 'ethereum',
-                aggregators: [],
-                occurrences: 100,
                 iconUrl:
                   'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
                 metadata: {},
@@ -623,9 +594,6 @@ describe('decodeBridgeTx', () => {
                 symbol: 'ETH',
                 decimals: 18,
                 name: 'Ether',
-                coingeckoId: 'ethereum',
-                aggregators: [],
-                occurrences: 100,
                 iconUrl:
                   'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/10/slip44/614.png',
                 metadata: {},
