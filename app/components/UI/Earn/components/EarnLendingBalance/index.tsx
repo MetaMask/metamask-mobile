@@ -110,6 +110,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   };
 
   const handleNavigateToWithdrawalInputScreen = () => {
+    trace({ name: TraceName.EarnWithdrawScreen });
     emitLendingActionButtonMetaMetric('withdrawal');
 
     navigation.navigate('StakeScreens', {

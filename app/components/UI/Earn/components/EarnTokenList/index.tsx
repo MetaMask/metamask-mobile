@@ -132,6 +132,7 @@ const EarnTokenList = () => {
   };
 
   const redirectToWithdrawalScreen = (token: TokenI) => {
+    trace({ name: TraceName.EarnWithdrawScreen });
     closeBottomSheetAndNavigate(() => {
       navigate('StakeScreens', {
         screen: Routes.STAKING.UNSTAKE,
