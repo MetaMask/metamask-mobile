@@ -14,7 +14,6 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import createStyles from './SolanaNewFeatureContent.styles';

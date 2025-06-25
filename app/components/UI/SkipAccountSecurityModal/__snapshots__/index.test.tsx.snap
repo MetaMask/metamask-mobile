@@ -40,6 +40,7 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
           "color": "#121314",
           "fontFamily": "CentraNo1-Bold",
           "fontSize": 18,
+          "fontWeight": "700",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -98,6 +99,7 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
+            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -150,6 +152,7 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Medium",
               "fontSize": 16,
+              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -190,6 +193,7 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
               "color": "#ffffff",
               "fontFamily": "CentraNo1-Medium",
               "fontSize": 16,
+              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
