@@ -38,6 +38,8 @@ import { selectNetworkConfigurationByChainId } from '../../../../../selectors/ne
 import { IMetaMetricsEvent } from '../../../../../core/Analytics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { ProgressStep } from './components/ProgressStepper';
+import { UINT256_BN_MAX_VALUE } from '../../../../../constants/transaction';
+import BN from 'bnjs4';
 
 export interface LendingDepositViewRouteParams {
   token?: TokenI;
@@ -88,12 +90,9 @@ const EarnLendingDepositConfirmationView = () => {
   );
 
   const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
-  // TODO: Add loading state for allowance reset step.
   const [isAllowanceResetLoading, setIsAllowanceResetLoading] = useState(false);
   const [isApprovalLoading, setIsApprovalLoading] = useState(false);
   const [isDepositLoading, setIsDepositLoading] = useState(false);
-
-  console.log('isAllowanceResetLoading: ', isAllowanceResetLoading);
 
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const isStablecoinLendingEnabled = useSelector(
@@ -106,13 +105,21 @@ const EarnLendingDepositConfirmationView = () => {
   const needsTokenAllowanceReset = useMemo(() => {
     if (!earnToken?.chainId || !earnToken?.symbol) return false;
     return (
+      // Is one of the edge case tokens that requires setting allowance to zero before it can be increased.
       tokenRequiresAllowanceReset(earnToken.chainId, earnToken.symbol) &&
-      // If allowance is zero we can simply increase allowance in a single transaction
-      allowanceMinimalTokenUnit !== '0'
+      // If allowance is zero we don't need a reset
+      allowanceMinimalTokenUnit !== '0' &&
+      // No need to reset if user has available allowance
+      new BN(amountTokenMinimalUnit ?? '0').gt(
+        new BN(allowanceMinimalTokenUnit ?? '0'),
+      )
     );
-  }, [allowanceMinimalTokenUnit, earnToken?.chainId, earnToken?.symbol]);
-
-  console.log('needsTokenAllowanceReset:', needsTokenAllowanceReset);
+  }, [
+    allowanceMinimalTokenUnit,
+    amountTokenMinimalUnit,
+    earnToken?.chainId,
+    earnToken?.symbol,
+  ]);
 
   const [activeStep, setActiveStep] = useState(() => {
     if (
@@ -124,8 +131,6 @@ const EarnLendingDepositConfirmationView = () => {
       return Steps.ALLOWANCE_INCREASE;
     return Steps.DEPOSIT;
   });
-
-  console.log('activeStep:', activeStep);
 
   const confirmButtonText = useMemo(() => {
     switch (activeStep) {
@@ -164,9 +169,7 @@ const EarnLendingDepositConfirmationView = () => {
           earnToken?.decimals as number,
         )} ${earnToken?.symbol}`,
         experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
-        isAllowanceReset:
-          transactionType === TransactionType.tokenMethodIncreaseAllowance &&
-          allowanceMinimalTokenUnit !== '0',
+        isAllowanceReset: activeStep === Steps.ALLOWANCE_RESET,
       };
 
       if (transactionId) {
@@ -186,7 +189,7 @@ const EarnLendingDepositConfirmationView = () => {
       earnToken?.decimals,
       earnToken?.symbol,
       amountTokenMinimalUnit,
-      allowanceMinimalTokenUnit,
+      activeStep,
     ],
   );
 
@@ -221,71 +224,83 @@ const EarnLendingDepositConfirmationView = () => {
     [createEventBuilder, getTrackEventProperties, trackEvent],
   );
 
-  const createResetTokenAllowanceTxEventListeners = (
-    transactionId: string,
-  ): Promise<boolean> => {
-    const emitAllowanceTxMetaMetric = emitTxMetaMetric(
-      TransactionType.tokenMethodIncreaseAllowance,
-    )(transactionId);
-
-    // TODO: Re-evaluate loading states. We want 1 confirmation click for token allowance reset edge case.
-    return new Promise((resolve, reject) => {
-      Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionSubmitted',
-        () => {
-          emitAllowanceTxMetaMetric(
-            MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED,
-          );
-        },
-        ({ transactionMeta }) => transactionMeta.id === transactionId,
-      );
-      Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionDropped',
-        () => {
-          emitAllowanceTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_DROPPED);
-          setIsConfirmButtonDisabled(false);
-          setIsAllowanceResetLoading(false);
-          reject(new Error('Allowance reset transaction dropped'));
-        },
-        ({ transactionMeta }) => transactionMeta.id === transactionId,
-      );
-      Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionFailed',
-        () => {
-          emitAllowanceTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_FAILED);
-          setIsConfirmButtonDisabled(false);
-          setIsAllowanceResetLoading(false);
-          reject(new Error('Allowance reset transaction failed'));
-        },
-        ({ transactionMeta }) => transactionMeta.id === transactionId,
-      );
-      Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionRejected',
-        () => {
-          emitAllowanceTxMetaMetric(
-            MetaMetricsEvents.EARN_TRANSACTION_REJECTED,
-          );
-          setIsConfirmButtonDisabled(false);
-          setIsAllowanceResetLoading(false);
-          reject(new Error('Allowance reset transaction rejected'));
-        },
-        ({ transactionMeta }) => transactionMeta.id === transactionId,
-      );
-
-      Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionConfirmed',
-        () => {
-          emitAllowanceTxMetaMetric(
-            MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED,
-          );
-          setActiveStep(Steps.ALLOWANCE_INCREASE);
-          setIsAllowanceResetLoading(false);
-          resolve(true);
-        },
-        (transactionMeta) => transactionMeta.id === transactionId,
-      );
-    });
+  const unsetAllowanceResetLoadingState = () => {
+    setIsConfirmButtonDisabled(false);
+    setIsAllowanceResetLoading(false);
   };
+
+  const createResetTokenAllowanceTxEventListeners = useCallback(
+    (transactionId: string): Promise<boolean> => {
+      const emitAllowanceTxMetaMetric = emitTxMetaMetric(
+        TransactionType.tokenMethodIncreaseAllowance,
+      )(transactionId);
+
+      return new Promise((resolve, reject) => {
+        Engine.controllerMessenger.subscribeOnceIf(
+          'TransactionController:transactionSubmitted',
+          () => {
+            emitAllowanceTxMetaMetric(
+              MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED,
+            );
+          },
+          ({ transactionMeta }) => transactionMeta.id === transactionId,
+        );
+        Engine.controllerMessenger.subscribeOnceIf(
+          'TransactionController:transactionDropped',
+          () => {
+            emitAllowanceTxMetaMetric(
+              MetaMetricsEvents.EARN_TRANSACTION_DROPPED,
+            );
+            unsetAllowanceResetLoadingState();
+            reject(new Error('Allowance reset transaction dropped'));
+          },
+          ({ transactionMeta }) => transactionMeta.id === transactionId,
+        );
+        Engine.controllerMessenger.subscribeOnceIf(
+          'TransactionController:transactionFailed',
+          () => {
+            emitAllowanceTxMetaMetric(
+              MetaMetricsEvents.EARN_TRANSACTION_FAILED,
+            );
+            unsetAllowanceResetLoadingState();
+            reject(new Error('Allowance reset transaction failed'));
+          },
+          ({ transactionMeta }) => transactionMeta.id === transactionId,
+        );
+        Engine.controllerMessenger.subscribeOnceIf(
+          'TransactionController:transactionRejected',
+          () => {
+            emitAllowanceTxMetaMetric(
+              MetaMetricsEvents.EARN_TRANSACTION_REJECTED,
+            );
+            unsetAllowanceResetLoadingState();
+            reject(new Error('Allowance reset transaction rejected'));
+          },
+          ({ transactionMeta }) => transactionMeta.id === transactionId,
+        );
+
+        Engine.controllerMessenger.subscribeOnceIf(
+          'TransactionController:transactionConfirmed',
+          () => {
+            emitAllowanceTxMetaMetric(
+              MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED,
+            );
+            setActiveStep(Steps.ALLOWANCE_INCREASE);
+            unsetAllowanceResetLoadingState();
+            resolve(true);
+          },
+          (transactionMeta) => transactionMeta.id === transactionId,
+        );
+      });
+    },
+    [emitTxMetaMetric],
+  );
+
+  const unsetAllowanceIncreaseLoadingState = () => {
+    setIsConfirmButtonDisabled(false);
+    setIsApprovalLoading(false);
+  };
+
   const createAllowanceTxEventListeners = useCallback(
     (transactionId: string) => {
       const emitAllowanceTxMetaMetric = emitTxMetaMetric(
@@ -304,8 +319,7 @@ const EarnLendingDepositConfirmationView = () => {
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionDropped',
         () => {
-          setIsConfirmButtonDisabled(false);
-          setIsApprovalLoading(false);
+          unsetAllowanceIncreaseLoadingState();
           emitAllowanceTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_DROPPED);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
@@ -314,8 +328,7 @@ const EarnLendingDepositConfirmationView = () => {
         'TransactionController:transactionFailed',
         () => {
           emitAllowanceTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_FAILED);
-          setIsConfirmButtonDisabled(false);
-          setIsApprovalLoading(false);
+          unsetAllowanceIncreaseLoadingState();
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
@@ -325,8 +338,7 @@ const EarnLendingDepositConfirmationView = () => {
           emitAllowanceTxMetaMetric(
             MetaMetricsEvents.EARN_TRANSACTION_REJECTED,
           );
-          setIsConfirmButtonDisabled(false);
-          setIsApprovalLoading(false);
+          unsetAllowanceIncreaseLoadingState();
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
@@ -334,18 +346,22 @@ const EarnLendingDepositConfirmationView = () => {
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionConfirmed',
         () => {
-          setIsConfirmButtonDisabled(false);
-          setIsApprovalLoading(false);
-          setActiveStep(Steps.DEPOSIT);
           emitAllowanceTxMetaMetric(
             MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED,
           );
+          unsetAllowanceIncreaseLoadingState();
+          setActiveStep(Steps.DEPOSIT);
         },
         (transactionMeta) => transactionMeta.id === transactionId,
       );
     },
     [emitTxMetaMetric],
   );
+
+  const unsetDepositLoadingState = () => {
+    setIsConfirmButtonDisabled(false);
+    setIsDepositLoading(false);
+  };
 
   const createDepositTxEventListeners = useCallback(
     (transactionId: string) => {
@@ -356,8 +372,7 @@ const EarnLendingDepositConfirmationView = () => {
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionDropped',
         () => {
-          setIsConfirmButtonDisabled(false);
-          setIsDepositLoading(false);
+          unsetDepositLoadingState();
           emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_DROPPED);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
@@ -365,8 +380,7 @@ const EarnLendingDepositConfirmationView = () => {
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionRejected',
         () => {
-          setIsConfirmButtonDisabled(false);
-          setIsDepositLoading(false);
+          unsetDepositLoadingState();
           emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_REJECTED);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
@@ -392,8 +406,7 @@ const EarnLendingDepositConfirmationView = () => {
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionFailed',
         () => {
-          setIsConfirmButtonDisabled(false);
-          setIsDepositLoading(false);
+          unsetDepositLoadingState();
           emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_FAILED);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
@@ -428,34 +441,36 @@ const EarnLendingDepositConfirmationView = () => {
   );
 
   const createTransactionEventListeners = useCallback(
-    (transactionId: string, transactionType: string) => {
+    (transactionId: string, transactionType: TransactionType) => {
       if (!transactionId || !transactionType) return;
 
       // Transaction Initiated but not submitted, rejected, or approved yet.
       trackEvent(
         createEventBuilder(MetaMetricsEvents.EARN_TRANSACTION_INITIATED)
           .addProperties(
-            getTrackEventProperties(
-              'deposit',
-              transactionId,
-              transactionType as TransactionType,
-            ),
+            getTrackEventProperties('deposit', transactionId, transactionType),
           )
           .build(),
       );
 
-      if (transactionType === TransactionType.tokenMethodIncreaseAllowance) {
+      if (activeStep === Steps.ALLOWANCE_RESET) {
+        createResetTokenAllowanceTxEventListeners(transactionId);
+      }
+
+      if (activeStep === Steps.ALLOWANCE_INCREASE) {
         createAllowanceTxEventListeners(transactionId);
       }
 
-      if (transactionType === TransactionType.lendingDeposit) {
+      if (activeStep === Steps.DEPOSIT) {
         createDepositTxEventListeners(transactionId);
       }
     },
     [
+      activeStep,
       createAllowanceTxEventListeners,
       createDepositTxEventListeners,
       createEventBuilder,
+      createResetTokenAllowanceTxEventListeners,
       getTrackEventProperties,
       trackEvent,
     ],
@@ -484,9 +499,6 @@ const EarnLendingDepositConfirmationView = () => {
     isDepositLoading,
     needsTokenAllowanceReset,
   ]);
-
-  console.log('progressBarSteps: ', progressBarSteps);
-  console.log('progressBarSteps.length: ', progressBarSteps.length);
 
   useEffect(() => {
     if (!outputToken) {
@@ -559,8 +571,8 @@ const EarnLendingDepositConfirmationView = () => {
           underlyingTokenAddress:
             earnToken?.experience?.market?.underlying?.address,
           gasOptions: {
-            // 65,000 + 20% buffer
-            gasLimit: 78000,
+            // 50,000 + 20% buffer
+            gasLimit: 60000,
           },
           txOptions: {
             deviceConfirmedOn: WalletDevice.MM_MOBILE,
@@ -576,20 +588,78 @@ const EarnLendingDepositConfirmationView = () => {
         return;
       }
 
-      const transactionId = allowanceResetTransaction.transactionMeta.id;
-
-      const didTxConfirm = await createResetTokenAllowanceTxEventListeners(
-        transactionId,
-      );
-
-      if (!didTxConfirm) {
-        setIsAllowanceResetLoading(false);
-        setIsConfirmButtonDisabled(false);
-      }
+      return allowanceResetTransaction;
     } catch (e) {
       setIsAllowanceResetLoading(false);
       setIsConfirmButtonDisabled(false);
     }
+  };
+
+  const increaseTokenAllowance = async (networkClientId: string) => {
+    if (!earnToken?.experience?.market?.protocol || !earnToken?.chainId) return;
+
+    setIsApprovalLoading(true);
+
+    const amount = tokenRequiresAllowanceReset(
+      earnToken?.chainId,
+      earnToken.symbol,
+    )
+      ? UINT256_BN_MAX_VALUE.toString()
+      : amountTokenMinimalUnit;
+
+    const allowanceIncreaseTransaction =
+      await Engine.context.EarnController.executeLendingTokenApprove({
+        protocol: earnToken?.experience?.market?.protocol,
+        amount,
+        underlyingTokenAddress:
+          earnToken?.experience?.market?.underlying?.address,
+        gasOptions: {
+          gasLimit: 78000,
+        },
+        txOptions: {
+          deviceConfirmedOn: WalletDevice.MM_MOBILE,
+          networkClientId,
+          origin: ORIGIN_METAMASK,
+          type: TransactionType.tokenMethodIncreaseAllowance,
+        },
+      });
+
+    if (!allowanceIncreaseTransaction) {
+      setIsApprovalLoading(false);
+      setIsConfirmButtonDisabled(false);
+      return;
+    }
+
+    return allowanceIncreaseTransaction;
+  };
+
+  const depositTokens = async (networkClientId: string) => {
+    if (!earnToken?.experience?.market?.protocol) return;
+
+    setIsDepositLoading(true);
+
+    const depositTransaction =
+      await Engine.context.EarnController.executeLendingDeposit({
+        amount: amountTokenMinimalUnit,
+        protocol: earnToken?.experience?.market?.protocol,
+        underlyingTokenAddress:
+          earnToken?.experience?.market?.underlying?.address,
+        gasOptions: {},
+        txOptions: {
+          deviceConfirmedOn: WalletDevice.MM_MOBILE,
+          networkClientId,
+          origin: ORIGIN_METAMASK,
+          type: TransactionType.lendingDeposit,
+        },
+      });
+
+    if (!depositTransaction) {
+      setIsDepositLoading(false);
+      setIsConfirmButtonDisabled(false);
+      return;
+    }
+
+    return depositTransaction;
   };
 
   const handleConfirm = async () => {
@@ -626,7 +696,6 @@ const EarnLendingDepositConfirmationView = () => {
         return;
       }
 
-      // 1. Build Transaction
       const tokenContractAddress = earnToken?.address;
       if (!tokenContractAddress) return;
 
@@ -637,68 +706,19 @@ const EarnLendingDepositConfirmationView = () => {
 
       let txResult;
 
-      console.log('[onConfirm] activeStep: ', activeStep);
-
-      // TODO: Cleanup handler code
-      // Edge Case: Some tokens (e.g. mainnet USDT) require resetting the token allowance to zero before it can be increase/set again.
-      if (activeStep === Steps.ALLOWANCE_RESET) {
-        await resetTokenAllowance(networkClientId);
-      } else if (activeStep === Steps.ALLOWANCE_INCREASE) {
-        setIsApprovalLoading(true);
-
-        const allowanceIncreaseTransaction =
-          await Engine.context.EarnController.executeLendingTokenApprove({
-            protocol: earnToken?.experience?.market?.protocol,
-            amount: amountTokenMinimalUnit,
-            underlyingTokenAddress:
-              earnToken?.experience?.market?.underlying?.address,
-            gasOptions: {
-              gasLimit: 78000,
-            },
-            txOptions: {
-              deviceConfirmedOn: WalletDevice.MM_MOBILE,
-              networkClientId,
-              origin: ORIGIN_METAMASK,
-              type: TransactionType.tokenMethodIncreaseAllowance,
-            },
-          });
-
-        if (!allowanceIncreaseTransaction) {
-          setIsApprovalLoading(false);
-          setIsConfirmButtonDisabled(false);
-          return;
-        }
-
-        txResult = allowanceIncreaseTransaction;
-      }
-      // Already has necessary allowance and can deposit straight away.
-      else {
-        // TODO: Breakout into separate handler to make main handleConfirm more readable.
-        setIsDepositLoading(true);
-
-        const depositTransaction =
-          await Engine.context.EarnController.executeLendingDeposit({
-            amount: amountTokenMinimalUnit,
-            protocol: earnToken?.experience?.market?.protocol,
-            underlyingTokenAddress:
-              earnToken?.experience?.market?.underlying?.address,
-            gasOptions: {},
-            txOptions: {
-              deviceConfirmedOn: WalletDevice.MM_MOBILE,
-              networkClientId,
-              origin: ORIGIN_METAMASK,
-              type: TransactionType.lendingDeposit,
-            },
-          });
-
-        if (!depositTransaction) {
-          setIsDepositLoading(false);
-          setIsConfirmButtonDisabled(false);
-
-          return;
-        }
-
-        txResult = depositTransaction;
+      switch (activeStep) {
+        // Edge Case: Some tokens (e.g. mainnet USDT) require resetting the token allowance to zero before it can be increase/set again.
+        case Steps.ALLOWANCE_RESET:
+          txResult = await resetTokenAllowance(networkClientId);
+          break;
+        // Increase token allowance
+        case Steps.ALLOWANCE_INCREASE:
+          txResult = await increaseTokenAllowance(networkClientId);
+          break;
+        // Already has necessary allowance and can deposit straight away.
+        case Steps.DEPOSIT:
+          txResult = await depositTokens(networkClientId);
+          break;
       }
 
       const transactionId = txResult?.transactionMeta?.id;
@@ -717,8 +737,6 @@ const EarnLendingDepositConfirmationView = () => {
       setIsConfirmButtonDisabled(false);
     }
   };
-
-  // TODO: FIGURE OUT WHY DEPOSIT STEP IS LOADING!!!!
 
   if (!isStablecoinLendingEnabled) {
     return null;

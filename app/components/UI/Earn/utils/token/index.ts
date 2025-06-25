@@ -82,5 +82,5 @@ export const tokenRequiresAllowanceReset = (
   symbol: string,
 ) => {
   if (!chainId || !symbol) return false;
-  return TOKENS_REQUIRING_ALLOWANCE_RESET[chainId].includes(symbol);
+  return Boolean(TOKENS_REQUIRING_ALLOWANCE_RESET[chainId]?.includes(symbol));
 };
