@@ -236,8 +236,6 @@ const ImportNewSecretRecoveryPhrase = () => {
       setLoading(false);
       setSecretRecoveryPhrase(Array(numberOfWords).fill(''));
 
-      const totalAccounts = hdKeyrings.length + 1 + discoveredAccountsCount;
-
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
@@ -250,13 +248,14 @@ const ImportNewSecretRecoveryPhrase = () => {
         iconName: IconName.Check,
         hasNoTimeout: false,
       });
+      
       fetchAccountsWithActivity();
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
         )
         .addProperties({
-          number_of_solana_accounts_discovered: totalAccounts,
+          number_of_solana_accounts_discovered: discoveredAccountsCount,
         })
         .build(),
       );
