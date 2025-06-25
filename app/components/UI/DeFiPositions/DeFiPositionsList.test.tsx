@@ -1,11 +1,9 @@
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import DeFiPositionsList, {
-  DEFI_POSITIONS_CONTAINER,
-  DEFI_POSITIONS_LIST,
-} from './DeFiPositionsList';
+import DeFiPositionsList from './DeFiPositionsList';
 import { RootState } from '../../../reducers';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -190,11 +188,15 @@ describe('DeFiPositionsList', () => {
       },
     );
 
-    expect(await findByTestId(DEFI_POSITIONS_CONTAINER)).toBeOnTheScreen();
+    expect(
+      await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER),
+    ).toBeOnTheScreen();
     expect(await findByText('Protocol 1')).toBeOnTheScreen();
     expect(await findByText('$100.00')).toBeOnTheScreen();
 
-    const flatList = await findByTestId(DEFI_POSITIONS_LIST);
+    const flatList = await findByTestId(
+      WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
+    );
     expect(flatList.props.data.length).toEqual(1);
   });
 
@@ -223,12 +225,16 @@ describe('DeFiPositionsList', () => {
       },
     );
 
-    expect(await findByTestId(DEFI_POSITIONS_CONTAINER)).toBeOnTheScreen();
+    expect(
+      await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER),
+    ).toBeOnTheScreen();
     expect(await findByText('Protocol 1')).toBeOnTheScreen();
     expect(await findByText('Protocol 2')).toBeOnTheScreen();
     expect(await findByText('$100.00')).toBeOnTheScreen();
     expect(await findByText('$10.00')).toBeOnTheScreen();
-    const flatList = await findByTestId(DEFI_POSITIONS_LIST);
+    const flatList = await findByTestId(
+      WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
+    );
     expect(flatList.props.data.length).toEqual(2);
   });
 

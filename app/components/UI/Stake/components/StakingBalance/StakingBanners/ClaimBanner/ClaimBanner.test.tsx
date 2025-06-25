@@ -1,13 +1,16 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useFocusEffect } from '@react-navigation/native';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import React from 'react';
 import Engine from '../../../../../../../core/Engine';
 import { createMockAccountsControllerState } from '../../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../../../../../util/test/network';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
-import { MOCK_POOL_STAKING_SDK } from '../../../../__mocks__/stakeMockData';
+import {
+  MOCK_POOL_STAKING_SDK,
+  MOCK_ETH_MAINNET_ASSET,
+} from '../../../../__mocks__/stakeMockData';
 import useStakingChain from '../../../../hooks/useStakingChain';
 import ClaimBanner from './ClaimBanner';
 
@@ -35,6 +38,9 @@ jest.mock('../../../../../../../core/Engine', () => ({
     MultichainNetworkController: {
       setActiveNetwork: jest.fn(),
     },
+  },
+  controllerMessenger: {
+    subscribeOnceIf: jest.fn(),
   },
 }));
 
@@ -84,7 +90,10 @@ describe('ClaimBanner', () => {
 
   it('render matches snapshot', () => {
     const { toJSON } = renderWithProvider(
-      <ClaimBanner claimableAmount={MOCK_CLAIM_AMOUNT} />,
+      <ClaimBanner
+        claimableAmount={MOCK_CLAIM_AMOUNT}
+        asset={MOCK_ETH_MAINNET_ASSET}
+      />,
       { state: mockInitialState },
     );
 
@@ -96,7 +105,10 @@ describe('ClaimBanner', () => {
       isStakingSupportedChain: false,
     });
     const { getByTestId } = renderWithProvider(
-      <ClaimBanner claimableAmount={MOCK_CLAIM_AMOUNT} />,
+      <ClaimBanner
+        claimableAmount={MOCK_CLAIM_AMOUNT}
+        asset={MOCK_ETH_MAINNET_ASSET}
+      />,
       {
         state: {
           ...mockInitialState,
@@ -129,13 +141,18 @@ describe('ClaimBanner', () => {
 
   it('claim button is disabled on subsequent presses', async () => {
     const { getByTestId } = renderWithProvider(
-      <ClaimBanner claimableAmount={MOCK_CLAIM_AMOUNT} />,
+      <ClaimBanner
+        claimableAmount={MOCK_CLAIM_AMOUNT}
+        asset={MOCK_ETH_MAINNET_ASSET}
+      />,
       { state: mockInitialState },
     );
 
     const claimButton = getByTestId('claim-banner-claim-eth-button');
 
-    fireEvent.press(claimButton);
+    await act(async () => {
+      fireEvent.press(claimButton);
+    });
 
     expect(claimButton.props.disabled).toBe(true);
     expect(

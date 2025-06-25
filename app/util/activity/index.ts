@@ -1,5 +1,4 @@
-import { safeToChecksumAddress } from '../../util/address';
-import { toLowerCaseEquals } from '../../util/general';
+import { areAddressesEqual } from '../../util/address';
 import { TX_UNAPPROVED } from '../../constants/transaction';
 
 /**
@@ -13,9 +12,20 @@ export const isFromOrToSelectedAddress = (
   from: string,
   to: string,
   selectedAddress: string,
-): boolean =>
-  toLowerCaseEquals(safeToChecksumAddress(from), selectedAddress) ||
-  toLowerCaseEquals(safeToChecksumAddress(to), selectedAddress);
+): boolean => {
+  if (!selectedAddress) {
+    return false;
+  }
+  if (from && areAddressesEqual(from, selectedAddress)) {
+    return true;
+  }
+
+  if (to && areAddressesEqual(to, selectedAddress)) {
+    return true;
+  }
+
+  return false;
+};
 
 /**
  * Determines if a transaction was executed in the current chain/network
@@ -90,7 +100,7 @@ export const filterByAddressAndNetwork = (
   ) {
     return isTransfer
       ? !!tokens.find(({ address }) =>
-          toLowerCaseEquals(address, transferInformation.contractAddress),
+          areAddressesEqual(address, transferInformation.contractAddress),
         )
       : true;
   }

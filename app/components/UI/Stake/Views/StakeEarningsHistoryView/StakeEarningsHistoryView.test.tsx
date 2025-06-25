@@ -1,15 +1,15 @@
-import React from 'react';
-import StakeEarningsHistoryView from './StakeEarningsHistoryView';
-import useStakingEarningsHistory from '../../hooks/useStakingEarningsHistory';
-import { MOCK_STAKED_ETH_MAINNET_ASSET } from '../../__mocks__/stakeMockData';
-import { fireLayoutEvent } from '../../../../../util/testUtils/react-native-svg-charts';
-import { getStakingNavbar } from '../../../Navbar';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { Hex } from '@metamask/utils';
+import React from 'react';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { fireLayoutEvent } from '../../../../../util/testUtils/react-native-svg-charts';
+import useEarningsHistory from '../../../Earn/hooks/useEarningsHistory';
+import { getStakingNavbar } from '../../../Navbar';
+import { MOCK_STAKED_ETH_MAINNET_ASSET } from '../../__mocks__/stakeMockData';
+import StakeEarningsHistoryView from './StakeEarningsHistoryView';
 
 jest.mock('../../../Navbar');
-jest.mock('../../hooks/useStakingEarningsHistory');
+jest.mock('../../../Earn/hooks/useEarningsHistory');
 
 const mockNavigation = {
   navigate: jest.fn(),
@@ -36,7 +36,7 @@ jest.mock('react-native-svg-charts', () => {
   };
 });
 
-(useStakingEarningsHistory as jest.Mock).mockReturnValue({
+(useEarningsHistory as jest.Mock).mockReturnValue({
   earningsHistory: [
     {
       dateStr: '2023-01-01',

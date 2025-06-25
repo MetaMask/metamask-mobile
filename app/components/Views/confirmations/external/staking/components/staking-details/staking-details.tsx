@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { ConfirmationPageSectionsSelectorIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../../locales/i18n';
 import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confirmations';
 import Text from '../../../../../../../component-library/components/Texts/Text';
@@ -24,7 +24,7 @@ const StakingDetails = () => {
 
   return (
     <InfoSection
-      testID={ConfirmationPageSectionsSelectorIDs.STAKING_DETAILS_SECTION}
+      testID={ConfirmationRowComponentIDs.STAKING_DETAILS}
     >
       <InfoRow label={strings('stake.apr')}>{apr}</InfoRow>
       <InfoRow label={strings('stake.estimated_annual_reward')}>

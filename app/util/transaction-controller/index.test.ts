@@ -95,6 +95,8 @@ jest.mock('../../core/Engine', () => ({
       wipeTransactions: jest.fn(),
       updateEditableParams: jest.fn(),
       updateTransactionGasFees: jest.fn(),
+      updateAtomicBatchData: jest.fn(),
+      addTransactionBatch: jest.fn(),
     },
   },
 }));

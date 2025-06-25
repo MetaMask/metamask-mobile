@@ -179,7 +179,8 @@ describe('wallet_watchAsset', () => {
     expect(spyOnWatchAsset).toHaveBeenCalledWith({
       asset: correctWBTC,
       type: ERC20,
-      interactingAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272', // Checksummed version of MOCK_ADDRESS
+      interactingAddress: '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
+      networkClientId: '0x1',
     });
   });
 
@@ -225,7 +226,8 @@ describe('wallet_watchAsset', () => {
     expect(spyOnWatchAsset).toHaveBeenCalledWith({
       asset: correctWBTC,
       type: ERC20,
-      interactingAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272', // Checksummed version of MOCK_ADDRESS
+      interactingAddress: '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
+      networkClientId: '0x1',
     });
   });
 });

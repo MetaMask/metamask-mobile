@@ -91,12 +91,12 @@ import { isSwapsAllowed } from '../../../../../UI/Swaps/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { regex } from '../../../../../../util/regex';
 import { AmountViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
-import { isNetworkRampNativeTokenSupported } from '../../../../../../components/UI/Ramp/utils';
+import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
 import { addTransaction } from '../../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../../selectors/gasFeeController';
-import { createBuyNavigationDetails } from '../../../../../UI/Ramp/routes/utils';
+import { createBuyNavigationDetails } from '../../../../../UI/Ramp/Aggregator/routes/utils';
 import {
   // Pending updated multichain UX to specify the send chain.
   /* eslint-disable no-restricted-syntax */
@@ -110,6 +110,7 @@ import { selectContractExchangeRatesByChainId } from '../../../../../../selector
 import { isNativeToken } from '../../../utils/generic';
 import { selectConfirmationRedesignFlags } from '../../../../../../selectors/featureFlagController/confirmations';
 import { MMM_ORIGIN } from '../../../constants/confirmations';
+import { isHardwareAccount } from '../../../../../../util/address';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -499,7 +500,7 @@ class Amount extends PureComponent {
     /**
      * Boolean that indicates if the redesigned transfer confirmation is enabled
      */
-    isRedesignedTransferConfirmationEnabled: PropTypes.bool,
+    isRedesignedTransferConfirmationEnabledForTransfer: PropTypes.bool,
   };
 
   state = {
@@ -651,7 +652,7 @@ class Amount extends PureComponent {
       providerType,
       onConfirm,
       globalNetworkClientId,
-      isRedesignedTransferConfirmationEnabled,
+      isRedesignedTransferConfirmationEnabledForTransfer,
     } = this.props;
     const {
       inputValue,
@@ -705,10 +706,13 @@ class Amount extends PureComponent {
         .build(),
     );
 
+    const shouldUseRedesignedTransferConfirmation = 
+      isRedesignedTransferConfirmationEnabledForTransfer && !isHardwareAccount(transaction.from);
+
     setSelectedAsset(selectedAsset);
     if (onConfirm) {
       onConfirm();
-    } else if (isRedesignedTransferConfirmationEnabled) {
+    } else if (shouldUseRedesignedTransferConfirmation) {
         this.setState({ isRedesignedTransferTransactionLoading: true });
 
         const transactionParams = {
@@ -727,7 +731,7 @@ class Amount extends PureComponent {
         });
         this.setState({ isRedesignedTransferTransactionLoading: false });
         navigation.navigate('SendFlowView', {
-          screen: Routes.STANDALONE_CONFIRMATIONS.TRANSFER,
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         });
       } else {
         navigation.navigate(Routes.SEND_FLOW.CONFIRM);
@@ -1504,6 +1508,7 @@ class Amount extends PureComponent {
               <View style={[styles.actionBorder, styles.actionMax]}>
                 {!selectedAsset.tokenId && (
                   <TouchableOpacity
+                    testID={AmountViewSelectorsIDs.MAX_BUTTON}
                     style={styles.actionMaxTouchable}
                     disabled={!estimatedTotalGas}
                     onPress={this.useMax}
@@ -1579,7 +1584,7 @@ const mapStateToProps = (state, ownProps) => {
       globalChainId,
       getRampNetworks(state),
     ),
-    isRedesignedTransferConfirmationEnabled:
+    isRedesignedTransferConfirmationEnabledForTransfer:
       selectConfirmationRedesignFlags(state).transfer,
     swapsIsLive: swapsLivenessSelector(state),
     globalChainId,

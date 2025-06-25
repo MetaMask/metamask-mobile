@@ -1,99 +1,48 @@
-import {
-  AppMetadataController,
-  type AppMetadataControllerMessenger,
-  type AppMetadataControllerState,
-} from '@metamask/app-metadata-controller';
-import type { ControllerInitRequest } from '../../types';
+import { appMetadataControllerInit } from './index';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { appMetadataControllerInit } from '.';
-import { defaultAppMetadataControllerState } from './constants';
-import { logAppMetadataControllerCreation } from './utils';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 
-jest.mock('./utils', () => ({
-  logAppMetadataControllerCreation: jest.fn(),
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '1.44.0'),
 }));
 
-const mockedLogAppMetadataControllerCreation = jest.mocked(
-  logAppMetadataControllerCreation,
-);
-
-jest.mock('@metamask/app-metadata-controller');
-
-describe('app metadata controller init', () => {
-  const appMetadataControllerClassMock = jest.mocked(AppMetadataController);
-  let initRequestMock: jest.Mocked<
-    ControllerInitRequest<AppMetadataControllerMessenger>
-  >;
+describe('AppMetadataController', () => {
+  let mockInitRequest: ReturnType<typeof buildControllerInitRequestMock>;
 
   beforeEach(() => {
-    jest.resetAllMocks();
     const baseControllerMessenger = new ExtendedControllerMessenger();
-    // Create controller init request mock
-    initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
+    mockInitRequest = buildControllerInitRequestMock(baseControllerMessenger);
   });
 
-  describe('logs are registered during controller creation', () => {
-    it('logs creation with default state when no initial state provided', () => {
-      appMetadataControllerInit(initRequestMock);
-      expect(mockedLogAppMetadataControllerCreation).toHaveBeenCalledWith(
-        defaultAppMetadataControllerState,
-      );
-    });
+  it('initializes with default state', async () => {
+    const { controller } = appMetadataControllerInit(mockInitRequest);
 
-    it('logs creation with provided initial state', () => {
-      // Set initial state
-      const initialAppMetadataControllerState: AppMetadataControllerState = {
-        currentAppVersion: '1.0.0',
-        previousAppVersion: '0.9.0',
-        previousMigrationVersion: 1,
-        currentMigrationVersion: 2,
-      };
-      // Update mock with initial state
-      initRequestMock.persistedState = {
-        ...initRequestMock.persistedState,
-        AppMetadataController: initialAppMetadataControllerState,
-      };
-      appMetadataControllerInit(initRequestMock);
-      expect(mockedLogAppMetadataControllerCreation).toHaveBeenCalledWith(
-        initialAppMetadataControllerState,
-      );
+    expect(controller.state).toEqual({
+      currentAppVersion: expect.any(String),
+      previousAppVersion: expect.any(String),
+      previousMigrationVersion: expect.any(Number),
+      currentMigrationVersion: expect.any(Number),
     });
   });
 
-  it('returns controller instance', () => {
-    expect(
-      appMetadataControllerInit(initRequestMock).controller,
-    ).toBeInstanceOf(AppMetadataController);
-  });
-
-  it('controller state should be default state when no initial state is passed in', () => {
-    appMetadataControllerInit(initRequestMock);
-    const appMetadataControllerState =
-      appMetadataControllerClassMock.mock.calls[0][0].state;
-    expect(appMetadataControllerState).toEqual(
-      defaultAppMetadataControllerState,
-    );
-  });
-
-  it('controller state should be initial state when initial state is passed in', () => {
-    // Create initial state
-    const initialAppMetadataControllerState: AppMetadataControllerState = {
-      currentAppVersion: '1.0.0',
-      previousAppVersion: '0.9.0',
-      previousMigrationVersion: 1,
-      currentMigrationVersion: 2,
+  it('updates state with persisted values', async () => {
+    const persistedState = {
+      currentAppVersion: '1.44.0',
+      previousAppVersion: '',
+      previousMigrationVersion: 0,
+      currentMigrationVersion: 80,
     };
-    // Update mock with initial state
-    initRequestMock.persistedState = {
-      ...initRequestMock.persistedState,
-      AppMetadataController: initialAppMetadataControllerState,
-    };
-    appMetadataControllerInit(initRequestMock);
-    const appMetadataControllerState =
-      appMetadataControllerClassMock.mock.calls[0][0].state;
-    expect(appMetadataControllerState).toEqual(
-      initialAppMetadataControllerState,
-    );
+
+    const { controller } = appMetadataControllerInit({
+      ...mockInitRequest,
+      persistedState: { AppMetadataController: persistedState },
+    });
+
+    expect(controller.state).toEqual({
+      currentAppVersion: '1.44.0',
+      previousAppVersion: '',
+      previousMigrationVersion: expect.any(Number),
+      currentMigrationVersion: expect.any(Number),
+    });
   });
 });

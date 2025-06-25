@@ -7,12 +7,12 @@ import { renderHook } from '@testing-library/react-hooks';
 import { type GasFeeEstimates } from '@metamask/gas-fee-controller';
 
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { simpleSendTransaction } from '../../mock-data/transaction-controller-mock';
+import { simpleSendTransaction } from '../../__mocks__/controllers/transaction-controller-mock';
 import { useFeeCalculations } from './useFeeCalculations';
 import { useGasFeeEstimates } from './useGasFeeEstimates';
 import { updateTransactionGasFees } from '../../../../../util/transaction-controller';
 import { useGasFeeEstimateLevelOptions } from './useGasFeeEstimateLevelOptions';
-import '../../utils/time'
+import '../../utils/time';
 
 jest.mock('../../../../../util/transaction-controller');
 jest.mock('../../utils/time', () => ({

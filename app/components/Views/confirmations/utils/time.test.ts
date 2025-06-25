@@ -1,4 +1,4 @@
-import { toHumanEstimatedTimeRange } from './time';
+import { toHumanEstimatedTimeRange, toHumanSeconds } from './time';
 
 describe('toHumanEstimatedTimeRange', () => {
   it('return undefined for invalid inputs', () => {
@@ -29,5 +29,32 @@ describe('toHumanEstimatedTimeRange', () => {
 
     // Just over a minute should use minutes
     expect(toHumanEstimatedTimeRange(59000, 61000)).toBe('1 - 1 min');
+  });
+});
+
+describe('toHumanSeconds', () => {
+  it('converts milliseconds to seconds with no decimal places', () => {
+    expect(toHumanSeconds(1000)).toBe('1 sec');
+    expect(toHumanSeconds(5000)).toBe('5 sec');
+    expect(toHumanSeconds(10000)).toBe('10 sec');
+    expect(toHumanSeconds(30000)).toBe('30 sec');
+  });
+
+  it('handles fractional seconds by truncating decimals', () => {
+    expect(toHumanSeconds(1500)).toBe('1 sec');
+    expect(toHumanSeconds(2750)).toBe('2 sec');
+    expect(toHumanSeconds(9900)).toBe('9 sec');
+  });
+
+  it('handles edge cases', () => {
+    expect(toHumanSeconds(0)).toBe('0 sec');
+    expect(toHumanSeconds(100)).toBe('0 sec');
+    expect(toHumanSeconds(999)).toBe('0 sec');
+  });
+
+  it('handles large values', () => {
+    expect(toHumanSeconds(60000)).toBe('60 sec');
+    expect(toHumanSeconds(120000)).toBe('120 sec');
+    expect(toHumanSeconds(3600000)).toBe('3600 sec');
   });
 });

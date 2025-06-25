@@ -7,15 +7,15 @@ import { TokenI } from '../../../UI/Tokens/types';
 import { RootState } from '../../../../reducers';
 import { makeSelectAssetByAddressAndChainId } from '../../../../selectors/multichain';
 import { safeToChecksumAddress } from '../../../../util/address';
-import { NATIVE_TOKEN_ADDRESS } from '../constants/tokens';
+import { getNativeTokenAddress } from '../utils/asset';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 
 const selectEvmAsset = makeSelectAssetByAddressAndChainId();
 
 export const useTokenAsset = () => {
   const { chainId, type: transactionType, txParams } = useTransactionMetadataRequest() ?? {};
-
-  const tokenAddress = safeToChecksumAddress(txParams?.to)?.toLowerCase() || NATIVE_TOKEN_ADDRESS;
+  const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
+  const tokenAddress = safeToChecksumAddress(txParams?.to)?.toLowerCase() || nativeTokenAddress;
 
   const evmAsset = useSelector((state: RootState) =>
     selectEvmAsset(state, {
@@ -26,7 +26,7 @@ export const useTokenAsset = () => {
 
   const nativeEvmAsset = useSelector((state: RootState) =>
     selectEvmAsset(state, {
-      address: NATIVE_TOKEN_ADDRESS,
+      address: nativeTokenAddress,
       chainId: chainId as Hex,
     }),
   );

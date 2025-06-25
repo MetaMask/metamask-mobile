@@ -4,7 +4,7 @@ import {
   Dimensions,
   Linking,
   Platform,
-  Text,
+  ScrollView,
   TextInput,
   TouchableOpacity,
   View,
@@ -19,7 +19,8 @@ import ScrollableTabView, {
 } from 'react-native-scrollable-tab-view';
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const CustomTabView = View as any;
+const CustomTabView = ScrollView as any;
+import { store } from '../../../store';
 import StorageWrapper from '../../../store/storage-wrapper';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
@@ -53,7 +54,10 @@ import { Authentication } from '../../../core/';
 import { isTest } from '../../../util/test/utils';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
-import { isHardwareAccount } from '../../../util/address';
+import {
+  getInternalAccountByAddress,
+  isHardwareAccount,
+} from '../../../util/address';
 import AppConstants from '../../../core/AppConstants';
 import { createStyles } from './styles';
 import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
@@ -61,8 +65,16 @@ import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/S
 
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { endTrace, trace, TraceName, TraceOperation } from '../../../util/trace';
+import { getTraceTags } from '../../../util/sentry/tags';
+import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
+import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import { AccountInfo } from '../MultichainAccounts/AccountDetails/components/AccountInfo/AccountInfo';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
-const PRIVATE_KEY = 'private_key';
+export const PRIVATE_KEY = 'private_key';
 
 interface RootStackParamList extends ParamListBase {
   RevealPrivateCredential: {
@@ -85,6 +97,7 @@ interface IRevealPrivateCredentialProps {
   credentialName: string;
   cancel: () => void;
   route: RevealPrivateCredentialRouteProp;
+  showCancelButton?: boolean;
 }
 
 const RevealPrivateCredential = ({
@@ -92,6 +105,7 @@ const RevealPrivateCredential = ({
   credentialName,
   cancel,
   route,
+  showCancelButton,
 }: IRevealPrivateCredentialProps) => {
   const hasNavigation = !!navigation;
   // TODO - Refactor or split RevealPrivateCredential when used in Nav stack vs outside of it
@@ -124,6 +138,10 @@ const RevealPrivateCredential = ({
   const credentialSlug = credentialName || route?.params.credentialName;
   const selectedAddress =
     route?.params?.selectedAccount?.address || checkSummedAddress;
+
+  // Address will always be defined because checkSummedAddress is the selectedAccount's address
+  const account = getInternalAccountByAddress(selectedAddress as string);
+
   const isPrivateKey = credentialSlug === PRIVATE_KEY;
 
   const updateNavBar = () => {
@@ -148,6 +166,15 @@ const RevealPrivateCredential = ({
       const { KeyringController } = Engine.context as any;
       const isPrivateKeyReveal = privCredentialName === PRIVATE_KEY;
 
+      // This will trigger after the user hold-pressed the button, we want to trace the actual
+      // keyring operation of extracting the credential
+      const traceName = isPrivateKeyReveal ? TraceName.RevealPrivateKey : TraceName.RevealSrp;
+      trace({
+        name: traceName,
+        op: TraceOperation.RevealPrivateCredential,
+        tags: getTraceTags(store.getState()),
+      });
+
       try {
         let privateCredential;
         if (!isPrivateKeyReveal) {
@@ -166,6 +193,11 @@ const RevealPrivateCredential = ({
         if (privateCredential) {
           setClipboardPrivateCredential(privateCredential);
           setUnlocked(true);
+
+          // We would reveal the private credential after this point, so that's the end of the flow.
+          endTrace({
+            name: traceName,
+          });
         }
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -184,10 +216,7 @@ const RevealPrivateCredential = ({
         setWarningIncorrectPassword(msg);
       }
     },
-    [
-      selectedAddress,
-      keyringId,
-    ],
+    [selectedAddress, keyringId],
   );
 
   useEffect(() => {
@@ -395,10 +424,12 @@ const RevealPrivateCredential = ({
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       onChangeTab={(event: any) => onTabBarChange(event)}
+      style={styles.tabContentContainer}
     >
       <CustomTabView
         tabLabel={strings(`reveal_credential.text`)}
         style={styles.tabContent}
+        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT}
       >
         <Text style={styles.boldText}>
           {strings(`reveal_credential.${privCredentialName}`)}
@@ -434,6 +465,7 @@ const RevealPrivateCredential = ({
       <CustomTabView
         tabLabel={strings(`reveal_credential.qr_code`)}
         style={styles.tabContent}
+        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_QR_CODE}
       >
         <View
           style={styles.qrCodeWrapper}
@@ -450,7 +482,7 @@ const RevealPrivateCredential = ({
 
   const renderPasswordEntry = () => (
     <>
-      <Text style={styles.enterPassword}>
+      <Text style={styles.enterPassword} variant={TextVariant.BodyMDMedium}>
         {strings('reveal_credential.enter_password')}
       </Text>
       <TextInput
@@ -582,9 +614,13 @@ const RevealPrivateCredential = ({
   );
 
   const renderWarning = (privCredentialName: string) => (
-    <View style={styles.warningWrapper}>
-      <View style={[styles.rowWrapper, styles.warningRowWrapper]}>
-        <Icon style={styles.icon} name={IconName.EyeSlash} size={IconSize.Lg} />
+    <View style={[styles.rowWrapper, styles.warningWrapper]}>
+      <View style={[styles.warningRowWrapper]}>
+        <Icon
+          color={colors.error.default}
+          name={IconName.EyeSlash}
+          size={IconSize.Lg}
+        />
         {privCredentialName === PRIVATE_KEY ? (
           <Text style={styles.warningMessageText}>
             {strings(
@@ -629,23 +665,39 @@ const RevealPrivateCredential = ({
           RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID
         }
         contentContainerStyle={styles.stretch}
+        // The cancel button here is not named correctly. When it is unlocked, the button is shown as "Done"
+        showCancelButton={Boolean(showCancelButton || unlocked)}
       >
-        <>
+        <ScrollView>
           <View style={[styles.rowWrapper, styles.normalText]}>
-            {isPrivateKey ? (
-              <Text style={styles.normalText}>
-                {strings(`reveal_credential.private_key_explanation`)}
-              </Text>
+            {isPrivateKey && account ? (
+              <>
+                <AccountInfo account={account} />
+                <BannerAlert
+                  severity={BannerAlertSeverity.Error}
+                  title={strings(
+                    'multichain_accounts.reveal_private_key.banner_title',
+                  )}
+                  description={strings(
+                    'multichain_accounts.reveal_private_key.banner_description',
+                  )}
+                />
+              </>
             ) : (
-              renderSRPExplanation()
+              <>
+                {renderSRPExplanation()}
+                {renderWarning(credentialSlug)}
+              </>
             )}
           </View>
-          {renderWarning(credentialSlug)}
-
-          <View style={[styles.rowWrapper, styles.stretch]}>
-            {unlocked ? renderTabView(credentialSlug) : renderPasswordEntry()}
-          </View>
-        </>
+          {unlocked ? (
+            renderTabView(credentialSlug)
+          ) : (
+            <View style={[styles.rowWrapper, styles.stretch]}>
+              {renderPasswordEntry()}
+            </View>
+          )}
+        </ScrollView>
       </ActionView>
       {renderModal(isPrivateKey)}
 

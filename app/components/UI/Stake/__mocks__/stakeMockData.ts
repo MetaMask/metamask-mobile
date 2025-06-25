@@ -1,13 +1,12 @@
 import {
   ChainId,
-  StakingType,
   type PooledStakes,
   type VaultData,
 } from '@metamask/stake-sdk';
-import { TokenI } from '../../Tokens/types';
-import { Contract } from 'ethers';
-import { Stake } from '../sdk/stakeSdkProvider';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { Contract } from 'ethers';
+import { TokenI } from '../../Tokens/types';
+import { Stake } from '../sdk/stakeSdkProvider';
 import { createMockToken, getCreateMockTokenOptions } from '../testUtils';
 import { TOKENS_WITH_DEFAULT_OPTIONS } from '../testUtils/testUtils.types';
 
@@ -102,8 +101,6 @@ const MOCK_POOLED_STAKING_CONTRACT_SERVICE = {
 
 export const MOCK_POOL_STAKING_SDK: Stake = {
   stakingContract: MOCK_POOLED_STAKING_CONTRACT_SERVICE,
-  sdkType: StakingType.POOLED,
-  setSdkType: jest.fn(),
 };
 
 export const MOCK_ETH_MAINNET_ASSET = createMockToken(

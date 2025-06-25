@@ -4,6 +4,7 @@ import {
   AccountsControllerListMultichainAccountsAction,
   AccountsControllerAccountTransactionsUpdatedEvent,
 } from '@metamask/accounts-controller';
+import { MultichainTransactionsControllerTransactionConfirmedEvent } from '@metamask/multichain-transactions-controller';
 import { HandleSnapRequest } from '@metamask/snaps-controllers';
 
 export type MultichainTransactionsControllerActions =
@@ -17,4 +18,5 @@ export type MultichainTransactionsControllerEvents =
   | {
       type: 'MultichainTransactionsController:stateChange';
       payload: [unknown];
-    };
+    }
+  | MultichainTransactionsControllerTransactionConfirmedEvent

@@ -58,20 +58,6 @@ describe('AdvancedDetailsRow', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('does not render when txParams.to is missing', () => {
-    // Create a state with a transaction that has no 'to' field
-    const stateWithoutTo = cloneDeep(generateContractInteractionState);
-    stateWithoutTo.engine.backgroundState.TransactionController.transactions[0].txParams.to =
-      undefined;
-
-    const { toJSON } = renderWithProvider(
-      <AdvancedDetailsRow />,
-      { state: stateWithoutTo },
-      false,
-    );
-    expect(toJSON()).toBeNull();
-  });
-
   // We can't easily test interactions in this case because our mocks are simple string replacements
   // Testing the basic rendering is still valuable
   it('should set up the component with correct props', () => {
@@ -88,6 +74,20 @@ describe('AdvancedDetailsRow', () => {
 
     // Verify the hook was called
     expect(useEditNonce).toHaveBeenCalled();
+  });
+
+  it('renders data scroll view when data is too long', () => {
+    const state = cloneDeep(generateContractInteractionState);
+    state.engine.backgroundState.TransactionController.transactions[0].txParams.data =
+      '0x' + 'a'.repeat(1000);
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <AdvancedDetailsRow />,
+      { state },
+      false,
+    );
+    fireEvent.press(getByText('Advanced details'));
+    expect(getByTestId('scroll-view-data')).toBeTruthy();
   });
 
   it('display correct information for downgrade confirmation', () => {
@@ -122,18 +122,16 @@ describe('AdvancedDetailsRow', () => {
   });
 
   it('display correct information for upgrade+batch confirmation', () => {
-    const { getByText, queryByText } = renderWithProvider(
-      <AdvancedDetailsRow />,
-      {
-        state: getAppStateForConfirmation(upgradeAccountConfirmation),
-      },
-    );
+    const { getByText } = renderWithProvider(<AdvancedDetailsRow />, {
+      state: getAppStateForConfirmation(upgradeAccountConfirmation),
+    });
 
     fireEvent.press(getByText('Advanced details'));
 
     expect(getByText('Nonce')).toBeTruthy();
     expect(getByText('Interacting with')).toBeTruthy();
     expect(getByText('Smart contract')).toBeTruthy();
-    expect(queryByText('Data')).toBeTruthy();
+    expect(getByText('Transaction 1')).toBeTruthy();
+    expect(getByText('Transaction 2')).toBeTruthy();
   });
 });

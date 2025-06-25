@@ -34,7 +34,7 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
 
         // Step 2: Navigate to test dApp and open network settings
         await Browser.navigateToTestDApp();
-        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
 
         // Step 3: Navigate through permission management flow
         await ConnectedAccountsModal.tapManagePermissionsButton();
@@ -46,7 +46,7 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         await ConnectedAccountsModal.tapConfirmDisconnectNetworksButton();
 
         // Step 4: Verify UI state after permission removal
-        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
         await Assertions.checkIfVisible(NetworkListModal.networkScroll);
         await NetworkListModal.swipeToDismissModal();

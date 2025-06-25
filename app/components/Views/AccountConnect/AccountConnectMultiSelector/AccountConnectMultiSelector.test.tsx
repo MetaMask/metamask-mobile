@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { EthScope, SolScope } from '@metamask/keyring-api';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import { backgroundState } from '../../../../util/test/initial-root-state';
@@ -8,10 +9,12 @@ import { AccountListBottomSheetSelectorsIDs } from '../../../../../e2e/selectors
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { CaipAccountId } from '@metamask/utils';
+import { WalletClientType } from '../../../../core/SnapKeyring/MultichainWalletSnapClient';
 
 const mockNavigate = jest.fn();
 const mockOnSubmit = jest.fn();
 const mockOnBack = jest.fn();
+const mockOnCreateAccount = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -25,7 +28,7 @@ jest.mock('../../../../core/Engine', () => ({
     KeyringController: {
       state: {
         keyrings: [],
-      }
+      },
     },
     AccountsController: {
       state: {
@@ -57,6 +60,8 @@ const mockAccounts = [
     yOffset: 0,
     isSelected: false,
     caipAccountId: 'eip155:0:0x1234' as const,
+    isLoadingAccount: false,
+    scopes: [EthScope.Eoa],
   },
   {
     address: '0x5678',
@@ -66,6 +71,8 @@ const mockAccounts = [
     yOffset: 0,
     isSelected: false,
     caipAccountId: 'eip155:0:0x5678' as const,
+    isLoadingAccount: false,
+    scopes: [EthScope.Eoa],
   },
 ];
 
@@ -79,6 +86,7 @@ const defaultProps = {
   ensByAccountAddress: mockEnsByAccountAddress,
   defaultSelectedAddresses: ['eip155:0:0x1234'] as CaipAccountId[],
   onSubmit: mockOnSubmit,
+  onCreateAccount: mockOnCreateAccount,
   isLoading: false,
   hostname: 'test.com',
   onBack: mockOnBack,
@@ -112,10 +120,16 @@ describe('AccountConnectMultiSelector', () => {
 
   it('disables the select all button when loading', () => {
     const { getByTestId, getAllByTestId } = renderWithProvider(
-      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={['eip155:0:0x1234']} isLoading />,
+      <AccountConnectMultiSelector
+        {...defaultProps}
+        defaultSelectedAddresses={['eip155:0:0x1234']}
+        isLoading
+      />,
     );
 
-    const selectAllbutton = getAllByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_ALL_BUTTON);
+    const selectAllbutton = getAllByTestId(
+      ConnectAccountBottomSheetSelectorsIDs.SELECT_ALL_BUTTON,
+    );
     fireEvent.press(selectAllbutton[0]);
 
     const updateButton = getByTestId(
@@ -128,10 +142,15 @@ describe('AccountConnectMultiSelector', () => {
 
   it('handles the select all button when not loading', () => {
     const { getByTestId, getAllByTestId } = renderWithProvider(
-      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={['eip155:0:0x1234', 'eip155:0:0x5678']} />,
+      <AccountConnectMultiSelector
+        {...defaultProps}
+        defaultSelectedAddresses={['eip155:0:0x1234', 'eip155:0:0x5678']}
+      />,
     );
 
-    const selectAllbutton = getAllByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_ALL_BUTTON);
+    const selectAllbutton = getAllByTestId(
+      ConnectAccountBottomSheetSelectorsIDs.SELECT_ALL_BUTTON,
+    );
     fireEvent.press(selectAllbutton[0]);
     fireEvent.press(selectAllbutton[0]);
 
@@ -140,12 +159,18 @@ describe('AccountConnectMultiSelector', () => {
     );
     fireEvent.press(updateButton);
 
-    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:0:0x1234', 'eip155:0:0x5678']);
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith([
+      'eip155:0:0x1234',
+      'eip155:0:0x5678',
+    ]);
   });
 
   it('handles account selection correctly', () => {
     const { getByTestId, getByText } = renderWithProvider(
-      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={['eip155:0:0x1234']} />,
+      <AccountConnectMultiSelector
+        {...defaultProps}
+        defaultSelectedAddresses={['eip155:0:0x1234']}
+      />,
       { state: { engine: { backgroundState } } },
     );
 
@@ -156,7 +181,9 @@ describe('AccountConnectMultiSelector', () => {
     const exstingAccount = getByText('test1.eth');
     fireEvent.press(exstingAccount);
 
-    const updateButton = getByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON);
+    const updateButton = getByTestId(
+      ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
+    );
     fireEvent.press(updateButton);
 
     expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:0:0x5678']);
@@ -164,11 +191,16 @@ describe('AccountConnectMultiSelector', () => {
 
   it('shows update button when accounts are selected', () => {
     const { getByTestId } = renderWithProvider(
-      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={['eip155:0:0x1234']} />,
+      <AccountConnectMultiSelector
+        {...defaultProps}
+        defaultSelectedAddresses={['eip155:0:0x1234']}
+      />,
       { state: { engine: { backgroundState } } },
     );
 
-    const updateButton = getByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON);
+    const updateButton = getByTestId(
+      ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
+    );
     expect(updateButton).toBeTruthy();
     fireEvent.press(updateButton);
 
@@ -177,11 +209,16 @@ describe('AccountConnectMultiSelector', () => {
 
   it('shows disconnect button when no accounts are selected', () => {
     const { getByTestId } = renderWithProvider(
-      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={[]} />,
+      <AccountConnectMultiSelector
+        {...defaultProps}
+        defaultSelectedAddresses={[]}
+      />,
       { state: { engine: { backgroundState } } },
     );
 
-    const disconnectButton = getByTestId(ConnectedAccountsSelectorsIDs.DISCONNECT);
+    const disconnectButton = getByTestId(
+      ConnectedAccountsSelectorsIDs.DISCONNECT,
+    );
     expect(disconnectButton).toBeTruthy();
     fireEvent.press(disconnectButton);
 
@@ -189,7 +226,7 @@ describe('AccountConnectMultiSelector', () => {
   });
 
   it('handles add account button press', () => {
-    const { getByTestId } = renderWithProvider(
+    const { getByTestId, getByText } = renderWithProvider(
       <AccountConnectMultiSelector {...defaultProps} />,
       { state: { engine: { backgroundState } } },
     );
@@ -199,7 +236,18 @@ describe('AccountConnectMultiSelector', () => {
     );
     fireEvent.press(addButton);
 
-    // Verify that the screen changes to AddAccountActions
-    expect(mockNavigate).not.toHaveBeenCalled(); // Since this is handled internally
+    const addEthereumAccount = getByText('Ethereum account');
+    const addSolanaAccount = getByText('Solana account');
+
+    // Will move into the add account action
+    expect(addEthereumAccount).toBeDefined();
+    expect(addSolanaAccount).toBeDefined();
+
+    fireEvent.press(addSolanaAccount);
+
+    expect(mockOnCreateAccount).toHaveBeenCalledWith(
+      WalletClientType.Solana,
+      SolScope.Mainnet,
+    );
   });
 });

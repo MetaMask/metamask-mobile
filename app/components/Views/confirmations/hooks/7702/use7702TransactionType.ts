@@ -10,7 +10,7 @@ export function use7702TransactionType() {
   const { nestedTransactions, txParams } = transactionMetadata ?? {
     txParams: { data: '', authorizationList: [] },
   };
-  const { authorizationList, data } = txParams ?? { data: '' };
+  const { authorizationList, data, from, to } = txParams ?? { data: '' };
   const authorizationAddress = authorizationList?.[0]?.address;
 
   const isDowngrade =
@@ -23,11 +23,14 @@ export function use7702TransactionType() {
 
   const isUpgradeOnly = isUpgrade && (!data || data === '0x');
 
+  const is7702transaction = from?.toLowerCase() === to?.toLowerCase();
+
   return {
     isDowngrade,
     isUpgrade,
     isBatched: Boolean(nestedTransactions?.length),
     isBatchedUpgrade: isUpgrade && Boolean(nestedTransactions?.length),
     isUpgradeOnly,
+    is7702transaction,
   };
 }

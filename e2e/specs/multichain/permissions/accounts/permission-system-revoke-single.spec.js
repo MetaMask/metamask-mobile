@@ -30,14 +30,14 @@ describe(SmokeNetworkExpansion('Account Permission Management'), () => {
         await TabBarComponent.tapBrowser();
         await Assertions.checkIfVisible(Browser.browserScreenID);
         await Browser.navigateToTestDApp();
-        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
 
         await ConnectedAccountsModal.tapManagePermissionsButton();
 
         await ConnectedAccountsModal.tapDisconnectAllAccountsAndNetworksButton();
         await ConnectedAccountsModal.tapConfirmDisconnectNetworksButton();
 
-        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
         await Assertions.checkIfVisible(NetworkListModal.networkScroll);
       },

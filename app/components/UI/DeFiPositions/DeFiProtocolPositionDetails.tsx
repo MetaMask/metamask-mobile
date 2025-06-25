@@ -20,6 +20,7 @@ import SensitiveText, {
 } from '../../../component-library/components/Texts/SensitiveText';
 import DeFiProtocolPositionGroups from './DeFiProtocolPositionGroups';
 import { useStyles } from '../../hooks/useStyles';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 export const DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID =
   'defi_protocol_position_details_balance';
@@ -44,7 +45,7 @@ const DeFiProtocolPositionDetails: React.FC = () => {
   }, [navigation]);
 
   return (
-    <View>
+    <View testID={WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER}>
       <View style={styles.detailsWrapper}>
         <View>
           <Text variant={TextVariant.DisplayMD}>

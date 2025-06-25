@@ -7,7 +7,6 @@ import { RatesControllerStateChangeEvent } from './controllers/RatesController/c
 ///: END:ONLY_INCLUDE_IF
 
 import { swapsUtils } from '@metamask/swaps-controller';
-
 /**
  * Messageable modules that are part of the Engine's context, but are not defined with state.
  * TODO: Replace with type guard once consistent inheritance for non-controllers is implemented. See: https://github.com/MetaMask/decisions/pull/41
@@ -17,10 +16,12 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'ExecutionService',
   'NftDetectionController',
   'TokenDetectionController',
+  'WebSocketService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'AccountsController:stateChange',
+  'AccountTreeController:stateChange',
   'AccountTrackerController:stateChange',
   'AddressBookController:stateChange',
   'AppMetadataController:stateChange',
@@ -84,4 +85,5 @@ export const swapsSupportedChainIds = [
   swapsUtils.ZKSYNC_ERA_CHAIN_ID,
   swapsUtils.LINEA_CHAIN_ID,
   swapsUtils.BASE_CHAIN_ID,
+  swapsUtils.SEI_CHAIN_ID,
 ];

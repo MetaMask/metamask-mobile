@@ -55,8 +55,10 @@ jest.mock('../../../../util/transactions', () => ({
 
 describe('isDeeplinkRedesignedConfirmationCompatible', () => {
   const enabledTransferFlags = {
+    approve: false,
     transfer: true,
     signatures: true,
+    contract_deployment: false,
     staking_confirmations: false,
     contract_interaction: false,
   };
