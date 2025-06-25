@@ -17,13 +17,14 @@ import {
 } from '../../../../../../component-library/components/Form/TextField/TextField.types';
 import { Theme } from '../../../../../../util/theme/models';
 import { useStyles } from '../../../../../../component-library/hooks';
-import { CountryCode } from 'libphonenumber-js';
+import { AsYouType, CountryCode } from 'libphonenumber-js';
 import PhoneFormatter from '../../utils/PhoneFormatter';
 import { DepositRegion, DEPOSIT_REGIONS } from '../../constants';
 import RegionModal from '../RegionModal/RegionModal';
 import { useDepositSDK } from '../../sdk';
 import { strings } from '../../../../../../../locales/i18n';
 import Input from '../../../../../../component-library/components/Form/TextField/foundation/Input/Input';
+import { composeProviders } from 'redux-saga-test-plan/providers';
 
 interface PhoneFieldProps
   extends Omit<TextFieldProps, 'size' | 'onChangeText'> {
@@ -92,43 +93,10 @@ const DepositPhoneField: React.FC<PhoneFieldProps> = ({
   const phoneFormatter = useRef<PhoneFormatter>();
 
   useEffect(() => {
-    const defaultCountry = selectedRegion?.code || 'US';
-    phoneFormatter.current = new PhoneFormatter({
-      defaultCountry,
-      useNationalFormat: defaultCountry !== 'US',
-    });
+    phoneFormatter.current = new PhoneFormatter();
+    setDisplayValue('');
+    handlePhoneNumberChange('');
   }, [selectedRegion?.code]);
-
-  useEffect(() => {
-    if (phoneFormatter.current && selectedRegion?.code) {
-      if (value) {
-        // If the value is in E164 format (starts with +), extract national digits first
-        let nationalDigits = value;
-        if (value.startsWith('+')) {
-          nationalDigits = phoneFormatter.current.stripCountryCallingCode(
-            value,
-            selectedRegion.code,
-          );
-        }
-
-        // Format the national digits for display using formatAsYouType
-        const formatResult = phoneFormatter.current.formatAsYouType(
-          nationalDigits,
-          selectedRegion.code,
-          'NATIONAL',
-        );
-        console.log(
-          'setting display value from formatAsYouType',
-          formatResult.text,
-        );
-        setDisplayValue(formatResult.text);
-      } else {
-        console.log('setting display value to empty string');
-        setDisplayValue('');
-      }
-      hasInitializedRef.current = true;
-    }
-  }, [selectedRegion?.code]); // Only depend on region changes, not value changes
 
   const handlePhoneNumberChange = useCallback(
     (newValue: string) => {
@@ -138,23 +106,26 @@ const DepositPhoneField: React.FC<PhoneFieldProps> = ({
       const digitsOnly = newValue.replace(/\D/g, '');
 
       // For US, only apply AsYouType formatting when there are 4 or more digits
-      if (selectedRegion.code === 'US' && /(.?\d){4,}/.test(newValue)) {
-        const formatResult = phoneFormatter.current.formatAsYouType(
-          digitsOnly,
-          selectedRegion.code,
-          'NATIONAL',
-        );
-        setDisplayValue(formatResult.text);
-      } else if (selectedRegion.code === 'US') {
-        // For US with 3 or fewer digits, just use the raw input
-        setDisplayValue(newValue);
+      if (selectedRegion.code === 'US') {
+        if (digitsOnly.length >= 4) {
+          const formatResult = phoneFormatter.current.formatAsYouType(
+            digitsOnly,
+            selectedRegion.code,
+          );
+          console.log('formatResult', formatResult);
+          setDisplayValue(formatResult.text);
+        } else {
+          // For US with 3 or fewer digits, just use the raw input
+          setDisplayValue(newValue);
+        }
       } else {
         // For non-US countries, always apply formatting
         const formatResult = phoneFormatter.current.formatAsYouType(
           digitsOnly,
           selectedRegion.code,
-          'NATIONAL',
         );
+        console.log('formatResult', formatResult);
+
         setDisplayValue(formatResult.text);
       }
 
@@ -163,7 +134,6 @@ const DepositPhoneField: React.FC<PhoneFieldProps> = ({
         selectedRegion.code,
       );
       onChangeText(e164Value);
-
     },
     [onChangeText, selectedRegion?.code],
   );
