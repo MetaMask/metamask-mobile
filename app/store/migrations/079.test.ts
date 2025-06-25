@@ -13,7 +13,9 @@ jest.mock('./util', () => ({
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 
-describe('Migration 079: Reset PhishingController phishingLists', () => {
+const migrationVersion = 79;
+
+describe(`Migration ${migrationVersion}: Add sessionProperties property to CAIP-25 permission caveats`, () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
@@ -29,8 +31,12 @@ describe('Migration 079: Reset PhishingController phishingLists', () => {
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('captures exception if engine state is invalid', () => {
-    const state = { invalidState: true };
+  it('captures exception if PermissionController is missing', () => {
+    const state = {
+      engine: {
+        backgroundState: {},
+      },
+    };
 
     mockedEnsureValidState.mockReturnValue(true);
 
@@ -39,15 +45,15 @@ describe('Migration 079: Reset PhishingController phishingLists', () => {
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
     expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      'Migration 079: Invalid engine state structure',
+      `Migration ${migrationVersion}: typeof state.PermissionController is undefined`,
     );
   });
 
-  it('captures exception if PhishingController state is invalid', () => {
+  it('captures exception if PermissionController is not object', () => {
     const state = {
       engine: {
         backgroundState: {
-          // PhishingController is missing
+          PermissionController: 'foobar',
         },
       },
     };
@@ -59,42 +65,16 @@ describe('Migration 079: Reset PhishingController phishingLists', () => {
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
     expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      'Migration 079: Invalid PhishingController state',
+      `Migration ${migrationVersion}: typeof state.PermissionController is string`,
     );
   });
 
-  it('resets PhishingController phishingLists to empty array and stalelistLastFetched to 0 while preserving other fields', () => {
-    interface TestState {
+  it('captures exception if subjects is not object', () => {
+    const state = {
       engine: {
         backgroundState: {
-          PhishingController: {
-            c2DomainBlocklistLastFetched: number;
-            phishingLists: string[];
-            whitelist: string[];
-            hotlistLastFetched: number;
-            stalelistLastFetched: number;
-            extraProperty?: string;
-          };
-          OtherController: {
-            shouldStayUntouched: boolean;
-          };
-        };
-      };
-    }
-
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          PhishingController: {
-            c2DomainBlocklistLastFetched: 123456789,
-            phishingLists: ['list1', 'list2'],
-            whitelist: ['site1', 'site2'],
-            hotlistLastFetched: 987654321,
-            stalelistLastFetched: 123123123,
-            extraProperty: 'should remain',
-          },
-          OtherController: {
-            shouldStayUntouched: true,
+          PermissionController: {
+            subjects: 'foobar',
           },
         },
       },
@@ -102,41 +82,237 @@ describe('Migration 079: Reset PhishingController phishingLists', () => {
 
     mockedEnsureValidState.mockReturnValue(true);
 
-    const migratedState = migrate(state) as typeof state;
+    const migratedState = migrate(state);
 
-    // PhishingLists should be reset to empty array and stalelistLastFetched to 0
-    expect(migratedState.engine.backgroundState.PhishingController.phishingLists).toEqual([]);
-    expect(migratedState.engine.backgroundState.PhishingController.stalelistLastFetched).toBe(0);
+    expect(migratedState).toEqual(state);
+    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
+      `Migration ${migrationVersion}: typeof state.PermissionController.subjects is string`,
+    );
+  });
 
-    // Other fields should remain unchanged
-    expect(migratedState.engine.backgroundState.PhishingController.c2DomainBlocklistLastFetched).toBe(123456789);
-    expect(migratedState.engine.backgroundState.PhishingController.whitelist).toEqual(['site1', 'site2']);
-    expect(migratedState.engine.backgroundState.PhishingController.hotlistLastFetched).toBe(987654321);
-    expect(migratedState.engine.backgroundState.PhishingController.extraProperty).toBe('should remain');
+  it('returns state unchanged if the subject is not an object', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+              'test.com': 'foobar',
+            },
+          },
+        },
+      },
+    };
 
-    // Other controllers should remain untouched
-    expect(migratedState.engine.backgroundState.OtherController).toEqual({
-      shouldStayUntouched: true,
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    expect(migratedState).toEqual(state);
+  });
+
+  it('returns state unchanged if the subject is missing permissions', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+              'test.com': {},
+            },
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    expect(migratedState).toEqual(state);
+  });
+
+  it('returns state unchanged if the subject permissions is not an object', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+              'test.com': {
+                permissions: 'foobar',
+              },
+            },
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    expect(migratedState).toEqual(state);
+  });
+
+  it('returns state unchanged if there is no `endowment:caip25` permission', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+              'test.com': {
+                permissions: {},
+              },
+            },
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    expect(migratedState).toEqual(state);
+  });
+
+  it('returns state unchanged if the `endowment:caip25` permission is not an object', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+              'test.com': {
+                permissions: {
+                  'endowment:caip25': 'foobar',
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    expect(migratedState).toEqual(state);
+  });
+
+  it('returns state unchanged if the `endowment:caip25` permission caveats is not an array', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+              'test.com': {
+                permissions: {
+                  'endowment:caip25': {
+                    caveats: 'foobar',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    expect(migratedState).toEqual(state);
+  });
+
+  it('returns the state with empty object sessionProperties added to the caip-25 permission if missing', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+              'test.com': {
+                permissions: {
+                  'endowment:caip25': {
+                    caveats: [
+                      {
+                        type: 'authorizedScopes',
+                        value: {
+                          requiredScopes: {},
+                          optionalScopes: {},
+                          isMultichainOrigin: true,
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    expect(migratedState).toEqual({
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+              'test.com': {
+                permissions: {
+                  'endowment:caip25': {
+                    caveats: [
+                      {
+                        type: 'authorizedScopes',
+                        value: {
+                          requiredScopes: {},
+                          optionalScopes: {},
+                          isMultichainOrigin: true,
+                          sessionProperties: {},
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
-
-    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('handles error during migration', () => {
-    // Create state with a PhishingController that throws when phishingLists is accessed
+  it('returns the state with sessionProperties unchanged on the caip-25 permission if exists', () => {
     const state = {
       engine: {
         backgroundState: {
-          PhishingController: Object.defineProperty({}, 'phishingLists', {
-            get: () => {
-              throw new Error('Test error');
+          PermissionController: {
+            subjects: {
+              'test.com': {
+                permissions: {
+                  'endowment:caip25': {
+                    caveats: [
+                      {
+                        type: 'authorizedScopes',
+                        value: {
+                          requiredScopes: {},
+                          optionalScopes: {},
+                          isMultichainOrigin: true,
+                          sessionProperties: {
+                            foo: 'bar',
+                          },
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
             },
-            set: () => {
-              throw new Error('Test error');
-            },
-            configurable: true,
-            enumerable: true,
-          }),
+          },
         },
       },
     };
@@ -145,10 +321,34 @@ describe('Migration 079: Reset PhishingController phishingLists', () => {
 
     const migratedState = migrate(state);
 
-    expect(migratedState).toEqual(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      'Migration 079: cleaning PhishingController state failed with error',
-    );
+    expect(migratedState).toEqual({
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+              'test.com': {
+                permissions: {
+                  'endowment:caip25': {
+                    caveats: [
+                      {
+                        type: 'authorizedScopes',
+                        value: {
+                          requiredScopes: {},
+                          optionalScopes: {},
+                          isMultichainOrigin: true,
+                          sessionProperties: {
+                            foo: 'bar',
+                          },
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
   });
 });
