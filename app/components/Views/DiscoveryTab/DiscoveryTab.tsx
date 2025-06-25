@@ -16,7 +16,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
-import { type RootState } from '../../../reducers';
 import { type DiscoveryTabProps } from './types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import BrowserUrlBar, {
@@ -35,9 +34,8 @@ import { SearchDiscoveryResultItem } from '../../UI/SearchDiscoveryResult/types'
  * Tab component for the in-app browser
  */
 export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
-  id: tabId,
   showTabs,
-  updateTabInfo,
+  newTab,
 }) => {
   // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -46,12 +44,6 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
   const [isUrlBarFocused, setIsUrlBarFocused] = useState(false);
   const urlBarRef = useRef<BrowserUrlBarRef>(null);
   const autocompleteRef = useRef<UrlAutocompleteRef>(null);
-  /**
-   * Is the current tab the active tab
-   */
-  const isTabActive = useSelector(
-    (state: RootState) => state.browser.activeTab === tabId,
-  );
 
   /**
   * Hide the autocomplete results
@@ -69,9 +61,9 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
       hideAutocomplete();
       // Format url for browser to be navigatable by webview
       const processedUrl = processUrlForBrowser(text, searchEngine);
-      updateTabInfo(tabId, { url: processedUrl });
+      newTab(processedUrl);
     },
-    [searchEngine, updateTabInfo, tabId, hideAutocomplete],
+    [searchEngine, hideAutocomplete, newTab],
   );
 
   /**
@@ -123,7 +115,7 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
     <ErrorBoundary navigation={navigation} view="DiscoveryTab">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={[styles.wrapper, !isTabActive && styles.hide]}
+        style={styles.wrapper}
       >
         <View
           style={styles.wrapper}
@@ -143,6 +135,7 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
             connectedAccounts={[]}
             discoveryMode
             showTabs={showTabs}
+            newTab={newTab}
           />
           <View style={styles.wrapper}>
             <View style={styles.webview}>
