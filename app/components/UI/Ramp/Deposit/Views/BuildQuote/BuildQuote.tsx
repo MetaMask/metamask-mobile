@@ -35,26 +35,18 @@ import {
   DepositRegion,
 } from '../../constants';
 import AccountSelector from '../../components/AccountSelector';
-import I18n, { strings } from '../../../../../../../locales/i18n';
+import { strings } from '../../../../../../../locales/i18n';
 import useDepositTokenExchange from '../../hooks/useDepositTokenExchange';
-import { getIntlNumberFormatter } from '../../../../../../util/intl';
 import {
   getTransakCryptoCurrencyId,
   getTransakFiatCurrencyId,
   getTransakChainId,
   getTransakPaymentMethodId,
+  formatCurrency,
 } from '../../utils';
-
-function formatAmount(
-  amount: number,
-  options: Intl.NumberFormatOptions,
-): string {
-  return getIntlNumberFormatter(I18n.locale, options).format(amount);
-}
 import { KycStatus } from '../../hooks/useUserDetailsPolling';
 import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
 import RegionModal from '../../components/RegionModal';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 const BuildQuote = () => {
   const navigation = useNavigation();
@@ -69,11 +61,14 @@ const BuildQuote = () => {
     useState<DepositFiatCurrency>(USD_CURRENCY);
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
-  const { isAuthenticated, selectedRegion, setSelectedRegion } =
-    useDepositSDK();
+  const { isAuthenticated } = useDepositSDK();
   const [error, setError] = useState<string | null>();
+
   const [isRegionModalVisible, setIsRegionModalVisible] =
     useState<boolean>(false);
+  const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
+    DEPOSIT_REGIONS.find((region) => region.code === 'US') || null,
+  );
 
   const [{ error: quoteFetchError }, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false },
@@ -100,7 +95,11 @@ const BuildQuote = () => {
       onMount: false,
     });
 
-  const { tokenAmount } = useDepositTokenExchange({
+  const {
+    tokenAmount,
+    isLoading: isLoadingTokenAmount,
+    error: errorLoadingTokenAmount,
+  } = useDepositTokenExchange({
     fiatCurrency,
     fiatAmount: amount,
     token: cryptoCurrency,
@@ -114,101 +113,93 @@ const BuildQuote = () => {
   }, [navigation, theme]);
 
   const handleOnPressContinue = useCallback(async () => {
-    navigation.navigate(
-      ...createBasicInfoNavDetails({
-        quote: {
-          quoteId: '123',
-        } as BuyQuote,
-      }),
-    );
+    try {
+      const quote = await getQuote(
+        getTransakFiatCurrencyId(fiatCurrency),
+        getTransakCryptoCurrencyId(cryptoCurrency),
+        getTransakChainId(cryptoCurrency.chainId),
+        getTransakPaymentMethodId(paymentMethod),
+        amount,
+      );
+      if (quoteFetchError || !quote) {
+        setError(strings('deposit.buildQuote.quoteFetchError'));
+        return;
+      }
 
-    // try {
-    //   const quote = await getQuote(
-    //     getTransakFiatCurrencyId(fiatCurrency),
-    //     getTransakCryptoCurrencyId(cryptoCurrency),
-    //     getTransakChainId(cryptoCurrency.chainId),
-    //     getTransakPaymentMethodId(paymentMethod),
-    //     amount,
-    //   );
-    //   if (quoteFetchError || !quote) {
-    //     setError(strings('deposit.buildQuote.quoteFetchError'));
-    //     return;
-    //   }
+      if (!isAuthenticated) {
+        navigation.navigate(...createEnterEmailNavDetails({ quote }));
+      }
 
-    //   if (!isAuthenticated) {
-    //     navigation.navigate(...createEnterEmailNavDetails({ quote }));
-    //   }
+      const forms = await fetchKycForms(quote);
 
-    //   const forms = await fetchKycForms(quote);
+      if (kycFormsFetchError) {
+        setError(strings('deposit.buildQuote.unexpectedError'));
+        return;
+      }
 
-    //   if (kycFormsFetchError) {
-    //     setError(strings('deposit.buildQuote.unexpectedError'));
-    //     return;
-    //   }
+      const { forms: requiredForms } = forms || {};
 
-    //   const { forms: requiredForms } = forms || {};
+      if (requiredForms?.length === 0) {
+        const userDetails = await fetchUserDetails();
 
-    //   if (requiredForms?.length === 0) {
-    //     const userDetails = await fetchUserDetails();
+        if (userDetailsFetchError) {
+          setError(strings('deposit.buildQuote.unexpectedError'));
+          return;
+        }
 
-    //     if (userDetailsFetchError) {
-    //       setError(strings('deposit.buildQuote.unexpectedError'));
-    //       return;
-    //     }
+        if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
+          navigation.navigate(...createProviderWebviewNavDetails({ quote }));
+          return;
+        }
 
-    //     if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
-    //       navigation.navigate(...createProviderWebviewNavDetails({ quote }));
-    //       return;
-    //     }
+        navigation.navigate(...createKycProcessingNavDetails({ quote }));
+        return;
+      }
 
-    //     navigation.navigate(...createKycProcessingNavDetails({ quote }));
-    //     return;
-    //   }
+      const personalDetailsKycForm = requiredForms?.find(
+        (form) => form.id === 'personalDetails',
+      );
 
-    //   const personalDetailsKycForm = requiredForms?.find(
-    //     (form) => form.id === 'personalDetails',
-    //   );
+      const addressKycForm = requiredForms?.find(
+        (form) => form.id === 'address',
+      );
 
-    //   const addressKycForm = requiredForms?.find(
-    //     (form) => form.id === 'address',
-    //   );
+      const idProofKycForm = requiredForms?.find(
+        (form) => form.id === 'idProof',
+      );
 
-    //   const idProofKycForm = requiredForms?.find(
-    //     (form) => form.id === 'idProof',
-    //   );
+      const idProofData = idProofKycForm
+        ? await fetchKycFormData(quote, idProofKycForm)
+        : null;
 
-    //   const idProofData = idProofKycForm
-    //     ? await fetchKycFormData(quote, idProofKycForm)
-    //     : null;
+      if (kycFormFetchError) {
+        setError(strings('deposit.buildQuote.unexpectedError'));
+        return;
+      }
 
-    //   if (kycFormFetchError) {
-    //     setError(strings('deposit.buildQuote.unexpectedError'));
-    //     return;
-    //   }
-
-    //   if (personalDetailsKycForm || addressKycForm) {
-    //     navigation.navigate(
-    //       ...createBasicInfoNavDetails({
-    //         quote,
-    //         kycUrl: idProofData?.data?.kycUrl,
-    //       }),
-    //     );
-    //     return;
-    //   } else if (idProofData) {
-    //     navigation.navigate(
-    //       ...createKycWebviewNavDetails({
-    //         quote,
-    //         kycUrl: idProofData.data.kycUrl,
-    //       }),
-    //     );
-    //     return;
-    //   }
-    //   setError(strings('deposit.buildQuote.unexpectedError'));
-    //   return;
-    // } catch (_) {
-    //   setError(strings('deposit.buildQuote.unexpectedError'));
-    //   return;
-    // }
+      if (personalDetailsKycForm || addressKycForm) {
+        navigation.navigate(
+          ...createBasicInfoNavDetails({
+            quote,
+            kycUrl: idProofData?.data?.kycUrl,
+          }),
+        );
+        return;
+      } else if (idProofData) {
+        navigation.navigate(
+          ...createKycWebviewNavDetails({
+            quote,
+            kycUrl: idProofData.data.kycUrl,
+          }),
+        );
+        return;
+      }
+      setError(strings('deposit.buildQuote.unexpectedError'));
+      return;
+    } catch (_) {
+      setError(strings('deposit.buildQuote.unexpectedError'));
+      return;
+    }
   }, [
     getQuote,
     fiatCurrency,
@@ -249,23 +240,20 @@ const BuildQuote = () => {
     setIsRegionModalVisible(true);
   }, []);
 
-  const handleRegionSelect = useCallback(
-    (region: DepositRegion) => {
-      if (!region.supported) {
-        return;
-      }
+  const handleRegionSelect = useCallback((region: DepositRegion) => {
+    if (!region.supported) {
+      return;
+    }
 
-      setSelectedRegion(region);
-      setIsRegionModalVisible(false);
+    setSelectedRegion(region);
+    setIsRegionModalVisible(false);
 
-      if (region.currency === 'USD') {
-        setFiatCurrency(USD_CURRENCY);
-      } else if (region.currency === 'EUR') {
-        setFiatCurrency(EUR_CURRENCY);
-      }
-    },
-    [setSelectedRegion],
-  );
+    if (region.currency === 'USD') {
+      setFiatCurrency(USD_CURRENCY);
+    } else if (region.currency === 'EUR') {
+      setFiatCurrency(EUR_CURRENCY);
+    }
+  }, []);
 
   const hideRegionModal = useCallback(() => {
     setIsRegionModalVisible(false);
@@ -303,9 +291,7 @@ const BuildQuote = () => {
               numberOfLines={1}
               adjustsFontSizeToFit
             >
-              {formatAmount(amountAsNumber, {
-                style: 'currency',
-                currency: fiatCurrency.id,
+              {formatCurrency(amountAsNumber, fiatCurrency.id, {
                 currencyDisplay: 'narrowSymbol',
               })}
             </Text>
@@ -315,10 +301,14 @@ const BuildQuote = () => {
               color={TextColor.Alternative}
               style={styles.convertedAmount}
             >
-              {Number(tokenAmount) === 0
-                ? Number(tokenAmount).toFixed(2)
-                : tokenAmount}{' '}
-              {cryptoCurrency.symbol}
+              {isLoadingTokenAmount || errorLoadingTokenAmount ? (
+                ' '
+              ) : (
+                <>
+                  {Number(tokenAmount) === 0 ? '0' : tokenAmount}{' '}
+                  {cryptoCurrency.symbol}
+                </>
+              )}
             </Text>
 
             <TouchableOpacity onPress={handleCryptoPress}>
