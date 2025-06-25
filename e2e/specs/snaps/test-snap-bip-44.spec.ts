@@ -68,7 +68,7 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
   });
 
   it('can sign with entropy from SRP 1', async () => {
-    await TestSnaps.selectEntropySource('bip44EntropyDropDown', 'SRP 1');
+    await TestSnaps.selectInDropdown('bip44EntropyDropDown', 'SRP 1');
     await TestSnaps.fillMessage('messageBip44Input', 'foo bar');
     await TestSnaps.tapButton('signMessageBip44Button');
     await TestSnaps.approveSignRequest();
@@ -79,7 +79,7 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
   });
 
   it('can sign with entropy from SRP 2', async () => {
-    await TestSnaps.selectEntropySource('bip44EntropyDropDown', 'SRP 2');
+    await TestSnaps.selectInDropdown('bip44EntropyDropDown', 'SRP 2');
     await TestSnaps.fillMessage('messageBip44Input', 'foo bar');
     await TestSnaps.tapButton('signMessageBip44Button');
     await TestSnaps.approveSignRequest();
@@ -90,7 +90,7 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
   });
 
   it('fails when choosing the invalid entropy source', async () => {
-    await TestSnaps.selectEntropySource('bip44EntropyDropDown', 'Invalid');
+    await TestSnaps.selectInDropdown('bip44EntropyDropDown', 'Invalid');
     await TestSnaps.fillMessage('messageBip44Input', 'foo bar');
     await TestSnaps.tapButton('signMessageBip44Button');
     await Assertions.checkIfTextIsDisplayed(
