@@ -59,7 +59,7 @@ const DepositOrderDetails = () => {
       getDepositNavbarOptions(
         navigation,
         {
-          title: strings('deposit.order_processing.title'),
+          title: strings('deposit.order_details.title'),
         },
         theme,
       ),
