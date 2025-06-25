@@ -58,7 +58,6 @@ describe(
         delete: true,
         launchArgs: {
           mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT),
-          sendMetaMetricsinE2E: true,
         },
       });
     });
@@ -114,12 +113,12 @@ describe(
         (event) => event.event === EVENT_NAME.ACCOUNTS_SYNC_NAME_UPDATED,
       );
 
-      await Assertions.checkIfValueIsPresent(addedAccountEvent);
+      await Assertions.checkIfValueIsDefined(addedAccountEvent);
 
       await Assertions.checkIfArrayHasLength(updatedAccountEvents, 2);
 
       for (const event of events) {
-        await Assertions.checkIfValueIsPresent(event.properties);
+        await Assertions.checkIfValueIsDefined(event.properties);
       }
     });
   },
