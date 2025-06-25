@@ -1,6 +1,5 @@
 // Third party dependencies.
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../util/theme/models';
 
 /**
  * Style sheet function for AvatarIcon component.
@@ -10,7 +9,7 @@ import { Theme } from '../../../util/theme/models';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = ({theme}: {theme: Theme}) =>
+const styleSheet = () =>
   StyleSheet.create({
     balancesContainer: {
       alignItems: 'flex-end',
@@ -18,23 +17,6 @@ const styleSheet = ({theme}: {theme: Theme}) =>
     },
     balanceLabel: { textAlign: 'right', fontWeight: '500' },
     titleText: { fontWeight: '500' },
-    sectionHeader: {
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      backgroundColor: theme.colors.background.default,
-    },
-    sectionDetailsLink: {
-      color: theme.colors.primary.default,
-    },
-    sectionSeparator: {
-      height: 1,
-      backgroundColor: theme.colors.border.default,
-      opacity: 0.4,
-      marginVertical: 8,
-    },
   });
 
 export default styleSheet;

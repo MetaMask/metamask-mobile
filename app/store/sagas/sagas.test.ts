@@ -44,27 +44,6 @@ jest.mock('../../core/AppStateEventListener', () => ({
   },
 }));
 
-jest.mock('../../core/Engine', () => ({
-  context: {
-    AccountTreeController: {
-      init: jest.fn(),
-    },
-    AccountsController: {
-      updateAccounts: jest.fn(),
-    },
-    RemoteFeatureFlagController: {
-      state: {
-        remoteFeatureFlags: {
-          enableMultichainAccounts: {
-            version: '1',
-            enabled: true,
-          },
-        },
-      },
-    },
-  },
-}));
-
 describe('authStateMachine', () => {
   beforeEach(() => {
     mockNavigate.mockClear();

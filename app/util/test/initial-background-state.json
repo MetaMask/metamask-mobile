@@ -17,11 +17,6 @@
       "selectedAccount": ""
     }
   },
-  "AccountTreeController": {
-    "accountTree": {
-      "wallets": {}
-    }
-  },
   "AddressBookController": {
     "addressBook": {}
   },

@@ -11,11 +11,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "0x1": {},
         },
       },
-      "AccountTreeController": {
-        "accountTree": {
-          "wallets": {},
-        },
-      },
       "AccountsController": {
         "internalAccounts": {
           "accounts": {},
