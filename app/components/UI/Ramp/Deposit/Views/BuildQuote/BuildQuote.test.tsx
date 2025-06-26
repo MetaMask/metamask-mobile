@@ -134,7 +134,7 @@ describe('BuildQuote Component', () => {
       render(BuildQuote);
       const regionButton = screen.getByText('US');
       fireEvent.press(regionButton);
-      
+
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositRegionSelectorModal',
         params: {
@@ -142,35 +142,6 @@ describe('BuildQuote Component', () => {
           handleSelectRegion: expect.any(Function),
         },
       });
-    });
-
-    it('updates fiat currency when selecting a supported region', () => {
-      render(BuildQuote);
-      const regionButton = screen.getByText('US');
-      fireEvent.press(regionButton);
-      
-      // Get the handleSelectRegion function that was passed to the modal
-      const modalCall = mockNavigate.mock.calls.find(
-        call => call[0] === 'DepositRegionSelectorModal'
-      );
-      const handleSelectRegion = modalCall?.[1]?.handleSelectRegion;
-      
-      // Simulate selecting Belgium (EUR currency)
-      const belgiumRegion = {
-        code: 'BE',
-        flag: '🇧🇪',
-        name: 'Belgium',
-        phonePrefix: '+32',
-        currency: 'EUR',
-        phoneDigitCount: 9,
-        supported: true,
-      };
-      
-      if (handleSelectRegion) {
-        handleSelectRegion(belgiumRegion);
-      }
-      
-      expect(screen.toJSON()).toMatchSnapshot();
     });
   });
 

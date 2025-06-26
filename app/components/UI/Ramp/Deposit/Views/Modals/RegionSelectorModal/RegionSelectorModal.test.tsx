@@ -26,6 +26,36 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
 
+const mockRegions = [
+  {
+    code: 'US',
+    flag: '🇺🇸',
+    name: 'United States',
+    phonePrefix: '+1',
+    currency: 'USD',
+    phoneDigitCount: 10,
+    supported: true,
+  },
+  {
+    code: 'DE',
+    flag: '🇩🇪',
+    name: 'Germany',
+    phonePrefix: '+49',
+    currency: 'EUR',
+    phoneDigitCount: 10,
+    supported: true,
+  },
+  {
+    code: 'FR',
+    flag: '🇫🇷',
+    name: 'France',
+    phonePrefix: '+33',
+    currency: 'EUR',
+    phoneDigitCount: 9,
+    supported: true,
+  },
+];
+
 describe('RegionSelectorModal Component', () => {
   const mockHandleSelectRegion = jest.fn();
 
@@ -42,15 +72,13 @@ describe('RegionSelectorModal Component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('displays regions and allows selection of supported regions', async () => {
+  it('displays regions and allows selection', async () => {
     const { getByText } = renderWithProvider(RegionSelectorModal);
 
-    // Check that supported regions are displayed
     expect(getByText('United States')).toBeTruthy();
     expect(getByText('Germany')).toBeTruthy();
     expect(getByText('France')).toBeTruthy();
 
-    // Select a supported region
     const germanyElement = getByText('Germany');
     fireEvent.press(germanyElement);
 
