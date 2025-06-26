@@ -1,14 +1,9 @@
 'use strict';
-import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-import AmountView from '../../pages/Send/AmountView';
-import SendView from '../../pages/Send/SendView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
-import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
-import TokenOverview from '../../pages/wallet/TokenOverview';
 import ConfirmAddAssetView from '../../pages/wallet/ImportTokenFlow/ConfirmAddAsset';
 import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensView';
 import Assertions from '../../utils/Assertions';
