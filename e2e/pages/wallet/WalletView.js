@@ -372,19 +372,33 @@ class WalletView {
   }
 
   /**
-   * Hides the balance by tapping the eye slash icon.
-   * @returns {Promise<void>} A promise that resolves when the balance is hidden.
+   * Checks if the balance is currently visible by examining the balance text.
+   * @returns {Promise<boolean>} A promise that resolves to true if balance is visible, false if hidden.
    */
-  async hideBalance() {
-    await this.toggleBalanceVisibility();
+  async isBalanceVisible() {
+    const balanceText = await this.getBalanceText();
+    // If it shows currency symbols or numbers, it's visible
+    return !balanceText.includes('••••');
   }
 
   /**
-   * Shows the balance by tapping the eye slash icon.
+   * Hides the balance by tapping the eye slash icon only if it's currently visible.
+   * @returns {Promise<void>} A promise that resolves when the balance is hidden.
+   */
+  async hideBalance() {
+    if (await this.isBalanceVisible()) {
+      await this.toggleBalanceVisibility();
+    }
+  }
+
+  /**
+   * Shows the balance by tapping the eye slash icon only if it's currently hidden.
    * @returns {Promise<void>} A promise that resolves when the balance is shown.
    */
   async showBalance() {
-    await this.toggleBalanceVisibility();
+    if (!(await this.isBalanceVisible())) {
+      await this.toggleBalanceVisibility();
+    }
   }
 }
 
