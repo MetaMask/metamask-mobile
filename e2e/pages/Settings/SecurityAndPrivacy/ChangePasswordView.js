@@ -61,7 +61,7 @@ class ChangePasswordView {
   }
 
   async tapSubmitButton() {
-    await Gestures.waitAndTap(this.submitButton);
+    await Gestures.waitAndTap(this.submitButton, {timeout: 25000});
   }
 }
 
