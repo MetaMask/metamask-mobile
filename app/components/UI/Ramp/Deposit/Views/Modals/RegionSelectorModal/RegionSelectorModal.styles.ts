@@ -1,12 +1,12 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../../util/theme/models';
 
-interface RegioSelectorModalStyleSheetVars {
+interface RegionSelectorModalStyleSheetVars {
   screenHeight: number;
 }
 const styleSheet = (params: {
   theme: Theme;
-  vars: RegioSelectorModalStyleSheetVars;
+  vars: RegionSelectorModalStyleSheetVars;
 }) => {
   const { vars } = params;
   const { screenHeight } = vars;
@@ -18,6 +18,25 @@ const styleSheet = (params: {
     searchContainer: {
       paddingHorizontal: 16,
       paddingVertical: 12,
+    },
+    sectionHeader: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+    },
+    region: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    emoji: {
+      marginRight: 12,
+    },
+    emptyList: {
+      padding: 16,
+      alignItems: 'center',
+    },
+    listItem: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
     },
   });
 };

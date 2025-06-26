@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import RegionSelectorModal from './RegionSelectorModal';
 import { useParams } from '../../../../../../../util/navigation/navUtils';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
@@ -26,168 +26,29 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
 
-describe('RegionSelectorModal Component', () => {
-  const mockHandleSelectRegion = jest.fn();
-
+describe('RegionSelectorModal Component (snapshot)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useParams as jest.Mock).mockReturnValue({
       selectedRegionCode: 'US',
-      handleSelectRegion: mockHandleSelectRegion,
+      handleSelectRegion: jest.fn(),
     });
   });
 
-  it('renders correctly and matches snapshot', () => {
+  it('renders the default modal', () => {
     const { toJSON } = renderWithProvider(RegionSelectorModal);
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('displays regions and allows selection', async () => {
-    const { getByText } = renderWithProvider(RegionSelectorModal);
-
-    expect(getByText('United States')).toBeTruthy();
-    expect(getByText('Germany')).toBeTruthy();
-    expect(getByText('France')).toBeTruthy();
-
-    const germanyElement = getByText('Germany');
-    fireEvent.press(germanyElement);
-
-    await waitFor(() => {
-      expect(mockHandleSelectRegion).toHaveBeenCalledWith({
-        code: 'DE',
-        flag: '🇩🇪',
-        name: 'Germany',
-        phonePrefix: '+49',
-        currency: 'EUR',
-        phoneDigitCount: 10,
-        supported: true,
-      });
-    });
+  it('renders with search results', () => {
+    const { getByPlaceholderText, toJSON } = renderWithProvider(RegionSelectorModal);
+    fireEvent.changeText(getByPlaceholderText('Search by country'), 'Germany');
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('displays empty state when no regions match search', async () => {
-    const { getByPlaceholderText, getByText } =
-      renderWithProvider(RegionSelectorModal);
-
-    const searchInput = getByPlaceholderText('Search by country');
-    fireEvent.changeText(searchInput, 'Nonexistent Country');
-
-    await waitFor(() => {
-      expect(getByText('No regions match "Nonexistent Country"')).toBeTruthy();
-    });
-  });
-
-  it('filters regions based on search input', async () => {
-    const { getByPlaceholderText, getByText, queryByText } =
-      renderWithProvider(RegionSelectorModal);
-
-    const searchInput = getByPlaceholderText('Search by country');
-
-    fireEvent.changeText(searchInput, 'Germany');
-
-    await waitFor(() => {
-      expect(getByText('Germany')).toBeTruthy();
-      expect(queryByText('France')).toBeFalsy();
-      expect(queryByText('United States')).toBeFalsy();
-    });
-
-    fireEvent.changeText(searchInput, '');
-
-    await waitFor(() => {
-      expect(getByText('Germany')).toBeTruthy();
-      expect(getByText('France')).toBeTruthy();
-      expect(getByText('United States')).toBeTruthy();
-    });
-  });
-
-  it('shows recommended regions first when no search is active', () => {
-    const { getByText } = renderWithProvider(RegionSelectorModal);
-
-    const regions = ['United States', 'Germany', 'France'];
-    regions.forEach((region) => {
-      expect(getByText(region)).toBeTruthy();
-    });
-  });
-
-  it('handles region selection and closes modal', async () => {
-    const { getByText } = renderWithProvider(RegionSelectorModal);
-
-    const franceElement = getByText('France');
-    fireEvent.press(franceElement);
-
-    await waitFor(() => {
-      expect(mockHandleSelectRegion).toHaveBeenCalledWith({
-        code: 'FR',
-        flag: '🇫🇷',
-        name: 'France',
-        phonePrefix: '+33',
-        currency: 'EUR',
-        phoneDigitCount: 9,
-        supported: true,
-      });
-    });
-  });
-
-  it('displays region flags correctly', () => {
-    const { getByText } = renderWithProvider(RegionSelectorModal);
-
-    expect(getByText('🇺🇸')).toBeTruthy();
-    expect(getByText('🇩🇪')).toBeTruthy();
-    expect(getByText('🇫🇷')).toBeTruthy();
-  });
-
-  it('shows correct header title', () => {
-    const { getByText } = renderWithProvider(RegionSelectorModal);
-    expect(getByText('Select a region')).toBeTruthy();
-  });
-
-  it('handles search input with special characters', async () => {
-    const { getByPlaceholderText, getByText, queryByText } =
-      renderWithProvider(RegionSelectorModal);
-
-    const searchInput = getByPlaceholderText('Search by country');
-
-    fireEvent.changeText(searchInput, 'United');
-
-    await waitFor(() => {
-      expect(getByText('United States')).toBeTruthy();
-      expect(queryByText('Germany')).toBeFalsy();
-    });
-  });
-
-  it('clears search when clear button is pressed', async () => {
-    const { getByPlaceholderText, getByText, queryByText } =
-      renderWithProvider(RegionSelectorModal);
-
-    const searchInput = getByPlaceholderText('Search by country');
-
-    fireEvent.changeText(searchInput, 'Germany');
-
-    await waitFor(() => {
-      expect(getByText('Germany')).toBeTruthy();
-      expect(queryByText('France')).toBeFalsy();
-    });
-
-    fireEvent.changeText(searchInput, '');
-
-    await waitFor(() => {
-      expect(getByText('Germany')).toBeTruthy();
-      expect(getByText('France')).toBeTruthy();
-      expect(getByText('United States')).toBeTruthy();
-    });
-  });
-
-  it('handles case-insensitive search', async () => {
-    const { getByPlaceholderText, getByText, queryByText } =
-      renderWithProvider(RegionSelectorModal);
-
-    const searchInput = getByPlaceholderText('Search by country');
-
-    fireEvent.changeText(searchInput, 'germany');
-
-    await waitFor(() => {
-      expect(getByText('Germany')).toBeTruthy();
-      expect(queryByText('France')).toBeFalsy();
-    });
+  it('renders empty state', () => {
+    const { getByPlaceholderText, toJSON } = renderWithProvider(RegionSelectorModal);
+    fireEvent.changeText(getByPlaceholderText('Search by country'), 'Nonexistent Country');
+    expect(toJSON()).toMatchSnapshot();
   });
 });

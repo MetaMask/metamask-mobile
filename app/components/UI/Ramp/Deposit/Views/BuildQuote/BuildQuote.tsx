@@ -257,26 +257,31 @@ const BuildQuote = () => {
     // TODO: Implement payment method selection logic
   }, []);
 
+  const handleSelectRegion = useCallback(
+    (region: DepositRegion) => {
+      if (!region.supported) {
+        return;
+      }
+
+      setSelectedRegion(region);
+
+      if (region.currency === 'USD') {
+        setFiatCurrency(USD_CURRENCY);
+      } else if (region.currency === 'EUR') {
+        setFiatCurrency(EUR_CURRENCY);
+      }
+    },
+    [setFiatCurrency, setSelectedRegion],
+  );
+
   const handleRegionPress = useCallback(() => {
     navigation.navigate(
       ...createRegionSelectorModalNavigationDetails({
         selectedRegionCode: selectedRegion?.code,
-        handleSelectRegion: (region: DepositRegion) => {
-          if (!region.supported) {
-            return;
-          }
-
-          setSelectedRegion(region);
-
-          if (region.currency === 'USD') {
-            setFiatCurrency(USD_CURRENCY);
-          } else if (region.currency === 'EUR') {
-            setFiatCurrency(EUR_CURRENCY);
-          }
-        },
+        handleSelectRegion,
       }),
     );
-  }, [navigation, selectedRegion]);
+  }, [navigation, selectedRegion, handleSelectRegion]);
 
   const handleSelectAssetId = useCallback(
     (assetId: string) => {
