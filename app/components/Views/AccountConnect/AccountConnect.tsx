@@ -131,8 +131,8 @@ const AccountConnect = (props: AccountConnectProps) => {
   const [blockedUrl, setBlockedUrl] = useState('');
 
   const requestedCaip25CaveatValue = useMemo(
-    () => getRequestedCaip25CaveatValue(hostInfo.permissions),
-    [hostInfo.permissions],
+    () => getRequestedCaip25CaveatValue(hostInfo.permissions, hostInfo.metadata.origin),
+    [hostInfo.permissions, hostInfo.metadata.origin],
   );
 
   const requestedCaipAccountIds = useMemo(
@@ -176,6 +176,8 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { isEip1193Request } = hostInfo.metadata;
 
   const defaultSelectedChainIds = useMemo(() => {
+    // TODO: [ffmcgee] update this to return supportedRequestedCaipChainIds if it includes SOL (non eip155)
+
     // For EIP-1193 requests (injected Ethereum provider requests) or WalletConnect or MMSDK Remote Conn,
     // we only want to show EIP-155 (Ethereum) compatible chains
     if (isEip1193Request || isOriginWalletConnect || isOriginMMSDKRemoteConn) {
