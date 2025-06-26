@@ -19,7 +19,11 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { getStakingNavbar } from '../../../Navbar';
-import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
+import {
+  MOCK_AUSDT_MAINNET_ASSET,
+  MOCK_USDC_MAINNET_ASSET,
+  MOCK_USDT_MAINNET_ASSET,
+} from '../../../Stake/__mocks__/stakeMockData';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import useEarnToken from '../../hooks/useEarnToken';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
@@ -32,6 +36,7 @@ import {
 import { DEPOSIT_DETAILS_SECTION_TEST_ID } from './components/DepositInfoSection';
 import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from './components/DepositReceiveSection';
 import Routes from '../../../../../constants/navigation/Routes';
+import { PROGRESS_STEPPER_TEST_IDS } from './components/ProgressStepper';
 
 jest.mock('../../../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../../../selectors/accountsController'),
@@ -289,9 +294,123 @@ describe('EarnLendingDepositConfirmationView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it.todo('renders allowance reset step for USDT on Ethereum mainnet');
+  describe('USDT token allowance reset edge case', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
 
-  it.todo('initiates token allowance on confirm');
+      const routeParamsWithApproveAction = {
+        ...defaultRouteParams,
+        params: {
+          ...defaultRouteParams.params,
+          action: EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE,
+          token: MOCK_USDT_MAINNET_ASSET,
+          amountTokenMinimalUnit: '5000000',
+          // Existing non-zero allowance will need reset
+          allowanceMinimalTokenUnit: '1000000',
+        },
+      };
+
+      (useRoute as jest.Mock).mockReturnValue(routeParamsWithApproveAction);
+
+      (useEarnToken as jest.Mock).mockReturnValueOnce({
+        outputToken: undefined,
+        earnToken: {
+          ...MOCK_USDT_MAINNET_ASSET,
+          experience: {
+            type: 'STABLECOIN_LENDING',
+            apr: '4.5',
+            estimatedAnnualRewardsFormatted: '45',
+            estimatedAnnualRewardsFiatNumber: 45,
+            estimatedAnnualRewardsTokenMinimalUnit: '45000000',
+            estimatedAnnualRewardsTokenFormatted: '45',
+            market: {
+              protocol: 'AAVE v3',
+              underlying: {
+                address: MOCK_USDT_MAINNET_ASSET.address,
+              },
+              outputToken: {
+                address: MOCK_AUSDT_MAINNET_ASSET.address,
+              },
+            },
+          },
+        },
+        getTokenSnapshot: jest.fn(),
+      });
+    });
+
+    it('renders allowance reset step for USDT on Ethereum mainnet', () => {
+      const { getByText, getAllByTestId } = renderWithProvider(
+        <EarnLendingDepositConfirmationView />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      expect(getByText(strings('earn.allowance_reset'))).toBeDefined();
+      // 3 Pending Steps
+      expect(
+        getAllByTestId(PROGRESS_STEPPER_TEST_IDS.STEP_ICON.PENDING),
+      ).toHaveLength(3);
+    });
+
+    it('initiates token allowance reset on confirm', async () => {
+      const { getByTestId } = renderWithProvider(
+        <EarnLendingDepositConfirmationView />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const resetAllowanceButton = getByTestId(
+        CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(resetAllowanceButton);
+      });
+
+      expect(
+        Engine.context.EarnController.executeLendingTokenApprove,
+      ).toHaveBeenCalledWith({
+        amount: '0',
+        gasOptions: {
+          gasLimit: 60000,
+        },
+        protocol: 'AAVE v3',
+        txOptions: {
+          deviceConfirmedOn: 'metamask_mobile',
+          networkClientId: 'mainnet',
+          origin: 'metamask',
+          type: 'increaseAllowance',
+        },
+        underlyingTokenAddress: '0xaBc',
+      });
+    });
+
+    it('isAllowanceReset event property true', async () => {
+      renderWithProvider(<EarnLendingDepositConfirmationView />, {
+        state: mockInitialState,
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        mockCreateEventBuilder(MetaMetricsEvents.EARN_CONFIRMATION_PAGE_VIEWED)
+          .addProperties({
+            action_type: 'deposit',
+            experience: 'STABLECOIN_LENDING',
+            network: 'Ethereum Mainnet',
+            token: 'USDT',
+            transaction_value: '5 USDT',
+            user_token_balance: undefined,
+            isAllowanceReset: true,
+          })
+          .build(),
+      );
+    });
+  });
 
   describe('Analytics', () => {
     it('tracks EARN_CONFIRMATION_PAGE_VIEWED on render', async () => {

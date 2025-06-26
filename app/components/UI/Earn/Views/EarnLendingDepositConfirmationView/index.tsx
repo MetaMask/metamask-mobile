@@ -38,7 +38,6 @@ import { selectNetworkConfigurationByChainId } from '../../../../../selectors/ne
 import { IMetaMetricsEvent } from '../../../../../core/Analytics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { ProgressStep } from './components/ProgressStepper';
-import { UINT256_BN_MAX_VALUE } from '../../../../../constants/transaction';
 import BN from 'bnjs4';
 
 export interface LendingDepositViewRouteParams {
@@ -600,17 +599,10 @@ const EarnLendingDepositConfirmationView = () => {
 
     setIsApprovalLoading(true);
 
-    const amount = doesTokenRequireAllowanceReset(
-      earnToken?.chainId,
-      earnToken.symbol,
-    )
-      ? UINT256_BN_MAX_VALUE.toString()
-      : amountTokenMinimalUnit;
-
     const allowanceIncreaseTransaction =
       await Engine.context.EarnController.executeLendingTokenApprove({
         protocol: earnToken?.experience?.market?.protocol,
-        amount,
+        amount: amountTokenMinimalUnit,
         underlyingTokenAddress:
           earnToken?.experience?.market?.underlying?.address,
         gasOptions: {
