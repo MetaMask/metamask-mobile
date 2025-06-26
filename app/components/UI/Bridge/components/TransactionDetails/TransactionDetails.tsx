@@ -39,6 +39,7 @@ import {
 } from '@metamask/bridge-controller';
 import { Transaction } from '@metamask/keyring-api';
 import { getMultichainTxFees } from '../../../../hooks/useMultichainTransactionDisplay/useMultichainTransactionDisplay';
+import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
 // import { renderShortAddress } from '../../../../../util/address';
 
 const styles = StyleSheet.create({
@@ -126,6 +127,12 @@ export const BridgeTransactionDetails = (
   const { bridgeTxHistoryItem } = useBridgeTxHistoryData({
     evmTxMeta,
     multiChainTx,
+  });
+
+  // Get source chain explorer data for swaps
+  const swapSrcExplorerData = useMultichainBlockExplorerTxUrl({
+    chainId: bridgeTxHistoryItem?.quote.srcChainId,
+    txHash: evmTxMeta?.hash,
   });
 
   const [isStepListExpanded, setIsStepListExpanded] = useState(false);
@@ -333,13 +340,25 @@ export const BridgeTransactionDetails = (
           variant={ButtonVariants.Secondary}
           label={strings('bridge_transaction_details.view_on_block_explorer')}
           onPress={() => {
-            navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-              screen: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
-              params: {
-                evmTxMeta: props.route.params.evmTxMeta,
-                multiChainTx: props.route.params.multiChainTx,
-              },
-            });
+            // For swaps, go directly to block explorer web view
+            if (isSwap && swapSrcExplorerData?.explorerTxUrl) {
+              navigation.navigate(Routes.BROWSER.HOME, {
+                screen: Routes.BROWSER.VIEW,
+                params: {
+                  newTabUrl: swapSrcExplorerData.explorerTxUrl,
+                  timestamp: Date.now(),
+                },
+              });
+            } else {
+              // For bridges, show the modal with both explorers
+              navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+                screen: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
+                params: {
+                  evmTxMeta: props.route.params.evmTxMeta,
+                  multiChainTx: props.route.params.multiChainTx,
+                },
+              });
+            }
           }}
         />
       </Box>
