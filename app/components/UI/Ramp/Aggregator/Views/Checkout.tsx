@@ -24,7 +24,7 @@ import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
 import ScreenLayout from '../components/ScreenLayout';
 import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
-import useAnalytics from '../hooks/useAnalytics';
+import useAnalytics from '../../hooks/useAnalytics';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useHandleSuccessfulOrder from '../hooks/useHandleSuccessfulOrder';

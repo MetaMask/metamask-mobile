@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View } from 'react-native';
 import { WebView } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -17,6 +18,13 @@ import styleSheet from './ProviderWebview.styles';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import { createOrderProcessingNavDetails } from '../OrderProcessing/OrderProcessing';
 import ErrorView from '../../../Aggregator/components/ErrorView';
+import { depositOrderToFiatOrder } from '../../orderProcessor';
+import { addFiatOrder, FiatOrder } from '../../../../../../reducers/fiatOrders';
+import NotificationManager from '../../../../../../core/NotificationManager';
+import stateHasOrder from '../../../utils/stateHasOrder';
+import { getNotificationDetails } from '../../utils';
+import useThunkDispatch from '../../../../../hooks/useThunkDispatch';
+import Loader from '../../../../../../component-library/components-temp/Loader/Loader';
 
 export interface ProviderWebviewParams {
   quote: BuyQuote;
@@ -31,20 +39,56 @@ const ProviderWebview = () => {
   const [webviewError, setWebviewError] = useState('');
   const [key, setKey] = useState(0);
   const navigation = useNavigation();
+  const dispatchThunk = useThunkDispatch();
   const { quote } = useParams<ProviderWebviewParams>();
-  const { theme } = useStyles(styleSheet, {});
+  const { styles, theme } = useStyles(styleSheet, {});
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
 
-  const [{ error: ottError, data: ottResponse }] =
+  const [{ error: ottError, data: ottResponse, isFetching: isOttLoading }] =
     useDepositSdkMethod('requestOtt');
 
-  const [{ error: paymentUrlError, data: paymentUrl }, generatePaymentUrl] =
+  const [
+    {
+      error: paymentUrlError,
+      data: paymentUrl,
+      isFetching: isPaymentUrlLoading,
+    },
+    generatePaymentUrl,
+  ] = useDepositSdkMethod({
+    method: 'generatePaymentWidgetUrl',
+    onMount: false,
+  });
+
+  const [{ error: orderError, isFetching: isOrderLoading }, getOrder] =
     useDepositSdkMethod({
-      method: 'generatePaymentWidgetUrl',
+      method: 'getOrder',
       onMount: false,
     });
+
+  const handleSuccessfulOrder = useCallback(
+    async (order: FiatOrder) => {
+      dispatchThunk((_dispatch, getState) => {
+        const state = getState();
+        if (stateHasOrder(state, order)) {
+          return;
+        }
+        _dispatch(addFiatOrder(order));
+        const notificationDetails = getNotificationDetails(order);
+        if (notificationDetails) {
+          NotificationManager.showSimpleNotification(notificationDetails);
+        }
+      });
+
+      navigation.navigate(
+        ...createOrderProcessingNavDetails({
+          orderId: order.id,
+        }),
+      );
+    },
+    [dispatchThunk, navigation],
+  );
 
   useEffect(() => {
     navigation.setOptions(
@@ -68,26 +112,38 @@ const ProviderWebview = () => {
     fetchPaymentUrl();
   }, [ottResponse, ottError, generatePaymentUrl, quote, selectedAddress]);
 
-  const handleNavigationStateChange = (navState: { url: string }) => {
-    if (navState.url.startsWith('https://metamask.io')) {
-      try {
-        const urlObj = new URL(navState.url);
-        const orderId = urlObj.searchParams.get('orderId');
+  const handleNavigationStateChange = useCallback(
+    async (navState: { url: string }) => {
+      if (navState.url.startsWith('https://metamask.io')) {
+        try {
+          const urlObj = new URL(navState.url);
+          const orderId = urlObj.searchParams.get('orderId');
 
-        if (orderId) {
-          navigation.navigate(
-            ...createOrderProcessingNavDetails({
-              quoteId: orderId,
-            }),
-          );
+          if (orderId) {
+            const order = await getOrder(orderId, selectedAddress);
+
+            if (orderError || !order) {
+              console.error('Error getting order: ', orderError || 'No order');
+              return;
+            }
+
+            const processedOrder = {
+              ...depositOrderToFiatOrder(order),
+              account: selectedAddress || order.walletAddress,
+            };
+
+            await handleSuccessfulOrder(processedOrder);
+          }
+        } catch (e) {
+          console.error('Error extracting orderId from URL:', e);
         }
-      } catch (e) {
-        console.error('Error extracting orderId from URL:', e);
       }
-    }
-  };
+    },
+    [getOrder, selectedAddress, orderError, handleSuccessfulOrder],
+  );
 
   const error = ottError || webviewError || paymentUrlError;
+  const isLoading = isOttLoading || isPaymentUrlLoading || isOrderLoading;
 
   if (error) {
     return (
@@ -101,6 +157,18 @@ const ProviderWebview = () => {
             }}
             location="Provider Webview"
           />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <View style={styles.loadingContainer}>
+            <Loader size="large" />
+          </View>
         </ScreenLayout.Body>
       </ScreenLayout>
     );
