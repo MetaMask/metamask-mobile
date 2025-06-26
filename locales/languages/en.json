@@ -479,6 +479,11 @@
       "quoteFetchError": "Failed to fetch quote.",
       "kycFormsFetchError": "Failed to fetch KYC forms."
     },
+    "token_modal": {
+      "select_a_token": "Select a Token",
+      "search_by_name_or_address": "Search token by name or address",
+      "no_tokens_found": "No tokens match \"{{searchString}}\""
+    },
     "get_started": {
       "title": "Top up your wallet with USDC",
       "bullet_1_title": "Value-backed by the US dollar",
@@ -504,7 +509,13 @@
       "submit_button": "Submit",
       "loading": "Verifying code...",
       "invalid_code_error": "Invalid code",
-      "validation_error": "Please enter a valid code"
+      "validation_error": "Please enter a valid code",
+      "need_help": "Need help?",
+      "resend_code_description": "Didn't receive the code?",
+      "resend_code_error": "Error resending code.",
+      "resend_code_button": "Resend it",
+      "resend_cooldown": "Resend code in {{seconds}} seconds",
+      "contact_support": "Contact support"
     },
     "verify_identity": {
       "title": "Verify your identity",

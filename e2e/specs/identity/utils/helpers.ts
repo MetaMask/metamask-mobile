@@ -1,6 +1,10 @@
 import { MOCK_SRP_E2E_IDENTIFIER_BASE_KEY } from './mocks';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import { UserStorageMockttpController } from './user-storage/userStorageMockttpController';
+import {
+  UserStorageMockttpController,
+  UserStorageMockttpControllerEvents,
+  AsEnum,
+} from './user-storage/userStorageMockttpController';
 
 export interface UserStorageAccount {
   /**
@@ -45,7 +49,9 @@ export const arrangeTestUtils = (
   const BASE_TIMEOUT = 12000;
   const BASE_INTERVAL = 1000;
 
-  const prepareEventsEmittedCounter = (event: string) => {
+  const prepareEventsEmittedCounter = (
+    event: AsEnum<typeof UserStorageMockttpControllerEvents>,
+  ) => {
     let counter = 0;
     userStorageMockttpController.eventEmitter.on(event, () => {
       counter += 1;

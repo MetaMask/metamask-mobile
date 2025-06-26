@@ -1,10 +1,10 @@
-import { MetaMetrics, MetaMetricsEvents } from '../../../../../core/Analytics';
-import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import useAnalytics from './useAnalytics';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 
-jest.mock('../../../../../core/Analytics', () => ({
-  ...jest.requireActual('../../../../../core/Analytics'),
+jest.mock('../../../../core/Analytics', () => ({
+  ...jest.requireActual('../../../../core/Analytics'),
   MetaMetrics: {
     getInstance: jest.fn().mockReturnValue({
       trackEvent: jest.fn(),

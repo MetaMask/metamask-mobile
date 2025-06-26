@@ -6,6 +6,7 @@ import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import type { ApprovalControllerMessenger } from '../../messengers/approval-controller-messenger';
 import { ControllerInitRequest } from '../../types';
 import { ApprovalControllerInit } from './approval-controller-init';
+import { ApprovalTypes } from '../../../RPCMethods/RPCMethodMiddleware';
 
 jest.mock('@metamask/approval-controller');
 
@@ -59,6 +60,7 @@ describe('ApprovalController Init', () => {
       expect(constructorOptions.typesExcludedFromRateLimiting).toEqual([
         ApprovalType.Transaction,
         ApprovalType.WatchAsset,
+        ApprovalTypes.SMART_TRANSACTION_STATUS,
       ]);
     });
 
