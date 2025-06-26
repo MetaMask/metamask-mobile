@@ -14,7 +14,7 @@ import {
   TEST_DAPP_LOCAL_URL,
   getSecondTestDappLocalUrl,
 } from '../../fixtures/utils';
-import Assertions from "../../utils/Assertions";
+import Assertions from '../../utils/Assertions';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
