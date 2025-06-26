@@ -38,6 +38,7 @@ import {
 } from '../../UI/Earn/selectors/featureFlags';
 import { EarnTokenDetails } from '../../UI/Earn/types/lending.types';
 import WalletActions from './WalletActions';
+import Routes from '../../../constants/navigation/Routes';
 
 jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
@@ -158,28 +159,37 @@ jest.mock('../../UI/Bridge/utils', () => ({
   isBridgeAllowed: jest.fn().mockReturnValue(true),
 }));
 
+jest.mock('../../../selectors/featureFlagController/deposit', () => ({
+  selectDepositEntrypointWalletActions: jest.fn().mockReturnValue(true),
+}));
+
 jest.mock('../../UI/Ramp/Aggregator/hooks/useRampNetwork', () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue([true]),
 }));
 
-jest.mock('../../../core/AppConstants', () => ({
-  SWAPS: {
-    ACTIVE: true,
-  },
-  BUNDLE_IDS: {
-    ANDROID: 'io.metamask',
-    IOS: '1438144202',
-  },
-  MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
-  WALLET_CONNECT: {
-    PROJECT_ID: 'test-project-id',
-  },
-  BRIDGE: {
-    ACTIVE: true,
-    URL: 'https://bridge.metamask.io',
-  },
-}));
+jest.mock('../../../core/AppConstants', () => {
+  const actual = jest.requireActual('../../../core/AppConstants');
+
+  return {
+    ...actual,
+    SWAPS: {
+      ACTIVE: true,
+    },
+    BUNDLE_IDS: {
+      ANDROID: 'io.metamask',
+      IOS: '1438144202',
+    },
+    MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
+    WALLET_CONNECT: {
+      PROJECT_ID: 'test-project-id',
+    },
+    BRIDGE: {
+      ACTIVE: true,
+      URL: 'https://bridge.metamask.io',
+    },
+  };
+});
 
 const mockInitialState: DeepPartial<RootState> = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
@@ -281,6 +291,7 @@ jest.mock('../../../util/trace', () => ({
   trace: jest.fn(),
   TraceName: {
     LoadRampExperience: 'LoadRampExperience',
+    LoadDepositExperience: 'LoadDepositExperience',
   },
 }));
 
@@ -429,6 +440,20 @@ describe('WalletActions', () => {
       tags: {
         rampType: RampType.SELL,
       },
+    });
+  });
+
+  it('should call the onDeposit function when the Deposit button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.ID);
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.LoadDepositExperience,
     });
   });
 

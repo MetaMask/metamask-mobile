@@ -42,7 +42,7 @@ import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 
-import useAnalytics from '../../hooks/useAnalytics';
+import useAnalytics from '../../../hooks/useAnalytics';
 import useQuotesAndCustomActions from '../../hooks/useQuotesAndCustomActions';
 import { useRampSDK } from '../../sdk';
 import { useStyles } from '../../../../../../component-library/hooks';
