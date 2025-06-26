@@ -889,15 +889,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
    */
   const checkIFrameUrls = useCallback(async (iframeUrls: string[]) => {
     for (const iframeUrl of iframeUrls) {
-      try {
-        const { origin: iframeOrigin } = new URLParse(iframeUrl);
-        const isAllowed = await isAllowedOrigin(iframeOrigin);
-        if (!isAllowed) {
-          handleNotAllowedUrl(iframeOrigin);
-          return;
-        }
-      } catch (error) {
-        Logger.error(error as Error, `Error checking iFrame URL: ${iframeUrl}`);
+      const { origin: iframeOrigin } = new URLParse(iframeUrl);
+      const isAllowed = await isAllowedOrigin(iframeOrigin);
+      if (!isAllowed) {
+        handleNotAllowedUrl(iframeOrigin);
+        return;
       }
     }
   }, [isAllowedOrigin, handleNotAllowedUrl]);
