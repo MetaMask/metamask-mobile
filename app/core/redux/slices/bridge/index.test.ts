@@ -4,9 +4,12 @@ import reducer, {
   setDestAmount,
   resetBridgeState,
   setSlippage,
+  setBridgeViewMode,
+  selectBridgeViewMode,
 } from '.';
-import { BridgeToken } from '../../../../components/UI/Bridge/types';
+import { BridgeToken, BridgeViewMode } from '../../../../components/UI/Bridge/types';
 import { Hex } from '@metamask/utils';
+import { RootState } from '../../../../reducers';
 
 describe('bridge slice', () => {
   const mockToken: BridgeToken = {
@@ -34,14 +37,78 @@ describe('bridge slice', () => {
   describe('initial state', () => {
     it('should have the correct initial state', () => {
       expect(initialState).toEqual({
+        bridgeViewMode: undefined,
         sourceAmount: undefined,
         destAmount: undefined,
-        destChainId: undefined,
         sourceToken: undefined,
         destToken: undefined,
+        destAddress: undefined,
+        selectedSourceChainIds: undefined,
+        selectedDestChainId: undefined,
         slippage: '0.5',
         isSubmittingTx: false,
       });
+    });
+  });
+
+  describe('setBridgeViewMode', () => {
+    it('should set the bridge view mode to Bridge', () => {
+      const viewMode = BridgeViewMode.Bridge;
+      const action = setBridgeViewMode(viewMode);
+      const state = reducer(initialState, action);
+
+      expect(state.bridgeViewMode).toBe(viewMode);
+    });
+
+    it('should set the bridge view mode to Swap', () => {
+      const viewMode = BridgeViewMode.Swap;
+      const action = setBridgeViewMode(viewMode);
+      const state = reducer(initialState, action);
+
+      expect(state.bridgeViewMode).toBe(viewMode);
+    });
+
+    it('should set the bridge view mode to Unified', () => {
+      const viewMode = BridgeViewMode.Unified;
+      const action = setBridgeViewMode(viewMode);
+      const state = reducer(initialState, action);
+
+      expect(state.bridgeViewMode).toBe(viewMode);
+    });
+
+    it('should update bridge view mode from existing state', () => {
+      const currentState = {
+        ...initialState,
+        bridgeViewMode: BridgeViewMode.Bridge,
+      };
+      const newViewMode = BridgeViewMode.Swap;
+      const action = setBridgeViewMode(newViewMode);
+      const state = reducer(currentState, action);
+
+      expect(state.bridgeViewMode).toBe(newViewMode);
+    });
+  });
+
+  describe('selectBridgeViewMode', () => {
+    it('should select bridge view mode from state', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          bridgeViewMode: BridgeViewMode.Bridge,
+        },
+      } as RootState;
+
+      const result = selectBridgeViewMode(mockState);
+      expect(result).toBe(BridgeViewMode.Bridge);
+    });
+
+    it('should select undefined bridge view mode from initial state', () => {
+      const mockState = {
+        bridge: initialState,
+      } as RootState;
+
+      const result = selectBridgeViewMode(mockState);
+      expect(result).toBeUndefined();
     });
   });
 
@@ -97,6 +164,7 @@ describe('bridge slice', () => {
         destAmount: '100',
         sourceToken: mockToken,
         destToken: mockDestToken,
+        bridgeViewMode: BridgeViewMode.Bridge,
       };
 
       const action = resetBridgeState();
