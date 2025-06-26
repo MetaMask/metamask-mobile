@@ -23,7 +23,6 @@ import {
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
-import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkManager';
 import AppConstants from '../../core/AppConstants';
 import {
   SET_COMPLETED_ONBOARDING,
@@ -32,6 +31,7 @@ import {
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
+import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -167,11 +167,10 @@ export function* handleDeeplinkSaga() {
     }
 
     const deeplink = AppStateEventProcessor.pendingDeeplink;
-
     if (deeplink) {
       // TODO: See if we can hook into a navigation finished event before parsing so that the modal doesn't conflict with ongoing navigation events
       setTimeout(() => {
-        SharedDeeplinkManager.parse(deeplink, {
+        DeeplinkManager.parse(deeplink, {
           origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
         });
       }, 200);
@@ -189,9 +188,19 @@ export function* startAppServices() {
     take(UserActionType.ON_PERSISTED_DATA_LOADED),
     take(NavigationActionType.ON_NAVIGATION_READY),
   ]);
-
   // Start Engine service
   yield call(EngineService.start);
+
+
+  yield all([
+    // Initialize WalletConnect v2 Manager
+    call(WC2Manager.init),
+    // Initialize SDKConnect
+    call(SDKConnect.init, { context: 'Nav/App' })
+  ])
+
+  // Start DeeplinkManager and process branch deeplinks
+  DeeplinkManager.start()
 
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();
