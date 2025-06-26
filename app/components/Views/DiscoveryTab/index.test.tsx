@@ -72,8 +72,8 @@ const mockInitialState = {
 
 const mockProps = {
   id: 1,
-  updateTabInfo: jest.fn(),
   showTabs: jest.fn(),
+  newTab: jest.fn(),
 };
 
 const Stack = createStackNavigator();
@@ -141,7 +141,7 @@ describe('DiscoveryTab', () => {
       <NavigationContainer independent>
         <Stack.Navigator>
           <Stack.Screen name="Browser">
-            {() => <DiscoveryTab {...mockProps} updateTabInfo={updateTabInfo} />}
+            {() => <DiscoveryTab {...mockProps} />}
           </Stack.Screen>
         </Stack.Navigator>
       </NavigationContainer>,
@@ -152,8 +152,6 @@ describe('DiscoveryTab', () => {
       name: 'Test Token',
       url: 'https://metamask.io',
     });
-    expect(updateTabInfo).toHaveBeenCalledWith(1, {
-      url: 'https://metamask.io',
-    });
+    expect(mockProps.newTab).toHaveBeenCalledWith('https://metamask.io');
   });
 });
