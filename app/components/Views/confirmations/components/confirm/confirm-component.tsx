@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
@@ -71,17 +71,6 @@ export const Confirm = ({ route }: ConfirmProps) => {
 
   const { styles } = useStyles(styleSheet, {});
 
-  // Wrapping navigation.setOptions in useEffect solve the
-  // Cannot update a component (StackNavigator) while rendering a different component error
-  useEffect(() => {
-    if (isFullScreenConfirmation) {
-      // Keep this navigation option to prevent Android navigation flickering
-      navigation.setOptions({
-        headerShown: true,
-      });
-    }
-  }, [isFullScreenConfirmation, navigation]);
-
   if (!isRedesignedEnabled) {
     navigation.setOptions({
       headerShown: false,
@@ -90,6 +79,10 @@ export const Confirm = ({ route }: ConfirmProps) => {
   }
 
   if (isFullScreenConfirmation) {
+    // Keep this navigation option to prevent Android navigation flickering
+    navigation.setOptions({
+      headerShown: true,
+    });
     return (
       <View style={styles.flatContainer} testID={ConfirmationUIType.FLAT}>
         <ConfirmWrapped styles={styles} route={route} />
