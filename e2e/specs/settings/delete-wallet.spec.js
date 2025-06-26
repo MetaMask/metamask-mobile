@@ -13,6 +13,7 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import CommonView from '../../pages/CommonView';
 import Assertions from '../../utils/Assertions';
+import ToastModal from '../../pages/wallet/ToastModal';
 
 describe(
   Regression('Log in into the app, change password then delete wallet flow'),
@@ -57,7 +58,7 @@ describe(
 
         // Wait for password change to complete and navigation back to SecuritySettings
         await Assertions.checkIfVisible(SecurityAndPrivacyView.securityAndPrivacyHeading);
-        
+
         // should lock wallet from Settings
         await CommonView.tapBackButton();
         await SettingsView.tapLock();
