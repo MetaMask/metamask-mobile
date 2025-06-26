@@ -1663,7 +1663,6 @@ workflows:
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'qa'
-      - KEYSTORE_URL: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
       - BUILD_COMMAND: 'yarn build:android:devbuild:qa'
     after_run:
       - _android_e2e_build_template
