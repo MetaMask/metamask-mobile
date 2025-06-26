@@ -20,6 +20,11 @@ import {
 import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
 import { capitalize } from '../../../util/general';
+import handleBrowserUrl from '../Handlers/handleBrowserUrl';
+import { handleSwapUrl } from '../Handlers/handleSwapUrl';
+import { handleBuyCrypto } from '../Handlers/handleBuyCrypto';
+import { handleOpenHome } from '../Handlers/handleOpenHome';
+import { handleSellCrypto } from '../Handlers/handleSellCrypto';
 
 const {
   MM_UNIVERSAL_LINK_HOST,
@@ -29,8 +34,10 @@ const {
 } = AppConstants;
 const DEEP_LINK_BASE = `${PROTOCOLS.HTTPS}://${MM_UNIVERSAL_LINK_HOST}`;
 
+
+
+
 async function handleUniversalLink({
-  instance,
   handled,
   urlObj,
   params,
@@ -39,7 +46,6 @@ async function handleUniversalLink({
   wcURL,
   url,
 }: {
-  instance: DeeplinkManager;
   handled: () => void;
   urlObj: ReturnType<typeof extractURLParams>['urlObj'];
   params: ReturnType<typeof extractURLParams>['params'];
@@ -131,17 +137,17 @@ async function handleUniversalLink({
         PREFIXES[action as keyof typeof PREFIXES],
       );
       // loops back to open the link with the right protocol
-      instance.parse(deeplinkUrl, { browserCallBack, origin });
+      DeeplinkManager.parse(deeplinkUrl, { browserCallBack, origin });
     } else if (action === ACTIONS.BUY_CRYPTO || action === ACTIONS.BUY) {
       const rampPath = urlObj.href
         .replace(`${DEEP_LINK_BASE}/${ACTIONS.BUY_CRYPTO}`, '')
         .replace(`${DEEP_LINK_BASE}/${ACTIONS.BUY}`, '');
-      instance._handleBuyCrypto(rampPath);
+      handleBuyCrypto(rampPath);
     } else if (action === ACTIONS.SELL_CRYPTO || action === ACTIONS.SELL) {
       const rampPath = urlObj.href
         .replace(`${DEEP_LINK_BASE}/${ACTIONS.SELL_CRYPTO}`, '')
         .replace(`${DEEP_LINK_BASE}/${ACTIONS.SELL}`, '');
-      instance._handleSellCrypto(rampPath);
+      handleSellCrypto(rampPath);
     } else {
       // If it's our universal link or Apple store deep link don't open it in the browser
       if (
@@ -154,19 +160,19 @@ async function handleUniversalLink({
 
       // Fix for Apple Store redirect even when app is installed
       if (urlObj.href.startsWith(`${DEEP_LINK_BASE}/`)) {
-        instance._handleBrowserUrl(
-          `${PROTOCOLS.HTTPS}://${urlObj.href.replace(
-            `${DEEP_LINK_BASE}/`,
-            '',
-          )}`,
-          browserCallBack,
-        );
+        handleBrowserUrl({
+          url:  `${PROTOCOLS.HTTPS}://${urlObj.href.replace(`${DEEP_LINK_BASE}/`,'')}`,
+          callback: browserCallBack
+        });
 
         return;
       }
 
       // Normal links (same as dapp)
-      instance._handleBrowserUrl(urlObj.href, browserCallBack);
+      handleBrowserUrl({
+        url: urlObj.href,
+        callback:browserCallBack
+      });
     }
   } else if (
     urlObj.hostname === MM_IO_UNIVERSAL_LINK_HOST ||
@@ -244,7 +250,7 @@ async function handleUniversalLink({
 
     switch (action) {
       case ACTIONS.HOME:
-        instance._handleOpenHome();
+        handleOpenHome();
         return;
       case ACTIONS.SWAP: {
         // TODO: perhaps update this when the new bridging UI is implemented
@@ -253,7 +259,9 @@ async function handleUniversalLink({
           `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.SWAP}`,
           '',
         );
-        instance._handleSwap(swapPath);
+        handleSwapUrl({
+          swapPath,
+        });
         return;
       }
       case ACTIONS.BUY:
@@ -267,16 +275,19 @@ async function handleUniversalLink({
             `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.BUY}`,
             '',
           );
-        instance._handleBuyCrypto(rampPath);
+        handleBuyCrypto(rampPath);
         return;
       }
       default:
-        instance._handleOpenHome();
+        handleOpenHome();
         return;
     }
   } else {
     // Normal links (same as dapp)
-    instance._handleBrowserUrl(urlObj.href, browserCallBack);
+    handleBrowserUrl({
+      url: urlObj.href,
+      callback: browserCallBack
+    });
   }
 
   // walletconnect related deeplinks

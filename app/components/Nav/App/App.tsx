@@ -1,12 +1,9 @@
 import React, {
-  useCallback,
   useContext,
   useEffect,
   useRef,
-  useState,
 } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
@@ -24,10 +21,8 @@ import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
 import SimpleWebview from '../../Views/SimpleWebview';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
-import branch from 'react-native-branch';
 import Logger from '../../../util/Logger';
-import { useDispatch, useSelector } from 'react-redux';
+import {  useSelector } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
   EXISTING_USER,
@@ -35,7 +30,6 @@ import {
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
-import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
 import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
@@ -78,10 +72,6 @@ import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import MultichainEditAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
-import WC2Manager, {
-  isWC2Enabled,
-} from '../../../../app/core/WalletConnect/WalletConnectV2';
-import { DevLogger } from '../../../../app/core/SDKConnect/utils/DevLogger';
 import { PPOMView } from '../../../lib/ppom/PPOMView';
 import LockScreen from '../../Views/LockScreen';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -112,7 +102,6 @@ import ChangeInSimulationModal from '../../Views/ChangeInSimulationModal/ChangeI
 import TooltipModal from '../../../components/Views/TooltipModal';
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
-import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
 import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
 import Engine from '../../../core/Engine';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -129,7 +118,6 @@ import { selectUserLoggedIn } from '../../../reducers/user/selectors';
 import { Confirm } from '../../Views/confirmations/components/confirm';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
-import NavigationService from '../../../core/NavigationService';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
@@ -142,7 +130,6 @@ import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
-import { checkForDeeplink } from '../../../actions/user';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
 
 const clearStackNavigatorOptions = {
@@ -778,13 +765,8 @@ const AppFlow = () => {
 };
 
 const App: React.FC = () => {
-  const userLoggedIn = useSelector(selectUserLoggedIn);
-  const [onboarded, setOnboarded] = useState(false);
   const navigation = useNavigation();
-  // const queueOfHandleDeeplinkFunctions = useRef<(() => void)[]>([]);
   const { toastRef } = useContext(ToastContext);
-  const dispatch = useDispatch();
-  const sdkInit = useRef<boolean | undefined>(undefined);
   const isFirstRender = useRef(true);
 
   if (isFirstRender.current) {
@@ -805,7 +787,6 @@ const App: React.FC = () => {
   useEffect(() => {
     const appTriggeredAuth = async () => {
       const existingUser = await StorageWrapper.getItem(EXISTING_USER);
-      setOnboarded(!!existingUser);
       try {
         if (existingUser) {
           // This should only be called if the auth type is not password, which is not the case so consider removing it
@@ -842,68 +823,6 @@ const App: React.FC = () => {
     });
   }, [navigation]);
 
-  const handleDeeplink = useCallback(
-    ({ uri }: { uri?: string }) => {
-      try {
-        if (uri && typeof uri === 'string') {
-          AppStateEventProcessor.setCurrentDeeplink(uri);
-          dispatch(checkForDeeplink());
-        }
-      } catch (e) {
-        Logger.error(e as Error, `Deeplink: Error parsing deeplink`);
-      }
-    },
-    [dispatch],
-  );
-
-  // Subscribe to incoming deeplinks
-  // Ex. SDK and WalletConnect deeplinks will funnel through here when opening the app from the device's camera
-  useEffect(() => {
-    Linking.addEventListener('url', (params) => {
-      const { url } = params;
-      if (url) {
-        handleDeeplink({ uri: url });
-      }
-    });
-  }, [handleDeeplink]);
-
-  // Subscribe to incoming Branch deeplinks
-  // Branch.io documentation: https://help.branch.io/developers-hub/docs/react-native
-  // Ex. Branch links will funnel through here when opening the app from a Branch link
-  useEffect(() => {
-    // Initialize deep link manager
-    SharedDeeplinkManager.init({
-      navigation,
-      dispatch,
-    });
-
-    branch.subscribe((opts) => {
-      const { error } = opts;
-
-      // Log error for analytics and continue handling deeplink
-      if (error) {
-        trackErrorAsAnalytics(error, 'Branch:');
-      }
-
-      branch.getLatestReferringParams().then((val) => {
-        const deeplink = opts.uri || (val['+non_branch_link'] as string);
-        handleDeeplink({ uri: deeplink });
-      });
-
-      // TODO: We should be able to remove this since deeplinks are only parsed if user is logged in
-      // if (sdkInit.current) {
-      //   handleDeeplink(opts);
-      // } else {
-      //   queueOfHandleDeeplinkFunctions.current =
-      //     queueOfHandleDeeplinkFunctions.current.concat([
-      //       () => {
-      //         handleDeeplink(opts);
-      //       },
-      //     ]);
-      // }
-    });
-  }, [dispatch, handleDeeplink, navigation]);
-
   useEffect(() => {
     const initMetrics = async () => {
       await MetaMetrics.getInstance().configure();
@@ -912,52 +831,6 @@ const App: React.FC = () => {
     initMetrics().catch((err) => {
       Logger.error(err, 'Error initializing MetaMetrics');
     });
-  }, []);
-
-  useEffect(() => {
-    // Init SDKConnect only if the navigator is ready, user is onboarded, and SDK is not initialized.
-    async function initSDKConnect() {
-      if (onboarded && sdkInit.current === undefined && userLoggedIn) {
-        sdkInit.current = false;
-        try {
-          const sdkConnect = SDKConnect.getInstance();
-          await sdkConnect.init({
-            context: 'Nav/App',
-            navigation: NavigationService.navigation,
-          });
-          await SDKConnect.getInstance().postInit(() => {
-            // TODO: We should be able to remove queueOfHandleDeeplinkFunctions since deeplinks are only parsed if user is logged in
-            // setTimeout(() => {
-            //   queueOfHandleDeeplinkFunctions.current = [];
-            // }, 1000);
-          });
-          sdkInit.current = true;
-        } catch (err) {
-          sdkInit.current = undefined;
-          console.error(`Cannot initialize SDKConnect`, err);
-        }
-      }
-    }
-
-    initSDKConnect()
-      // TODO: We should be able to remove this since deeplinks are only parsed if user is logged in
-      // .then(() => {
-      //   queueOfHandleDeeplinkFunctions.current.forEach((func) => func());
-      // })
-      .catch((err) => {
-        Logger.error(err, 'Error initializing SDKConnect');
-      });
-  }, [onboarded, userLoggedIn]);
-
-  useEffect(() => {
-    if (isWC2Enabled) {
-      DevLogger.log(`WalletConnect: Initializing WalletConnect Manager`);
-      WC2Manager.init({ navigation: NavigationService.navigation }).catch(
-        (err) => {
-          console.error('Cannot initialize WalletConnect Manager.', err);
-        },
-      );
-    }
   }, []);
 
   useEffect(() => {

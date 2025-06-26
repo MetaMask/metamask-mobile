@@ -9,10 +9,8 @@ import { store } from '../../../store';
 import { toHex } from '@metamask/controller-utils';
 
 function switchNetwork({
-  deeplinkManager,
   switchToChainId,
 }: {
-  deeplinkManager: DeeplinkManager;
   switchToChainId: `${number}` | undefined;
 }) {
   if (
@@ -30,7 +28,7 @@ function switchNetwork({
       throw new Error(`Unable to find network with chain id ${newChainId}`);
     }
 
-    deeplinkManager.dispatch(
+    store.dispatch(
       showAlert({
         isVisible: true,
         autodismiss: 5000,

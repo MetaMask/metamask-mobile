@@ -4,12 +4,12 @@ import { ParseOutput } from 'eth-url-parser';
 import { strings } from '../../../../locales/i18n';
 import { getAddress } from '../../../util/address';
 import { addTransaction } from '../../../util/transaction-controller';
-import DeeplinkManager from '../DeeplinkManager';
 import Engine from '../../Engine';
 import NotificationManager from '../../NotificationManager';
 import { WalletDevice } from '@metamask/transaction-controller';
 import { toChecksumHexAddress, toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
+import NavigationService from '../../NavigationService';
 
 const toHexOrFallback = (value: string) => {
   try {
@@ -20,11 +20,9 @@ const toHexOrFallback = (value: string) => {
 };
 
 async function approveTransaction({
-  deeplinkManager,
   ethUrl,
   origin,
 }: {
-  deeplinkManager: DeeplinkManager;
   ethUrl: ParseOutput;
   origin: string;
 }) {
@@ -58,7 +56,7 @@ async function approveTransaction({
       title: strings('transaction.invalid_recipient'),
       description: strings('transaction.invalid_recipient_description'),
     });
-    deeplinkManager.navigation.navigate('WalletView');
+    NavigationService.navigation.navigate('WalletView');
   }
 
   const selectedAccount = AccountsController.getSelectedAccount();
