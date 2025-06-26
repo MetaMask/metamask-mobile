@@ -136,7 +136,6 @@ describe('DiscoveryTab', () => {
       return 'UrlAutocomplete';
     });
 
-    const updateTabInfo = jest.fn();
     renderWithProvider(
       <NavigationContainer independent>
         <Stack.Navigator>
