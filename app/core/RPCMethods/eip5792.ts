@@ -34,11 +34,6 @@ import Engine from '../Engine';
 const VERSION = '2.0.0';
 const SUPPORTED_KEYRING_TYPES = [KeyringTypes.hd, KeyringTypes.simple];
 
-type JSONRPCRequest = JsonRpcRequest & {
-  networkClientId: string;
-  origin?: string;
-};
-
 export const getAccounts = async () => {
   const { AccountsController } = Engine.context;
   const addresses = AccountsController.listAccounts().map((acc) => acc.address);
@@ -49,7 +44,7 @@ export async function processSendCalls(
   params: SendCalls,
   req: JsonRpcRequest,
 ): Promise<SendCallsResult> {
-  const { TransactionController, AccountsController } = Engine.context;
+  const { AccountsController } = Engine.context;
   const { calls, from: paramFrom } = params;
   const { networkClientId, origin } = req as JsonRpcRequest & {
     networkClientId: string;
@@ -197,10 +192,10 @@ function generateBatchId(): Hex {
   return bytesToHex(idBytes);
 }
 
-function getChainIdForNetworkClientId(networkClientId: String): Hex {
+function getChainIdForNetworkClientId(networkClientId: string): Hex {
   return Engine.controllerMessenger.call(
     'NetworkController:getNetworkClientById',
-    networkClientId.toString(),
+    networkClientId,
   ).configuration.chainId;
 }
 
@@ -214,7 +209,7 @@ function validateSendCallsVersion(sendCalls: SendCalls) {
   }
 }
 
-function validateDappChainId(sendCalls: SendCalls, networkClientId: String) {
+function validateDappChainId(sendCalls: SendCalls, networkClientId: string) {
   const { chainId: requestChainId } = sendCalls;
   const dappChainId = getChainIdForNetworkClientId(networkClientId);
 
@@ -231,7 +226,7 @@ function validateDappChainId(sendCalls: SendCalls, networkClientId: String) {
 async function validateSendCallsChainId(
   sendCalls: SendCalls,
   chainBatchSupport: IsAtomicBatchSupportedResultEntry | undefined,
-  networkClientId: String,
+  networkClientId: string,
 ) {
   const { chainId } = sendCalls;
 
@@ -301,7 +296,7 @@ function validateUpgrade(
   }
 }
 
-function validateSingleSendCall(sendCalls: SendCalls, networkClientId: String) {
+function validateSingleSendCall(sendCalls: SendCalls, networkClientId: string) {
   validateSendCallsVersion(sendCalls);
   validateDappChainId(sendCalls, networkClientId);
   validateCapabilities(sendCalls);
@@ -309,7 +304,7 @@ function validateSingleSendCall(sendCalls: SendCalls, networkClientId: String) {
 
 async function validateSendCalls(
   sendCalls: SendCalls,
-  networkClientId: String,
+  networkClientId: string,
   keyringType?: KeyringTypes,
 ) {
   const { AccountsController, TransactionController } = Engine.context;
