@@ -206,7 +206,7 @@ const ManualBackupStep2 = ({
 
         if (positionToRemove !== undefined) {
           const newGrid = [...updatedGrid];
-          newGrid[positionToRemove] = '';
+          newGrid[parseInt(positionToRemove)] = '';
           setGridWords(newGrid);
           setSelectedSlot(parseInt(positionToRemove));
 
@@ -280,7 +280,6 @@ const ManualBackupStep2 = ({
       if (!emptySlots.includes(index)) return;
 
       const isFilled = gridWords[index] !== '';
-      const word = gridWords[index];
 
       const updated = [...gridWords];
 
