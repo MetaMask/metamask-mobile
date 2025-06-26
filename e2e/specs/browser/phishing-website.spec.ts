@@ -6,7 +6,7 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import {withFixtures} from '../../fixtures/fixture-helper';
 import {SmokeWalletPlatform} from '../../tags';
 import TestHelpers from '../../helpers';
-import PhishingModal from "../../pages/Browser/PhishingModal.ts";
+import PhishingModal from '../../pages/Browser/PhishingModal.ts';
 
 describe(SmokeWalletPlatform('Try to open a phishing website'), () => {
   beforeAll(async () => {
