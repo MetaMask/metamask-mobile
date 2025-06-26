@@ -3,8 +3,8 @@ import { Hex } from '@metamask/utils';
 export interface SearchDiscoveryResultProps {
   result: SearchDiscoveryResultItem;
   onSelect: (item: SearchDiscoveryResultItem) => void;
+  searchTerm: string | null;
 }
-
 
 export enum SearchDiscoveryCategory {
     Sites = 'sites',

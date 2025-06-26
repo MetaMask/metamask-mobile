@@ -479,6 +479,10 @@ enum EVENT_NAME {
   RPC_SERVICE_UNAVAILABLE = 'RPC Service Unavailable',
   RPC_SERVICE_DEGRADED = 'RPC Service Degraded',
 
+  // Token Search and Discovery
+  TOKEN_SEARCH_DISCOVERY_ITEM_OPENED = 'Token Search Discovery Item Opened',
+  TOKEN_SEARCH_DISCOVERY_SWAP_OPENED = 'Token Search Discovery Swap Opened',
+
   // Deep Link Modal Viewed
   DEEP_LINK_PRIVATE_MODAL_VIEWED = 'Deep Link Private Modal Viewed',
   DEEP_LINK_PUBLIC_MODAL_VIEWED = 'Deep Link Public Modal Viewed',
@@ -1186,6 +1190,14 @@ const events = {
   ),
   SECRET_RECOVERY_PHRASE_PICKER_CLICKED: generateOpt(
     EVENT_NAME.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
+  ),
+
+  // Token Search and Discovery
+  TOKEN_SEARCH_DISCOVERY_ITEM_OPENED: generateOpt(
+    EVENT_NAME.TOKEN_SEARCH_DISCOVERY_ITEM_OPENED,
+  ),
+  TOKEN_SEARCH_DISCOVERY_SWAP_OPENED: generateOpt(
+    EVENT_NAME.TOKEN_SEARCH_DISCOVERY_SWAP_OPENED,
   ),
 
   // Deep Link Modal

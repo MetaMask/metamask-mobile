@@ -26,6 +26,7 @@ export const TokenDiscovery: React.FC<TokenDiscoveryProps> = ({ onSelect }) => {
             <SearchDiscoveryResult
                 result={mapMoralisTokenToResult(item, usdConversionRate)}
                 onSelect={onSelect}
+                searchTerm={null}
             />
         ), [onSelect, usdConversionRate]);
 
