@@ -10,13 +10,8 @@ import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Logger from '../../../../../util/Logger';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
-import { useStyles } from '../../../../hooks/useStyles';
-import styleSheet from '../../../AddAccountActions/AddAccountActions.styles';
+
 import { addNewHdAccount } from '../../../../../actions/multiSrp';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useAccountsWithNetworkActivitySync } from '../../../../hooks/useAccountsWithNetworkActivitySync';
 import { AddAccountBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
 
@@ -38,7 +33,6 @@ const WalletAddAccountActions = ({
   onBack,
   keyringId,
 }: WalletAddAccountActionsProps) => {
-  const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -125,13 +119,6 @@ const WalletAddAccountActions = ({
           onBack={onBack}
         />
         <View>
-          <Text
-            style={styles.subHeaders}
-            variant={TextVariant.BodySMMedium}
-            color={TextColor.Alternative}
-          >
-            {strings('account_actions.create_an_account')}
-          </Text>
           <AccountAction
             actionTitle={strings('account_actions.add_new_account')}
             iconName={IconName.Add}
