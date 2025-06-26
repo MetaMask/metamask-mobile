@@ -49,11 +49,15 @@ describe(
         await ChangePasswordView.reEnterPassword(NEW_PASSWORD);
         await ChangePasswordView.tapIUnderstandCheckBox();
         await ChangePasswordView.tapSubmitButton();
-        await Assertions.checkIfNotVisible(ChangePasswordView.submitButton);
+
+        //wait for screen transitions after password change
+        await Assertions.checkIfNotVisible(ChangePasswordView.submitButton, 25000);
+        await Assertions.checkIfVisible(ToastModal.notificationTitle)
+        await Assertions.checkIfNotVisible(ToastModal.notificationTitle)
 
         // Wait for password change to complete and navigation back to SecuritySettings
         await Assertions.checkIfVisible(SecurityAndPrivacyView.securityAndPrivacyHeading);
-
+        
         // should lock wallet from Settings
         await CommonView.tapBackButton();
         await SettingsView.tapLock();
