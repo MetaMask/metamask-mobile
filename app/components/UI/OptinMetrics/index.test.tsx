@@ -190,9 +190,9 @@ describe('OptinMetrics', () => {
         name: strings('privacy_policy.cta_no_thanks'),
       });
 
-      // Note: In React Native Testing Library, buttons are always "enabled"
-      // but we can test the actual behavior by trying to press them
-      // The real test is whether the onScrollEndReached logic works
+      fireEvent.press(agreeButton);
+      fireEvent.press(noThanksButton);
+
       expect(agreeButton).toBeTruthy();
       expect(noThanksButton).toBeTruthy();
     });
