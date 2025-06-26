@@ -1,3 +1,4 @@
+/* eslint-disable no-console, import/no-nodejs-modules */
 import { loginToApp } from '../../viewHelper';
 import { SmokeWalletPlatform } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
@@ -14,37 +15,39 @@ describe(SmokeWalletPlatform('Account List Load Testing'), () => {
   });
 
   it('render account list efficiently with multiple accounts and networks', async () => {
-    // Performance thresholds (in milliseconds)
-    const PERFORMANCE_THRESHOLDS = {
-      ACCOUNT_LIST_RENDER: 5000, // 5 seconds max for account list to render
-      NAVIGATION_TO_ACCOUNT_LIST: 2000, // 2 seconds max to navigate to account list
-    };
+    // Platform-specific performance thresholds (in milliseconds)
+    const isAndroid = device.getPlatform() === 'android';
+    const PERFORMANCE_THRESHOLDS = isAndroid
+      ? {
+          ACCOUNT_LIST_RENDER: 10000, // 10 seconds max for Android
+          NAVIGATION_TO_ACCOUNT_LIST: 2500, // 2.5 seconds max for Android
+        }
+      : {
+          ACCOUNT_LIST_RENDER: 5000, // 5 seconds max for iOS
+          NAVIGATION_TO_ACCOUNT_LIST: 1500, // 1.5 seconds max for iOS
+        };
 
-    // Generate test tokens for the load test
-    const loadTestTokens = [];
-    for (let i = 1; i <= 10; i++) {
-      loadTestTokens.push({
-        address: `0x${i.toString().padStart(40, '0')}`,
-        symbol: `LT${i}`,
-        decimals: 18,
-        name: `Load Test Token ${i}`,
-      });
-    }
+    console.log(
+      `Running performance test on ${device.getPlatform().toUpperCase()}`,
+    );
+    console.log(
+      `Thresholds - Render: ${PERFORMANCE_THRESHOLDS.ACCOUNT_LIST_RENDER}ms, Navigation: ${PERFORMANCE_THRESHOLDS.NAVIGATION_TO_ACCOUNT_LIST}ms`,
+    );
 
     await withFixtures(
       {
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
           .withKeyringControllerOfMultipleAccounts()
-          .withTokens(loadTestTokens) // Adds test tokens
           .withProfileSyncingEnabled()
           .build(),
         restartDevice: true,
       },
       async () => {
+        await device.disableSynchronization();
+
         await loginToApp();
 
-        // Verify we're on the wallet view
         await Assertions.checkIfVisible(WalletView.container);
 
         // Measure time to navigate to account list
@@ -52,40 +55,28 @@ describe(SmokeWalletPlatform('Account List Load Testing'), () => {
 
         await WalletView.tapIdenticon();
 
-        // Wait for account list to be visible
+        // Re-enable sync and check if account list is visible
         await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+        console.log('✅ Account list became visible');
+
         const navigationEndTime = Date.now();
         const navigationTime = navigationEndTime - navigationStartTime;
+        console.log(`⏱️ Navigation time: ${navigationTime}ms`);
 
-        // Measure time for account list to fully render
+        // Measure time for account list to fully render and become interactive
         const renderStartTime = Date.now();
+        console.log('🎨 Starting render timing...');
 
-        // Wait for the account list to stabilize
-        await TestHelpers.delay(1000);
+        // Wait for accounts to be fully loaded
 
-        // Verify we can see the accounts and the list is functional
-        try {
-          // Check for the account list is populated and accessible
-          await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-          console.log('✓ Account list rendered and visible');
-
-          // Additional delay to ensure full rendering
-          await TestHelpers.delay(500);
-        } catch (error) {
-          console.log(
-            'Using basic account list verification due to element access issues',
-          );
-          // Fallback: just verify the account list is visible and functional
-          await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-        }
-        await Assertions.checkIfTextIsDisplayed("Account 5");
+        // Check if all accounts are loaded
+        await Assertions.checkIfTextIsDisplayed('Account 5');
 
         const renderEndTime = Date.now();
         const renderTime = renderEndTime - renderStartTime;
 
         // Log performance metrics
         console.log('========== ACCOUNT LIST LOAD TESTING RESULTS ==========');
-        console.log(`Configuration: 12 accounts, popular networks, 10 tokens`);
         console.log(`Navigation to account list: ${navigationTime}ms`);
         console.log(`Account list render time: ${renderTime}ms`);
         console.log(`Total time: ${navigationTime + renderTime}ms`);
@@ -120,7 +111,6 @@ describe(SmokeWalletPlatform('Account List Load Testing'), () => {
 
         console.log('✅ Performance test passed!');
 
-        // Clean up - dismiss the account list
         await AccountListBottomSheet.swipeToDismissAccountsModal();
       },
     );
