@@ -57,7 +57,7 @@ import { EarnTokenDetails } from '../../types/lending.types';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { ScrollView } from 'react-native-gesture-handler';
-import { endTrace, TraceName } from 'app/util/trace';
+import { endTrace, TraceName } from '../../../../../util/trace';
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();

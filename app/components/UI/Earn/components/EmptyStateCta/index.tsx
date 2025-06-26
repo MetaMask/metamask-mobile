@@ -29,7 +29,7 @@ import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
-import { trace, TraceName } from 'app/util/trace';
+import { trace, TraceName } from '../../../../../util/trace';
 
 interface EarnEmptyStateCta {
   token: TokenI;

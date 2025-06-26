@@ -68,7 +68,7 @@ import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
 import { doesTokenRequireAllowanceReset } from '../../utils';
 import { ScrollView } from 'react-native-gesture-handler';
-import { endTrace, TraceName } from 'app/util/trace';
+import { endTrace, TraceName } from '../../../../../util/trace';
 
 const EarnInputView = () => {
   // navigation hooks
