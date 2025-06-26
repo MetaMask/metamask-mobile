@@ -185,6 +185,8 @@ const AccountConnect = (props: AccountConnectProps) => {
     // If incoming request includes a non evm namespace (meaning we have a persisted permission for it),
     // and it's an EIP-1193 request, we return all networks
     if (supportedRequestedCaipChainIds.includes(SolScope.Mainnet) && isEip1193Request) {
+      // FIXME: [ffmcgee] --> if we already have permissions for an EIP155 and Solana, and receive another incoming request for SPECIFIC chains
+      // this will be faulty. Fix
       return allNetworksList;
     }
 
