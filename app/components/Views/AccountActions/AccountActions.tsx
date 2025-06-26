@@ -407,7 +407,7 @@ const AccountActions = () => {
             }
           />
         )}
-        {selectedAddress && !isHardwareAccount(selectedAddress) && (
+        {selectedAddress && isHardwareAccount(selectedAddress) && (
           <AccountAction
             actionTitle={strings('accounts.remove_hardware_account')}
             iconName={IconName.Close}
