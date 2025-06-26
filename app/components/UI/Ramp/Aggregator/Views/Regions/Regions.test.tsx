@@ -116,7 +116,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 describe('Regions View', () => {
   afterEach(() => {

@@ -2,8 +2,9 @@ import { ApprovalController } from '@metamask/approval-controller';
 import { ApprovalType } from '@metamask/controller-utils';
 
 import Logger from '../../../../util/Logger';
-import type { ControllerInitFunction } from '../../types';
+import { ApprovalTypes } from '../../../RPCMethods/RPCMethodMiddleware';
 import { type ApprovalControllerMessenger } from '../../messengers/approval-controller-messenger';
+import type { ControllerInitFunction } from '../../types';
 
 export const ApprovalControllerInit: ControllerInitFunction<
   ApprovalController,
@@ -18,6 +19,7 @@ export const ApprovalControllerInit: ControllerInitFunction<
       typesExcludedFromRateLimiting: [
         ApprovalType.Transaction,
         ApprovalType.WatchAsset,
+        ApprovalTypes.SMART_TRANSACTION_STATUS,
       ],
     });
 
