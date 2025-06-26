@@ -1,7 +1,6 @@
 import { ACTIONS, PROTOCOLS, PREFIXES } from '../../../constants/deeplinks';
 import AppConstants from '../../AppConstants';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
-import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import {
   hasSignature,
@@ -13,6 +12,12 @@ import {
 import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
 import { capitalize } from '../../../util/general';
+import handleBrowserUrl from '../Handlers/handleBrowserUrl';
+import { handleSwapUrl } from '../Handlers/handleSwapUrl';
+import { handleBuyCrypto } from '../Handlers/handleBuyCrypto';
+import { handleOpenHome } from '../Handlers/handleOpenHome';
+import { handleSellCrypto } from '../Handlers/handleSellCrypto';
+import DeeplinkManager from '../DeeplinkManager';
 
 const {
   MM_UNIVERSAL_LINK_HOST,
@@ -31,15 +36,16 @@ enum SUPPORTED_ACTIONS {
   SEND = ACTIONS.SEND,
 }
 
+
+
+
 async function handleUniversalLink({
-  instance,
   handled,
   urlObj,
   browserCallBack,
   url,
   source,
 }: {
-  instance: DeeplinkManager;
   handled: () => void;
   urlObj: ReturnType<typeof extractURLParams>['urlObj'];
   browserCallBack?: (url: string) => void;
@@ -141,7 +147,7 @@ async function handleUniversalLink({
         '',
       )
       .replace(`${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.BUY}`, '');
-    instance._handleBuyCrypto(rampPath);
+    handleBuyCrypto(rampPath);
   } else if (
     action === SUPPORTED_ACTIONS.SELL_CRYPTO ||
     action === SUPPORTED_ACTIONS.SELL
@@ -152,20 +158,23 @@ async function handleUniversalLink({
         '',
       )
       .replace(`${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.SELL}`, '');
-    instance._handleSellCrypto(rampPath);
+    handleSellCrypto(rampPath);
   } else if (action === SUPPORTED_ACTIONS.HOME) {
-    instance._handleOpenHome();
+    handleOpenHome();
     return;
   } else if (action === SUPPORTED_ACTIONS.SWAP) {
     const swapPath = urlObj.href.replace(
       `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${SUPPORTED_ACTIONS.SWAP}`,
       '',
     );
-    instance._handleSwap(swapPath);
+    handleSwapUrl({ swapPath });
     return;
   } else if (action === SUPPORTED_ACTIONS.DAPP) {
     // Normal links (same as dapp)
-    instance._handleBrowserUrl(urlObj.href, browserCallBack);
+    handleBrowserUrl({
+      url: urlObj.href,
+      callback: browserCallBack
+    });
   } else if (action === SUPPORTED_ACTIONS.SEND) {
     const deeplinkUrl = urlObj.href
       .replace(
@@ -177,7 +186,7 @@ async function handleUniversalLink({
         PREFIXES[ACTIONS.SEND],
       );
     // loops back to open the link with the right protocol
-    instance.parse(deeplinkUrl, { origin: source });
+    DeeplinkManager.parse(deeplinkUrl, { origin: source });
     return;
   }
 }
