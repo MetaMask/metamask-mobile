@@ -14,6 +14,7 @@ import {
   SafeAreaView,
   FlatList,
   TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 import { connect } from 'react-redux';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -220,7 +221,9 @@ const ImportFromSecretRecoveryPhrase = ({
     (seedPhraseText) => {
       const text = formatSeedPhraseToSingleLine(seedPhraseText);
       const trimmedText = text.trim();
-      const updatedTrimmedText = trimmedText.split(' ');
+      const updatedTrimmedText = trimmedText
+        .split(' ')
+        .filter((word) => word !== '');
 
       if (SRP_LENGTHS.includes(updatedTrimmedText.length)) {
         setSeedPhrase(updatedTrimmedText);
@@ -696,8 +699,8 @@ const ImportFromSecretRecoveryPhrase = ({
         contentContainerStyle={styles.wrapper}
         resetScrollToCoords={{ x: 0, y: 0 }}
       >
-        <View
-          style={styles.container}
+        <ScrollView
+          contentContainerStyle={styles.container}
           testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}
         >
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
@@ -862,14 +865,14 @@ const ImportFromSecretRecoveryPhrase = ({
                       />
                       <Button
                         label={
-                          seedPhrase.length > 1
+                          seedPhrase.length >= 1
                             ? strings('import_from_seed.clear_all')
                             : strings('import_from_seed.paste')
                         }
                         variant={ButtonVariants.Link}
                         style={styles.pasteButton}
                         onPress={() => {
-                          if (seedPhrase.length > 1) {
+                          if (seedPhrase.length >= 1) {
                             handleClear();
                           } else {
                             handlePaste();
@@ -1085,7 +1088,7 @@ const ImportFromSecretRecoveryPhrase = ({
               </View>
             </View>
           )}
-        </View>
+        </ScrollView>
       </KeyboardAwareScrollView>
       <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
