@@ -581,7 +581,11 @@
       "total": "Total",
       "view_order_details_in_transak": "View order details in Transak",
       "no_order_found": "No order found",
-      "back_to_wallet": "Back to Wallet"
+      "back_to_wallet": "Back to Wallet",
+      "cancel_order_button": "Cancel"
+    },
+    "order_details": {
+      "title": "Deposit Order"
     },
     "notifications": {
       "deposit_failed_title": "Deposit of {{currency}} has failed! Please try again, sorry for the inconvenience!",
