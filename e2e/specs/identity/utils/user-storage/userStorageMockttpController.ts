@@ -50,6 +50,9 @@ export const UserStorageMockttpControllerEvents = {
   DELETE_BATCH: 'DELETE_BATCH',
 } as const;
 
+// Helper type for converting const objects to enum-like types
+export type AsEnum<T> = T[keyof T];
+
 export class UserStorageMockttpController {
   paths: Map<
     keyof typeof pathRegexps,

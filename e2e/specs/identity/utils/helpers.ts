@@ -3,6 +3,7 @@ import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sd
 import {
   UserStorageMockttpController,
   UserStorageMockttpControllerEvents,
+  AsEnum,
 } from './user-storage/userStorageMockttpController';
 
 export interface UserStorageAccount {
@@ -49,7 +50,7 @@ export const arrangeTestUtils = (
   const BASE_INTERVAL = 1000;
 
   const prepareEventsEmittedCounter = (
-    event: typeof UserStorageMockttpControllerEvents[keyof typeof UserStorageMockttpControllerEvents],
+    event: AsEnum<typeof UserStorageMockttpControllerEvents>,
   ) => {
     let counter = 0;
     userStorageMockttpController.eventEmitter.on(event, () => {
