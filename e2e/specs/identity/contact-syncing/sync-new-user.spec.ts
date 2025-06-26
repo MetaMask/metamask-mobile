@@ -79,12 +79,14 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
       userStorageMockttpController,
     );
 
-    await device.disableSynchronization();
+    // Disabling just in case this was causing issues (the last run has android and ios fail?)
+    // await device.disableSynchronization();
     await TestHelpers.delay(2000);
 
     await AddContactView.typeInName(NEW_CONTACT_NAME);
     await AddContactView.typeInAddress(NEW_CONTACT_ADDRESS);
     await AddContactView.tapAddContactButton();
+    await TestHelpers.delay(2000); // another delay just in case it takes time to process??
     await Assertions.checkIfVisible(ContactsView.container);
     await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
 
@@ -93,7 +95,7 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
       1,
     );
 
-    await device.enableSynchronization();
+    // await device.enableSynchronization();
 
     await TestHelpers.launchApp({
       newInstance: true,
