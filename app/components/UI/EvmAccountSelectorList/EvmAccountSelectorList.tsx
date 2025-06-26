@@ -5,8 +5,8 @@ import {
   View,
   ViewStyle,
   TouchableOpacity,
+  useWindowDimensions,
 } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
 import { CaipChainId } from '@metamask/utils';
 import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -56,6 +56,22 @@ import { Skeleton } from '../../../component-library/components/Skeleton';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 import { AccountWallet } from '@metamask/account-tree-controller';
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+export const useSheetStyleStyleVars = () => {
+  const { top: screenTopPadding, bottom: screenBottomPadding } =
+    useSafeAreaInsets();
+  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
+  const maxSheetHeight = screenHeight - screenTopPadding;
+  return {
+    maxSheetHeight,
+    screenHeight,
+    screenWidth,
+    screenTopPadding,
+    screenBottomPadding,
+  };
+};
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
@@ -390,8 +406,8 @@ const EvmAccountSelectorList = ({
     scrollToSelectedAccount();
   }, [scrollToSelectedAccount]);
 
-  const renderItem = useCallback(
-    ({ item }: { item: FlattenedAccountListItem }) => {
+  const renderItem: ListRenderItem<FlattenedAccountListItem> = useCallback(
+    ({ item }) => {
       if (item.type === 'header') {
         return renderSectionHeader(item.data);
       }
@@ -564,18 +580,27 @@ const EvmAccountSelectorList = ({
     }
   }, [accounts, accountListRef, selectedAddresses, isAutoScrollEnabled]);
 
+  const { maxSheetHeight } = useSheetStyleStyleVars();
+  const listItemHeight = 80;
+  const addAccountBuffer = 200;
+  // Clamp between 300 to maxSheetSize, and subtract the add account button area
+  const listHeight =
+    Math.max(300, Math.min(maxSheetHeight, listItemHeight * accounts.length)) -
+    addAccountBuffer;
+
   return (
-    <FlatList
-      ref={accountListRef}
-      onContentSizeChange={onContentSizeChanged}
-      data={flattenedData}
-      keyExtractor={getKeyExtractor}
-      renderItem={renderItem}
-      // Increasing number of items at initial render fixes scroll issue.
-      initialNumToRender={60}
-      testID={ACCOUNT_SELECTOR_LIST_TESTID}
-      {...props}
-    />
+    <View style={{ height: listHeight }}>
+      <FlashList
+        ref={accountListRef}
+        onContentSizeChange={onContentSizeChanged}
+        data={flattenedData}
+        keyExtractor={getKeyExtractor}
+        renderItem={renderItem}
+        estimatedItemSize={listItemHeight}
+        testID={ACCOUNT_SELECTOR_LIST_TESTID}
+        {...props}
+      />
+    </View>
   );
 };
 
