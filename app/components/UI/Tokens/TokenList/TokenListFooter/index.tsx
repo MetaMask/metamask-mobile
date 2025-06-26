@@ -1,11 +1,10 @@
 import React, { useMemo } from 'react';
 import createStyles from '../../styles';
 import { useTheme } from '../../../../../util/theme';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { isZero } from '../../../../../util/lodash';
@@ -36,15 +35,7 @@ import { selectSelectedInternalAccount } from '../../../../../selectors/accounts
 import { RootState } from '../../../../../reducers';
 ///: END:ONLY_INCLUDE_IF
 
-interface TokenListFooterProps {
-  goToAddToken: () => void;
-  isAddTokenEnabled: boolean;
-}
-
-export const TokenListFooter = ({
-  goToAddToken,
-  isAddTokenEnabled,
-}: TokenListFooterProps) => {
+export const TokenListFooter = () => {
   const chainId = useSelector(selectChainId);
   const navigation = useNavigation();
   const { colors } = useTheme();
@@ -114,24 +105,6 @@ export const TokenListFooter = ({
           />
         </View>
       )}
-      {/* render footer */}
-      <View style={styles.footer} key={'tokens-footer'}>
-        {isEvmSelected &&  (
-          <TouchableOpacity
-          style={styles.add}
-          onPress={goToAddToken}
-          disabled={!isAddTokenEnabled}
-          testID={WalletViewSelectorsIDs.IMPORT_TOKEN_FOOTER_LINK}
-        >
-          <Text style={styles.centered}>
-            <Text style={styles.emptyText}>
-              {strings('wallet.no_available_tokens')}
-            </Text>{' '}
-            <Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
-          </Text>
-        </TouchableOpacity>
-        )}
-      </View>
     </>
   );
 };

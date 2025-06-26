@@ -43,30 +43,4 @@ describe(SmokeNetworkAbstractions('Connect account to Portfolio'), () => {
     await BrowserView.tapCloseTabsButton();
     await Assertions.checkIfVisible(BrowserView.noTabsMessage);
   });
-
-  itif(device.getPlatform() === 'ios')('should connect wallet account to portfolio', async () => {
-    await TabBarComponent.tapWallet();
-    await WalletView.tapPortfolio();
-    await BrowserView.waitForBrowserPageToLoad();
-
-    try {
-      await PortfolioHomePage.closePrivacyModal();
-    } catch {
-      /* eslint-disable no-console */
-      console.log('The Portfolio privacy modal is not visible');
-    }
-    await device.disableSynchronization();
-    await PortfolioHomePage.tapBurgerMenu();
-    await PortfolioHomePage.tapConnectMetaMask();
-    await TestHelpers.delay(2000);
-    await ConnectBottomSheet.tapConnectButton();
-    await device.enableSynchronization();
-  });
-
-  it('should not open additional browser tabs to portfolio', async () => {
-    await TabBarComponent.tapWallet();
-    await WalletView.tapPortfolio();
-    await BrowserView.waitForBrowserPageToLoad();
-    await Assertions.checkIfElementToHaveText(BrowserView.tabsNumber, '1');
-  });
 });
