@@ -308,7 +308,7 @@ const EvmAccountSelectorList = ({
   const onNavigateToWalletDetails = useCallback(
     (wallet: AccountWallet) => {
       navigate(Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS, {
-        walletId: wallet.id,
+        wallet,
       });
     },
     [navigate],
@@ -336,10 +336,9 @@ const EvmAccountSelectorList = ({
     ],
   );
 
-  const renderSectionFooter = useCallback(
-    () => <View style={styles.sectionSeparator} />,
-    [styles.sectionSeparator],
-  );
+  const renderSectionFooter = useCallback(() => (
+    <View style={styles.sectionSeparator} />
+  ), [styles.sectionSeparator]);
 
   const scrollToSelectedAccount = useCallback(() => {
     if (!accounts.length || !isAutoScrollEnabled || !accountListRef.current)
@@ -358,8 +357,7 @@ const EvmAccountSelectorList = ({
       // Find the item index for the selected account in flattened data
       const selectedItemIndex = flattenedData.findIndex(
         (item) =>
-          item.type === 'account' &&
-          areAddressesEqual(item.data.address, selectedAccount.address),
+          item.type === 'account' && areAddressesEqual(item.data.address, selectedAccount.address),
       );
 
       if (selectedItemIndex !== -1) {
@@ -370,13 +368,7 @@ const EvmAccountSelectorList = ({
         });
       }
     }
-  }, [
-    accounts,
-    accountListRef,
-    selectedAddresses,
-    isAutoScrollEnabled,
-    flattenedData,
-  ]);
+  }, [accounts, accountListRef, selectedAddresses, isAutoScrollEnabled, flattenedData]);
 
   // Scroll to selected account when selection changes or on mount
   useEffect(() => {

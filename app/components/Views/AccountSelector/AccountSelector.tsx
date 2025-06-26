@@ -40,12 +40,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import {
-  TraceName,
-  TraceOperation,
-  endTrace,
-  trace,
-} from '../../../util/trace';
+import { TraceName, TraceOperation, endTrace, trace } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
@@ -132,10 +127,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
 
   // Tracing for the account list rendering:
-  const isAccountSelector = useMemo(
-    () => screen === AccountSelectorScreens.AccountSelector,
-    [screen],
-  );
+  const isAccountSelector = useMemo(() => screen === AccountSelectorScreens.AccountSelector, [screen]);
   useEffect(() => {
     if (isAccountSelector) {
       trace({
@@ -211,11 +203,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   }, [screen, renderAccountSelector, renderAddAccountActions]);
 
   return (
-    <BottomSheet
-      style={styles.bottomSheetContent}
-      ref={sheetRef}
-      onOpen={onOpen}
-    >
+    <BottomSheet style={styles.bottomSheetContent} ref={sheetRef} onOpen={onOpen}>
       {renderAccountScreens()}
     </BottomSheet>
   );
