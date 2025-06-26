@@ -20,6 +20,7 @@ import KycWebview from '../Views/KycWebview';
 import OrderProcessing from '../Views/OrderProcessing';
 
 import TokenSelectorModal from '../Views/Modals/TokenSelectorModal';
+import PaymentMethodSelectorModal from '../Views/Modals/PaymentMethodSelectorModal';
 
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -121,6 +122,10 @@ export const DepositModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.DEPOSIT.MODALS.TOKEN_SELECTOR}
       component={TokenSelectorModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.DEPOSIT.MODALS.PAYMENT_METHOD_SELECTOR}
+      component={PaymentMethodSelectorModal}
     />
   </ModalsStack.Navigator>
 );
