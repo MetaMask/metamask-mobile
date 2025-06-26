@@ -10,6 +10,7 @@ import { mapMoralisTokenToResult } from '../../../util/search-discovery/map-mora
 import { useSelector } from 'react-redux';
 import { selectUsdConversionRate } from '../../../selectors/currencyRateController';
 import { TokenDiscoveryProps } from './types';
+import { strings } from '../../../../locales/i18n';
 
 export const TokenDiscovery: React.FC<TokenDiscoveryProps> = ({ onSelect }) => {
     const { styles } = useStyles(styleSheet, {});
@@ -32,7 +33,9 @@ export const TokenDiscovery: React.FC<TokenDiscoveryProps> = ({ onSelect }) => {
     return (
         <View style={styles.container}>
             <View style={searchDiscoveryStyles.categoryWrapper}>
-                <Text style={searchDiscoveryStyles.categoryTitle}>Popular Tokens</Text>
+                <Text style={searchDiscoveryStyles.categoryTitle}>
+                    {strings('tokenDiscovery.popularTokens')}
+                </Text>
             </View>
             {isLoading && results.length === 0 ? (
                 <View style={styles.loadingContainer}>
