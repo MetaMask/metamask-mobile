@@ -2,7 +2,10 @@ import {
   IDENTITY_TEAM_PASSWORD,
   IDENTITY_TEAM_SEED_PHRASE,
 } from '../utils/constants';
-import { startMockServer, stopMockServer } from '../../../api-mocking/mock-server';
+import {
+  startMockServer,
+  stopMockServer,
+} from '../../../api-mocking/mock-server';
 import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
 import TestHelpers from '../../../helpers';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
@@ -15,11 +18,15 @@ import AddContactView from '../../../pages/Settings/Contacts/AddContactView';
 import SettingsView from '../../../pages/Settings/SettingsView';
 import Assertions from '../../../utils/Assertions';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
+import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
+import { arrangeTestUtils } from '../utils/helpers';
+import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController';
 
 describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
   const NEW_CONTACT_NAME = 'New Test Contact';
   const NEW_CONTACT_ADDRESS = '0x1234567890123456789012345678901234567890';
   let mockServer: MockttpServer;
+  let userStorageMockttpController: UserStorageMockttpController;
 
   beforeAll(async () => {
     const segmentMock = {
@@ -30,7 +37,16 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
 
     mockServer = await startMockServer(segmentMock);
 
-    await mockIdentityServices(mockServer);
+    const { userStorageMockttpControllerInstance } = await mockIdentityServices(
+      mockServer,
+    );
+
+    userStorageMockttpController = userStorageMockttpControllerInstance;
+
+    await userStorageMockttpController.setupPath(
+      USER_STORAGE_FEATURE_NAMES.addressBook,
+      mockServer,
+    );
 
     // Don't setup addressBook path with empty array - let it be naturally empty
     // This avoids creating an unexpected state that the codebase doesn't handle
@@ -62,13 +78,20 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
     await ContactsView.tapAddContactButton();
     await Assertions.checkIfVisible(AddContactView.container);
 
+    const { waitUntilSyncedElementsNumberEquals } = arrangeTestUtils(
+      userStorageMockttpController,
+    );
+
     await AddContactView.typeInName(NEW_CONTACT_NAME);
     await AddContactView.typeInAddress(NEW_CONTACT_ADDRESS);
     await AddContactView.tapAddContactButton();
-
-    // Give extra time for contact save and sync operations
-    await TestHelpers.delay(10000);
+    await Assertions.checkIfVisible(ContactsView.container);
     await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
+
+    await waitUntilSyncedElementsNumberEquals(
+      USER_STORAGE_FEATURE_NAMES.addressBook,
+      1,
+    );
 
     await TestHelpers.launchApp({
       newInstance: true,
