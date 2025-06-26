@@ -601,3 +601,5 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     supported: false,
   },
 ];
+
+export const TRANSAK_SUPPORT_URL = 'https://support.transak.com';

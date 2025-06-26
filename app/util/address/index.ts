@@ -43,10 +43,7 @@ import type {
   NetworkClientId,
   NetworkState,
 } from '@metamask/network-controller';
-import {
-  KeyringObject,
-  KeyringTypes,
-} from '@metamask/keyring-controller';
+import { KeyringObject, KeyringTypes } from '@metamask/keyring-controller';
 import { type Hex, isHexString } from '@metamask/utils';
 import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
 
