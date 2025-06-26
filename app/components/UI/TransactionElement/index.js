@@ -28,6 +28,7 @@ import {
 } from '../../../util/networks';
 import { weiHexToGweiDec } from '@metamask/controller-utils';
 import {
+  TransactionType,
   WalletDevice,
   isEIP1559Transaction,
 } from '@metamask/transaction-controller';
@@ -46,6 +47,7 @@ import {
 } from '../../../util/bridge/hooks/useBridgeTxHistoryData';
 import BridgeActivityItemTxSegments from '../Bridge/components/TransactionDetails/BridgeActivityItemTxSegments';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../constants/bridge';
+import { getSwapBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
 import { decimalToHex } from '../../../util/conversions';
 import { addHexPrefix } from '../../../util/number';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
@@ -63,7 +65,6 @@ import {
   formatChainIdToHex,
   isSolanaChainId,
 } from '@metamask/bridge-controller';
-import { getBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -258,7 +259,11 @@ class TransactionElement extends PureComponent {
   onPressItem = () => {
     const { tx, i, onPressItem } = this.props;
     onPressItem(tx.id, i);
-    if (tx.type === 'bridge') {
+
+    const isUnifiedSwap =
+      tx.type === TransactionType.swap &&
+      this.props.bridgeTxHistoryData?.bridgeTxHistoryItem;
+    if (tx.type === TransactionType.bridge || isUnifiedSwap) {
       this.props.navigation.navigate(Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS, {
         evmTxMeta: tx,
       });
@@ -401,10 +406,11 @@ class TransactionElement extends PureComponent {
       tx: { time, status, isSmartTransaction, chainId, type },
       bridgeTxHistoryData: { bridgeTxHistoryItem, isBridgeComplete },
     } = this.props;
-    const isBridgeTransaction = type === 'bridge';
+    const isBridgeTransaction = type === TransactionType.bridge;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
+
     const renderNormalActions =
       (status === 'submitted' ||
         (status === 'approved' && !isQRHardwareAccount && !isLedgerAccount)) &&
@@ -414,10 +420,8 @@ class TransactionElement extends PureComponent {
       status === 'approved' && isQRHardwareAccount;
     const renderLedgerActions = status === 'approved' && isLedgerAccount;
     const accountImportTime = selectedInternalAccount?.metadata.importTime;
-    let title = actionKey;
-    if (isBridgeTransaction && bridgeTxHistoryItem) {
-      title = getBridgeTxActivityTitle(bridgeTxHistoryItem) ?? title;
-    }
+    const title = actionKey;
+
     return (
       <>
         {accountImportTime > time && this.renderImportTime()}
