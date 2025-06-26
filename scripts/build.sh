@@ -262,7 +262,7 @@ buildAndroidDevBuild(){
 		TASK_NAME="assembleFlaskDebug assembleFlaskDebugAndroidTest"
 	fi
 
-	cd android && ./gradlew $TASK_NAME assembleProdDebugAndroidTest -DtestBuildType=debug --build-cache --parallel && cd ..
+	cd android && ./gradlew $TASK_NAME -DtestBuildType=debug --build-cache --parallel && cd ..
 }
 
 buildAndroidRunQA(){

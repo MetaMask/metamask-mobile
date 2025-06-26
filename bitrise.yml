@@ -1622,7 +1622,6 @@ workflows:
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: 'flask'
-      - KEYSTORE_URL: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
       - BUILD_COMMAND: 'yarn build:android:devbuild:flask'
     after_run:
       - _android_e2e_build_template
