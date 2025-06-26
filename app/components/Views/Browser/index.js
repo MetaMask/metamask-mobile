@@ -471,9 +471,8 @@ export const Browser = (props) => {
       <DiscoveryTab
         showTabs={showTabsView}
         newTab={newTab}
-        updateTabInfo={updateTabInfo}
       />
-    ), [showTabsView, newTab, updateTabInfo]);
+    ), [showTabsView, newTab]);
 
   return (
     <View
