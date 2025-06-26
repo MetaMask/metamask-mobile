@@ -900,23 +900,19 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       [handleError, handleSuccessfulPageResolution, favicon],
     );
 
-    /**
-     * Check if any iFrame URLs are prohibited
-     */
-    const checkIFrameUrls = useCallback(async (iframeUrls: string[]) => {
-      for (const iframeUrl of iframeUrls) {
-        try {
-          const { origin: iframeOrigin } = new URLParse(iframeUrl);
-          const isAllowed = await isAllowedOrigin(iframeOrigin);
-          if (!isAllowed) {
-            handleNotAllowedUrl(iframeOrigin);
-            return;
-          }
-        } catch (error) {
-          Logger.error(error as Error, `Error checking iFrame URL: ${iframeUrl}`);
-        }
+  /**
+   * Check if any iFrame URLs are prohibited
+   */
+  const checkIFrameUrls = useCallback(async (iframeUrls: string[]) => {
+    for (const iframeUrl of iframeUrls) {
+      const { origin: iframeOrigin } = new URLParse(iframeUrl);
+      const isAllowed = await isAllowedOrigin(iframeOrigin);
+      if (!isAllowed) {
+        handleNotAllowedUrl(iframeOrigin);
+        return;
       }
-    }, [isAllowedOrigin, handleNotAllowedUrl]);
+    }
+  }, [isAllowedOrigin, handleNotAllowedUrl]);
 
     /**
      * Handle message from website
