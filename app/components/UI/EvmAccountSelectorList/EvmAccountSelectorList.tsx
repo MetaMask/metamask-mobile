@@ -102,7 +102,14 @@ const EvmAccountSelectorList = ({
   );
 
   const accountTreeSections = useSelector(selectAccountSections);
+
+  // console.log(
+  //   'accountTreeSections',
+  //   JSON.stringify(accountTreeSections, null, 2),
+  // );
   const internalAccounts = useSelector(selectInternalAccounts);
+
+  // console.log('internalAccounts', JSON.stringify(internalAccounts, null, 2));
 
   const accountSections = useMemo((): AccountSection[] => {
     if (accountTreeSections) {
@@ -565,7 +572,7 @@ const EvmAccountSelectorList = ({
       keyExtractor={getKeyExtractor}
       renderItem={renderItem}
       // Increasing number of items at initial render fixes scroll issue.
-      initialNumToRender={999}
+      initialNumToRender={60}
       testID={ACCOUNT_SELECTOR_LIST_TESTID}
       {...props}
     />
