@@ -262,6 +262,7 @@ const UrlAutocomplete = forwardRef<
             }}
             onSelect={onItemSelect}
             iconName={IconName.Global}
+            searchTerm={latestSearchTerm.current}
           />
         )}
         {!hasProtocol(latestSearchTerm.current) && (
@@ -273,6 +274,7 @@ const UrlAutocomplete = forwardRef<
             }}
             onSelect={onItemSelect}
             iconName={IconName.Search}
+            searchTerm={latestSearchTerm.current}
           />
         )}
       </>
