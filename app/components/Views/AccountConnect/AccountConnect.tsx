@@ -182,12 +182,19 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { isEip1193Request } = hostInfo.metadata;
 
   const defaultSelectedChainIds = useMemo(() => {
-    // If incoming request includes a non evm namespace (meaning we have a persisted permission for it),
-    // and it's an EIP-1193 request, we return all networks
-    if (supportedRequestedCaipChainIds.includes(SolScope.Mainnet) && isEip1193Request) {
-      // FIXME: [ffmcgee] --> if we already have permissions for an EIP155 and Solana, and receive another incoming request for SPECIFIC chains
-      // this will be faulty. Fix
-      return allNetworksList;
+    // For an incoming EIP-1193 request, if we have a persisted Solana permission
+    if (
+      // TODO: [ffmcgee] --> this will not scale when we add Bitcoin and other non EVM stuff to the mix... if I have Bitcoin and Solana persisted permissions
+      // and an EIP-1193 request is incoming, without a specific EIP-155 compatible chain, supportedRequestedCaipChainIds.length will be > than 1, and we would return supportedRequestedCaipChainIds
+      // which we do not want. Think about a scaling solution for this check (Bitcoin and Solana persisted + EIP-1193 request is incoming, without a specific EIP-155 compatible chain, should return allNetworksList)
+      supportedRequestedCaipChainIds.includes(SolScope.Mainnet) &&
+      isEip1193Request
+    ) {
+      // we return all networks if the request does not specify an EIP-155 compatible chain
+      // or if an EIP-155 compatible chain is specified, we return supported requested CAIP chain IDs
+      return supportedRequestedCaipChainIds.length === 1
+        ? allNetworksList
+        : supportedRequestedCaipChainIds;
     }
 
     // For EIP-1193 requests (injected Ethereum provider requests) or WalletConnect or MMSDK Remote Conn,
@@ -196,12 +203,13 @@ const AccountConnect = (props: AccountConnectProps) => {
       return allNetworksList.filter((chain) =>
         chain.includes(KnownCaipNamespace.Eip155),
       );
-      // otherwise, if we have supported requested CAIP chain IDs, use those
-    } else if (supportedRequestedCaipChainIds.length > 0) {
-      return supportedRequestedCaipChainIds;
     }
+
+    // Default fallback logic, where if we have supported requested CAIP chain IDs, we use those
     // otherwise, use all available networks
-    return allNetworksList;
+    return supportedRequestedCaipChainIds.length > 0
+      ? supportedRequestedCaipChainIds
+      : allNetworksList;
   }, [
     isEip1193Request,
     allNetworksList,
