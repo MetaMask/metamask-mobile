@@ -279,7 +279,7 @@ const ImportFromSecretRecoveryPhrase = ({
       onScanSuccess: ({ seed = undefined }) => {
         if (seed) {
           handleClear();
-          handleSeedPhraseChangeAtIndex(seed, 0);
+          handleSeedPhraseChange(seed);
         } else {
           Alert.alert(
             strings('import_from_seed.invalid_qr_code_title'),
@@ -292,12 +292,7 @@ const ImportFromSecretRecoveryPhrase = ({
         setHideSeedPhraseInput(shouldHideSRP);
       },
     });
-  }, [
-    hideSeedPhraseInput,
-    navigation,
-    handleClear,
-    handleSeedPhraseChangeAtIndex,
-  ]);
+  }, [hideSeedPhraseInput, navigation, handleClear, handleSeedPhraseChange]);
 
   const onBackPress = () => {
     if (currentStep === 0) {
