@@ -169,61 +169,86 @@ export const selectSwapsIsInPolling = createSelector(
   (swapsControllerState) => swapsControllerState.isInPolling,
 );
 
-const swapsControllerAndUserTokens = createSelector(
-  swapsControllerTokens,
-  selectTokens,
-  (swapsTokens, tokens) => {
-    const values = [...(swapsTokens || []), ...(tokens || [])]
-      .filter(Boolean)
-      .reduce((map, { hasBalanceError, image, ...token }) => {
-        const key = token.address.toLowerCase();
+  const swapsControllerAndUserTokens = createSelector(
+    swapsControllerTokens,
+    selectTokens,
+    (swapsTokens, tokens) => {
+      const allTokens = [];
+      if (swapsTokens) {
+        allTokens.push(...swapsTokens);
+      }
+      if (tokens) {
+        allTokens.push(...tokens);
+      }
+      
+      if (allTokens.length === 0) {
+        return [];
+      }
+      
+      const tokenMap = createTokenMap(allTokens);
+      return Array.from(tokenMap.values());
+    },
+  );
 
-        if (!map.has(key)) {
-          map.set(key, {
-            occurrences: 0,
-            ...token,
-            decimals: Number(token.decimals),
-            address: key,
-          });
+  // Create a memoized selector to get tokens for current user across all chains
+  const selectCurrentUserTokensAcrossChains = createSelector(
+    selectAllTokens,
+    selectSelectedInternalAccountAddress,
+    (allTokens, currentUserAddress) => {
+      if (!currentUserAddress || !allTokens) {
+        return [];
+      }
+      
+      const userTokens = [];
+      // Only iterate through chains that exist, and only get current user's tokens
+      for (const chainTokens of Object.values(allTokens)) {
+        const userTokensForChain = chainTokens[currentUserAddress];
+        if (userTokensForChain && userTokensForChain.length > 0) {
+          userTokens.push(...userTokensForChain);
         }
-        return map;
-      }, new Map())
-      .values();
+      }
+      return userTokens;
+    },
+  );
 
-    return [...values];
-  },
-);
+// Create a memoized map builder for better performance
+const createTokenMap = (tokens) => {
+  const map = new Map();
+  for (const token of tokens) {
+    if (token && token.address) {
+      const key = token.address.toLowerCase();
+      if (!map.has(key)) {
+        map.set(key, {
+          occurrences: 0,
+          ...token,
+          decimals: Number(token.decimals),
+          address: key,
+        });
+      }
+    }
+  }
+  return map;
+};
 
 const swapsControllerAndUserTokensMultichain = createSelector(
   swapsControllerTokens,
-  selectAllTokens,
-  selectSelectedInternalAccountAddress,
-  (swapsTokens, allTokens, currentUserAddress) => {
-    const allTokensArr = Object.values(allTokens);
-    const allUserTokensCrossChains = allTokensArr.reduce(
-      (acc, tokensElement) => {
-        const found = tokensElement[currentUserAddress] || [];
-        return [...acc, ...found.flat()];
-      },
-      [],
-    );
-    const values = [...(swapsTokens || []), ...(allUserTokensCrossChains || [])]
-      .filter(Boolean)
-      .reduce((map, { hasBalanceError, image, ...token }) => {
-        const key = token.address.toLowerCase();
-
-        if (!map.has(key)) {
-          map.set(key, {
-            occurrences: 0,
-            ...token,
-            decimals: Number(token.decimals),
-            address: key,
-          });
-        }
-        return map;
-      }, new Map())
-      .values();
-    return [...values];
+  selectCurrentUserTokensAcrossChains,
+  (swapsTokens, userTokens) => {
+    // Combine both token arrays efficiently
+    const allTokens = [];
+    if (swapsTokens) {
+      allTokens.push(...swapsTokens);
+    }
+    if (userTokens) {
+      allTokens.push(...userTokens);
+    }
+    
+    if (allTokens.length === 0) {
+      return [];
+    }
+    
+    const tokenMap = createTokenMap(allTokens);
+    return Array.from(tokenMap.values());
   },
 );
 
