@@ -139,8 +139,6 @@ describe('useSamplePetNamesForm', () => {
           feature: 'sample-pet-names',
           operation: 'add-pet-name',
           chainId: '0x1',
-          address: toChecksumAddress(initialAddress),
-          name: initialName,
         },
         tags: {
           environment: 'development',

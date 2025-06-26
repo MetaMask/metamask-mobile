@@ -77,6 +77,7 @@ This feature demonstrates:
 - Navigation patterns within the app
 - UI component library usage and styling
 - MetaMetrics tracking implementation
+- Performance tracing patterns and monitoring
 - Comprehensive unit testing
 - End-to-end testing with Cucumber/Gherkin
 
@@ -240,6 +241,63 @@ Events are defined in `analytics/events.ts` following the event builder pattern:
 - Type-safe event generation using the `generateOpt` utility
 - Integration with the global MetaMetrics system
 - Separation of event definition from event dispatching
+
+## Performance Tracing
+
+The Sample Feature demonstrates MetaMask's dual performance monitoring approach using both Sentry tracing and Redux performance tracking:
+
+### Sentry Tracing (`useSamplePetNames.ts`, `useSamplePetNamesForm.ts`)
+
+**Purpose**: Production aimed performance monitoring with privacy protection.
+
+**Implementation**:
+- **`useSamplePetNames.ts`**: Tracks pet names listing operations
+  - Trace Name: `SampleFeatureListPetNames`
+  - Operation: `sample.feature.list.pet.names`
+  - Captures: chainId, petNamesCount, feature context (no addresses or names)
+- **`useSamplePetNamesForm.ts`**: Tracks pet name addition operations
+  - Trace Name: `SampleFeatureAddPetName`
+  - Operation: `sample.feature.add.pet.name`
+  - Captures: chainId, feature context (no addresses or names)
+
+**Features**:
+- Automatic span creation and management
+- Error tracking with performance context
+- Integration with Sentry's performance dashboard
+- Code-fenced trace names for sample feature isolation
+- **Privacy-focused**: No tracking of addresses, names, or other sensitive user data
+- **Safe to track**: chainId (public network info), petNamesCount (aggregate count), feature context
+
+### Redux Performance Tracking (`useSampleCounter.ts`)
+
+**Purpose**: Development debugging and testing performance metrics (only active in test environments).
+
+**Implementation**:
+- **`useSampleCounter.ts`**: Tracks counter increment operations
+  - Event Name: `SAMPLE_COUNTER_INCREMENT`
+  - Captures: current count, new count, success/error status
+  - Error handling with proper cleanup
+
+**Features**:
+- Session-based performance tracking
+- Environment metadata collection
+- Real-time performance data for debugging
+- Development-only activation
+
+### Best Practices Demonstrated
+
+1. **Proper Error Handling**: Both tracing systems ensure traces are ended even when operations fail
+2. **Rich Context**: Captures relevant metadata for debugging and performance analysis
+3. **Code Fencing**: Sample feature specific trace names are only included when the feature is enabled
+4. **Consistent Naming**: Uses descriptive names and structured metadata
+5. **Testing Integration**: Comprehensive unit tests verify tracing functionality without making actual API calls
+
+### Monitoring and Debugging
+
+- **Development**: Redux DevTools for performance metrics in test environments
+- **Production**: Sentry performance dashboard for real-world performance data
+- **Error Tracking**: Automatic error capture with performance context
+- **Testing**: Comprehensive unit tests with mocked tracing utilities
 
 ## Testing
 

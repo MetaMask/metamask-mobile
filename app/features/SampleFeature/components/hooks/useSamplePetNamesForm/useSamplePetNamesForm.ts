@@ -37,8 +37,6 @@ function useSamplePetNamesForm(
           feature: 'sample-pet-names',
           operation: 'add-pet-name',
           chainId: chainId as string,
-          address: toChecksumAddress(address) as string,
-          name,
         },
         tags: {
           environment: 'development',
