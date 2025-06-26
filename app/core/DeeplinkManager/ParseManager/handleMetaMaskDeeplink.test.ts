@@ -9,7 +9,10 @@ import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
+import { handleBuyCrypto } from '../Handlers/handleBuyCrypto';
+import { handleSellCrypto } from '../Handlers/handleSellCrypto';
 
+// All jest mocks at the top
 jest.mock('../../../core/AppConstants');
 jest.mock('../../../core/SDKConnect/handlers/handleDeeplink');
 jest.mock('../../../core/SDKConnect/SDKConnect');
@@ -20,10 +23,17 @@ jest.mock('../../../core/NativeModules', () => ({
   },
 }));
 
+// Mock the standalone handler functions
+jest.mock('../Handlers/handleBuyCrypto', () => ({
+  handleBuyCrypto: jest.fn(),
+}));
+
+jest.mock('../Handlers/handleSellCrypto', () => ({
+  handleSellCrypto: jest.fn(),
+}));
+
 describe('handleMetaMaskProtocol', () => {
   const mockParse = jest.fn();
-  const mockHandleBuyCrypto = jest.fn();
-  const mockHandleSellCrypto = jest.fn();
   const mockHandleBrowserUrl = jest.fn();
   const mockConnectToChannel = jest.fn();
   const mockGetConnections = jest.fn();
@@ -37,16 +47,15 @@ describe('handleMetaMaskProtocol', () => {
   const mockHandleDeeplink = handleDeeplink as jest.Mock;
   const mockSDKConnectGetInstance = SDKConnect.getInstance as jest.Mock;
   const mockWC2ManagerGetInstance = WC2Manager.getInstance as jest.Mock;
+  const mockHandleBuyCrypto = handleBuyCrypto as jest.Mock;
+  const mockHandleSellCrypto = handleSellCrypto as jest.Mock;
 
   const instance = {
     parse: mockParse,
-    _handleBuyCrypto: mockHandleBuyCrypto,
-    _handleSellCrypto: mockHandleSellCrypto,
     _handleBrowserUrl: mockHandleBrowserUrl,
   } as unknown as DeeplinkManager;
 
   const handled = jest.fn();
-
 
   let url = '';
 
@@ -100,7 +109,6 @@ describe('handleMetaMaskProtocol', () => {
 
   it('should call handled', () => {
     handleMetaMaskDeeplink({
-      instance,
       handled,
       params,
       url,
@@ -118,7 +126,6 @@ describe('handleMetaMaskProtocol', () => {
 
     it('should call bindAndroidSDK', () => {
       handleMetaMaskDeeplink({
-        instance,
         handled,
         params,
         url,
@@ -145,7 +152,6 @@ describe('handleMetaMaskProtocol', () => {
 
       expect(() => {
         handleMetaMaskDeeplink({
-          instance,
           handled,
           params,
           url,
@@ -168,7 +174,6 @@ describe('handleMetaMaskProtocol', () => {
       params.scheme = 'test-scheme';
 
       handleMetaMaskDeeplink({
-        instance,
         handled,
         params,
         url,
@@ -200,7 +205,6 @@ describe('handleMetaMaskProtocol', () => {
 
       expect(() => {
         handleMetaMaskDeeplink({
-          instance,
           handled,
           params,
           url,
@@ -218,7 +222,6 @@ describe('handleMetaMaskProtocol', () => {
 
       expect(() => {
         handleMetaMaskDeeplink({
-          instance,
           handled,
           params,
           url,
@@ -244,7 +247,6 @@ describe('handleMetaMaskProtocol', () => {
       params.scheme = 'test-scheme';
 
       handleMetaMaskDeeplink({
-        instance,
         handled,
         params,
         url,
@@ -277,7 +279,6 @@ describe('handleMetaMaskProtocol', () => {
       Object.defineProperty(Platform, 'Version', { get: () => '17' });
 
       handleMetaMaskDeeplink({
-        instance,
         handled,
         params,
         origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
@@ -299,7 +300,6 @@ describe('handleMetaMaskProtocol', () => {
       mockGetApprovedHosts.mockReturnValue({ ABC: true });
 
       handleMetaMaskDeeplink({
-        instance,
         handled,
         params,
         url,
@@ -347,7 +347,6 @@ describe('handleMetaMaskProtocol', () => {
 
     it('should call WC2Manager.getInstance().connect', () => {
       handleMetaMaskDeeplink({
-        instance,
         handled,
         params,
         url,
@@ -366,7 +365,6 @@ describe('handleMetaMaskProtocol', () => {
 
     it('should call _handleBuyCrypto', () => {
       handleMetaMaskDeeplink({
-        instance,
         handled,
         params,
         url,
@@ -385,7 +383,6 @@ describe('handleMetaMaskProtocol', () => {
 
     it('should call _handleSellCrypto', () => {
       handleMetaMaskDeeplink({
-        instance,
         handled,
         params,
         url,
