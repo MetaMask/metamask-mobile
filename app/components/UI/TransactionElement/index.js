@@ -420,7 +420,10 @@ class TransactionElement extends PureComponent {
       status === 'approved' && isQRHardwareAccount;
     const renderLedgerActions = status === 'approved' && isLedgerAccount;
     const accountImportTime = selectedInternalAccount?.metadata.importTime;
-    const title = actionKey;
+    let title = actionKey;
+    if (isBridgeTransaction && bridgeTxHistoryItem) {
+      title = getSwapBridgeTxActivityTitle(bridgeTxHistoryItem) ?? title;
+    }
 
     return (
       <>
