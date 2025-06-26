@@ -263,6 +263,15 @@ import {
   EarnControllerEvents,
   EarnControllerState,
 } from '@metamask/earn-controller';
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+import {
+  SeedlessOnboardingController,
+  SeedlessOnboardingControllerState,
+  SeedlessOnboardingControllerEvents,
+} from '@metamask/seedless-onboarding-controller';
+import { EncryptionKey } from '../Encryptor/types';
+///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+
 import { Hex } from '@metamask/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import {
@@ -284,7 +293,7 @@ import {
   AccountTreeController,
   AccountTreeControllerState,
   AccountTreeControllerActions,
-  AccountTreeControllerEvents
+  AccountTreeControllerEvents,
 } from '@metamask/account-tree-controller';
 
 /**
@@ -427,6 +436,9 @@ type GlobalEvents =
   | BridgeStatusControllerEvents
   | EarnControllerEvents
   | AppMetadataControllerEvents
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  | SeedlessOnboardingControllerEvents
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   | DeFiPositionsControllerEvents
   | AccountTreeControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -512,6 +524,9 @@ export type Controllers = {
   BridgeController: BridgeController;
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 };
 
 /**
@@ -577,6 +592,9 @@ export type EngineState = {
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  SeedlessOnboardingController: SeedlessOnboardingControllerState;
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SamplePetnamesController: SamplePetnamesControllerState;
   ///: END:ONLY_INCLUDE_IF
@@ -628,13 +646,17 @@ export type ControllersToInitialize =
   | 'MultichainTransactionsController'
   ///: END:ONLY_INCLUDE_IF
   | 'AccountTreeController'
-  | 'CurrencyRateController'
   | 'AccountsController'
-  | 'MultichainNetworkController'
-  | 'TransactionController'
-  | 'GasFeeController'
-  | 'SignatureController'
+  | 'ApprovalController'
+  | 'CurrencyRateController'
   | 'DeFiPositionsController'
+  | 'GasFeeController'
+  | 'MultichainNetworkController'
+  | 'SignatureController'
+  | 'TransactionController'
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  | 'SeedlessOnboardingController'
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | 'SamplePetnamesController'
   ///: END:ONLY_INCLUDE_IF

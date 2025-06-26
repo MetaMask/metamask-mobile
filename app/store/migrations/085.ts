@@ -1,50 +1,42 @@
-import { hasProperty, isObject } from '@metamask/utils';
-import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
+import { hasProperty, isObject } from '@metamask/utils';
+
+import { ensureValidState } from './util';
 
 /**
- * Migration 83: Remove Automatic Security Checks state
+ * Migration 85:
  *
- * This migration removes the automatic security checks state from the security state.
+ * This migration sets `isBackupAndSyncEnabled` and `isAccountSyncingEnabled` to true for all users.
  */
 const migration = (state: unknown): unknown => {
   const migrationVersion = 85;
 
+  // Ensure the state is valid for migration
   if (!ensureValidState(state, migrationVersion)) {
     return state;
   }
 
   try {
-    if (!hasProperty(state, 'security') || !isObject(state.security)) {
+    if (
+      hasProperty(state.engine.backgroundState, 'UserStorageController') &&
+      isObject(state.engine.backgroundState.UserStorageController)
+    ) {
+      state.engine.backgroundState.UserStorageController.isBackupAndSyncEnabled =
+        true;
+      state.engine.backgroundState.UserStorageController.isAccountSyncingEnabled =
+        true;
+    } else {
       captureException(
         new Error(
-          `Migration ${migrationVersion}: Invalid security state: '${JSON.stringify(
-            state.security,
-          )}'`,
+          `Migration ${migrationVersion}: UserStorageController not found in state`,
         ),
       );
-      return state;
     }
-
-    if (hasProperty(state.security, 'automaticSecurityChecksEnabled')) {
-      delete state.security.automaticSecurityChecksEnabled;
-    }
-
-    if (
-      hasProperty(state.security, 'hasUserSelectedAutomaticSecurityCheckOption')
-    ) {
-      delete state.security.hasUserSelectedAutomaticSecurityCheckOption;
-    }
-
-    if (hasProperty(state.security, 'isAutomaticSecurityChecksModalOpen')) {
-      delete state.security.isAutomaticSecurityChecksModalOpen;
-    }
-
     return state;
   } catch (error) {
     captureException(
       new Error(
-        `Migration ${migrationVersion}: cleaning security state failed with error: ${error}`,
+        `Migration ${migrationVersion}: set isBackupAndSyncEnabled and isAccountSyncingEnabled to true for all users failed with error: ${error}`,
       ),
     );
     return state;

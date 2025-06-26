@@ -21,6 +21,7 @@ const availableFeatures = new Set([
   'multi-srp',
   'bitcoin',
   'solana',
+  'seedless-onboarding',
   'sample-feature',
 ]);
 
@@ -45,6 +46,7 @@ const flaskFeatureSet = new Set([
   'multi-srp',
   'bitcoin',
   'solana',
+  'seedless-onboarding',
 ]);
 
 /**
@@ -55,13 +57,13 @@ const flaskFeatureSet = new Set([
  */
 function getBuildTypeFeatures() {
   const buildType = process.env.METAMASK_BUILD_TYPE ?? 'main';
-  const envType = process.env.METAMASK_ENVIRONMENT ?? 'prod';
+  const envType = process.env.METAMASK_ENVIRONMENT ?? 'production';
   
   // Get base feature set based on build type
   const features = (() => {
     switch (buildType) {
       case 'main':
-        return envType === 'prod' ? mainFeatureSet : betaFeatureSet;
+        return envType === 'beta' ? betaFeatureSet : mainFeatureSet;
       case 'beta':
         return betaFeatureSet;
       case 'flask':

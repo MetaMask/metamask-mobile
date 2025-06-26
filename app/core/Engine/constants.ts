@@ -72,6 +72,9 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'BridgeStatusController:stateChange',
   'EarnController:stateChange',
   'DeFiPositionsController:stateChange',
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  'SeedlessOnboardingController:stateChange',
+  ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   'SamplePetnamesController:stateChange',
   ///: END:ONLY_INCLUDE_IF

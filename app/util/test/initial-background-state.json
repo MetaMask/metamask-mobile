@@ -358,6 +358,9 @@
     "cacheTimestamp": 0,
     "remoteFeatureFlags": {}
   },
+  "SeedlessOnboardingController": {
+    "socialBackupsMetadata": []
+  },
   "SelectedNetworkController": {
     "domains": {}
   },

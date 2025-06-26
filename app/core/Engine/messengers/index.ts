@@ -33,6 +33,11 @@ import { getNotificationServicesControllerMessenger } from './notifications/noti
 import { getNotificationServicesPushControllerMessenger } from './notifications/notification-services-push-controller-messenger';
 import { getGasFeeControllerMessenger } from './gas-fee-controller-messenger/gas-fee-controller-messenger';
 import { getSignatureControllerMessenger } from './signature-controller-messenger';
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+import { getSeedlessOnboardingControllerMessenger } from './seedless-onboarding-controller-messenger';
+///: END:ONLY_INCLUDE_IF
+
+import { getApprovalControllerMessenger } from './approval-controller-messenger';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFeature/controllers/sample-petnames-controller-messenger';
 ///: END:ONLY_INCLUDE_IF
@@ -46,6 +51,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   AccountTreeController: {
     getMessenger: getAccountTreeControllerMessenger,
+    getInitMessenger: noop,
+  },
+  ApprovalController: {
+    getMessenger: getApprovalControllerMessenger,
     getInitMessenger: noop,
   },
   TransactionController: {
@@ -125,6 +134,12 @@ export const CONTROLLER_MESSENGERS = {
   },
   MultichainTransactionsController: {
     getMessenger: getMultichainTransactionsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  SeedlessOnboardingController: {
+    getMessenger: getSeedlessOnboardingControllerMessenger,
     getInitMessenger: noop,
   },
   ///: END:ONLY_INCLUDE_IF
