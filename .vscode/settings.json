@@ -8,5 +8,23 @@
   "cucumberautocomplete.strictGherkinCompletion": true,
   "typescript.tsdk": "node_modules/typescript/lib",
   "javascript.preferences.importModuleSpecifier": "relative",
-  "typescript.preferences.importModuleSpecifier": "relative"
+  "typescript.preferences.importModuleSpecifier": "relative",
+
+  // Unused variable detection
+  "typescript.suggest.showUnusedVariables": true,
+  "typescript.validate.unusedVariables": true,
+  "javascript.validate.unusedVariables": true,
+
+  // Gray out unused variables and functions
+  "editor.semanticTokenColorCustomizations": {
+    "rules": {
+      "*.unused": "#808080",
+      "variable.unused": "#808080",
+      "function.unused": "#808080",
+      "class.unused": "#808080"
+    }
+  },
+
+  // Enable semantic highlighting for better unused detection
+  "editor.semanticHighlighting.enabled": true
 }
