@@ -20,6 +20,7 @@ import LoginView from '../../pages/wallet/LoginView.js';
 import Matchers from '../../utils/Matchers.js';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
 import Assertions from '../../utils/Assertions.js';
+import ToastModal from '../../pages/wallet/ToastModal.js';
 
 const fixtureServer = new FixtureServer();
 describe(Regression('change password'), () => {
@@ -58,7 +59,12 @@ describe(Regression('change password'), () => {
     await ChangePasswordView.tapIUnderstandCheckBox();
     await ChangePasswordView.tapSubmitButton();
 
-    await TabBarComponent.tapWallet(6000);
+    //wait for screen transitions after password change
+    await Assertions.checkIfNotVisible(ChangePasswordView.submitButton);
+    await Assertions.checkIfVisible(ToastModal.notificationTitle)
+    await Assertions.checkIfNotVisible(ToastModal.notificationTitle)
+
+    await TabBarComponent.tapWallet();
     await WalletView.tapIdenticon();
 
     // Check if all the accounts are displayed

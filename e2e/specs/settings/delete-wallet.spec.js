@@ -49,6 +49,7 @@ describe(
         await ChangePasswordView.reEnterPassword(NEW_PASSWORD);
         await ChangePasswordView.tapIUnderstandCheckBox();
         await ChangePasswordView.tapSubmitButton();
+        await Assertions.checkIfNotVisible(ChangePasswordView.submitButton);
 
         // Wait for password change to complete and navigation back to SecuritySettings
         await Assertions.checkIfVisible(SecurityAndPrivacyView.securityAndPrivacyHeading);
