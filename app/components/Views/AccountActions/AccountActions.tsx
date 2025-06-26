@@ -429,8 +429,8 @@ const AccountActions = () => {
           )
           ///: END:ONLY_INCLUDE_IF
         }
-        {networkSupporting7702Present &&
-          !isHardwareAccount(selectedAddress) && (
+        {(networkSupporting7702Present &&
+          !isHardwareAccount(selectedAddress)) && (
             <AccountAction
               actionTitle={strings('account_actions.switch_to_smart_account')}
               iconName={IconName.SwapHorizontal}
