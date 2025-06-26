@@ -22,34 +22,46 @@ const mockNavigation = {
 const mockDispatch = jest.fn();
 
 describe('DeeplinkManager', () => {
-  let deeplinkManager = new DeeplinkManager({
-    navigation: mockNavigation,
-    dispatch: mockDispatch,
-  });
-
   beforeEach(() => {
     jest.clearAllMocks();
-
-    deeplinkManager = new DeeplinkManager({
-      navigation: mockNavigation,
-      dispatch: mockDispatch,
-    });
+    // Clear the pending deeplink before each test
+    DeeplinkManager.expireDeeplink();
   });
 
   it('should set, get, and expire a deeplink correctly', () => {
     const testUrl = 'https://example.com';
-    deeplinkManager.setDeeplink(testUrl);
-    expect(deeplinkManager.getPendingDeeplink()).toBe(testUrl);
+    DeeplinkManager.setDeeplink(testUrl);
+    expect(DeeplinkManager.getPendingDeeplink()).toBe(testUrl);
 
-    deeplinkManager.expireDeeplink();
-    expect(deeplinkManager.getPendingDeeplink()).toBeNull();
+    DeeplinkManager.expireDeeplink();
+    expect(DeeplinkManager.getPendingDeeplink()).toBeNull();
   });
 
+  it('should parse deeplinks correctly', async () => {
+    const url = 'http://example.com';
+    const browserCallBack = jest.fn();
+    const origin = 'testOrigin';
+    const onHandled = jest.fn();
+
+    await DeeplinkManager.parse(url, {
+      browserCallBack,
+      origin,
+      onHandled,
+    });
+
+    expect(parseDeeplink).toHaveBeenCalledWith({
+      url,
+      origin,
+      browserCallBack,
+      onHandled,
+    });
+  });
+
+  // Tests for standalone handler functions
   it('should handle network switch correctly', () => {
     const chainId = '1';
-    deeplinkManager._handleNetworkSwitch(chainId);
+    switchNetwork({ switchToChainId: chainId });
     expect(switchNetwork).toHaveBeenCalledWith({
-      deeplinkManager,
       switchToChainId: chainId,
     });
   });
@@ -65,10 +77,12 @@ describe('DeeplinkManager', () => {
 
     const origin = 'testOrigin';
 
-    await deeplinkManager._approveTransaction(ethUrl, origin);
+    await approveTransaction({
+      ethUrl,
+      origin,
+    });
 
     expect(approveTransaction).toHaveBeenCalledWith({
-      deeplinkManager,
       ethUrl,
       origin,
     });
@@ -78,10 +92,12 @@ describe('DeeplinkManager', () => {
     const url = 'ethereum://example.com';
     const origin = 'testOrigin';
 
-    await deeplinkManager._handleEthereumUrl(url, origin);
+    await handleEthereumUrl({
+      url,
+      origin,
+    });
 
     expect(handleEthereumUrl).toHaveBeenCalledWith({
-      deeplinkManager,
       url,
       origin,
     });
@@ -91,10 +107,12 @@ describe('DeeplinkManager', () => {
     const url = 'http://example.com';
     const callback = jest.fn();
 
-    deeplinkManager._handleBrowserUrl(url, callback);
+    handleBrowserUrl({
+      url,
+      callback,
+    });
 
     expect(handleBrowserUrl).toHaveBeenCalledWith({
-      deeplinkManager,
       url,
       callback,
     });
@@ -102,11 +120,13 @@ describe('DeeplinkManager', () => {
 
   it('should handle buy crypto action correctly', () => {
     const rampPath = '/example/path?and=params';
-    deeplinkManager._handleBuyCrypto(rampPath);
+    handleRampUrl({
+      rampPath,
+      rampType: RampType.BUY,
+    });
     expect(handleRampUrl).toHaveBeenCalledWith(
       expect.objectContaining({
         rampPath,
-        navigation: mockNavigation,
         rampType: RampType.BUY,
       }),
     );
@@ -114,34 +134,15 @@ describe('DeeplinkManager', () => {
 
   it('should handle sell crypto action correctly', () => {
     const rampPath = '/example/path?and=params';
-    deeplinkManager._handleSellCrypto(rampPath);
+    handleRampUrl({
+      rampPath,
+      rampType: RampType.SELL,
+    });
     expect(handleRampUrl).toHaveBeenCalledWith(
       expect.objectContaining({
         rampPath,
-        navigation: mockNavigation,
         rampType: RampType.SELL,
       }),
     );
-  });
-
-  it('should parse deeplinks correctly', () => {
-    const url = 'http://example.com';
-    const browserCallBack = jest.fn();
-    const origin = 'testOrigin';
-    const onHandled = jest.fn();
-
-    deeplinkManager.parse(url, {
-      browserCallBack,
-      origin,
-      onHandled,
-    });
-
-    expect(parseDeeplink).toHaveBeenCalledWith({
-      deeplinkManager,
-      url,
-      origin,
-      browserCallBack,
-      onHandled,
-    });
   });
 });
