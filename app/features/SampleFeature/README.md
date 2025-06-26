@@ -7,6 +7,30 @@ The Sample Feature is a development and testing feature that demonstrates best p
 > [!WARNING]
 > This is a sample feature for development/testing purposes only and should not be activated in production builds.
 
+```mermaid
+graph TB
+    %% Developer Actor
+    Dev[👨‍💻 Developer]
+    
+    %% Developer Use Cases
+    Dev --> ActivateFeature[Activate Sample Feature with env var flag]
+    Dev --> RunE2ETests[Run E2E Tests]
+    Dev --> RunUnitTests[Run Unit Tests]
+```
+
+```mermaid
+graph TB
+    %% User Actor
+    User[👤 User]
+    
+    %% User Use Cases
+    User --> IncrementCounter[Increment Counter]
+    User --> AddPetName[Add New Pet Name]
+    User --> UpdatePetName[Update Pet Name]
+    User --> SwitchNetwork[Switch Network]
+    SwitchNetwork --> SeePetNamesEffect[See Effect on Pet Names List]
+```
+
 ## Build Configuration
 
 The Sample Feature uses code fencing to ensure it's completely excluded from production builds. It's only included when explicitly enabled via the `INCLUDE_SAMPLE_FEATURE` environment variable.
@@ -15,22 +39,26 @@ The Sample Feature uses code fencing to ensure it's completely excluded from pro
 
 To include the Sample Feature in your build:
 
-```bash
-# For iOS development
-INCLUDE_SAMPLE_FEATURE=true yarn start:ios
+#### For iOS development
 
-# For Android development
+```bash
+INCLUDE_SAMPLE_FEATURE=true yarn start:ios
+```
+
+#### For Android development
+
+```bash
 INCLUDE_SAMPLE_FEATURE=true yarn start:android
+```
 
 ### How It Works
 
 1. **Code Fencing**: All Sample Feature code is wrapped with code fence comments:
-   ```typescript
-   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-   // Sample feature code here
-   ///: END:ONLY_INCLUDE_IF
-   ```
-
+    ```typescript
+    ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+    // Sample feature code here
+    ///: END:ONLY_INCLUDE_IF
+    ```
 2. **Metro Transform**: The Metro bundler removes fenced code during build time based on the environment variable
 3. **Zero Production Impact**: When `INCLUDE_SAMPLE_FEATURE` is not set, the code is completely removed from the bundle
 
@@ -67,7 +95,7 @@ The SampleFeature folder structure intentionally mirrors the main `/app` folder 
 - Analytics in `/app/core/Analytics/`
 - ...
 
-The SampleFeature's self-contained structure is only for demonstration purposes.
+The SampleFeature's structure mirrors the main `/app` directory. This helps devs quickly identify where to place their feature files in the main app: components, controllers, reducers, etc.
 
 ```
 app/features/SampleFeature/
@@ -81,10 +109,13 @@ app/features/SampleFeature/
 │   │   └── useSamplePetNamesForm/
 │   └── views/             # UI components
 │       ├── SampleFeature.tsx           # Main feature component
+│       ├── SampleFeature.styles.ts     # Main feature styles
+│       ├── SampleFeature.test.tsx      # Main feature tests
 │       ├── SampleCounterPane/          # Counter demo
 │       ├── SampleNetworkDisplay/       # Network display
 │       ├── SamplePetNames/             # Pet names management
-│       └── SampleFeatureDevSettingsEntryPoint/ # The first view of the feature in the app settings
+│       ├── SampleFeatureDevSettingsEntryPoint/ # Settings entry point
+│       └── __snapshots__/              # Test snapshots
 ├── controllers/           # Business logic controllers
 │   ├── sample-petnames-controller-init.ts
 │   └── sample-petnames-controller-messenger.ts
@@ -92,11 +123,14 @@ app/features/SampleFeature/
 │   └── sample-counter/
 ├── selectors/             # Redux selectors
 │   └── samplePetNameController/
-└── e2e/                   # End-to-end tests
-    ├── edge-cases.feature
-    ├── manual-test-scenarios.feature
-    ├── pages/
-    └── specs/
+├── e2e/                   # End-to-end tests
+│   ├── sample-scenarios.feature
+│   ├── utils.ts
+│   ├── README.md
+│   ├── pages/
+│   ├── selectors/
+│   └── specs/
+└── README.md              # This documentation file
 ```
 
 ## Components
@@ -270,6 +304,13 @@ Comprehensive E2E tests written in TypeScript demonstrating best practices for D
 > [!IMPORTANT]
 > The Sample Feature must be included in the build using the `INCLUDE_SAMPLE_FEATURE` flag for E2E tests to work.
 
+**Currently Implemented Tests:**
+- Basic navigation to Sample Feature (Settings → Developer Options → Sample Feature)
+- Feature visibility verification (title, description, container)
+- Page object model structure for maintainable tests
+
+**Test Implementation Status:**
+The current E2E implementation demonstrates the testing pattern with basic navigation tests. The page object model includes selectors for all major components (counter, pet names, network display) but the actual interaction tests are not yet implemented.
 
 1. Build the app with Sample Feature included for E2E testing:
 
@@ -304,14 +345,14 @@ See [`app/features/SampleFeature/e2e/README.md`](./e2e/README.md) for:
 - Selector strategies
 - Test structure and organization
 
-**Test Scenarios:**
-- Navigation flows (Settings → Developer Options → Sample Feature)
-- Counter interactions
-- Pet name CRUD operations
-- Form validation
+**Planned Test Scenarios (Not Yet Implemented):**
+- Counter interactions (increment, value verification)
+- Pet name CRUD operations (add, edit, delete)
+- Form validation testing
 - Network switching behavior
+- Error handling scenarios
 
-**Key E2E Testing Patterns:**
+**Key E2E Testing Patterns Demonstrated:**
 - Page Object Model for maintainable tests
 - Text-based selectors for resilient element targeting
 - Proper async handling with Detox waitFor utilities
