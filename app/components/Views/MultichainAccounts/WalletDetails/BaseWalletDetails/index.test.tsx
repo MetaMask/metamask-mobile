@@ -166,6 +166,22 @@ describe('BaseWalletDetails', () => {
     expect(getByText(childText)).toBeTruthy();
   });
 
+  it('does not render add account button when keyringId is not present', () => {
+    mockUseWalletInfo.mockReturnValue({
+      accounts: [mockAccount1, mockAccount2],
+      keyringId: null,
+      srpIndex: 1,
+      isSRPBackedUp: true,
+    });
+
+    const { queryByTestId } = renderWithProvider(
+      <BaseWalletDetails wallet={mockWallet} />,
+      { state: mockInitialState },
+    );
+
+    expect(queryByTestId(WalletDetailsIds.ADD_ACCOUNT_BUTTON)).toBeNull();
+  });
+
   describe('Add Account Feature', () => {
     it('renders add account button when keyringId is available', () => {
       const { getByTestId } = renderWithProvider(
