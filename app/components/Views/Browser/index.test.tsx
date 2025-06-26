@@ -206,6 +206,41 @@ describe('Browser', () => {
       { state: { ...mockInitialState } },
     );
     expect(getByText('Popular Tokens')).toBeTruthy();
+    jest.mocked(tokenDiscoveryBrowserEnabled).mockReturnValue(false);
+  });
+
+  it('should create a new homepage tab when rendered with no tabs', () => {
+    let passedUrl = '';
+    const mockCreateNewTab = jest.fn((url) => {
+      passedUrl = url;
+    });
+    renderWithProvider(
+      <Provider store={mockStore(mockInitialState)}>
+        <NavigationContainer independent>
+          <Stack.Navigator>
+            <Stack.Screen name={Routes.BROWSER.VIEW}>
+              {() => (
+                <Browser
+                  route={routeMock}
+                  tabs={[]}
+                  activeTab={1}
+                  navigation={mockNavigation}
+                  createNewTab={mockCreateNewTab}
+                  closeAllTabs={jest.fn}
+                  closeTab={jest.fn}
+                  setActiveTab={jest.fn}
+                  updateTab={jest.fn}
+                />
+              )}
+            </Stack.Screen>
+          </Stack.Navigator>
+        </NavigationContainer>
+      </Provider>,
+      { state: { ...mockInitialState } },
+    );
+
+    expect(mockCreateNewTab).toHaveBeenCalled();
+    expect(passedUrl).toMatch(/^https:\/\//);
   });
 
   it('should call navigate when route param `newTabUrl` and `timestamp` are added', () => {
