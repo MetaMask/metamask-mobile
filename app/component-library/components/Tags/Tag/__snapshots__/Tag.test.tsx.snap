@@ -31,3 +31,35 @@ exports[`Tag should render correctly 1`] = `
   </Text>
 </View>
 `;
+
+exports[`Tag should render correctly with textProps 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "borderColor": "#b7bbc8",
+      "borderRadius": 10,
+      "borderWidth": 1,
+      "height": 24,
+      "justifyContent": "center",
+      "paddingHorizontal": 4,
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#4459ff",
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    Custom Text
+  </Text>
+</View>
+`;

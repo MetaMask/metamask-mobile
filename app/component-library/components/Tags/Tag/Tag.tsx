@@ -5,19 +5,21 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import Text, { TextVariant } from '../../Texts/Text';
+import TextComponent, { TextVariant } from '../../Texts/Text';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.
 import styleSheet from './Tag.styles';
 import { TagProps } from './Tag.types';
 
-const Tag = ({ label, style, ...props }: TagProps) => {
+const Tag = ({ label, style, textProps, ...props }: TagProps) => {
   const { styles } = useStyles(styleSheet, { style });
 
   return (
     <View style={styles.base} {...props}>
-      <Text variant={TextVariant.BodyMD}>{label}</Text>
+      <TextComponent variant={TextVariant.BodyMD} {...textProps}>
+        {label}
+      </TextComponent>
     </View>
   );
 };
