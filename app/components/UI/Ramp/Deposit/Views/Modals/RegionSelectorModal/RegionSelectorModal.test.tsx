@@ -26,36 +26,6 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
 
-const mockRegions = [
-  {
-    code: 'US',
-    flag: '🇺🇸',
-    name: 'United States',
-    phonePrefix: '+1',
-    currency: 'USD',
-    phoneDigitCount: 10,
-    supported: true,
-  },
-  {
-    code: 'DE',
-    flag: '🇩🇪',
-    name: 'Germany',
-    phonePrefix: '+49',
-    currency: 'EUR',
-    phoneDigitCount: 10,
-    supported: true,
-  },
-  {
-    code: 'FR',
-    flag: '🇫🇷',
-    name: 'France',
-    phonePrefix: '+33',
-    currency: 'EUR',
-    phoneDigitCount: 9,
-    supported: true,
-  },
-];
-
 describe('RegionSelectorModal Component', () => {
   const mockHandleSelectRegion = jest.fn();
 
@@ -112,19 +82,17 @@ describe('RegionSelectorModal Component', () => {
       renderWithProvider(RegionSelectorModal);
 
     const searchInput = getByPlaceholderText('Search by country');
-    
-    // Search for "Germany"
+
     fireEvent.changeText(searchInput, 'Germany');
-    
+
     await waitFor(() => {
       expect(getByText('Germany')).toBeTruthy();
       expect(queryByText('France')).toBeFalsy();
       expect(queryByText('United States')).toBeFalsy();
     });
 
-    // Clear search and verify all regions are shown again
     fireEvent.changeText(searchInput, '');
-    
+
     await waitFor(() => {
       expect(getByText('Germany')).toBeTruthy();
       expect(getByText('France')).toBeTruthy();
@@ -135,7 +103,6 @@ describe('RegionSelectorModal Component', () => {
   it('shows recommended regions first when no search is active', () => {
     const { getByText } = renderWithProvider(RegionSelectorModal);
 
-    // United States should be first since it's recommended
     const regions = ['United States', 'Germany', 'France'];
     regions.forEach((region) => {
       expect(getByText(region)).toBeTruthy();
@@ -164,9 +131,9 @@ describe('RegionSelectorModal Component', () => {
   it('displays region flags correctly', () => {
     const { getByText } = renderWithProvider(RegionSelectorModal);
 
-    expect(getByText('🇺🇸')).toBeTruthy(); // US flag
-    expect(getByText('🇩🇪')).toBeTruthy(); // Germany flag
-    expect(getByText('🇫🇷')).toBeTruthy(); // France flag
+    expect(getByText('🇺🇸')).toBeTruthy();
+    expect(getByText('🇩🇪')).toBeTruthy();
+    expect(getByText('🇫🇷')).toBeTruthy();
   });
 
   it('shows correct header title', () => {
@@ -179,10 +146,9 @@ describe('RegionSelectorModal Component', () => {
       renderWithProvider(RegionSelectorModal);
 
     const searchInput = getByPlaceholderText('Search by country');
-    
-    // Search with special characters
+
     fireEvent.changeText(searchInput, 'United');
-    
+
     await waitFor(() => {
       expect(getByText('United States')).toBeTruthy();
       expect(queryByText('Germany')).toBeFalsy();
@@ -194,19 +160,16 @@ describe('RegionSelectorModal Component', () => {
       renderWithProvider(RegionSelectorModal);
 
     const searchInput = getByPlaceholderText('Search by country');
-    
-    // Add search text
+
     fireEvent.changeText(searchInput, 'Germany');
-    
+
     await waitFor(() => {
       expect(getByText('Germany')).toBeTruthy();
       expect(queryByText('France')).toBeFalsy();
     });
 
-    // Find and press clear button (this would be implemented based on the TextFieldSearch component)
-    // For now, we'll test clearing by setting empty text
     fireEvent.changeText(searchInput, '');
-    
+
     await waitFor(() => {
       expect(getByText('Germany')).toBeTruthy();
       expect(getByText('France')).toBeTruthy();
@@ -219,13 +182,12 @@ describe('RegionSelectorModal Component', () => {
       renderWithProvider(RegionSelectorModal);
 
     const searchInput = getByPlaceholderText('Search by country');
-    
-    // Search with lowercase
+
     fireEvent.changeText(searchInput, 'germany');
-    
+
     await waitFor(() => {
       expect(getByText('Germany')).toBeTruthy();
       expect(queryByText('France')).toBeFalsy();
     });
   });
-}); 
+});
