@@ -1028,303 +1028,140 @@ class FixtureBuilder {
     return this;
   }
 
-  /**
-   * Creates a fixture with multiple accounts in the vault.
-   * Generates a configurable number of Ethereum addresses for testing.
-   *
-   * @param {number} numberOfAccounts - The number of accounts to generate (default: 20)
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
-   */
-  withMultipleAccounts(numberOfAccounts = 20) {
-    // Generate multiple Ethereum addresses for testing
-    const generateEthereumAddresses = (count) => {
-      const addresses = [];
-      for (let i = 0; i < count; i++) {
-        // Generate a more realistic Ethereum address
-        // Use a deterministic approach based on index for consistent testing
-        const baseAddress = '0x7F987E62895a5B3C7d352D1476c776e3dEc7A415';
-        // Increment the last two hex characters to create unique addresses
-        const lastTwoChars = baseAddress.slice(-2);
-        const lastTwoHex = parseInt(lastTwoChars, 16);
-        const newLastTwoHex = (lastTwoHex + i) % 256;
-        const newLastTwoChars = newLastTwoHex.toString(16).padStart(2, '0');
-        const newAddress = baseAddress.slice(0, -2) + newLastTwoChars;
-        addresses.push(newAddress);
-      }
-      return addresses;
-    };
-
-    const accounts = generateEthereumAddresses(numberOfAccounts);
-
-    // Populate KeyringController with proper structure
-    merge(this.fixture.state.engine.backgroundState.KeyringController, {
-      keyrings: [
-        {
-          accounts,
-          type: 'HD Key Tree',
-          metadata: {
-            id: '01JX9NJ15HPNS6RRRYBCKDK33R',
-            name: '',
-          },
-        },
-        { type: 'QR Hardware Wallet Device', accounts: [] },
-      ],
-      vault:
-        '{"cipher":"T+MXWPPwXOh8RLxpryUuoFCObwXqNQdwak7FafAoVeXOehhpuuUDbjWiHkeVs9slsy/uzG8z+4Va+qyz4dlRnd/Gvc/2RbHTAb/LG1ECk1rvLZW23JPGkBBVAu36FNGCTtT+xrF4gRzXPfIBVAAgg40YuLJWkcfVty6vGcHr3R3/9gpsqs3etrF5tF4tHYWPEhzhhx6HN6Tr4ts3G9sqgyEhyxTLCboAYWp4lsq2iTEl1vQ6T/UyBRNhfDj8RyQMF6hwkJ0TIq2V+aAYkr5NJguBBSi0YKPFI/SGLrin9/+d66gcOSFhIH0GhUbez3Yf54852mMtvOH8Vj7JZc664ukOvEdJIpvCw1CbtA9TItyVApkjQypLtE+IdV3sT5sy+v0mK7Xc054p6+YGiV8kTiTG5CdlI4HkKvCOlP9axwXP0aRwc4ffsvp5fKbnAVMf9+otqmOmlA5nCKdx4FOefTkr/jjhMlTGV8qUAJ2c6Soi5X02fMcrhAfdUtFxtUqHovOh3KzOe25XhjxZ6KCuix8OZZiGtbNDu3xJezPc3vzkTFwF75ubYozLDvw8HzwI+D5Ifn0S3q4/hiequ6NGiR3Dd0BIhWODSvFzbaD7BKdbgXhbJ9+3FXFF9Xkp74msFp6o7nLsx02ywv/pmUNqQhwtVBfoYhcFwqZZQlOPKcH8otguhSvZ7dPgt7VtUuf8gR23eAV4ffVsYK0Hll+5n0nZztpLX4jyFZiV/kSaBp+D2NZM2dnQbsWULKOkjo/1EpNBIjlzjXRBg5Ui3GgT3JXUDx/2GmJXceacrbMcos3HC2yfxwUTXC+yda4IrBx/81eYb7sIjEVNxDuoBxNdRLKoxwmAJztxoQLF3gRexS45QKoFZZ0kuQ9MqLyY6HDK","iv":"3271713c2b35a7c246a2a9b263365c3d","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"l4e+sn/jdsaofDWIB/cuGQ=="}',
-    });
-
-    // Update AccountsController with internal accounts
-    const internalAccounts = {};
-    accounts.forEach((address, index) => {
-      const accountId = `account-${index + 1}-${address.slice(-8)}`;
-      internalAccounts[accountId] = {
-        address,
-        id: accountId,
-        metadata: {
-          name: `Account ${index + 1}`,
-          importTime: Date.now(),
-          keyring: {
-            type: 'HD Key Tree',
-          },
-          lastSelected: Date.now() - index * 1000, // Ensure proper ordering
-        },
-        methods: [
-          'personal_sign',
-          'eth_sign',
-          'eth_signTransaction',
-          'eth_signTypedData_v1',
-          'eth_signTypedData_v3',
-          'eth_signTypedData_v4',
-        ],
-        type: 'eip155:eoa',
-        scopes: ['eip155:1'], // Mainnet scope
-      };
-    });
-
-    merge(this.fixture.state.engine.backgroundState.AccountsController, {
-      internalAccounts: {
-        accounts: internalAccounts,
-        selectedAccount: Object.keys(internalAccounts)[0], // Select the first account
-      },
-    });
-
-    // Update PreferencesController with account identities
-    const identities = {};
-    accounts.forEach((address, index) => {
-      identities[address] = {
-        name: `Account ${index + 1}`,
-        address,
-        importTime: Date.now(),
-        lastSelected: Date.now() - index * 1000, // Ensure proper ordering
-      };
-    });
-
-    merge(this.fixture.state.engine.backgroundState.PreferencesController, {
-      identities,
-      selectedAddress: accounts[0], // Select the first account
-    });
-
-    // Update AccountTrackerController with account balances
-    const accountsByChainId = {};
-    accounts.forEach((address) => {
-      if (!accountsByChainId[1]) {
-        accountsByChainId[1] = {}; // Mainnet chain ID
-      }
-      if (!accountsByChainId[64]) {
-        accountsByChainId[64] = {}; // BSC chain ID
-      }
-      accountsByChainId[1][address] = {
-        balance: '0x0',
-      };
-      accountsByChainId[64][address] = {
-        balance: '0x0',
-      };
-    });
-
-    merge(this.fixture.state.engine.backgroundState.AccountTrackerController, {
-      accountsByChainId,
-    });
-
-    return this;
-  }
-
-  withRealAccounts({
-    hdAccounts = 1,
-    simpleAccounts = 0,
-    qrAccounts = 0,
-  } = {}) {
-    // Generate Ethereum addresses for different account types
-    const generateEthereumAddresses = (count, startIndex = 0) => {
-      const addresses = [];
-      for (let i = 0; i < count; i++) {
-        const baseAddress = '0x1234567890123456789012345678901234567890';
-        // Increment the last two hex characters to create unique addresses
-        const lastTwoChars = baseAddress.slice(-2);
-        const lastTwoHex = parseInt(lastTwoChars, 16);
-        const newLastTwoHex = (lastTwoHex + startIndex + i) % 256;
-        const newLastTwoChars = newLastTwoHex.toString(16).padStart(2, '0');
-        const newAddress = baseAddress.slice(0, -2) + newLastTwoChars;
-        addresses.push(newAddress);
-      }
-      return addresses;
-    };
-
-    const hdAddresses = generateEthereumAddresses(hdAccounts, 0);
-    const simpleAddresses = generateEthereumAddresses(
-      simpleAccounts,
-      hdAccounts,
-    );
-    const qrAddresses = generateEthereumAddresses(
-      qrAccounts,
-      hdAccounts + simpleAccounts,
-    );
-
-    // Build keyrings array
-    const keyrings = [];
-
-    // Add HD Key Tree keyring if there are HD accounts
-    if (hdAccounts > 0) {
-      keyrings.push({
-        accounts: hdAddresses,
-        type: 'HD Key Tree',
-        metadata: {
-          id: '01JX9NJ15HPNS6RRRYBCKDK33R',
-          name: '',
-        },
-      });
-    }
-
-    // Add Simple Key Pair keyring if there are simple accounts
-    if (simpleAccounts > 0) {
-      keyrings.push({
-        accounts: simpleAddresses,
-        type: 'Simple Key Pair',
-        metadata: {
-          id: '01JX9NZWRAVQKES02TWSN8GD91',
-          name: '',
-        },
-      });
-    }
-
-    // Add QR Hardware Wallet keyring if there are QR accounts
-    if (qrAccounts > 0) {
-      keyrings.push({
-        accounts: qrAddresses,
-        type: 'QR Hardware Wallet Device',
-        metadata: {
-          id: '01JXA9KQBWD60ZB6STX279GQMF',
-          name: '',
-        },
-      });
-    }
-
-    // Populate KeyringController
-    merge(this.fixture.state.engine.backgroundState.KeyringController, {
-      keyrings,
-      vault:
-        '{"cipher":"T+MXWPPwXOh8RLxpryUuoFCObwXqNQdwak7FafAoVeXOehhpuuUDbjWiHkeVs9slsy/uzG8z+4Va+qyz4dlRnd/Gvc/2RbHTAb/LG1ECk1rvLZW23JPGkBBVAu36FNGCTtT+xrF4gRzXPfIBVAAgg40YuLJWkcfVty6vGcHr3R3/9gpsqs3etrF5tF4tHYWPEhzhhx6HN6Tr4ts3G9sqgyEhyxTLCboAYWp4lsq2iTEl1vQ6T/UyBRNhfDj8RyQMF6hwkJ0TIq2V+aAYkr5NJguBBSi0YKPFI/SGLrin9/+d66gcOSFhIH0GhUbez3Yf54852mMtvOH8Vj7JZc664ukOvEdJIpvCw1CbtA9TItyVApkjQypLtE+IdV3sT5sy+v0mK7Xc054p6+YGiV8kTiTG5CdlI4HkKvCOlP9axwXP0aRwc4ffsvp5fKbnAVMf9+otqmOmlA5nCKdx4FOefTkr/jjhMlTGV8qUAJ2c6Soi5X02fMcrhAfdUtFxtUqHovOh3KzOe25XhjxZ6KCuix8OZZiGtbNDu3xJezPc3vzkTFwF75ubYozLDvw8HzwI+D5Ifn0S3q4/hiequ6NGiR3Dd0BIhWODSvFzbaD7BKdbgXhbJ9+3FXFF9Xkp74msFp6o7nLsx02ywv/pmUNqQhwtVBfoYhcFwqZZQlOPKcH8otguhSvZ7dPgt7VtUuf8gR23eAV4ffVsYK0Hll+5n0nZztpLX4jyFZiV/kSaBp+D2NZM2dnQbsWULKOkjo/1EpNBIjlzjXRBg5Ui3GgT3JXUDx/2GmJXceacrbMcos3HC2yfxwUTXC+yda4IrBx/81eYb7sIjEVNxDuoBxNdRLKoxwmAJztxoQLF3gRexS45QKoFZZ0kuQ9MqLyY6HDK","iv":"3271713c2b35a7c246a2a9b263365c3d","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"l4e+sn/jdsaofDWIB/cuGQ=="}',
-    });
-
-    // Combine all addresses for AccountsController
-    const allAddresses = [...hdAddresses, ...simpleAddresses, ...qrAddresses];
-
-    // Update AccountsController with internal accounts
-    const internalAccounts = {};
-    allAddresses.forEach((address, index) => {
-      const accountId = `account-${index + 1}-${address.slice(-8)}`;
-      let keyringType = 'HD Key Tree';
-      if (index >= hdAccounts && index < hdAccounts + simpleAccounts) {
-        keyringType = 'Simple Key Pair';
-      } else if (index >= hdAccounts + simpleAccounts) {
-        keyringType = 'QR Hardware Wallet Device';
-      }
-
-      internalAccounts[accountId] = {
-        address,
-        id: accountId,
-        metadata: {
-          name: `Account ${index + 1}`,
-          importTime: Date.now(),
-          keyring: {
-            type: keyringType,
-          },
-          lastSelected: Date.now() - index * 1000, // Ensure proper ordering
-        },
-        methods: [
-          'personal_sign',
-          'eth_sign',
-          'eth_signTransaction',
-          'eth_signTypedData_v1',
-          'eth_signTypedData_v3',
-          'eth_signTypedData_v4',
-        ],
-        type: 'eip155:eoa',
-        scopes: ['eip155:1'], // Mainnet scope
-      };
-    });
-
-    merge(this.fixture.state.engine.backgroundState.AccountsController, {
-      internalAccounts: {
-        accounts: internalAccounts,
-        selectedAccount: Object.keys(internalAccounts)[0], // Select the first account
-      },
-    });
-
-    // Update PreferencesController with account identities
-    const identities = {};
-    allAddresses.forEach((address, index) => {
-      identities[address] = {
-        name: `Account ${index + 1}`,
-        address,
-        importTime: Date.now(),
-        lastSelected: Date.now() - index * 1000, // Ensure proper ordering
-      };
-    });
-
-    merge(this.fixture.state.engine.backgroundState.PreferencesController, {
-      identities,
-      selectedAddress: allAddresses[0], // Select the first account
-    });
-
-    // Update AccountTrackerController with account balances
-    const accountsByChainId = {};
-    allAddresses.forEach((address) => {
-      if (!accountsByChainId[1]) {
-        accountsByChainId[1] = {}; // Mainnet chain ID
-      }
-      if (!accountsByChainId[64]) {
-        accountsByChainId[64] = {}; // BSC chain ID
-      }
-      accountsByChainId[1][address] = {
-        balance: '0x0',
-      };
-      accountsByChainId[64][address] = {
-        balance: '0x0',
-      };
-    });
-
-    merge(this.fixture.state.engine.backgroundState.AccountTrackerController, {
-      accountsByChainId,
-    });
-
-    return this;
-  }
-
-  withImportedAccountKeyringController() {
+  withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController() {
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
       keyrings: [
         {
           type: 'HD Key Tree',
           accounts: [DEFAULT_FIXTURE_ACCOUNT],
+          metadata: {
+            id: '01JN61V4CZ5WSJXSS7END4FJQ9',
+            name: '',
+          },
         },
         {
+          type: 'HD Key Tree',
+          accounts: [DEFAULT_IMPORTED_FIXTURE_ACCOUNT],
+          metadata: {
+            id: '01JN61V9ACE7ZA3ZRZFPYFYCJ1',
+            name: '',
+          },
+        },
+      ],
+      // TODO: update this
+      vault:
+        '{"cipher":"0ItM5QzNA6pT0De09iJtURXuNiwwoeZnf7vt/Mx7P05EDzh+5m9agA4w2JrPM0favpgKpL6AlZ81CebDkVSdE5OSBon37N1Xs5F0DEbJxdw0NjmeDZaZlAHNcr7XJiXDsRW+Udz67y6DO8S1MdC2Ju/qthj04nEdaofDHR6qEtM5OYLYG9LHsf/UzqtAwe/5LHbaJtQCvM2JLLfk0BQTg9s5Fce5Nk6YkPHQ1JlUc9WXNRv90Iyclwh08lIr93A6RHNlzSYHRyfpGE5lZv5Soe2m5ZlOKBCDUQFLWjh5vCqFHMaMpMkfrqhdNBaZvHERCpppp2FARn0ufmWsn4/KJdCrxL438BRufDaXdbG8KfrEHmx9r10YjBAv3GFDUYahene8GyuwP/OTvL9i4PfN6CUGaS5sLY4kWBFFDIASlCahtMatp23+G+4I1z0x2O2XOIMiegqqkXZU/uXuDoAeSQ7jTuKzoE4rCXm67DXepECoBCrX1/gWwRQ9hLeyz4KpYfmL05tN0fzWEiMeCi50gpy0Da6QYzPoWyYYURFbE5iPU7XIqww/RtIpzw3UBCtAGuohsxf/hkK27SNcN4k1eW+Bym6G1H7BjhQSFAft2/mi4fuOHsUX+seu3Wqy3uhE0/fu0fazqX4NloiHZbDXq90CCnIUn+owW8ORsSSRO4NywjXARdeU3VtW8j25E7Q37vJ9OIoLqVE9GVyDCN7Gdn88eaBUk14qe5YzYrx3K9KSbz3MVcPmYKaZFR1+qeLWPDVzYFsZHcrGQuSgY33qF9KuI2PAZUuzwA1xroHZxZlGIH5JJSvglHKxNLkK57PK5Y6tb0EGjrVFYUhc/xvCQoMHq20aRGHqqhKL2Ij3ASnSdkTvE1Q1pb3/NpO4NVHxowocYjWGQbp7RHGm1h6BwenzGdli/4XX8iocnjkz4dkzlkXyTwmvh9enyt1bAo6ZpiLNTIMYV2Uvc4E8xP+KRoBXHhTuwHqWbu/jTg6byZjh3bJ4CcXk/CB26ymLzH5GaY4wTTpZnkhUYXa/jW1TexvwnVkD5rzin1S7wYv4Qq3cnLP+J1MwOcjl+94eHYvxVk5xBd3hBt1QDINDEfClzHvq4aV3GSuQXMRlKWcnOmtUzpcrHAmiR4hk4w5E3mCgcJeP3MJo3819Do1vWMLXEUpZfT5Z65Q/HAGpaxh9YZ9yuZkJ+rQe1AX6+hMjG0r+IDtY+MtJ0/AjBwic2H5O7w/7Ztkoy9mLTidR4U0eAWxRMo+/Xx8/gEiJk4pxB/jQbyLFCr8+XySmyx0BnVLyE1sYMb9xXrd7ivm2k0iBtUDtM51frR12m60zT90ecxCxwniwuRGZgf1R/ZI2nBru1begmchDGguDbtmv9wO88USFYXLBP24LiJLJw+1TxooFCAz7r78FPW4wuvBonzCEQnJPSZm9wK7Z/ymmz3RMoBhPobrkp0afX8YY2EpExrMF5yUwrQdg8qld6B9kQWz69C8+wn5YOjTgDp1q2oNF4adC21Mz3klldzpk7JAO+KWe4tAJJj8HicP+IBe2PW9SheBM3Xb77SF0q/SKe1suriYh4d5lVcM2lWY1ryky5upw","iv":"0df9d14eb4d5c6729eacff6ba9cda8dd","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"5Dedq0Jg6wCFJ9whKIeUzP6yePVlUFO1aY2ZlmR+q3A="}',
+    });
+    return this;
+  }
+
+  withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountOneQrAccountOneSimpleKeyPairAccount() {
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings: [
+        {
+          accounts: ['0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6'],
+          metadata: { id: '01JXA9M05DGJ92SMSEPFG8VN17', name: '' },
+          type: 'HD Key Tree',
+        },
+        {
+          accounts: ['0x428f04e9ea21b31090d377f24501065cbb48512f'],
+          metadata: { id: '01JXA9MYRXNW16JZSZJXD6F9SD', name: '' },
+          type: 'QR Hardware Wallet Device',
+        },
+        {
+          accounts: ['0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b'],
+          metadata: { id: '01JXA9MYRXNW16JZSZJXD6F9SD', name: '' },
+          type: 'HD Key Tree',
+        },
+        {
+          accounts: ['0x84b4ebb7492e6deb8892b16b0ee425e39d3116a4'],
+          metadata: { id: '01JXA9YPC99YPE39C063RYGVX1', name: '' },
           type: 'Simple Key Pair',
-          accounts: ['0xDDFFa077069E1d4d478c5967809f31294E24E674'],
         },
       ],
       vault:
-        '{"cipher":"vxFqPMlClX2xjUidoCTiwazr43W59dKIBp6ihT2lX66q8qPTeBRwv7xgBaGDIwDfk4DpJ3r5FBety1kFpS9ni3HtcoNQsDN60Pa80L94gta0Fp4b1jVeP8EJ7Ho71mJ360aDFyIgxPBSCcHWs+l27L3WqF2VpEuaQonK1UTF7c3WQ4pyio4jMAH9x2WQtB11uzyOYiXWmiD3FMmWizqYZY4tHuRlzJZTWrgE7njJLaGMlMmw86+ZVkMf55jryaDtrBVAoqVzPsK0bvo1cSsonxpTa6B15A5N2ANyEjDAP1YVl17roouuVGVWZk0FgDpP82i0YqkSI9tMtOTwthi7/+muDPl7Oc7ppj9LU91JYH6uHGomU/pYj9ufrjWBfnEH/+ZDvPoXl00H1SmX8FWs9NvOg7DZDB6ULs4vAi2/5KGs7b+Td2PLmDf75NKqt03YS2XeRGbajZQ/jjmRt4AhnWgnwRzsSavzyjySWTWiAgn9Vp/kWpd70IgXWdCOakVf2TtKQ6cFQcAf4JzP+vqC0EzgkfbOPRetrovD8FHEFXQ+crNUJ7s41qRw2sketk7FtYUDCz/Junpy5YnYgkfcOTRBHAoOy6BfDFSncuY+08E6eiRHzXsXtbmVXenor15pfbEp/wtfV9/vZVN7ngMpkho3eGQjiTJbwIeA9apIZ+BtC5b7TXWLtGuxSZPhomVkKvNx/GNntjD7ieLHvzCWYmDt6BA9hdfOt1T3UKTN4yLWG0v+IsnngRnhB6G3BGjJHUvdR6Zp5SzZraRse8B3z5ixgVl2hBxOS8+Uvr6LlfImaUcZLMMzkRdKeowS/htAACLowVJe3pU544IJ2CGTsnjwk9y3b5bUJKO3jXukWjDYtrLNKfdNuQjg+kqvIHaCQW40t+vfXGhC5IDBWC5kuev4DJAIFEcvJfJgRrm8ua6LrzEfH0GuhjLwYb+pnQ/eg8dmcXwzzggJF7xK56kxgnA4qLtOqKV4NgjVR0QsCqOBKb3l5LQMlSktdfgp9hlW","iv":"b09c32a79ed33844285c0f1b1b4d1feb","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"GYNFQCSCigu8wNp8cS8C3w=="}',
+        '{"cipher":"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","iv":"4df215ad8ea053bc082a369a40267680","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"TWbGoRlf8VcWi4RXapCjOg44EaJ6xskBCbvgevIjiWc="}',
     });
+    return this;
+  }
+
+  withKeyringControllerOfMultipleAccounts() {
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings: [
+        {
+          accounts: ['0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6'],
+          metadata: { id: '01JYMQCWV547WJ1X7X8KA72BHB', name: null },
+          type: 'HD Key Tree',
+        },
+        // {
+        //   accounts: ['C8WwCAxqd7CsdF2nmQWaMqj8bc6b4RtTZEmaQCAusgkh'],
+        //   metadata: { id: '01JYMQCXJR780W8479CHWADRMW', name: null },
+        //   type: 'Snap Keyring',
+        // },
+        {
+          accounts: [],
+          metadata: { id: '01JYMQD2ZW9MH3QDV97J1T9H9A', name: null },
+          type: 'QR Hardware Wallet Device',
+        },
+      ],
+      vault:
+        '{"cipher":"DUx7iAsJoxlE+MKGopEvRQBL50daKCxL5stSFkxjZl4ZA3DMv4tLxUs1yAr31VMwM9rDuTFDZmZmTLj/WVNnPUgu8PXioD+Qufj3NP6cFmU3oTN1mw+sneI+9CSVlPYnuTzBOWaCXhxHEqTe4jfjPRc0rEeiBAzvJvvnZh93BNoBO7aqr5LNEx32cIuNqefG4mBzNbKq8ytfWHRsKZOZRl9yROpPtUtCaiuk8tuSAtTbtEOT5Btbiha/gAEYT5JjLsMe2Gw96oqyqS8Oza4WagQSVCIJvT/kJDPuO+KZJiIV2VZXmpck+UF02xiw2qvrnm9gu/hZ20t19alx3nbKsF3Q/Kxrfxt02MS/5Z+XKgRDl6qrNmD2K7NkMphuiWI4TdKT8yEU7ZWucJ83XLdQwAhyG2T1ugoe5dwbN9QvY4Fcyw92kba3A3ILKlV3XLnDnel1ZG6V9GAa4SRRCs7z/+lTzfj/h1QpO24ETznMi+PqJF4gtp/RNtgu/aTHwAqj0zkenZYtSME44lYe5hgbJCZXdK5zUTC1czqXshkVotccoKBly9kyML/ajAfO9RIGhSjglrrRUsCco7yyUafz2jLZYuQvFFAuVVukgbAEdINimRlHbYGran1klp9YVaMDADrTB31IVnDCAuNMb5RVoiiS7J0iCuvJWLAVrV5sukHFMi9oA6XMRYCYE6v6jvHgOPXRhJfxV8k7U96Vgv6o7VXkaA9s10y/tuYUhnQpH8AuhOqtQthytlt1FeTF1c74G+Vt/fLfWd3B2p6Iyqrf+XMOT+e/4fAZc0jTsmMM9cfoYoVd8ofyAmRGhql19cAYUEAwvMNfu3QAiOLl00EicHdX8IK8EzoObwLHO+008erBUKbjRvJ1ePl9Dvx83BZkqb2wlP5GmXSQjy9JmUDrCS6TuquVVNHpVKA8EoBwORN68p3B1hnP29yC79Kq7hc8K94K/Xofm0T0wj+Tzspru2iFxA0aZhEAoe13CGy9hBq9QqT285XPGby7vvek9wifIgvwA1yBXjU6lQ5ObyYCKitp8NLXPb5U0UXEOho7mu0QE+GwhoI3uxjtcKyIWkZlPldYsh2eZfcP/mfNhuFsqqlRin+SWynNUY9HMyaDw3FvtPkDZ6VgYMymP3DnWbmiOUa82iKJ2uGKuVgzvKzOlP5pf/GyWSdBz9ZjPNWMTEW/WYPvTkfGDdDCbTWxAG7fKU9locF+D09CV9mboSAQGTbZSI2f7d48Uo+77rntE6ODcumD++qASMZrGHOapCRtv0a4fHbMa3dWDtx6GHLlbvViDbvCsec7ChOUBoL39sgZEyWrC5JiOgYuRUWnU7xkaZHtYha7yKEVLWg4UFtXnLliYQLQseDa/k2/SDbSqLrz9ACVHgKpS3vtY6mSdhNWyrBkWamwVPXinb1Wjni3OQUqN0R7TeQ/QmRRp20atkY5OoFUuYOkBWU4HgyJHg0wEiYOXkscktGS1vl6RvOHyoTPKiWPJFgtz46NOP5ynmlBqS2+srespbKPh2GEN5EGhbdFWGAXSUoecbvjzizxRQdzm8nLNWtx2eDHo54fv3IahvWQNvmDIL265Ezfo+ZEYhOeHTerWvuVBzg78ZeHpOd1ZwTZz/k5JVtW9BZDoJoO1DZ98Bliew7i2uaN0De2ZP10RMQzH5GL636aptqRiUw9mwbavkaI2xC8f2Y9J2jsgtZ8Gjp48lGjBMxWpG4xywu3J8aUi+rLEiOthEK1Ob6LjkUEBeKC8eFreM1LeB9adIuWpdre84RdWTfWvirzCpvyStNc6USpZtgMKTYGmbqgFtZouphiNEvW2zbUi82Qp5v9XqhXB/zGnJwHRFs+Qk/k20tTLnp1U1+5uIjm+uzbXkLix5KGHNwdDpsx4GrZs04HHN2aRcBHnPZokGajwtcv/1PDHW4VMLKb0bttZSYr1tiYYuFp/0p1EcsCJ1cUcQTdTm8xmjKJWune9L2L","iv":"9e427fa9c50d74903acc326dc5f57f32","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"r6Ta3qV3uqZgiXbnJ6bmT5oJhqKpH3ojd2NUzmc2ZLU="}',
+    });
+
+    // Update AccountsController to only include Ethereum account (hide Solana account)
+    this.fixture.state.engine.backgroundState.AccountsController = {
+      internalAccounts: {
+        accounts: {
+          // Ethereum Account 1 only
+          '4d7a5e0b-b261-4aed-8126-43972b0fa0a1': {
+            address: '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6',
+            id: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
+            metadata: {
+              name: 'Account 1',
+              importTime: 1684232000456,
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            options: {},
+            methods: [
+              'personal_sign',
+              'eth_signTransaction',
+              'eth_signTypedData_v1',
+              'eth_signTypedData_v3',
+              'eth_signTypedData_v4',
+            ],
+            type: 'eip155:eoa',
+            scopes: ['eip155:1'],
+          },
+        },
+        selectedAccount: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1', // Default to Ethereum account
+      },
+    };
+    // this.fixture.state.engine.backgroundState.PreferencesController.identities = {
+    //   '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6': {
+    //     address: '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6',
+    //     name: 'Account 1',
+    //     importTime: 1684232000456,
+    //   },
+    // };
+    // this.fixture.state.engine.backgroundState.PreferencesController.selectedAddress = '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6';
+
+    // Configure for Ethereum mainnet only
+    this.fixture.state.engine.backgroundState.MultichainNetworkController = {
+      selectedMultichainNetworkChainId: 'eip155:1', // Default to Ethereum mainnet
+      multichainNetworkConfigurationsByChainId: {
+        'eip155:1': {
+          chainId: 'eip155:1',
+          name: 'Ethereum Mainnet',
+          nativeCurrency: 'ETH',
+          isEvm: true,
+        },
+      },
+      isEvmSelected: true, // Default to EVM mode
+      networksWithTransactionActivity: {},
+    };
+
     return this;
   }
 
@@ -1351,33 +1188,6 @@ class FixtureBuilder {
       basicFunctionalityEnabled: true,
     });
 
-    return this;
-  }
-
-  withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController() {
-    merge(this.fixture.state.engine.backgroundState.KeyringController, {
-      keyrings: [
-        {
-          type: 'HD Key Tree',
-          accounts: [DEFAULT_FIXTURE_ACCOUNT],
-          metadata: {
-            id: '01JN61V4CZ5WSJXSS7END4FJQ9',
-            name: '',
-          },
-        },
-        {
-          type: 'HD Key Tree',
-          accounts: [DEFAULT_IMPORTED_FIXTURE_ACCOUNT],
-          metadata: {
-            id: '01JN61V9ACE7ZA3ZRZFPYFYCJ1',
-            name: '',
-          },
-        },
-      ],
-      // TODO: update this
-      vault:
-        '{"cipher":"IpV+3goe8Vey0mmfHz6DT0NiLwcTbjeglBI+WckZ/HeW0JcyE6kK9rBaqiZ+I0adwWAysIf/OanwvpE5YkYw9xYEkVXDUBQ/0lmscFGatXl24hadMdD01MRkKH6qyjUUw6ZqqmFnIRFbSwwYtD1X8UaRDhX+k/vnzAD9ETFW2cUpji7n5VU5hJQYOaCDO6hUxzE55scp2k68bDm/26EJ5SVgcsDXP/BW/MKnsqGGLAIPtQbVYUVChQ9D150WJif3HLJS1p0SSdGluL85JBLEQqShbBRZ3SiAHtJilf3oQBJB/YcAM6j6Uo7Sf+gAhc7cOvMYQ+YrTc+0Solzfa2OkLemskd4IOIVj6vWY+w0TPLo1IYSR1mFE2JVXE064zhUO0PKXME1qENQTiQCAAIfeEBwfdbQfrv92Zo/nU4VFyzdC3Rf+WPmWjLMXkZYqb1PdwhcgY85EpdFcjZAtcye6VF2iBTO0nMmZIyUabI/3RFizUgKtTlNH/H4NOLTm2HwUHOwAe4pxBbtEIFyuqo050n7UAJftN14Lp+/0kmraguFvsf0sg+AWXK5Tk9Bmkqm74bCuvmDCw2l28/+VEXOiYvytr9105NstlOnG/MmIJoYx8NkIJr5jMSCRtX8byBGRT+lhNq70CjWZIub5USmHkRdx1AuBAipQCdTjisaS2QRPwcA7M4PFbE2ltil1TavcRGRo+xa5nKji04jsx9AotAKkCqUPTOFr/h+WazGtx5+LWTAGXPUe9YtUraBCABXdnNhq7t7dXR7ivaZLkl6oXhQN6u2wmGRRvg3D36gddFVgDcqNafk/y82e0uWAu3F9VrGynYd0t7txkmzup1J19kpBlv7YVWy17J2MT3/PkatNrqdo21qFlhnYAcYKBC52MMInaY8qwQWXLMPud+cDdSR7QDLefl2AQEvH+hyzh2DI6d3Wri17LjujvSRdcwjAitylxnz9k4H2IAgJLlXIh5W69C+JdsNzoHanuJd+Hk=","iv":"68e751a7883bd7119118ebd2b3d30a6f","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"pOiYCrlywkH4UDFq/IHIKg=="}',
-    });
     return this;
   }
 
