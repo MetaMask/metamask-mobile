@@ -25,6 +25,10 @@ export const useTokenSearch = () => {
         setIsLoading(true);
         setError(null);
 
+        /*
+        Short-circuit the search if the query is too short, the token search is disabled,
+        the query is a URL, or the query is a continuation of a previous search that yielded no results
+        */
         if (
           query.length < MINIMUM_QUERY_LENGTH ||
           !tokenSearchEnabled ||
