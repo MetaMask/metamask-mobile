@@ -106,6 +106,9 @@
     "sites": "Sites",
     "tokens": "Tokens"
   },
+  "tokenDiscovery": {
+    "popularTokens": "Popular Tokens"
+  },
   "navigation": {
     "back": "Back",
     "close": "Close",
