@@ -131,7 +131,7 @@ export const SearchDiscoveryResult: React.FC<SearchDiscoveryResultProps> = memo(
                   style={{
                     ...styles.resultActionButton,
                     ...(swapsEnabled ? {} : styles.hiddenButton),
-                    ...(isSwapsLoading && styles.loadingButton),
+                    ...(isSwapsLoading ? styles.loadingButton : {}),
                   }}
                   size={ButtonIconSizes.Md}
                   iconName={IconName.SwapHorizontal}

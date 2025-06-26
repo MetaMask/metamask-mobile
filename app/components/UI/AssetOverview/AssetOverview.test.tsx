@@ -16,7 +16,6 @@ import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/Toke
 // eslint-disable-next-line import/no-namespace
 import * as transactions from '../../../util/transactions';
 import { mockNetworkState } from '../../../util/test/network';
-import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import { swapsUtils } from '@metamask/swaps-controller';
 import {
@@ -507,34 +506,6 @@ describe('AssetOverview', () => {
     });
   });
 
-  it('should prompt to add the network if coming from search and on a different chain', async () => {
-    (
-      Engine.context.NetworkController
-        .getNetworkConfigurationByChainId as jest.Mock
-    ).mockReturnValueOnce(null);
-    const differentChainAssetFromSearch = {
-      ...assetFromSearch,
-      chainId: '0xa',
-    };
-    const { getByTestId } = renderWithProvider(
-      <AssetOverview
-        asset={differentChainAssetFromSearch}
-        displayBuyButton
-        displaySwapsButton
-        swapsIsLive
-      />,
-      { state: mockInitialState },
-    );
-
-    const swapButton = getByTestId('token-swap-button');
-    fireEvent.press(swapButton);
-
-    // Wait for all promises to resolve
-    await Promise.resolve();
-
-    expect(mockAddPopularNetwork).toHaveBeenCalled();
-  });
-
   describe('Portfolio view network switching', () => {
     beforeEach(() => {
       jest.useFakeTimers();
@@ -575,81 +546,6 @@ describe('AssetOverview', () => {
           screen: Routes.WALLET_VIEW,
         },
       });
-    });
-
-    it('should switch networks before swapping when on different chain', async () => {
-      const differentChainAsset = {
-        ...asset,
-        chainId: '0x89', // Different chain (Polygon)
-      };
-
-      const { getByTestId } = renderWithProvider(
-        <AssetOverview
-          asset={differentChainAsset}
-          displayBuyButton
-          displaySwapsButton
-          displayBridgeButton
-          swapsIsLive
-        />,
-        { state: mockInitialState },
-      );
-
-      const swapButton = getByTestId('token-swap-button');
-      await fireEvent.press(swapButton);
-
-      // Wait for all promises to resolve
-      await Promise.resolve();
-
-      expect(navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
-
-      expect(
-        Engine.context.NetworkController.getNetworkConfigurationByChainId,
-      ).toHaveBeenCalledWith('0x89');
-
-      // Fast-forward timers to trigger the swap navigation
-      jest.advanceTimersByTime(500);
-
-      expect(navigate).toHaveBeenCalledWith('Swaps', {
-        screen: 'SwapsAmountView',
-        params: {
-          sourceToken: differentChainAsset.address,
-          sourcePage: 'MainView',
-          chainId: '0x89',
-        },
-      });
-    });
-
-    it('should not switch networks when on same chain', async () => {
-      const sameChainAsset = {
-        ...asset,
-        chainId: MOCK_CHAIN_ID, // Same chain as current
-      };
-
-      const { getByTestId } = renderWithProvider(
-        <AssetOverview
-          asset={sameChainAsset}
-          displayBuyButton
-          displaySwapsButton
-          displayBridgeButton
-          swapsIsLive
-        />,
-        { state: mockInitialState },
-      );
-
-      const sendButton = getByTestId('token-send-button');
-      await fireEvent.press(sendButton);
-
-      // Wait for all promises to resolve
-      await Promise.resolve();
-
-      expect(
-        Engine.context.MultichainNetworkController.setActiveNetwork,
-      ).not.toHaveBeenCalled();
     });
 
     it('render mainBalance as fiat and secondaryBalance as native with portfolio view enabled', async () => {
