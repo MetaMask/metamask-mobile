@@ -22,11 +22,12 @@ describe(
         const sendSolTest = SolanaTestDApp.getSendSolTest();
         await sendSolTest.signTransaction();
 
+        // TODO: Actually sign the transaction (blocked by https://consensyssoftware.atlassian.net/browse/MMQA-586)
         await SolanaTestDApp.tapCancelButton();
       });
     });
 
-    // TODO: Enable when devnet is supported on mobile
+    // TODO: Enable when devnet is supported on mobile (https://github.com/MetaMask/metamask-mobile/issues/15002)
     it.skip('Should send a transaction', async () => {
       await withSolanaAccountSnap({}, async () => {
         await navigateToSolanaTestDApp();

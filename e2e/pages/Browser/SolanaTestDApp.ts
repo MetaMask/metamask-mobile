@@ -195,7 +195,7 @@ class SolanaTestDApp {
     await waitFor(cancelButton)
       .toBeVisible()
       .withTimeout(SOLANA_TEST_TIMEOUTS.ELEMENT_VISIBILITY)
-      .catch();
+      .catch(); // Fixes component accessibility error causing timeout to be reached, even though the cancel button is visible and clickable
     await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.DEFAULT_DELAY);
     await cancelButton.tap();
   }
