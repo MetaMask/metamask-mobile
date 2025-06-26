@@ -32,6 +32,7 @@ import {
 import { Caip25CaveatType, Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 import WalletConnect2Session from './WalletConnect2Session';
 import { CaipChainId } from '@metamask/utils';
+import NavigationService from '../NavigationService';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
   typeof PROJECT_ID === 'string' && PROJECT_ID?.length > 0;
@@ -43,6 +44,11 @@ export const ERROR_MESSAGES = {
   AUTO_REMOVE: 'Automatic removal',
   INVALID_ID: 'Invalid Id',
 };
+
+
+type InitParams = {
+  sessions?: { [topic: string]: WalletConnect2Session };
+}
 
 export class WC2Manager {
   private static instance: WC2Manager;
@@ -192,13 +198,13 @@ export class WC2Manager {
     }
   }
 
-  public static async init({
-    navigation,
-    sessions = {},
-  }: {
-    navigation: NavigationContainerRef;
-    sessions?: { [topic: string]: WalletConnect2Session };
-  }) {
+  public static async init(params?: InitParams) {
+    if (!isWC2Enabled) {
+      //If WC is not enabled, we don't need to initialize it
+      return;
+    }
+    const { sessions = {} } = params || {};
+    const navigation = NavigationService.navigation;
     if (!navigation) {
       console.warn(`WC2::init missing navigation --- SKIP INIT`);
       return;
