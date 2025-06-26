@@ -635,6 +635,7 @@ class OptinMetrics extends PureComponent {
                       !isDataCollectionForMarketingEnabled,
                     )
                   }
+                  testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CHECKBOX_ID}
                 />
                 <Text
                   variant={TextVariant.BodySMMedium}

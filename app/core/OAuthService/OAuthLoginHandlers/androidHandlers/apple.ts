@@ -10,6 +10,8 @@ import {
 } from '../../OAuthInterface';
 import { BaseLoginHandler } from '../baseHandler';
 import { OAuthError, OAuthErrorType } from '../../error';
+import { isE2E } from '../../../../util/test/utils';
+import { SeedlessOnboardingTestUtilts } from '../../../../util/test/seedlessOnboardingTestUtilts';
 export interface AndroidAppleLoginHandlerParams {
   clientId: string;
   redirectUri: string;
@@ -70,6 +72,18 @@ export class AndroidAppleLoginHandler
    * @returns LoginHandlerCodeResult
    */
   async login(): Promise<LoginHandlerCodeResult> {
+
+    // Do mock response if running in e2e mode
+    if (isE2E) {
+      // check if there is a mock result
+      const mockResult = await SeedlessOnboardingTestUtilts.getInstance().getMockedOAuthLoginResponse();
+
+      // Only return mock result if it is not null, otherwise continue with the original flow
+      if (mockResult) {
+        return mockResult as LoginHandlerCodeResult;
+      }
+    }
+
     const state = JSON.stringify({
       provider: this.authConnection,
       client_redirect_back_uri: this.appRedirectUri,
