@@ -343,10 +343,5 @@ export enum IconName {
   Widgets = 'Widgets',
   WifiOff = 'WifiOff',
   Wifi = 'Wifi',
-  Google = 'Google',
-  Apple = 'Apple',
-  Account = 'Account',
-  AccountType = 'AccountType',
-  RichDanger = 'RichDanger',
   X = 'X',
 }
