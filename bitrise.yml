@@ -1037,7 +1037,6 @@ workflows:
                 elif [ -n "${TEST_SUITE_TAG:-}" ]; then
                   echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
                   ./scripts/run-e2e-tags.sh
-                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release $E2E_TEST_FILE
                 fi
       - custom-test-results-export@1:
           title: Export test results
@@ -1305,8 +1304,7 @@ workflows:
                   IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release $E2E_TEST_FILE
                 elif [ -n "${TEST_SUITE_TAG:-}" ]; then
                   echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
-                  ./scripts/run-e2e-tags.sh $TEST_SUITE_TAG
-                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release $E2E_TEST_FILE
+                  ./scripts/run-e2e-tags.sh
                 fi
       - custom-test-results-export@1:
           is_always_run: true
