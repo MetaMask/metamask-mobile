@@ -7,7 +7,7 @@ import {
 function usePaymentMethods() {
   let paymentMethods = SUPPORTED_PAYMENT_METHODS;
 
-  if (!Device.isIos) {
+  if (!Device.isIos()) {
     paymentMethods = paymentMethods.filter(
       (paymentMethod) => paymentMethod.id !== APPLE_PAY_PAYMENT_METHOD.id,
     );
