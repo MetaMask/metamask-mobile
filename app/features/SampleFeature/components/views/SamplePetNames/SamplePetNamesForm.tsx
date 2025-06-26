@@ -82,7 +82,10 @@ export function SamplePetNamesForm({
           MetricsEventBuilder.createEventBuilder(
             SAMPLE_FEATURE_EVENTS.PETNAME_UPDATED,
           )
-            .addProperties({ name })
+            .addProperties({ 
+              totalPetNames: petNames.length,
+              chainId: chainId as string,
+            })
             .build(),
         );
         onSubmit();
@@ -109,7 +112,10 @@ export function SamplePetNamesForm({
                   MetricsEventBuilder.createEventBuilder(
                     SAMPLE_FEATURE_EVENTS.PETNAME_UPDATED,
                   )
-                    .addProperties({ name })
+                    .addProperties({ 
+                      totalPetNames: petNames.length,
+                      chainId: chainId as string,
+                    })
                     .build(),
                 );
                 onSubmit();
@@ -124,8 +130,10 @@ export function SamplePetNamesForm({
         MetricsEventBuilder.createEventBuilder(
           SAMPLE_FEATURE_EVENTS.PETNAME_ADDED,
         )
-          .addProperties({ name })
-          .addSensitiveProperties({ address })
+          .addProperties({ 
+            totalPetNames: petNames.length,
+            chainId: chainId as string,
+          })
           .build(),
       );
       onSubmit();

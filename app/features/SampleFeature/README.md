@@ -242,6 +242,23 @@ Events are defined in `analytics/events.ts` following the event builder pattern:
 - Integration with the global MetaMetrics system
 - Separation of event definition from event dispatching
 
+### Privacy Considerations
+
+> [!WARNING]
+> **Critical Privacy Risk**: Even when using `addSensitiveProperties` for anonymous events, linking sensitive data in the same event creates significant privacy risks.
+> 
+> **Example Risk**: Sending a name and address in the same anonymous event allows correlation between the two pieces of data, even if the user identity is unknown.
+> 
+> **Best Practice**: Avoid tracking multiple sensitive data points in the same event. Instead, track aggregate data, metadata, or separate events for different sensitive information.
+
+**Safe Tracking Examples:**
+- ✅ `totalPetNames` (aggregate count)
+- ✅ `chainId` (public network info)
+
+**Unsafe Tracking Examples:**
+- ❌ Name
+- ❌ Address
+
 ## Performance Tracing
 
 The Sample Feature demonstrates MetaMask's dual performance monitoring approach using both Sentry tracing and Redux performance tracking:

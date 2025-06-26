@@ -10,6 +10,9 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 
 import { SamplePetNamesForm } from './SamplePetNamesForm';
 import Engine from '../../../../../core/Engine';
+import useMetrics from '../../../../../components/hooks/useMetrics/useMetrics';
+import { SAMPLE_FEATURE_EVENTS } from '../../../analytics/events';
+import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder.ts';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -24,11 +27,15 @@ jest.mock('../../hooks/useSamplePetNames', () => ({
   useSamplePetNames: jest.fn(),
 }));
 
+jest.mock('../../../../../components/hooks/useMetrics/useMetrics');
+
 import { useSamplePetNames } from '../../hooks/useSamplePetNames';
 
 const mockUseSamplePetNames = useSamplePetNames as jest.MockedFunction<
   typeof useSamplePetNames
 >;
+
+const mockTrackEvent = jest.fn();
 
 describe('SamplePetNamesForm', () => {
   let alertSpy: jest.SpyInstance;
@@ -39,6 +46,20 @@ describe('SamplePetNamesForm', () => {
     mockUseSamplePetNames.mockReturnValue({ petNames: [] });
     // Create spy on Alert.alert
     alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    
+    (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+      enable: jest.fn(),
+      addTraitsToUser: jest.fn(),
+      createDataDeletionTask: jest.fn(),
+      checkDataDeleteStatus: jest.fn(),
+      getDeleteRegulationCreationDate: jest.fn(),
+      getDeleteRegulationId: jest.fn(),
+      isDataRecorded: jest.fn(),
+      isEnabled: jest.fn(),
+      getMetaMetricsId: jest.fn(),
+    });
   });
 
   afterEach(() => {
@@ -88,6 +109,35 @@ describe('SamplePetNamesForm', () => {
         '0x1',
         '0xc6893a7d6a966535F7884A4de710111986ebB132',
         'Test Account',
+      );
+    });
+  });
+
+  it('calls trackEvent when adding new pet name', async () => {
+    // Arrange
+    const { getByTestId } = renderWithProvider(
+      <SamplePetNamesForm
+        chainId={'0x1'}
+        initialAddress={'0xc6893a7d6a966535F7884A4de710111986ebB132'}
+        initialName={'Test Account'}
+      />,
+      { state: initialRootState },
+    );
+
+    // Act
+    const button = getByTestId('add-pet-name-button');
+    fireEvent.press(button);
+
+    // Assert
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: SAMPLE_FEATURE_EVENTS.PETNAME_ADDED.category,
+          properties: {
+            totalPetNames: 0,
+            chainId: '0x1',
+          },
+        }),
       );
     });
   });
@@ -166,6 +216,44 @@ describe('SamplePetNamesForm', () => {
         '0x1',
         '0xc6893a7d6a966535F7884A4de710111986ebB132',
         'Test Account',
+      );
+    });
+  });
+
+  it('calls trackEvent when updating existing pet name', async () => {
+    // Arrange
+    mockUseSamplePetNames.mockReturnValue({
+      petNames: [
+        {
+          address: '0xc6893a7d6a966535F7884A4de710111986ebB132',
+          name: 'Existing Name',
+        },
+      ],
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <SamplePetNamesForm
+        chainId={'0x1'}
+        initialAddress={'0xc6893a7d6a966535F7884A4de710111986ebB132'}
+        initialName={'Test Account'}
+      />,
+      { state: initialRootState },
+    );
+
+    // Act
+    const button = getByTestId('add-pet-name-button');
+    fireEvent.press(button);
+
+    // Assert
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: SAMPLE_FEATURE_EVENTS.PETNAME_UPDATED.category,
+          properties: {
+            totalPetNames: 1,
+            chainId: '0x1',
+          },
+        }),
       );
     });
   });
