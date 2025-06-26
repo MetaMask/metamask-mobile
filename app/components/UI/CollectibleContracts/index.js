@@ -79,7 +79,6 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       paddingHorizontal: 12,
-      paddingBottom: 16,
     },
     controlButtonOuterWrapper: {
       flexDirection: 'row',

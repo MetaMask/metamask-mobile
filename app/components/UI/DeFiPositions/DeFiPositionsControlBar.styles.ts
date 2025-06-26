@@ -16,7 +16,6 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       justifyContent: 'space-between',
       paddingHorizontal: 16,
-      paddingBottom: 16,
       alignItems: 'center',
     },
     controlButton: {
