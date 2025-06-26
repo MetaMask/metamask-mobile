@@ -17,7 +17,6 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between',
       paddingHorizontal: 16,
       paddingBottom: 16,
-      paddingTop: 8,
       alignItems: 'center',
     },
     controlButton: {

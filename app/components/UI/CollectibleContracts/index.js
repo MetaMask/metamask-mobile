@@ -80,7 +80,6 @@ const createStyles = (colors) =>
       justifyContent: 'space-between',
       paddingHorizontal: 12,
       paddingBottom: 16,
-      paddingTop: 8,
     },
     controlButtonOuterWrapper: {
       flexDirection: 'row',
