@@ -1,4 +1,5 @@
 'use strict';
+import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
@@ -10,9 +11,8 @@ import Assertions from '../../utils/Assertions';
 import { CustomNetworks } from '../../resources/networks.e2e';
 
 const TOKEN_ADDRESS = '0x2d1aDB45Bb1d7D2556c6558aDb76CFD4F9F4ed16';
-const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
-describe('Import custom token', () => {
+describe(Regression('Import custom token'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.launchApp();
@@ -73,8 +73,6 @@ describe('Import custom token', () => {
     const tokens = await WalletView.getTokensInWallet();
     const tokensAttributes = await tokens.getAttributes();
     const label = tokensAttributes.label;
-
-    console.log('LABEL ***********', label);
 
     // Ensure `label` contains "Aave" followed (somewhere) by "Ethereum".
     const textOrderRegex = new RegExp('USDT([\\s\\S]*?)Ethereum', 'i');
