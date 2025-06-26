@@ -168,8 +168,8 @@
     "@keystonehq/metamask-airgapped-keyring": "^0.15.2",
     "@keystonehq/ur-decoder": "^0.12.2",
     "@ledgerhq/react-native-hw-transport-ble": "^6.34.1",
-    "@metamask/accounts-controller": "^30.0.0",
     "@metamask/account-tree-controller": "0.1.1",
+    "@metamask/accounts-controller": "^30.0.0",
     "@metamask/address-book-controller": "^6.1.0",
     "@metamask/app-metadata-controller": "^1.0.0",
     "@metamask/approval-controller": "^7.1.3",
@@ -256,8 +256,13 @@
     "@react-native-community/cli-platform-android": "15.0.1",
     "@react-native-community/cli-platform-ios": "15.0.1",
     "@react-native-community/cli-server-api": "^17.0.0",
+<<<<<<< HEAD
     "@react-native-community/datetimepicker": "^7.5.0",
     "@react-native-community/netinfo": "^9.5.0",
+=======
+    "@react-native-community/datetimepicker": "^8.3.0",
+    "@react-native-community/netinfo": "^11.4.1",
+>>>>>>> 18dacc1c4a (fix: wallet connect QR code reading failure (#16684))
     "@react-native-community/slider": "^4.4.3",
     "@react-native-cookies/cookies": "^6.2.1",
     "@react-native-firebase/app": "^20.5.0",

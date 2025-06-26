@@ -1667,7 +1667,25 @@ PODS:
   - react-native-mmkv (2.11.0):
     - MMKV (>= 1.2.13)
     - React-Core
+<<<<<<< HEAD
   - react-native-netinfo (9.5.0):
+=======
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - react-native-netinfo (11.4.1):
+>>>>>>> 18dacc1c4a (fix: wallet connect QR code reading failure (#16684))
     - React-Core
   - react-native-pager-view (6.7.1):
     - DoubleConversion
@@ -2876,10 +2894,17 @@ SPEC CHECKSUMS:
   react-native-gzip: 8d602277c2564591f04dd1cec4043acc8350dcc3
   react-native-in-app-review: b3d1eed3d1596ebf6539804778272c4c65e4a400
   react-native-launch-arguments: 7eb321ed3f3ef19b3ec4a2eca71c4f9baee76b41
+<<<<<<< HEAD
   react-native-mmkv: 5a46c73e3e12aa872c4485ae0e4414b4040af79a
   react-native-netinfo: 26560022f28c06d8ef00a9ff1e03beefbbb60c2d
   react-native-pager-view: 31bcb0ec0a6d5d60b7ab659675c33c22454dfc2a
   react-native-performance: 125a96c145e29918b55b45ce25cbba54f1e24dcd
+=======
+  react-native-mmkv: a3fcc2befc08b0e09b832411cad15704851b476e
+  react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
+  react-native-pager-view: 4418fa30e7906316026b5da0b50e6c1629433ed4
+  react-native-performance: 6919b25d368968aeed6571d717d2c338f1f77bf5
+>>>>>>> 18dacc1c4a (fix: wallet connect QR code reading failure (#16684))
   react-native-quick-base64: daf67f19ee076b77f0755bf4056f3425f164e1d8
   react-native-quick-crypto: 290688915e927da959a384891493a563b51f96f0
   react-native-randombytes: 3c8f3e89d12487fd03a2f966c288d495415fc116
