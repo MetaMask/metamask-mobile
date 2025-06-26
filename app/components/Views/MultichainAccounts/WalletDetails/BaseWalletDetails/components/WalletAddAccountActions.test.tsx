@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import WalletAddAccountActions from './WalletAddAccountActions';
 
 // Mock dependencies

@@ -3,25 +3,25 @@ import React, { Fragment, useCallback, useState } from 'react';
 import { SafeAreaView, View } from 'react-native';
 
 // External dependencies.
-import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
-import AccountAction from '../../../AccountAction/AccountAction';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
-import { strings } from '../../../../../../locales/i18n';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import Logger from '../../../../../util/Logger';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import SheetHeader from '../../../../../../component-library/components/Sheet/SheetHeader';
+import AccountAction from '../../../../AccountAction/AccountAction';
+import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import { strings } from '../../../../../../../locales/i18n';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import Logger from '../../../../../../util/Logger';
+import { useMetrics } from '../../../../../hooks/useMetrics';
 
-import { addNewHdAccount } from '../../../../../actions/multiSrp';
-import { useAccountsWithNetworkActivitySync } from '../../../../hooks/useAccountsWithNetworkActivitySync';
-import { AddAccountBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
+import { addNewHdAccount } from '../../../../../../actions/multiSrp';
+import { useAccountsWithNetworkActivitySync } from '../../../../../hooks/useAccountsWithNetworkActivitySync';
+import { AddAccountBottomSheetSelectorsIDs } from '../../../../../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
 
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
 import {
   MultichainWalletSnapFactory,
   WalletClientType,
-} from '../../../../../core/SnapKeyring/MultichainWalletSnapClient';
-import { getMultichainAccountName } from '../../../../../core/SnapKeyring/utils/getMultichainAccountName';
+} from '../../../../../../core/SnapKeyring/MultichainWalletSnapClient';
+import { getMultichainAccountName } from '../../../../../../core/SnapKeyring/utils/getMultichainAccountName';
 ///: END:ONLY_INCLUDE_IF
 
 interface WalletAddAccountActionsProps {
