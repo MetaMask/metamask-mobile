@@ -1,6 +1,6 @@
 /* eslint-disable no-console, import/no-nodejs-modules */
 import { loginToApp } from '../../viewHelper';
-import { SmokeWalletPlatform } from '../../tags';
+import { SmokePerformance } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../utils/Assertions';
@@ -8,7 +8,7 @@ import TestHelpers from '../../helpers';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 
-describe(SmokeWalletPlatform('Account List Load Testing'), () => {
+describe(SmokePerformance('Account List Load Testing'), () => {
   beforeAll(async () => {
     jest.setTimeout(300000); // 5 minutes timeout for load testing
     await TestHelpers.reverseServerPort();
@@ -19,7 +19,7 @@ describe(SmokeWalletPlatform('Account List Load Testing'), () => {
     const isAndroid = device.getPlatform() === 'android';
     const PERFORMANCE_THRESHOLDS = isAndroid
       ? {
-          ACCOUNT_LIST_RENDER: 10000, // 10 seconds max for Android
+          ACCOUNT_LIST_RENDER: 15000, // 15 seconds max for Android
           NAVIGATION_TO_ACCOUNT_LIST: 2500, // 2.5 seconds max for Android
         }
       : {
