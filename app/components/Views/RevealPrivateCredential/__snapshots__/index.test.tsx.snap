@@ -118,20 +118,14 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                   }
                 }
               >
-                The
+                Your
                  
                 <Text
                   accessibilityRole="text"
                   onPress={[Function]}
                   style={
                     {
-                      "0": {
-                        "color": "#4459ff",
-                      },
-                      "1": {
-                        "top": 2.5,
-                      },
-                      "color": "#121314",
+                      "color": "#4459ff",
                       "fontFamily": "CentraNo1-Book",
                       "fontSize": 16,
                       "fontWeight": "400",
@@ -140,7 +134,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                     }
                   }
                 >
-                  Secret Recovery Phrase (SRP)
+                  Secret Recovery Phrase
                 </Text>
                  
                 gives
@@ -150,9 +144,9 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 16,
-                      "fontWeight": "600",
+                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -169,13 +163,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                   onPress={[Function]}
                   style={
                     {
-                      "0": {
-                        "color": "#4459ff",
-                      },
-                      "1": {
-                        "top": 2.5,
-                      },
-                      "color": "#121314",
+                      "color": "#4459ff",
                       "fontFamily": "CentraNo1-Book",
                       "fontSize": 16,
                       "fontWeight": "400",
@@ -194,15 +182,15 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 16,
-                      "fontWeight": "600",
+                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
                   }
                 >
-                  you are the owner of your SRP.
+                  you are the owner of your Secret Recovery Phrase.
                 </Text>
               </Text>
               <View
@@ -553,20 +541,14 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                   }
                 }
               >
-                The
+                Your
                  
                 <Text
                   accessibilityRole="text"
                   onPress={[Function]}
                   style={
                     {
-                      "0": {
-                        "color": "#4459ff",
-                      },
-                      "1": {
-                        "top": 2.5,
-                      },
-                      "color": "#121314",
+                      "color": "#4459ff",
                       "fontFamily": "CentraNo1-Book",
                       "fontSize": 16,
                       "fontWeight": "400",
@@ -575,7 +557,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                     }
                   }
                 >
-                  Secret Recovery Phrase (SRP)
+                  Secret Recovery Phrase
                 </Text>
                  
                 gives
@@ -585,9 +567,9 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 16,
-                      "fontWeight": "600",
+                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -604,13 +586,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                   onPress={[Function]}
                   style={
                     {
-                      "0": {
-                        "color": "#4459ff",
-                      },
-                      "1": {
-                        "top": 2.5,
-                      },
-                      "color": "#121314",
+                      "color": "#4459ff",
                       "fontFamily": "CentraNo1-Book",
                       "fontSize": 16,
                       "fontWeight": "400",
@@ -629,15 +605,15 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 16,
-                      "fontWeight": "600",
+                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
                   }
                 >
-                  you are the owner of your SRP.
+                  you are the owner of your Secret Recovery Phrase.
                 </Text>
               </Text>
               <View

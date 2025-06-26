@@ -1522,14 +1522,14 @@
     "done": "Done",
     "confirm": "Next",
     "seed_phrase_explanation": [
-      "The",
-      "Secret Recovery Phrase (SRP)",
+      "Your",
+      "Secret Recovery Phrase",
       "gives",
       "full access to your wallet, funds and accounts.\n\n",
       "MetaMask is a",
       "non-custodial wallet.",
       "That means,",
-      "you are the owner of your SRP."
+      "you are the owner of your Secret Recovery Phrase."
     ],
     "private_key_explanation": "Save it somewhere safe and secret.",
     "private_key_warning": "This is the private key for the current selected account: {{accountName}}. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
