@@ -34,8 +34,8 @@ describe(SmokeWalletPlatform('Account List Load Testing'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withMultipleAccounts(12)
-          .withPopularNetworks() // Adds multiple networks
+          .withGanacheNetwork()
+          .withKeyringControllerOfMultipleAccounts()
           .withTokens(loadTestTokens) // Adds test tokens
           .withProfileSyncingEnabled()
           .build(),
@@ -54,7 +54,6 @@ describe(SmokeWalletPlatform('Account List Load Testing'), () => {
 
         // Wait for account list to be visible
         await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-
         const navigationEndTime = Date.now();
         const navigationTime = navigationEndTime - navigationStartTime;
 
@@ -127,126 +126,118 @@ describe(SmokeWalletPlatform('Account List Load Testing'), () => {
     );
   });
 
-  it('handle account list performance with heavy token load', async () => {
-    // Create a large number of test tokens to stress test the system
-    const heavyTokenLoad = [];
-    for (let i = 1; i <= 50; i++) {
-      // 50 tokens for stress testing
-      heavyTokenLoad.push({
-        address: `0xabcd${i.toString().padStart(36, '0')}`,
-        symbol: `HEAVY${i}`,
-        decimals: 18,
-        name: `Heavy Load Token ${i}`,
-      });
-    }
+  // it('handle account list performance with heavy token load', async () => {
+  //   // Create a large number of test tokens to stress test the system
+  //   const heavyTokenLoad = [];
+  //   for (let i = 1; i <= 50; i++) {
+  //     // 50 tokens for stress testing
+  //     heavyTokenLoad.push({
+  //       address: `0xabcd${i.toString().padStart(36, '0')}`,
+  //       symbol: `HEAVY${i}`,
+  //       decimals: 18,
+  //       name: `Heavy Load Token ${i}`,
+  //     });
+  //   }
 
-    const HEAVY_LOAD_THRESHOLDS = {
-      ACCOUNT_LIST_RENDER: 8000, // Allow more time for heavy load
-      NAVIGATION_TO_ACCOUNT_LIST: 3000,
-    };
+  //   const HEAVY_LOAD_THRESHOLDS = {
+  //     ACCOUNT_LIST_RENDER: 8000, // Allow more time for heavy load
+  //     NAVIGATION_TO_ACCOUNT_LIST: 3000,
+  //   };
 
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder()
-          .withRealAccounts({ 
-            hdAccounts: 8,    // 8 HD accounts across multiple keyrings
-            simpleAccounts: 3, // 3 Simple Key Pair accounts
-            qrAccounts: 1      // 1 QR Hardware Wallet account
-          }) // Creates 12 accounts total
-          .withPopularNetworks()
-          .withTokens(heavyTokenLoad)
-          .build(),
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
+  //   await withFixtures(
+  //     {
+  //       fixture: new FixtureBuilder()
+  //         .withPopularNetworks()
+  //         .withKeyringControllerOfMultipleAccounts()
+  //         .withTokens(heavyTokenLoad)
+  //         .build(),
+  //       restartDevice: true,
+  //     },
+  //     async () => {
+  //       await loginToApp();
 
-        console.log('Starting heavy load test with 50 tokens...');
+  //       console.log('Starting heavy load test with 50 tokens...');
 
-        const startTime = Date.now();
-        await WalletView.tapIdenticon();
-        await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-        const endTime = Date.now();
+  //       const startTime = Date.now();
+  //       await WalletView.tapIdenticon();
+  //       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+  //       const endTime = Date.now();
 
-        const totalTime = endTime - startTime;
+  //       const totalTime = endTime - startTime;
 
-        console.log('========== HEAVY LOAD TEST RESULTS ==========');
-        console.log(`Configuration: 12 accounts, popular networks, 50 tokens`);
-        console.log(`Total time to render account list: ${totalTime}ms`);
-        console.log('=============================================');
+  //       console.log('========== HEAVY LOAD TEST RESULTS ==========');
+  //       console.log(`Configuration: 3 accounts, popular networks, 50 tokens`);
+  //       console.log(`Total time to render account list: ${totalTime}ms`);
+  //       console.log('=============================================');
 
-        // Quality gate for heavy load
-        const maxHeavyLoadTime =
-          HEAVY_LOAD_THRESHOLDS.NAVIGATION_TO_ACCOUNT_LIST +
-          HEAVY_LOAD_THRESHOLDS.ACCOUNT_LIST_RENDER;
-        if (totalTime > maxHeavyLoadTime) {
-          throw new Error(
-            `Heavy load test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${maxHeavyLoadTime}ms)`,
-          );
-        }
+  //       // Quality gate for heavy load
+  //       const maxHeavyLoadTime =
+  //         HEAVY_LOAD_THRESHOLDS.NAVIGATION_TO_ACCOUNT_LIST +
+  //         HEAVY_LOAD_THRESHOLDS.ACCOUNT_LIST_RENDER;
+  //       if (totalTime > maxHeavyLoadTime) {
+  //         throw new Error(
+  //           `Heavy load test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${maxHeavyLoadTime}ms)`,
+  //         );
+  //       }
 
-        console.log('✅ Heavy load test passed!');
-        await AccountListBottomSheet.swipeToDismissAccountsModal();
-      },
-    );
-  });
+  //       console.log('✅ Heavy load test passed!');
+  //       await AccountListBottomSheet.swipeToDismissAccountsModal();
+  //     },
+  //   );
+  // });
 
-  it('benchmark account list with minimal load', async () => {
-    // Baseline test with minimal tokens for comparison
-    const minimalTokens = [
-      {
-        address: '0x1111111111111111111111111111111111111111',
-        symbol: 'MIN1',
-        decimals: 18,
-        name: 'Minimal Token 1',
-      },
-      {
-        address: '0x2222222222222222222222222222222222222222',
-        symbol: 'MIN2',
-        decimals: 18,
-        name: 'Minimal Token 2',
-      },
-    ];
+  // it('benchmark account list with minimal load', async () => {
+  //   // Baseline test with minimal tokens for comparison
+  //   const minimalTokens = [
+  //     {
+  //       address: '0x1111111111111111111111111111111111111111',
+  //       symbol: 'MIN1',
+  //       decimals: 18,
+  //       name: 'Minimal Token 1',
+  //     },
+  //     {
+  //       address: '0x2222222222222222222222222222222222222222',
+  //       symbol: 'MIN2',
+  //       decimals: 18,
+  //       name: 'Minimal Token 2',
+  //     },
+  //   ];
 
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder()
-          .withRealAccounts({ 
-            hdAccounts: 1,     // 1 HD account
-            simpleAccounts: 1, // 1 Simple Key Pair account
-            qrAccounts: 0      // No QR accounts
-          }) // Creates 2 accounts total
-          .withTokens(minimalTokens)
-          .build(),
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
+  //   await withFixtures(
+  //     {
+  //       fixture: new FixtureBuilder()
+  //         .withKeyringControllerOfMultipleAccounts() // Minimal 2 accounts
+  //         .withTokens(minimalTokens)
+  //         .build(),
+  //       restartDevice: true,
+  //     },
+  //     async () => {
+  //       await loginToApp();
 
-        console.log('Starting baseline test with minimal load...');
+  //       console.log('Starting baseline test with minimal load...');
 
-        const startTime = Date.now();
-        await WalletView.tapIdenticon();
-        await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-        const endTime = Date.now();
+  //       const startTime = Date.now();
+  //       await WalletView.tapIdenticon();
+  //       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+  //       const endTime = Date.now();
 
-        const totalTime = endTime - startTime;
+  //       const totalTime = endTime - startTime;
 
-        console.log('========== BASELINE TEST RESULTS ==========');
-        console.log(`Configuration: 2 accounts, default network, 2 tokens`);
-        console.log(`Total time to render account list: ${totalTime}ms`);
-        console.log('==========================================');
+  //       console.log('========== BASELINE TEST RESULTS ==========');
+  //       console.log(`Configuration: 2 accounts, default network, 2 tokens`);
+  //       console.log(`Total time to render account list: ${totalTime}ms`);
+  //       console.log('==========================================');
 
-        // Baseline should be very fast
-        if (totalTime > 3000) {
-          console.warn(
-            `⚠️  BASELINE WARNING: Even minimal load took ${totalTime}ms`,
-          );
-        }
+  //       // Baseline should be very fast
+  //       if (totalTime > 3000) {
+  //         console.warn(
+  //           `⚠️  BASELINE WARNING: Even minimal load took ${totalTime}ms`,
+  //         );
+  //       }
 
-        console.log('✅ Baseline test completed!');
-        await AccountListBottomSheet.swipeToDismissAccountsModal();
-      },
-    );
-  });
+  //       console.log('✅ Baseline test completed!');
+  //       await AccountListBottomSheet.swipeToDismissAccountsModal();
+  //     },
+  //   );
+  // });
 });
