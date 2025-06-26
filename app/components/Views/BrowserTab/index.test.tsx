@@ -68,6 +68,7 @@ const mockProps = {
   isInTabsView: false,
   initialUrl: 'https://metamask.io',
   homePageUrl: AppConstants.HOMEPAGE_URL,
+  goToDiscovery: jest.fn(),
 };
 
 describe('BrowserTab', () => {

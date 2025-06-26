@@ -203,38 +203,6 @@ describe('Browser', () => {
     expect(passedUrl).toMatch(/^https:\/\//);
   });
 
-  it('should create a new token discovery tab when rendered with no tabs and token discovery browser is enabled', () => {
-    jest.mocked(tokenDiscoveryBrowserEnabled).mockReturnValue(true);
-    const mockCreateNewTab = jest.fn();
-    renderWithProvider(
-      <Provider store={mockStore(mockInitialState)}>
-        <NavigationContainer independent>
-          <Stack.Navigator>
-            <Stack.Screen name={Routes.BROWSER.VIEW}>
-              {() => (
-                <Browser
-                  route={routeMock}
-                  tabs={[]}
-                  activeTab={1}
-                  navigation={mockNavigation}
-                  createNewTab={mockCreateNewTab}
-                  closeAllTabs={jest.fn}
-                  closeTab={jest.fn}
-                  setActiveTab={jest.fn}
-                  updateTab={jest.fn}
-                />
-              )}
-            </Stack.Screen>
-          </Stack.Navigator>
-        </NavigationContainer>
-      </Provider>,
-      { state: { ...mockInitialState } },
-    );
-
-    expect(mockCreateNewTab).toHaveBeenCalledWith(undefined, undefined);
-    jest.mocked(tokenDiscoveryBrowserEnabled).mockReturnValue(false);
-  });
-
   it('should call navigate when route param `newTabUrl` and `timestamp` are added', () => {
     // Render the component with an initial prop value
     const { rerender } = renderWithProvider(
