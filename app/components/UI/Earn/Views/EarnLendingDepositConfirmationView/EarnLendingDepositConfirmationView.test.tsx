@@ -289,6 +289,10 @@ describe('EarnLendingDepositConfirmationView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
+  it.todo('renders allowance reset step for USDT on Ethereum mainnet');
+
+  it.todo('initiates token allowance on confirm');
+
   describe('Analytics', () => {
     it('tracks EARN_CONFIRMATION_PAGE_VIEWED on render', async () => {
       renderWithProvider(<EarnLendingDepositConfirmationView />, {
@@ -308,6 +312,7 @@ describe('EarnLendingDepositConfirmationView', () => {
             token: 'USDC',
             transaction_value: '5 USDC',
             user_token_balance: undefined,
+            isAllowanceReset: false,
           })
           .build(),
       );
@@ -361,24 +366,18 @@ describe('EarnLendingDepositConfirmationView', () => {
         transactionMeta,
       } as Result);
 
-      // Mock the subscribeOnceIf to simulate transaction status callbacks
-      let transactionStatusCallbackRejected:
-        | ((event: { transactionMeta: Partial<TransactionMeta> }) => void)
-        | undefined;
-      let transactionStatusCallbackSubmitted:
-        | ((event: { transactionMeta: Partial<TransactionMeta> }) => void)
-        | undefined;
-      let transactionStatusCallbackConfirmed1:
-        | ((transactionMeta: Partial<TransactionMeta>) => void)
-        | undefined;
-      let transactionStatusCallbackConfirmed2:
-        | ((transactionMeta: Partial<TransactionMeta>) => void)
-        | undefined;
-      let transactionStatusCallbackFailed:
-        | ((event: { transactionMeta: Partial<TransactionMeta> }) => void)
-        | undefined;
+      type TxCallback = (event: {
+        transactionMeta: Partial<TransactionMeta>;
+      }) => void;
 
-      let confirmedCallbackCount = 0;
+      // Mock the subscribeOnceIf to simulate transaction status callbacks
+      let transactionStatusCallbackRejected: TxCallback | undefined;
+      let transactionStatusCallbackSubmitted: TxCallback | undefined;
+      let transactionStatusCallbackConfirmed:
+        | ((transactionMeta: Partial<TransactionMeta>) => void)
+        | undefined;
+      let transactionStatusCallbackFailed: TxCallback | undefined;
+
       jest
         .mocked(Engine.controllerMessenger.subscribeOnceIf)
         .mockImplementation((_eventFilter, callback) => {
@@ -395,17 +394,14 @@ describe('EarnLendingDepositConfirmationView', () => {
           } else if (
             _eventFilter === 'TransactionController:transactionConfirmed'
           ) {
-            // The component has two transactionConfirmed subscriptions
-            if (confirmedCallbackCount === 0) {
-              transactionStatusCallbackConfirmed1 = callback as (
-                transactionMeta: Partial<TransactionMeta>,
-              ) => void;
-            } else {
-              transactionStatusCallbackConfirmed2 = callback as (
-                transactionMeta: Partial<TransactionMeta>,
-              ) => void;
-            }
-            confirmedCallbackCount++;
+            /**
+             * We only want to store the first transactionConfirmed subscription since it related to analytics.
+             * The View has a second subscription to transactionConfirmed to import tokens automatically.
+             * The component has two transactionConfirmed subscriptions
+             */
+            transactionStatusCallbackConfirmed ??= callback as (
+              transactionMeta: Partial<TransactionMeta>,
+            ) => void;
           } else if (
             _eventFilter === 'TransactionController:transactionFailed'
           ) {
@@ -460,6 +456,7 @@ describe('EarnLendingDepositConfirmationView', () => {
             transaction_value: '5 USDC',
             transaction_id: '123',
             transaction_type: 'lendingDeposit',
+            isAllowanceReset: false,
           })
           .build(),
       );
@@ -489,6 +486,7 @@ describe('EarnLendingDepositConfirmationView', () => {
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             transaction_id: '123',
             transaction_type: 'lendingDeposit',
+            isAllowanceReset: false,
           })
           .build(),
       );
@@ -499,14 +497,8 @@ describe('EarnLendingDepositConfirmationView', () => {
       mockTrackEvent.mockClear();
 
       await act(async () => {
-        if (transactionStatusCallbackConfirmed1) {
-          transactionStatusCallbackConfirmed1({
-            ...transactionMeta,
-            status: TransactionStatus.confirmed,
-          } as Partial<TransactionMeta>);
-        }
-        if (transactionStatusCallbackConfirmed2) {
-          transactionStatusCallbackConfirmed2({
+        if (transactionStatusCallbackConfirmed) {
+          transactionStatusCallbackConfirmed({
             ...transactionMeta,
             status: TransactionStatus.confirmed,
           } as Partial<TransactionMeta>);
@@ -524,6 +516,7 @@ describe('EarnLendingDepositConfirmationView', () => {
             transaction_value: '5 USDC',
             transaction_id: '123',
             transaction_type: 'lendingDeposit',
+            isAllowanceReset: false,
           })
           .build(),
       );
@@ -553,12 +546,13 @@ describe('EarnLendingDepositConfirmationView', () => {
             transaction_value: '5 USDC',
             transaction_id: '123',
             transaction_type: 'lendingDeposit',
+            isAllowanceReset: false,
           })
           .build(),
       );
     });
 
-    it('tracks EARN_TRANSACTION_APPROVED on allowance confirmation', async () => {
+    it('tracks EARN_TRANSACTION_CONFIRMED on allowance increase confirmation', async () => {
       const routeParamsWithApproveAction = {
         ...defaultRouteParams,
         params: {
@@ -633,6 +627,7 @@ describe('EarnLendingDepositConfirmationView', () => {
             transaction_id: '456',
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             transaction_type: 'increaseAllowance',
+            isAllowanceReset: false,
           })
           .build(),
       );
@@ -715,7 +710,9 @@ describe('EarnLendingDepositConfirmationView', () => {
       amount: '5000000',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
-      gasOptions: {},
+      gasOptions: {
+        gasLimit: 78000,
+      },
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
         networkClientId: 'mainnet',
@@ -804,7 +801,9 @@ describe('EarnLendingDepositConfirmationView', () => {
       amount: '5000000',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
-      gasOptions: {},
+      gasOptions: {
+        gasLimit: 78000,
+      },
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
         networkClientId: 'mainnet',
