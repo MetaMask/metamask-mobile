@@ -15,6 +15,7 @@ import { NETWORKS_CHAIN_ID } from '../../constants/network';
 import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
 import { CHAIN_ID_TO_NAME_MAP } from '@metamask/swaps-controller/dist/constants';
 import { invert } from 'lodash';
+import { createDeepEqualSelector } from '../../selectors/util';
 
 // If we are in dev and on a testnet, just use mainnet feature flags,
 // since we don't have feature flags for testnets in the API
@@ -173,57 +174,99 @@ const swapsControllerAndUserTokens = createSelector(
   swapsControllerTokens,
   selectTokens,
   (swapsTokens, tokens) => {
-    const values = [...(swapsTokens || []), ...(tokens || [])]
-      .filter(Boolean)
-      .reduce((map, { hasBalanceError, image, ...token }) => {
-        const key = token.address.toLowerCase();
-
-        if (!map.has(key)) {
-          map.set(key, {
+    // Use Map for efficient deduplication during collection
+    const tokenMap = new Map();
+    
+    // Add swaps tokens first
+    if (swapsTokens) {
+      for (const token of swapsTokens) {
+        if (!token) continue;
+        const { hasBalanceError, image, ...tokenData } = token;
+        const key = tokenData.address.toLowerCase();
+        tokenMap.set(key, {
+          occurrences: 0,
+          ...tokenData,
+          decimals: Number(tokenData.decimals),
+          address: key,
+        });
+      }
+    }
+    
+    // Add user tokens
+    if (tokens) {
+      for (const token of tokens) {
+        if (!token) continue;
+        const { hasBalanceError, image, ...tokenData } = token;
+        const key = tokenData.address.toLowerCase();
+        
+        if (!tokenMap.has(key)) {
+          tokenMap.set(key, {
             occurrences: 0,
-            ...token,
-            decimals: Number(token.decimals),
+            ...tokenData,
+            decimals: Number(tokenData.decimals),
             address: key,
           });
         }
-        return map;
-      }, new Map())
-      .values();
+      }
+    }
 
-    return [...values];
+    return Array.from(tokenMap.values());
   },
 );
 
-const swapsControllerAndUserTokensMultichain = createSelector(
+const swapsControllerAndUserTokensMultichain = createDeepEqualSelector(
   swapsControllerTokens,
   selectAllTokens,
   selectSelectedInternalAccountAddress,
   (swapsTokens, allTokens, currentUserAddress) => {
-    const allTokensArr = Object.values(allTokens);
-    const allUserTokensCrossChains = allTokensArr.reduce(
-      (acc, tokensElement) => {
-        const found = tokensElement[currentUserAddress] || [];
-        return [...acc, ...found.flat()];
-      },
-      [],
-    );
-    const values = [...(swapsTokens || []), ...(allUserTokensCrossChains || [])]
-      .filter(Boolean)
-      .reduce((map, { hasBalanceError, image, ...token }) => {
-        const key = token.address.toLowerCase();
+    // Early return for empty data
+    if (!allTokens || !currentUserAddress) {
+      return swapsTokens || [];
+    }
 
-        if (!map.has(key)) {
-          map.set(key, {
+    // Use Map for efficient deduplication during collection
+    const tokenMap = new Map();
+    
+    // Add swaps tokens first
+    if (swapsTokens) {
+      for (const token of swapsTokens) {
+        if (!token) continue;
+        const { hasBalanceError, image, ...tokenData } = token;
+        const key = tokenData.address.toLowerCase();
+        tokenMap.set(key, {
+          occurrences: 0,
+          ...tokenData,
+          decimals: Number(tokenData.decimals),
+          address: key,
+        });
+      }
+    }
+
+    // Process user tokens across chains efficiently
+    for (const chainId in allTokens) {
+      const chainTokens = allTokens[chainId];
+      if (!chainTokens || !chainTokens[currentUserAddress]) continue;
+      
+      const userTokensForChain = chainTokens[currentUserAddress];
+      if (!Array.isArray(userTokensForChain)) continue;
+
+      for (const token of userTokensForChain) {
+        if (!token) continue;
+        const { hasBalanceError, image, ...tokenData } = token;
+        const key = tokenData.address.toLowerCase();
+        
+        if (!tokenMap.has(key)) {
+          tokenMap.set(key, {
             occurrences: 0,
-            ...token,
-            decimals: Number(token.decimals),
+            ...tokenData,
+            decimals: Number(tokenData.decimals),
             address: key,
           });
         }
-        return map;
-      }, new Map())
-      .values();
-    return [...values];
+      }
+    }
+
+    return Array.from(tokenMap.values());
   },
 );
 
