@@ -95,7 +95,11 @@ const BuildQuote = () => {
       onMount: false,
     });
 
-  const { tokenAmount } = useDepositTokenExchange({
+  const {
+    tokenAmount,
+    isLoading: isLoadingTokenAmount,
+    error: errorLoadingTokenAmount,
+  } = useDepositTokenExchange({
     fiatCurrency,
     fiatAmount: amount,
     token: cryptoCurrency,
@@ -297,10 +301,14 @@ const BuildQuote = () => {
               color={TextColor.Alternative}
               style={styles.convertedAmount}
             >
-              {Number(tokenAmount) === 0
-                ? Number(tokenAmount).toFixed(2)
-                : tokenAmount}{' '}
-              {cryptoCurrency.symbol}
+              {isLoadingTokenAmount || errorLoadingTokenAmount ? (
+                ' '
+              ) : (
+                <>
+                  {Number(tokenAmount) === 0 ? '0' : tokenAmount}{' '}
+                  {cryptoCurrency.symbol}
+                </>
+              )}
             </Text>
 
             <TouchableOpacity onPress={handleCryptoPress}>
