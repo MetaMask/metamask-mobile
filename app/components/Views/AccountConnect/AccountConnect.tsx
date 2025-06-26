@@ -110,6 +110,7 @@ import styleSheet from './AccountConnect.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import AddNewAccount from '../AddNewAccount';
+import { SolScope } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
 
@@ -131,7 +132,11 @@ const AccountConnect = (props: AccountConnectProps) => {
   const [blockedUrl, setBlockedUrl] = useState('');
 
   const requestedCaip25CaveatValue = useMemo(
-    () => getRequestedCaip25CaveatValue(hostInfo.permissions, hostInfo.metadata.origin),
+    () =>
+      getRequestedCaip25CaveatValue(
+        hostInfo.permissions,
+        hostInfo.metadata.origin,
+      ),
     [hostInfo.permissions, hostInfo.metadata.origin],
   );
 
@@ -139,6 +144,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     () => getCaipAccountIdsFromCaip25CaveatValue(requestedCaip25CaveatValue),
     [requestedCaip25CaveatValue],
   );
+
   const requestedCaipChainIds = useMemo(
     () => getAllScopesFromCaip25CaveatValue(requestedCaip25CaveatValue),
     [requestedCaip25CaveatValue],
@@ -176,7 +182,11 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { isEip1193Request } = hostInfo.metadata;
 
   const defaultSelectedChainIds = useMemo(() => {
-    // TODO: [ffmcgee] update this to return supportedRequestedCaipChainIds if it includes SOL (non eip155)
+    // If incoming request includes a non evm namespace (meaning we have a persisted permission for it),
+    // and it's an EIP-1193 request, we return all networks
+    if (supportedRequestedCaipChainIds.includes(SolScope.Mainnet) && isEip1193Request) {
+      return allNetworksList;
+    }
 
     // For EIP-1193 requests (injected Ethereum provider requests) or WalletConnect or MMSDK Remote Conn,
     // we only want to show EIP-155 (Ethereum) compatible chains

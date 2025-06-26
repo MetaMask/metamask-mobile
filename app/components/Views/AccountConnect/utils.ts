@@ -98,7 +98,6 @@ export function getRequestedCaip25CaveatValue(
       return caveatValue as Caip25CaveatValue;
     }
     return defaultValue;
-
   }
 }
 
