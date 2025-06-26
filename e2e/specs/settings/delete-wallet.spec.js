@@ -53,8 +53,8 @@ describe(
 
         //wait for screen transitions after password change
         await Assertions.checkIfNotVisible(ChangePasswordView.submitButton, 25000);
-        await Assertions.checkIfVisible(ToastModal.notificationTitle)
-        await Assertions.checkIfNotVisible(ToastModal.notificationTitle)
+        await Assertions.checkIfVisible(ToastModal.notificationTitle);
+        await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
         await Assertions.checkIfVisible(SecurityAndPrivacyView.securityAndPrivacyHeading);
 
         // should lock wallet from Settings
