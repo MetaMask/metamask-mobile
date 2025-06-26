@@ -10,23 +10,30 @@ const createStyles = (params: { theme: Theme }) => {
   const { colors, typography } = theme;
 
   return StyleSheet.create({
-    // bottom sheet
-    bottomSheetWrapper: {
-      alignItems: 'flex-start',
+    // reusable modal
+    sheet: {
+      backgroundColor: colors.background.default,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
     },
-    bottomSheetTitle: {
+    notch: {
+      width: 48,
+      height: 5,
+      borderRadius: 4,
+      backgroundColor: colors.border.default,
+      marginTop: 8,
+      alignSelf: 'center',
+    },
+    // network tabs selectors
+    networkTabsSelectorWrapper: {
+      height: '100%',
+    },
+    networkTabsSelectorTitle: {
       alignSelf: 'center',
       paddingTop: 16,
-    },
-    bottomSheetText: {
-      width: '100%',
-    },
-    networkImageContainer: {
-      position: 'absolute',
-      right: 0,
+      marginTop: 4,
     },
     // tab
-    tabBarContainer: {},
     tabUnderlineStyle: {
       height: 2,
       backgroundColor: colors.text.default,
@@ -48,7 +55,8 @@ const createStyles = (params: { theme: Theme }) => {
       borderColor: colors.border.muted,
       marginBottom: 8,
     },
-    networkMenu: {
+    // edit network menu
+    editNetworkMenu: {
       alignItems: 'center',
     },
     // custom network styles
@@ -64,6 +72,18 @@ const createStyles = (params: { theme: Theme }) => {
     addNetworkButton: {},
     iconContainer: {
       marginRight: 14,
+    },
+    // token filter bottom sheet
+    bottomSheetTitle: {
+      alignSelf: 'center',
+      paddingTop: 16,
+      paddingBottom: 16,
+    },
+    bottomSheetWrapper: {
+      alignItems: 'flex-start',
+    },
+    bottomSheetText: {
+      width: '100%',
     },
   });
 };

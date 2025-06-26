@@ -4,28 +4,30 @@ import { ImageSourcePropType, View } from 'react-native';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // External dependencies.
-import { useStyles } from '../../../component-library/hooks';
+import { useStyles } from '../../../component-library/hooks/index.ts';
 import {
   AvatarSize,
   AvatarVariant,
-} from '../../../component-library/components/Avatars/Avatar';
-import { IconName } from '../../../component-library/components/Icons/Icon';
+} from '../../../component-library/components/Avatars/Avatar/index.ts';
+import { IconName } from '../../../component-library/components/Icons/Icon/index.ts';
 import Cell, {
   CellVariant,
-} from '../../../component-library/components/Cells/Cell';
-import { isTestNet } from '../../../util/networks';
+} from '../../../component-library/components/Cells/Cell/index.ts';
+import { isTestNet } from '../../../util/networks/index.js';
+import Device from '../../../util/device/index.js';
 
 // Internal dependencies.
 import {
-  NetworkConnectMultiSelectorProps,
+  NetworkMultiSelectorListProps,
   Network,
   NetworkListItem,
   AdditionalNetworkSection,
   NetworkListItemType,
-} from './NetworkMultiSelectList.types.ts';
-import styleSheet from './NetworkMultiSelectList.styles';
+} from './NetworkMultiSelectorList.types.ts';
+import styleSheet from './NetworkMultiSelectorList.styles';
 
 const NetworkMultiSelectList = ({
   onSelectNetwork,
@@ -38,23 +40,21 @@ const NetworkMultiSelectList = ({
   additionalNetworksComponent,
   openModal,
   ...props
-}: NetworkConnectMultiSelectorProps) => {
+}: NetworkMultiSelectorListProps) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const networkListRef = useRef<any>(null);
   const networksLengthRef = useRef<number>(0);
+  const safeAreaInsets = useSafeAreaInsets();
 
   const { styles } = useStyles(styleSheet, {});
 
-  // Combine networks and additional networks with section headers
   const combinedData: NetworkListItem[] = useMemo(() => {
     const data: NetworkListItem[] = [];
 
-    // Add default networks section
     if (networks.length > 0) {
       data.push(...networks);
     }
 
-    // Add additional network section if provided
     if (additionalNetworksComponent) {
       data.push({
         id: 'additional-network-section',
@@ -84,13 +84,17 @@ const NetworkMultiSelectList = ({
 
   const renderNetworkItem: ListRenderItem<NetworkListItem> = useCallback(
     ({ item }) => {
-      // Render additional network section
       if (isAdditionalNetworkSection(item)) {
         return <View>{item.component}</View>;
       }
 
-      // Render selectable network items
-      const { caipChainId, name, isSelected, imageSource } = item as Network;
+      const {
+        caipChainId,
+        name,
+        isSelected,
+        imageSource,
+        networkTypeOrRpcUrl,
+      } = item as Network;
       const isDisabled = isLoading || isSelectionDisabled;
 
       let isSelectedNetwork = isSelected;
@@ -121,13 +125,14 @@ const NetworkMultiSelectList = ({
             }}
             buttonIcon={IconName.MoreVertical}
             disabled={isDisabled}
+            showButtonIcon={!!networkTypeOrRpcUrl}
             buttonProps={{
               onButtonClick: () => {
                 openModal({
                   isVisible: true,
                   caipChainId,
                   displayEdit: false,
-                  networkTypeOrRpcUrl: name,
+                  networkTypeOrRpcUrl: networkTypeOrRpcUrl || '',
                   isReadOnly: false,
                 });
               },
@@ -169,6 +174,10 @@ const NetworkMultiSelectList = ({
       keyExtractor={getKeyExtractor}
       renderItem={renderNetworkItem}
       estimatedItemSize={56}
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={{
+        paddingBottom: safeAreaInsets.bottom + Device.getDeviceHeight() * 0.05,
+      }}
       {...props}
     />
   );

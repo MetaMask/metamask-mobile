@@ -1,6 +1,7 @@
 // third party dependencies
 import { View, ImageSourcePropType, TouchableOpacity } from 'react-native';
 import React, { useRef, useMemo, useCallback, useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 import ScrollableTabView, {
@@ -20,7 +21,7 @@ import BottomSheet, {
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import NetworkMultiSelect from '../../NetworkMultiSelect/NetworkMultiSelect';
+import NetworkMultiSelector from '../../NetworkMultiSelector/NetworkMultiSelector';
 import AccountAction from '../../../Views/AccountAction';
 
 // internal dependencies
@@ -28,10 +29,7 @@ import createStyles from './index.styles';
 import { NetworkMenuModal } from './TokenFilterBottomSheet.types';
 
 // Custom Network Selector
-import {
-  selectCustomNetworkConfigurationsByCaipChainId,
-  selectNetworkConfigurationsByCaipChainId,
-} from '../../../../selectors/networkController';
+import { selectCustomNetworkConfigurationsByCaipChainId } from '../../../../selectors/networkController';
 import { useSelector } from 'react-redux';
 import Cell, {
   CellVariant,
@@ -47,6 +45,7 @@ import Icon, {
 } from '../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../constants/navigation/Routes';
 import ReusableModal, { ReusableModalRef } from '../../ReusableModal';
+import Device from '../../../../util/device';
 
 export interface CustomNetworkItem {
   id: string;
@@ -55,6 +54,7 @@ export interface CustomNetworkItem {
   yOffset?: number;
   imageSource: ImageSourcePropType;
   caipChainId: CaipChainId;
+  networkTypeOrRpcUrl?: string;
 }
 
 interface CustomNetworkSelectorProps {
@@ -65,6 +65,7 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, { colors });
   const { navigate } = useNavigation();
+  const safeAreaInsets = useSafeAreaInsets();
 
   const customNetworkConfigurations = useSelector(
     selectCustomNetworkConfigurationsByCaipChainId,
@@ -81,21 +82,28 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
 
   const customNetworks = useMemo(
     () =>
-      customNetworkConfigurations.map((network) => ({
-        id: network.caipChainId,
-        name: network.name,
-        caipChainId: network.caipChainId,
-        isSelected: selectedNetwork === network.caipChainId,
-        imageSource: getNetworkImageSource({
-          chainId: network.caipChainId,
-        }),
-      })),
+      customNetworkConfigurations.map((network) => {
+        const rpcUrl =
+          'rpcEndpoints' in network
+            ? network.rpcEndpoints?.[network.defaultRpcEndpointIndex]?.url
+            : undefined;
+        return {
+          id: network.caipChainId,
+          name: network.name,
+          caipChainId: network.caipChainId,
+          isSelected: selectedNetwork === network.caipChainId,
+          imageSource: getNetworkImageSource({
+            chainId: network.caipChainId,
+          }),
+          networkTypeOrRpcUrl: rpcUrl,
+        };
+      }),
     [customNetworkConfigurations, selectedNetwork],
   );
 
   const renderNetworkItem: ListRenderItem<CustomNetworkItem> = useCallback(
     ({ item }) => {
-      const { name, caipChainId } = item;
+      const { name, caipChainId, networkTypeOrRpcUrl } = item;
       return (
         <View
           testID={`${name}-${selectedNetwork ? 'selected' : 'not-selected'}`}
@@ -118,7 +126,7 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
                   isVisible: true,
                   caipChainId,
                   displayEdit: false,
-                  networkTypeOrRpcUrl: name,
+                  networkTypeOrRpcUrl: networkTypeOrRpcUrl || '',
                   isReadOnly: false,
                 });
               },
@@ -170,6 +178,11 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
         keyExtractor={(item) => item.caipChainId}
         estimatedItemSize={60}
         ListFooterComponent={renderFooter}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={{
+          paddingBottom:
+            safeAreaInsets.bottom + Device.getDeviceHeight() * 0.05,
+        }}
       />
     </View>
   );
@@ -191,10 +204,7 @@ const TokenFilterBottomSheet = () => {
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, { colors });
   const { trackEvent, createEventBuilder } = useMetrics();
-
-  const networkConfigurations = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
+  const safeAreaInsets = useSafeAreaInsets();
 
   const [showNetworkMenuModal, setNetworkMenuModal] =
     useState<NetworkMenuModal>(initialNetworkMenuModal);
@@ -218,19 +228,17 @@ const TokenFilterBottomSheet = () => {
 
   const renderTabBar = useCallback(
     (tabBarProps: Record<string, unknown>) => (
-      <View style={styles.tabBarContainer}>
-        <DefaultTabBar
-          underlineStyle={styles.tabUnderlineStyle}
-          inactiveUnderlineStyle={styles.inactiveUnderlineStyle}
-          activeTextColor={colors.text.default}
-          inactiveTextColor={colors.text.alternative}
-          backgroundColor={colors.background.default}
-          tabStyle={styles.tabStyle}
-          textStyle={styles.textStyle}
-          style={styles.tabBar}
-          {...tabBarProps}
-        />
-      </View>
+      <DefaultTabBar
+        underlineStyle={styles.tabUnderlineStyle}
+        inactiveUnderlineStyle={styles.inactiveUnderlineStyle}
+        activeTextColor={colors.text.default}
+        inactiveTextColor={colors.text.alternative}
+        backgroundColor={colors.background.default}
+        tabStyle={styles.tabStyle}
+        textStyle={styles.textStyle}
+        style={styles.tabBar}
+        {...tabBarProps}
+      />
     ),
     [styles, colors],
   );
@@ -263,69 +271,61 @@ const TokenFilterBottomSheet = () => {
 
   const closeModal = useCallback(() => {
     setNetworkMenuModal(initialNetworkMenuModal);
+    networkMenuSheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const removeRpcUrl = (caipChainId: CaipChainId) => {
-    const networkConfiguration = networkConfigurations[caipChainId];
-
-    if (!networkConfiguration) {
-      throw new Error(`Unable to find network with chain id ${caipChainId}`);
-    }
-
-    closeModal();
-    // closeRpcModal();
-
-    // setShowConfirmDeleteModal({
-    //   isVisible: true,
-    //   networkName: networkConfiguration.name ?? '',
-    //   chainId: networkConfiguration.chainId,
-    // });
-  };
-
   return (
-    <ReusableModal ref={sheetRef}>
-      <BottomSheet
-        ref={networkMenuSheetRef}
-        onClose={closeModal}
-        shouldNavigateBack={false}
-      >
-        <View style={styles.networkMenu}>
-          <AccountAction
-            actionTitle={strings('transaction.edit')}
-            iconName={IconName.Edit}
-            onPress={() => {
-              navigation.navigate(Routes.ADD_NETWORK, {
-                shouldNetworkSwitchPopToWallet: false,
-                shouldShowPopularNetworks: false,
-                network: showNetworkMenuModal.networkTypeOrRpcUrl,
-              });
-            }}
-          />
-        </View>
-      </BottomSheet>
+    <ReusableModal
+      ref={sheetRef}
+      style={[
+        {
+          paddingTop: safeAreaInsets.top + Device.getDeviceHeight() * 0.02,
+          paddingBottom: safeAreaInsets.bottom,
+        },
+      ]}
+    >
+      <View style={styles.sheet}>
+        <View style={styles.notch} />
+        <Text
+          variant={TextVariant.HeadingMD}
+          style={styles.networkTabsSelectorTitle}
+        >
+          {strings('wallet.networks')}
+        </Text>
 
-      <BottomSheet shouldNavigateBack>
-        <View style={styles.bottomSheetWrapper}>
-          <View>
-            <Text
-              variant={TextVariant.HeadingMD}
-              style={styles.bottomSheetTitle}
-            >
-              {strings('wallet.networks')}
-            </Text>
-            <ScrollableTabView
-              renderTabBar={renderTabBar}
-              onChangeTab={onChangeTab}
-            >
-              <NetworkMultiSelect {...defaultTabProps} openModal={openModal} />
-              <CustomNetworkSelector
-                {...customTabProps}
-                openModal={openModal}
-              />
-            </ScrollableTabView>
-          </View>
+        <View style={styles.networkTabsSelectorWrapper}>
+          <ScrollableTabView
+            renderTabBar={renderTabBar}
+            onChangeTab={onChangeTab}
+          >
+            <NetworkMultiSelector {...defaultTabProps} openModal={openModal} />
+            <CustomNetworkSelector {...customTabProps} openModal={openModal} />
+          </ScrollableTabView>
         </View>
-      </BottomSheet>
+      </View>
+      {showNetworkMenuModal.isVisible && (
+        <BottomSheet
+          ref={networkMenuSheetRef}
+          onClose={closeModal}
+          shouldNavigateBack={false}
+        >
+          <View style={styles.editNetworkMenu}>
+            <AccountAction
+              actionTitle={strings('transaction.edit')}
+              iconName={IconName.Edit}
+              onPress={() => {
+                sheetRef.current?.dismissModal(() => {
+                  navigation.navigate(Routes.ADD_NETWORK, {
+                    shouldNetworkSwitchPopToWallet: false,
+                    shouldShowPopularNetworks: false,
+                    network: showNetworkMenuModal.networkTypeOrRpcUrl,
+                  });
+                });
+              }}
+            />
+          </View>
+        </BottomSheet>
+      )}
     </ReusableModal>
   );
 };

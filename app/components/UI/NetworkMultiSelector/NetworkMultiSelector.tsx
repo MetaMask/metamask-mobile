@@ -5,12 +5,12 @@ import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 
 // external dependencies
-import NetworkMultiSelectList from '../NetworkMultiSelectList/NetworkMultiSelectList';
+import NetworkMultiSelectorList from '../NetworkMultiSelectorList/NetworkMultiSelectorList';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import { useTheme } from '../../../util/theme';
 import { useStyles } from '../../../component-library/hooks/useStyles';
 import {
-  selectNetworkConfigurationsByCaipChainId,
+  selectPopularNetworkConfigurationsByCaipChainId,
   EvmAndMultichainNetworkConfigurationsWithCaipChainId,
 } from '../../../selectors/networkController';
 import { ExtendedNetwork } from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
@@ -21,20 +21,16 @@ import { strings } from '../../../../locales/i18n';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { NetworkMenuModal } from '../Tokens/TokensBottomSheet/TokenFilterBottomSheet.types';
 
 // internal dependencies
-import stylesheet from './NetworkMultiSelect.styles';
+import stylesheet from './NetworkMultiSelector.styles';
+import { NetworkMultiSelectorProps } from './NetworkMultiSelector.types';
 
-interface NetworkMultiSelectProps {
-  openModal: (networkMenuModal: NetworkMenuModal) => void;
-}
-
-const NetworkMultiSelect = ({ openModal }: NetworkMultiSelectProps) => {
+const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(stylesheet, { colors });
   const networkConfigurations = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
+    selectPopularNetworkConfigurationsByCaipChainId,
   );
 
   const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
@@ -81,15 +77,22 @@ const NetworkMultiSelect = ({ openModal }: NetworkMultiSelectProps) => {
         ([key, network]: [
           string,
           EvmAndMultichainNetworkConfigurationsWithCaipChainId,
-        ]) => ({
-          id: key,
-          name: network.name,
-          isSelected: false,
-          imageSource: getNetworkImageSource({
-            chainId: network.caipChainId,
-          }),
-          caipChainId: network.caipChainId,
-        }),
+        ]) => {
+          const rpcUrl =
+            'rpcEndpoints' in network
+              ? network.rpcEndpoints?.[network.defaultRpcEndpointIndex]?.url
+              : undefined;
+          return {
+            id: key,
+            name: network.name,
+            isSelected: false,
+            imageSource: getNetworkImageSource({
+              chainId: network.caipChainId,
+            }),
+            caipChainId: network.caipChainId,
+            networkTypeOrRpcUrl: rpcUrl,
+          };
+        },
       ),
     [networkConfigurations],
   );
@@ -145,7 +148,7 @@ const NetworkMultiSelect = ({ openModal }: NetworkMultiSelectProps) => {
   return (
     <View style={styles.bodyContainer}>
       {renderSelectAllCheckbox()}
-      <NetworkMultiSelectList
+      <NetworkMultiSelectorList
         openModal={openModal}
         networks={networks}
         selectedChainIds={selectedChainIds}
@@ -175,4 +178,4 @@ const NetworkMultiSelect = ({ openModal }: NetworkMultiSelectProps) => {
   );
 };
 
-export default NetworkMultiSelect;
+export default NetworkMultiSelector;

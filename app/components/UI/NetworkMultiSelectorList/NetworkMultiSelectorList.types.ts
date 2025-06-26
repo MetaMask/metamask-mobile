@@ -14,6 +14,7 @@ export interface Network {
   yOffset?: number;
   imageSource: ImageSourcePropType;
   caipChainId: CaipChainId;
+  networkTypeOrRpcUrl?: string;
 }
 
 export interface AdditionalNetworkSection {
@@ -24,7 +25,7 @@ export interface AdditionalNetworkSection {
 
 export type NetworkListItem = Network | AdditionalNetworkSection;
 
-export interface NetworkConnectMultiSelectorProps {
+export interface NetworkMultiSelectorListProps {
   onSelectNetwork?: (caipChainId: CaipChainId, isSelected: boolean) => void;
   networks?: Network[];
   additionalNetworks?: Network[];

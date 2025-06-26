@@ -263,7 +263,7 @@ export const selectNetworkConfigurationsByCaipChainId = createSelector(
     ),
 );
 
-const EXCLUDED_NETWORK_CHAIN_IDS = new Set([
+const POPULAR_NETWORK_CHAIN_IDS = new Set([
   ...PopularList.map((popular) => popular.chainId as Hex),
   CHAIN_IDS.MAINNET,
   CHAIN_IDS.LINEA_MAINNET,
@@ -274,8 +274,18 @@ export const selectCustomNetworkConfigurationsByCaipChainId = createSelector(
   (networkConfigurationsByChainId) =>
     Object.values(networkConfigurationsByChainId).filter(
       (networkConfiguration) =>
-        !EXCLUDED_NETWORK_CHAIN_IDS.has(networkConfiguration.chainId as Hex) &&
+        !POPULAR_NETWORK_CHAIN_IDS.has(networkConfiguration.chainId as Hex) &&
         !networkConfiguration.caipChainId.includes(KnownCaipNamespace.Solana),
+    ),
+);
+
+export const selectPopularNetworkConfigurationsByCaipChainId = createSelector(
+  selectNetworkConfigurationsByCaipChainId,
+  (networkConfigurationsByChainId) =>
+    Object.values(networkConfigurationsByChainId).filter(
+      (networkConfiguration) =>
+        POPULAR_NETWORK_CHAIN_IDS.has(networkConfiguration.chainId as Hex) ||
+        networkConfiguration.caipChainId.includes(KnownCaipNamespace.Solana),
     ),
 );
 
