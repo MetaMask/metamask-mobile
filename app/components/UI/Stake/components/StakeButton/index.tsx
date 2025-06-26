@@ -33,7 +33,7 @@ import useStakingChain from '../../hooks/useStakingChain';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { Hex } from '@metamask/utils';
-import { trace, TraceName } from 'app/util/trace';
+import { trace, TraceName } from '../../../../../util/trace';
 
 interface StakeButtonProps {
   asset: TokenI;

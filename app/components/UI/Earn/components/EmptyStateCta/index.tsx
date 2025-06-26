@@ -28,7 +28,7 @@ import styleSheet from './EmptyStateCta.styles';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
-import { trace, TraceName } from 'app/util/trace';
+import { trace, TraceName } from '../../../../../util/trace';
 
 interface EarnEmptyStateCta {
   token: TokenI;

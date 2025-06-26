@@ -66,7 +66,7 @@ import {
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
-import { endTrace, TraceName } from 'app/util/trace';
+import { endTrace, TraceName } from '../../../../../util/trace';
 
 const EarnInputView = () => {
   // navigation hooks

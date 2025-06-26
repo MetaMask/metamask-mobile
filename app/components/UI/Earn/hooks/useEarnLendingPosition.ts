@@ -7,7 +7,7 @@ import { RootState } from '../../../../reducers';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { earnSelectors } from '../../../../selectors/earnController';
 import { TokenI } from '../../Tokens/types';
-import { endTrace, trace, TraceName } from 'app/util/trace';
+import { endTrace, trace, TraceName } from '../../../../util/trace';
 
 const { selectEarnTokenPair } = earnSelectors;
 
