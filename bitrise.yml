@@ -966,9 +966,15 @@ workflows:
         stack: linux-docker-android-22.04
   
   run_single_android_e2e_test:
+    envs:
+      - E2E_TEST_FILE: $E2E_TEST_FILE
+      - TEST_SUITE_TAG: $TEST_SUITE_TAG
     after_run:
       - android_e2e_test
   run_single_ios_e2e_test:
+    envs:
+      - E2E_TEST_FILE: $E2E_TEST_FILE
+      - TEST_SUITE_TAG: $TEST_SUITE_TAG
     after_run:
       - ios_e2e_test
       
