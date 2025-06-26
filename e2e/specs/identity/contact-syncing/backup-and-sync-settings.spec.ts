@@ -86,7 +86,7 @@ describe(
       await AddContactView.typeInAddress(NEW_CONTACT_ADDRESS);
       await AddContactView.tapAddContactButton();
       await TestHelpers.delay(4000);
-
+      await Assertions.checkIfVisible(ContactsView.container);
       await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
 
       await TestHelpers.launchApp({
