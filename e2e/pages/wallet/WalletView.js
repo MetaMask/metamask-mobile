@@ -361,6 +361,31 @@ class WalletView {
     const balanceAttributes = await (await balanceElement).getAttributes();
     return balanceAttributes.text || balanceAttributes.label;
   }
+
+  /**
+   * Toggles the balance visibility by tapping the eye slash icon.
+   * This method can be used to both hide and show the balance.
+   * @returns {Promise<void>} A promise that resolves when the balance visibility is toggled.
+   */
+  async toggleBalanceVisibility() {
+    await Gestures.waitAndTap(this.eyeSlashIcon);
+  }
+
+  /**
+   * Hides the balance by tapping the eye slash icon.
+   * @returns {Promise<void>} A promise that resolves when the balance is hidden.
+   */
+  async hideBalance() {
+    await this.toggleBalanceVisibility();
+  }
+
+  /**
+   * Shows the balance by tapping the eye slash icon.
+   * @returns {Promise<void>} A promise that resolves when the balance is shown.
+   */
+  async showBalance() {
+    await this.toggleBalanceVisibility();
+  }
 }
 
 export default new WalletView();
