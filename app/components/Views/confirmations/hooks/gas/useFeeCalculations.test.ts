@@ -1,9 +1,15 @@
-import cloneDeep from 'lodash/cloneDeep';
+import { cloneDeep } from 'lodash';
 import { TransactionParams } from '@metamask/transaction-controller';
 
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { stakingDepositConfirmationState } from '../../../../../util/test/confirm-data-helpers';
 import { useFeeCalculations } from './useFeeCalculations';
+
+import { isTestNet } from '../../../../../util/networks';
+
+jest.mock('../../../../../util/networks', () => ({
+  isTestNet: jest.fn().mockReturnValue(false),
+}));
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -23,11 +29,17 @@ jest.mock('../../utils/token', () => ({
 }));
 
 describe('useFeeCalculations', () => {
+  const mockIsTestNet = jest.mocked(isTestNet);
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+
   const transactionMeta =
     stakingDepositConfirmationState.engine.backgroundState.TransactionController
       .transactions[0];
 
-  it('returns no estimates for empty txParams', async () => {
+  it('returns no estimates for empty txParams', () => {
     const clonedStateWithoutTxParams = cloneDeep(
       stakingDepositConfirmationState,
     );
@@ -51,7 +63,7 @@ describe('useFeeCalculations', () => {
     expect(result.current.calculateGasEstimate).toBeDefined();
   });
 
-  it('returns fee calculations', async () => {
+  it('returns fee calculations', () => {
     const { result } = renderHookWithProvider(
       () => useFeeCalculations(transactionMeta),
       {
@@ -65,7 +77,33 @@ describe('useFeeCalculations', () => {
     expect(result.current.calculateGasEstimate).toBeDefined();
   });
 
-  it('returns fee calculations less than $0.01', async () => {
+  it('returns fee calculations but hides fiat on testnets when showFiatOnTestnets is false', () => {
+    mockIsTestNet.mockReturnValue(true);
+    const clonedStakingDepositConfirmationState = cloneDeep(
+      stakingDepositConfirmationState,
+    );
+    clonedStakingDepositConfirmationState.settings.showFiatOnTestnets = false;
+
+    const {
+      result: {
+        current: { calculateGasEstimate },
+      },
+    } = renderHookWithProvider(() => useFeeCalculations(transactionMeta), {
+      state: clonedStakingDepositConfirmationState,
+    });
+
+    const { currentCurrencyFee } = calculateGasEstimate({
+      feePerGas: '0x5572e9c22d00',
+      priorityFeePerGas: '0x0',
+      gas: '0x5572e9c22d00',
+      shouldUseEIP1559FeeLogic: true,
+      gasPrice: '0x5572e9c22d00',
+    });
+
+    expect(currentCurrencyFee).toBe(null);
+  });
+
+  it('returns fee calculations less than $0.01', () => {
     const clonedStakingDepositConfirmationState = cloneDeep(
       stakingDepositConfirmationState,
     );
@@ -89,7 +127,7 @@ describe('useFeeCalculations', () => {
     expect(result.current.calculateGasEstimate).toBeDefined();
   });
 
-  it('returns null as estimatedFeeFiat if conversion rate is not available', async () => {
+  it('returns null as estimatedFeeFiat if conversion rate is not available', () => {
     const clonedStakingDepositConfirmationState = cloneDeep(
       stakingDepositConfirmationState,
     );
@@ -115,8 +153,10 @@ describe('useFeeCalculations', () => {
     expect(result.current.calculateGasEstimate).toBeDefined();
   });
 
-  it('returns fee calculations including layer1GasFee (L1 + L2)', async () => {
-    const clonedStateWithLayer1GasFee = cloneDeep(stakingDepositConfirmationState);
+  it('returns fee calculations including layer1GasFee (L1 + L2)', () => {
+    const clonedStateWithLayer1GasFee = cloneDeep(
+      stakingDepositConfirmationState,
+    );
     // Add a layer1GasFee to the transactionMeta
     const layer1GasFee = '0x1000'; // 4096 in hex, small value for test
     clonedStateWithLayer1GasFee.engine.backgroundState.TransactionController.transactions[0].layer1GasFee = layer1GasFee;

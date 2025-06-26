@@ -26,7 +26,8 @@ import {
   generateRPCProperties,
   generateDefaultTransactionMetrics,
 } from './utils';
-
+// eslint-disable-next-line import/no-namespace
+import * as TransactionUtilities from '../../../../util/transactions';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 import { IMetaMetricsEvent } from '../../../Analytics/MetaMetrics.types';
 import {
@@ -251,6 +252,7 @@ describe('generateDefaultTransactionMetrics', () => {
         gas_fee_selected: 'medium',
         source: 'MetaMask Mobile',
         status: 'submitted',
+        transaction_contract_method: [],
         transaction_envelope_type: undefined,
         transaction_internal_id: 'test-id-123',
         transaction_type: 'simple_send',
@@ -288,6 +290,7 @@ describe('generateDefaultTransactionMetrics', () => {
         gas_fee_selected: 'medium',
         source: 'MetaMask Mobile',
         status: 'submitted',
+        transaction_contract_method: [],
         transaction_envelope_type: undefined,
         transaction_internal_id: 'test-id-123',
         transaction_type: 'simple_send',
@@ -328,6 +331,20 @@ describe('generateDefaultTransactionMetrics', () => {
     );
 
     expect(result.properties.transaction_type).toBe('unknown');
+  });
+
+  it('adds transaction_contract_method to the metrics', async () => {
+    jest.spyOn(TransactionUtilities, 'getMethodData').mockResolvedValue({
+      name: 'transfer',
+    } as never);
+
+    const result = await generateDefaultTransactionMetrics(
+      mockMetametricsEvent,
+      mockTransactionMeta as TransactionMeta,
+      mockEventHandlerRequest as TransactionEventHandlerRequest,
+    );
+
+    expect(result.properties.transaction_contract_method).toEqual(['transfer']);
   });
 
   describe('gas related metrics', () => {
@@ -545,6 +562,7 @@ describe('generateDefaultTransactionMetrics', () => {
         gas_fee_selected: undefined,
         source: 'MetaMask Mobile',
         status: 'unapproved',
+        transaction_contract_method: [],
         transaction_envelope_type: '0x4',
         transaction_internal_id: 'aa0ff2b0-150f-11f0-9325-8f0b8505bc4f',
         transaction_type: 'batch',
@@ -580,6 +598,7 @@ describe('generateDefaultTransactionMetrics', () => {
         gas_fee_selected: undefined,
         source: 'MetaMask Mobile',
         status: 'rejected',
+        transaction_contract_method: [],
         transaction_envelope_type: '0x4',
         transaction_internal_id: 'aa0ff2b0-150f-11f0-9325-8f0b8505bc4f',
         transaction_type: 'batch',

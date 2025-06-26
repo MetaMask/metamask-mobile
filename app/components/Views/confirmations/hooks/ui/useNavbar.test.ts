@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Theme } from '../../../../../util/theme/models';
 import { getNavbar } from '../../components/UI/navbar/navbar';
 import { useConfirmActions } from '../useConfirmActions';
+import { useFullScreenConfirmation } from './useFullScreenConfirmation';
 import useNavbar from './useNavbar';
 
 // Mock dependencies
@@ -16,6 +17,10 @@ jest.mock('../../components/UI/navbar/navbar', () => ({
 
 jest.mock('../useConfirmActions', () => ({
   useConfirmActions: jest.fn(),
+}));
+
+jest.mock('./useFullScreenConfirmation', () => ({
+  useFullScreenConfirmation: jest.fn(),
 }));
 
 describe('useNavbar', () => {
@@ -38,13 +43,23 @@ describe('useNavbar', () => {
       headerTitle: () => null,
       headerLeft: () => null,
     });
+
+    // Default to full screen confirmation for existing tests
+    (useFullScreenConfirmation as jest.Mock).mockReturnValue({
+      isFullScreenConfirmation: true,
+    });
   });
 
-  it('should call setOptions with the correct navbar configuration', () => {
+  it('calls setOptions with the correct navbar configuration for full screen confirmations', () => {
+    (useFullScreenConfirmation as jest.Mock).mockReturnValue({
+      isFullScreenConfirmation: true,
+    });
+
     renderHook(() => useNavbar(mockTitle));
 
     expect(useNavigation).toHaveBeenCalled();
     expect(useConfirmActions).toHaveBeenCalled();
+    expect(useFullScreenConfirmation).toHaveBeenCalled();
     expect(getNavbar).toHaveBeenCalledWith({
       title: mockTitle,
       onReject: mockOnReject,
@@ -61,7 +76,39 @@ describe('useNavbar', () => {
     );
   });
 
-  it('should update navigation options when title changes', () => {
+  it('does not call setOptions for non-full-screen confirmations', () => {
+    (useFullScreenConfirmation as jest.Mock).mockReturnValue({
+      isFullScreenConfirmation: false,
+    });
+
+    renderHook(() => useNavbar(mockTitle));
+
+    expect(useNavigation).toHaveBeenCalled();
+    expect(useConfirmActions).toHaveBeenCalled();
+    expect(useFullScreenConfirmation).toHaveBeenCalled();
+    expect(mockSetOptions).not.toHaveBeenCalled();
+    expect(getNavbar).not.toHaveBeenCalled();
+  });
+
+  it('does not call setOptions when isFullScreenConfirmation is false', () => {
+    (useFullScreenConfirmation as jest.Mock).mockReturnValue({
+      isFullScreenConfirmation: false,
+    });
+
+    renderHook(() => useNavbar(mockTitle));
+
+    expect(useNavigation).toHaveBeenCalled();
+    expect(useConfirmActions).toHaveBeenCalled();
+    expect(useFullScreenConfirmation).toHaveBeenCalled();
+    expect(mockSetOptions).not.toHaveBeenCalled();
+    expect(getNavbar).not.toHaveBeenCalled();
+  });
+
+  it('updates navigation options when title changes for full screen confirmations', () => {
+    (useFullScreenConfirmation as jest.Mock).mockReturnValue({
+      isFullScreenConfirmation: true,
+    });
+
     const { rerender } = renderHook(({ title }) => useNavbar(title), {
       initialProps: { title: 'Initial Title' },
     });
@@ -79,10 +126,13 @@ describe('useNavbar', () => {
     });
   });
 
-  it('should update navigation options when onReject changes', () => {
+  it('updates navigation options when onReject changes for full screen confirmations', () => {
     const newOnReject = jest.fn();
     (useConfirmActions as jest.Mock).mockReturnValue({
       onReject: newOnReject,
+    });
+    (useFullScreenConfirmation as jest.Mock).mockReturnValue({
+      isFullScreenConfirmation: true,
     });
 
     renderHook(() => useNavbar(mockTitle));

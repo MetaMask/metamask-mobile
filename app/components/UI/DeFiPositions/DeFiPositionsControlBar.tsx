@@ -20,6 +20,7 @@ import {
 } from '../Tokens/TokensBottomSheet';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../hooks/useStyles';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const DeFiPositionsControlBar: React.FC = () => {
   const { styles } = useStyles(styleSheet, undefined);
@@ -41,6 +42,7 @@ const DeFiPositionsControlBar: React.FC = () => {
   return (
     <View style={styles.actionBarWrapper}>
       <ButtonBase
+        testID={WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER}
         label={
           <Text style={styles.controlButtonText} numberOfLines={1}>
             {isAllNetworks && isPopularNetwork

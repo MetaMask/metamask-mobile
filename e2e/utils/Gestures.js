@@ -1,4 +1,6 @@
-import { waitFor } from 'detox';
+/* eslint-disable no-console */
+import { waitFor, expect } from 'detox';
+import Utilities from './Utilities';
 
 /**
  * Class for handling user actions (Gestures)
@@ -46,21 +48,31 @@ class Gestures {
   /**
    * Wait for an element to be visible and then tap it.
    *
-   * @param {Promise<Detox.IndexableNativeElement | Detox.SystemElement>} element - The element to tap
+   * @param {Promise<Detox.IndexableNativeElement | Detox.SystemElement>} elementToTap - The element to tap
    * @param {Object} [options={}] - Configuration options
    * @param {number} [options.timeout=15000] - Timeout for waiting in milliseconds
    * @param {number} [options.delayBeforeTap=0] - Additional delay in milliseconds before tapping after element is visible
    * @param {boolean} [options.skipVisibilityCheck=false] - When true, skips the initial visibility check before tapping. Useful for elements that may be technically present but not passing Detox's visibility threshold.
+   * @param {boolean} [options.experimentalWaitForStability=false] - EXPERIMENTAL: When true, waits for element stability before tapping.
    */
   static async waitAndTap(element, options = {}) {
-    const { timeout = 15000, delayBeforeTap = 0, skipVisibilityCheck = false } = options;
+    const {
+      timeout = 15000,
+      delayBeforeTap = 0,
+      skipVisibilityCheck = false,
+    } = options;
+    const elementToTap = await element;
     if (!skipVisibilityCheck) {
-      await waitFor(await element).toBeVisible().withTimeout(timeout);
+      await (device.getPlatform() === 'ios'
+        ? waitFor(elementToTap).toExist()
+        : waitFor(elementToTap).toBeVisible()
+      ).withTimeout(timeout);
     }
     if (delayBeforeTap > 0) {
       await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.
     }
-    await (await element).tap();
+    await Utilities.waitForElementToBeEnabled(elementToTap);
+    await (await elementToTap).tap();
   }
 
   /**
@@ -97,6 +109,24 @@ class Gestures {
   }
 
   /**
+   * Type text into a web element within a webview using JavaScript injection.
+   * @param {Promise<Detox.IndexableWebElement>} element - The web element to type into.
+   * @param {string} text - The text to type.
+   */
+  static async typeInWebElement(element, text) {
+    try {
+      await (await element).runScript((el, value) => {
+        el.focus();
+        el.value = value;
+        el._valueTracker && el._valueTracker.setValue('');
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      }, [text]);
+    } catch {
+      await (await element).typeText(text);
+    }
+  }
+
+  /**
    * Double tap an element by text.
    *
    * @param {Promise<Detox.IndexableNativeElement>} element - The element to double tap
@@ -113,7 +143,9 @@ class Gestures {
 
   */
   static async clearField(element, timeout = 2500) {
-    await waitFor(await element).toBeVisible().withTimeout(timeout);
+    await waitFor(await element)
+      .toBeVisible()
+      .withTimeout(timeout);
 
     await (await element).replaceText('');
   }
@@ -129,7 +161,6 @@ class Gestures {
 
     await (await element).typeText(text + '\n');
   }
-
 
   /**
    * Type text into an element without hiding the keyboard.
@@ -148,7 +179,9 @@ class Gestures {
    * @param {string} text - Text to replace the existing text in the element
    */
   static async replaceTextInField(element, text, timeout = 10000) {
-    await waitFor(await element).toBeVisible().withTimeout(timeout);
+    await waitFor(await element)
+      .toBeVisible()
+      .withTimeout(timeout);
 
     await (await element).replaceText(text);
   }

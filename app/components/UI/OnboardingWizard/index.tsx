@@ -90,10 +90,6 @@ const OnboardingWizard = ({
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(theme);
 
-  const isAutomaticSecurityChecksModalOpen = useSelector(
-    (state: RootState) => state.security.isAutomaticSecurityChecksModalOpen,
-  );
-
   const { step } = useSelector((state: RootState) => state.wizard);
 
   /**
@@ -152,10 +148,6 @@ const OnboardingWizard = ({
     }
     return setOnboardingWizardStep(step - 1);
   };
-
-  if (isAutomaticSecurityChecksModalOpen) {
-    return null;
-  }
 
   return (
     <Modal

@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import StorageWrapper from '../../../store/storage-wrapper';
+import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import { strings } from '../../../../locales/i18n';
 import { showAlert } from '../../../actions/alert';
@@ -20,7 +21,7 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import OnboardingSuccess from '../OnboardingSuccess';
+import { OnboardingSuccessComponent } from '../OnboardingSuccess';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const createStyles = (colors) =>
@@ -101,6 +102,10 @@ class ManualBackupStep3 extends PureComponent {
      * Action to set onboarding wizard step
      */
     setOnboardingWizardStep: PropTypes.func,
+    /**
+     * Action to save onboarding event
+     */
+    saveOnboardingEvent: PropTypes.func,
   };
 
   updateNavBar = () => {
@@ -128,6 +133,7 @@ class ManualBackupStep3 extends PureComponent {
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_SECURITY_COMPLETED,
       ).build(),
+      this.props.saveOnboardingEvent,
     );
     BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
   };
@@ -178,6 +184,7 @@ class ManualBackupStep3 extends PureComponent {
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
       ).build(),
+      this.props.saveOnboardingEvent,
     );
   };
 
@@ -222,7 +229,7 @@ class ManualBackupStep3 extends PureComponent {
             />
           </View>
         ) : null}
-        <OnboardingSuccess onDone={this.done} backedUpSRP />
+        <OnboardingSuccessComponent onDone={this.done} backedUpSRP />
         {Device.isAndroid() && (
           <AndroidBackHandler customBackPress={this.props.navigation.pop} />
         )}
@@ -237,6 +244,7 @@ ManualBackupStep3.contextType = ThemeContext;
 const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
+  saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
 });
 
 export default connect(null, mapDispatchToProps)(ManualBackupStep3);

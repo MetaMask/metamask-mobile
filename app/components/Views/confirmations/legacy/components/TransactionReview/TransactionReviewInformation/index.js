@@ -52,9 +52,9 @@ import {
   selectCurrentCurrency,
 } from '../../../../../../../selectors/currencyRateController';
 import { createBrowserNavDetails } from '../../../../../Browser';
-import { isNetworkRampNativeTokenSupported } from '../../../../../../../components/UI/Ramp/utils';
+import { isNetworkRampNativeTokenSupported } from '../../../../../../UI/Ramp/Aggregator/utils';
 import { getRampNetworks } from '../../../../../../../reducers/fiatOrders';
-import { createBuyNavigationDetails } from '../../../../../../UI/Ramp/routes/utils';
+import { createBuyNavigationDetails } from '../../../../../../UI/Ramp/Aggregator/routes/utils';
 import { withMetricsAwareness } from '../../../../../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../../../../../selectors/smartTransactionsController';
 import { getNetworkNonce } from '../../../../../../../util/transaction-controller';

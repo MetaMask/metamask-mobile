@@ -8,6 +8,7 @@ const styleSheet = () =>
       justifyContent: 'space-between',
       paddingHorizontal: 32,
       paddingVertical: 4,
+      width: '100%',
     },
     left_section: {
       flexDirection: 'row',
@@ -16,10 +17,17 @@ const styleSheet = () =>
       flexDirection: 'column',
       marginLeft: 16,
     },
+    network_name: {
+      width: 170,
+    },
     button_section: {
       flexDirection: 'row',
-      justifyContent: 'center',
-      width: 50,
+      justifyContent: 'flex-end',
+      width: 100,
+    },
+    multichain_accounts_row_wrapper: {
+      width: '100%',
+      marginBottom: 8,
     },
   });
 

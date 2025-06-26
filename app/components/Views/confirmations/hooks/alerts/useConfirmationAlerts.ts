@@ -4,7 +4,9 @@ import useDomainMismatchAlerts from './useDomainMismatchAlerts';
 import { useInsufficientBalanceAlert } from './useInsufficientBalanceAlert';
 import { useAccountTypeUpgrade } from './useAccountTypeUpgrade';
 import { useSignedOrSubmittedAlert } from './useSignedOrSubmittedAlert';
+import { usePendingTransactionAlert } from './usePendingTransactionAlert';
 import { Alert } from '../../types/alerts';
+import { useBatchedUnusedApprovalsAlert } from './useBatchedUnusedApprovalsAlert';
 
 function useSignatureAlerts(): Alert[] {
   const domainMismatchAlerts = useDomainMismatchAlerts();
@@ -15,10 +17,22 @@ function useSignatureAlerts(): Alert[] {
 function useTransactionAlerts(): Alert[] {
   const insufficientBalanceAlert = useInsufficientBalanceAlert();
   const signedOrSubmittedAlert = useSignedOrSubmittedAlert();
+  const pendingTransactionAlert = usePendingTransactionAlert();
+  const batchedUnusedApprovalsAlert = useBatchedUnusedApprovalsAlert();
 
   return useMemo(
-    () => [...insufficientBalanceAlert, ...signedOrSubmittedAlert],
-    [insufficientBalanceAlert, signedOrSubmittedAlert],
+    () => [
+      ...insufficientBalanceAlert,
+      ...batchedUnusedApprovalsAlert,
+      ...pendingTransactionAlert,
+      ...signedOrSubmittedAlert,
+    ],
+    [
+      insufficientBalanceAlert,
+      batchedUnusedApprovalsAlert,
+      pendingTransactionAlert,
+      signedOrSubmittedAlert,
+    ],
   );
 }
 export default function useConfirmationAlerts(): Alert[] {

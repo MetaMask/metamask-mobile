@@ -1,4 +1,4 @@
-import { AppMetadataControllerMessenger } from '../../controllers/app-metadata-controller';
+import { AppMetadataControllerMessenger } from '@metamask/app-metadata-controller';
 import { BaseControllerMessenger } from '../../types';
 
 // Export the types

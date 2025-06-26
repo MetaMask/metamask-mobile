@@ -54,7 +54,7 @@ import { RootState } from '../../../reducers';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { createBuyNavigationDetails } from '../Ramp/routes/utils';
+import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
 import {
@@ -94,12 +94,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 }: AssetOverviewProps) => {
   // For non evm assets, the resultChainId is equal to the asset.chainId; while for evm assets; the resultChainId === "eip155:1" !== asset.chainId
   const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
-  const isNonEvmAsset = resultChainId === asset.chainId ;
+  const isNonEvmAsset = resultChainId === asset.chainId;
   const navigation = useNavigation();
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
-  const selectedInternalAccount = useSelector(
-    selectSelectedInternalAccount,
-  );
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const selectedInternalAccountAddress = selectedInternalAccount?.address;
   const conversionRateByTicker = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -307,35 +305,36 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const isEthOrNative = asset.isETH || asset.isNative;
 
   if (isMultichainAsset) {
-    balance = asset.balance ? formatWithThreshold(
-      parseFloat(asset.balance),
-      minimumDisplayThreshold,
-      I18n.locale,
-      { minimumFractionDigits: 0, maximumFractionDigits: 5 },
-    ) : 0;
+    balance = asset.balance
+      ? formatWithThreshold(
+          parseFloat(asset.balance),
+          minimumDisplayThreshold,
+          I18n.locale,
+          { minimumFractionDigits: 0, maximumFractionDigits: 5 },
+        )
+      : 0;
   } else if (isEthOrNative) {
     balance = renderFromWei(
       // @ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
       accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance,
     );
   } else {
-
     const multiChainTokenBalanceHex =
       itemAddress &&
       multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
         chainId as Hex
       ]?.[itemAddress as Hex];
     const tokenBalanceHex = multiChainTokenBalanceHex;
-    if(!isEvmAccountType(selectedInternalAccount?.type as KeyringAccountType)) {
+    if (
+      !isEvmAccountType(selectedInternalAccount?.type as KeyringAccountType)
+    ) {
       balance = asset.balance || 0;
-    }else {
+    } else {
       balance =
-      itemAddress && tokenBalanceHex
-        ? renderFromTokenMinimalUnit(tokenBalanceHex, asset.decimals)
-        : 0;
+        itemAddress && tokenBalanceHex
+          ? renderFromTokenMinimalUnit(tokenBalanceHex, asset.decimals)
+          : 0;
     }
-
-
   }
 
   const mainBalance = asset.balanceFiat || '';

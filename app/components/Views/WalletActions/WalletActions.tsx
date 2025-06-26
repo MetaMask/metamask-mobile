@@ -22,7 +22,7 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import WalletAction from '../../../components/UI/WalletAction';
 import { useStyles } from '../../../component-library/hooks';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import useRampNetwork from '../../UI/Ramp/hooks/useRampNetwork';
+import useRampNetwork from '../../UI/Ramp/Aggregator/hooks/useRampNetwork';
 import Routes from '../../../constants/navigation/Routes';
 import { getDecimalChainId } from '../../../util/networks';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
@@ -34,7 +34,7 @@ import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
-} from '../../UI/Ramp/routes/utils';
+} from '../../UI/Ramp/Aggregator/routes/utils';
 import { trace, TraceName } from '../../../util/trace';
 // eslint-disable-next-line no-duplicate-imports, import/no-duplicates
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
@@ -53,14 +53,21 @@ import {
   SwapBridgeNavigationLocation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { RampType } from '../../../reducers/fiatOrders/types';
-import { selectStablecoinLendingEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../UI/Earn/selectors/featureFlags';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
 import { selectDepositEntrypointWalletActions } from '../../../selectors/featureFlagController/deposit';
+import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
+import { earnSelectors } from '../../../selectors/earnController/earn';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+  const { earnTokens } = useSelector(earnSelectors.selectEarnTokens);
 
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectEvmTicker);
@@ -121,6 +128,15 @@ const WalletActions = () => {
     closeBottomSheetAndNavigate(() => {
       navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
+        params: {
+          tokenFilter: {
+            includeNativeTokens: true,
+            includeStakingTokens: false,
+            includeLendingTokens: true,
+            includeReceiptTokens: false,
+          },
+          onItemPressScreen: EARN_INPUT_VIEW_ACTIONS.DEPOSIT,
+        },
       });
     });
 
@@ -203,7 +219,27 @@ const WalletActions = () => {
     closeBottomSheetAndNavigate(() => {
       navigate(Routes.DEPOSIT.ID);
     });
-  }, [closeBottomSheetAndNavigate, navigate]);
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.DEPOSIT_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Deposit',
+          location: 'TabBar',
+          chain_id_destination: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
+
+    trace({
+      name: TraceName.LoadDepositExperience,
+    });
+  }, [
+    closeBottomSheetAndNavigate,
+    navigate,
+    trackEvent,
+    createEventBuilder,
+    chainId,
+  ]);
 
   const onSend = useCallback(async () => {
     trackEvent(
@@ -305,6 +341,17 @@ const WalletActions = () => {
     [styles.icon],
   );
 
+  const isEarnWalletActionEnabled = useMemo(() => {
+    if (
+      !isStablecoinLendingEnabled ||
+      (earnTokens.length <= 1 &&
+        earnTokens[0]?.isETH &&
+        !isPooledStakingEnabled)
+    ) {
+      return false;
+    }
+    return true;
+  }, [isStablecoinLendingEnabled, earnTokens, isPooledStakingEnabled]);
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
@@ -379,7 +426,7 @@ const WalletActions = () => {
           iconSize={AvatarSize.Md}
           disabled={false}
         />
-        {isStablecoinLendingEnabled && (
+        {isEarnWalletActionEnabled && (
           <WalletAction
             actionType={WalletActionType.Earn}
             iconName={IconName.Plant}

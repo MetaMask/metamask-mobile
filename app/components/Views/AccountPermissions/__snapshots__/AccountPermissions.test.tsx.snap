@@ -63,6 +63,9 @@ exports[`AccountPermissions renders correctly 1`] = `
   >
     <View
       collapsable={false}
+      enabled={true}
+      handlerTag={-1}
+      handlerType="PanGestureHandler"
       onGestureHandlerEvent={[Function]}
       onGestureHandlerStateChange={[Function]}
       onLayout={[Function]}
@@ -74,7 +77,7 @@ exports[`AccountPermissions renders correctly 1`] = `
             "borderTopLeftRadius": 8,
             "borderTopRightRadius": 8,
             "borderWidth": 1,
-            "maxHeight": 1334,
+            "maxHeight": 0,
             "overflow": "hidden",
             "paddingBottom": 0,
             "shadowColor": "#0000001a",
@@ -88,7 +91,7 @@ exports[`AccountPermissions renders correctly 1`] = `
           {
             "transform": [
               {
-                "translateY": 1334,
+                "translateY": 0,
               },
             ],
           },
@@ -204,8 +207,12 @@ exports[`AccountPermissions renders correctly 1`] = `
               },
               "balanceError": undefined,
               "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+              "isLoadingAccount": false,
               "isSelected": true,
               "name": "Account 1",
+              "scopes": [
+                "eip155:0",
+              ],
               "type": "HD Key Tree",
               "yOffset": 0,
             },
@@ -213,6 +220,8 @@ exports[`AccountPermissions renders correctly 1`] = `
         }
         getItem={[Function]}
         getItemCount={[Function]}
+        handlerTag={-1}
+        handlerType="NativeViewGestureHandler"
         initialNumToRender={999}
         keyExtractor={[Function]}
         onContentSizeChange={[Function]}
@@ -242,7 +251,7 @@ exports[`AccountPermissions renders correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#ffffff",
+                  "backgroundColor": "#4459ff1a",
                   "flexDirection": "row",
                 }
               }
@@ -540,34 +549,135 @@ exports[`AccountPermissions renders correctly 1`] = `
                           >
                             $3200.00
                           </Text>
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "CentraNo1-Book",
-                                "fontSize": 16,
-                                "fontWeight": "400",
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                                "textAlign": "right",
-                              }
-                            }
-                          >
-                            1 ETH
-                          </Text>
                           <View
                             style={
                               {
-                                "alignItems": "center",
-                                "flexDirection": "row",
+                                "marginTop": 4,
                               }
                             }
-                          />
+                            testID="network-container"
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                }
+                              }
+                              testID="avatar-group-container"
+                            >
+                              <View
+                                style={
+                                  {
+                                    "marginLeft": 0,
+                                  }
+                                }
+                                testID="avatargroup-avatar-container-0"
+                              >
+                                <View
+                                  caipChainId="0x1"
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "borderWidth": 1.5,
+                                      "height": 16,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "width": 16,
+                                    }
+                                  }
+                                  testID="avatargroup-avatar"
+                                >
+                                  <Image
+                                    onError={[Function]}
+                                    resizeMode="contain"
+                                    source={1}
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    testID="network-avatar-image"
+                                  />
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "marginLeft": -6,
+                                  }
+                                }
+                                testID="avatargroup-avatar-container-1"
+                              >
+                                <View
+                                  caipChainId="0x38"
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "borderWidth": 1.5,
+                                      "height": 16,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "width": 16,
+                                    }
+                                  }
+                                  testID="avatargroup-avatar"
+                                >
+                                  <Image
+                                    onError={[Function]}
+                                    resizeMode="contain"
+                                    source={1}
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    testID="network-avatar-image"
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                          </View>
                         </View>
                       </View>
                     </View>
                   </View>
+                </View>
+                <View
+                  accessibilityRole="checkbox"
+                  accessible={true}
+                  style={
+                    {
+                      "backgroundColor": "#4459ff1a",
+                      "bottom": 0,
+                      "flexDirection": "row",
+                      "left": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "width": 4,
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "backgroundColor": "#4459ff",
+                        "borderRadius": 2,
+                        "marginLeft": 4,
+                        "marginVertical": 4,
+                        "width": 4,
+                      }
+                    }
+                  />
                 </View>
               </TouchableOpacity>
               <View
@@ -622,7 +732,6 @@ exports[`AccountPermissions renders correctly 1`] = `
             "marginVertical": 16,
           }
         }
-        testID="connect-accounts-buttons"
       >
         <View>
           <TouchableOpacity
@@ -645,6 +754,7 @@ exports[`AccountPermissions renders correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
+            testID="connect-accounts-buttons"
           >
             <Text
               accessibilityRole="text"

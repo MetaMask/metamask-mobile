@@ -10,10 +10,15 @@ exports[`GasEducationCarousel should render correctly 1`] = `
 >
   <View
     style={
-      {
-        "backgroundColor": "#ffffff",
-        "flex": 1,
-      }
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        },
+        {
+          "backgroundColor": undefined,
+        },
+      ]
     }
   >
     <RCTScrollView

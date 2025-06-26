@@ -28,8 +28,7 @@ import {
 } from '@metamask/permission-controller';
 import { captureException } from '@sentry/react-native';
 import { getNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
-import { NetworkConfiguration } from '@metamask/network-controller';
-import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
+import { areAddressesEqual } from '../../util/address';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -42,16 +41,16 @@ const Engine = ImportedEngine as any;
  * an error to sentry for any accounts that were expected but are missing from the wallet.
  *
  * @param [internalAccounts] - The list of evm accounts the wallet knows about.
- * @param [accounts] - The list of evm accounts addresses that should exist.
+ * @param [accounts] - The list of accounts addresses that should exist.
  */
 const captureKeyringTypesWithMissingIdentities = (
   internalAccounts: InternalAccount[] = [],
-  accounts: Hex[] = [],
+  accounts: string[] = [],
 ) => {
   const accountsMissingIdentities = accounts.filter(
     (address) =>
-      !internalAccounts.some(
-        (account) => account.address.toLowerCase() === address.toLowerCase(),
+      !internalAccounts.some((account) =>
+        areAddressesEqual(account.address, address),
       ),
   );
   const keyringTypesWithMissingIdentities = accountsMissingIdentities.map(
@@ -73,32 +72,27 @@ const captureKeyringTypesWithMissingIdentities = (
 };
 
 /**
- * Sorts a list of evm account addresses by most recently selected by using
- * the lastSelected value for the matching InternalAccount object stored in state.
- *
- * @param accounts - The list of evm accounts addresses to sort.
- * @returns The sorted evm accounts addresses.
+ * Sorts a list of addresses by most recently selected by using the lastSelected value for
+ * the matching InternalAccount object from the list of internalAccounts provided.
  */
-export const sortAccountsByLastSelected = (accounts: Hex[]) => {
-  const internalAccounts: InternalAccount[] =
-    Engine.context.AccountsController.listAccounts();
-
-  return accounts.sort((firstAddress, secondAddress) => {
-    const firstAccount = internalAccounts.find(
-      (internalAccount) =>
-        internalAccount.address.toLowerCase() === firstAddress.toLowerCase(),
+const sortAddressesWithInternalAccounts = <T extends string>(
+  addresses: T[],
+  internalAccounts: InternalAccount[],
+): T[] =>
+  [...addresses].sort((firstAddress, secondAddress) => {
+    const firstAccount = internalAccounts.find((internalAccount) =>
+      areAddressesEqual(internalAccount.address, firstAddress),
     );
 
-    const secondAccount = internalAccounts.find(
-      (internalAccount) =>
-        internalAccount.address.toLowerCase() === secondAddress.toLowerCase(),
+    const secondAccount = internalAccounts.find((internalAccount) =>
+      areAddressesEqual(internalAccount.address, secondAddress),
     );
 
     if (!firstAccount) {
-      captureKeyringTypesWithMissingIdentities(internalAccounts, accounts);
+      captureKeyringTypesWithMissingIdentities(internalAccounts, addresses);
       throw new Error(`Missing identity for address: "${firstAddress}".`);
     } else if (!secondAccount) {
-      captureKeyringTypesWithMissingIdentities(internalAccounts, accounts);
+      captureKeyringTypesWithMissingIdentities(internalAccounts, addresses);
       throw new Error(`Missing identity for address: "${secondAddress}".`);
     } else if (
       firstAccount.metadata.lastSelected === secondAccount.metadata.lastSelected
@@ -114,11 +108,89 @@ export const sortAccountsByLastSelected = (accounts: Hex[]) => {
       secondAccount.metadata.lastSelected - firstAccount.metadata.lastSelected
     );
   });
+
+/**
+ * Sorts a list of evm account addresses by most recently selected by using
+ * the lastSelected value for the matching InternalAccount object stored in state.
+ */
+export const sortEvmAccountsByLastSelected = (addresses: Hex[]): Hex[] => {
+  const internalAccounts = Engine.context.AccountsController.listAccounts();
+  return sortAddressesWithInternalAccounts(addresses, internalAccounts);
 };
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getCaipAccountIdsFromSubject(subject: any) {
+/**
+ * Sorts a list of caip account id by most recently selected by using the lastSelected value for
+ * the matching InternalAccount object from the list of internalAccounts provided.
+ */
+const sortCaipAccountIdsWithInternalAccounts = (
+  caipAccountIds: CaipAccountId[],
+  internalAccounts: InternalAccount[],
+): CaipAccountId[] =>
+  [...caipAccountIds].sort((firstAccountId, secondAccountId) => {
+    const firstAccount = internalAccounts.find((internalAccount) =>
+      isInternalAccountInPermittedAccountIds(internalAccount, [firstAccountId]),
+    );
+
+    const secondAccount = internalAccounts.find((internalAccount) =>
+      isInternalAccountInPermittedAccountIds(internalAccount, [
+        secondAccountId,
+      ]),
+    );
+
+    if (!firstAccount) {
+      captureKeyringTypesWithMissingIdentities(
+        internalAccounts,
+        caipAccountIds,
+      );
+      throw new Error(`Missing identity for address: "${firstAccountId}".`);
+    } else if (!secondAccount) {
+      captureKeyringTypesWithMissingIdentities(
+        internalAccounts,
+        caipAccountIds,
+      );
+      throw new Error(`Missing identity for address: "${secondAccountId}".`);
+    } else if (
+      firstAccount.metadata.lastSelected === secondAccount.metadata.lastSelected
+    ) {
+      return 0;
+    } else if (firstAccount.metadata.lastSelected === undefined) {
+      return 1;
+    } else if (secondAccount.metadata.lastSelected === undefined) {
+      return -1;
+    }
+
+    return (
+      secondAccount.metadata.lastSelected - firstAccount.metadata.lastSelected
+    );
+  });
+
+/**
+ * Sorts a list of multichain account ids by most recently selected by using
+ * the lastSelected value for the matching InternalAccount object stored in state.
+ */
+export const sortMultichainAccountsByLastSelected = (
+  caipAccountIds: CaipAccountId[],
+) => {
+  const internalAccounts =
+    Engine.context.AccountsController.listMultichainAccounts();
+  return sortCaipAccountIdsWithInternalAccounts(
+    caipAccountIds,
+    internalAccounts,
+  );
+};
+
+/**
+ * Generic function to extract data from a subject using a provided extractor.
+ *
+ * @param subject - The subject object containing permissions and caveats.
+ * @param extractor - A function that extracts data from a caveat.
+ * @returns An array of data extracted from the subject.
+ */
+function getDataFromSubject<T>(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  subject: any,
+  extractor: (caveat: { type: string, value: Caip25CaveatValue }) => T[],
+): T[] {
   const caveats = subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
   if (!caveats) {
     return [];
@@ -127,80 +199,77 @@ function getCaipAccountIdsFromSubject(subject: any) {
   const caveat = caveats.find(
     ({ type }: CaveatConstraint) => type === Caip25CaveatType,
   );
-  if (caveat) {
-    return getCaipAccountIdsFromCaip25CaveatValue(caveat.value);
-  }
+  return caveat ? extractor(caveat) : [];
+}
 
-  return [];
+/**
+ * Helper function to extract CAIP account IDs from a subject.
+ *
+ * @param subject - The subject object containing permissions and caveats.
+ * @returns An array of CAIP account IDs.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getCaipAccountIdsFromSubject(subject: any): CaipAccountId[] {
+  return getDataFromSubject(subject, (caveat) =>
+    getCaipAccountIdsFromCaip25CaveatValue(caveat.value)
+  );
+}
+
+/**
+ * Helper function to extract EVM addresses from a subject.
+ *
+ * @param subject - The subject object containing permissions and caveats.
+ * @returns An array of EVM addresses.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getEvmAddessesFromSubject(subject: any): Hex[] {
+  return getDataFromSubject(subject, (caveat) => {
+    const ethAccounts = getEthAccounts(caveat.value);
+    return sortEvmAccountsByLastSelected(ethAccounts);
+  });
+}
+
+/**
+ * Helper function to extract permitted scopes from a subject.
+ *
+ * @param subject - The subject object containing permissions and caveats.
+ * @returns An array of permitted CAIP chain IDs.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getPermittedScopesFromSubject(subject: any): CaipChainId[] {
+  return getDataFromSubject(subject, (caveat) =>
+    getAllScopesFromCaip25CaveatValue(caveat.value)
+  );
 }
 
 export const getPermittedCaipAccountIdsByHostname = (
-  // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: any,
   hostname: string,
 ): CaipAccountId[] => {
-  const { subjects } = state;
-  const subject = subjects[hostname];
-  return subject ? getCaipAccountIdsFromSubject(subject) : [];
-};
-
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getEvmAddessesFromSubject(subject: any) {
-  const caveats = subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
-  if (!caveats) {
+  const subject = state.subjects?.[hostname];
+  if (!subject) {
     return [];
   }
-
-  const caveat = caveats.find(
-    ({ type }: CaveatConstraint) => type === Caip25CaveatType,
-  );
-  if (caveat) {
-    const ethAccounts = getEthAccounts(caveat.value);
-    return sortAccountsByLastSelected(ethAccounts);
-  }
-
-  return [];
-}
+  return getCaipAccountIdsFromSubject(subject);
+};
 
 export const getPermittedEvmAddressesByHostname = (
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  state: any,
+  state: { subjects: Record<string, unknown> },
   hostname: string,
 ): Hex[] => {
-  const { subjects } = state;
-  const subject = subjects[hostname];
-  return subject ? getEvmAddessesFromSubject(subject) : [];
-};
-
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getPermittedScopesFromSubject(subject: any) {
-  const caveats = subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
-  if (!caveats) {
+  const subject = state.subjects[hostname];
+  if (!subject) {
     return [];
   }
-
-  const caveat = caveats.find(
-    ({ type }: CaveatConstraint) => type === Caip25CaveatType,
-  );
-  if (caveat) {
-    return getAllScopesFromCaip25CaveatValue(caveat.value);
-  }
-
-  return [];
-}
+  return getEvmAddessesFromSubject(subject);
+};
 
 export const getPermittedCaipChainIdsByHostname = (
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  state: any,
+  state: { subjects: Record<string, unknown> },
   hostname: string,
 ): CaipChainId[] => {
-  const { subjects } = state;
-  const subject = subjects[hostname];
+  const subject = state.subjects?.[hostname];
   if (!subject) {
     return [];
   }
@@ -257,8 +326,6 @@ export const getCaip25Caveat = (origin: string) => {
 export const addPermittedAccounts = (
   origin: string,
   accounts: CaipAccountId[],
-  evmNetworkConfigurationsByChainId: Record<Hex, NetworkConfiguration>,
-  nonEvmNetworkConfigurationsByChainId: Record<Hex, MultichainNetworkConfiguration>,
 ) => {
   const caip25Caveat = getCaip25Caveat(origin);
   if (!caip25Caveat) {
@@ -281,7 +348,15 @@ export const addPermittedAccounts = (
 
   let updatedPermittedChainIds = [...existingPermittedChainIds];
 
-  const networkConfigurations = getNetworkConfigurationsByCaipChainId(evmNetworkConfigurationsByChainId, nonEvmNetworkConfigurationsByChainId);
+  const evmNetworkConfigurationsByChainId =
+    Engine.context.NetworkController.state.networkConfigurationsByChainId;
+  const nonEvmNetworkConfigurationsByChainId =
+    Engine.context.MultichainNetworkController.state
+      .multichainNetworkConfigurationsByChainId;
+  const networkConfigurations = getNetworkConfigurationsByCaipChainId(
+    evmNetworkConfigurationsByChainId,
+    nonEvmNetworkConfigurationsByChainId,
+  );
   const allNetworksList = Object.keys(networkConfigurations) as CaipChainId[];
 
   updatedAccountIds.forEach((caipAccountAddress) => {
@@ -492,7 +567,7 @@ export const removePermittedChain = (
  * array if no accounts are permitted or the wallet is locked. Returns any permitted
  * accounts if the wallet is locked and `ignoreLock` is true. This lock bypass is needed
  * for the `eth_requestAccounts` & `wallet_getPermission` handlers both of which
- * return permissioned accounts to the dapp when the wallet is locked.
+ * return permitted accounts to the dapp when the wallet is locked.
  *
  * @param {string} origin - The origin whose exposed accounts to retrieve.
  * @param {object} [options] - The options object
@@ -535,7 +610,7 @@ export const getPermittedAccounts = (
   }
 
   const ethAccounts = getEthAccounts(caveat.value);
-  return sortAccountsByLastSelected(ethAccounts);
+  return sortEvmAccountsByLastSelected(ethAccounts);
 };
 
 /**

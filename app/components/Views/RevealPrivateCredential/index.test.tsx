@@ -9,6 +9,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 import { EthAccountType, EthMethod, EthScope } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { internalAccount1 as mockAccount } from '../../../util/test/accountsControllerTestUtils';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -26,6 +27,13 @@ const initialState = {
   },
 };
 const store = mockStore(initialState);
+
+const mockGetInternalAccountByAddress = jest.fn().mockReturnValue(mockAccount);
+
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  getInternalAccountByAddress: () => mockGetInternalAccountByAddress(),
+}));
 
 describe('RevealPrivateCredential', () => {
   const SRP_CREDENTIAL = 'seed_phrase';

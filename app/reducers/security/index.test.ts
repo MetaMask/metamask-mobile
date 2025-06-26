@@ -5,9 +5,6 @@ import securityReducer from '.';
 describe('securityReducer', () => {
   const initialState: Readonly<SecuritySettingsState> = {
     allowLoginWithRememberMe: false,
-    automaticSecurityChecksEnabled: false,
-    hasUserSelectedAutomaticSecurityCheckOption: false,
-    isAutomaticSecurityChecksModalOpen: false,
     dataCollectionForMarketing: null,
     isNFTAutoDetectionModalViewed: false,
   };
@@ -23,60 +20,6 @@ describe('securityReducer', () => {
     const expectedState = {
       ...initialState,
       allowLoginWithRememberMe: true,
-    };
-
-    const newState = securityReducer(initialState, action);
-
-    expect(newState).toEqual(expectedState);
-  });
-
-  it('should set automaticSecurityChecksEnabled to true', () => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const action: any = {
-      type: ActionType.SET_AUTOMATIC_SECURITY_CHECKS,
-      enabled: true,
-    };
-
-    const expectedState = {
-      ...initialState,
-      automaticSecurityChecksEnabled: true,
-    };
-
-    const newState = securityReducer(initialState, action);
-
-    expect(newState).toEqual(expectedState);
-  });
-
-  it('should set hasUserSelectedAutomaticSecurityCheckOption to true', () => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const action: any = {
-      type: ActionType.USER_SELECTED_AUTOMATIC_SECURITY_CHECKS_OPTION,
-      selected: true,
-    };
-
-    const expectedState = {
-      ...initialState,
-      hasUserSelectedAutomaticSecurityCheckOption: true,
-    };
-
-    const newState = securityReducer(initialState, action);
-
-    expect(newState).toEqual(expectedState);
-  });
-
-  it('should set isAutomaticSecurityChecksModalOpen to true', () => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const action: any = {
-      type: ActionType.SET_AUTOMATIC_SECURITY_CHECKS_MODAL_OPEN,
-      open: true,
-    };
-
-    const expectedState = {
-      ...initialState,
-      isAutomaticSecurityChecksModalOpen: true,
     };
 
     const newState = securityReducer(initialState, action);

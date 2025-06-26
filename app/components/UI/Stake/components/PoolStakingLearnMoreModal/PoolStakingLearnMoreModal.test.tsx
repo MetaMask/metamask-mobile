@@ -18,6 +18,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: jest.fn(),
     }),
+    useRoute: jest.fn().mockReturnValue({ params: { chainId: '1' } }),
   };
 });
 
