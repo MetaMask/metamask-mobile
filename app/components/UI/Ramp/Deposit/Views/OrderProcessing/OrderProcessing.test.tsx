@@ -100,6 +100,20 @@ describe('OrderProcessing Component', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
+  it('renders created state correctly', () => {
+    const createdOrder = { ...mockOrder, state: FIAT_ORDER_STATES.CREATED };
+    (getOrderById as jest.Mock).mockReturnValue(createdOrder);
+
+    renderWithProvider(<OrderProcessing />, {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    });
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
   it('renders no order found state', () => {
     (getOrderById as jest.Mock).mockReturnValue(null);
 

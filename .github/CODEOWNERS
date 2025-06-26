@@ -192,6 +192,11 @@ app/core/Engine/controllers/seedless-onboarding-controller  @MetaMask/web3auth
 app/components/Views/Onboarding @MetaMask/web3auth
 app/reducers/onboarding @MetaMask/web3auth
 
+# QA Team
+e2e/**               @MetaMask/qa
+wdio/**              @MetaMask/qa
+
+
 
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.
