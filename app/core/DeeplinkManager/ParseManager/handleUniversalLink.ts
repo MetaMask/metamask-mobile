@@ -49,9 +49,78 @@ async function handleUniversalLink({
   url: string;
 }) {
   const validatedUrl = new URL(url);
+  if (
+    !validatedUrl.hostname ||
+    validatedUrl.hostname.includes('?') ||
+    validatedUrl.hostname.includes('&')
+  ) {
+    throw new Error('Invalid hostname');
+  }
+
+  let isPrivateLink = false;
+  let isInvalidLink = false;
+
+  const pathname: ACTIONS = validatedUrl.pathname.split('/')[1] as ACTIONS;
+  if (!Object.keys(ACTIONS).includes(pathname.toUpperCase())) {
+    isInvalidLink = true;
+  }
+
+  if (hasSignature(validatedUrl)) {
+    try {
+      const signatureResult = await verifyDeeplinkSignature(validatedUrl);
+      switch (signatureResult) {
+        case VALID:
+          DevLogger.log(
+            'DeepLinkManager:parse Verified signature for deeplink',
+            url,
+          );
+          isPrivateLink = true;
+          break;
+        case INVALID:
+        case MISSING:
+          DevLogger.log(
+            'DeepLinkManager:parse Invalid/Missing signature, ignoring deeplink',
+            url,
+          );
+          isPrivateLink = false;
+          break;
+        default:
+          isPrivateLink = false;
+          break;
+      }
+    } catch (error) {
+      isPrivateLink = false;
+    }
+  }
+
+  const linkType = () => {
+    if (isInvalidLink) {
+      return DeepLinkModalLinkType.INVALID;
+    }
+    if (isPrivateLink) {
+      return DeepLinkModalLinkType.PRIVATE;
+    }
+    return DeepLinkModalLinkType.PUBLIC;
+  };
+
+  const shouldProceed = await new Promise<boolean>((resolve) => {
+    const pageTitle: string =
+      capitalize(validatedUrl.pathname.split('/')[1]?.toLowerCase()) || '';
+
+    handleDeepLinkModalDisplay({
+      linkType: linkType(),
+      pageTitle,
+      onContinue: () => resolve(true),
+      onBack: () => resolve(false),
+    });
+  });
 
   // Universal links
   handled();
+
+  if (!shouldProceed) {
+    return false;
+  }
 
   // action is the first part of the pathname
   const action: ACTIONS = validatedUrl.pathname.split('/')[1] as ACTIONS;
@@ -172,76 +241,6 @@ async function handleUniversalLink({
     urlObj.hostname === MM_IO_UNIVERSAL_LINK_HOST ||
     urlObj.hostname === MM_IO_UNIVERSAL_LINK_TEST_HOST
   ) {
-    if (
-      !validatedUrl.hostname ||
-      validatedUrl.hostname.includes('?') ||
-      validatedUrl.hostname.includes('&')
-    ) {
-      throw new Error('Invalid hostname');
-    }
-
-    let isPrivateLink = false;
-    let isInvalidLink = false;
-
-    const pathname: ACTIONS = validatedUrl.pathname.split('/')[1] as ACTIONS;
-    if (!Object.keys(ACTIONS).includes(pathname.toUpperCase())) {
-      isInvalidLink = true;
-    }
-
-    if (hasSignature(validatedUrl)) {
-      try {
-        const signatureResult = await verifyDeeplinkSignature(validatedUrl);
-        switch (signatureResult) {
-          case VALID:
-            DevLogger.log(
-              'DeepLinkManager:parse Verified signature for deeplink',
-              url,
-            );
-            isPrivateLink = true;
-            break;
-          case INVALID:
-          case MISSING:
-            DevLogger.log(
-              'DeepLinkManager:parse Invalid/Missing signature, ignoring deeplink',
-              url,
-            );
-            isPrivateLink = false;
-            break;
-          default:
-            isPrivateLink = false;
-            break;
-        }
-      } catch (error) {
-        isPrivateLink = false;
-      }
-    }
-
-    const linkType = () => {
-      if (isInvalidLink) {
-        return DeepLinkModalLinkType.INVALID;
-      }
-      if (isPrivateLink) {
-        return DeepLinkModalLinkType.PRIVATE;
-      }
-      return DeepLinkModalLinkType.PUBLIC;
-    };
-
-    const shouldProceed = await new Promise<boolean>((resolve) => {
-      const pageTitle: string =
-        capitalize(validatedUrl.pathname.split('/')[1]?.toLowerCase()) || '';
-
-      handleDeepLinkModalDisplay({
-        linkType: linkType(),
-        pageTitle,
-        onContinue: () => resolve(true),
-        onBack: () => resolve(false),
-      });
-    });
-
-    if (!shouldProceed) {
-      return false;
-    }
-
     switch (action) {
       case ACTIONS.HOME:
         instance._handleOpenHome();
