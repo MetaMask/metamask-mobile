@@ -210,23 +210,24 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
     }, 'On-ramp Quotes Received: Should have correct properties');
 
     // !!IMPORTANT!!
-    // This event is currently being triggered given the current status of the onramp e2e flow.
-    // It should be removed once the onramp e2e flow is fixed.
-    const onRampQuoteError = events.find((event) => event.event === expectedEvents.ONRAMP_QUOTE_ERROR);
-    softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(onRampQuoteError);
-    });
-    await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfObjectHasKeysAndValidValues(onRampQuoteError.properties, {
-        amount: 'number',
-        payment_method_id: 'string',
-        error_message: 'string',
-        currency_source: 'string',
-        currency_destination: 'string',
-        provider_onramp: 'string',
-        chain_id_destination: 'string',
+    // Only iOS sends quote error currently because of the available providers on iOS.
+    if (device.getPlatform() === 'ios') {
+      const onRampQuoteError = events.find((event) => event.event === expectedEvents.ONRAMP_QUOTE_ERROR);
+      softAssert.checkAndCollect(async () => {
+        await Assertions.checkIfValueIsDefined(onRampQuoteError);
       });
-    }, 'On-ramp Quote Error: Should have correct properties');
+      await softAssert.checkAndCollect(async () => {
+        await Assertions.checkIfObjectHasKeysAndValidValues(onRampQuoteError.properties, {
+          amount: 'number',
+          payment_method_id: 'string',
+          error_message: 'string',
+          currency_source: 'string',
+          currency_destination: 'string',
+          provider_onramp: 'string',
+          chain_id_destination: 'string',
+        });
+      }, 'On-ramp Quote Error: Should have correct properties');
+    }
 
     // We only assert these events if there is more than one provider available
     if (shouldCheckProviderSelectedEvents) {
