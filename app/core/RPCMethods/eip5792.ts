@@ -344,7 +344,7 @@ async function processSingleTransaction({
   validateSecurity: (
     securityRequest: ValidateSecurityRequest,
     chainId: Hex,
-  ) => void;
+  ) => Promise<unknown>;
 }) {
   const { TransactionController } = Engine.context;
 
