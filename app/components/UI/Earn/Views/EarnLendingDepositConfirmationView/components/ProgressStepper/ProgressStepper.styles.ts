@@ -25,8 +25,6 @@ const styleSheet = (params: { theme: Theme }) => {
       bottom: 17,
     },
     stepLabelContainer: {
-      // flexWrap: 'wrap',
-      // maxWidth: 100,
       textAlign: 'center',
     },
   });

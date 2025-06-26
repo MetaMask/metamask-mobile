@@ -549,7 +549,6 @@ const EarnLendingDepositConfirmationView = () => {
     navigation.goBack();
   };
 
-  // TODO: Add tests
   // Sets the allowance to zero for a given token.
   const resetTokenAllowance = async (networkClientId: string) => {
     try {
@@ -569,10 +568,7 @@ const EarnLendingDepositConfirmationView = () => {
           amount: '0',
           underlyingTokenAddress:
             earnToken?.experience?.market?.underlying?.address,
-          gasOptions: {
-            // 50,000 + 20% buffer
-            gasLimit: 60000,
-          },
+          gasOptions: {},
           txOptions: {
             deviceConfirmedOn: WalletDevice.MM_MOBILE,
             networkClientId,
@@ -605,9 +601,7 @@ const EarnLendingDepositConfirmationView = () => {
         amount: amountTokenMinimalUnit,
         underlyingTokenAddress:
           earnToken?.experience?.market?.underlying?.address,
-        gasOptions: {
-          gasLimit: 78000,
-        },
+        gasOptions: {},
         txOptions: {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
           networkClientId,
@@ -703,7 +697,7 @@ const EarnLendingDepositConfirmationView = () => {
         case Steps.ALLOWANCE_RESET:
           txResult = await resetTokenAllowance(networkClientId);
           break;
-        // Increase token allowance
+        // Increase token allowance before depositing
         case Steps.ALLOWANCE_INCREASE:
           txResult = await increaseTokenAllowance(networkClientId);
           break;
@@ -721,7 +715,6 @@ const EarnLendingDepositConfirmationView = () => {
         return;
       }
 
-      // 3. Setup Transaction Event Listeners
       createTransactionEventListeners(transactionId, txType);
     } catch (error) {
       // allow user to try again
