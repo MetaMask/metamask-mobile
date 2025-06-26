@@ -15,6 +15,7 @@ import {
   generateContractInteractionState,
   getAppStateForConfirmation,
 } from '../../../util/test/confirm-data-helpers';
+import { MMM_ORIGIN } from '../../Views/confirmations/constants/confirmations';
 // eslint-disable-next-line import/no-namespace
 import * as BatchApprovalUtils from '../../Views/confirmations/hooks/7702/useBatchApproveBalanceChanges';
 import AnimatedSpinner from '../AnimatedSpinner';
@@ -166,6 +167,18 @@ describe('SimulationDetails', () => {
             enableMetrics={false}
           />,
           { state: generateContractInteractionState },
+        ).toJSON(),
+      ).toBeNull();
+    });
+
+    it('is not a dapp interaction', () => {
+      expect(
+        renderWithProvider(
+          <SimulationDetails transaction={{
+            id: mockTransactionId,
+            simulationData: simulationDataMock,
+            origin: MMM_ORIGIN,
+          } as TransactionMeta} enableMetrics={false} />,
         ).toJSON(),
       ).toBeNull();
     });

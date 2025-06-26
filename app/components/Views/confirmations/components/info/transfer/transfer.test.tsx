@@ -135,15 +135,4 @@ describe('Transfer', () => {
       },
     });
   });
-
-  it('renders simulation details if transfer initiated by dapp', () => {
-    const state = cloneDeep(transferConfirmationState);
-    state.engine.backgroundState.TransactionController.transactions[0].origin =
-      'https://dapp.com';
-    const { getByText } = renderWithProvider(<Transfer />, {
-      state,
-    });
-
-    expect(getByText('Estimated changes')).toBeDefined();
-  });
 });
