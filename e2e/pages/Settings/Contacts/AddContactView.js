@@ -66,15 +66,17 @@ class AddContactView {
 
   async typeInName(name) {
     await Gestures.replaceTextInField(this.nameInput, name);
+    await Gestures.waitAndTap(this.memoLabel); // tap somewhere to dismiss keyboard
   }
 
   async typeInMemo(memo) {
     await Gestures.replaceTextInField(this.memoInput, memo);
-    await Gestures.waitAndTap(this.memoLabel);
+    await Gestures.waitAndTap(this.memoLabel); // tap somewhere to dismiss keyboard
   }
 
   async typeInAddress(address) {
     await Gestures.replaceTextInField(this.addressInput, address);
+    await Gestures.waitAndTap(this.memoLabel); // tap somewhere to dismiss keyboard
   }
 
   async clearAddressInputBox() {
