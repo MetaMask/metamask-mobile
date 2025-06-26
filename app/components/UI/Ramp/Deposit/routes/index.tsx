@@ -20,6 +20,7 @@ import KycWebview from '../Views/KycWebview';
 import OrderProcessing from '../Views/OrderProcessing';
 
 import TokenSelectorModal from '../Views/Modals/TokenSelectorModal';
+import RegionSelectorModal from '../Views/Modals/RegionSelectorModal';
 
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -121,6 +122,10 @@ export const DepositModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.DEPOSIT.MODALS.TOKEN_SELECTOR}
       component={TokenSelectorModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.DEPOSIT.MODALS.REGION_SELECTOR}
+      component={RegionSelectorModal}
     />
   </ModalsStack.Navigator>
 );
