@@ -699,7 +699,8 @@ echo "PLATFORM = $PLATFORM"
 echo "MODE = $MODE"
 echo "ENVIRONMENT = $ENVIRONMENT"
 
-if [ "$MODE" == "main" ] && { [ "$ENVIRONMENT" == "production" ] || [ "$ENVIRONMENT" == "beta" ] || [ "$ENVIRONMENT" == "rc" ]; }; then
+# TODO: We should be able to remove some of the conditions in this if statement
+if [ "$MODE" == "main" ] && { [ "$ENVIRONMENT" == "production" ] || [ "$ENVIRONMENT" == "beta" ] || [ "$ENVIRONMENT" == "rc" ] || [ "$ENVIRONMENT" == "exp" ] ; }; then
   export METAMASK_BUILD_TYPE="$MODE"
   export METAMASK_ENVIRONMENT="$ENVIRONMENT"
   export GENERATE_BUNDLE=true # Used only for Android
