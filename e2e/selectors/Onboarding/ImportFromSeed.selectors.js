@@ -16,4 +16,5 @@ export const ImportFromSeedSelectorsIDs = {
   LEARN_MORE_LINK_ID: 'import-from-seed-screen-learn-more-link-id',
   CONTINUE_BUTTON_ID: 'import-from-seed-screen-continue-button-id',
   CHECKBOX_TEXT_ID: 'import-from-seed-screen-checkbox-text-id',
+  WHAT_IS_SEEDPHRASE_LINK_ID: 'import-from-seed-screen-seedphrase-link-id',
 };

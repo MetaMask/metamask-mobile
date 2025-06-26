@@ -33,6 +33,11 @@ const Routes = {
     KYC_PROCESSING: 'KycProcessing',
     KYC_WEBVIEW: 'KycWebview',
     PROVIDER_WEBVIEW: 'ProviderWebview',
+    ORDER_PROCESSING: 'OrderProcessing',
+    MODALS: {
+      ID: 'DepositModals',
+      TOKEN_SELECTOR: 'DepositTokenSelectorModal',
+    },
   },
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',
@@ -228,6 +233,7 @@ const Routes = {
   },
   MULTICHAIN_ACCOUNTS: {
     ACCOUNT_DETAILS: 'MultichainAccountDetails',
+    WALLET_DETAILS: 'MultichainWalletDetails',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {

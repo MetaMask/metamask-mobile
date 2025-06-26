@@ -57,7 +57,9 @@ import { RampType } from '../../UI/Ramp/Aggregator/types';
 import RampSettings from '../../UI/Ramp/Aggregator/Views/Settings';
 import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm';
 
-import DepositRoutes from '../../UI/Ramp/Deposit/routes';
+import DepositRoutes, {
+  DepositModalsRoutes,
+} from '../../UI/Ramp/Deposit/routes';
 
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
@@ -454,26 +456,6 @@ const HomeTabs = () => {
     (state) => state.browser.tabs.length,
   );
 
-  /* tabs: state.browser.tabs, */
-  /* activeTab: state.browser.activeTab, */
-  const activeConnectedDapp = useSelector((state) => {
-    const activeTabUrl = getActiveTabUrl(state);
-    if (!isUrl(activeTabUrl)) return [];
-    try {
-      const permissionsControllerState = selectPermissionControllerState(state);
-      const hostname = new URL(activeTabUrl).hostname;
-      const permittedAcc = getPermittedCaipAccountIdsByHostname(
-        permissionsControllerState,
-        hostname,
-      );
-      return permittedAcc;
-    } catch (error) {
-      Logger.error(error, {
-        message: 'ParseUrl::MainNavigator error while parsing URL',
-      });
-    }
-  }, isEqual);
-
   const options = {
     home: {
       tabBarIconKey: TabBarIconKey.Wallet,
@@ -502,7 +484,6 @@ const HomeTabs = () => {
               number_of_accounts: accountsLength,
               chain_id: getDecimalChainId(chainId),
               source: 'Navigation Tab',
-              active_connected_dapp: activeConnectedDapp,
               number_of_open_tabs: amountOfBrowserOpenTabs,
             })
             .build(),
@@ -651,7 +632,7 @@ const NftDetailsFullImageModeView = (props) => (
 );
 
 const SendFlowView = () => (
-  <Stack.Navigator>
+  <Stack.Navigator headerMode="screen">
     <Stack.Screen
       name="SendTo"
       component={SendTo}
@@ -860,6 +841,11 @@ const MainNavigator = () => (
       {() => <RampRoutes rampType={RampType.SELL} />}
     </Stack.Screen>
     <Stack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
+    <Stack.Screen
+      name={Routes.DEPOSIT.MODALS.ID}
+      component={DepositModalsRoutes}
+      options={clearStackNavigatorOptions}
+    />
     <Stack.Screen name="Swaps" component={Swaps} />
     <Stack.Screen name={Routes.BRIDGE.ROOT} component={BridgeScreenStack} />
     <Stack.Screen
