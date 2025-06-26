@@ -555,11 +555,11 @@ class ChoosePassword extends PureComponent {
 
   onPasswordChange = (val) => {
     const passInfo = zxcvbn(val);
-    this.setState({
+    this.setState((prevState) => ({
       password: val,
       passwordStrength: passInfo.score,
-      confirmPassword: val === '' ? '' : this.state.confirmPassword,
-    });
+      confirmPassword: val === '' ? '' : prevState.confirmPassword,
+    }));
   };
 
   learnMore = () => {
