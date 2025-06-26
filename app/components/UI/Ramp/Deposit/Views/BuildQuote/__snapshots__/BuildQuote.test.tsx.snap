@@ -509,25 +509,133 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                       "borderRadius": 100,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
+                                      "gap": 8,
                                       "paddingLeft": 8,
                                       "paddingRight": 12,
                                       "paddingVertical": 8,
                                     }
                                   }
                                 >
-                                  <Image
-                                    source={
-                                      {
-                                        "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
-                                      }
-                                    }
+                                  <View
+                                    onLayout={[Function]}
                                     style={
                                       {
-                                        "height": 32,
-                                        "width": 32,
+                                        "alignSelf": "flex-start",
+                                        "position": "relative",
                                       }
                                     }
-                                  />
+                                    testID="badge-wrapper-badge"
+                                  >
+                                    <View>
+                                      <View
+                                        style={
+                                          {
+                                            "backgroundColor": "#ffffff",
+                                            "borderRadius": 16,
+                                            "height": 32,
+                                            "overflow": "hidden",
+                                            "width": 32,
+                                          }
+                                        }
+                                      >
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={
+                                            {
+                                              "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                                            }
+                                          }
+                                          style={
+                                            {
+                                              "flex": 1,
+                                              "height": undefined,
+                                              "width": undefined,
+                                            }
+                                          }
+                                          testID="token-avatar-image"
+                                        />
+                                      </View>
+                                    </View>
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "aspectRatio": 1,
+                                          "bottom": 0,
+                                          "height": 0,
+                                          "justifyContent": "center",
+                                          "position": "absolute",
+                                          "right": 0,
+                                          "transform": [
+                                            {
+                                              "translateX": 0,
+                                            },
+                                            {
+                                              "translateY": 0,
+                                            },
+                                          ],
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        onLayout={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "aspectRatio": 1,
+                                            "height": "50%",
+                                            "justifyContent": "center",
+                                            "maxHeight": 24,
+                                            "minHeight": 8,
+                                            "opacity": 0,
+                                          }
+                                        }
+                                        testID="badgenetwork"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderColor": "#ffffff",
+                                              "borderRadius": 8,
+                                              "borderWidth": 2,
+                                              "height": 32,
+                                              "justifyContent": "center",
+                                              "overflow": "hidden",
+                                              "shadowColor": "#0000001a",
+                                              "shadowOffset": {
+                                                "height": 2,
+                                                "width": 0,
+                                              },
+                                              "shadowOpacity": 1,
+                                              "shadowRadius": 4,
+                                              "transform": [
+                                                {
+                                                  "scale": 1,
+                                                },
+                                              ],
+                                              "width": 32,
+                                            }
+                                          }
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={1}
+                                            style={
+                                              {
+                                                "height": 32,
+                                                "width": 32,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -538,12 +646,24 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
-                                        "marginLeft": 8,
                                       }
                                     }
                                   >
                                     USDC
                                   </Text>
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="ArrowDown"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
                                 </View>
                               </TouchableOpacity>
                               <View
@@ -1438,50 +1558,34 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              activeOpacity={0.2}
+                              activeOpacity={1}
                               onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  null,
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#4459ff",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "paddingHorizontal": 16,
+                                }
                               }
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    null,
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    null,
-                                  ]
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
                                 Continue
@@ -2013,25 +2117,133 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                       "borderRadius": 100,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
+                                      "gap": 8,
                                       "paddingLeft": 8,
                                       "paddingRight": 12,
                                       "paddingVertical": 8,
                                     }
                                   }
                                 >
-                                  <Image
-                                    source={
-                                      {
-                                        "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
-                                      }
-                                    }
+                                  <View
+                                    onLayout={[Function]}
                                     style={
                                       {
-                                        "height": 32,
-                                        "width": 32,
+                                        "alignSelf": "flex-start",
+                                        "position": "relative",
                                       }
                                     }
-                                  />
+                                    testID="badge-wrapper-badge"
+                                  >
+                                    <View>
+                                      <View
+                                        style={
+                                          {
+                                            "backgroundColor": "#ffffff",
+                                            "borderRadius": 16,
+                                            "height": 32,
+                                            "overflow": "hidden",
+                                            "width": 32,
+                                          }
+                                        }
+                                      >
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={
+                                            {
+                                              "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                                            }
+                                          }
+                                          style={
+                                            {
+                                              "flex": 1,
+                                              "height": undefined,
+                                              "width": undefined,
+                                            }
+                                          }
+                                          testID="token-avatar-image"
+                                        />
+                                      </View>
+                                    </View>
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "aspectRatio": 1,
+                                          "bottom": 0,
+                                          "height": 0,
+                                          "justifyContent": "center",
+                                          "position": "absolute",
+                                          "right": 0,
+                                          "transform": [
+                                            {
+                                              "translateX": 0,
+                                            },
+                                            {
+                                              "translateY": 0,
+                                            },
+                                          ],
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        onLayout={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "aspectRatio": 1,
+                                            "height": "50%",
+                                            "justifyContent": "center",
+                                            "maxHeight": 24,
+                                            "minHeight": 8,
+                                            "opacity": 0,
+                                          }
+                                        }
+                                        testID="badgenetwork"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderColor": "#ffffff",
+                                              "borderRadius": 8,
+                                              "borderWidth": 2,
+                                              "height": 32,
+                                              "justifyContent": "center",
+                                              "overflow": "hidden",
+                                              "shadowColor": "#0000001a",
+                                              "shadowOffset": {
+                                                "height": 2,
+                                                "width": 0,
+                                              },
+                                              "shadowOpacity": 1,
+                                              "shadowRadius": 4,
+                                              "transform": [
+                                                {
+                                                  "scale": 1,
+                                                },
+                                              ],
+                                              "width": 32,
+                                            }
+                                          }
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={1}
+                                            style={
+                                              {
+                                                "height": 32,
+                                                "width": 32,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -2042,12 +2254,24 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
-                                        "marginLeft": 8,
                                       }
                                     }
                                   >
                                     USDC
                                   </Text>
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="ArrowDown"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
                                 </View>
                               </TouchableOpacity>
                               <View
@@ -2942,50 +3166,34 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              activeOpacity={0.2}
+                              activeOpacity={1}
                               onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  null,
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#4459ff",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "paddingHorizontal": 16,
+                                }
                               }
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    null,
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    null,
-                                  ]
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
                                 Continue
@@ -3517,25 +3725,133 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                       "borderRadius": 100,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
+                                      "gap": 8,
                                       "paddingLeft": 8,
                                       "paddingRight": 12,
                                       "paddingVertical": 8,
                                     }
                                   }
                                 >
-                                  <Image
-                                    source={
-                                      {
-                                        "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
-                                      }
-                                    }
+                                  <View
+                                    onLayout={[Function]}
                                     style={
                                       {
-                                        "height": 32,
-                                        "width": 32,
+                                        "alignSelf": "flex-start",
+                                        "position": "relative",
                                       }
                                     }
-                                  />
+                                    testID="badge-wrapper-badge"
+                                  >
+                                    <View>
+                                      <View
+                                        style={
+                                          {
+                                            "backgroundColor": "#ffffff",
+                                            "borderRadius": 16,
+                                            "height": 32,
+                                            "overflow": "hidden",
+                                            "width": 32,
+                                          }
+                                        }
+                                      >
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={
+                                            {
+                                              "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                                            }
+                                          }
+                                          style={
+                                            {
+                                              "flex": 1,
+                                              "height": undefined,
+                                              "width": undefined,
+                                            }
+                                          }
+                                          testID="token-avatar-image"
+                                        />
+                                      </View>
+                                    </View>
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "aspectRatio": 1,
+                                          "bottom": 0,
+                                          "height": 0,
+                                          "justifyContent": "center",
+                                          "position": "absolute",
+                                          "right": 0,
+                                          "transform": [
+                                            {
+                                              "translateX": 0,
+                                            },
+                                            {
+                                              "translateY": 0,
+                                            },
+                                          ],
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        onLayout={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "aspectRatio": 1,
+                                            "height": "50%",
+                                            "justifyContent": "center",
+                                            "maxHeight": 24,
+                                            "minHeight": 8,
+                                            "opacity": 0,
+                                          }
+                                        }
+                                        testID="badgenetwork"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderColor": "#ffffff",
+                                              "borderRadius": 8,
+                                              "borderWidth": 2,
+                                              "height": 32,
+                                              "justifyContent": "center",
+                                              "overflow": "hidden",
+                                              "shadowColor": "#0000001a",
+                                              "shadowOffset": {
+                                                "height": 2,
+                                                "width": 0,
+                                              },
+                                              "shadowOpacity": 1,
+                                              "shadowRadius": 4,
+                                              "transform": [
+                                                {
+                                                  "scale": 1,
+                                                },
+                                              ],
+                                              "width": 32,
+                                            }
+                                          }
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={1}
+                                            style={
+                                              {
+                                                "height": 32,
+                                                "width": 32,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -3546,12 +3862,24 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
-                                        "marginLeft": 8,
                                       }
                                     }
                                   >
                                     USDC
                                   </Text>
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="ArrowDown"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
                                 </View>
                               </TouchableOpacity>
                             </View>
@@ -4422,50 +4750,34 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              activeOpacity={0.2}
+                              activeOpacity={1}
                               onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  null,
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#4459ff",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "paddingHorizontal": 16,
+                                }
                               }
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    null,
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    null,
-                                  ]
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
                                 Continue
@@ -4997,25 +5309,133 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                       "borderRadius": 100,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
+                                      "gap": 8,
                                       "paddingLeft": 8,
                                       "paddingRight": 12,
                                       "paddingVertical": 8,
                                     }
                                   }
                                 >
-                                  <Image
-                                    source={
-                                      {
-                                        "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
-                                      }
-                                    }
+                                  <View
+                                    onLayout={[Function]}
                                     style={
                                       {
-                                        "height": 32,
-                                        "width": 32,
+                                        "alignSelf": "flex-start",
+                                        "position": "relative",
                                       }
                                     }
-                                  />
+                                    testID="badge-wrapper-badge"
+                                  >
+                                    <View>
+                                      <View
+                                        style={
+                                          {
+                                            "backgroundColor": "#ffffff",
+                                            "borderRadius": 16,
+                                            "height": 32,
+                                            "overflow": "hidden",
+                                            "width": 32,
+                                          }
+                                        }
+                                      >
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={
+                                            {
+                                              "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                                            }
+                                          }
+                                          style={
+                                            {
+                                              "flex": 1,
+                                              "height": undefined,
+                                              "width": undefined,
+                                            }
+                                          }
+                                          testID="token-avatar-image"
+                                        />
+                                      </View>
+                                    </View>
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "aspectRatio": 1,
+                                          "bottom": 0,
+                                          "height": 0,
+                                          "justifyContent": "center",
+                                          "position": "absolute",
+                                          "right": 0,
+                                          "transform": [
+                                            {
+                                              "translateX": 0,
+                                            },
+                                            {
+                                              "translateY": 0,
+                                            },
+                                          ],
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        onLayout={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "aspectRatio": 1,
+                                            "height": "50%",
+                                            "justifyContent": "center",
+                                            "maxHeight": 24,
+                                            "minHeight": 8,
+                                            "opacity": 0,
+                                          }
+                                        }
+                                        testID="badgenetwork"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderColor": "#ffffff",
+                                              "borderRadius": 8,
+                                              "borderWidth": 2,
+                                              "height": 32,
+                                              "justifyContent": "center",
+                                              "overflow": "hidden",
+                                              "shadowColor": "#0000001a",
+                                              "shadowOffset": {
+                                                "height": 2,
+                                                "width": 0,
+                                              },
+                                              "shadowOpacity": 1,
+                                              "shadowRadius": 4,
+                                              "transform": [
+                                                {
+                                                  "scale": 1,
+                                                },
+                                              ],
+                                              "width": 32,
+                                            }
+                                          }
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={1}
+                                            style={
+                                              {
+                                                "height": 32,
+                                                "width": 32,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -5026,12 +5446,24 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
-                                        "marginLeft": 8,
                                       }
                                     }
                                   >
                                     USDC
                                   </Text>
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="ArrowDown"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
                                 </View>
                               </TouchableOpacity>
                             </View>
@@ -5902,50 +6334,34 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              activeOpacity={0.2}
+                              activeOpacity={1}
                               onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  null,
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#4459ff",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "paddingHorizontal": 16,
+                                }
                               }
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    null,
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    null,
-                                  ]
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
                                 Continue
@@ -6477,25 +6893,133 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                       "borderRadius": 100,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
+                                      "gap": 8,
                                       "paddingLeft": 8,
                                       "paddingRight": 12,
                                       "paddingVertical": 8,
                                     }
                                   }
                                 >
-                                  <Image
-                                    source={
-                                      {
-                                        "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
-                                      }
-                                    }
+                                  <View
+                                    onLayout={[Function]}
                                     style={
                                       {
-                                        "height": 32,
-                                        "width": 32,
+                                        "alignSelf": "flex-start",
+                                        "position": "relative",
                                       }
                                     }
-                                  />
+                                    testID="badge-wrapper-badge"
+                                  >
+                                    <View>
+                                      <View
+                                        style={
+                                          {
+                                            "backgroundColor": "#ffffff",
+                                            "borderRadius": 16,
+                                            "height": 32,
+                                            "overflow": "hidden",
+                                            "width": 32,
+                                          }
+                                        }
+                                      >
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={
+                                            {
+                                              "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                                            }
+                                          }
+                                          style={
+                                            {
+                                              "flex": 1,
+                                              "height": undefined,
+                                              "width": undefined,
+                                            }
+                                          }
+                                          testID="token-avatar-image"
+                                        />
+                                      </View>
+                                    </View>
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "aspectRatio": 1,
+                                          "bottom": 0,
+                                          "height": 0,
+                                          "justifyContent": "center",
+                                          "position": "absolute",
+                                          "right": 0,
+                                          "transform": [
+                                            {
+                                              "translateX": 0,
+                                            },
+                                            {
+                                              "translateY": 0,
+                                            },
+                                          ],
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        onLayout={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "aspectRatio": 1,
+                                            "height": "50%",
+                                            "justifyContent": "center",
+                                            "maxHeight": 24,
+                                            "minHeight": 8,
+                                            "opacity": 0,
+                                          }
+                                        }
+                                        testID="badgenetwork"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderColor": "#ffffff",
+                                              "borderRadius": 8,
+                                              "borderWidth": 2,
+                                              "height": 32,
+                                              "justifyContent": "center",
+                                              "overflow": "hidden",
+                                              "shadowColor": "#0000001a",
+                                              "shadowOffset": {
+                                                "height": 2,
+                                                "width": 0,
+                                              },
+                                              "shadowOpacity": 1,
+                                              "shadowRadius": 4,
+                                              "transform": [
+                                                {
+                                                  "scale": 1,
+                                                },
+                                              ],
+                                              "width": 32,
+                                            }
+                                          }
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={1}
+                                            style={
+                                              {
+                                                "height": 32,
+                                                "width": 32,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -6506,12 +7030,24 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
-                                        "marginLeft": 8,
                                       }
                                     }
                                   >
                                     USDC
                                   </Text>
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="ArrowDown"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
                                 </View>
                               </TouchableOpacity>
                             </View>
@@ -7382,50 +7918,34 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              activeOpacity={0.2}
+                              activeOpacity={1}
                               onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  null,
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#4459ff",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "paddingHorizontal": 16,
+                                }
                               }
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    null,
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    null,
-                                  ]
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
                                 Continue
@@ -7957,25 +8477,133 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                       "borderRadius": 100,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
+                                      "gap": 8,
                                       "paddingLeft": 8,
                                       "paddingRight": 12,
                                       "paddingVertical": 8,
                                     }
                                   }
                                 >
-                                  <Image
-                                    source={
-                                      {
-                                        "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
-                                      }
-                                    }
+                                  <View
+                                    onLayout={[Function]}
                                     style={
                                       {
-                                        "height": 32,
-                                        "width": 32,
+                                        "alignSelf": "flex-start",
+                                        "position": "relative",
                                       }
                                     }
-                                  />
+                                    testID="badge-wrapper-badge"
+                                  >
+                                    <View>
+                                      <View
+                                        style={
+                                          {
+                                            "backgroundColor": "#ffffff",
+                                            "borderRadius": 16,
+                                            "height": 32,
+                                            "overflow": "hidden",
+                                            "width": 32,
+                                          }
+                                        }
+                                      >
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={
+                                            {
+                                              "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                                            }
+                                          }
+                                          style={
+                                            {
+                                              "flex": 1,
+                                              "height": undefined,
+                                              "width": undefined,
+                                            }
+                                          }
+                                          testID="token-avatar-image"
+                                        />
+                                      </View>
+                                    </View>
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "aspectRatio": 1,
+                                          "bottom": 0,
+                                          "height": 0,
+                                          "justifyContent": "center",
+                                          "position": "absolute",
+                                          "right": 0,
+                                          "transform": [
+                                            {
+                                              "translateX": 0,
+                                            },
+                                            {
+                                              "translateY": 0,
+                                            },
+                                          ],
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        onLayout={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "aspectRatio": 1,
+                                            "height": "50%",
+                                            "justifyContent": "center",
+                                            "maxHeight": 24,
+                                            "minHeight": 8,
+                                            "opacity": 0,
+                                          }
+                                        }
+                                        testID="badgenetwork"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderColor": "#ffffff",
+                                              "borderRadius": 8,
+                                              "borderWidth": 2,
+                                              "height": 32,
+                                              "justifyContent": "center",
+                                              "overflow": "hidden",
+                                              "shadowColor": "#0000001a",
+                                              "shadowOffset": {
+                                                "height": 2,
+                                                "width": 0,
+                                              },
+                                              "shadowOpacity": 1,
+                                              "shadowRadius": 4,
+                                              "transform": [
+                                                {
+                                                  "scale": 1,
+                                                },
+                                              ],
+                                              "width": 32,
+                                            }
+                                          }
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={1}
+                                            style={
+                                              {
+                                                "height": 32,
+                                                "width": 32,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -7986,12 +8614,24 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
-                                        "marginLeft": 8,
                                       }
                                     }
                                   >
                                     USDC
                                   </Text>
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="ArrowDown"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
                                 </View>
                               </TouchableOpacity>
                             </View>
@@ -8862,50 +9502,34 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              activeOpacity={0.2}
+                              activeOpacity={1}
                               onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  null,
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#4459ff",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "paddingHorizontal": 16,
+                                }
                               }
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    null,
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    null,
-                                  ]
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
                                 Continue
@@ -9437,25 +10061,133 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                       "borderRadius": 100,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
+                                      "gap": 8,
                                       "paddingLeft": 8,
                                       "paddingRight": 12,
                                       "paddingVertical": 8,
                                     }
                                   }
                                 >
-                                  <Image
-                                    source={
-                                      {
-                                        "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
-                                      }
-                                    }
+                                  <View
+                                    onLayout={[Function]}
                                     style={
                                       {
-                                        "height": 32,
-                                        "width": 32,
+                                        "alignSelf": "flex-start",
+                                        "position": "relative",
                                       }
                                     }
-                                  />
+                                    testID="badge-wrapper-badge"
+                                  >
+                                    <View>
+                                      <View
+                                        style={
+                                          {
+                                            "backgroundColor": "#ffffff",
+                                            "borderRadius": 16,
+                                            "height": 32,
+                                            "overflow": "hidden",
+                                            "width": 32,
+                                          }
+                                        }
+                                      >
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={
+                                            {
+                                              "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                                            }
+                                          }
+                                          style={
+                                            {
+                                              "flex": 1,
+                                              "height": undefined,
+                                              "width": undefined,
+                                            }
+                                          }
+                                          testID="token-avatar-image"
+                                        />
+                                      </View>
+                                    </View>
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "aspectRatio": 1,
+                                          "bottom": 0,
+                                          "height": 0,
+                                          "justifyContent": "center",
+                                          "position": "absolute",
+                                          "right": 0,
+                                          "transform": [
+                                            {
+                                              "translateX": 0,
+                                            },
+                                            {
+                                              "translateY": 0,
+                                            },
+                                          ],
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        onLayout={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "aspectRatio": 1,
+                                            "height": "50%",
+                                            "justifyContent": "center",
+                                            "maxHeight": 24,
+                                            "minHeight": 8,
+                                            "opacity": 0,
+                                          }
+                                        }
+                                        testID="badgenetwork"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderColor": "#ffffff",
+                                              "borderRadius": 8,
+                                              "borderWidth": 2,
+                                              "height": 32,
+                                              "justifyContent": "center",
+                                              "overflow": "hidden",
+                                              "shadowColor": "#0000001a",
+                                              "shadowOffset": {
+                                                "height": 2,
+                                                "width": 0,
+                                              },
+                                              "shadowOpacity": 1,
+                                              "shadowRadius": 4,
+                                              "transform": [
+                                                {
+                                                  "scale": 1,
+                                                },
+                                              ],
+                                              "width": 32,
+                                            }
+                                          }
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={1}
+                                            style={
+                                              {
+                                                "height": 32,
+                                                "width": 32,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -9466,12 +10198,24 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
-                                        "marginLeft": 8,
                                       }
                                     }
                                   >
                                     USDC
                                   </Text>
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="ArrowDown"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
                                 </View>
                               </TouchableOpacity>
                             </View>
@@ -10342,50 +11086,34 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              activeOpacity={0.2}
+                              activeOpacity={1}
                               onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  null,
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#4459ff",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "paddingHorizontal": 16,
+                                }
                               }
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    null,
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    null,
-                                  ]
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
                                 Continue
@@ -12824,25 +13552,133 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                       "borderRadius": 100,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
+                                      "gap": 8,
                                       "paddingLeft": 8,
                                       "paddingRight": 12,
                                       "paddingVertical": 8,
                                     }
                                   }
                                 >
-                                  <Image
-                                    source={
-                                      {
-                                        "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
-                                      }
-                                    }
+                                  <View
+                                    onLayout={[Function]}
                                     style={
                                       {
-                                        "height": 32,
-                                        "width": 32,
+                                        "alignSelf": "flex-start",
+                                        "position": "relative",
                                       }
                                     }
-                                  />
+                                    testID="badge-wrapper-badge"
+                                  >
+                                    <View>
+                                      <View
+                                        style={
+                                          {
+                                            "backgroundColor": "#ffffff",
+                                            "borderRadius": 16,
+                                            "height": 32,
+                                            "overflow": "hidden",
+                                            "width": 32,
+                                          }
+                                        }
+                                      >
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={
+                                            {
+                                              "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                                            }
+                                          }
+                                          style={
+                                            {
+                                              "flex": 1,
+                                              "height": undefined,
+                                              "width": undefined,
+                                            }
+                                          }
+                                          testID="token-avatar-image"
+                                        />
+                                      </View>
+                                    </View>
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "aspectRatio": 1,
+                                          "bottom": 0,
+                                          "height": 0,
+                                          "justifyContent": "center",
+                                          "position": "absolute",
+                                          "right": 0,
+                                          "transform": [
+                                            {
+                                              "translateX": 0,
+                                            },
+                                            {
+                                              "translateY": 0,
+                                            },
+                                          ],
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        onLayout={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "aspectRatio": 1,
+                                            "height": "50%",
+                                            "justifyContent": "center",
+                                            "maxHeight": 24,
+                                            "minHeight": 8,
+                                            "opacity": 0,
+                                          }
+                                        }
+                                        testID="badgenetwork"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderColor": "#ffffff",
+                                              "borderRadius": 8,
+                                              "borderWidth": 2,
+                                              "height": 32,
+                                              "justifyContent": "center",
+                                              "overflow": "hidden",
+                                              "shadowColor": "#0000001a",
+                                              "shadowOffset": {
+                                                "height": 2,
+                                                "width": 0,
+                                              },
+                                              "shadowOpacity": 1,
+                                              "shadowRadius": 4,
+                                              "transform": [
+                                                {
+                                                  "scale": 1,
+                                                },
+                                              ],
+                                              "width": 32,
+                                            }
+                                          }
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={1}
+                                            style={
+                                              {
+                                                "height": 32,
+                                                "width": 32,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -12853,12 +13689,24 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
-                                        "marginLeft": 8,
                                       }
                                     }
                                   >
                                     USDC
                                   </Text>
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="ArrowDown"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
                                 </View>
                               </TouchableOpacity>
                             </View>
@@ -13729,50 +14577,34 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              activeOpacity={0.2}
+                              activeOpacity={1}
                               onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  null,
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#4459ff",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "paddingHorizontal": 16,
+                                }
                               }
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    null,
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    null,
-                                  ]
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
                                 Continue
@@ -16211,25 +17043,133 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                       "borderRadius": 100,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
+                                      "gap": 8,
                                       "paddingLeft": 8,
                                       "paddingRight": 12,
                                       "paddingVertical": 8,
                                     }
                                   }
                                 >
-                                  <Image
-                                    source={
-                                      {
-                                        "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
-                                      }
-                                    }
+                                  <View
+                                    onLayout={[Function]}
                                     style={
                                       {
-                                        "height": 32,
-                                        "width": 32,
+                                        "alignSelf": "flex-start",
+                                        "position": "relative",
                                       }
                                     }
-                                  />
+                                    testID="badge-wrapper-badge"
+                                  >
+                                    <View>
+                                      <View
+                                        style={
+                                          {
+                                            "backgroundColor": "#ffffff",
+                                            "borderRadius": 16,
+                                            "height": 32,
+                                            "overflow": "hidden",
+                                            "width": 32,
+                                          }
+                                        }
+                                      >
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={
+                                            {
+                                              "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                                            }
+                                          }
+                                          style={
+                                            {
+                                              "flex": 1,
+                                              "height": undefined,
+                                              "width": undefined,
+                                            }
+                                          }
+                                          testID="token-avatar-image"
+                                        />
+                                      </View>
+                                    </View>
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "aspectRatio": 1,
+                                          "bottom": 0,
+                                          "height": 0,
+                                          "justifyContent": "center",
+                                          "position": "absolute",
+                                          "right": 0,
+                                          "transform": [
+                                            {
+                                              "translateX": 0,
+                                            },
+                                            {
+                                              "translateY": 0,
+                                            },
+                                          ],
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        onLayout={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "aspectRatio": 1,
+                                            "height": "50%",
+                                            "justifyContent": "center",
+                                            "maxHeight": 24,
+                                            "minHeight": 8,
+                                            "opacity": 0,
+                                          }
+                                        }
+                                        testID="badgenetwork"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderColor": "#ffffff",
+                                              "borderRadius": 8,
+                                              "borderWidth": 2,
+                                              "height": 32,
+                                              "justifyContent": "center",
+                                              "overflow": "hidden",
+                                              "shadowColor": "#0000001a",
+                                              "shadowOffset": {
+                                                "height": 2,
+                                                "width": 0,
+                                              },
+                                              "shadowOpacity": 1,
+                                              "shadowRadius": 4,
+                                              "transform": [
+                                                {
+                                                  "scale": 1,
+                                                },
+                                              ],
+                                              "width": 32,
+                                            }
+                                          }
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={1}
+                                            style={
+                                              {
+                                                "height": 32,
+                                                "width": 32,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -16240,12 +17180,24 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
-                                        "marginLeft": 8,
                                       }
                                     }
                                   >
                                     USDC
                                   </Text>
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="ArrowDown"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
                                 </View>
                               </TouchableOpacity>
                             </View>
@@ -17116,50 +18068,34 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              activeOpacity={0.2}
+                              activeOpacity={1}
                               onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  null,
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#4459ff",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "paddingHorizontal": 16,
+                                }
                               }
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    null,
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    null,
-                                  ]
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
                                 Continue
