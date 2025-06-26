@@ -4,6 +4,7 @@ import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../reducers';
 import { selectSamplePetnamesByChainId } from '../../../selectors/samplePetNameController';
+import { trace, TraceName, TraceOperation } from '../../../../../util/trace';
 
 /**
  * Custom hook to get pet names for a specific chain
@@ -18,13 +19,30 @@ export function useSamplePetNames(chainId: SupportedCaipChainId | Hex) {
     selectSamplePetnamesByChainId(state, chainId as Hex)
   );
 
-  const petNames = useMemo(() =>
-    Object.entries(petNamesByAddress).map(([address, name]) => ({
-      address,
-      name,
-    })),
-    [petNamesByAddress]
-  );
+  const petNames = useMemo(() => {
+    return trace(
+      {
+        name: TraceName.SampleFeatureListPetNames,
+        op: TraceOperation.SampleFeatureListPetNames,
+        data: {
+          feature: 'sample-pet-names',
+          operation: 'list-pet-names',
+          chainId: chainId as string,
+          petNamesCount: Object.keys(petNamesByAddress).length,
+        },
+        tags: {
+          environment: 'development',
+          component: 'useSamplePetNames',
+        },
+      },
+      () => {
+        return Object.entries(petNamesByAddress).map(([address, name]) => ({
+          address,
+          name,
+        }));
+      }
+    );
+  }, [petNamesByAddress, chainId]);
 
   return { petNames };
 }

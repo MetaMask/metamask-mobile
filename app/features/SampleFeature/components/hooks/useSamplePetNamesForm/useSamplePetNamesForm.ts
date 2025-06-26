@@ -4,6 +4,7 @@ import Engine from '../../../../../core/Engine';
 import { Hex } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { UseSamplePetNamesFormReturn } from './useSamplePetNamesForm.types';
+import { trace, TraceName, TraceOperation } from '../../../../../util/trace';
 
 /**
  * Sample useSamplePetNamesForm hook
@@ -27,11 +28,31 @@ function useSamplePetNamesForm(
 
   const onSubmit = useCallback(() => {
     if (!isValid) return;
-    const { SamplePetnamesController } = Engine.context;
-    SamplePetnamesController.assignPetname(
-      chainId as Hex,
-      toChecksumAddress(address) as Hex,
-      name,
+    
+    trace(
+      {
+        name: TraceName.SampleFeatureAddPetName,
+        op: TraceOperation.SampleFeatureAddPetName,
+        data: {
+          feature: 'sample-pet-names',
+          operation: 'add-pet-name',
+          chainId: chainId as string,
+          address: toChecksumAddress(address) as string,
+          name,
+        },
+        tags: {
+          environment: 'development',
+          component: 'useSamplePetNamesForm',
+        },
+      },
+      () => {
+        const { SamplePetnamesController } = Engine.context;
+        SamplePetnamesController.assignPetname(
+          chainId as Hex,
+          toChecksumAddress(address) as Hex,
+          name,
+        );
+      }
     );
   }, [address, name, chainId, isValid]);
 

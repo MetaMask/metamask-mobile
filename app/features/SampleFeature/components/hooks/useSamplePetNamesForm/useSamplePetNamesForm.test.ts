@@ -4,6 +4,17 @@ import Engine from '../../../../../core/Engine';
 import { Hex } from '@metamask/utils';
 import { toChecksumAddress } from 'ethereumjs-util';
 
+// Mock the trace utility
+jest.mock('../../../../../util/trace', () => ({
+  trace: jest.fn(),
+  TraceName: {
+    SampleFeatureAddPetName: 'Sample Feature Add Pet Name',
+  },
+  TraceOperation: {
+    SampleFeatureAddPetName: 'sample.feature.add.pet.name',
+  },
+}));
+
 // Mock the Engine and SamplePetnamesController
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
@@ -16,6 +27,8 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+import { trace } from '../../../../../util/trace';
+
 const mockAssignPetname = Engine.context.SamplePetnamesController
   .assignPetname as jest.Mock;
 
@@ -23,9 +36,18 @@ describe('useSamplePetNamesForm', () => {
   const chainId: Hex = '0x1';
   const initialAddress = '0xc6893a7d6a966535F7884A4de710111986ebB132';
   const initialName = 'Test Account';
+  const mockTrace = trace as jest.MockedFunction<typeof trace>;
 
   beforeEach(() => {
     mockAssignPetname.mockClear();
+    jest.clearAllMocks();
+    // Mock trace to execute the callback
+    mockTrace.mockImplementation((_request: unknown, callback?: () => unknown) => {
+      if (callback) {
+        return callback();
+      }
+      return undefined;
+    });
   });
 
   it('initializes with provided address and name', () => {
@@ -100,6 +122,35 @@ describe('useSamplePetNamesForm', () => {
     );
   });
 
+  it('calls trace with correct parameters when form is submitted', () => {
+    const { result } = renderHook(() =>
+      useSamplePetNamesForm(chainId, initialAddress, initialName),
+    );
+
+    act(() => {
+      result.current.onSubmit();
+    });
+
+    expect(mockTrace).toHaveBeenCalledWith(
+      {
+        name: 'Sample Feature Add Pet Name',
+        op: 'sample.feature.add.pet.name',
+        data: {
+          feature: 'sample-pet-names',
+          operation: 'add-pet-name',
+          chainId: '0x1',
+          address: toChecksumAddress(initialAddress),
+          name: initialName,
+        },
+        tags: {
+          environment: 'development',
+          component: 'useSamplePetNamesForm',
+        },
+      },
+      expect.any(Function)
+    );
+  });
+
   it('does not call assignPetname when form is invalid', () => {
     const { result } = renderHook(() => useSamplePetNamesForm(chainId, '', ''));
 
@@ -108,6 +159,7 @@ describe('useSamplePetNamesForm', () => {
     });
 
     expect(mockAssignPetname).not.toHaveBeenCalled();
+    expect(mockTrace).not.toHaveBeenCalled();
   });
 
   it('resets form to initial values when reset is called', () => {
