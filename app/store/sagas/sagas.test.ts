@@ -20,7 +20,7 @@ import {
 import { NavigationActionType } from '../../actions/navigation';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
-import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkManager';
+import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import Engine from '../../core/Engine';
 import { setCompletedOnboarding } from '../../actions/onboarding';
 
@@ -73,7 +73,7 @@ jest.mock('../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
+jest.mock('../../core/DeeplinkManager/DeeplinkManager', () => ({
   parse: jest.fn(),
 }));
 
@@ -254,7 +254,7 @@ describe('handleDeeplinkSaga', () => {
         .dispatch(checkForDeeplink())
         .silentRun();
 
-      expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+      expect(DeeplinkManager.parse).not.toHaveBeenCalled();
       expect(
         AppStateEventProcessor.clearPendingDeeplink,
       ).not.toHaveBeenCalled();
@@ -287,7 +287,7 @@ describe('handleDeeplinkSaga', () => {
           .silentRun();
 
         expect(Engine.context.KeyringController.isUnlocked).toHaveBeenCalled();
-        expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+        expect(DeeplinkManager.parse).not.toHaveBeenCalled();
         expect(
           AppStateEventProcessor.clearPendingDeeplink,
         ).not.toHaveBeenCalled();
@@ -306,7 +306,7 @@ describe('handleDeeplinkSaga', () => {
           expect(
             Engine.context.KeyringController.isUnlocked,
           ).toHaveBeenCalled();
-          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+          expect(DeeplinkManager.parse).not.toHaveBeenCalled();
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).not.toHaveBeenCalled();
@@ -327,7 +327,7 @@ describe('handleDeeplinkSaga', () => {
           expect(
             Engine.context.KeyringController.isUnlocked,
           ).toHaveBeenCalled();
-          expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
+          expect(DeeplinkManager.parse).toHaveBeenCalled();
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
@@ -363,7 +363,7 @@ describe('handleDeeplinkSaga', () => {
           expect(
             Engine.context.KeyringController.isUnlocked,
           ).toHaveBeenCalled();
-          expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
+          expect(DeeplinkManager.parse).toHaveBeenCalled();
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
