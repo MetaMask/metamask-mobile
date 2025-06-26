@@ -4245,6 +4245,7 @@
       "smartAccountLabel": "Smart Account",
       "standardAccountLabel": "Standard Account",
       "switch": "Switch",
+      "switchBack": "Switch back",
       "splashpage": {
         "accept": "Yes",
         "betterTransaction": "Faster transactions, lower fees",
