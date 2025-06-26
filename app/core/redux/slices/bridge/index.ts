@@ -29,6 +29,7 @@ import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagContr
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
 import { selectHasCreatedSolanaMainnetAccount } from '../../../../selectors/accountsController';
 import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
+import { isUnifiedSwapsEnvVarEnabled } from './utils/isUnifiedSwapsEnvVarEnabled';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -407,7 +408,7 @@ export const selectIsUnifiedSwapsEnabled = createSelector(
   selectChainId,
   (bridgeFeatureFlags, chainId) => {
     if (
-      process.env.MM_UNIFIED_SWAPS_ENABLED === 'true' &&
+      isUnifiedSwapsEnvVarEnabled() &&
       bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]?.isUnifiedUIEnabled
     ) {
       return true;

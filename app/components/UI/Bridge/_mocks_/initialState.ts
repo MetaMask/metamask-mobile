@@ -65,10 +65,12 @@ export const initialState = {
               [formatChainIdToCaip(ethChainId)]: {
                 isActiveSrc: true,
                 isActiveDest: true,
+                isUnifiedUIEnabled: true,
               },
               [formatChainIdToCaip(optimismChainId)]: {
                 isActiveSrc: true,
                 isActiveDest: true,
+                isUnifiedUIEnabled: true,
               },
             },
           },
