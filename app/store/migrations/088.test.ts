@@ -131,7 +131,7 @@ describe('Migration 086', () => {
     expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
     expect(mockedCaptureException).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: 'Migration 87: User state is missing or invalid. Expected object, got: undefined',
+        message: 'Migration 88: User state is missing or invalid. Expected object, got: undefined',
       }),
     );
   });
@@ -157,7 +157,7 @@ describe('Migration 086', () => {
     expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
     expect(mockedCaptureException).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: 'Migration 87: User state is missing or invalid. Expected object, got: string',
+        message: 'Migration 88: User state is missing or invalid. Expected object, got: string',
       }),
     );
   });

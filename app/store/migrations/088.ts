@@ -35,7 +35,7 @@ const migration = async (state: unknown): Promise<unknown> => {
     if (!isObject(newState.user)) {
       // This indicates a serious bug - user state should always exist
       const error = new Error(
-        `Migration 86: User state is missing or invalid. Expected object, got: ${typeof newState.user}`,
+        `Migration 88: User state is missing or invalid. Expected object, got: ${typeof newState.user}`,
       );
       captureException(error);
 
