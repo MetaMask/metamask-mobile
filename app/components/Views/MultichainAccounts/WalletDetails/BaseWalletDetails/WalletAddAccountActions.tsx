@@ -1,7 +1,6 @@
 // Third party dependencies.
 import React, { Fragment, useCallback, useState } from 'react';
 import { SafeAreaView, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
@@ -10,7 +9,6 @@ import { IconName } from '../../../../../component-library/components/Icons/Icon
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Logger from '../../../../../util/Logger';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../../../AddAccountActions/AddAccountActions.styles';
@@ -24,7 +22,11 @@ import { AddAccountBottomSheetSelectorsIDs } from '../../../../../../e2e/selecto
 
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
-import { WalletClientType } from '../../../../../core/SnapKeyring/MultichainWalletSnapClient';
+import {
+  MultichainWalletSnapFactory,
+  WalletClientType,
+} from '../../../../../core/SnapKeyring/MultichainWalletSnapClient';
+import { getMultichainAccountName } from '../../../../../core/SnapKeyring/utils/getMultichainAccountName';
 ///: END:ONLY_INCLUDE_IF
 
 interface WalletAddAccountActionsProps {
@@ -37,7 +39,6 @@ const WalletAddAccountActions = ({
   keyringId,
 }: WalletAddAccountActionsProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -74,12 +75,46 @@ const WalletAddAccountActions = ({
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const createSolanaAccount = useCallback(async () => {
-    navigate(Routes.SHEET.ADD_ACCOUNT, {
-      scope: SolScope.Mainnet,
-      clientType: WalletClientType.Solana,
-    });
-    onBack();
-  }, [navigate, onBack]);
+    try {
+      setIsLoading(true);
+
+      // Create Solana account directly without navigation
+      const multichainWalletSnapClient =
+        MultichainWalletSnapFactory.createClient(WalletClientType.Solana);
+      const defaultAccountName = getMultichainAccountName(
+        SolScope.Mainnet,
+        WalletClientType.Solana,
+      );
+
+      await multichainWalletSnapClient.createAccount({
+        scope: SolScope.Mainnet,
+        accountNameSuggestion: defaultAccountName,
+        entropySource: keyringId,
+      });
+
+      fetchAccountsWithActivity();
+
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
+        ).build(),
+      );
+    } catch (e: unknown) {
+      Logger.error(
+        e as Error,
+        'error while trying to add a new solana account',
+      );
+    } finally {
+      onBack();
+      setIsLoading(false);
+    }
+  }, [
+    keyringId,
+    trackEvent,
+    createEventBuilder,
+    onBack,
+    fetchAccountsWithActivity,
+  ]);
   ///: END:ONLY_INCLUDE_IF
 
   return (
