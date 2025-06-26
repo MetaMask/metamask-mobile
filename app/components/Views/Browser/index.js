@@ -149,21 +149,21 @@ export const Browser = (props) => {
 
   const hasAccounts = useRef(Boolean(accounts.length));
 
-  const lastNavigatedToBrowserTimestamp = useRef(null);
+  const lastNavigationTimestamp = useRef(null);
 
   // Show the discovery view when the user navigates to the browser screen while already being on it
   useEffect(() => {
-    const currentNavigationTimestamp = route.params?.timestamp;
+    const currentNavigationTimestamp = route.params?.navigationTimestamp;
     if (
       isTokenDiscoveryBrowserEnabled &&
       currentNavigationTimestamp &&
-      lastNavigatedToBrowserTimestamp.current !== null &&
-      lastNavigatedToBrowserTimestamp.current !== currentNavigationTimestamp
+      lastNavigationTimestamp.current !== null &&
+      lastNavigationTimestamp.current !== currentNavigationTimestamp
     ) {
       setShowDiscovery(true);
     }
-    lastNavigatedToBrowserTimestamp.current = currentNavigationTimestamp;
-  }, [route.params?.timestamp, isTokenDiscoveryBrowserEnabled]);
+    lastNavigationTimestamp.current = currentNavigationTimestamp;
+  }, [route.params?.navigationTimestamp, isTokenDiscoveryBrowserEnabled]);
 
   const goToDiscovery = useCallback(() => {
     setShowDiscovery(true);
