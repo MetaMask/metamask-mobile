@@ -96,22 +96,21 @@ class SolanaTestDApp {
   /**
    * Tap a button in the WebView
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async tapButton(elementId: any): Promise<void> {
-    await Gestures.scrollToWebViewPort(elementId);
-    await Gestures.tapWebElement(elementId);
+  async tapButton(webElement: WebElement): Promise<void> {
+    await Gestures.scrollToWebViewPort(webElement);
+    await Gestures.tapWebElement(webElement);
   }
 
   getHeader() {
     return {
       connect: async () => {
-        await this.tapButton(await this.connectButtonSelector);
+        await this.tapButton(this.connectButtonSelector);
       },
       disconnect: async () => {
-        await this.tapButton(await this.disconnectButtonSelector);
+        await this.tapButton(this.disconnectButtonSelector);
       },
       selectMetaMask: async () => {
-        await this.tapButton(await this.walletButtonSelector);
+        await this.tapButton(this.walletButtonSelector);
       },
       getConnectionStatus: async () => {
         const connectionStatusDiv = await getTestElement(
@@ -134,7 +133,7 @@ class SolanaTestDApp {
       signMessage: async () => {
         await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.METHOD_INVOCATION);
         await this.tapButton(
-          await getTestElement(dataTestIds.testPage.signMessage.signMessage, {
+          getTestElement(dataTestIds.testPage.signMessage.signMessage, {
             tag: 'button',
           }),
         );
@@ -153,7 +152,7 @@ class SolanaTestDApp {
       signTransaction: async () => {
         await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.METHOD_INVOCATION);
         await this.tapButton(
-          await getTestElement(dataTestIds.testPage.sendSol.signTransaction, {
+          getTestElement(dataTestIds.testPage.sendSol.signTransaction, {
             tag: 'button',
           }),
         );
@@ -161,7 +160,7 @@ class SolanaTestDApp {
       sendTransaction: async () => {
         await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.METHOD_INVOCATION);
         await this.tapButton(
-          await getTestElement(dataTestIds.testPage.sendSol.sendTransaction, {
+          getTestElement(dataTestIds.testPage.sendSol.sendTransaction, {
             tag: 'button',
           }),
         );
