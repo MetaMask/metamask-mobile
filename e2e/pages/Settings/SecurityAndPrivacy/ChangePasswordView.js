@@ -52,16 +52,15 @@ class ChangePasswordView {
 
   async tapIUnderstandCheckBox() {
     if (device.getPlatform() === 'ios') {
-      await Gestures.waitAndTap(this.iosUnderstandCheck);
+      await Gestures.waitAndTap(this.iosUnderstandCheck, {delayBeforeTap: 1000});
     } else {
       // Tap by the I understand text
-      await TestHelpers.delay(1000);
-      await Gestures.waitAndTap(this.androidUnderstandCheck);
+      await Gestures.waitAndTap(this.androidUnderstandCheck, {delayBeforeTap: 1000});
     }
   }
 
   async tapSubmitButton() {
-    await Gestures.waitAndTap(this.submitButton, {timeout: 25000, delayBeforeTap: 3000});
+    await Gestures.waitAndTap(this.submitButton, {delayBeforeTap: 3000});
   }
 }
 
