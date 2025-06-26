@@ -109,6 +109,9 @@
     "goToUrl": "Go to URL",
     "search": "Search '{{search_term}}'"
   },
+  "tokenDiscovery": {
+    "popularTokens": "Popular Tokens"
+  },
   "navigation": {
     "back": "Back",
     "close": "Close",
