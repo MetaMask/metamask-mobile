@@ -129,6 +129,7 @@ import { zeroAddress } from 'ethereumjs-util';
 import {
   ChainId,
   handleFetch,
+  type TraceCallback,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   toHex,
   ///: END:ONLY_INCLUDE_IF
@@ -1118,7 +1119,7 @@ export class Engine {
         this.transactionController.updateTransaction(...args),
       getFeatureFlags: () => selectSwapsChainFeatureFlags(store.getState()),
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
-      trace: trace as unknown as SmartTransactionsController['trace'],
+      trace: trace as TraceCallback,
     });
 
     const tokenSearchDiscoveryDataController =
