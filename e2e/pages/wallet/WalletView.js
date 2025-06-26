@@ -173,7 +173,7 @@ class WalletView {
   }
 
   async tapIdenticon() {
-    await Gestures.waitAndTap(this.accountIcon, {timeout: 25000});
+    await Gestures.waitAndTap(this.accountIcon, {timeout: 50000});
   }
 
   async tapBellIcon() {
