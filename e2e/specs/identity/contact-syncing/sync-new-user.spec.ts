@@ -48,9 +48,6 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
       mockServer,
     );
 
-    // Don't setup addressBook path with empty array - let it be naturally empty
-    // This avoids creating an unexpected state that the codebase doesn't handle
-
     await TestHelpers.launchApp({
       newInstance: true,
       delete: true,
@@ -82,6 +79,9 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
       userStorageMockttpController,
     );
 
+    await device.disableSynchronization();
+    await TestHelpers.delay(2000);
+
     await AddContactView.typeInName(NEW_CONTACT_NAME);
     await AddContactView.typeInAddress(NEW_CONTACT_ADDRESS);
     await AddContactView.tapAddContactButton();
@@ -92,6 +92,8 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
       USER_STORAGE_FEATURE_NAMES.addressBook,
       1,
     );
+
+    await device.enableSynchronization();
 
     await TestHelpers.launchApp({
       newInstance: true,
