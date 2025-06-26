@@ -1,26 +1,18 @@
 import UrlParser from 'url-parse';
-import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleDappUrl from './handleDappUrl';
+import handleBrowserUrl from '../Handlers/handleBrowserUrl';
 
-// Mock DeeplinkManager and extractURLParams
-jest.mock('../DeeplinkManager', () =>
-  jest.fn().mockImplementation(() => ({ _handleBrowserUrl: jest.fn() })),
-);
+// Mock handleBrowserUrl and extractURLParams
+jest.mock('../Handlers/handleBrowserUrl', () => jest.fn());
 
 jest.mock('./extractURLParams');
 
 describe('handleDappProtocol', () => {
-  let instance = {
-    _handleBrowserUrl: jest.fn(),
-  } as unknown as DeeplinkManager;
+  const mockHandleBrowserUrl = handleBrowserUrl as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    instance = {
-      _handleBrowserUrl: jest.fn(),
-    } as unknown as DeeplinkManager;
   });
   it('should enforce https protocol and call browser callback with the correct URL', () => {
     // Arrange
@@ -34,7 +26,6 @@ describe('handleDappProtocol', () => {
 
     // Act
     handleDappUrl({
-      instance,
       handled: handledMock,
       urlObj,
       browserCallBack: browserCallBackMock,
@@ -43,10 +34,10 @@ describe('handleDappProtocol', () => {
     // Assert
     expect(handledMock).toHaveBeenCalled();
     expect(urlObj.protocol).toBe('https:');
-    expect(instance._handleBrowserUrl).toHaveBeenCalledWith(
-      urlObj.href,
-      browserCallBackMock,
-    );
+    expect(mockHandleBrowserUrl).toHaveBeenCalledWith({
+      url: urlObj.href,
+      callback: browserCallBackMock,
+    });
   });
 
   it('should correctly process a URL from extractURLParams and enforce HTTPS', () => {
@@ -66,7 +57,6 @@ describe('handleDappProtocol', () => {
     const { urlObj } = extractURLParams(testUrl);
 
     handleDappUrl({
-      instance,
       handled: handledMock,
       urlObj,
       browserCallBack: browserCallBackMock,
@@ -74,10 +64,10 @@ describe('handleDappProtocol', () => {
 
     expect(handledMock).toHaveBeenCalled();
     expect(urlObj.href.includes('https://')).toBe(true); // Check if 'https' is now part of the URL
-    expect(instance._handleBrowserUrl).toHaveBeenCalledWith(
-      expect.stringContaining('https://'),
-      browserCallBackMock,
-    );
+    expect(mockHandleBrowserUrl).toHaveBeenCalledWith({
+      url: expect.stringContaining('https://'),
+      callback: browserCallBackMock,
+    });
   });
 
   it('should convert non-http protocols to https as well', () => {
@@ -95,15 +85,14 @@ describe('handleDappProtocol', () => {
     const { urlObj } = extractURLParams(testUrl);
 
     handleDappUrl({
-      instance,
       handled: handledMock,
       urlObj,
       browserCallBack: browserCallBackMock,
     });
 
-    expect(instance._handleBrowserUrl).toHaveBeenCalledWith(
-      'https://example.com/',
-      browserCallBackMock,
-    );
+    expect(mockHandleBrowserUrl).toHaveBeenCalledWith({
+      url: 'https://example.com/',
+      callback: browserCallBackMock,
+    });
   });
 });

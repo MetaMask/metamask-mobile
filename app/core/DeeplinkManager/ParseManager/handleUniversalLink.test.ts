@@ -10,6 +10,11 @@ import extractURLParams from './extractURLParams';
 import handleUniversalLink from './handleUniversalLink';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
 import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
+import { handleBuyCrypto } from '../Handlers/handleBuyCrypto';
+import { handleSellCrypto } from '../Handlers/handleSellCrypto';
+import handleBrowserUrl from '../Handlers/handleBrowserUrl';
+import { handleOpenHome } from '../Handlers/handleOpenHome';
+import { handleSwapUrl } from '../Handlers/handleSwapUrl';
 
 jest.mock('../../../core/SDKConnect/handlers/handleDeeplink');
 jest.mock('../../../core/AppConstants');
@@ -21,6 +26,17 @@ jest.mock('../../../core/NativeModules', () => ({
   },
 }));
 jest.mock('../Handlers/handleDeepLinkModalDisplay');
+jest.mock('../DeeplinkManager');
+jest.mock('../Handlers/handleBuyCrypto');
+jest.mock('../Handlers/handleSellCrypto');
+jest.mock('../Handlers/handleBrowserUrl');
+jest.mock('../Handlers/handleOpenHome');
+jest.mock('../Handlers/handleSwapUrl');
+jest.mock('../../NavigationService', () => ({
+  navigation: {
+    navigate: jest.fn(),
+  },
+}));
 jest.mock('react-native-quick-crypto', () => ({
   webcrypto: {
     subtle: {
@@ -37,12 +53,6 @@ const mockSubtle = QuickCrypto.webcrypto.subtle as jest.Mocked<
 };
 
 describe('handleUniversalLinks', () => {
-  const mockParse = jest.fn();
-  const mockHandleBuyCrypto = jest.fn();
-  const mockHandleSellCrypto = jest.fn();
-  const mockHandleBrowserUrl = jest.fn();
-  const mockHandleOpenHome = jest.fn();
-  const mockHandleSwap = jest.fn();
   const mockConnectToChannel = jest.fn();
   const mockGetConnections = jest.fn();
   const mockRevalidateChannel = jest.fn();
@@ -53,15 +63,12 @@ describe('handleUniversalLinks', () => {
   const mockHandleDeeplink = handleDeeplink as jest.Mock;
   const mockSDKConnectGetInstance = SDKConnect.getInstance as jest.Mock;
   const mockWC2ManagerGetInstance = WC2Manager.getInstance as jest.Mock;
-
-  const instance = {
-    parse: mockParse,
-    _handleBuyCrypto: mockHandleBuyCrypto,
-    _handleSellCrypto: mockHandleSellCrypto,
-    _handleBrowserUrl: mockHandleBrowserUrl,
-    _handleOpenHome: mockHandleOpenHome,
-    _handleSwap: mockHandleSwap,
-  } as unknown as DeeplinkManager;
+  const mockDeeplinkManagerParse = DeeplinkManager.parse as jest.Mock;
+  const mockHandleBuyCrypto = handleBuyCrypto as jest.Mock;
+  const mockHandleSellCrypto = handleSellCrypto as jest.Mock;
+  const mockHandleBrowserUrl = handleBrowserUrl as jest.Mock;
+  const mockHandleOpenHome = handleOpenHome as jest.Mock;
+  const mockHandleSwap = handleSwapUrl as jest.Mock;
 
   const handled = jest.fn();
 
@@ -115,7 +122,6 @@ describe('handleUniversalLinks', () => {
       url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.BUY_CRYPTO}/additional/path/additional/path`;
 
       await handleUniversalLink({
-        instance,
         handled,
         urlObj,
         browserCallBack: mockBrowserCallBack,
@@ -138,7 +144,6 @@ describe('handleUniversalLinks', () => {
       url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SELL_CRYPTO}/additional/path/additional/path`;
 
       await handleUniversalLink({
-        instance,
         handled,
         urlObj,
         browserCallBack: mockBrowserCallBack,
@@ -166,7 +171,6 @@ describe('handleUniversalLinks', () => {
         };
         url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.HOME}/additional/path`;
         await handleUniversalLink({
-          instance,
           handled,
           urlObj: homeUrlObj,
           browserCallBack: mockBrowserCallBack,
@@ -189,7 +193,6 @@ describe('handleUniversalLinks', () => {
         url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}/some-swap-path`;
 
         await handleUniversalLink({
-          instance,
           handled,
           urlObj: swapUrlObj,
           browserCallBack: mockBrowserCallBack,
@@ -214,7 +217,6 @@ describe('handleUniversalLinks', () => {
         url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.BUY}/some-buy-path`;
 
         await handleUniversalLink({
-          instance,
           handled,
           urlObj: buyUrlObj,
           browserCallBack: mockBrowserCallBack,
@@ -237,7 +239,6 @@ describe('handleUniversalLinks', () => {
         url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.BUY_CRYPTO}/some-buy-path`;
 
         await handleUniversalLink({
-          instance,
           handled,
           urlObj: buyUrlObj,
           browserCallBack: mockBrowserCallBack,
@@ -265,7 +266,6 @@ describe('handleUniversalLinks', () => {
       url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}?param1=value1&sig=${validSignature}`;
 
       await handleUniversalLink({
-        instance,
         handled,
         urlObj,
         browserCallBack: mockBrowserCallBack,
@@ -289,7 +289,6 @@ describe('handleUniversalLinks', () => {
       url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}?param1=value1&sig=invalidSignature`;
 
       await handleUniversalLink({
-        instance,
         handled,
         urlObj,
         browserCallBack: mockBrowserCallBack,
@@ -313,7 +312,6 @@ describe('handleUniversalLinks', () => {
       url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}?param1=value1&sig=`;
 
       await handleUniversalLink({
-        instance,
         handled,
         urlObj,
         browserCallBack: mockBrowserCallBack,
@@ -337,7 +335,6 @@ describe('handleUniversalLinks', () => {
       url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}`;
 
       await handleUniversalLink({
-        instance,
         handled,
         urlObj,
         browserCallBack: mockBrowserCallBack,

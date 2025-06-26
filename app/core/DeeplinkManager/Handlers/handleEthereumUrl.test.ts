@@ -2,7 +2,6 @@ import { parse } from 'eth-url-parser';
 import { Alert } from 'react-native';
 import { ETH_ACTIONS } from '../../../constants/deeplinks';
 import { NetworkSwitchErrorType } from '../../../constants/error';
-import DeeplinkManager from '../DeeplinkManager';
 import handleEthereumUrl from './handleEthereumUrl';
 import { getDecimalChainId } from '../../../util/networks';
 import Engine from '../../Engine';
@@ -11,6 +10,9 @@ import {
   addTransactionForDeeplink,
   isDeeplinkRedesignedConfirmationCompatible,
 } from '../../../components/Views/confirmations/utils/deeplink';
+import NavigationService from '../../NavigationService';
+import switchNetwork from './switchNetwork';
+import approveTransaction from '../TransactionManager/approveTransaction';
 
 jest.mock('react-native');
 
@@ -39,14 +41,22 @@ jest.mock('../../Engine', () => ({
 
 jest.mock('../../../components/Views/confirmations/utils/deeplink');
 
+jest.mock('../../NavigationService', () => ({
+  navigation: {
+    navigate: jest.fn(),
+  },
+}));
+
+jest.mock('./switchNetwork', () => jest.fn());
+
+jest.mock('../TransactionManager/approveTransaction', () => jest.fn());
+
 describe('handleEthereumUrl', () => {
-  let deeplinkManager: DeeplinkManager;
   const mockParse = parse as jest.Mock;
   const mockGetDecimalChainId = getDecimalChainId as jest.Mock;
-
-  const mockHandleNetworkSwitch = jest.fn();
-  const mockNavigate = jest.fn();
-  const mockApproveTransaction = jest.fn();
+  const mockSwitchNetwork = switchNetwork as jest.Mock;
+  const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
+  const mockApproveTransaction = approveTransaction as jest.Mock;
   const mockIsDeeplinkRedesignedConfirmationCompatible = jest.mocked(
     isDeeplinkRedesignedConfirmationCompatible,
   );
@@ -55,20 +65,12 @@ describe('handleEthereumUrl', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    deeplinkManager = {
-      _handleNetworkSwitch: mockHandleNetworkSwitch,
-      _approveTransaction: mockApproveTransaction,
-      navigation: {
-        navigate: mockNavigate,
-      },
-    } as unknown as DeeplinkManager;
-
     mockParse.mockReturnValue({
       function_name: ETH_ACTIONS.TRANSFER,
       chain_id: 1,
     });
 
-    mockHandleNetworkSwitch.mockImplementation(() => {
+    mockSwitchNetwork.mockImplementation(() => {
       // do nothing
     });
 
@@ -92,7 +94,7 @@ describe('handleEthereumUrl', () => {
       throw new Error('Invalid URL');
     });
 
-    handleEthereumUrl({ deeplinkManager, url, origin });
+    handleEthereumUrl({ url, origin });
 
     expect(spyAlert).toHaveBeenCalledWith(
       'deeplink.invalid',
@@ -110,13 +112,13 @@ describe('handleEthereumUrl', () => {
 
     mockGetDecimalChainId.mockReturnValue(5);
 
-    handleEthereumUrl({ deeplinkManager, url, origin });
+    handleEthereumUrl({ url, origin });
 
-    expect(deeplinkManager.navigation.navigate).toHaveBeenCalledWith(
+    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
       'DeprecatedNetworkDetails',
       {},
     );
-    expect(deeplinkManager._handleNetworkSwitch).toHaveBeenCalledTimes(0);
+    expect(mockSwitchNetwork).toHaveBeenCalledTimes(0);
   });
 
   it('navigates to SendView for TRANSFER action', () => {
@@ -127,9 +129,9 @@ describe('handleEthereumUrl', () => {
       chain_id: 1,
     });
 
-    handleEthereumUrl({ deeplinkManager, url, origin });
+    handleEthereumUrl({ url, origin });
 
-    expect(deeplinkManager.navigation.navigate).toHaveBeenCalledWith(
+    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
       'SendView',
       expect.any(Object),
     );
@@ -146,11 +148,11 @@ describe('handleEthereumUrl', () => {
       chain_id: 1,
     });
 
-    mockHandleNetworkSwitch.mockImplementation(() => {
+    mockSwitchNetwork.mockImplementation(() => {
       throw new Error(NetworkSwitchErrorType.missingNetworkId);
     });
 
-    handleEthereumUrl({ deeplinkManager, url, origin });
+    handleEthereumUrl({ url, origin });
 
     expect(spyAlert).toHaveBeenCalledWith(
       'send.network_not_found_title',
@@ -158,7 +160,7 @@ describe('handleEthereumUrl', () => {
     );
   });
 
-  it('calls _approveTransaction for APPROVE action', () => {
+  it('calls approveTransaction for APPROVE action', () => {
     const url = 'ethereum:approve';
     const origin = 'test_origin';
     mockParse.mockReturnValue({
@@ -167,12 +169,12 @@ describe('handleEthereumUrl', () => {
       parameters: {},
     });
 
-    handleEthereumUrl({ deeplinkManager, url, origin });
+    handleEthereumUrl({ url, origin });
 
-    expect(deeplinkManager._approveTransaction).toHaveBeenCalledWith(
-      expect.any(Object),
+    expect(mockApproveTransaction).toHaveBeenCalledWith({
+      ethUrl: expect.any(Object),
       origin,
-    );
+    });
   });
 
   it('navigates to SendFlowView for default action', () => {
@@ -184,9 +186,9 @@ describe('handleEthereumUrl', () => {
       parameters: {},
     });
 
-    handleEthereumUrl({ deeplinkManager, url, origin });
+    handleEthereumUrl({ url, origin });
 
-    expect(deeplinkManager.navigation.navigate).toHaveBeenCalledWith(
+    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
       'SendFlowView',
       expect.any(Object),
     );
@@ -201,7 +203,7 @@ describe('handleEthereumUrl', () => {
       chain_id: 1,
     });
 
-    handleEthereumUrl({ deeplinkManager, url, origin });
+    handleEthereumUrl({ url, origin });
 
     expect(mockIsDeeplinkRedesignedConfirmationCompatible).toHaveBeenCalledWith(
       ETH_ACTIONS.TRANSFER,
@@ -228,7 +230,7 @@ describe('handleEthereumUrl', () => {
       function_name: ETH_ACTIONS.TRANSFER,
       chain_id: 1,
     });
-    mockHandleNetworkSwitch.mockImplementation(() => {
+    mockSwitchNetwork.mockImplementation(() => {
       // do nothing
     });
 
@@ -236,7 +238,7 @@ describe('handleEthereumUrl', () => {
       throw new Error('Unknown error');
     });
 
-    handleEthereumUrl({ deeplinkManager, url, origin });
+    handleEthereumUrl({ url, origin });
 
     expect(spyAlert).toHaveBeenCalledWith(
       'send.network_not_found_title',
@@ -254,9 +256,9 @@ describe('handleEthereumUrl', () => {
       parameters: {},
     });
 
-    handleEthereumUrl({ deeplinkManager, url, origin });
+    handleEthereumUrl({ url, origin });
 
-    expect(deeplinkManager.navigation.navigate).toHaveBeenCalledWith(
+    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
       'SendFlowView',
       expect.any(Object),
     );
@@ -273,11 +275,11 @@ describe('handleEthereumUrl', () => {
       chain_id: 1,
     });
 
-    mockHandleNetworkSwitch.mockImplementation(() => {
+    mockSwitchNetwork.mockImplementation(() => {
       throw mockError;
     });
 
-    handleEthereumUrl({ deeplinkManager, url, origin });
+    handleEthereumUrl({ url, origin });
 
     expect(spyAlert).toHaveBeenCalledWith(
       'send.network_not_found_title',
@@ -301,7 +303,7 @@ describe('handleEthereumUrl', () => {
       throw mockError;
     });
 
-    handleEthereumUrl({ deeplinkManager, url, origin });
+    handleEthereumUrl({ url, origin });
 
     expect(spyAlert).toHaveBeenCalledWith(
       'send.network_not_found_title',
@@ -319,9 +321,9 @@ describe('handleEthereumUrl', () => {
       parameters: {},
     });
 
-    handleEthereumUrl({ deeplinkManager, url, origin });
+    handleEthereumUrl({ url, origin });
 
-    expect(deeplinkManager.navigation.navigate).toHaveBeenCalledWith(
+    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
       'SendView',
       expect.any(Object), // The exact expectations here depend on the intended behavior
     );
@@ -346,7 +348,7 @@ describe('handleEthereumUrl', () => {
     Engine.context.MultichainNetworkController.setActiveNetwork =
       mockSetActiveNetwork;
 
-    await handleEthereumUrl({ deeplinkManager, url, origin });
+    await handleEthereumUrl({ url, origin });
 
     expect(mockSetActiveNetwork).toHaveBeenCalledWith(MAINNET);
   });
