@@ -15,7 +15,9 @@ import { strings } from '../../../../../locales/i18n';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../component-library/components/Buttons/ButtonIcon';
 import {
   createTokenBottomSheetFilterNavDetails,
   createTokensBottomSheetNavDetails,
@@ -82,12 +84,14 @@ export const TokenListControlBar = ({
         <View style={styles.controlButtonInnerWrapper}>
           <ButtonIcon
             testID={WalletViewSelectorsIDs.SORT_BY}
+            size={ButtonIconSizes.Lg}
             onPress={showSortControls}
             iconName={IconName.SwapVertical}
             style={styles.controlIconButton}
           />
           <ButtonIcon
             testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+            size={ButtonIconSizes.Lg}
             onPress={goToAddToken}
             iconName={IconName.Add}
             style={
