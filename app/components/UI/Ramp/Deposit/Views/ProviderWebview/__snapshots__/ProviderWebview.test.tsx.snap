@@ -1576,7 +1576,48 @@ exports[`ProviderWebview Component renders loading state correctly 1`] = `
                             undefined,
                           ]
                         }
-                      />
+                      >
+                        <View
+                          style={
+                            [
+                              {
+                                "flex": 1,
+                              },
+                              undefined,
+                            ]
+                          }
+                        >
+                          <View
+                            style={
+                              {
+                                "alignItems": "center",
+                                "flex": 1,
+                                "justifyContent": "center",
+                              }
+                            }
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "backgroundColor": "#ffffff",
+                                  "bottom": 0,
+                                  "justifyContent": "center",
+                                  "left": 0,
+                                  "position": "absolute",
+                                  "right": 0,
+                                  "top": 0,
+                                }
+                              }
+                            >
+                              <ActivityIndicator
+                                color="#4459ff"
+                                size="large"
+                              />
+                            </View>
+                          </View>
+                        </View>
+                      </View>
                     </RCTSafeAreaView>
                   </View>
                 </View>
