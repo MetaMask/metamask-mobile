@@ -35,6 +35,10 @@ const Routes = {
     PROVIDER_WEBVIEW: 'ProviderWebview',
     ORDER_PROCESSING: 'OrderProcessing',
     ORDER_DETAILS: 'DepositOrderDetails',
+    MODALS: {
+      ID: 'DepositModals',
+      TOKEN_SELECTOR: 'DepositTokenSelectorModal',
+    },
   },
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',

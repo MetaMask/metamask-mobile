@@ -20,6 +20,7 @@ import { RootState } from '../../../../../../reducers';
 import { strings } from '../../../../../../../locales/i18n';
 import DepositOrderContent from '../../components/DepositOrderContent/DepositOrderContent';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
+import { TRANSAK_SUPPORT_URL } from '../../constants';
 
 export interface OrderProcessingParams {
   orderId: string;
@@ -50,7 +51,7 @@ const OrderProcessing = () => {
 
   const handleContactSupport = useCallback(() => {
     // TODO: Discuss proper support feature
-    Linking.openURL('https://support.transak.com/');
+    Linking.openURL(TRANSAK_SUPPORT_URL);
   }, []);
 
   const handleCancelOrder = useCallback(() => {
