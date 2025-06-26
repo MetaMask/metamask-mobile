@@ -19,7 +19,6 @@ import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import { useTheme } from '../../../util/theme';
-import { useDispatch } from 'react-redux';
 import Icon, {
   IconName,
   IconColor,
@@ -29,7 +28,6 @@ import AppConstants from '../../../core/AppConstants';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
-import { setCompletedOnboarding } from '../../../actions/onboarding';
 import createStyles from './index.styles';
 import CelebratingFox from '../../../animations/Celebrating_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
@@ -51,8 +49,6 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   successFlow,
 }) => {
   const navigation = useNavigation();
-
-  const dispatch = useDispatch();
 
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -76,11 +72,10 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   const handleOnDone = useCallback(() => {
     const onOnboardingSuccess = async () => {
       await importAdditionalAccounts();
-      dispatch(setCompletedOnboarding(true));
     };
     onOnboardingSuccess();
     onDone();
-  }, [onDone, dispatch]);
+  }, [onDone]);
 
   const renderContent = () => {
     switch (successFlow) {
