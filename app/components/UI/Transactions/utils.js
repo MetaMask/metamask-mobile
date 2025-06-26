@@ -14,7 +14,7 @@
    * @returns {Array<Object>} Filtered array of transactions with redundant
    * incoming transactions removed
    */
-export const filterRedundantBridgeTransactions = (transactions) => {
+export const filterDuplicateOutgoingTransactions = (transactions) => {
   if (!transactions || transactions.length === 0) {
     return transactions;
   }

@@ -1,23 +1,23 @@
-import { filterRedundantBridgeTransactions } from './utils';
+import { filterDuplicateOutgoingTransactions } from './utils';
 
 const HASH_1 = '0x1234567890';
 const HASH_2 = '0xabcdef1234';
 const HASH_3 = '0x1234567891';
 
-describe('filterRedundantBridgeTransactions', () => {
+describe('filterDuplicateOutgoingTransactions', () => {
   describe('Edge Cases', () => {
     it('should return the same array when input is empty', () => {
-      const result = filterRedundantBridgeTransactions([]);
+      const result = filterDuplicateOutgoingTransactions([]);
       expect(result).toEqual([]);
     });
 
     it('should return undefined when input is null', () => {
-      const result = filterRedundantBridgeTransactions(null);
+      const result = filterDuplicateOutgoingTransactions(null);
       expect(result).toBeNull();
     });
 
     it('should return undefined when input is undefined', () => {
-      const result = filterRedundantBridgeTransactions(undefined);
+      const result = filterDuplicateOutgoingTransactions(undefined);
       expect(result).toBeUndefined();
     });
 
@@ -29,7 +29,7 @@ describe('filterRedundantBridgeTransactions', () => {
           hash: HASH_1
         }
       ];
-      const result = filterRedundantBridgeTransactions(transactions);
+      const result = filterDuplicateOutgoingTransactions(transactions);
       expect(result).toEqual(transactions);
     });
   });
@@ -49,7 +49,7 @@ describe('filterRedundantBridgeTransactions', () => {
         }
       ];
 
-      const result = filterRedundantBridgeTransactions(transactions);
+      const result = filterDuplicateOutgoingTransactions(transactions);
       
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('2');
@@ -70,7 +70,7 @@ describe('filterRedundantBridgeTransactions', () => {
         }
       ];
 
-      const result = filterRedundantBridgeTransactions(transactions);
+      const result = filterDuplicateOutgoingTransactions(transactions);
       
       expect(result).toHaveLength(2);
       expect(result).toEqual(transactions);
@@ -90,7 +90,7 @@ describe('filterRedundantBridgeTransactions', () => {
         }
       ];
 
-      const result = filterRedundantBridgeTransactions(transactions);
+      const result = filterDuplicateOutgoingTransactions(transactions);
       
       expect(result).toHaveLength(2);
       expect(result).toEqual(transactions);
@@ -110,7 +110,7 @@ describe('filterRedundantBridgeTransactions', () => {
         }
       ];
 
-      const result = filterRedundantBridgeTransactions(transactions);
+      const result = filterDuplicateOutgoingTransactions(transactions);
       
       expect(result).toHaveLength(2);
       expect(result).toEqual(transactions);
@@ -142,7 +142,7 @@ describe('filterRedundantBridgeTransactions', () => {
         }
       ];
 
-      const result = filterRedundantBridgeTransactions(transactions);
+      const result = filterDuplicateOutgoingTransactions(transactions);
       
       expect(result).toHaveLength(2);
       expect(result[0].id).toBe('2');
@@ -178,7 +178,7 @@ describe('filterRedundantBridgeTransactions', () => {
         }
       ];
 
-      const result = filterRedundantBridgeTransactions(transactions);
+      const result = filterDuplicateOutgoingTransactions(transactions);
       
       expect(result).toHaveLength(3);
       expect(result.map(tx => tx.id)).toEqual(['2', '4', '5']);
@@ -199,7 +199,7 @@ describe('filterRedundantBridgeTransactions', () => {
         }
       ];
 
-      const result = filterRedundantBridgeTransactions(transactions);
+      const result = filterDuplicateOutgoingTransactions(transactions);
       
       expect(result).toHaveLength(2);
       expect(result).toEqual(transactions);
@@ -219,7 +219,7 @@ describe('filterRedundantBridgeTransactions', () => {
         }
       ];
 
-      const result = filterRedundantBridgeTransactions(transactions);
+      const result = filterDuplicateOutgoingTransactions(transactions);
       
       expect(result).toHaveLength(2);
       expect(result).toEqual(transactions);
@@ -238,7 +238,7 @@ describe('filterRedundantBridgeTransactions', () => {
         }
       ];
 
-      const result = filterRedundantBridgeTransactions(transactions);
+      const result = filterDuplicateOutgoingTransactions(transactions);
       
       expect(result).toHaveLength(2);
       expect(result).toEqual(transactions);
@@ -258,7 +258,7 @@ describe('filterRedundantBridgeTransactions', () => {
         }
       ];
 
-      const result = filterRedundantBridgeTransactions(transactions);
+      const result = filterDuplicateOutgoingTransactions(transactions);
       
       expect(result).toHaveLength(2);
       expect(result).toEqual(transactions);
@@ -285,7 +285,7 @@ describe('filterRedundantBridgeTransactions', () => {
         }
       ];
 
-      const result = filterRedundantBridgeTransactions(transactions);
+      const result = filterDuplicateOutgoingTransactions(transactions);
       
       expect(result).toHaveLength(3);
       expect(result).toEqual(transactions);
@@ -307,7 +307,7 @@ describe('filterRedundantBridgeTransactions', () => {
         }
       ];
 
-      const result = filterRedundantBridgeTransactions(transactions);
+      const result = filterDuplicateOutgoingTransactions(transactions);
       
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('2');

@@ -75,7 +75,7 @@ import TransactionActionModal from '../TransactionActionModal';
 import TransactionElement from '../TransactionElement';
 import RetryModal from './RetryModal';
 import TransactionsFooter from './TransactionsFooter';
-import { filterRedundantBridgeTransactions } from './utils';
+import { filterDuplicateOutgoingTransactions } from './utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -757,14 +757,14 @@ class Transactions extends PureComponent {
     const { colors } = this.context || mockTheme;
     const styles = createStyles(colors);
 
-    const filteredConfirmedTransactions = filterRedundantBridgeTransactions(confirmedTransactions);
+    const filteredConfirmedTransactions = filterDuplicateOutgoingTransactions(confirmedTransactions);
 
     const transactions =
       submittedTransactions && submittedTransactions.length
         ? submittedTransactions
             .sort((a, b) => b.time - a.time)
             .concat(filteredConfirmedTransactions)
-        : filterRedundantBridgeTransactions(this.props.transactions);
+        : filterDuplicateOutgoingTransactions(this.props.transactions);
 
     const renderRetryGas = (rate) => {
       if (!this.existingGas) return null;
