@@ -9,7 +9,6 @@ import OnboardingSuccess, {
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
-import { SET_COMPLETED_ONBOARDING } from '../../../actions/onboarding';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { Linking } from 'react-native';
