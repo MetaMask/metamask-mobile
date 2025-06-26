@@ -969,6 +969,11 @@ workflows:
     run_if: '{{ or (ne "$E2E_TEST_FILE" "") (ne "$TEST_SUITE_TAG" "") }}'
     after_run:
       - android_e2e_test
+    meta:
+      bitrise.io:
+        machine_type_id: elite-xl
+        stack: linux-docker-android-22.04
+  
   run_single_ios_e2e_test:
     run_if: '{{ or (ne "$E2E_TEST_FILE" "") (ne "$TEST_SUITE_TAG" "") }}'
     after_run:
