@@ -123,6 +123,9 @@ describe('TabBar', () => {
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Browser}`));
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
       screen: Routes.BROWSER.VIEW,
+      params: {
+        navigationTimestamp: expect.any(Number),
+      },
     });
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Actions}`));
