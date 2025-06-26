@@ -11,7 +11,7 @@ class CommonView {
   }
 
   get backButton() {
-    return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
+    return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON, 0);
   }
 
   get errorMessage() {
