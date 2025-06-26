@@ -14,7 +14,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { act } from '@testing-library/react';
-import { tokenDiscoveryBrowserEnabled } from '../../../selectors/featureFlagController/tokenDiscoveryBrowser';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { useAccounts } from '../../hooks/useAccounts';
 import {
