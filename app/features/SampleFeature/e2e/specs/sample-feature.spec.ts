@@ -12,29 +12,48 @@ import { getFixturesServerPort } from '../../../../../e2e/fixtures/utils';
 import FixtureServer from '../../../../../e2e/fixtures/fixture-server';
 import { navigateToSampleFeature } from '../utils';
 import Assertions from '../../../../../e2e/utils/Assertions';
+import { 
+  saveTestSuiteMetrics, 
+  clearTestMetrics, 
+  measureAction 
+} from '../performance-utils';
 
 const fixtureServer = new FixtureServer();
 
 describe(Regression('Sample Feature'), () => {
   beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
-    const fixture = new FixtureBuilder().build();
-    await startFixtureServer(fixtureServer);
-    await loadFixture(fixtureServer, { fixture });
-    await TestHelpers.launchApp({
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+    await measureAction('app-launch', async () => {
+      await TestHelpers.reverseServerPort();
+      const fixture = new FixtureBuilder().build();
+      await startFixtureServer(fixtureServer);
+      await loadFixture(fixtureServer, { fixture });
+      await TestHelpers.launchApp({
+        launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+      });
     });
-    await navigateToSampleFeature();
+
+    await measureAction('navigate-to-sample-feature', async () => {
+      await navigateToSampleFeature();
+    });
   });
 
   afterAll(async () => {
+    // Save performance metrics for the test suite
+    await saveTestSuiteMetrics('SampleFeature', 'basic-feature-tests');
     await stopFixtureServer(fixtureServer);
   });
 
+  beforeEach(async () => {
+    // Clear metrics before each test to start fresh
+    clearTestMetrics();
+  });
+
   it('Navigates to sample feature', async () => {
-    // Verify Sample Feature screen is visible
-    await SampleFeatureView.isVisible();
-    await Assertions.checkIfVisible(SampleFeatureView.title);
-    await Assertions.checkIfVisible(SampleFeatureView.description);
+    await measureAction('verify-sample-feature-screen', async () => {
+      // Verify Sample Feature screen is visible
+      await SampleFeatureView.isVisible();
+      await Assertions.checkIfVisible(SampleFeatureView.title);
+      await Assertions.checkIfVisible(SampleFeatureView.description);
+    });
   });
 });
