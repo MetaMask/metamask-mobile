@@ -67,9 +67,6 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
 
     const handleRegionSelect = useCallback(
       (newRegion: DepositRegion) => {
-        if (!newRegion.supported) {
-          return;
-        }
         onChangeText('');
         setSelectedRegion(newRegion);
       },
