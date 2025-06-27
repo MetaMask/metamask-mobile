@@ -53,6 +53,7 @@ jest.mock('../../../../core/Engine', () => ({
 
 const mockAccounts = [
   {
+    id: 'mock-account-id-1',
     address: '0x1234',
     name: 'Account 1',
     balance: '0x1',
@@ -64,6 +65,7 @@ const mockAccounts = [
     scopes: [EthScope.Eoa],
   },
   {
+    id: 'mock-account-id-2',
     address: '0x5678',
     name: 'Account 2',
     balance: '0x2',

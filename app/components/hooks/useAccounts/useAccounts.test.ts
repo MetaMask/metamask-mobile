@@ -30,6 +30,7 @@ const MOCK_ACCOUNT_ADDRESSES = Object.values(
 ).map((account) => account.address);
 
 const MOCK_ACCOUNT_1: Account = {
+  id: 'mock-account-id-1',
   name: 'Account 1',
   address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[0]) as Hex,
   type: KeyringTypes.hd,
@@ -44,6 +45,7 @@ const MOCK_ACCOUNT_1: Account = {
   isLoadingAccount: false,
 };
 const MOCK_ACCOUNT_2: Account = {
+  id: 'mock-account-id-2',
   name: 'Account 2',
   address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[1]) as Hex,
   type: KeyringTypes.hd,
