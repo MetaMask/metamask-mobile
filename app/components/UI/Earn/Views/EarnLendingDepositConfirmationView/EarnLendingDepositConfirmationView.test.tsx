@@ -376,7 +376,9 @@ describe('EarnLendingDepositConfirmationView', () => {
         Engine.context.EarnController.executeLendingTokenApprove,
       ).toHaveBeenCalledWith({
         amount: '0',
-        gasOptions: {},
+        gasOptions: {
+          gasLimit: 'none',
+        },
         protocol: 'AAVE v3',
         txOptions: {
           deviceConfirmedOn: 'metamask_mobile',
