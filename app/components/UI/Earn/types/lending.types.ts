@@ -6,6 +6,7 @@ import { TokenI } from '../../Tokens/types';
 export enum EARN_LENDING_ACTIONS {
   DEPOSIT = 'DEPOSIT',
   ALLOWANCE_INCREASE = 'ALLOWANCE_INCREASE',
+  ALLOWANCE_RESET = 'ALLOWANCE_RESET',
 }
 
 export type EarnTokenDetails = TokenI & {

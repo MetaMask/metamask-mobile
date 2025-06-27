@@ -9,7 +9,6 @@ import OnboardingSuccess, {
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
-import { SET_COMPLETED_ONBOARDING } from '../../../actions/onboarding';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { Linking } from 'react-native';
@@ -100,7 +99,7 @@ describe('OnboardingSuccessComponent', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('imports additional accounts and sets completedOnboarding to true when onDone is called', async () => {
+  it('imports additional accounts when onDone is called', async () => {
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
@@ -112,10 +111,6 @@ describe('OnboardingSuccessComponent', () => {
 
     await waitFor(() => {
       expect(mockImportAdditionalAccounts).toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalledWith({
-        type: SET_COMPLETED_ONBOARDING,
-        completedOnboarding: true,
-      });
     });
   });
 
@@ -161,22 +156,6 @@ describe('OnboardingSuccess', () => {
       const { toJSON } = renderWithProvider(<OnboardingSuccess />);
       expect(toJSON()).toMatchSnapshot();
     });
-
-    it('dispatches SET_COMPLETED_ONBOARDING action when done button is pressed', async () => {
-      mockNavigationDispatch.mockClear();
-      const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
-      const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
-      fireEvent.press(button);
-      expect(mockImportAdditionalAccounts).toHaveBeenCalled();
-
-      expect(mockDispatch).toHaveBeenCalledWith({
-        type: SET_COMPLETED_ONBOARDING,
-        completedOnboarding: true,
-      });
-      expect(mockNavigationDispatch).toHaveBeenCalledWith(
-        ResetNavigationToHome,
-      );
-    });
   });
 
   describe('route params successFlow is NO_BACKED_UP_SRP', () => {
@@ -197,10 +176,6 @@ describe('OnboardingSuccess', () => {
       fireEvent.press(button);
       expect(mockImportAdditionalAccounts).toHaveBeenCalled();
 
-      expect(mockDispatch).toHaveBeenCalledWith({
-        type: SET_COMPLETED_ONBOARDING,
-        completedOnboarding: true,
-      });
       expect(mockNavigationDispatch).toHaveBeenCalledWith(
         ResetNavigationToHome,
       );
@@ -216,20 +191,6 @@ describe('OnboardingSuccess', () => {
     it('renders matching snapshot with route params backedUpSRP false and noSRP true', () => {
       const { toJSON } = renderWithProvider(<OnboardingSuccess />);
       expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('dispatches SET_COMPLETED_ONBOARDING action when done button is pressed', async () => {
-      const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
-      const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
-      fireEvent.press(button);
-      expect(mockImportAdditionalAccounts).toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalledWith({
-        type: SET_COMPLETED_ONBOARDING,
-        completedOnboarding: true,
-      });
-      expect(mockNavigationDispatch).toHaveBeenCalledWith(
-        ResetNavigationToHome,
-      );
     });
   });
 });

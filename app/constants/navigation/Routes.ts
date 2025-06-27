@@ -34,6 +34,13 @@ const Routes = {
     KYC_WEBVIEW: 'KycWebview',
     PROVIDER_WEBVIEW: 'ProviderWebview',
     ORDER_PROCESSING: 'OrderProcessing',
+    ORDER_DETAILS: 'DepositOrderDetails',
+    MODALS: {
+      ID: 'DepositModals',
+      TOKEN_SELECTOR: 'DepositTokenSelectorModal',
+      REGION_SELECTOR: 'DepositRegionSelectorModal',
+      PAYMENT_METHOD_SELECTOR: 'DepositPaymentMethodSelectorModal',
+    },
   },
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',
