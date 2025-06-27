@@ -134,16 +134,29 @@ describe('BuildQuote Component', () => {
       render(BuildQuote);
       const regionButton = screen.getByText('US');
       fireEvent.press(regionButton);
-      expect(screen.toJSON()).toMatchSnapshot();
-    });
 
-    it('updates fiat currency when selecting a supported region', () => {
+      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositRegionSelectorModal',
+        params: {
+          selectedRegionCode: 'US',
+          handleSelectRegion: expect.any(Function),
+        },
+      });
+    });
+  });
+
+  describe('Payment Method Selection', () => {
+    it('navigates to payment method selection payment button is pressed', () => {
       render(BuildQuote);
-      const regionButton = screen.getByText('US');
-      fireEvent.press(regionButton);
-      const germanyElement = screen.getByText('Belgium');
-      fireEvent.press(germanyElement);
-      expect(screen.toJSON()).toMatchSnapshot();
+      const payWithButton = screen.getByText('Pay with');
+      fireEvent.press(payWithButton);
+      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositPaymentMethodSelectorModal',
+        params: {
+          handleSelectPaymentMethodId: expect.any(Function),
+          selectedPaymentMethodId: 'credit_debit_card',
+        },
+      });
     });
   });
 
