@@ -18,6 +18,7 @@ import KycProcessing from '../Views/KycProcessing';
 import ProviderWebview from '../Views/ProviderWebview';
 import KycWebview from '../Views/KycWebview';
 import OrderProcessing from '../Views/OrderProcessing';
+import BankDetails from '../Views/BankDetails';
 
 import TokenSelectorModal from '../Views/Modals/TokenSelectorModal';
 
@@ -99,6 +100,11 @@ const DepositRoutes = () => (
       <Stack.Screen
         name={Routes.DEPOSIT.ORDER_PROCESSING}
         component={OrderProcessing}
+        options={getAnimationOptions}
+      />
+      <Stack.Screen
+        name={Routes.DEPOSIT.BANK_DETAILS}
+        component={BankDetails}
         options={getAnimationOptions}
       />
     </Stack.Navigator>

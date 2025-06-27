@@ -568,6 +568,7 @@
       "title": "Processing deposit",
       "button": "Close",
       "description": "Card purchases typically take a few minutes",
+      "bank_transfer_description": "Bank transfers typically take a few business days",
       "success_title": "Deposit complete",
       "success_description": "Your deposit of {{amount}} {{currency}} was successful!",
       "error_title": "Deposit failed",
@@ -586,6 +587,27 @@
     },
     "order_details": {
       "title": "Deposit Order"
+    },
+    "bank_details": {
+      "title": "{{paymentMethod}} bank transfer",
+      "button": "Bank transfer sent",
+      "main_title": "To complete your order",
+      "main_content_1": "Initiate a transfer from your preferred bank using the information below.",
+      "main_content_2": "Once you’re finished, come back and click “Bank transfer sent” to confirm.",
+      "show_bank_info": "Show bank information",
+      "hide_bank_info": "Hide bank information",
+      "transfer_amount": "Transfer amount",
+      "account_holder_name": "Account holder name",
+      "beneficiary_name": "Beneficiary name",
+      "routing_number": "Routing number",
+      "account_number": "Account number",
+      "iban": "IBAN",
+      "bic": "BIC",
+      "account_type": "Account type",
+      "bank_name": "Bank name",
+      "bank_address": "Bank address",
+      "info_banner_text": "You should see '{{accountHolderName}}' as the account holder. This helps your bank process the transfer.",
+      "error_message": "We were unable to confirm your bank transfer. Please try again."
     },
     "notifications": {
       "deposit_failed_title": "Deposit of {{currency}} has failed! Please try again, sorry for the inconvenience!",

@@ -56,7 +56,6 @@ import { getDepositNavbarOptions } from '../../../../Navbar';
 
 import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
 import {
-  DEBIT_CREDIT_PAYMENT_METHOD,
   USDC_TOKEN,
   DepositCryptoCurrency,
   DepositPaymentMethod,
@@ -65,7 +64,12 @@ import {
   EUR_CURRENCY,
   DEPOSIT_REGIONS,
   DepositRegion,
+  SEPA_PAYMENT_METHOD,
 } from '../../constants';
+import { createBankDetailsNavDetails } from '../BankDetails/BankDetails';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { depositOrderToFiatOrder } from '../../orderProcessor';
+import useHandleNewOrder from '../../hooks/useHandleNewOrder';
 
 const BuildQuote = () => {
   const navigation = useNavigation();
@@ -73,9 +77,7 @@ const BuildQuote = () => {
 
   const supportedTokens = useSupportedTokens();
 
-  const [paymentMethod] = useState<DepositPaymentMethod>(
-    DEBIT_CREDIT_PAYMENT_METHOD,
-  );
+  const [paymentMethod] = useState<DepositPaymentMethod>(SEPA_PAYMENT_METHOD);
   const [cryptoCurrency, setCryptoCurrency] =
     useState<DepositCryptoCurrency>(USDC_TOKEN);
   const [fiatCurrency, setFiatCurrency] =
@@ -89,6 +91,12 @@ const BuildQuote = () => {
     useState<boolean>(false);
   const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
     DEPOSIT_REGIONS.find((region) => region.code === 'US') || null,
+  );
+
+  const handleNewOrder = useHandleNewOrder();
+
+  const selectedWalletAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
   );
 
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
@@ -117,6 +125,16 @@ const BuildQuote = () => {
       method: 'getUserDetails',
       onMount: false,
     });
+
+  const [{ error: reservationError }, createReservation] = useDepositSdkMethod({
+    method: 'walletReserve',
+    onMount: false,
+  });
+
+  const [{ error: orderError }, createOrder] = useDepositSdkMethod({
+    method: 'createOrder',
+    onMount: false,
+  });
 
   const {
     tokenAmount,
@@ -171,7 +189,35 @@ const BuildQuote = () => {
         }
 
         if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
-          navigation.navigate(...createProviderWebviewNavDetails({ quote }));
+          if (paymentMethod.id === SEPA_PAYMENT_METHOD.id) {
+            const reservation = await createReservation(
+              quote,
+              selectedWalletAddress,
+            );
+
+            if (reservationError || !reservation) {
+              setError(strings('deposit.buildQuote.unexpectedError'));
+              return;
+            }
+
+            const order = await createOrder(reservation);
+
+            if (orderError || !order) {
+              setError(strings('deposit.buildQuote.unexpectedError'));
+              return;
+            }
+
+            const processedOrder = {
+              ...depositOrderToFiatOrder(order),
+              account: selectedWalletAddress || order.walletAddress,
+            };
+
+            await handleNewOrder(processedOrder);
+
+            navigation.navigate(...createBankDetailsNavDetails({ order }));
+          } else {
+            navigation.navigate(...createProviderWebviewNavDetails({ quote }));
+          }
           return;
         }
 
@@ -238,6 +284,12 @@ const BuildQuote = () => {
     navigation,
     fetchUserDetails,
     userDetailsFetchError,
+    createReservation,
+    reservationError,
+    createOrder,
+    orderError,
+    selectedWalletAddress,
+    handleNewOrder,
   ]);
 
   const handleKeypadChange = useCallback(
@@ -405,7 +457,7 @@ const BuildQuote = () => {
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
-                  {DEBIT_CREDIT_PAYMENT_METHOD.name}
+                  {paymentMethod.name}
                 </Text>
               </View>
               <Icon

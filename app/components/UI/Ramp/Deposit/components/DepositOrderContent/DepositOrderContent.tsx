@@ -150,6 +150,8 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
             : order.state === FIAT_ORDER_STATES.CANCELLED ||
               order.state === FIAT_ORDER_STATES.FAILED
             ? strings('deposit.order_processing.error_description')
+            : order.state === FIAT_ORDER_STATES.CREATED
+            ? strings('deposit.order_processing.bank_transfer_description')
             : strings('deposit.order_processing.description')}
         </Text>
       </View>

@@ -21,6 +21,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import DepositOrderContent from '../../components/DepositOrderContent/DepositOrderContent';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import { TRANSAK_SUPPORT_URL } from '../../constants';
+import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 
 export interface OrderProcessingParams {
   orderId: string;
@@ -38,6 +39,14 @@ const OrderProcessing = () => {
 
   const order = useSelector((state: RootState) => getOrderById(state, orderId));
 
+  const [{ error: cancelOrderError }, cancelOrder] = useDepositSdkMethod(
+    {
+      method: 'cancelOrder',
+      onMount: false,
+    },
+    orderId,
+  );
+
   const handleMainAction = useCallback(() => {
     if (
       order?.state === FIAT_ORDER_STATES.CANCELLED ||
@@ -54,9 +63,20 @@ const OrderProcessing = () => {
     Linking.openURL(TRANSAK_SUPPORT_URL);
   }, []);
 
-  const handleCancelOrder = useCallback(() => {
-    // TODO: Implement cancel order feature
-  }, []);
+  const handleCancelOrder = useCallback(async () => {
+    try {
+      await cancelOrder();
+
+      if (cancelOrderError) {
+        console.error(cancelOrderError);
+        return;
+      }
+
+      navigation.navigate(Routes.WALLET.HOME);
+    } catch (error) {
+      console.error(error);
+    }
+  }, [cancelOrder, cancelOrderError, navigation]);
 
   useEffect(() => {
     const title =

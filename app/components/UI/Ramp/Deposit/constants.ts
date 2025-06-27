@@ -70,6 +70,12 @@ export const DEBIT_CREDIT_PAYMENT_METHOD: DepositPaymentMethod = {
   duration: 'Instant',
 };
 
+export const SEPA_PAYMENT_METHOD: DepositPaymentMethod = {
+  id: 'sepa_bank_transfer',
+  name: 'SEPA',
+  duration: 'Instant',
+};
+
 export const USD_CURRENCY: DepositFiatCurrency = {
   id: 'USD',
   name: 'US Dollar',
