@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './styles';
@@ -13,6 +13,7 @@ import Icon, {
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
 import { TouchableOpacity, View, ViewStyle } from 'react-native';
+import Modal from 'react-native-modal';
 import { WalletDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/WalletDetails';
 import {
   AlignItems,
@@ -32,8 +33,9 @@ import { useWalletBalances } from '../hooks/useWalletBalances';
 import { RootState } from '../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import { useSelector } from 'react-redux';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
-import { getInternalAccountsFromWallet } from '../utils/getInternalAccountsFromWallet';
+import { useWalletInfo } from '../hooks/useWalletInfo';
 import Routes from '../../../../../constants/navigation/Routes';
+import WalletAddAccountActions from './components/WalletAddAccountActions';
 
 interface BaseWalletDetailsProps {
   wallet: AccountWallet;
@@ -47,6 +49,7 @@ export const BaseWalletDetails = ({
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
+  const [showAddAccountModal, setShowAddAccountModal] = useState(false);
 
   const accountAvatarType = useSelector(
     (state: RootState) => state.settings.useBlockieIcon,
@@ -54,10 +57,8 @@ export const BaseWalletDetails = ({
     ? AvatarAccountType.Blockies
     : AvatarAccountType.JazzIcon;
 
-  const accounts = useMemo(
-    () => getInternalAccountsFromWallet(wallet),
-    [wallet],
-  );
+  const { accounts, keyringId, srpIndex, isSRPBackedUp } =
+    useWalletInfo(wallet);
 
   const { formattedWalletTotalBalance, multichainBalancesForAllAccounts } =
     useWalletBalances(accounts);
@@ -71,18 +72,45 @@ export const BaseWalletDetails = ({
     [navigation],
   );
 
+  const handleRevealSRP = useCallback(() => {
+    if (keyringId) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+        keyringId,
+      });
+    }
+  }, [navigation, keyringId]);
+
+  const handleBackupPressed = useCallback(() => {
+    navigation.navigate(Routes.SET_PASSWORD_FLOW.ROOT, {
+      screen: Routes.SET_PASSWORD_FLOW.MANUAL_BACKUP_STEP_1,
+      params: { backupFlow: true },
+    });
+  }, [navigation]);
+
+  const handleAddAccount = useCallback(() => {
+    if (keyringId) {
+      setShowAddAccountModal(true);
+    }
+  }, [keyringId]);
+
+  const handleCloseAddAccountModal = useCallback(() => {
+    setShowAddAccountModal(false);
+  }, []);
+
   const renderAccountItem = (account: InternalAccount, index: number) => {
-    const totalAccounts = accounts.length;
+    const totalItemsCount = keyringId ? accounts.length + 1 : accounts.length; // Include add account item if keyringId exists
     const boxStyles: ViewStyle[] = [styles.accountBox];
     const balanceData = multichainBalancesForAllAccounts[account.id];
     const isAccountBalanceLoading =
       !balanceData || balanceData.isLoadingAccount;
     const accountBalance = balanceData?.displayBalance;
 
-    if (totalAccounts > 1) {
+    if (totalItemsCount > 1) {
       if (index === 0) {
         boxStyles.push(styles.firstAccountBox);
-      } else if (index === totalAccounts - 1) {
+      } else if (index === accounts.length - 1 && !keyringId) {
+        // Only make this the last item if there's no add account button
         boxStyles.push(styles.lastAccountBox);
       } else {
         boxStyles.push(styles.middleAccountBox as ViewStyle);
@@ -133,6 +161,48 @@ export const BaseWalletDetails = ({
               size={IconSize.Md}
               color={colors.text.alternative}
             />
+          </Box>
+        </Box>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderAddAccountItem = () => {
+    const totalItemsCount = accounts.length + 1;
+    const boxStyles: ViewStyle[] = [styles.accountBox];
+
+    if (totalItemsCount > 1) {
+      boxStyles.push(styles.lastAccountBox);
+    }
+
+    return (
+      <TouchableOpacity
+        key="add-account"
+        testID={WalletDetailsIds.ADD_ACCOUNT_BUTTON}
+        onPress={handleAddAccount}
+      >
+        <Box
+          style={boxStyles}
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          justifyContent={JustifyContent.spaceBetween}
+        >
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            gap={8}
+          >
+            <Icon
+              name={IconName.Add}
+              size={IconSize.Md}
+              color={colors.primary.default}
+            />
+            <Text
+              style={{ color: colors.primary.default }}
+              variant={TextVariant.BodyMDMedium}
+            >
+              {strings('multichain_accounts.wallet_details.add_account')}
+            </Text>
           </Box>
         </Box>
       </TouchableOpacity>
@@ -191,14 +261,92 @@ export const BaseWalletDetails = ({
             )}
           </Box>
         </View>
+        {keyringId && (
+          <TouchableOpacity
+            testID={WalletDetailsIds.REVEAL_SRP_BUTTON}
+            onPress={handleRevealSRP}
+            style={styles.srpRevealSection}
+          >
+            <Box
+              flexDirection={FlexDirection.Row}
+              alignItems={AlignItems.center}
+              justifyContent={JustifyContent.spaceBetween}
+              style={styles.srpRevealContent}
+            >
+              <Box
+                flexDirection={FlexDirection.Row}
+                alignItems={AlignItems.center}
+                gap={8}
+              >
+                <Text variant={TextVariant.BodyMDMedium}>
+                  {strings(
+                    'multichain_accounts.wallet_details.reveal_recovery_phrase_with_index',
+                    {
+                      index: srpIndex,
+                    },
+                  )}
+                </Text>
+              </Box>
+              <Box
+                flexDirection={FlexDirection.Row}
+                alignItems={AlignItems.center}
+                gap={8}
+              >
+                {isSRPBackedUp === false ? (
+                  <TouchableOpacity onPress={handleBackupPressed}>
+                    <Text
+                      variant={TextVariant.BodyMDMedium}
+                      style={{ color: colors.error.default }}
+                    >
+                      {strings('multichain_accounts.wallet_details.back_up')}
+                    </Text>
+                  </TouchableOpacity>
+                ) : null}
+                <Icon
+                  name={IconName.ArrowRight}
+                  size={IconSize.Md}
+                  color={colors.text.alternative}
+                />
+              </Box>
+            </Box>
+          </TouchableOpacity>
+        )}
         <View
           style={styles.accountsList}
           testID={WalletDetailsIds.ACCOUNTS_LIST}
         >
           {accounts.map((account, index) => renderAccountItem(account, index))}
+          {keyringId && renderAddAccountItem()}
         </View>
+
         {children}
       </View>
+
+      {keyringId && (
+        <Modal
+          isVisible={showAddAccountModal}
+          style={styles.modalStyle}
+          animationIn="slideInUp"
+          animationOut="slideOutDown"
+          onBackdropPress={handleCloseAddAccountModal}
+          onBackButtonPress={handleCloseAddAccountModal}
+          swipeDirection="down"
+          onSwipeComplete={handleCloseAddAccountModal}
+          backdropOpacity={0.5}
+        >
+          <View
+            style={[
+              styles.modalContent,
+              { backgroundColor: colors.background.default },
+            ]}
+          >
+            <WalletAddAccountActions
+              keyringId={keyringId}
+              onBack={handleCloseAddAccountModal}
+            />
+          </View>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 };

@@ -101,6 +101,10 @@ describe(Regression('Swap from Token view'), (): void => {
     await QuoteView.typeSearchToken(destTokenSymbol);
     await TestHelpers.delay(3000);
     await QuoteView.selectToken(destTokenSymbol);
+
+    // This call is needed because otherwise the device never becomes idle
+    await device.disableSynchronization();
+
     await QuoteView.tapOnGetQuotes();
     
     // Try to find either the fetching quotes state or the quote summary

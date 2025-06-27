@@ -276,12 +276,15 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
           </View>
           <View
             style={
-              {
-                "flex": 0,
-                "flexDirection": "row",
-                "paddingHorizontal": 24,
-                "paddingVertical": 16,
-              }
+              [
+                {
+                  "flex": 0,
+                  "flexDirection": "row",
+                  "paddingHorizontal": 16,
+                  "paddingVertical": 16,
+                },
+                undefined,
+              ]
             }
           >
             <TouchableOpacity
@@ -436,6 +439,8 @@ exports[`AddAsset component renders token view correctly 1`] = `
   <View>
     <RCTScrollView
       collapsable={false}
+      handlerTag={1}
+      handlerType="NativeViewGestureHandler"
       onGestureHandlerEvent={[Function]}
       onGestureHandlerStateChange={[Function]}
       style={

@@ -3,11 +3,7 @@ import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import BuildQuote from './BuildQuote';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
-import {
-  DepositCryptoCurrency,
-  DepositFiatCurrency,
-  DepositPaymentMethod,
-} from '../../constants';
+
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 const mockNavigate = jest.fn();
@@ -19,10 +15,6 @@ const mockFetchKycFormData = jest.fn();
 const mockFetchUserDetails = jest.fn();
 const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
-const mockGetTransakFiatCurrencyId = jest.fn();
-const mockGetTransakCryptoCurrencyId = jest.fn();
-const mockGetTransakChainId = jest.fn();
-const mockGetTransakPaymentMethodId = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -70,16 +62,6 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
 jest.mock('../../hooks/useDepositTokenExchange', () => ({
   __esModule: true,
   default: () => mockUseDepositTokenExchange(),
-}));
-
-jest.mock('../../utils', () => ({
-  getTransakFiatCurrencyId: (fiatCurrency: DepositFiatCurrency) =>
-    mockGetTransakFiatCurrencyId(fiatCurrency),
-  getTransakCryptoCurrencyId: (cryptoCurrency: DepositCryptoCurrency) =>
-    mockGetTransakCryptoCurrencyId(cryptoCurrency),
-  getTransakChainId: (chainId: string) => mockGetTransakChainId(chainId),
-  getTransakPaymentMethodId: (paymentMethod: DepositPaymentMethod) =>
-    mockGetTransakPaymentMethodId(paymentMethod),
 }));
 
 jest.mock('../ProviderWebview/ProviderWebview', () => ({
@@ -135,10 +117,6 @@ describe('BuildQuote Component', () => {
     mockUseDepositTokenExchange.mockReturnValue({
       tokenAmount: '0.00',
     });
-    mockGetTransakFiatCurrencyId.mockReturnValue('USD');
-    mockGetTransakCryptoCurrencyId.mockReturnValue('USDC');
-    mockGetTransakChainId.mockReturnValue('ethereum');
-    mockGetTransakPaymentMethodId.mockReturnValue('credit_debit_card');
   });
 
   it('render matches snapshot', () => {
@@ -156,16 +134,29 @@ describe('BuildQuote Component', () => {
       render(BuildQuote);
       const regionButton = screen.getByText('US');
       fireEvent.press(regionButton);
-      expect(screen.toJSON()).toMatchSnapshot();
-    });
 
-    it('updates fiat currency when selecting a supported region', () => {
+      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositRegionSelectorModal',
+        params: {
+          selectedRegionCode: 'US',
+          handleSelectRegion: expect.any(Function),
+        },
+      });
+    });
+  });
+
+  describe('Payment Method Selection', () => {
+    it('navigates to payment method selection payment button is pressed', () => {
       render(BuildQuote);
-      const regionButton = screen.getByText('US');
-      fireEvent.press(regionButton);
-      const germanyElement = screen.getByText('Belgium');
-      fireEvent.press(germanyElement);
-      expect(screen.toJSON()).toMatchSnapshot();
+      const payWithButton = screen.getByText('Pay with');
+      fireEvent.press(payWithButton);
+      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositPaymentMethodSelectorModal',
+        params: {
+          handleSelectPaymentMethodId: expect.any(Function),
+          selectedPaymentMethodId: 'credit_debit_card',
+        },
+      });
     });
   });
 
@@ -205,10 +196,6 @@ describe('BuildQuote Component', () => {
       fireEvent.press(continueButton);
 
       await waitFor(() => {
-        expect(mockGetTransakFiatCurrencyId).toHaveBeenCalled();
-        expect(mockGetTransakCryptoCurrencyId).toHaveBeenCalled();
-        expect(mockGetTransakChainId).toHaveBeenCalled();
-        expect(mockGetTransakPaymentMethodId).toHaveBeenCalled();
         expect(mockGetQuote).toHaveBeenCalledWith(
           'USD',
           'USDC',
@@ -216,22 +203,6 @@ describe('BuildQuote Component', () => {
           'credit_debit_card',
           '0',
         );
-      });
-    });
-
-    it('handles errors from utility functions', async () => {
-      mockGetTransakFiatCurrencyId.mockImplementation(() => {
-        throw new Error('Unsupported fiat currency');
-      });
-
-      render(BuildQuote);
-
-      const continueButton = screen.getByText('Continue');
-      fireEvent.press(continueButton);
-
-      await waitFor(() => {
-        expect(mockGetQuote).not.toHaveBeenCalled();
-        expect(mockNavigate).not.toHaveBeenCalled();
       });
     });
 
@@ -429,23 +400,6 @@ describe('BuildQuote Component', () => {
       mockFetchKycForms.mockRejectedValue(
         new Error('Failed to fetch KYC forms'),
       );
-
-      render(BuildQuote);
-
-      const continueButton = screen.getByText('Continue');
-      await act(async () => {
-        fireEvent.press(continueButton);
-      });
-
-      await waitFor(() => {
-        expect(screen.toJSON()).toMatchSnapshot();
-      });
-    });
-
-    it('renders unexpected error snapshot when an unexpected error occurs', async () => {
-      mockGetTransakFiatCurrencyId.mockImplementation(() => {
-        throw new Error('Unexpected error');
-      });
 
       render(BuildQuote);
 

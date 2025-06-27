@@ -137,6 +137,7 @@ exports[`EarnLendingBalance does renders earnings for output tokens 1`] = `
                     "width": 24,
                   }
                 }
+                testID="annual-rate-tooltip"
               >
                 <SvgMock
                   color="#9ca1af"
@@ -169,78 +170,6 @@ exports[`EarnLendingBalance does renders earnings for output tokens 1`] = `
               5.2
                APR
             </Text>
-          </View>
-          <View
-            style={
-              {
-                "flexDirection": "row",
-                "justifyContent": "space-between",
-                "paddingVertical": 8,
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                }
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#686e7d",
-                    "fontFamily": "CentraNo1-Medium",
-                    "fontSize": 16,
-                    "fontWeight": "500",
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                Lifetime rewards
-              </Text>
-            </View>
-            <View
-              style={
-                {
-                  "alignItems": "flex-end",
-                }
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#121314",
-                    "fontFamily": "CentraNo1-Book",
-                    "fontSize": 16,
-                    "fontWeight": "400",
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                $10.34
-              </Text>
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#686e7d",
-                    "fontFamily": "CentraNo1-Medium",
-                    "fontSize": 14,
-                    "fontWeight": "500",
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                  }
-                }
-              >
-                10.34 DAI
-              </Text>
-            </View>
           </View>
           <View
             style={
@@ -314,47 +243,6 @@ exports[`EarnLendingBalance does renders earnings for output tokens 1`] = `
               </Text>
             </View>
           </View>
-        </View>
-        <View>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
-            style={
-              {
-                "alignItems": "center",
-                "alignSelf": "stretch",
-                "backgroundColor": "transparent",
-                "borderColor": "#4459ff",
-                "borderRadius": 12,
-                "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 40,
-                "justifyContent": "center",
-                "paddingHorizontal": 16,
-              }
-            }
-            testID="earn-earnings-history-button"
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Medium",
-                  "fontSize": 16,
-                  "fontWeight": "500",
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            >
-              View position history
-            </Text>
-          </TouchableOpacity>
         </View>
       </View>
     </View>

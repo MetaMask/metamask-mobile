@@ -52,6 +52,14 @@ const styleSheet = (params: { theme: Theme }) => {
       borderBottomLeftRadius: 8,
       borderBottomRightRadius: 8,
     },
+    srpRevealSection: {
+      ...baseRowStyle,
+      borderRadius: 8,
+      marginTop: 16,
+    },
+    srpRevealContent: {
+      flex: 1,
+    },
     accountsList: {
       marginTop: 16,
       flexDirection: 'column',
@@ -76,6 +84,14 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     text: {
       color: colors.text.alternative,
+    },
+    modalStyle: {
+      justifyContent: 'flex-end',
+      margin: 0,
+    },
+    modalContent: {
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
     },
   });
 };
