@@ -1,11 +1,20 @@
 package com.metamask.ui.base
 
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.uiautomator.UiDevice
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
 import org.junit.Before
 
+/**
+ * To run all UI tests call yarn test:native:android
+ */
 abstract class BaseUiTest {
+
+  val device: UiDevice by lazy(LazyThreadSafetyMode.NONE) {
+    UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+  }
 
   private lateinit var mockWebServer: MockWebServer
 
