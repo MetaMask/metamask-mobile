@@ -53,8 +53,7 @@ import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants
 import { toHex } from '@metamask/controller-utils';
 import AccountNetworkIndicator from '../AccountNetworkIndicator';
 import { Skeleton } from '../../../component-library/components/Skeleton';
-import { selectInternalAccounts } from '../../../selectors/accountsController';
-import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
+import { selectInternalAccounts, selectInternalAccountsById } from '../../../selectors/accountsController';
 import { AccountWallet } from '@metamask/account-tree-controller';
 
 /**
@@ -103,16 +102,13 @@ const EvmAccountSelectorList = ({
 
   const accountTreeSections = useSelector(selectAccountSections);
   const internalAccounts = useSelector(selectInternalAccounts);
+  const internalAccountsById = useSelector(selectInternalAccountsById);
 
   const accountSections = useMemo((): AccountSection[] => {
     if (accountTreeSections) {
       const accountsById = new Map<string, Account>();
       internalAccounts.forEach((account) => {
-        const formattedAddress =
-          getFormattedAddressFromInternalAccount(account);
-        const accountObj = accounts.find((a) =>
-          areAddressesEqual(a.address, formattedAddress),
-        );
+        const accountObj = accounts.find((a) => a.id === account.id);
         if (accountObj) {
           accountsById.set(account.id, accountObj);
         }
@@ -395,6 +391,7 @@ const EvmAccountSelectorList = ({
 
       // Render account item
       const {
+        id,
         name,
         address,
         assets,
@@ -402,9 +399,9 @@ const EvmAccountSelectorList = ({
         isSelected,
         balanceError,
         isLoadingAccount,
-        internalAccount,
       } = item.data;
 
+      const internalAccount = internalAccountsById[id];
       const shortAddress = formatAddress(address, 'short');
       const tagLabel = accountTreeSections
         ? undefined
@@ -521,6 +518,7 @@ const EvmAccountSelectorList = ({
       accountTreeSections,
       renderSectionHeader,
       renderSectionFooter,
+      internalAccountsById,
     ],
   );
 
