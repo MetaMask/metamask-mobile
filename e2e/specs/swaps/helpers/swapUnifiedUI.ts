@@ -6,16 +6,17 @@ export async function submitSwapUnifiedUI(
   quantity: string,
   sourceTokenSymbol: string,
   destTokenSymbol: string,
+  chainId: string,
 ) {
     await device.disableSynchronization();
     await QuoteView.enterAmount(quantity);
-    if (type !== 'native' && type !== 'wrap') {
-      await QuoteView.tapToken('ETH');
-      await QuoteView.selectSourceToken(sourceTokenSymbol);
-    }
+
+    await QuoteView.tapSourceToken();
+    await QuoteView.selectSourceToken(chainId, sourceTokenSymbol);
+
     await QuoteView.tapSwapTo();
     await QuoteView.selectNetwork('Tenderly - Mainnet');
-    await QuoteView.selectDestToken(destTokenSymbol);
+    await QuoteView.selectDestToken(chainId, destTokenSymbol);
 
     await device.disableSynchronization();
     await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
