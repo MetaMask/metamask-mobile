@@ -40,6 +40,7 @@ import {
 import { Transaction } from '@metamask/keyring-api';
 import { getMultichainTxFees } from '../../../../hooks/useMultichainTransactionDisplay/useMultichainTransactionDisplay';
 import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
+import { StatusResponse } from '@metamask/bridge-status-controller';
 // import { renderShortAddress } from '../../../../../util/address';
 
 const styles = StyleSheet.create({
@@ -114,6 +115,39 @@ const SwapStatusToColorMap: Record<TransactionStatus, TextColor> = {
   [TransactionStatus.dropped]: TextColor.Error,
   [TransactionStatus.rejected]: TextColor.Error,
   [TransactionStatus.cancelled]: TextColor.Error,
+};
+
+const MultichainTxStatusToColorMap: Record<Transaction['status'], TextColor> = {
+  'submitted': TextColor.Warning,
+  'confirmed': TextColor.Success,
+  'unconfirmed': TextColor.Warning,
+  'failed': TextColor.Error,
+};
+
+const getStatusColor = ({
+  isBridge,
+  isSwap,
+  multiChainTx,
+  bridgeStatus,
+  evmTxMeta,
+}: {
+  isBridge: boolean;
+  isSwap: boolean;
+  multiChainTx?: Transaction;
+  bridgeStatus?: StatusResponse;
+  evmTxMeta?: TransactionMeta;
+}) => {
+  if (isBridge && bridgeStatus) {
+    return BridgeStatusToColorMap[bridgeStatus.status];
+  }
+  if (isSwap && evmTxMeta) {
+    return SwapStatusToColorMap[evmTxMeta.status as TransactionStatus];
+  }
+  if (multiChainTx) {
+    return MultichainTxStatusToColorMap[multiChainTx.status];
+  }
+
+  return TextColor.Error;
 };
 
 export const BridgeTransactionDetails = (
@@ -255,15 +289,18 @@ export const BridgeTransactionDetails = (
           >
             <Text
               variant={TextVariant.BodyMDMedium}
-              color={
-                isBridge
-                  ? BridgeStatusToColorMap[bridgeStatus.status]
-                  : SwapStatusToColorMap[evmTxMeta?.status as TransactionStatus]
-              }
+              color={getStatusColor({
+                isBridge,
+                isSwap,
+                multiChainTx,
+                bridgeStatus,
+                evmTxMeta,
+              })}
               style={styles.textTransform}
             >
               {isBridge ? bridgeStatus.status : null}
               {isSwap ? evmTxMeta?.status : null}
+              {multiChainTx ? multiChainTx.status : null}
             </Text>
           </Box>
         </Box>
