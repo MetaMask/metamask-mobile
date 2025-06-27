@@ -1,7 +1,6 @@
 import { BaseControllerMessenger } from '../../../core/Engine';
 import type {
   SamplePetnamesControllerMessenger,
-  SamplePetnamesControllerEvents,
 } from '@metamask/sample-controllers';
 
 /**
@@ -15,7 +14,5 @@ export const getSamplePetnamesControllerMessenger = (
 ): SamplePetnamesControllerMessenger => baseMessenger.getRestricted({
     name: 'SamplePetnamesController',
     allowedActions: [],
-    allowedEvents: [
-      'SamplePetnamesController:stateChange',
-    ] as SamplePetnamesControllerEvents['type'][],
+    allowedEvents: [],
   });
