@@ -5,14 +5,15 @@ import { config } from '../../wdio.conf';
 config.capabilities = [
   {
     platformName: 'Android',
-    noReset: false,
-    fullReset: false,
-    maxInstances: 1,
-    deviceName: 'Pixel 5 API 32',
-    platformVersion: '13',
-    app: './android/app/build/outputs/apk/qa/debug/app-qa-debug.apk',
-    automationName: 'uiautomator2',
+    'appium:noReset': false,
+    'appium:fullReset': false,
+    'appium:maxInstances': 1,
+    'appium:deviceName':'Samsung Galaxy S23 Ultra',
+    'appium:os_version':'13.0',
+    'appium:app': './android/app/build/outputs/apk/qa/debug/app-qa-debug.apk',
+    'appium:automationName': 'uiautomator2',
   },
+
 ];
 
 config.cucumberOpts.tagExpression = '@performance and @androidApp'; // pass tag to run tests specific to android
