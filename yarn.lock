@@ -4637,10 +4637,10 @@
     "@metamask/snaps-utils" "^9.4.0"
     lodash "^4.17.21"
 
-"@metamask/accounts-controller@^30.0.0":
-  version "30.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-30.0.0.tgz#641f007a9a4ccb0e5eedbc0deb38c543058b64af"
-  integrity sha512-nbTOtT4J9ovc3dMdv6kECyoT8nr36qeeAmbnvrfwBsnGdGb6ELm3NGj+oJ2WfPxq1Mqo9ImpeNmFe5zt8QaZjg==
+"@metamask/accounts-controller@^31.0.0":
+  version "31.0.0"
+  resolved "https://registry.npmjs.org/@metamask/accounts-controller/-/accounts-controller-31.0.0.tgz#7736c7e30c8a957906025c36eb7e4e69c3fa965a"
+  integrity sha512-ie1jnPl+FCaeURynxcf8F+4+eTtGDFZW4uCfi2t/DkoyZWkJ1xv2jI9ICJVw1aA91JXgPm4k2B/NQQbnVMKO4w==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@metamask/base-controller" "^8.0.1"
@@ -4880,10 +4880,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-7.0.0.tgz#3434c19fb52a0cba15242085867236c3ec1c2aea"
   integrity sha512-M92BTgygZ4zteKL0tlWnXMpeWUY2cyraP1g+f6xIH67litdSu5iUyp2nhzVIlzHwGR+ycQAaicSscKyKm3aUVQ==
 
-"@metamask/earn-controller@^1.1.1":
-  version "1.1.1"
-  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-1.1.1.tgz#1c64338be56cf1e920ffe162efb198d31c19e8be"
-  integrity sha512-O5Py8A/I36wiqmJvZX/g20jtcBL3qAGQw4Ss8XEIoUNsC2xRjNsL1q0zF43CpUQYIy8zg1yu6zLnKHtIZirkEA==
+"@metamask/earn-controller@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-2.0.1.tgz#e3486fc2e9aeb8dc292629ad01d8de075ac64326"
+  integrity sha512-sriAsbMjvTQ1sx6K6gRgzEKlLW0wlJidvGhbI/nWZvZKaYy3xhPPmVBXIau4huwWUfSy1ohINPEnqsjRS2WInw==
   dependencies:
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
