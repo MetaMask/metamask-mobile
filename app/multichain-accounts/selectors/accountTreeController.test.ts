@@ -4,6 +4,14 @@ import {
 } from './accountTreeController';
 import { RootState } from '../../reducers';
 
+const WALLET_ID_1 = 'keyring:wallet1';
+const WALLET_ID_2 = 'keyring:wallet2';
+const WALLET_ID_A = 'keyring:wallet-a';
+const WALLET_ID_B = 'keyring:wallet-b';
+const WALLET_ID_NONEXISTENT = 'keyring:nonexistent';
+const WALLET_ID_WITH_GROUPS = 'keyring:wallet-with-groups';
+const WALLET_ID_EMPTY = 'keyring:empty-wallet';
+
 describe('AccountTreeController Selectors', () => {
   describe('selectAccountSections', () => {
     it('returns null when accountTree is undefined', () => {
@@ -48,7 +56,7 @@ describe('AccountTreeController Selectors', () => {
             AccountTreeController: {
               accountTree: {
                 wallets: {
-                  wallet1: {
+                  [WALLET_ID_1]: {
                     metadata: {
                       name: 'Wallet 1',
                     },
@@ -61,7 +69,7 @@ describe('AccountTreeController Selectors', () => {
                       },
                     },
                   },
-                  wallet2: {
+                  [WALLET_ID_2]: {
                     metadata: {
                       name: 'Wallet 2',
                     },
@@ -164,7 +172,7 @@ describe('AccountTreeController Selectors', () => {
       } as unknown as RootState;
 
       const selector = selectWalletById(mockState);
-      const result = selector('wallet1');
+      const result = selector(WALLET_ID_1);
       expect(result).toEqual(null);
     });
 
@@ -175,8 +183,8 @@ describe('AccountTreeController Selectors', () => {
             AccountTreeController: {
               accountTree: {
                 wallets: {
-                  wallet1: {
-                    id: 'wallet1',
+                  [WALLET_ID_1]: {
+                    id: WALLET_ID_1,
                     metadata: { name: 'Wallet 1' },
                     groups: {},
                   },
@@ -197,13 +205,13 @@ describe('AccountTreeController Selectors', () => {
       } as unknown as RootState;
 
       const selector = selectWalletById(mockState);
-      const result = selector('wallet1');
+      const result = selector(WALLET_ID_1);
       expect(result).toEqual(null);
     });
 
     it('returns wallet when found by ID', () => {
       const mockWallet = {
-        id: 'wallet1',
+        id: WALLET_ID_1,
         metadata: { name: 'Wallet 1' },
         groups: {
           group1: {
@@ -218,9 +226,9 @@ describe('AccountTreeController Selectors', () => {
             AccountTreeController: {
               accountTree: {
                 wallets: {
-                  wallet1: mockWallet,
-                  wallet2: {
-                    id: 'wallet2',
+                  [WALLET_ID_1]: mockWallet,
+                  [WALLET_ID_2]: {
+                    id: WALLET_ID_2,
                     metadata: { name: 'Wallet 2' },
                     groups: {},
                   },
@@ -241,7 +249,7 @@ describe('AccountTreeController Selectors', () => {
       } as unknown as RootState;
 
       const selector = selectWalletById(mockState);
-      const result = selector('wallet1');
+      const result = selector(WALLET_ID_1);
       expect(result).toEqual(mockWallet);
     });
 
@@ -252,8 +260,8 @@ describe('AccountTreeController Selectors', () => {
             AccountTreeController: {
               accountTree: {
                 wallets: {
-                  wallet1: {
-                    id: 'wallet1',
+                  [WALLET_ID_1]: {
+                    id: WALLET_ID_1,
                     metadata: { name: 'Wallet 1' },
                     groups: {},
                   },
@@ -274,7 +282,7 @@ describe('AccountTreeController Selectors', () => {
       } as unknown as RootState;
 
       const selector = selectWalletById(mockState);
-      const result = selector('nonexistent-wallet');
+      const result = selector(WALLET_ID_NONEXISTENT);
       expect(result).toEqual(null);
     });
 
@@ -301,13 +309,13 @@ describe('AccountTreeController Selectors', () => {
       } as unknown as RootState;
 
       const selector = selectWalletById(mockState);
-      const result = selector('wallet1');
+      const result = selector(WALLET_ID_1);
       expect(result).toEqual(null);
     });
 
     it('returns correct wallet when multiple wallets exist', () => {
       const mockWallet1 = {
-        id: 'wallet1',
+        id: WALLET_ID_1,
         metadata: { name: 'First Wallet' },
         groups: {
           'keyring:1:ethereum': {
@@ -317,7 +325,7 @@ describe('AccountTreeController Selectors', () => {
       };
 
       const mockWallet2 = {
-        id: 'wallet2',
+        id: WALLET_ID_2,
         metadata: { name: 'Second Wallet' },
         groups: {
           'snap:solana:mainnet': {
@@ -334,8 +342,8 @@ describe('AccountTreeController Selectors', () => {
             AccountTreeController: {
               accountTree: {
                 wallets: {
-                  wallet1: mockWallet1,
-                  wallet2: mockWallet2,
+                  [WALLET_ID_1]: mockWallet1,
+                  [WALLET_ID_2]: mockWallet2,
                 },
               },
             },
@@ -355,17 +363,17 @@ describe('AccountTreeController Selectors', () => {
       const selector = selectWalletById(mockState);
 
       // Test retrieving first wallet
-      const result1 = selector('wallet1');
+      const result1 = selector(WALLET_ID_1);
       expect(result1).toEqual(mockWallet1);
 
       // Test retrieving second wallet
-      const result2 = selector('wallet2');
+      const result2 = selector(WALLET_ID_2);
       expect(result2).toEqual(mockWallet2);
     });
 
     it('returns wallet with metadata and various group structures', () => {
       const mockWalletWithGroups = {
-        id: 'wallet-with-groups',
+        id: WALLET_ID_WITH_GROUPS,
         metadata: { name: 'Test Wallet with Groups' },
         groups: {
           'keyring:1:ethereum': {
@@ -383,7 +391,7 @@ describe('AccountTreeController Selectors', () => {
       };
 
       const mockEmptyWallet = {
-        id: 'empty-wallet',
+        id: WALLET_ID_EMPTY,
         metadata: { name: 'Empty Wallet' },
         groups: {},
       };
@@ -394,8 +402,8 @@ describe('AccountTreeController Selectors', () => {
             AccountTreeController: {
               accountTree: {
                 wallets: {
-                  'wallet-with-groups': mockWalletWithGroups,
-                  'empty-wallet': mockEmptyWallet,
+                  [WALLET_ID_WITH_GROUPS]: mockWalletWithGroups,
+                  [WALLET_ID_EMPTY]: mockEmptyWallet,
                 },
               },
             },
@@ -415,7 +423,7 @@ describe('AccountTreeController Selectors', () => {
       const selector = selectWalletById(mockState);
 
       // Test wallet with groups
-      const walletWithGroups = selector('wallet-with-groups');
+      const walletWithGroups = selector(WALLET_ID_WITH_GROUPS);
       expect(walletWithGroups).toEqual(mockWalletWithGroups);
       expect(walletWithGroups?.metadata.name).toBe('Test Wallet with Groups');
       expect(
@@ -426,7 +434,7 @@ describe('AccountTreeController Selectors', () => {
       ).toHaveLength(1);
 
       // Test wallet with empty groups
-      const emptyWallet = selector('empty-wallet');
+      const emptyWallet = selector(WALLET_ID_EMPTY);
       expect(emptyWallet).toEqual(mockEmptyWallet);
       expect(emptyWallet?.metadata.name).toBe('Empty Wallet');
       expect(Object.keys(emptyWallet?.groups || {})).toHaveLength(0);
@@ -434,13 +442,13 @@ describe('AccountTreeController Selectors', () => {
 
     it('selector function can be called multiple times with different IDs', () => {
       const mockWallet1 = {
-        id: 'wallet-a',
+        id: WALLET_ID_A,
         metadata: { name: 'Wallet A' },
         groups: {},
       };
 
       const mockWallet2 = {
-        id: 'wallet-b',
+        id: WALLET_ID_B,
         metadata: { name: 'Wallet B' },
         groups: {},
       };
@@ -451,8 +459,8 @@ describe('AccountTreeController Selectors', () => {
             AccountTreeController: {
               accountTree: {
                 wallets: {
-                  'wallet-a': mockWallet1,
-                  'wallet-b': mockWallet2,
+                  [WALLET_ID_A]: mockWallet1,
+                  [WALLET_ID_B]: mockWallet2,
                 },
               },
             },
@@ -472,10 +480,10 @@ describe('AccountTreeController Selectors', () => {
       const selector = selectWalletById(mockState);
 
       // Test multiple calls to the same selector function
-      expect(selector('wallet-a')).toEqual(mockWallet1);
-      expect(selector('wallet-b')).toEqual(mockWallet2);
-      expect(selector('nonexistent')).toBeNull();
-      expect(selector('wallet-a')).toEqual(mockWallet1); // Test calling again
+      expect(selector(WALLET_ID_A)).toEqual(mockWallet1);
+      expect(selector(WALLET_ID_B)).toEqual(mockWallet2);
+      expect(selector(WALLET_ID_NONEXISTENT)).toBeNull();
+      expect(selector(WALLET_ID_A)).toEqual(mockWallet1); // Test calling again
     });
   });
 });
