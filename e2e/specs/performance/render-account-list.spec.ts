@@ -115,7 +115,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
     );
   });
 
-  it('handle account list performance with heavy token load w/profile syncing', async () => {
+  it('handle account list performance with heavy token load', async () => {
     // Create a large number of test tokens to stress test the system
     const heavyTokenLoad = [];
     for (let i = 1; i <= 50; i++) {
@@ -128,16 +128,10 @@ describe(SmokePerformance('Account List Load Testing'), () => {
       });
     }
 
-    const HEAVY_LOAD_THRESHOLDS =
-      device.getPlatform() === 'android'
-        ? {
-            ACCOUNT_LIST_RENDER: 35000, // Allow more time for heavy load
-            NAVIGATION_TO_ACCOUNT_LIST: 2500, // Allow more time for heavy load
-          }
-        : {
-            ACCOUNT_LIST_RENDER: 8000, // Allow more time for heavy load
-            NAVIGATION_TO_ACCOUNT_LIST: 3000,
-          };
+    const HEAVY_LOAD_THRESHOLDS = {
+      ACCOUNT_LIST_RENDER: 8000, // Allow more time for heavy load
+      NAVIGATION_TO_ACCOUNT_LIST: 3000,
+    };
 
     await withFixtures(
       {
@@ -181,7 +175,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
     );
   });
 
-  it('handle network list performance with heavy token load + all popular networks w/profile syncing', async () => {
+  it('handle network list performance with heavy token load + all popular networks', async () => {
     // Create a large number of test tokens to stress test the system
     const heavyTokenLoad = [];
     for (let i = 1; i <= 50; i++) {
@@ -194,16 +188,10 @@ describe(SmokePerformance('Account List Load Testing'), () => {
       });
     }
 
-    const HEAVY_LOAD_THRESHOLDS =
-      device.getPlatform() === 'android'
-        ? {
-            ACCOUNT_LIST_RENDER: 35000, // Allow more time for heavy load
-            NAVIGATION_TO_ACCOUNT_LIST: 2500, // Allow more time for heavy load
-          }
-        : {
-            ACCOUNT_LIST_RENDER: 8000, // Allow more time for heavy load
-            NAVIGATION_TO_ACCOUNT_LIST: 3000,
-          };
+    const HEAVY_LOAD_THRESHOLDS = {
+      ACCOUNT_LIST_RENDER: 8000, // Allow more time for heavy load
+      NAVIGATION_TO_ACCOUNT_LIST: 3000,
+    };
 
     await withFixtures(
       {
@@ -298,17 +286,6 @@ describe(SmokePerformance('Account List Load Testing'), () => {
       },
     ];
 
-    const MINIMAL_LOAD_THRESHOLDS =
-      device.getPlatform() === 'android'
-        ? {
-            ACCOUNT_LIST_RENDER: 35000, // Allow more time for heavy load
-            NAVIGATION_TO_ACCOUNT_LIST: 2500, // Allow more time for heavy load
-          }
-        : {
-            ACCOUNT_LIST_RENDER: 8000, // Allow more time for heavy load
-            NAVIGATION_TO_ACCOUNT_LIST: 3000,
-          };
-
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -335,11 +312,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
         console.log('==========================================');
 
         // Baseline should be very fast
-        if (
-          totalTime >
-          MINIMAL_LOAD_THRESHOLDS.ACCOUNT_LIST_RENDER +
-            MINIMAL_LOAD_THRESHOLDS.NAVIGATION_TO_ACCOUNT_LIST
-        ) {
+        if (totalTime > 3000) {
           console.warn(
             `⚠️  BASELINE WARNING: Even minimal load took ${totalTime}ms`,
           );
