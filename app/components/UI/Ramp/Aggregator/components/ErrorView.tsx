@@ -8,7 +8,7 @@ import StyledButton from '../../../StyledButton';
 import { strings } from '../../../../../../locales/i18n';
 import { Colors } from '../../../../../util/theme/models';
 import { ScreenLocation } from '../types';
-import useAnalytics from '../hooks/useAnalytics';
+import useAnalytics from '../../hooks/useAnalytics';
 import { useRampSDK } from '../sdk';
 
 type IconType = 'error' | 'info' | 'expired';

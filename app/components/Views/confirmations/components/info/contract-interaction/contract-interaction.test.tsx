@@ -130,7 +130,7 @@ describe('ContractInteraction', () => {
 
     jest.spyOn(EditNonceHook, 'useEditNonce').mockReturnValue({
       setShowNonceModal: jest.fn(),
-      setUserSelectedNonce: jest.fn(),
+      updateNonce: jest.fn(),
       showNonceModal: false,
       proposedNonce: 10,
       userSelectedNonce: 10,

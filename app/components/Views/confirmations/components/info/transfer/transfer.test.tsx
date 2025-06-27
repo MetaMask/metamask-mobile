@@ -24,25 +24,33 @@ jest.mock('../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
 }));
 
-jest.mock('../../../../../../core/Engine', () => ({
-  getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
-  context: {
-    NetworkController: {
-      getNetworkConfigurationByNetworkClientId: jest.fn(),
+jest.mock('../../../../../../core/Engine', () => {
+  const { otherControllersMock } = jest.requireActual(
+    '../../../__mocks__/controllers/other-controllers-mock',
+  );
+  return {
+    getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
+    context: {
+      NetworkController: {
+        getNetworkConfigurationByNetworkClientId: jest.fn(),
+      },
+      GasFeeController: {
+        startPolling: jest.fn(),
+        stopPollingByPollingToken: jest.fn(),
+      },
+      TransactionController: {
+        updateTransaction: jest.fn(),
+        getTransactions: jest.fn().mockReturnValue([]),
+        getNonceLock: jest
+          .fn()
+          .mockResolvedValue({ nextNonce: 2, releaseLock: jest.fn() }),
+      },
+      KeyringController: {
+        state: otherControllersMock.engine.backgroundState.KeyringController,
+      },
     },
-    GasFeeController: {
-      startPolling: jest.fn(),
-      stopPollingByPollingToken: jest.fn(),
-    },
-    TransactionController: {
-      updateTransaction: jest.fn(),
-      getTransactions: jest.fn().mockReturnValue([]),
-      getNonceLock: jest
-        .fn()
-        .mockResolvedValue({ nextNonce: 2, releaseLock: jest.fn() }),
-    },
-  },
-}));
+  };
+});
 
 jest.mock('../../../hooks/useConfirmActions', () => ({
   useConfirmActions: jest.fn(),
@@ -75,7 +83,9 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('Transfer', () => {
-  const mockUseClearConfirmationOnBackSwipe = jest.mocked(useClearConfirmationOnBackSwipe);
+  const mockUseClearConfirmationOnBackSwipe = jest.mocked(
+    useClearConfirmationOnBackSwipe,
+  );
   const mockTrackPageViewedEvent = jest.fn();
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
   const mockUseConfirmationMetricEvents = jest.mocked(
@@ -128,7 +138,8 @@ describe('Transfer', () => {
 
   it('renders simulation details if transfer initiated by dapp', () => {
     const state = cloneDeep(transferConfirmationState);
-    state.engine.backgroundState.TransactionController.transactions[0].origin = 'https://dapp.com';
+    state.engine.backgroundState.TransactionController.transactions[0].origin =
+      'https://dapp.com';
     const { getByText } = renderWithProvider(<Transfer />, {
       state,
     });

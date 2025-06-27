@@ -228,6 +228,9 @@ describe('DeFiPositionsList', () => {
     expect(
       await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER),
     ).toBeOnTheScreen();
+    expect(
+      await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER),
+    ).toBeOnTheScreen();
     expect(await findByText('Protocol 1')).toBeOnTheScreen();
     expect(await findByText('Protocol 2')).toBeOnTheScreen();
     expect(await findByText('$100.00')).toBeOnTheScreen();
@@ -239,7 +242,7 @@ describe('DeFiPositionsList', () => {
   });
 
   it('renders the loading positions message when positions are not yet available', async () => {
-    const { findByText } = renderWithProvider(
+    const { queryByTestId, findByText } = renderWithProvider(
       <DeFiPositionsList tabLabel="DeFi" />,
       {
         state: {
@@ -257,11 +260,14 @@ describe('DeFiPositionsList', () => {
       },
     );
 
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER),
+    ).not.toBeOnTheScreen();
     expect(await findByText('Loading DeFi positions...')).toBeOnTheScreen();
   });
 
   it('renders the error message when the positions fetching failed for that address', async () => {
-    const { findByText } = renderWithProvider(
+    const { queryByTestId, findByText } = renderWithProvider(
       <DeFiPositionsList tabLabel="DeFi" />,
       {
         state: {
@@ -281,12 +287,15 @@ describe('DeFiPositionsList', () => {
       },
     );
 
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER),
+    ).not.toBeOnTheScreen();
     expect(await findByText(`We could not load this page.`)).toBeOnTheScreen();
     expect(await findByText(`Try visiting again later.`)).toBeOnTheScreen();
   });
 
   it('renders the no positions message when there are no positions for that chain', async () => {
-    const { findByText } = renderWithProvider(
+    const { findByTestId, findByText } = renderWithProvider(
       <DeFiPositionsList tabLabel="DeFi" />,
       {
         state: {
@@ -305,6 +314,12 @@ describe('DeFiPositionsList', () => {
       },
     );
 
+    expect(
+      await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER),
+    ).toBeOnTheScreen();
     expect(await findByText(`No positions yet`)).toBeOnTheScreen();
   });
 });

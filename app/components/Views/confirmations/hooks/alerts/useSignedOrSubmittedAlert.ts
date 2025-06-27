@@ -6,19 +6,21 @@ import { strings } from '../../../../../../locales/i18n';
 
 import { useSelector } from 'react-redux';
 import { selectTransactions } from '../../../../../selectors/transactionController';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
-const signedOrSubmittedStatuses = [
+const blockableStatuses = [
   TransactionStatus.signed,
-  TransactionStatus.submitted,
+  TransactionStatus.approved,
 ];
 
 export const useSignedOrSubmittedAlert = () => {
   const transactions = useSelector(selectTransactions);
+  const transactionMetadata = useTransactionMetadataRequest();
 
   return useMemo(() => {
-    const showAlert = transactions.some((transaction) =>
-      signedOrSubmittedStatuses.includes(transaction.status),
-    );
+    const showAlert = transactions
+      .filter((transaction) => transaction.id !== transactionMetadata?.id)
+      .some((transaction) => blockableStatuses.includes(transaction.status));
 
     if (!showAlert) {
       return [];
@@ -32,5 +34,5 @@ export const useSignedOrSubmittedAlert = () => {
         severity: Severity.Danger,
       },
     ];
-  }, [transactions]);
+  }, [transactions, transactionMetadata]);
 };

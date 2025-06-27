@@ -29,7 +29,6 @@ import {
   passcodeType,
   updateAuthTypeStorageFlags,
 } from '../../../util/authentication';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import AppConstants from '../../../core/AppConstants';
@@ -350,22 +349,24 @@ class ChoosePassword extends PureComponent {
     const { loading, isSelected, password, confirmPassword } = this.state;
     const passwordsMatch = password !== '' && password === confirmPassword;
     const canSubmit = passwordsMatch && isSelected;
-
-    if (!canSubmit) return;
     if (loading) return;
+    if (!canSubmit) {
+      if (password !== '' && confirmPassword !== '' && password !== confirmPassword) {
+        this.track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+          wallet_setup_type: 'import',
+          error_type: strings('choose_password.password_dont_match'),
+        });
+      }
+      return;
+    }
     if (!passwordRequirementsMet(password)) {
       this.track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
         wallet_setup_type: 'import',
         error_type: strings('choose_password.password_length_error'),
       });
       return;
-    } else if (password !== confirmPassword) {
-      this.track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
-        wallet_setup_type: 'import',
-        error_type: strings('choose_password.password_dont_match'),
-      });
-      return;
     }
+
     const provider = this.props.route.params?.provider;
     this.track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED, {
       account_type: provider ? `metamask_${provider}` : 'metamask',
@@ -380,6 +381,7 @@ class ChoosePassword extends PureComponent {
         this.state.rememberMe,
       );
 
+
       const oauth2LoginSuccess = this.props.route.params?.oauthLoginSuccess;
       authType.oauth2Login = oauth2LoginSuccess;
 
@@ -388,7 +390,9 @@ class ChoosePassword extends PureComponent {
         try {
           await Authentication.newWalletAndKeychain(password, authType);
         } catch (error) {
-          if (Device.isIos) await this.handleRejectedOsBiometricPrompt();
+          if (Device.isIos) {
+            await this.handleRejectedOsBiometricPrompt();
+          }
         }
         this.keyringControllerPasswordSet = true;
         this.props.seedphraseNotBackedUp();

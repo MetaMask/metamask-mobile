@@ -454,26 +454,6 @@ const HomeTabs = () => {
     (state) => state.browser.tabs.length,
   );
 
-  /* tabs: state.browser.tabs, */
-  /* activeTab: state.browser.activeTab, */
-  const activeConnectedDapp = useSelector((state) => {
-    const activeTabUrl = getActiveTabUrl(state);
-    if (!isUrl(activeTabUrl)) return [];
-    try {
-      const permissionsControllerState = selectPermissionControllerState(state);
-      const hostname = new URL(activeTabUrl).hostname;
-      const permittedAcc = getPermittedCaipAccountIdsByHostname(
-        permissionsControllerState,
-        hostname,
-      );
-      return permittedAcc;
-    } catch (error) {
-      Logger.error(error, {
-        message: 'ParseUrl::MainNavigator error while parsing URL',
-      });
-    }
-  }, isEqual);
-
   const options = {
     home: {
       tabBarIconKey: TabBarIconKey.Wallet,
@@ -502,7 +482,6 @@ const HomeTabs = () => {
               number_of_accounts: accountsLength,
               chain_id: getDecimalChainId(chainId),
               source: 'Navigation Tab',
-              active_connected_dapp: activeConnectedDapp,
               number_of_open_tabs: amountOfBrowserOpenTabs,
             })
             .build(),
