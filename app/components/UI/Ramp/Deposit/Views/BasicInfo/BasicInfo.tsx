@@ -22,6 +22,7 @@ import DepositProgressBar from '../../components/DepositProgressBar';
 import DepositDateField from '../../components/DepositDateField';
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { useDepositSDK } from '../../sdk';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
@@ -39,13 +40,11 @@ export interface BasicInfoFormData {
   ssn: string;
 }
 
-// TODO: Country Code must be dynamic and not hardcoded to USA
-const COUNTRY_CODE = '1';
-
 const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { quote, kycUrl } = useParams<BasicInfoParams>();
+  const { selectedRegion } = useDepositSDK();
 
   const firstNameInputRef = useRef<TextInput>(null);
   const lastNameInputRef = useRef<TextInput>(null);
@@ -113,14 +112,9 @@ const BasicInfo = (): JSX.Element => {
 
   const handleOnPressContinue = useCallback(() => {
     if (validateFormData()) {
-      const formattedFormData = {
-        ...formData,
-        mobileNumber: `+${COUNTRY_CODE}${formData.mobileNumber}`,
-      };
-
       navigation.navigate(
         ...createEnterAddressNavDetails({
-          formData: formattedFormData,
+          formData,
           quote,
           kycUrl,
         }),
@@ -162,7 +156,7 @@ const BasicInfo = (): JSX.Element => {
                 autoComplete="given-name"
                 textContentType="givenName"
                 autoCapitalize="words"
-                onSubmitEditing={handleSubmitEditing(firstNameInputRef)}
+                onSubmitEditing={handleSubmitEditing(lastNameInputRef)}
               />
 
               <DepositTextField
@@ -178,26 +172,18 @@ const BasicInfo = (): JSX.Element => {
                 autoComplete="family-name"
                 textContentType="familyName"
                 autoCapitalize="words"
-                onSubmitEditing={handleSubmitEditing(lastNameInputRef)}
+                onSubmitEditing={handleSubmitEditing(phoneInputRef)}
               />
             </View>
 
             <DepositPhoneField
-              // TODO: Add internationalization for phone number format
-              // TODO: Automatic formatting
-              countryCode={COUNTRY_CODE}
               label={strings('deposit.basic_info.phone_number')}
-              placeholder="(234) 567-8910"
               value={formData.mobileNumber}
               onChangeText={handleFormDataChange('mobileNumber')}
               error={errors.mobileNumber}
               testID="phone-number-input"
-              returnKeyType="next"
               ref={phoneInputRef}
-              autoComplete="tel"
-              textContentType="telephoneNumber"
-              keyboardType="phone-pad"
-              onSubmitEditing={handleSubmitEditing(phoneInputRef)}
+              onSubmitEditing={handleSubmitEditing(dateInputRef)}
             />
 
             <DepositDateField
@@ -205,32 +191,39 @@ const BasicInfo = (): JSX.Element => {
               value={formData.dob}
               onChangeText={handleFormDataChange('dob')}
               error={errors.dob}
-              onSubmitEditing={handleSubmitEditing(dateInputRef)}
+              onSubmitEditing={() => {
+                if (selectedRegion?.code === 'US') {
+                  handleSubmitEditing(ssnInputRef)();
+                } else {
+                  Keyboard.dismiss();
+                }
+              }}
               ref={dateInputRef}
               textFieldProps={{
                 testID: 'date-of-birth-input',
               }}
             />
-
-            <DepositTextField
-              label={strings('deposit.basic_info.social_security_number')}
-              placeholder="XXX-XX-XXXX"
-              value={formData.ssn}
-              onChangeText={handleFormDataChange('ssn')}
-              error={errors.ssn}
-              returnKeyType="done"
-              testID="ssn-input"
-              ref={ssnInputRef}
-              autoComplete="off"
-              textContentType="none"
-              secureTextEntry
-              keyboardType="number-pad"
-              maxLength={11}
-              onSubmitEditing={() => {
-                Keyboard.dismiss();
-                handleOnPressContinue();
-              }}
-            />
+            {selectedRegion?.code === 'US' && (
+              <DepositTextField
+                label={strings('deposit.basic_info.social_security_number')}
+                placeholder="XXX-XX-XXXX"
+                value={formData.ssn}
+                onChangeText={handleFormDataChange('ssn')}
+                error={errors.ssn}
+                returnKeyType="done"
+                testID="ssn-input"
+                ref={ssnInputRef}
+                autoComplete="off"
+                textContentType="none"
+                secureTextEntry
+                keyboardType="number-pad"
+                maxLength={11}
+                onSubmitEditing={() => {
+                  Keyboard.dismiss();
+                  handleOnPressContinue();
+                }}
+              />
+            )}
           </ScreenLayout.Content>
         </KeyboardAwareScrollView>
       </ScreenLayout.Body>

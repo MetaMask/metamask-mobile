@@ -484,6 +484,11 @@
       "search_by_name_or_address": "Search token by name or address",
       "no_tokens_found": "No tokens match \"{{searchString}}\""
     },
+    "region_modal": {
+      "select_a_region": "Select a region",
+      "search_by_country": "Search by country",
+      "no_regions_found": "No regions match \"{{searchString}}\""
+    },
     "get_started": {
       "title": "Top up your wallet with USDC",
       "bullet_1_title": "Value-backed by the US dollar",
@@ -525,6 +530,7 @@
     },
     "basic_info": {
       "title": "Enter your basic info",
+      "enter_phone_number": "Enter your phone number",
       "continue": "Continue",
       "subtitle": "To begin verifying your identity, we need some basic information.",
       "first_name": "First Name",

@@ -27,7 +27,6 @@ import AvatarToken from '../../../../../../component-library/components/Avatars/
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 
 import AccountSelector from '../../components/AccountSelector';
-import RegionModal from '../../components/RegionModal';
 
 import { useDepositSDK } from '../../sdk';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
@@ -42,6 +41,7 @@ import { createBasicInfoNavDetails } from '../BasicInfo/BasicInfo';
 import { createKycWebviewNavDetails } from '../KycWebview/KycWebview';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 import { createTokenSelectorModalNavigationDetails } from '../Modals/TokenSelectorModal/TokenSelectorModal';
+import { createRegionSelectorModalNavigationDetails } from '../Modals/RegionSelectorModal';
 
 import {
   getTransakCryptoCurrencyId,
@@ -85,8 +85,6 @@ const BuildQuote = () => {
   const { isAuthenticated } = useDepositSDK();
   const [error, setError] = useState<string | null>();
 
-  const [isRegionModalVisible, setIsRegionModalVisible] =
-    useState<boolean>(false);
   const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
     DEPOSIT_REGIONS.find((region) => region.code === 'US') || null,
   );
@@ -259,28 +257,31 @@ const BuildQuote = () => {
     // TODO: Implement payment method selection logic
   }, []);
 
+  const handleSelectRegion = useCallback(
+    (region: DepositRegion) => {
+      if (!region.supported) {
+        return;
+      }
+
+      setSelectedRegion(region);
+
+      if (region.currency === 'USD') {
+        setFiatCurrency(USD_CURRENCY);
+      } else if (region.currency === 'EUR') {
+        setFiatCurrency(EUR_CURRENCY);
+      }
+    },
+    [setFiatCurrency, setSelectedRegion],
+  );
+
   const handleRegionPress = useCallback(() => {
-    setIsRegionModalVisible(true);
-  }, []);
-
-  const handleRegionSelect = useCallback((region: DepositRegion) => {
-    if (!region.supported) {
-      return;
-    }
-
-    setSelectedRegion(region);
-    setIsRegionModalVisible(false);
-
-    if (region.currency === 'USD') {
-      setFiatCurrency(USD_CURRENCY);
-    } else if (region.currency === 'EUR') {
-      setFiatCurrency(EUR_CURRENCY);
-    }
-  }, []);
-
-  const hideRegionModal = useCallback(() => {
-    setIsRegionModalVisible(false);
-  }, []);
+    navigation.navigate(
+      ...createRegionSelectorModalNavigationDetails({
+        selectedRegionCode: selectedRegion?.code,
+        handleSelectRegion,
+      }),
+    );
+  }, [navigation, selectedRegion, handleSelectRegion]);
 
   const handleSelectAssetId = useCallback(
     (assetId: string) => {
@@ -437,15 +438,6 @@ const BuildQuote = () => {
           ></Button>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
-      <RegionModal
-        isVisible={isRegionModalVisible}
-        title={strings('deposit.selectRegion')}
-        description={strings('deposit.chooseYourRegionToContinue')}
-        data={DEPOSIT_REGIONS}
-        dismiss={hideRegionModal}
-        onRegionPress={handleRegionSelect}
-        selectedRegion={selectedRegion}
-      />
     </ScreenLayout>
   );
 };

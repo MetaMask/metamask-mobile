@@ -3,7 +3,10 @@ import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import BuildQuote from './BuildQuote';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
-
+import {
+  DEPOSIT_REGIONS,
+  DepositRegion,
+} from '../../constants';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 const mockNavigate = jest.fn();
@@ -15,6 +18,10 @@ const mockFetchKycFormData = jest.fn();
 const mockFetchUserDetails = jest.fn();
 const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
+
+const mockSelectedRegion = DEPOSIT_REGIONS.find(
+  (region) => region.code === 'US',
+) as DepositRegion;
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -113,6 +120,8 @@ describe('BuildQuote Component', () => {
     jest.clearAllMocks();
     mockUseDepositSDK.mockReturnValue({
       isAuthenticated: false,
+      selectedRegion: mockSelectedRegion,
+      setSelectedRegion: jest.fn(),
     });
     mockUseDepositTokenExchange.mockReturnValue({
       tokenAmount: '0.00',
@@ -134,16 +143,14 @@ describe('BuildQuote Component', () => {
       render(BuildQuote);
       const regionButton = screen.getByText('US');
       fireEvent.press(regionButton);
-      expect(screen.toJSON()).toMatchSnapshot();
-    });
 
-    it('updates fiat currency when selecting a supported region', () => {
-      render(BuildQuote);
-      const regionButton = screen.getByText('US');
-      fireEvent.press(regionButton);
-      const germanyElement = screen.getByText('Belgium');
-      fireEvent.press(germanyElement);
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositRegionSelectorModal',
+        params: {
+          selectedRegionCode: 'US',
+          handleSelectRegion: expect.any(Function),
+        },
+      });
     });
   });
 
@@ -173,7 +180,11 @@ describe('BuildQuote Component', () => {
       const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
       const mockForms = { forms: [] };
 
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: false });
+      mockUseDepositSDK.mockReturnValue({
+        isAuthenticated: false,
+        selectedRegion: mockSelectedRegion,
+        setSelectedRegion: jest.fn(),
+      });
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
 
@@ -216,7 +227,11 @@ describe('BuildQuote Component', () => {
       const mockForms = { forms: [] };
       const mockUserDetails = { kyc: { l1: { status: 'APPROVED' } } };
 
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: true });
+      mockUseDepositSDK.mockReturnValue({
+        isAuthenticated: true,
+        selectedRegion: mockSelectedRegion,
+        setSelectedRegion: jest.fn(),
+      });
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
       mockFetchUserDetails.mockResolvedValue(mockUserDetails);
@@ -239,7 +254,11 @@ describe('BuildQuote Component', () => {
       const mockForms = { forms: [] };
       const mockUserDetails = { kyc: { l1: { status: 'PENDING' } } };
 
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: true });
+      mockUseDepositSDK.mockReturnValue({
+        isAuthenticated: true,
+        selectedRegion: mockSelectedRegion,
+        setSelectedRegion: jest.fn(),
+      });
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
       mockFetchUserDetails.mockResolvedValue(mockUserDetails);

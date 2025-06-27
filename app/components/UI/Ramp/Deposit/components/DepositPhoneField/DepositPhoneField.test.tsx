@@ -1,9 +1,37 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import DepositPhoneField from './DepositPhoneField';
-import { formatUSPhoneNumber } from '../../utils';
 
-const DEPOSIT_PHONE_FIELD_TEST_ID = 'deposit-phone-field-test-id';
+const mockSetSelectedRegion = jest.fn();
+const mockNavigation = {
+  navigate: jest.fn(),
+};
+
+const mockUseDepositSDK = jest.fn(() => ({
+  selectedRegion: {
+    code: 'US',
+    flag: '🇺🇸',
+    name: 'United States',
+    phonePrefix: '+1',
+    currency: 'USD',
+    template: '(XXX) XXX-XXXX',
+    placeholder: '(555) 123-4567',
+    supported: true,
+  },
+  setSelectedRegion: mockSetSelectedRegion,
+}));
+
+jest.mock('../../sdk', () => ({
+  useDepositSDK: () => mockUseDepositSDK(),
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => mockNavigation,
+}));
+
+jest.mock('../../Views/Modals/RegionSelectorModal', () => ({
+  createRegionSelectorModalNavigationDetails: jest.fn(() => ['RouteName', {}]),
+}));
 
 describe('DepositPhoneField', () => {
   const mockOnChangeText = jest.fn();
@@ -11,62 +39,155 @@ describe('DepositPhoneField', () => {
   const defaultProps = {
     label: 'Phone Number',
     onChangeText: mockOnChangeText,
-    testID: DEPOSIT_PHONE_FIELD_TEST_ID,
+    value: '',
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('render should match snapshot', () => {
-    const { toJSON } = render(<DepositPhoneField {...defaultProps} />);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('custom flags and country codes should match snapshot', () => {
-    const customProps = {
-      ...defaultProps,
-      countryCode: '44',
-      countryFlag: '🇬🇧',
-    };
-    const { toJSON } = render(<DepositPhoneField {...customProps} />);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('error message should match snapshot', () => {
-    const errorMessage = 'Invalid phone number';
-    const { toJSON } = render(
-      <DepositPhoneField {...defaultProps} error={errorMessage} />,
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('additional props should match snapshot', () => {
-    const placeholder = 'Enter phone number';
+  it('renders correctly with default props', () => {
     const { toJSON } = render(
       <DepositPhoneField
-        {...defaultProps}
-        placeholder={placeholder}
-        maxLength={10}
+        label="Phone Number"
+        onChangeText={mockOnChangeText}
+        value=""
       />,
     );
+
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should call onChangeText when text input changes', () => {
-    const { getByTestId } = render(<DepositPhoneField {...defaultProps} />);
-    const textField = getByTestId(DEPOSIT_PHONE_FIELD_TEST_ID);
-    const phoneNumber = '5551234567';
-    fireEvent.changeText(textField, phoneNumber);
-    expect(mockOnChangeText).toHaveBeenCalledWith(phoneNumber);
+  it('renders correctly with error message', () => {
+    const { toJSON } = render(
+      <DepositPhoneField
+        label="Phone Number"
+        onChangeText={mockOnChangeText}
+        value=""
+        error="Invalid phone number"
+      />,
+    );
+
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should format phone number correctly and pass raw value to onChangeText', () => {
-    const { getByTestId } = render(<DepositPhoneField {...defaultProps} />);
-    const textField = getByTestId(DEPOSIT_PHONE_FIELD_TEST_ID);
-    const inputPhoneNumber = '1234567890';
-    fireEvent.changeText(textField, inputPhoneNumber);
-    expect(mockOnChangeText).toHaveBeenCalledWith(inputPhoneNumber);
-    expect(formatUSPhoneNumber(inputPhoneNumber)).toBe('(123) 456-7890');
+  it('renders correctly with value', () => {
+    const { toJSON } = render(
+      <DepositPhoneField
+        label="Phone Number"
+        onChangeText={mockOnChangeText}
+        value="+15551234567"
+      />,
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly with different region', () => {
+    const contextRegion = {
+      code: 'DE',
+      flag: '🇩🇪',
+      name: 'Germany',
+      phonePrefix: '+49',
+      currency: 'EUR',
+      template: 'XXX XXXXXXX',
+      placeholder: '151 12345678',
+      supported: true,
+    };
+
+    mockUseDepositSDK.mockReturnValue({
+      selectedRegion: contextRegion,
+      setSelectedRegion: mockSetSelectedRegion,
+    });
+
+    const { toJSON } = render(<DepositPhoneField {...defaultProps} />);
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly after input change', () => {
+    const { getByTestId, toJSON } = render(
+      <DepositPhoneField
+        label="Phone Number"
+        onChangeText={mockOnChangeText}
+        value=""
+      />,
+    );
+
+    const input = getByTestId('deposit-phone-field-test-id');
+    fireEvent.changeText(input, '5551234567');
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly after flag button press', () => {
+    const { getByRole, toJSON } = render(
+      <DepositPhoneField {...defaultProps} />,
+    );
+
+    const flagButton = getByRole('button');
+    fireEvent.press(flagButton);
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly with onSubmitEditing callback', () => {
+    const mockOnSubmitEditing = jest.fn();
+    const { toJSON } = render(
+      <DepositPhoneField
+        label="Phone Number"
+        onChangeText={mockOnChangeText}
+        value=""
+        onSubmitEditing={mockOnSubmitEditing}
+      />,
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly with unsupported region', () => {
+    const unsupportedRegion = {
+      code: 'XX',
+      flag: '🏳️',
+      name: 'Unsupported Region',
+      phonePrefix: '+999',
+      currency: 'XXX',
+      template: 'XXX XXX XXX',
+      placeholder: '123 456 789',
+      supported: false,
+    };
+
+    mockUseDepositSDK.mockReturnValue({
+      selectedRegion: unsupportedRegion,
+      setSelectedRegion: mockSetSelectedRegion,
+    });
+
+    const { toJSON } = render(<DepositPhoneField {...defaultProps} />);
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly with long phone number', () => {
+    const { toJSON } = render(
+      <DepositPhoneField
+        label="Phone Number"
+        onChangeText={mockOnChangeText}
+        value="+155512345678901234"
+      />,
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly with special characters in phone number', () => {
+    const { toJSON } = render(
+      <DepositPhoneField
+        label="Phone Number"
+        onChangeText={mockOnChangeText}
+        value="+1(555)123-4567"
+      />,
+    );
+
+    expect(toJSON()).toMatchSnapshot();
   });
 });
