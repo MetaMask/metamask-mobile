@@ -14,7 +14,6 @@ import {
   SafeAreaView,
   FlatList,
   TouchableOpacity,
-  ScrollView,
 } from 'react-native';
 import { connect } from 'react-redux';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -221,9 +220,7 @@ const ImportFromSecretRecoveryPhrase = ({
     (seedPhraseText) => {
       const text = formatSeedPhraseToSingleLine(seedPhraseText);
       const trimmedText = text.trim();
-      const updatedTrimmedText = trimmedText
-        .split(' ')
-        .filter((word) => word !== '');
+      const updatedTrimmedText = trimmedText.split(' ');
 
       if (SRP_LENGTHS.includes(updatedTrimmedText.length)) {
         setSeedPhrase(updatedTrimmedText);
@@ -282,7 +279,7 @@ const ImportFromSecretRecoveryPhrase = ({
       onScanSuccess: ({ seed = undefined }) => {
         if (seed) {
           handleClear();
-          handleSeedPhraseChange(seed);
+          handleSeedPhraseChangeAtIndex(seed, 0);
         } else {
           Alert.alert(
             strings('import_from_seed.invalid_qr_code_title'),
@@ -295,7 +292,12 @@ const ImportFromSecretRecoveryPhrase = ({
         setHideSeedPhraseInput(shouldHideSRP);
       },
     });
-  }, [hideSeedPhraseInput, navigation, handleClear, handleSeedPhraseChange]);
+  }, [
+    hideSeedPhraseInput,
+    navigation,
+    handleClear,
+    handleSeedPhraseChangeAtIndex,
+  ]);
 
   const onBackPress = () => {
     if (currentStep === 0) {
@@ -374,18 +376,6 @@ const ImportFromSecretRecoveryPhrase = ({
 
     setBiometricsOption();
 
-    const devSeedPhrase = process.env.MM_DEV_SEED_PHRASE;
-    if (devSeedPhrase && __DEV__) {
-      handleSeedPhraseChange(devSeedPhrase);
-    }
-
-    const devPassword = process.env.MM_DEV_PASSWORD;
-    if (devPassword && __DEV__) {
-      onPasswordChange(devPassword);
-      onPasswordConfirmChange(devPassword);
-      setLearnMore(true);
-    }
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep]);
 
@@ -432,9 +422,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
     setPassword(value);
     setPasswordStrength(passInfo.score);
-    if (value === '') {
-      setConfirmPassword('');
-    }
+    setConfirmPassword('');
   };
 
   const onPasswordConfirmChange = (value) => {
@@ -711,8 +699,8 @@ const ImportFromSecretRecoveryPhrase = ({
         contentContainerStyle={styles.wrapper}
         resetScrollToCoords={{ x: 0, y: 0 }}
       >
-        <ScrollView
-          contentContainerStyle={styles.container}
+        <View
+          style={styles.container}
           testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}
         >
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
@@ -877,14 +865,14 @@ const ImportFromSecretRecoveryPhrase = ({
                       />
                       <Button
                         label={
-                          seedPhrase.length >= 1
+                          seedPhrase.length > 1
                             ? strings('import_from_seed.clear_all')
                             : strings('import_from_seed.paste')
                         }
                         variant={ButtonVariants.Link}
                         style={styles.pasteButton}
                         onPress={() => {
-                          if (seedPhrase.length >= 1) {
+                          if (seedPhrase.length > 1) {
                             handleClear();
                           } else {
                             handlePaste();
@@ -1100,7 +1088,7 @@ const ImportFromSecretRecoveryPhrase = ({
               </View>
             </View>
           )}
-        </ScrollView>
+        </View>
       </KeyboardAwareScrollView>
       <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
