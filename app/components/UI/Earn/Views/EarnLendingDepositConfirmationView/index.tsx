@@ -229,68 +229,58 @@ const EarnLendingDepositConfirmationView = () => {
   };
 
   const createResetTokenAllowanceTxEventListeners = useCallback(
-    (transactionId: string): Promise<boolean> => {
+    (transactionId: string) => {
       const emitAllowanceTxMetaMetric = emitTxMetaMetric(
         TransactionType.tokenMethodIncreaseAllowance,
       )(transactionId);
 
-      return new Promise((resolve, reject) => {
-        Engine.controllerMessenger.subscribeOnceIf(
-          'TransactionController:transactionSubmitted',
-          () => {
-            emitAllowanceTxMetaMetric(
-              MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED,
-            );
-          },
-          ({ transactionMeta }) => transactionMeta.id === transactionId,
-        );
-        Engine.controllerMessenger.subscribeOnceIf(
-          'TransactionController:transactionDropped',
-          () => {
-            emitAllowanceTxMetaMetric(
-              MetaMetricsEvents.EARN_TRANSACTION_DROPPED,
-            );
-            unsetAllowanceResetLoadingState();
-            reject(new Error('Allowance reset transaction dropped'));
-          },
-          ({ transactionMeta }) => transactionMeta.id === transactionId,
-        );
-        Engine.controllerMessenger.subscribeOnceIf(
-          'TransactionController:transactionFailed',
-          () => {
-            emitAllowanceTxMetaMetric(
-              MetaMetricsEvents.EARN_TRANSACTION_FAILED,
-            );
-            unsetAllowanceResetLoadingState();
-            reject(new Error('Allowance reset transaction failed'));
-          },
-          ({ transactionMeta }) => transactionMeta.id === transactionId,
-        );
-        Engine.controllerMessenger.subscribeOnceIf(
-          'TransactionController:transactionRejected',
-          () => {
-            emitAllowanceTxMetaMetric(
-              MetaMetricsEvents.EARN_TRANSACTION_REJECTED,
-            );
-            unsetAllowanceResetLoadingState();
-            reject(new Error('Allowance reset transaction rejected'));
-          },
-          ({ transactionMeta }) => transactionMeta.id === transactionId,
-        );
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionSubmitted',
+        () => {
+          emitAllowanceTxMetaMetric(
+            MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED,
+          );
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionDropped',
+        () => {
+          emitAllowanceTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_DROPPED);
+          unsetAllowanceResetLoadingState();
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionFailed',
+        () => {
+          emitAllowanceTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_FAILED);
+          unsetAllowanceResetLoadingState();
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionRejected',
+        () => {
+          emitAllowanceTxMetaMetric(
+            MetaMetricsEvents.EARN_TRANSACTION_REJECTED,
+          );
+          unsetAllowanceResetLoadingState();
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
 
-        Engine.controllerMessenger.subscribeOnceIf(
-          'TransactionController:transactionConfirmed',
-          () => {
-            emitAllowanceTxMetaMetric(
-              MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED,
-            );
-            setActiveStep(Steps.ALLOWANCE_INCREASE);
-            unsetAllowanceResetLoadingState();
-            resolve(true);
-          },
-          (transactionMeta) => transactionMeta.id === transactionId,
-        );
-      });
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionConfirmed',
+        () => {
+          emitAllowanceTxMetaMetric(
+            MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED,
+          );
+          setActiveStep(Steps.ALLOWANCE_INCREASE);
+          unsetAllowanceResetLoadingState();
+        },
+        (transactionMeta) => transactionMeta.id === transactionId,
+      );
     },
     [emitTxMetaMetric],
   );
@@ -398,22 +388,7 @@ const EarnLendingDepositConfirmationView = () => {
         'TransactionController:transactionConfirmed',
         () => {
           emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED);
-        },
-        (transactionMeta) => transactionMeta.id === transactionId,
-      );
 
-      Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionFailed',
-        () => {
-          unsetDepositLoadingState();
-          emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_FAILED);
-        },
-        ({ transactionMeta }) => transactionMeta.id === transactionId,
-      );
-
-      Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionConfirmed',
-        () => {
           if (!outputToken) {
             const networkClientId =
               Engine.context.NetworkController.findNetworkClientIdByChainId(
@@ -434,6 +409,15 @@ const EarnLendingDepositConfirmationView = () => {
           }
         },
         (transactionMeta) => transactionMeta.id === transactionId,
+      );
+
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionFailed',
+        () => {
+          unsetDepositLoadingState();
+          emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_FAILED);
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
     },
     [emitTxMetaMetric, navigation, outputToken, tokenSnapshot],
