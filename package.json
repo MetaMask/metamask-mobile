@@ -327,6 +327,7 @@
     "https-browserify": "0.0.1",
     "human-standard-token-abi": "^2.0.0",
     "humanize-duration": "^3.27.2",
+    "input-format": "^0.3.14",
     "is-url": "^1.2.4",
     "libphonenumber-js": "^1.12.9",
     "lodash": "^4.17.21",

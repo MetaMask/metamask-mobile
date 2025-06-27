@@ -13,7 +13,7 @@ import { createOrderProcessingNavDetails } from '../OrderProcessing/OrderProcess
 
 const Root = () => {
   const navigation = useNavigation();
-  const [initialRoute] = useState<string>(Routes.DEPOSIT.BUILD_QUOTE);
+  const [initialRoute] = useState<string>(Routes.DEPOSIT.BASIC_INFO);
   const { checkExistingToken, getStarted } = useDepositSDK();
   const hasCheckedToken = useRef(false);
   const orders = useSelector(getOrders);
