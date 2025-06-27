@@ -2,53 +2,51 @@ import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.sel
 import { PortfolioPageSelectorsXpath, PortfolioPageSelectorsWebID } from '../../selectors/Browser/PortfolioPage.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
-import TestHelpers from '../../helpers';
 
 class PortfolioHomePage {
-  get connectWalletButton() {
+  get connectWalletButton(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       PortfolioPageSelectorsWebID.CONNECT_WALLET_BUTTON,
     );
   }
 
-  get closeIconPrivacyModal() {
+  get closeIconPrivacyModal(): WebElement {
     return Matchers.getElementByXPath(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       PortfolioPageSelectorsXpath.CLOSE_PRIVACY_MODAL,
     );
   }
 
-  get accountButton() {
+  get accountButton(): WebElement {
     return Matchers.getElementByXPath(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       PortfolioPageSelectorsXpath.ACCOUNT_ICON_HREF,
     );
   }
 
-  get burgerMenu() {
+  get burgerMenu(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       PortfolioPageSelectorsWebID.BURGER_MENU_BUTTON,
     );
   }
 
-  async tapConnectMetaMask() {
+  async tapConnectMetaMask(): Promise<void> {
     await Gestures.tapWebElement(this.connectWalletButton);
   }
 
-  async closePrivacyModal() {
-    await TestHelpers.delay(1000);
-    await Gestures.tapWebElement(this.closeIconPrivacyModal);
+  async closePrivacyModal(): Promise<void> {
+    await Gestures.tapWebElement(this.closeIconPrivacyModal, {delayBeforeTap: 1000});
   }
 
-  async tapAccountButton() {
+  async tapAccountButton(): Promise<void> {
     await Gestures.tapWebElement(this.accountButton);
   }
 
-  async tapBurgerMenu() {
+  async tapBurgerMenu(): Promise<void> {
     await Gestures.tapWebElement(this.burgerMenu);
   }
 }
 
-export default new PortfolioHomePage();
+export default new PortfolioHomePage(); 
