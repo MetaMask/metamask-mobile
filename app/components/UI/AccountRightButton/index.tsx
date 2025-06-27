@@ -156,7 +156,7 @@ const AccountRightButton = ({
   const currentUrl = route.params?.url;
   let hostname;
   if (currentUrl) {
-    hostname = new UrlParser(currentUrl)?.hostname;
+    hostname = new UrlParser(currentUrl)?.origin;
   }
 
   const { networkName, networkImageSource } = useNetworkInfo(hostname);

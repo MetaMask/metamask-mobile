@@ -196,7 +196,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
 
   const permittedEvmAccountsList = useSelector((state: RootState) => {
     const permissionsControllerState = selectPermissionControllerState(state);
-    const hostname = new URLParse(resolvedUrlRef.current).hostname;
+    const hostname = new URLParse(resolvedUrlRef.current).origin;
     const permittedAcc = getPermittedEvmAddressesByHostname(
       permissionsControllerState,
       hostname,
@@ -205,7 +205,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
   }, isEqual);
   const permittedCaipAccountAddressesList = useSelector((state: RootState) => {
     const permissionsControllerState = selectPermissionControllerState(state);
-    const hostname = new URLParse(resolvedUrlRef.current).hostname;
+    const hostname = new URLParse(resolvedUrlRef.current).origin;
     const permittedAccountIds = getPermittedCaipAccountIdsByHostname(
       permissionsControllerState,
       hostname,
@@ -664,7 +664,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
       return;
     }
     if (!resolvedUrlRef.current) return;
-    const hostname = new URLParse(resolvedUrlRef.current).hostname;
+    const hostname = new URLParse(resolvedUrlRef.current).origin;
     const permissionsControllerState =
       Engine.context.PermissionController.state;
     const permittedAccounts = getPermittedCaipAccountIdsByHostname(
@@ -721,7 +721,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
       titleRef.current = siteInfo.title;
       if (siteInfo.icon) iconRef.current = siteInfo.icon;
 
-      const hostName = new URLParse(siteInfo.url).hostname;
+      const hostName = new URLParse(siteInfo.url).origin;
       // Prevent url from being set when the url bar is focused
       !isUrlBarFocused && urlBarRef.current?.setNativeProps({ text: hostName });
 
@@ -938,7 +938,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
           getProviderState: () => void;
         }) =>
           getRpcMethodMiddleware({
-            hostname,
+            hostname: new URL(urlBridge).origin,
             getProviderState,
             navigation,
             // Website info
@@ -1258,7 +1258,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
     // Unfocus the url bar and hide the autocomplete results
     urlBarRef.current?.hide();
     const hostName =
-      new URLParse(resolvedUrlRef.current).hostname || resolvedUrlRef.current;
+      new URLParse(resolvedUrlRef.current).origin || resolvedUrlRef.current;
     urlBarRef.current?.setNativeProps({ text: hostName });
   }, []);
 
@@ -1274,7 +1274,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
     hideAutocomplete();
     // Reset the url bar to the current url
     const hostName =
-      new URLParse(resolvedUrlRef.current).hostname || resolvedUrlRef.current;
+      new URLParse(resolvedUrlRef.current).origin || resolvedUrlRef.current;
     urlBarRef.current?.setNativeProps({ text: hostName });
   }, [hideAutocomplete]);
 
