@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
-import { FlatList, View, useWindowDimensions } from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
