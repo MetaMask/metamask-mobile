@@ -373,9 +373,7 @@ describe('EarnLendingDepositConfirmationView', () => {
         Engine.context.EarnController.executeLendingTokenApprove,
       ).toHaveBeenCalledWith({
         amount: '0',
-        gasOptions: {
-          gasLimit: 60000,
-        },
+        gasOptions: {},
         protocol: 'AAVE v3',
         txOptions: {
           deviceConfirmedOn: 'metamask_mobile',
@@ -829,9 +827,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       amount: '5000000',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
-      gasOptions: {
-        gasLimit: 78000,
-      },
+      gasOptions: {},
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
         networkClientId: 'mainnet',
@@ -920,9 +916,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       amount: '5000000',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
-      gasOptions: {
-        gasLimit: 78000,
-      },
+      gasOptions: {},
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
         networkClientId: 'mainnet',
