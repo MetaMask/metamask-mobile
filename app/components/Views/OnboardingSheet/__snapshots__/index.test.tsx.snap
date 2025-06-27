@@ -77,7 +77,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             "borderTopLeftRadius": 8,
             "borderTopRightRadius": 8,
             "borderWidth": 1,
-            "maxHeight": 1334,
+            "maxHeight": 0,
             "overflow": "hidden",
             "paddingBottom": 0,
             "shadowColor": "#0000001a",
@@ -91,7 +91,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
           {
             "transform": [
               {
-                "translateY": 1334,
+                "translateY": 0,
               },
             ],
           },
@@ -188,16 +188,9 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               }
             >
               <SvgMock
-                color="#121314"
                 fill="currentColor"
                 height={24}
-                name="Google"
-                style={
-                  {
-                    "height": 24,
-                    "width": 24,
-                  }
-                }
+                name="google"
                 width={24}
               />
               <Text
@@ -251,16 +244,9 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               }
             >
               <SvgMock
-                color="#121314"
                 fill="currentColor"
                 height={24}
-                name="Apple"
-                style={
-                  {
-                    "height": 24,
-                    "width": 24,
-                  }
-                }
+                name="apple"
                 width={24}
               />
               <Text
@@ -458,7 +444,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
             "borderTopLeftRadius": 8,
             "borderTopRightRadius": 8,
             "borderWidth": 1,
-            "maxHeight": 1334,
+            "maxHeight": 0,
             "overflow": "hidden",
             "paddingBottom": 0,
             "shadowColor": "#0000001a",
@@ -472,7 +458,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
           {
             "transform": [
               {
-                "translateY": 1334,
+                "translateY": 0,
               },
             ],
           },
@@ -569,16 +555,9 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               }
             >
               <SvgMock
-                color="#121314"
                 fill="currentColor"
                 height={24}
-                name="Google"
-                style={
-                  {
-                    "height": 24,
-                    "width": 24,
-                  }
-                }
+                name="google"
                 width={24}
               />
               <Text
@@ -632,16 +611,9 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               }
             >
               <SvgMock
-                color="#121314"
                 fill="currentColor"
                 height={24}
-                name="Apple"
-                style={
-                  {
-                    "height": 24,
-                    "width": 24,
-                  }
-                }
+                name="apple"
                 width={24}
               />
               <Text
