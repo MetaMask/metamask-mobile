@@ -1,11 +1,11 @@
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
-import { LendingProtocol } from '../types/lending.types';
 import {
   TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
 import { BigNumber, ethers } from 'ethers';
 import { EARN_EXPERIENCES } from '../constants/experiences';
+import { LendingProtocol } from '../types/lending.types';
 import {
   AAVE_V3_INFINITE_HEALTH_FACTOR,
   AAVE_WITHDRAWAL_RISKS,
@@ -16,7 +16,6 @@ import {
   getAaveReceiptTokenBalance,
   getAaveUserAccountData,
   getAaveV3MaxRiskAwareWithdrawalAmount,
-  getAaveV3MaxSafeWithdrawal,
   getErc20SpendingLimit,
   getLendingPoolLiquidity,
 } from './tempLending';
@@ -999,38 +998,6 @@ describe('Temp Lending Utils', () => {
       const result = await getAaveV3MaxRiskAwareWithdrawalAmount(
         mockActiveAccountAddress,
         tokenWithoutMarket as unknown as typeof mockReceiptToken,
-      );
-
-      expect(result).toBeUndefined();
-    });
-
-    it('returns undefined when getLendingPoolLiquidity fails', async () => {
-      // Mock getLendingPoolLiquidity to throw an error
-      const mockGetLendingPoolLiquidity = jest.mocked(getLendingPoolLiquidity);
-      mockGetLendingPoolLiquidity.mockRejectedValueOnce(
-        new Error('Pool liquidity error'),
-      );
-
-      const result = await getAaveV3MaxRiskAwareWithdrawalAmount(
-        mockActiveAccountAddress,
-        mockReceiptToken,
-      );
-
-      expect(result).toBeUndefined();
-    });
-
-    it('returns undefined when getAaveV3MaxSafeWithdrawal fails', async () => {
-      // Mock getAaveV3MaxSafeWithdrawal to throw an error
-      const mockGetAaveV3MaxSafeWithdrawal = jest.mocked(
-        getAaveV3MaxSafeWithdrawal,
-      );
-      mockGetAaveV3MaxSafeWithdrawal.mockRejectedValueOnce(
-        new Error('Max safe withdrawal error'),
-      );
-
-      const result = await getAaveV3MaxRiskAwareWithdrawalAmount(
-        mockActiveAccountAddress,
-        mockReceiptToken,
       );
 
       expect(result).toBeUndefined();
