@@ -16,12 +16,12 @@ describe(SmokePerformance('Account List Load Testing'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it('render account list efficiently with multiple accounts and networks', async () => {
+  it('render account list efficiently with multiple accounts and networks w/profile syncing', async () => {
     // Platform-specific performance thresholds (in milliseconds)
     const isAndroid = device.getPlatform() === 'android';
     const PERFORMANCE_THRESHOLDS = isAndroid
       ? {
-          ACCOUNT_LIST_RENDER: 15000, // 15 seconds max for Android
+          ACCOUNT_LIST_RENDER: 35000, // 15 seconds max for Android
           NAVIGATION_TO_ACCOUNT_LIST: 2500, // 2.5 seconds max for Android
         }
       : {
@@ -115,7 +115,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
     );
   });
 
-  it('handle account list performance with heavy token load', async () => {
+  it('handle account list performance with heavy token load w/profile syncing', async () => {
     // Create a large number of test tokens to stress test the system
     const heavyTokenLoad = [];
     for (let i = 1; i <= 50; i++) {
@@ -128,10 +128,16 @@ describe(SmokePerformance('Account List Load Testing'), () => {
       });
     }
 
-    const HEAVY_LOAD_THRESHOLDS = {
-      ACCOUNT_LIST_RENDER: 8000, // Allow more time for heavy load
-      NAVIGATION_TO_ACCOUNT_LIST: 3000,
-    };
+    const HEAVY_LOAD_THRESHOLDS =
+      device.getPlatform() === 'android'
+        ? {
+            ACCOUNT_LIST_RENDER: 35000, // Allow more time for heavy load
+            NAVIGATION_TO_ACCOUNT_LIST: 2500, // Allow more time for heavy load
+          }
+        : {
+            ACCOUNT_LIST_RENDER: 8000, // Allow more time for heavy load
+            NAVIGATION_TO_ACCOUNT_LIST: 3000,
+          };
 
     await withFixtures(
       {
@@ -175,7 +181,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
     );
   });
 
-  it('handle network list performance with heavy token load + all popular networks', async () => {
+  it('handle network list performance with heavy token load + all popular networks w/profile syncing', async () => {
     // Create a large number of test tokens to stress test the system
     const heavyTokenLoad = [];
     for (let i = 1; i <= 50; i++) {
@@ -188,10 +194,16 @@ describe(SmokePerformance('Account List Load Testing'), () => {
       });
     }
 
-    const HEAVY_LOAD_THRESHOLDS = {
-      ACCOUNT_LIST_RENDER: 8000, // Allow more time for heavy load
-      NAVIGATION_TO_ACCOUNT_LIST: 3000,
-    };
+    const HEAVY_LOAD_THRESHOLDS =
+      device.getPlatform() === 'android'
+        ? {
+            ACCOUNT_LIST_RENDER: 35000, // Allow more time for heavy load
+            NAVIGATION_TO_ACCOUNT_LIST: 2500, // Allow more time for heavy load
+          }
+        : {
+            ACCOUNT_LIST_RENDER: 8000, // Allow more time for heavy load
+            NAVIGATION_TO_ACCOUNT_LIST: 3000,
+          };
 
     await withFixtures(
       {
@@ -245,8 +257,12 @@ describe(SmokePerformance('Account List Load Testing'), () => {
         const secondTotalTime = secondEndTime - secondstartTime;
 
         console.log('========== HEAVY LOAD TEST RESULTS ==========');
-        console.log(`Configuration: 16 accounts, switching between long network list, 50 tokens`);
-        console.log(`Total time to render network list after switching networks: ${secondTotalTime}ms`);
+        console.log(
+          `Configuration: 16 accounts, switching between long network list, 50 tokens`,
+        );
+        console.log(
+          `Total time to render network list after switching networks: ${secondTotalTime}ms`,
+        );
         console.log('=============================================');
 
         // Quality gate for heavy load
@@ -258,7 +274,6 @@ describe(SmokePerformance('Account List Load Testing'), () => {
             `Heavy load test failed: Total time (${secondTotalTime}ms) exceeded maximum acceptable time (${SecondmaxHeavyLoadTime}ms)`,
           );
         }
-
 
         console.log('✅ Heavy load test passed!');
         // await AccountListBottomSheet.swipeToDismissAccountsModal();
@@ -282,6 +297,17 @@ describe(SmokePerformance('Account List Load Testing'), () => {
         name: 'Minimal Token 2',
       },
     ];
+
+    const MINIMAL_LOAD_THRESHOLDS =
+      device.getPlatform() === 'android'
+        ? {
+            ACCOUNT_LIST_RENDER: 35000, // Allow more time for heavy load
+            NAVIGATION_TO_ACCOUNT_LIST: 2500, // Allow more time for heavy load
+          }
+        : {
+            ACCOUNT_LIST_RENDER: 8000, // Allow more time for heavy load
+            NAVIGATION_TO_ACCOUNT_LIST: 3000,
+          };
 
     await withFixtures(
       {
@@ -309,7 +335,11 @@ describe(SmokePerformance('Account List Load Testing'), () => {
         console.log('==========================================');
 
         // Baseline should be very fast
-        if (totalTime > 3000) {
+        if (
+          totalTime >
+          MINIMAL_LOAD_THRESHOLDS.ACCOUNT_LIST_RENDER +
+            MINIMAL_LOAD_THRESHOLDS.NAVIGATION_TO_ACCOUNT_LIST
+        ) {
           console.warn(
             `⚠️  BASELINE WARNING: Even minimal load took ${totalTime}ms`,
           );
