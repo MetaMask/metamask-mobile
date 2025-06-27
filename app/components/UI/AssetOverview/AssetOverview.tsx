@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -74,6 +74,7 @@ import { selectMultichainAssetsRates } from '../../../selectors/multichain';
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { isEvmAccountType, KeyringAccountType } from '@metamask/keyring-api';
+import { debounce } from 'lodash';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -155,28 +156,64 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
 
+  // Memoize the network client ID to prevent unnecessary re-renders
+  const memoizedNetworkClientId = useMemo(
+    () => selectedNetworkClientId,
+    [selectedNetworkClientId],
+  );
+
+  // Create a ref to track the last fetch to prevent duplicate requests
+  const lastFetchRef = useRef<string>('');
+  const fetchInProgressRef = useRef<boolean>(false);
+
+  // Debounced fetch function to prevent excessive API calls
+  const debouncedFetchTokenWithCache = useMemo(
+    () =>
+      debounce(async (networkClientId: string) => {
+        if (fetchInProgressRef.current) {
+          return;
+        }
+
+        if (lastFetchRef.current === networkClientId) {
+          return; // Skip if we've already fetched for this network recently
+        }
+
+        try {
+          fetchInProgressRef.current = true;
+          lastFetchRef.current = networkClientId;
+
+          const { SwapsController } = Engine.context;
+          await SwapsController.fetchTokenWithCache({
+            networkClientId,
+          });
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            'AssetOverview: Error fetching tokens with cache',
+          );
+
+          // Reset cache key on error to allow retry
+          lastFetchRef.current = '';
+        } finally {
+          fetchInProgressRef.current = false;
+        }
+      }, 300), // 300ms debounce
+    [],
+  );
+
+  const fetchTokenWithCache = useCallback(async () => {
+    if (!memoizedNetworkClientId) return;
+
+    await debouncedFetchTokenWithCache(memoizedNetworkClientId);
+  }, [memoizedNetworkClientId, debouncedFetchTokenWithCache]);
+
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });
   }, []);
 
   useEffect(() => {
-    const { SwapsController } = Engine.context;
-    const fetchTokenWithCache = async () => {
-      try {
-        await SwapsController.fetchTokenWithCache({
-          networkClientId: selectedNetworkClientId,
-        });
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        Logger.error(
-          error,
-          'Swaps: error while fetching tokens with cache in AssetOverview',
-        );
-      }
-    };
     fetchTokenWithCache();
-  }, [selectedNetworkClientId]);
+  }, [fetchTokenWithCache]);
 
   const onReceive = () => {
     navigation.navigate(Routes.QR_TAB_SWITCHER, {

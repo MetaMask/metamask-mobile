@@ -29,6 +29,7 @@ import {
 import { areAddressesEqual, toFormattedAddress } from '../../../util/address';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { debounce } from 'lodash';
 
 import {
   getFeatureFlagChainId,
@@ -332,34 +333,73 @@ function SwapsAmountView({
     })();
   }, [selectedNetworkClientId]);
 
-  useEffect(() => {
-    (async () => {
-      const { SwapsController } = Engine.context;
-      try {
-        if (
-          !swapsControllerTokens ||
-          !swapsTokens ||
-          swapsTokens?.length === 0
-        ) {
-          setInitialLoadingTokens(true);
+  // Add performance optimizations
+  const fetchInProgressRef = useRef(false);
+  const lastFetchedNetworkRef = useRef('');
+
+  // Memoize network client ID to prevent unnecessary re-renders
+  const memoizedNetworkClientId = useMemo(
+    () => selectedNetworkClientId,
+    [selectedNetworkClientId],
+  );
+
+  // Debounced token fetch function to prevent excessive API calls
+  const debouncedFetchTokens = useMemo(
+    () =>
+      debounce(async (networkClientId) => {
+        if (!networkClientId || fetchInProgressRef.current) {
+          return;
         }
-        setLoadingTokens(true);
-        await SwapsController.fetchTokenWithCache({
-          networkClientId: selectedNetworkClientId,
-        });
-        setLoadingTokens(false);
-        setInitialLoadingTokens(false);
-      } catch (error) {
-        Logger.error(
-          error,
-          'Swaps: Error while fetching tokens in amount view',
-        );
-      } finally {
-        setLoadingTokens(false);
-        setInitialLoadingTokens(false);
-      }
-    })();
-  }, [swapsControllerTokens, swapsTokens, selectedNetworkClientId]);
+
+        // Skip if we've already fetched for this network recently
+        if (lastFetchedNetworkRef.current === networkClientId) {
+          return;
+        }
+
+        try {
+          fetchInProgressRef.current = true;
+          lastFetchedNetworkRef.current = networkClientId;
+
+          const { SwapsController } = Engine.context;
+          await SwapsController.fetchTokenWithCache({
+            networkClientId,
+          });
+        } catch (error) {
+          Logger.error(
+            error,
+            'Swaps: Error while fetching tokens in amount view',
+          );
+
+          // Reset on error to allow retry
+          lastFetchedNetworkRef.current = '';
+        } finally {
+          fetchInProgressRef.current = false;
+        }
+      }, 300), // 300ms debounce
+    [],
+  );
+
+  // Optimized effect for fetching tokens
+  useEffect(() => {
+    const shouldFetch =
+      !swapsControllerTokens || !swapsTokens || swapsTokens?.length === 0;
+
+    if (shouldFetch) {
+      setInitialLoadingTokens(true);
+    }
+
+    setLoadingTokens(true);
+
+    debouncedFetchTokens(memoizedNetworkClientId).finally(() => {
+      setLoadingTokens(false);
+      setInitialLoadingTokens(false);
+    });
+  }, [
+    memoizedNetworkClientId,
+    debouncedFetchTokens,
+    swapsControllerTokens,
+    swapsTokens,
+  ]);
 
   const canSetAnInitialSourceToken =
     !isSourceSet &&
