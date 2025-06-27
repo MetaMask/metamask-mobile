@@ -8,6 +8,12 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
 import { QuoteViewSelectorIDs } from '../../../../e2e/selectors/swaps/QuoteView.selectors';
 
+// Mock lodash debounce to execute immediately in tests
+jest.mock('lodash', () => ({
+  ...jest.requireActual('lodash'),
+  debounce: jest.fn((fn) => fn),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
