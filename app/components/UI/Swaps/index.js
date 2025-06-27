@@ -333,33 +333,13 @@ function SwapsAmountView({
     })();
   }, [selectedNetworkClientId]);
 
-  // Add performance optimizations
-  const fetchInProgressRef = useRef(false);
-  const lastFetchedNetworkRef = useRef('');
-
-  // Memoize network client ID to prevent unnecessary re-renders
-  const memoizedNetworkClientId = useMemo(
-    () => selectedNetworkClientId,
-    [selectedNetworkClientId],
-  );
-
   // Debounced token fetch function to prevent excessive API calls
   const debouncedFetchTokens = useMemo(
     () =>
       debounce(async (networkClientId) => {
-        if (!networkClientId || fetchInProgressRef.current) {
-          return;
-        }
-
-        // Skip if we've already fetched for this network recently
-        if (lastFetchedNetworkRef.current === networkClientId) {
-          return;
-        }
+        if (!networkClientId) return;
 
         try {
-          fetchInProgressRef.current = true;
-          lastFetchedNetworkRef.current = networkClientId;
-
           const { SwapsController } = Engine.context;
           await SwapsController.fetchTokenWithCache({
             networkClientId,
@@ -369,17 +349,12 @@ function SwapsAmountView({
             error,
             'Swaps: Error while fetching tokens in amount view',
           );
-
-          // Reset on error to allow retry
-          lastFetchedNetworkRef.current = '';
-        } finally {
-          fetchInProgressRef.current = false;
         }
       }, 300), // 300ms debounce
     [],
   );
 
-  // Optimized effect for fetching tokens
+  // Effect for fetching tokens
   useEffect(() => {
     const shouldFetch =
       !swapsControllerTokens || !swapsTokens || swapsTokens?.length === 0;
@@ -390,12 +365,12 @@ function SwapsAmountView({
 
     setLoadingTokens(true);
 
-    debouncedFetchTokens(memoizedNetworkClientId).finally(() => {
+    debouncedFetchTokens(selectedNetworkClientId).finally(() => {
       setLoadingTokens(false);
       setInitialLoadingTokens(false);
     });
   }, [
-    memoizedNetworkClientId,
+    selectedNetworkClientId,
     debouncedFetchTokens,
     swapsControllerTokens,
     swapsTokens,
