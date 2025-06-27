@@ -44,6 +44,10 @@ class ImportTokensView {
     return Matchers.getElementByID(ImportTokenViewSelectorsIDs.SEARCH_BAR);
   }
 
+  get nextButtonByText() {
+    return Matchers.getElementByText('Next');
+  }
+
   async tapSymbolInput() {
     await Gestures.waitAndTap(this.symbolInput);
   }
@@ -62,6 +66,17 @@ class ImportTokensView {
 
   async typeTokenAddress(address) {
     await Gestures.typeTextAndHideKeyboard(this.addressInput, address);
+  }
+  async scrollDownOnAddressInput() {
+    await Gestures.swipe(this.addressInput, 'up', 'slow', 0.6);
+  }
+
+  async replaceTextInFieldTokenAddress(address) {
+    await Gestures.replaceTextInField(this.addressInput, address);
+  }
+
+  async tapOnNextButtonAtIndex() {
+    await Gestures.tapAtIndex(this.nextButtonByText, 1);
   }
 
   async switchToCustomTab() {

@@ -8,7 +8,6 @@ import NetworkListModal from '../../pages/Network/NetworkListModal';
 import ConfirmAddAssetView from '../../pages/wallet/ImportTokenFlow/ConfirmAddAsset';
 import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensView';
 import Assertions from '../../utils/Assertions';
-import { CustomNetworks } from '../../resources/networks.e2e';
 
 const TOKEN_ADDRESS = '0x2d1aDB45Bb1d7D2556c6558aDb76CFD4F9F4ed16';
 
@@ -18,42 +17,18 @@ describe(Regression('Import custom token'), () => {
     await TestHelpers.launchApp();
   });
 
-  it('should import wallet and go to the wallet view', async () => {
+  it('should Import custom token', async () => {
     await importWalletWithRecoveryPhrase({
       seedPhrase: process.env.MM_TEST_WALLET_SRP,
     });
-  });
-
-  it('should add Sepolia testnet to my networks list', async () => {
-    await WalletView.tapNetworksButtonOnNavBar();
-    await TestHelpers.delay(2000);
-    await NetworkListModal.scrollToBottomOfNetworkList();
-    await NetworkListModal.tapTestNetworkSwitch();
-    await NetworkListModal.scrollToBottomOfNetworkList();
-    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
-    await NetworkListModal.changeNetworkTo(
-      CustomNetworks.Sepolia.providerConfig.nickname,
-    );
-  });
-
-  it('should dismiss network education modal', async () => {
-    await Assertions.checkIfVisible(NetworkEducationModal.container);
-    await NetworkEducationModal.tapGotItButton();
-    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
-  });
-
-  it('should Import custom token', async () => {
     await WalletView.tapImportTokensButton();
     await ImportTokensView.switchToCustomTab();
-    // choose network here
     await ImportTokensView.tapOnNetworkInput();
-    await ImportTokensView.tapNetworkOption('Base');
-
-    await ImportTokensView.typeTokenAddress(TOKEN_ADDRESS);
-    await ImportTokensView.tapSymbolInput();
-    await ImportTokensView.tapTokenSymbolText();
-    await ImportTokensView.scrollDownOnImportCustomTokens();
-    await ImportTokensView.tapOnNextButton();
+    await ImportTokensView.tapNetworkOption('Base Mainnet');
+    await ImportTokensView.replaceTextInFieldTokenAddress(TOKEN_ADDRESS);
+    await TestHelpers.delay(3000); // Wait for token details to load automatically
+    await ImportTokensView.scrollDownOnAddressInput();
+    await ImportTokensView.tapOnNextButtonAtIndex();
     await Assertions.checkIfVisible(ConfirmAddAssetView.container);
     await ConfirmAddAssetView.tapOnConfirmButton();
     await Assertions.checkIfVisible(WalletView.container);
@@ -62,19 +37,13 @@ describe(Regression('Import custom token'), () => {
   it('should switch to base and check added token ', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
     await TestHelpers.delay(2000);
-    await NetworkListModal.changeNetworkTo('Base');
-
-    // dismiss educational modal
+    await NetworkListModal.changeNetworkTo('Base Mainnet');
     await Assertions.checkIfVisible(NetworkEducationModal.container);
     await NetworkEducationModal.tapGotItButton();
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
-
-    // check token
     const tokens = await WalletView.getTokensInWallet();
     const tokensAttributes = await tokens.getAttributes();
     const label = tokensAttributes.label;
-
-    // Ensure `label` contains "Aave" followed (somewhere) by "Ethereum".
     const textOrderRegex = new RegExp('USDT([\\s\\S]*?)Ethereum', 'i');
     const isMatch = label.match(textOrderRegex);
     if (!isMatch) {
