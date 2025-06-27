@@ -409,7 +409,7 @@ const Login: React.FC = () => {
           setLoading(false);
           setError(strings('login.clean_vault_error'));
         }
-      } else if (toLowerCaseEquals(loginError, DENY_PIN_ERROR_ANDROID)) {
+      } else if (toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID)) {
         setLoading(false);
         updateBiometryChoice(false);
       } else if (
