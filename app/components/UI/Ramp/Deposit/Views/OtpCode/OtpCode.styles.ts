@@ -32,6 +32,22 @@ const styleSheet = (params: { theme: Theme }) => {
       borderColor: theme.colors.info.default,
       borderBottomWidth: 2,
     },
+    resendButtonContainer: {
+      flexDirection: 'row',
+      marginTop: 12,
+    },
+    resendButtonText: {
+      color: theme.colors.text.muted,
+      marginRight: 4,
+    },
+    resendButton: {
+      color: theme.colors.info.default,
+      marginLeft: 4,
+    },
+    contactSupportButton: {
+      color: theme.colors.info.default,
+      marginLeft: 4,
+    },
   });
 };
 

@@ -29,6 +29,7 @@ export const ConfirmationUIType = {
 export const ConfirmationRowComponentIDs = {
   ACCOUNT_NETWORK: 'account-network',
   ADVANCED_DETAILS: 'advanced-details',
+  APPROVE_ROW: 'approve-row',
   FROM_TO: 'from-to',
   GAS_FEES_DETAILS: 'gas-fees-details',
   MESSAGE: 'message',

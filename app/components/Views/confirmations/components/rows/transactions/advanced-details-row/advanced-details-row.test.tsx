@@ -1,5 +1,5 @@
 import React from 'react';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, merge } from 'lodash';
 import { fireEvent } from '@testing-library/react-native';
 
 import {
@@ -88,6 +88,52 @@ describe('AdvancedDetailsRow', () => {
     );
     fireEvent.press(getByText('Advanced details'));
     expect(getByTestId('scroll-view-data')).toBeTruthy();
+  });
+
+  describe('Nonce editing', () => {
+    const mockSetShowNonceModal = jest.fn();
+    beforeEach(() => {
+      jest.clearAllMocks();
+      (useEditNonce as jest.Mock).mockReturnValue({
+        ...mockUseEditNonce,
+        setShowNonceModal: mockSetShowNonceModal,
+      });
+    });
+
+    it('nonce is not editable if STX is enabled', () => {
+      const swapsEnabledState = merge({}, generateContractInteractionState, {
+        swaps: {
+          featureFlags: {
+            smartTransactions: {
+              mobileActive: true,
+            },
+          },
+        },
+      });
+
+      const { getByText } = renderWithProvider(
+        <AdvancedDetailsRow />,
+        { state: swapsEnabledState },
+        false,
+      );
+
+      fireEvent.press(getByText('Advanced details'));
+      fireEvent.press(getByText('42'));
+      expect(mockSetShowNonceModal).toHaveBeenCalledTimes(0);
+    });
+
+    it('nonce is editable if STX is not enabled', () => {
+      const { getByText } = renderWithProvider(
+        <AdvancedDetailsRow />,
+        { state: generateContractInteractionState },
+        false,
+      );
+      fireEvent.press(getByText('Advanced details'));
+
+      fireEvent.press(getByText('42'));
+      expect(mockSetShowNonceModal).toHaveBeenCalledTimes(1);
+      expect(mockSetShowNonceModal).toHaveBeenCalledWith(true);
+    });
   });
 
   it('display correct information for downgrade confirmation', () => {

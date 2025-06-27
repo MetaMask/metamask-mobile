@@ -209,6 +209,8 @@ export abstract class MultichainWalletSnapClient {
       TraceOperation.DiscoverAccounts,
     );
 
+    let totalDiscoveredAccounts = 0;
+
     for (let index = 0; ; index++) {
       const discoveredAccounts = await this.discoverAccounts(
         [this.getScope()],
@@ -255,6 +257,7 @@ export abstract class MultichainWalletSnapClient {
               setSelectedAccount: false,
             },
           );
+          totalDiscoveredAccounts += 1;
         } catch (error) {
           captureException(new Error(`Failed to create account ${error}`));
         }
@@ -264,6 +267,8 @@ export abstract class MultichainWalletSnapClient {
     this.endTrace(
       TraceName.SnapDiscoverAccounts,
     );
+
+    return totalDiscoveredAccounts;
   }
 }
 

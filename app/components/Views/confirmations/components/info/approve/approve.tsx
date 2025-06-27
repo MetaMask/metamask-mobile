@@ -5,6 +5,7 @@ import { ConfirmationInfoComponentIDs } from '../../../constants/info-ids';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import GasFeesDetailsRow from '../../rows/transactions/gas-fee-details-row';
 import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row';
+import { ApproveRow } from '../../rows/transactions/approve-row';
 import AccountNetworkInfoRow from '../../rows/account-network-info-row';
 
 const Approve = () => {
@@ -14,6 +15,7 @@ const Approve = () => {
 
   return (
     <View testID={ConfirmationInfoComponentIDs.APPROVE}>
+      <ApproveRow />
       <AccountNetworkInfoRow />
       <GasFeesDetailsRow />
       <AdvancedDetailsRow />
