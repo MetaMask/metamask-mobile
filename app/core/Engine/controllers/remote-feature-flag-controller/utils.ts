@@ -12,7 +12,7 @@ import { RemoteFeatureFlagInitParamTypes } from './types';
 import AppConstants from '../../../AppConstants';
 
 const getFeatureFlagAppEnvironment = () => {
-  const env = process.env.METAMASK_ENVIRONMENT;
+  const env = 'local';
   switch (env) {
     case 'local':
       return EnvironmentType.Development;
