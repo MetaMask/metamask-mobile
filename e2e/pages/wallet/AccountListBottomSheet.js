@@ -130,6 +130,12 @@ class AccountListBottomSheet {
   async tapConnectAccountsButton() {
     await Gestures.waitAndTap(this.connectAccountsButton);
   }
+
+  async tapAccountByName(accountName) {
+    const name=  Matchers.getElementByText(accountName);
+
+    await Gestures.waitAndTap(name);
+  }
 }
 
 export default new AccountListBottomSheet();
