@@ -27,7 +27,7 @@ import SensitiveText, {
 import {
   areAddressesEqual,
   formatAddress,
-  getLabelTextByAddress,
+  getLabelTextByInternalAccount,
   toFormattedAddress,
 } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
@@ -403,6 +403,7 @@ const EvmAccountSelectorList = ({
         balanceError,
         scopes,
         isLoadingAccount,
+        internalAccount,
       } = item.data;
 
       const partialAccount = {
@@ -412,7 +413,7 @@ const EvmAccountSelectorList = ({
       const shortAddress = formatAddress(address, 'short');
       const tagLabel = accountTreeSections
         ? undefined
-        : getLabelTextByAddress(address);
+        : getLabelTextByInternalAccount(internalAccount);
       const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
@@ -456,8 +457,7 @@ const EvmAccountSelectorList = ({
 
       const handleButtonClick = () => {
         if (useMultichainAccountDesign) {
-          const account =
-            Engine.context.AccountsController.getAccountByAddress(address);
+          const account = internalAccount;
 
           if (!account) return;
 
