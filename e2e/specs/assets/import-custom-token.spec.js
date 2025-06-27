@@ -26,7 +26,7 @@ describe(Regression('Import custom token'), () => {
     await ImportTokensView.tapOnNetworkInput();
     await ImportTokensView.tapNetworkOption('Base Mainnet');
     await ImportTokensView.replaceTextInFieldTokenAddress(TOKEN_ADDRESS);
-    await TestHelpers.delay(3000); // Wait for token details to load automatically
+    await TestHelpers.delay(5000); // Wait for token details to load automatically
     await ImportTokensView.scrollDownOnAddressInput();
     await ImportTokensView.tapOnNextButtonAtIndex();
     await Assertions.checkIfVisible(ConfirmAddAssetView.container);
