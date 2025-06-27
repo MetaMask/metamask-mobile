@@ -7,6 +7,7 @@ import { RootState } from '../../../../reducers';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { earnSelectors } from '../../../../selectors/earnController';
 import { TokenI } from '../../Tokens/types';
+import { endTrace, trace, TraceName } from '../../../../util/trace';
 
 const { selectEarnTokenPair } = earnSelectors;
 
@@ -23,7 +24,7 @@ const useEarnLendingPositions = (asset: TokenI) => {
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-
+    
     const getLendingPositionHistory = async (params: {
       positionId: string;
       marketId: string;
@@ -49,6 +50,7 @@ const useEarnLendingPositions = (asset: TokenI) => {
       setLifetimeRewards(lifetimeRewardsForToken?.assets ?? '0');
       setHasEarnLendingPositions(hasPositions);
     };
+
     if (
       outputToken &&
       outputToken.experience?.market?.protocol &&
@@ -56,6 +58,7 @@ const useEarnLendingPositions = (asset: TokenI) => {
       outputToken.experience?.market?.id &&
       outputToken.experience?.market?.address
     ) {
+      trace({ name: TraceName.EarnEarnings });
       getLendingPositionHistory({
         positionId: outputToken.experience?.market?.position?.id,
         marketId: outputToken.experience?.market?.id,
@@ -66,6 +69,8 @@ const useEarnLendingPositions = (asset: TokenI) => {
         setError('Failed to fetch lending position history');
         setHasEarnLendingPositions(false);
         setIsLoading(false);
+      }).finally(() => {
+        endTrace({ name: TraceName.EarnEarnings });
       });
     } else {
       setHasEarnLendingPositions(false);

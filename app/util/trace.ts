@@ -66,6 +66,10 @@ export enum TraceName {
   DisconnectAllAccountPermissions = 'Disconnect All Account Permissions',
   OnboardingCreateWallet = 'Onboarding Create Wallet',
   QRTabSwitcher = 'QR Tab Switcher',
+  // Earn
+  EarnDepositScreen = 'Earn Deposit Screen',
+  EarnWithdrawScreen = 'Earn Withdraw Screen',
+  EarnEarnings = 'Earn Earnings'
 }
 
 export enum TraceOperation {

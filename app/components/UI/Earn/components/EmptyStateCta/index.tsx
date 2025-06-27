@@ -28,6 +28,7 @@ import styleSheet from './EmptyStateCta.styles';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
+import { trace, TraceName } from '../../../../../util/trace';
 
 interface EarnEmptyStateCta {
   token: TokenI;
@@ -59,6 +60,7 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
   ).toFixed(0);
   const apr = earnToken?.experience?.apr;
   const navigateToLendInputScreen = () => {
+    trace({ name: TraceName.EarnDepositScreen });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.EARN_EMPTY_STATE_CTA_CLICKED)
         .addProperties({

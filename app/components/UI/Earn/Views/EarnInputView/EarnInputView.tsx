@@ -66,6 +66,7 @@ import {
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
+import { endTrace, TraceName } from '../../../../../util/trace';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -167,6 +168,11 @@ const EarnInputView = () => {
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    // End trace when first render is complete
+    endTrace({ name: TraceName.EarnDepositScreen });
   }, []);
 
   const navigateToLearnMoreModal = () => {
