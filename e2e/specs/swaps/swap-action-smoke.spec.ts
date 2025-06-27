@@ -80,12 +80,14 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
   });
 
   it.each`
-    type        | quantity | sourceTokenSymbol | destTokenSymbol | network
-    ${'wrap'}   | ${'.03'} | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
-    ${'unwrap'} | ${'.01'} | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
+    type        | quantity | sourceTokenSymbol | destTokenSymbol | network 
+    ${'swap'}   | ${'1'}   | ${'ETH'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet} 
+    ${'swap'}   | ${'10'}   | ${'USDC'}          | ${'ETH'}       | ${CustomNetworks.Tenderly.Mainnet}
+    ${'wrap'}   | ${'.03'} | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet} 
+    ${'unwrap'} | ${'.01'} | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet} 
   `(
-    "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
-    async ({ type, quantity, sourceTokenSymbol, destTokenSymbol }): Promise<void> => {
+    "should $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
+    async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }): Promise<void> => {
        await TabBarComponent.tapActions();
        await Assertions.checkIfVisible(WalletActionsBottomSheet.swapButton);
        await WalletActionsBottomSheet.tapSwapButton();
@@ -97,6 +99,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
            quantity,
            sourceTokenSymbol,
            destTokenSymbol,
+           network.providerConfig.chainId,
          );
        } else {
          await submitSwapLegacyUI(

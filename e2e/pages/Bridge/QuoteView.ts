@@ -30,12 +30,12 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.NETWORK_FEE);
   }
 
-  sourceToken(symbol: string): DetoxElement {
-    return Matchers.getElementByText(symbol);
+  sourceToken(chainId: string, symbol: string): DetoxElement {
+    return Matchers.getElementByID(`asset-${chainId}-${symbol}`);
   }
 
-  destToken(symbol: string): DetoxElement {
-    return Matchers.getElementByID(`asset-${symbol}`);
+  destToken(chainId: string, symbol: string): DetoxElement {
+    return Matchers.getElementByID(`asset-${chainId}-${symbol}`);
   }
 
   async enterAmount(amount: string): Promise<void> {
@@ -53,8 +53,13 @@ class QuoteView {
     await Gestures.waitAndTap(this.bridgeTo);
   }
 
-  async tapToken(symbol: string): Promise<void> {
-    await Gestures.waitAndTap(this.sourceToken(symbol), { delayBeforeTap: 1000 });
+  async tapToken(chainId: string, symbol: string): Promise<void> {
+    await Gestures.waitAndTap(this.sourceToken(chainId, symbol), { delayBeforeTap: 1000 });
+  }
+
+  async tapSourceToken(): Promise<void> {
+    const token = Matchers.getElementByText('ETH');
+    await Gestures.waitAndTap(token, { delayBeforeTap: 1000 });
   }
 
   async tapSwapTo(): Promise<void> {
@@ -70,13 +75,13 @@ class QuoteView {
     await Gestures.typeTextAndHideKeyboard(this.searchToken, symbol);
   }
 
-  async selectSourceToken(symbol: string): Promise<void> {
-    const token = this.sourceToken(symbol);
-    await Gestures.waitAndTap(token);
+  async selectSourceToken(chainId: string, symbol: string): Promise<void> {
+    const token = this.sourceToken(chainId, symbol);
+    await Gestures.waitAndTap(token, { delayBeforeTap: 1000 });
   }
 
-  async selectDestToken(symbol: string): Promise<void> {
-    const token = this.destToken(symbol);
+  async selectDestToken(chainId: string, symbol: string): Promise<void> {
+    const token = this.destToken(chainId, symbol);
     await Gestures.waitAndTap(token, { delayBeforeTap: 1000});
   }
 
