@@ -38,7 +38,7 @@ const approvalData = [
     nestedTransactionIndex: 0,
   },
 ];
-
+const DAPP_ORIGIN = 'https://dapp.com';
 const FIRST_PARTY_CONTRACT_ADDRESS_1_MOCK =
   '0x0439e60F02a8900a951603950d8D4527f400C3f1';
 const FIRST_PARTY_CONTRACT_ADDRESS_2_MOCK =
@@ -120,6 +120,7 @@ describe('SimulationDetails', () => {
           {
             id: mockTransactionId,
             simulationData: simulationDataMock,
+            origin: DAPP_ORIGIN,
           } as TransactionMeta
         }
         enableMetrics={false}
@@ -142,6 +143,7 @@ describe('SimulationDetails', () => {
                   ...simulationDataMock,
                   error: { code: SimulationErrorCode.ChainNotSupported },
                 },
+                origin: DAPP_ORIGIN,
               } as TransactionMeta
             }
             enableMetrics={false}
@@ -162,6 +164,7 @@ describe('SimulationDetails', () => {
                   ...simulationDataMock,
                   error: { code: SimulationErrorCode.Disabled },
                 },
+                origin: DAPP_ORIGIN,
               } as TransactionMeta
             }
             enableMetrics={false}
@@ -179,6 +182,7 @@ describe('SimulationDetails', () => {
             simulationData: simulationDataMock,
             origin: MMM_ORIGIN,
           } as TransactionMeta} enableMetrics={false} />,
+          { state: generateContractInteractionState },
         ).toJSON(),
       ).toBeNull();
     });
@@ -195,6 +199,7 @@ describe('SimulationDetails', () => {
                 ...simulationDataMock,
                 error: { code: SimulationErrorCode.Reverted },
               },
+              origin: DAPP_ORIGIN,
             } as TransactionMeta
           }
           enableMetrics={false}
@@ -215,6 +220,7 @@ describe('SimulationDetails', () => {
                 ...simulationDataMock,
                 error: { code: SimulationErrorCode.InvalidResponse },
               },
+              origin: DAPP_ORIGIN,
             } as TransactionMeta
           }
           enableMetrics={false}
@@ -235,6 +241,7 @@ describe('SimulationDetails', () => {
           {
             id: mockTransactionId,
             simulationData: simulationDataMock,
+            origin: DAPP_ORIGIN,
           } as TransactionMeta
         }
         enableMetrics={false}
@@ -283,6 +290,7 @@ describe('SimulationDetails', () => {
           {
             id: mockTransactionId,
             simulationData: simulationDataMock,
+            origin: DAPP_ORIGIN,
           } as TransactionMeta
         }
         enableMetrics={false}
@@ -334,6 +342,7 @@ describe('SimulationDetails', () => {
           {
             id: mockTransactionId,
             simulationData: simulationDataMock,
+            origin: DAPP_ORIGIN,
           } as TransactionMeta
         }
         enableMetrics={false}
