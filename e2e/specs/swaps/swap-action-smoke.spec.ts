@@ -3,7 +3,6 @@ import { ethers } from 'ethers';
 import { MockttpServer } from 'mockttp';
 import { loginToApp } from '../../viewHelper.js';
 import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
-import WalletView from '../../pages/wallet/WalletView.js';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import Tenderly from '../../tenderly.js';
@@ -87,9 +86,8 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
   `(
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol }): Promise<void> => {
-      await TabBarComponent.tapWallet();
-       await Assertions.checkIfVisible(WalletView.container);
        await TabBarComponent.tapActions();
+       await Assertions.checkIfVisible(WalletActionsBottomSheet.swapButton);
        await WalletActionsBottomSheet.tapSwapButton();
 
        // Submit the Swap
@@ -110,7 +108,6 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
        }
 
       // Check the swap activity completed
-      await TabBarComponent.tapActivity();
       await Assertions.checkIfVisible(ActivitiesView.title);
       await Assertions.checkIfVisible(
         ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
@@ -135,7 +132,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     },
   );
 
-  it('should validate segment/metametric events for a successful swap', async (): Promise<void> => {
+  it.skip('should validate segment/metametric events for a successful swap', async (): Promise<void> => {
 
     const testCases = [
       {

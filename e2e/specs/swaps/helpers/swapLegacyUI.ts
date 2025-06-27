@@ -11,6 +11,7 @@ export async function submitSwapLegacyUI(
 ) {
   const firstElement: number = 0;
 
+  await device.disableSynchronization();
   // Select source token, if native token can skip because already selected
   if (type !== 'native') {
     await LegacyUIQuoteView.tapOnSelectSourceToken();

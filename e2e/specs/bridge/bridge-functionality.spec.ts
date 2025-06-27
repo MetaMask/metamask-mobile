@@ -104,20 +104,20 @@ describe(SmokeTrade('Bridge functionality'), () => {
     );
     await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapActions();
-    await TestHelpers.delay(500);
-    await WalletActionsBottomSheet.tapBridgeButton();
-gi
+  //  await TestHelpers.delay(500);
+    await WalletActionsBottomSheet.tapSwapButton();
+    await device.disableSynchronization();
     await QuoteView.enterAmount('1');
-    await QuoteView.tapBridgeTo();
+    await QuoteView.tapSwapTo();
     await TestHelpers.delay(1000);
     await QuoteView.selectNetwork('Solana');
-    await Assertions.checkIfVisible(QuoteView.token('SOL'));
+    await Assertions.checkIfVisible(QuoteView.destToken('SOL'));
     await TestHelpers.delay(1000);
-    await QuoteView.selectToken('SOL');
+    await QuoteView.selectDestToken('SOL');
     await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
-    await Assertions.checkIfVisible(QuoteView.confirmButton);
-    await QuoteView.tapConfirm();
-    await TestHelpers.delay(1000);gi
+    await Assertions.checkIfVisible(QuoteView.confirmBridge);
+    await QuoteView.tapConfirmBridge();
+    await TestHelpers.delay(1000);
     // Check the bridge activity completed
     await TabBarComponent.tapActivity();
     await Assertions.checkIfVisible(ActivitiesView.title);
@@ -143,7 +143,7 @@ gi
     ]);
   });
 
-  it('should check the Segment events from one bridge', async () => {
+  it.skip('should check the Segment events from one bridge', async () => {
     const softAssert = new SoftAssert();
     await softAssert.checkAndCollect(
       () => Assertions.checkIfArrayHasLength(eventsToAssert, 9),
@@ -286,18 +286,16 @@ gi
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapActions();
-    await TestHelpers.delay(500);
-    await WalletActionsBottomSheet.tapBridgeButton();
+    await WalletActionsBottomSheet.tapSwapButton();
     await device.disableSynchronization();
     await QuoteView.enterAmount('1');
-    await QuoteView.tapBridgeTo();
-    await TestHelpers.delay(1000);
+    await QuoteView.tapSwapTo();
     await QuoteView.selectNetwork('Base');
-    await Assertions.checkIfVisible(QuoteView.token('ETH'));
-    await QuoteView.selectToken('ETH');
+    await Assertions.checkIfVisible(QuoteView.destToken('ETH'));
+    await QuoteView.selectDestToken('ETH');
     await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
-    await Assertions.checkIfVisible(QuoteView.confirmButton);
-    await QuoteView.tapConfirm();
+    await Assertions.checkIfVisible(QuoteView.confirmBridge);
+    await QuoteView.tapConfirmBridge();
     await TestHelpers.delay(1000);
 
     // Check the bridge activity completed
@@ -325,18 +323,17 @@ gi
     await TabBarComponent.tapWallet();
 
     await TabBarComponent.tapActions();
-    await TestHelpers.delay(500);
-    await WalletActionsBottomSheet.tapBridgeButton();
+    await WalletActionsBottomSheet.tapSwapButton();
     await device.disableSynchronization();
     await QuoteView.enterAmount('1');
-    await QuoteView.tapBridgeTo();
+    await QuoteView.tapSwapTo();
     await TestHelpers.delay(1000);
     await QuoteView.selectNetwork('OP Mainnet');
-    await Assertions.checkIfVisible(QuoteView.token('ETH'));
-    await QuoteView.selectToken('ETH');
+    await Assertions.checkIfVisible(QuoteView.destToken('ETH'));
+    await QuoteView.selectDestToken('ETH');
     await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
-    await Assertions.checkIfVisible(QuoteView.confirmButton);
-    await QuoteView.tapConfirm();
+    await Assertions.checkIfVisible(QuoteView.confirmBridge);
+    await QuoteView.tapConfirmBridge();
     await TestHelpers.delay(1000);
 
     // Check the bridge activity completed

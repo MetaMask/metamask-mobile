@@ -122,7 +122,6 @@ describe(Regression('Swap from Token view'), (): void => {
     await Assertions.checkIfTextIsNotDisplayed('0 DAI', 60000);
 
     // Check the swap activity completed
-    await TabBarComponent.tapActivity();
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(
       ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
