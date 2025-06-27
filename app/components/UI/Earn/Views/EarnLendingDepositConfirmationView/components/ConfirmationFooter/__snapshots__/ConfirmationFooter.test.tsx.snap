@@ -158,9 +158,8 @@ exports[`ConfirmationFooter renders correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 14,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -227,9 +226,8 @@ exports[`ConfirmationFooter renders correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 14,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
