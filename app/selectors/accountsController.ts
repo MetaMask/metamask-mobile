@@ -175,6 +175,17 @@ export const selectSelectedInternalAccountFormattedAddress =
   );
 
 /**
+ * A memoized selector that returns all formatted internal account address by account ID
+ */
+export const selectFormattedAddressByInternalAccountId =
+  createDeepEqualSelector(selectInternalAccounts, (accounts) =>
+    accounts.reduce((formattedAddresses: Record<string, string>, account) => {
+      formattedAddresses[account.id] = getFormattedAddressFromInternalAccount(account);
+      return formattedAddresses;
+    }, {})
+  );
+
+/**
  * A memoized selector that returns the previously selected EVM account
  */
 export const selectPreviouslySelectedEvmAccount = createDeepEqualSelector(
