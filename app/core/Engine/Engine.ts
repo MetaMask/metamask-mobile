@@ -129,6 +129,7 @@ import { zeroAddress } from 'ethereumjs-util';
 import {
   ChainId,
   handleFetch,
+  type TraceCallback,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   toHex,
   ///: END:ONLY_INCLUDE_IF
@@ -185,6 +186,7 @@ import {
   swapsSupportedChainIds,
 } from './constants';
 import { getGlobalChainId } from '../../util/networks/global-network';
+import { trace } from '../../util/trace';
 import { logEngineCreation } from './utils/logger';
 import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
@@ -1117,6 +1119,7 @@ export class Engine {
         this.transactionController.updateTransaction(...args),
       getFeatureFlags: () => selectSwapsChainFeatureFlags(store.getState()),
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
+      trace: trace as TraceCallback,
     });
 
     const tokenSearchDiscoveryDataController =
@@ -1247,8 +1250,8 @@ export class Engine {
         DeFiPositionsController: defiPositionsControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
-        SnapController: snapControllerInit,
         CronjobController: cronjobControllerInit,
+        SnapController: snapControllerInit,
         SnapInterfaceController: snapInterfaceControllerInit,
         SnapsRegistry: snapsRegistryInit,
         NotificationServicesController: notificationServicesControllerInit,
@@ -1337,6 +1340,7 @@ export class Engine {
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     snapController.init();
+    cronjobController.init();
     // Notification Setup
     notificationServicesController.init();
     ///: END:ONLY_INCLUDE_IF

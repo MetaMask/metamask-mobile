@@ -3523,6 +3523,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                           },
                                         ]
                                       }
+                                      testID="expanded-quotes-section"
                                     >
                                       <View
                                         style={

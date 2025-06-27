@@ -118,6 +118,39 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         "provider": "AGGREGATOR",
         "state": "PENDING",
       },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "100",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "100",
+        "cryptocurrency": "USDC",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": "USDC",
+          "providerOrderLink": "https://transak.com/order/123",
+        },
+        "id": "test-deposit-order-1",
+        "network": "1",
+        "orderType": "DEPOSIT",
+        "provider": "DEPOSIT",
+        "state": "COMPLETED",
+      },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "20",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "20",
+        "cryptocurrency": "USDT",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": "USDT",
+        },
+        "id": "test-deposit-order-2",
+        "network": "1",
+        "orderType": "DEPOSIT",
+        "provider": "DEPOSIT",
+        "state": "CREATED",
+      },
     ]
   }
   getItem={[Function]}
@@ -808,6 +841,366 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         </View>
       </TouchableHighlight>
     </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#b7bbc866",
+          }
+        }
+        underlayColor="#f3f5f9"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Image
+                resizeMode="stretch"
+                source={1}
+                style={
+                  {
+                    "height": 28,
+                    "width": 28,
+                  }
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                USDC Deposit
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#1c7e33",
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 14,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Completed
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                100
+                 
+                USDC
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                $100 
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#b7bbc866",
+          }
+        }
+        underlayColor="#f3f5f9"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Image
+                resizeMode="stretch"
+                source={1}
+                style={
+                  {
+                    "height": 28,
+                    "width": 28,
+                  }
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                USDT Deposit
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 14,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Pending
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                20
+                 
+                USDT
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                $20 
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
   </View>
 </RCTScrollView>
 `;
@@ -950,6 +1343,39 @@ exports[`OrdersList renders correctly 1`] = `
         "orderType": "BUY",
         "provider": "AGGREGATOR",
         "state": "PENDING",
+      },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "100",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "100",
+        "cryptocurrency": "USDC",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": "USDC",
+          "providerOrderLink": "https://transak.com/order/123",
+        },
+        "id": "test-deposit-order-1",
+        "network": "1",
+        "orderType": "DEPOSIT",
+        "provider": "DEPOSIT",
+        "state": "COMPLETED",
+      },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "20",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "20",
+        "cryptocurrency": "USDT",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": "USDT",
+        },
+        "id": "test-deposit-order-2",
+        "network": "1",
+        "orderType": "DEPOSIT",
+        "provider": "DEPOSIT",
+        "state": "CREATED",
       },
     ]
   }
@@ -1810,6 +2236,366 @@ exports[`OrdersList renders correctly 1`] = `
                 }
               >
                 ...
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#b7bbc866",
+          }
+        }
+        underlayColor="#f3f5f9"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Image
+                resizeMode="stretch"
+                source={1}
+                style={
+                  {
+                    "height": 28,
+                    "width": 28,
+                  }
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                USDC Deposit
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#1c7e33",
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 14,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Completed
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                100
+                 
+                USDC
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                $100 
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#b7bbc866",
+          }
+        }
+        underlayColor="#f3f5f9"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Image
+                resizeMode="stretch"
+                source={1}
+                style={
+                  {
+                    "height": 28,
+                    "width": 28,
+                  }
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                USDT Deposit
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 14,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Pending
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                20
+                 
+                USDT
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                $20 
               </Text>
             </View>
           </View>
@@ -3291,6 +4077,39 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         "provider": "AGGREGATOR",
         "state": "PENDING",
       },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "100",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "100",
+        "cryptocurrency": "USDC",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": "USDC",
+          "providerOrderLink": "https://transak.com/order/123",
+        },
+        "id": "test-deposit-order-1",
+        "network": "1",
+        "orderType": "DEPOSIT",
+        "provider": "DEPOSIT",
+        "state": "COMPLETED",
+      },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "20",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "20",
+        "cryptocurrency": "USDT",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": "USDT",
+        },
+        "id": "test-deposit-order-2",
+        "network": "1",
+        "orderType": "DEPOSIT",
+        "provider": "DEPOSIT",
+        "state": "CREATED",
+      },
     ]
   }
   getItem={[Function]}
@@ -4150,6 +4969,366 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 }
               >
                 ...
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#b7bbc866",
+          }
+        }
+        underlayColor="#f3f5f9"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Image
+                resizeMode="stretch"
+                source={1}
+                style={
+                  {
+                    "height": 28,
+                    "width": 28,
+                  }
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                USDC Deposit
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#1c7e33",
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 14,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Completed
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                100
+                 
+                USDC
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                $100 
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#b7bbc866",
+          }
+        }
+        underlayColor="#f3f5f9"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Image
+                resizeMode="stretch"
+                source={1}
+                style={
+                  {
+                    "height": 28,
+                    "width": 28,
+                  }
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                USDT Deposit
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 14,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Pending
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                20
+                 
+                USDT
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                $20 
               </Text>
             </View>
           </View>
