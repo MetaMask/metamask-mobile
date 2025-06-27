@@ -54,7 +54,7 @@ export const HeroToken = ({ amountWei }: { amountWei?: string }) => {
   return (
     <AnimatedPulse
       isPulsing={isTransactionValueUpdating}
-      preventPulse={!maxValueMode || isNative}
+      preventPulse={!maxValueMode || !isNative}
     >
       <Hero
         componentAsset={<AvatarTokenWithNetworkBadge />}
