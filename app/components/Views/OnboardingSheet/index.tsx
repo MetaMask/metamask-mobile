@@ -12,14 +12,13 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
 import { AppThemeKey } from '../../../util/theme/models';
+import GoogleIcon from 'images/google.svg';
+import AppleIcon from 'images/apple.svg';
+import AppleWhiteIcon from 'images/apple-white.svg';
 
 export interface OnboardingSheetParams {
   onPressCreate?: () => void;
@@ -126,10 +125,11 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
             testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
             label={
               <View style={styles.buttonLabel}>
-                <Icon
-                  name={IconName.Google}
-                  size={IconSize.Lg}
-                  color={TextColor.Default}
+                <GoogleIcon 
+                  fill="currentColor"
+                  width={24}
+                  height={24}
+                  name={'google'}
                 />
                 <Text
                   variant={TextVariant.BodyMDMedium}
@@ -151,11 +151,21 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
             testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
             label={
               <View style={styles.buttonLabel}>
-                <Icon
-                  name={isDark ? IconName.AppleWhite : IconName.Apple}
-                  size={IconSize.Lg}
-                  color={TextColor.Default}
-                />
+                {isDark ? (
+                  <AppleWhiteIcon
+                    fill="currentColor"
+                    width={24}
+                    height={24}
+                    name={'apple-white'}
+                  />
+                ) : (
+                  <AppleIcon
+                    fill="currentColor"
+                    width={24}
+                    height={24}
+                    name={'apple'}
+                  />
+                )}
                 <Text
                   variant={TextVariant.BodyMDMedium}
                   color={TextColor.Default}
