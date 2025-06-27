@@ -168,6 +168,7 @@ const useAccounts = ({
 
         const isBalanceAvailable = isMultiAccountBalancesEnabled || isSelected;
         const mappedAccount: Account = {
+          id: internalAccount.id,
           name: internalAccount.metadata.name,
           address: formattedAddress,
           type: internalAccount.metadata.keyring.type as KeyringTypes,
@@ -186,8 +187,6 @@ const useAccounts = ({
           caipAccountId: `${internalAccount.scopes[0]}:${internalAccount.address}`,
           scopes: internalAccount.scopes,
           isLoadingAccount: accountBalance.isLoadingAccount,
-          // Keep reference to the internal account to avoid unnecessary lookup.
-          internalAccount,
         };
         // Calculate height of the account item.
         yOffset += 78;
