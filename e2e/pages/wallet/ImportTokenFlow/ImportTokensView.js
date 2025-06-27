@@ -1,5 +1,6 @@
 import Matchers from '../../../utils/Matchers';
 import Gestures from '../../../utils/Gestures';
+import TestHelpers from '../../../helpers';
 import {
   ImportTokenViewSelectorsIDs,
   ImportTokenViewSelectorsText,
@@ -68,15 +69,24 @@ class ImportTokensView {
     await Gestures.typeTextAndHideKeyboard(this.addressInput, address);
   }
   async scrollDownOnAddressInput() {
-    await Gestures.swipe(this.addressInput, 'up', 'slow', 0.6);
+    await Gestures.swipe(this.addressInput, 'up', 'slow', 0.8);
+    await TestHelpers.delay(1000);
   }
 
   async replaceTextInFieldTokenAddress(address) {
     await Gestures.replaceTextInField(this.addressInput, address);
   }
 
-  async tapOnNextButtonAtIndex() {
-    await Gestures.tapAtIndex(this.nextButtonByText, 1);
+  async tapOnNextButtonWithFallback() {
+    try {
+      await element(by.text('Next')).atIndex(0).tap();
+    } catch (error) {
+      try {
+        await element(by.text('Next')).atIndex(1).tap();
+      } catch (secondError) {
+        await Gestures.waitAndTap(this.nextButtonByText);
+      }
+    }
   }
 
   async switchToCustomTab() {
