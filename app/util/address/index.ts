@@ -340,14 +340,12 @@ export function getLabelTextByInternalAccount(internalAccount: InternalAccount) 
     // We do show pills only if we have multiple SRPs (and thus, multiple HD keyrings).
     const shouldShowSrpPill = hdKeyringsIndexByEntropySource.size > 1;
 
-    if (shouldShowSrpPill) {
-      if (hdInternalAccount.options.entropySource) {
-        const entropySource = hdInternalAccount.options.entropySource as EntropySourceId;
+    if (shouldShowSrpPill && hdInternalAccount.options.entropySource) {
+      const entropySource = hdInternalAccount.options.entropySource as EntropySourceId;
 
-        const hdKeyringIndex = hdKeyringsIndexByEntropySource.get(entropySource);
-        if (hdKeyringIndex !== undefined) {
-          return strings('accounts.srp_index', { index: hdKeyringIndex + 1 }); // Add 1 to make it 1-indexed.
-        }
+      const hdKeyringIndex = hdKeyringsIndexByEntropySource.get(entropySource);
+      if (hdKeyringIndex !== undefined) {
+        return strings('accounts.srp_index', { index: hdKeyringIndex + 1 }); // Add 1 to make it 1-indexed.
       }
     }
     return null;
