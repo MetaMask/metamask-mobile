@@ -139,10 +139,25 @@ exports[`ProgressStepper renders correctly 1`] = `
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
+            "textAlign": "center",
           }
         }
       >
-        Approve
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Approve
+        </Text>
       </Text>
     </View>
     <View
@@ -193,10 +208,25 @@ exports[`ProgressStepper renders correctly 1`] = `
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
+            "textAlign": "center",
           }
         }
       >
-        Deposit
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Deposit
+        </Text>
       </Text>
     </View>
   </View>
@@ -341,10 +371,25 @@ exports[`ProgressStepper renders first and second step complete state when activ
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
+            "textAlign": "center",
           }
         }
       >
-        Approve
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Approve
+        </Text>
       </Text>
     </View>
     <View
@@ -394,10 +439,25 @@ exports[`ProgressStepper renders first and second step complete state when activ
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
+            "textAlign": "center",
           }
         }
       >
-        Deposit
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Deposit
+        </Text>
       </Text>
     </View>
   </View>
@@ -542,10 +602,25 @@ exports[`ProgressStepper renders first step complete and second step pending sta
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
+            "textAlign": "center",
           }
         }
       >
-        Approve
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Approve
+        </Text>
       </Text>
     </View>
     <View
@@ -596,10 +671,25 @@ exports[`ProgressStepper renders first step complete and second step pending sta
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
+            "textAlign": "center",
           }
         }
       >
-        Deposit
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Deposit
+        </Text>
       </Text>
     </View>
   </View>
@@ -752,10 +842,25 @@ exports[`ProgressStepper renders first step loading when isLoading prop set to t
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
+            "textAlign": "center",
           }
         }
       >
-        Approve
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Approve
+        </Text>
       </Text>
     </View>
     <View
@@ -806,10 +911,25 @@ exports[`ProgressStepper renders first step loading when isLoading prop set to t
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
+            "textAlign": "center",
           }
         }
       >
-        Deposit
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Deposit
+        </Text>
       </Text>
     </View>
   </View>
@@ -955,10 +1075,25 @@ exports[`ProgressStepper renders first step pending state when active step is 0 
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
+            "textAlign": "center",
           }
         }
       >
-        Approve
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Approve
+        </Text>
       </Text>
     </View>
     <View
@@ -1009,10 +1144,25 @@ exports[`ProgressStepper renders first step pending state when active step is 0 
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
+            "textAlign": "center",
           }
         }
       >
-        Deposit
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Deposit
+        </Text>
       </Text>
     </View>
   </View>
