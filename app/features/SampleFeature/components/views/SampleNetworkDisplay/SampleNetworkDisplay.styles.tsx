@@ -12,7 +12,7 @@ import { Theme } from '../../../../../util/theme/models';
  */
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
-  
+
   return StyleSheet.create({
     /**
      * Main container with horizontal layout for network display

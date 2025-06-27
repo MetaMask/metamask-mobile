@@ -66,14 +66,14 @@ describe(Regression('Sample Feature - Pet Names'), () => {
     // Clear fields
     await Gestures.clearField(SampleFeatureView.petNameAddressInput);
     await Gestures.clearField(SampleFeatureView.petNameNameInput);
-    
+
     // Enter valid address and name
     await SampleFeatureView.enterPetNameAddress(TEST_ADDRESSES.Alice.address);
     await SampleFeatureView.enterPetNameName('Alice');
-    
+
     // Tap add button
     await SampleFeatureView.tapAddPetNameButton();
-    
+
     // Verify the pet name appears in the list
     await Assertions.checkIfTextIsDisplayed('Alice');
     await Assertions.checkIfTextIsDisplayed(TEST_ADDRESSES.Alice.shortAddress);
@@ -84,20 +84,20 @@ describe(Regression('Sample Feature - Pet Names'), () => {
     await SampleFeatureView.enterPetNameAddress(TEST_ADDRESSES.Bob.address);
     await SampleFeatureView.enterPetNameName('Bob');
     await SampleFeatureView.tapAddPetNameButton();
-    
+
     // Verify Bob appears with correct short address
     await Assertions.checkIfTextIsDisplayed('Bob');
     await Assertions.checkIfTextIsDisplayed(TEST_ADDRESSES.Bob.shortAddress);
-    
+
     // Add Charlie
     await SampleFeatureView.enterPetNameAddress(TEST_ADDRESSES.Charlie.address);
     await SampleFeatureView.enterPetNameName('Charlie');
     await SampleFeatureView.tapAddPetNameButton();
-    
+
     // Verify Charlie appears with correct short address
     await Assertions.checkIfTextIsDisplayed('Charlie');
     await Assertions.checkIfTextIsDisplayed(TEST_ADDRESSES.Charlie.shortAddress);
-    
+
     // Verify all pet names are visible
     await Assertions.checkIfTextIsDisplayed('Alice');
     await Assertions.checkIfTextIsDisplayed('Bob');

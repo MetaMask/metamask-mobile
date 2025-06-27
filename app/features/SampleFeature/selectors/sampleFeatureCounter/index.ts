@@ -12,10 +12,10 @@ export const selectSampleFeatureCounterEnabled = createSelector(
     const remoteValue = hasProperty(remoteFeatureFlags, FEATURE_FLAG_NAME)
       ? (remoteFeatureFlags[FEATURE_FLAG_NAME] as boolean)
       : DEFAULT_SAMPLE_FEATURE_COUNTER_ENABLED;
-    
+
     return getFeatureFlagValue(
       process.env.MM_SAMPLE_FEATURE_COUNTER_ENABLED,
       remoteValue,
     );
   },
-); 
+);

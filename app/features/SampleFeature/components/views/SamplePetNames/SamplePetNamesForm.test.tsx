@@ -45,8 +45,8 @@ describe('SamplePetNamesForm', () => {
     // Default mock return value - no existing pet names
     mockUseSamplePetNames.mockReturnValue({ petNames: [] });
     // Create spy on Alert.alert
-    alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
-    
+    alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
+
     (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: MetricsEventBuilder.createEventBuilder,

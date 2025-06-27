@@ -27,7 +27,7 @@ describe('useSampleCounter', () => {
     jest.clearAllMocks();
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
     (useSelector as jest.Mock).mockReturnValue(mockCount);
-    
+
     // Mock dispatch to return the action creators
     mockDispatch.mockImplementation((action) => {
       if (typeof action === 'function') {

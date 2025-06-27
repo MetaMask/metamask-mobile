@@ -71,4 +71,4 @@ class SampleFeatureView {
   }
 }
 
-export default new SampleFeatureView(); 
+export default new SampleFeatureView();

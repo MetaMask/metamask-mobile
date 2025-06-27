@@ -28,7 +28,7 @@ export const useSampleCounter = () => {
     try {
       // Perform the increment operation
       dispatch(increment());
-      
+
       // End Redux performance trace successfully
       dispatch(endPerformanceTrace({
         eventName: 'SAMPLE_COUNTER_INCREMENT',

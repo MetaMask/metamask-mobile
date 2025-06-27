@@ -28,7 +28,7 @@ function useSamplePetNamesForm(
 
   const onSubmit = useCallback(() => {
     if (!isValid) return;
-    
+
     trace(
       {
         name: TraceName.SampleFeatureAddPetName,

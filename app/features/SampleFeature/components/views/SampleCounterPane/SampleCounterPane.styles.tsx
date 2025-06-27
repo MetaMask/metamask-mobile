@@ -9,9 +9,7 @@ import { StyleSheet } from 'react-native';
  *
  * @sampleFeature do not use in production code
  */
-const styleSheet = () => {
-  
-  return StyleSheet.create({
+const styleSheet = () => StyleSheet.create({
     /**
      * Main card container
      */
@@ -25,6 +23,5 @@ const styleSheet = () => {
       width: '100%',
     },
   });
-};
 
 export default styleSheet;

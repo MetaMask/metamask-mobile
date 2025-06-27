@@ -9,9 +9,7 @@ import { StyleSheet } from 'react-native';
  *
  * @sampleFeature do not use in production code
  */
-const styleSheet = () => {
-  
-  return StyleSheet.create({
+const styleSheet = () => StyleSheet.create({
     /**
      * Container for the pet names form section
      */
@@ -32,6 +30,5 @@ const styleSheet = () => {
       width: '100%',
     },
   });
-};
 
 export default styleSheet;

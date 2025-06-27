@@ -14,8 +14,6 @@ import useMetrics from '../../../../../components/hooks/useMetrics/useMetrics';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { SAMPLE_FEATURE_EVENTS } from '../../../analytics/events';
 import trackErrorAsAnalytics from '../../../../../util/metrics/TrackError/trackErrorAsAnalytics';
-import Engine from '../../../../../core/Engine';
-import { Hex } from '@metamask/utils';
 import { useSamplePetNames } from '../../hooks/useSamplePetNames';
 
 /**
@@ -82,7 +80,7 @@ export function SamplePetNamesForm({
           MetricsEventBuilder.createEventBuilder(
             SAMPLE_FEATURE_EVENTS.PETNAME_UPDATED,
           )
-            .addProperties({ 
+            .addProperties({
               totalPetNames: petNames.length,
               chainId: chainId as string,
             })
@@ -112,7 +110,7 @@ export function SamplePetNamesForm({
                   MetricsEventBuilder.createEventBuilder(
                     SAMPLE_FEATURE_EVENTS.PETNAME_UPDATED,
                   )
-                    .addProperties({ 
+                    .addProperties({
                       totalPetNames: petNames.length,
                       chainId: chainId as string,
                     })
@@ -130,7 +128,7 @@ export function SamplePetNamesForm({
         MetricsEventBuilder.createEventBuilder(
           SAMPLE_FEATURE_EVENTS.PETNAME_ADDED,
         )
-          .addProperties({ 
+          .addProperties({
             totalPetNames: petNames.length,
             chainId: chainId as string,
           })

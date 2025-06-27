@@ -19,8 +19,7 @@ export function useSamplePetNames(chainId: SupportedCaipChainId | Hex) {
     selectSamplePetnamesByChainId(state, chainId as Hex)
   );
 
-  const petNames = useMemo(() => {
-    return trace(
+  const petNames = useMemo(() => trace(
       {
         name: TraceName.SampleFeatureListPetNames,
         op: TraceOperation.SampleFeatureListPetNames,
@@ -35,14 +34,11 @@ export function useSamplePetNames(chainId: SupportedCaipChainId | Hex) {
           component: 'useSamplePetNames',
         },
       },
-      () => {
-        return Object.entries(petNamesByAddress).map(([address, name]) => ({
+      () => Object.entries(petNamesByAddress).map(([address, name]) => ({
           address,
           name,
-        }));
-      }
-    );
-  }, [petNamesByAddress, chainId]);
+        }))
+    ), [petNamesByAddress, chainId]);
 
   return { petNames };
 }

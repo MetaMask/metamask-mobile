@@ -180,8 +180,8 @@ describe('useSamplePetNamesForm', () => {
 
   it('updates form when initial values change', () => {
     const { result, rerender } = renderHook(
-      ({ chainId, initialAddress, initialName }) =>
-        useSamplePetNamesForm(chainId, initialAddress, initialName),
+      ({ chainId: testChainId, initialAddress: testInitialAddress, initialName: testInitialName }) =>
+        useSamplePetNamesForm(testChainId, testInitialAddress, testInitialName),
       {
         initialProps: { chainId, initialAddress, initialName },
       },

@@ -12,12 +12,10 @@ import type {
  */
 export const getSamplePetnamesControllerMessenger = (
   baseMessenger: BaseControllerMessenger,
-): SamplePetnamesControllerMessenger => {
-  return baseMessenger.getRestricted({
+): SamplePetnamesControllerMessenger => baseMessenger.getRestricted({
     name: 'SamplePetnamesController',
     allowedActions: [],
     allowedEvents: [
       'SamplePetnamesController:stateChange',
     ] as SamplePetnamesControllerEvents['type'][],
   });
-};

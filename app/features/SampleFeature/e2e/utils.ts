@@ -12,7 +12,7 @@ export const navigateToSampleFeature = async () => {
   // Scroll to and tap Developer Options
   await SettingsView.scrollToDeveloperOptions();
   await SettingsView.tapDeveloperOptions();
-  
+
   // Tap on Sample Feature
   await DeveloperOptionsView.tapSampleFeature();
-}; 
+};

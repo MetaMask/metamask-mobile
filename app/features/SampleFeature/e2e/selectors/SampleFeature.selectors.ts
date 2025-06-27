@@ -11,4 +11,4 @@ export const SampleFeatureSelectorsIDs = {
   SAMPLE_COUNTER_PANE_TITLE: 'sample-counter-pane-title',
   SAMPLE_COUNTER_PANE_VALUE: 'sample-counter-pane-value',
   SAMPLE_COUNTER_PANE_INCREMENT_BUTTON: 'sample-counter-pane-increment-button',
-} as const; 
+} as const;
