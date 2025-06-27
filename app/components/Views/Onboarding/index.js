@@ -588,7 +588,31 @@ class Onboarding extends PureComponent {
     );
   }
 
-  handleSimpleNotification = () => {};
+  handleSimpleNotification = () => {
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+
+    if (!this.props.route.params?.delete) return;
+    return (
+      <Animated.View
+        style={[
+          styles.notificationContainer,
+          { transform: [{ translateY: this.notificationAnimated }] },
+        ]}
+      >
+        <ElevatedView style={styles.modalTypeView} elevation={100}>
+          <BaseNotification
+            closeButtonDisabled
+            status="success"
+            data={{
+              title: strings('onboarding.success'),
+              description: strings('onboarding.your_wallet'),
+            }}
+          />
+        </ElevatedView>
+      </Animated.View>
+    );
+  };
 
   render() {
     const { loading } = this.props;
