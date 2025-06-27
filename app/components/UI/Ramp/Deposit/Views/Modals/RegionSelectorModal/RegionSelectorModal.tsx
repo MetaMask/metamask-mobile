@@ -126,20 +126,9 @@ function RegionSelectorModal() {
 
   const handleOnRegionPressCallback = useCallback(
     (region: DepositRegion) => {
-      if (region.supported) {
-        if (handleSelectRegion) {
-          handleSelectRegion(region);
-        }
+      if (region.supported && handleSelectRegion) {
+        handleSelectRegion(region);
         sheetRef.current?.onCloseBottomSheet();
-      } else {
-        // For unsupported regions, close this modal first, then navigate to unsupported modal
-        sheetRef.current?.onCloseBottomSheet();
-        // Use a small delay to ensure this modal closes before opening the unsupported modal
-        setTimeout(() => {
-          if (handleSelectRegion) {
-            handleSelectRegion(region);
-          }
-        }, 300);
       }
     },
     [handleSelectRegion],
@@ -163,7 +152,9 @@ function RegionSelectorModal() {
             <View style={styles.emoji}>
               <Text
                 variant={TextVariant.BodyLGMedium}
-                color={region.supported ? TextColor.Default : TextColor.Alternative}
+                color={
+                  region.supported ? TextColor.Default : TextColor.Alternative
+                }
               >
                 {region.flag}
               </Text>
@@ -171,7 +162,9 @@ function RegionSelectorModal() {
             <View>
               <Text
                 variant={TextVariant.BodyLGMedium}
-                color={region.supported ? TextColor.Default : TextColor.Alternative}
+                color={
+                  region.supported ? TextColor.Default : TextColor.Alternative
+                }
               >
                 {region.name}
               </Text>
@@ -180,7 +173,12 @@ function RegionSelectorModal() {
         </ListItemColumn>
       </ListItemSelect>
     ),
-    [handleOnRegionPressCallback, selectedRegionCode, styles.region, styles.emoji],
+    [
+      handleOnRegionPressCallback,
+      selectedRegionCode,
+      styles.region,
+      styles.emoji,
+    ],
   );
 
   const renderEmptyList = useMemo(
