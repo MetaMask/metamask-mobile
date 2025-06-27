@@ -1,0 +1,472 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AccountStatus Snapshots renders correctly with accountName in route params 1`] = `
+<RCTScrollView
+  contentContainerStyle={
+    {
+      "flex": 1,
+      "flexDirection": "column",
+      "height": "100%",
+      "justifyContent": "space-between",
+      "marginBottom": 16,
+      "padding": 24,
+    }
+  }
+>
+  <View>
+    <View
+      style={
+        {
+          "alignItems": "flex-start",
+          "flex": 1,
+          "justifyContent": "flex-start",
+          "rowGap": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Bold",
+            "fontSize": 32,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 40,
+          }
+        }
+      >
+        Account already exists
+      </Text>
+      <Image
+        resizeMethod="auto"
+        source={1}
+        style={
+          {
+            "alignSelf": "center",
+            "height": 286,
+            "marginHorizontal": "auto",
+            "marginVertical": 20,
+            "width": 340,
+          }
+        }
+      />
+      <View
+        style={
+          {
+            "flexDirection": "column",
+            "rowGap": 20,
+            "width": "100%",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          An account with test@example.com already exists. Do you want to try logging in instead?
+        </Text>
+      </View>
+    </View>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "#4459ff",
+          "borderRadius": 12,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Log in
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "transparent",
+          "borderColor": "#4459ff",
+          "borderRadius": 12,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "marginTop": 16,
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Use a different login method
+      </Text>
+    </TouchableOpacity>
+  </View>
+</RCTScrollView>
+`;
+
+exports[`AccountStatus Snapshots renders correctly with type="found" 1`] = `
+<RCTScrollView
+  contentContainerStyle={
+    {
+      "flex": 1,
+      "flexDirection": "column",
+      "height": "100%",
+      "justifyContent": "space-between",
+      "marginBottom": 16,
+      "padding": 24,
+    }
+  }
+>
+  <View>
+    <View
+      style={
+        {
+          "alignItems": "flex-start",
+          "flex": 1,
+          "justifyContent": "flex-start",
+          "rowGap": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Bold",
+            "fontSize": 32,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 40,
+          }
+        }
+      >
+        Account already exists
+      </Text>
+      <Image
+        resizeMethod="auto"
+        source={1}
+        style={
+          {
+            "alignSelf": "center",
+            "height": 286,
+            "marginHorizontal": "auto",
+            "marginVertical": 20,
+            "width": 340,
+          }
+        }
+      />
+      <View
+        style={
+          {
+            "flexDirection": "column",
+            "rowGap": 20,
+            "width": "100%",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          An account with [missing {{accountName}} value] already exists. Do you want to try logging in instead?
+        </Text>
+      </View>
+    </View>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "#4459ff",
+          "borderRadius": 12,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Log in
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "transparent",
+          "borderColor": "#4459ff",
+          "borderRadius": 12,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "marginTop": 16,
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Use a different login method
+      </Text>
+    </TouchableOpacity>
+  </View>
+</RCTScrollView>
+`;
+
+exports[`AccountStatus Snapshots renders correctly with type="not_exist" 1`] = `
+<RCTScrollView
+  contentContainerStyle={
+    {
+      "flex": 1,
+      "flexDirection": "column",
+      "height": "100%",
+      "justifyContent": "space-between",
+      "marginBottom": 16,
+      "padding": 24,
+    }
+  }
+>
+  <View>
+    <View
+      style={
+        {
+          "alignItems": "flex-start",
+          "flex": 1,
+          "justifyContent": "flex-start",
+          "rowGap": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Bold",
+            "fontSize": 32,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 40,
+          }
+        }
+      >
+        Account not found
+      </Text>
+      <Image
+        resizeMethod="auto"
+        source={1}
+        style={
+          {
+            "alignSelf": "center",
+            "height": 286,
+            "marginHorizontal": "auto",
+            "marginVertical": 20,
+            "width": 340,
+          }
+        }
+      />
+      <View
+        style={
+          {
+            "flexDirection": "column",
+            "rowGap": 20,
+            "width": "100%",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          No existing wallet found for [missing {{accountName}} value]. Want to create one now with this login?
+        </Text>
+      </View>
+    </View>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "#4459ff",
+          "borderRadius": 12,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Create a new wallet
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "transparent",
+          "borderColor": "#4459ff",
+          "borderRadius": 12,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "marginTop": 16,
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Use a different login method
+      </Text>
+    </TouchableOpacity>
+  </View>
+</RCTScrollView>
+`;

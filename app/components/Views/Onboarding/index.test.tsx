@@ -1,16 +1,39 @@
+// Mock react-native components for testing
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  return { ...RN };
+});
+
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import Onboarding from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Device from '../../../util/device';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
-import { InteractionManager } from 'react-native';
+import { InteractionManager, BackHandler, Animated } from 'react-native';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { EXISTING_USER } from '../../../constants/storage';
+import { Authentication } from '../../../core';
+import Routes from '../../../constants/navigation/Routes';
 
 const mockInitialState = {
   engine: {
     backgroundState: {
       ...backgroundState,
     },
+  },
+  user: {
+    passwordSet: false,
+    loadingSet: false,
+    loadingMsg: '',
+  },
+};
+
+const mockInitialStateWithPassword = {
+  ...mockInitialState,
+  user: {
+    ...mockInitialState.user,
+    passwordSet: true,
   },
 };
 
@@ -19,6 +42,33 @@ jest.mock('../../../util/device', () => ({
   isIphoneX: jest.fn(),
   isAndroid: jest.fn(),
   isIos: jest.fn(),
+}));
+
+// expo library are not supported in jest ( unless using jest-expo as preset ), so we need to mock them
+jest.mock('../../../core/OAuthService/OAuthLoginHandlers', () => ({
+  createLoginHandler: jest.fn(),
+}));
+
+jest.mock('../../../store/storage-wrapper', () => ({
+  getItem: jest.fn(),
+}));
+
+jest.mock('../../../core', () => ({
+  Authentication: {
+    resetVault: jest.fn(),
+    lockApp: jest.fn(),
+  },
+}));
+
+const mockNavigate = jest.fn();
+const mockReplace = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    replace: mockReplace,
+    navigate: mockNavigate,
+    setOptions: jest.fn(),
+  }),
 }));
 
 const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
@@ -35,6 +85,16 @@ jest
   .mockImplementation(mockRunAfterInteractions);
 
 describe('Onboarding', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    jest.spyOn(BackHandler, 'addEventListener').mockImplementation(() => ({
+      remove: jest.fn(),
+    }));
+
+    (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+  });
+
   it('should render correctly', () => {
     const { toJSON } = renderScreen(
       Onboarding,
@@ -116,5 +176,190 @@ describe('Onboarding', () => {
       OnboardingSelectorIDs.IMPORT_SEED_BUTTON,
     );
     fireEvent.press(importSeedButton);
+  });
+
+  describe('Create wallet flow', () => {
+    it('should navigate to onboarding sheet when create wallet is pressed for new user', async () => {
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.MODAL.ROOT_MODAL_FLOW,
+          expect.objectContaining({
+            screen: Routes.SHEET.ONBOARDING_SHEET,
+            params: expect.objectContaining({
+              createWallet: true,
+            }),
+          })
+        );
+      });
+    });
+  });
+
+  describe('Import wallet flow', () => {
+    it('should navigate to onboarding sheet when import wallet is pressed for new user', async () => {
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const importSeedButton = getByTestId(
+        OnboardingSelectorIDs.IMPORT_SEED_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(importSeedButton);
+      });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.MODAL.ROOT_MODAL_FLOW,
+          expect.objectContaining({
+            screen: Routes.SHEET.ONBOARDING_SHEET,
+            params: expect.objectContaining({
+              createWallet: false,
+            }),
+          })
+        );
+      });
+    });
+  });
+
+  describe('Navigation behavior', () => {
+    it('should navigate to HOME_NAV when unlock is pressed and password is not set', async () => {
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue('existingUser');
+
+      const { getByText } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(getByText('Unlock')).toBeTruthy();
+      });
+
+      const unlockButton = getByText('Unlock');
+      fireEvent.press(unlockButton);
+
+      await waitFor(() => {
+        expect(Authentication.resetVault).toHaveBeenCalled();
+        expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
+      });
+    });
+
+    it('should navigate to LOGIN when unlock is pressed and password is set', async () => {
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue('existingUser');
+
+      const { getByText } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialStateWithPassword,
+        },
+      );
+
+      await waitFor(() => {
+        expect(getByText('Unlock')).toBeTruthy();
+      });
+
+      const unlockButton = getByText('Unlock');
+      fireEvent.press(unlockButton);
+
+      await waitFor(() => {
+        expect(Authentication.lockApp).toHaveBeenCalled();
+        expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.LOGIN);
+      });
+    });
+  });
+
+  describe('componentDidMount behavior', () => {
+    it('should check for existing user on mount', async () => {
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue('existingUser');
+
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(StorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
+      });
+    });
+
+    it('should disable back press when component mounts', () => {
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      expect(BackHandler.addEventListener).toHaveBeenCalledWith(
+        'hardwareBackPress',
+        expect.any(Function),
+      );
+    });
+
+    it('should trigger animatedTimingStart', async () => {
+      jest.useFakeTimers();
+
+      const animatedTimingSpy = jest.spyOn(Animated, 'timing');
+
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+        { route: { params: { delete: true } } },
+      );
+
+      await waitFor(() => {
+        expect(StorageWrapper.getItem).toHaveBeenCalled();
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+      });
+
+      expect(animatedTimingSpy).toHaveBeenCalled();
+
+      await act(async () => {
+        jest.advanceTimersByTime(4000);
+      });
+
+      expect(animatedTimingSpy.mock.calls.length).toBeGreaterThan(0);
+
+      animatedTimingSpy.mockRestore();
+      jest.useRealTimers();
+    });
   });
 });
