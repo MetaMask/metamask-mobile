@@ -15,7 +15,7 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { selectShowFiatInTestnets } from '../../selectors/settings';
 import { isTestNet } from '../../util/networks';
 import { useMemo } from 'react';
-import { selectFormattedAddressByInternalAccountId } from '../../selectors/accountsController';
+import { selectFormattedAddressByAccountId } from '../../selectors/accountsController';
 
 interface TokenFiatBalancesCrossChains {
   chainId: string;
@@ -45,7 +45,7 @@ export const useGetTotalFiatBalanceCrossChains = (
   const currencyRates = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const accountsByChainId = useSelector(selectAccountsByChainId);
-  const addressesByAccountId = useSelector(selectFormattedAddressByInternalAccountId);
+  const addressesByAccountId = useSelector(selectFormattedAddressByAccountId);
   const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
   const currentChainId = useSelector(selectChainId);
 
