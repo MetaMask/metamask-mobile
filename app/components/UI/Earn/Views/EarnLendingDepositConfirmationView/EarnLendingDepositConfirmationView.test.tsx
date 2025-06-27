@@ -712,7 +712,9 @@ describe('EarnLendingDepositConfirmationView', () => {
       amount: '5000000',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
-      gasOptions: {},
+      gasOptions: {
+        gasLimit: 'none',
+      },
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
         networkClientId: 'mainnet',
@@ -757,7 +759,9 @@ describe('EarnLendingDepositConfirmationView', () => {
       amount: '5000000',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
-      gasOptions: {},
+      gasOptions: {
+        gasLimit: 'none',
+      },
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
         networkClientId: 'mainnet',
@@ -801,7 +805,9 @@ describe('EarnLendingDepositConfirmationView', () => {
       amount: '5000000',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
-      gasOptions: {},
+      gasOptions: {
+        gasLimit: 'none',
+      },
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
         networkClientId: 'mainnet',
@@ -843,7 +849,9 @@ describe('EarnLendingDepositConfirmationView', () => {
       amount: '5000000',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
-      gasOptions: {},
+      gasOptions: {
+        gasLimit: 'none',
+      },
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
         networkClientId: 'mainnet',
@@ -993,7 +1001,9 @@ describe('EarnLendingDepositConfirmationView', () => {
       amount: '5000000',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
-      gasOptions: {},
+      gasOptions: {
+        gasLimit: 'none',
+      },
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
         networkClientId: 'mainnet',
