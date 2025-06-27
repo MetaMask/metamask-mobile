@@ -778,8 +778,8 @@ export type InitModularizedControllersFunction = (request: {
 
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 // Add event type for SamplePetnamesController
-export type SamplePetnamesControllerEvents = {
+export interface SamplePetnamesControllerEvents {
   type: 'SamplePetnamesController:stateChange';
   payload: [SamplePetnamesControllerState];
-};
+}
 ///: END:ONLY_INCLUDE_IF
