@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { View, InteractionManager, UIManager } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon, {
   IconName,
   IconSize,
@@ -45,9 +45,13 @@ if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
 
 const DeleteWalletModal: React.FC = () => {
   const navigation = useNavigation();
+  const route = useRoute();
   const { colors } = useTheme();
   const { isEnabled } = useMetrics();
   const styles = createStyles(colors);
+
+  const isResetWalletFromParams =
+    (route.params as { isResetWallet?: boolean })?.isResetWallet || false;
 
   const modalRef = useRef<BottomSheetRef>(null);
 
@@ -116,7 +120,7 @@ const DeleteWalletModal: React.FC = () => {
 
   return (
     <BottomSheet ref={modalRef}>
-      {!isResetWallet ? (
+      {!isResetWallet && !isResetWalletFromParams ? (
         <View style={styles.forgotPasswordContainer}>
           <Text
             style={styles.heading}
@@ -195,12 +199,17 @@ const DeleteWalletModal: React.FC = () => {
             testID={DeleteWalletModalSelectorsIDs.CONTAINER}
           >
             <View style={styles.iconContainer}>
-              <ButtonIcon
-                iconName={IconName.ArrowLeft}
-                size={ButtonIconSizes.Md}
-                iconColor={IconColor.Default}
-                onPress={() => setIsResetWallet(false)}
-              />
+              {!isResetWalletFromParams ? (
+                <ButtonIcon
+                  iconName={IconName.ArrowLeft}
+                  size={ButtonIconSizes.Md}
+                  iconColor={IconColor.Default}
+                  onPress={() => setIsResetWallet(false)}
+                  testID={DeleteWalletModalSelectorsIDs.BACK_BUTTON}
+                />
+              ) : (
+                <View style={styles.iconEmptyContainer} />
+              )}
               <Icon
                 style={styles.warningIcon}
                 size={IconSize.Xl}
