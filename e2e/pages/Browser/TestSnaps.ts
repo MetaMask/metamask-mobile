@@ -19,7 +19,7 @@ import { IndexableWebElement } from 'detox/detox';
 import Utilities from '../../utils/Utilities';
 
 export const TEST_SNAPS_URL =
-  'https://metamask.github.io/snaps/test-snaps/2.24.0/';
+  'https://metamask.github.io/snaps/test-snaps/2.25.0/';
 
 class TestSnaps {
   get getConnectSnapButton() {
