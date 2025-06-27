@@ -12,6 +12,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
+  EARN_CONTRACT_INTERACTION_TYPES,
   MMM_ORIGIN,
   REDESIGNED_APPROVE_TYPES,
   REDESIGNED_TRANSFER_TYPES,
@@ -116,10 +117,12 @@ const getTitleAndSubTitle = (
       }
 
       // Default to contract interaction
+      const shouldHideSubTitle =
+        isBatched || EARN_CONTRACT_INTERACTION_TYPES.includes(transactionType);
       return {
         title: strings('confirm.title.contract_interaction'),
-        subTitle: isBatched
-          ? ''
+        subTitle: shouldHideSubTitle
+          ? undefined
           : strings('confirm.sub_title.contract_interaction'),
       };
     }
