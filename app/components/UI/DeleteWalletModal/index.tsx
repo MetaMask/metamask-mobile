@@ -38,6 +38,7 @@ import { useMetrics } from '../../hooks/useMetrics';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
+import { setMetaMetricsUISeen } from '../../../actions/user';
 
 if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -112,6 +113,7 @@ const DeleteWalletModal: React.FC = () => {
     triggerClose();
     await resetWalletState();
     await deleteUser();
+    await dispatch(setMetaMetricsUISeen(false));
     track(MetaMetricsEvents.RESET_WALLET_CONFIRMED, {});
     InteractionManager.runAfterInteractions(() => {
       navigateOnboardingRoot();

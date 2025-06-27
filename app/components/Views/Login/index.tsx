@@ -25,7 +25,7 @@ import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStepUtil from '../../../actions/wizard';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   passcodeType,
   updateAuthTypeStorageFlags,
@@ -89,6 +89,7 @@ import LottieView from 'lottie-react-native';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { RootState } from '../../../reducers';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -128,6 +129,9 @@ const Login: React.FC = () => {
     dispatch(setOnboardingWizardStepUtil(step));
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
+  const isMetaMetricsUISeen = useSelector(
+    (state: RootState) => state.user.isMetaMetricsUISeen,
+  );
 
   const track = (
     event: IMetaMetricsEvent,
@@ -243,6 +247,28 @@ const Login: React.FC = () => {
     setBiometryChoice(newBiometryChoice);
   };
 
+  const navigateToHome = async () => {
+    const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
+    if (onboardingWizard) {
+      navigation.replace(Routes.ONBOARDING.HOME_NAV);
+    } else {
+      setOnboardingWizardStep(1);
+      navigation.replace(Routes.ONBOARDING.HOME_NAV);
+    }
+  };
+
+  const checkMetricsUISeen = async () => {
+    if (!isMetaMetricsUISeen) {
+      navigation.navigate('OptinMetrics', {
+        onContinue: () => {
+          navigateToHome();
+        },
+      });
+    } else {
+      navigateToHome();
+    }
+  };
+
   const onLogin = async () => {
     try {
       const locked = !passwordRequirementsMet(password);
@@ -270,14 +296,8 @@ const Login: React.FC = () => {
       );
       Keyboard.dismiss();
 
-      // Get onboarding wizard state
-      const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
-      if (onboardingWizard) {
-        navigation.replace(Routes.ONBOARDING.HOME_NAV);
-      } else {
-        setOnboardingWizardStep(1);
-        navigation.replace(Routes.ONBOARDING.HOME_NAV);
-      }
+      await checkMetricsUISeen();
+
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
       setPassword('');
       setLoading(false);
@@ -342,9 +362,9 @@ const Login: React.FC = () => {
           await Authentication.appTriggeredAuth();
         },
       );
-      const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
-      if (!onboardingWizard) setOnboardingWizardStep(1);
-      navigation.replace(Routes.ONBOARDING.HOME_NAV);
+
+      await checkMetricsUISeen();
+
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
       setLoading(true);
       setPassword('');
