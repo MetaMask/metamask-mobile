@@ -102,6 +102,7 @@ export const useGetTotalFiatBalanceCrossChains = (
           (token) => token.tokenBalanceFiat,
         );
 
+        const checksumAddress = toChecksumHexAddress(account.address);
         const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
         const conversionRate =
           currencyRates?.[matchedChainSymbol]?.conversionRate ?? 0;
@@ -110,16 +111,16 @@ export const useGetTotalFiatBalanceCrossChains = (
           account &&
           accountsByChainId?.[
             toHexadecimal(singleChainTokenBalances.chainId)
-          ]?.[toChecksumHexAddress(account.address)]
+          ]?.[checksumAddress]
         ) {
           const balanceBN = hexToBN(
             accountsByChainId[toHexadecimal(singleChainTokenBalances.chainId)][
-              toChecksumHexAddress(account.address)
+              checksumAddress
             ].balance,
           );
           const stakedBalanceBN = hexToBN(
             accountsByChainId[toHexadecimal(singleChainTokenBalances.chainId)][
-              toChecksumHexAddress(account.address)
+              checksumAddress
             ].stakedBalance || '0x00',
           );
           const totalAccountBalance = balanceBN
