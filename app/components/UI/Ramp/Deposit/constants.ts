@@ -1,5 +1,4 @@
 import { CaipChainId } from '@metamask/utils';
-import { CountryCode } from 'libphonenumber-js';
 
 export const FIAT_CURRENCIES = ['USD', 'EUR'];
 
@@ -28,7 +27,7 @@ export interface DepositFiatCurrency {
 }
 
 export interface DepositRegion {
-  code: CountryCode;
+  code: string;
   flag: string;
   name: string;
   phonePrefix: string;
