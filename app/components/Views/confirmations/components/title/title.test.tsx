@@ -1,5 +1,7 @@
 import React from 'react';
 import { merge } from 'lodash';
+import { TransactionType } from '@metamask/transaction-controller';
+
 import {
   generateContractInteractionState,
   personalSignatureConfirmationState,
@@ -126,4 +128,26 @@ describe('Confirm Title', () => {
     });
     expect(getByText('Approve request')).toBeTruthy();
   });
+
+  it.each([TransactionType.lendingDeposit, TransactionType.lendingWithdraw])(
+    'does not render subtitle for %s',
+    (transactionType) => {
+      const fakeLendingDepositState = merge(generateContractInteractionState, {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [{ type: transactionType }],
+            },
+          },
+        },
+      });
+      const { getByText, queryByText } = renderWithProvider(<Title />, {
+        state: fakeLendingDepositState,
+      });
+      expect(getByText('Transaction request')).toBeTruthy();
+      expect(
+        queryByText('Review request details before you confirm.'),
+      ).toBeNull();
+    },
+  );
 });
