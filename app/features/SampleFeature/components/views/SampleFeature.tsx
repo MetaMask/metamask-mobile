@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../locales/i18n';
 import Text, {
@@ -13,6 +14,7 @@ import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './SampleFeature.styles';
 import { baseStyles } from '../../../../styles/common';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { selectSampleFeatureCounterEnabled } from '../../selectors/sampleFeatureCounter';
 
 /**
  * SampleFeature Component
@@ -42,6 +44,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 const SampleFeature = () => {
   const { styles } = useStyles(styleSheet, {});
   const { networkName, networkImageSource } = useSampleNetwork();
+  const isCounterEnabled = useSelector(selectSampleFeatureCounterEnabled);
 
   return (
     <KeyboardAwareScrollView
@@ -68,7 +71,7 @@ const SampleFeature = () => {
         name={networkName}
         imageSource={networkImageSource}
       />
-      <SampleCounterPane />
+      {isCounterEnabled && <SampleCounterPane />}
       <SamplePetNames />
     </KeyboardAwareScrollView>
   );

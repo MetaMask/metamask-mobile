@@ -16,6 +16,7 @@ graph TB
     Dev --> ActivateFeature[Activate Sample Feature with env var flag]
     Dev --> RunE2ETests[Run E2E Tests]
     Dev --> RunUnitTests[Run Unit Tests]
+    Dev --> TestFeatureFlags[Test Feature Flags]
 ```
 
 ```mermaid
@@ -30,43 +31,6 @@ graph TB
     User --> SwitchNetwork[Switch Network]
     SwitchNetwork --> SeePetNamesEffect[See Effect on Pet Names List]
 ```
-
-## Build Configuration
-
-The Sample Feature uses code fencing to ensure it's completely excluded from production builds. It's only included when explicitly enabled via the `INCLUDE_SAMPLE_FEATURE` environment variable.
-
-### Enabling the Feature
-
-To include the Sample Feature in your build:
-
-#### For iOS development
-
-```bash
-INCLUDE_SAMPLE_FEATURE=true yarn start:ios
-```
-
-#### For Android development
-
-```bash
-INCLUDE_SAMPLE_FEATURE=true yarn start:android
-```
-
-### How It Works
-
-1. **Code Fencing**: All Sample Feature code is wrapped with code fence comments:
-    ```typescript
-    ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-    // Sample feature code here
-    ///: END:ONLY_INCLUDE_IF
-    ```
-2. **Metro Transform**: The Metro bundler removes fenced code during build time based on the environment variable
-3. **Zero Production Impact**: When `INCLUDE_SAMPLE_FEATURE` is not set, the code is completely removed from the bundle
-
-### Default Behavior
-
-- **Production builds**: Feature is always excluded
-- **Development builds**: Feature is excluded unless explicitly enabled
-- **QA/Beta builds**: Feature is excluded unless explicitly enabled
 
 ## Purpose
 
@@ -316,6 +280,106 @@ The Sample Feature demonstrates MetaMask's dual performance monitoring approach 
 - **Error Tracking**: Automatic error capture with performance context
 - **Testing**: Comprehensive unit tests with mocked tracing utilities
 
+## Feature Selection
+
+The Sample Feature uses multiple feature selection mechanisms to control its availability and behavior across different environments and use cases.
+
+### Build-Level Feature Selection (Code Fencing)
+
+The Sample Feature uses code fencing to ensure it's completely excluded from production builds. It's only included when explicitly enabled via the `INCLUDE_SAMPLE_FEATURE` environment variable.
+
+#### Enabling the Feature
+
+To include the Sample Feature in your build:
+
+##### For iOS development
+
+```bash
+INCLUDE_SAMPLE_FEATURE=true yarn start:ios
+```
+
+##### For Android development
+
+```bash
+INCLUDE_SAMPLE_FEATURE=true yarn start:android
+```
+
+#### How It Works
+
+1. **Code Fencing**: All Sample Feature code is wrapped with code fence comments:
+    ```typescript
+    ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+    // Sample feature code here
+    ///: END:ONLY_INCLUDE_IF
+    ```
+2. **Metro Transform**: The Metro bundler removes fenced code during build time based on the environment variable
+3. **Zero Production Impact**: When `INCLUDE_SAMPLE_FEATURE` is not set, the code is completely removed from the bundle
+
+#### Default Behavior
+
+- **Production builds**: Feature is always excluded
+- **Development builds**: Feature is excluded unless explicitly enabled
+- **QA/Beta builds**: Feature is excluded unless explicitly enabled
+
+### Runtime Feature Selection (Remote Feature Flags)
+
+The Sample Feature demonstrates remote feature flag implementation patterns on the counter feature. This shows how to implement conditional UI rendering based on remote feature flags, but the actual flag is not configured in Launch Darkly.
+
+#### Counter Pane Feature Flag
+
+The `SampleCounterPane` component is controlled by the `sampleFeatureCounterEnabled` feature flag, demonstrating how to implement conditional UI rendering based on remote feature flags.
+
+> [!NOTE]
+> The `sampleFeatureCounterEnabled` flag is implemented in the sample feature to demonstrate the pattern, but it is **not configured in Launch Darkly**. Developers must use the local environment variable override to test this functionality.
+
+##### Local Override
+
+For development and testing, you can override the feature flag using a local environment variable:
+
+```bash
+# Enable the counter pane locally (default behavior)
+export MM_SAMPLE_FEATURE_COUNTER_ENABLED="true"
+
+# Disable the counter pane locally
+export MM_SAMPLE_FEATURE_COUNTER_ENABLED="false"
+```
+
+##### Remote Control
+
+The feature can be controlled remotely via the Launch Darkly feature flag API using the flag name `sampleFeatureCounterEnabled`.
+
+> [!IMPORTANT]
+> **Launch Darkly Access Required**: To configure and control remote feature flags, developers need access to Launch Darkly. If you don't have access:
+> - Contact Helpdesk to request Launch Darkly access
+> - Or reach out to the platform team for assistance
+> - Until access is granted, use the local environment variable override for testing
+
+Read more about remote feature flag at https://github.com/MetaMask/contributor-docs/blob/main/docs/remote-feature-flags.md
+
+##### Behavior Priority
+
+1. **Local Environment Variable** (`MM_SAMPLE_FEATURE_COUNTER_ENABLED`) - Highest priority
+2. **Remote Feature Flag** (`sampleFeatureCounterEnabled`) - Fallback (when configured in Launch Darkly)
+3. **Default Value** (`true`) - Final fallback - Counter pane is visible by default
+
+##### Testing Scenarios
+
+- **Default**: Counter pane is visible (`MM_SAMPLE_FEATURE_COUNTER_ENABLED="true"`)
+- **Local Disable**: Counter pane is hidden (`MM_SAMPLE_FEATURE_COUNTER_ENABLED="false"`)
+- **Remote Control**: Counter pane visibility controlled by Launch Darkly API (when flag is configured)
+- **Override Mode**: All remote flags disabled, uses local defaults
+
+##### Implementation Details
+
+The feature flag implementation follows MetaMask's established patterns:
+
+- **Selector Location**: `app/features/SampleFeature/selectors/sampleFeatureCounter/`
+- **Local Override**: Uses `getFeatureFlagValue` utility function
+- **Component Integration**: Conditional rendering in `SampleFeature.tsx`
+- **Default Safety**: Defaults to enabled for better developer experience
+
+This demonstrates how to implement feature flags that can be controlled both locally for development and remotely for production rollouts.
+
 ## Testing
 
 ### Unit Testing
@@ -379,13 +443,16 @@ Comprehensive E2E tests written in TypeScript demonstrating best practices for D
 > [!IMPORTANT]
 > The Sample Feature must be included in the build using the `INCLUDE_SAMPLE_FEATURE` flag for E2E tests to work.
 
-**Currently Implemented Tests:**
+**Currently Implemented E2E Tests:**
 - Basic navigation to Sample Feature (Settings → Developer Options → Sample Feature)
 - Feature visibility verification (title, description, container)
+- Counter interactions (increment, value verification, persistence)
+- Pet name CRUD operations (create multiple pet names, display with truncated addresses)
+- Pet names form validation and display
 - Page object model structure for maintainable tests
 
 **Test Implementation Status:**
-The current E2E implementation demonstrates the testing pattern with basic navigation tests. The page object model includes selectors for all major components (counter, pet names, network display) but the actual interaction tests are not yet implemented.
+The current E2E implementation includes comprehensive tests for counter functionality and pet name creation. The page object model includes selectors for all major components (counter, pet names, network display) with actual interaction tests implemented.
 
 1. Build the app with Sample Feature included for E2E testing:
 
@@ -421,11 +488,12 @@ See [`app/features/SampleFeature/e2e/README.md`](./e2e/README.md) for:
 - Test structure and organization
 
 **Planned Test Scenarios (Not Yet Implemented):**
-- Counter interactions (increment, value verification)
-- Pet name CRUD operations (add, edit, delete)
-- Form validation testing
-- Network switching behavior
-- Error handling scenarios
+- Pet name update/edit functionality
+- Duplicate address handling with confirmation dialogs
+- Network switching behavior and network-specific data isolation
+- Form validation error states and edge cases
+- Error handling scenarios for invalid inputs
+- UI element styling and accessibility verification
 
 **Key E2E Testing Patterns Demonstrated:**
 - Page Object Model for maintainable tests
@@ -487,26 +555,6 @@ The pet names feature demonstrates network-specific data storage:
 - Each network maintains its own list of pet names
 - Switching networks automatically filters the displayed data
 - Controller state is partitioned by network identifier
-
-## Troubleshooting
-
-### Feature Not Visible
-
-1. Ensure Developer Mode is enabled
-2. Check that the feature flag is enabled (if applicable)
-3. Verify the build includes development features
-
-### State Not Persisting
-
-- Counter state persists only during session
-- Pet names persist across sessions via Controller state
-- Check Redux DevTools for state updates
-
-### Testing Issues
-
-- Clear test cache: `yarn jest --clearCache`
-- Run with verbose output: `yarn jest --verbose`
-- Check test environment setup
 
 ## Resources
 
