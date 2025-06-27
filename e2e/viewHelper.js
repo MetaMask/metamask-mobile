@@ -23,7 +23,7 @@ import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
 import TabBarComponent from './pages/wallet/TabBarComponent';
 import LoginView from './pages/wallet/LoginView';
 import { getGanachePort } from './fixtures/utils';
-import Assertions from './utils/Assertions';
+import Assertions from './utils/Assertions.ts';
 import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
@@ -34,11 +34,16 @@ const validAccount = Accounts.getValidAccount();
 
 export const acceptTermOfUse = async () => {
   // tap on accept term of use screen
-  await Assertions.checkIfVisible(TermsOfUseModal.container);
+  await Assertions.expectVisible(TermsOfUseModal.container, {
+    description: 'Terms of Use Modal should be visible',
+  });
+
   await TermsOfUseModal.tapScrollEndButton();
   await TermsOfUseModal.tapAgreeCheckBox();
   await TermsOfUseModal.tapAcceptButton();
-  await Assertions.checkIfNotVisible(TermsOfUseModal.container);
+  await Assertions.expectNotVisible(TermsOfUseModal.container, {
+    description: 'Terms of Use Modal should not be visible',
+  });
 };
 
 /**
@@ -55,15 +60,22 @@ export const closeOnboardingModals = async (solanaSheetAction = 'dismiss') => {
 These onboarding modals are becoming a bit wild. We need less of these so we don't
 have to have all these workarounds in the tests
   */
-  await TestHelpers.delay(1000);
 
   try {
-    await Assertions.checkIfVisible(ToastModal.container);
+    await Assertions.expectVisible(ToastModal.container, {
+      elemDescription: 'Toast Modal',
+      description: 'Toast Modal should be visible',
+    });
+
     await ToastModal.tapToastCloseButton();
-    await Assertions.checkIfNotVisible(ToastModal.container);
-  } catch {
+    await Assertions.expectNotVisible(ToastModal.container, {
+      description: 'Toast Modal should not be visible',
+      elemDescription: 'Toast Modal',
+    });
+  } catch(error) {
     // eslint-disable-next-line no-console
-    console.log('The marketing toast is not visible');
+    console.warn(`Error closing Toast Modal: ${error.message}`);
+    console.warn('The marketing toast is not visible - accepted behavior');
   }
 
   // Handle Solana New feature sheet
@@ -77,8 +89,6 @@ have to have all these workarounds in the tests
 };
 
 export const skipNotificationsDeviceSettings = async () => {
-  await TestHelpers.delay(1000);
-
   try {
     await Assertions.checkIfVisible(
       EnableDeviceNotificationsAlert.stepOneContainer,
@@ -128,13 +138,15 @@ export const importWalletWithRecoveryPhrase = async ({
   solanaSheetAction = 'dismiss',
 } = {}) => {
   // tap on import seed phrase button
-  await Assertions.checkIfVisible(OnboardingCarouselView.container);
+  await Assertions.expectVisible(OnboardingCarouselView.container, {
+    description: 'Onboarding Carousel should be visible',
+  });
+
   await OnboardingCarouselView.tapOnGetStartedButton();
   await acceptTermOfUse();
 
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
-  await TestHelpers.delay(3500);
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
   await ImportWalletView.enterSecretRecoveryPhrase(
@@ -142,29 +154,29 @@ export const importWalletWithRecoveryPhrase = async ({
   );
   await ImportWalletView.tapTitle();
   await ImportWalletView.tapContinueButton();
-  await TestHelpers.delay(3500);
 
   await CreatePasswordView.enterPassword(password ?? validAccount.password);
   await CreatePasswordView.reEnterPassword(password ?? validAccount.password);
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
 
-  // Add delay for 1 second to avoid flakiness on ios
-  if (device.getPlatform() === 'ios') TestHelpers.delay(1000);
 
-  await Assertions.checkIfVisible(MetaMetricsOptIn.container);
+  await Assertions.expectVisible(MetaMetricsOptIn.container, {
+    description: 'MetaMetrics Opt-In should be visible',
+  });
   if (optInToMetrics) {
     await MetaMetricsOptIn.tapAgreeButton();
   } else {
     await MetaMetricsOptIn.tapNoThanksButton();
   }
 
-  //'Should dismiss Enable device Notifications checks alert'
-  await TestHelpers.delay(3500);
-  await Assertions.checkIfVisible(OnboardingSuccessView.container);
+  await Assertions.expectVisible(OnboardingSuccessView.container, {
+    elemDescription: 'Onboarding Success',
+    description: 'Onboarding Success should be visible',
+  });
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
-  await skipNotificationsDeviceSettings();
+  // await skipNotificationsDeviceSettings(); // This does not seem to be needed anymore but leaving it here for now
 
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.

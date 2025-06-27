@@ -1,10 +1,9 @@
 'use strict';
 
 import { SolanaNewFeatureSheetSelectorsIDs } from '../../selectors/wallet/SolanaNewFeatureSheet.selectors';
-import Gestures from '../../utils/Gestures';
-import Assertions from '../../utils/Assertions';
+import Gestures from '../../utils/Gestures.ts';
 import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
-import Matchers from '../../utils/Matchers';
+import Matchers from '../../utils/Matchers.ts';
 
 class SolanaNewFeatureSheet {
   // Sheet container
@@ -35,11 +34,15 @@ class SolanaNewFeatureSheet {
 
   // Interaction methods
   async tapCreateAccountButton() {
-    await Gestures.waitAndTap(this.createAccountButton);
+    await Gestures.waitAndTap(this.createAccountButton, {
+      elemDescription: 'Solana - Create Account Button',
+    });
   }
 
   async tapViewAccountButton() {
-    await Gestures.waitAndTap(this.createAccountButton);//Create account testID is used for both create and view account actions
+    await Gestures.waitAndTap(this.createAccountButton, {
+      elemDescription: 'Solana - View Account Button',
+    }); //Create account testID is used for both create and view account actions
   }
 
   async tapAddAccountButton() {
@@ -52,7 +55,9 @@ class SolanaNewFeatureSheet {
 
 
   async tapNotNowButton() {
-    await Gestures.waitAndTap(this.notNowButton);
+    await Gestures.waitAndTap(this.notNowButton, {
+      elemDescription: 'Solana - Not Now Button',
+    });
   }
 
   async swipeWithCarouselLogo() {

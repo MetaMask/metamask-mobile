@@ -5,8 +5,8 @@ import {
 } from '../../selectors/wallet/AccountListBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../selectors/Browser/ConnectAccountBottomSheet.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../utils/Matchers.ts';
+import Gestures from '../../utils/Gestures.ts';
 import TestHelpers from '../../helpers';
 
 class AccountListBottomSheet {

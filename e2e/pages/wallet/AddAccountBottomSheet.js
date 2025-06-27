@@ -1,6 +1,6 @@
 import { AddAccountBottomSheetSelectorsIDs } from '../../selectors/wallet/AddAccountBottomSheet.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../utils/Matchers.ts';
+import Gestures from '../../utils/Gestures.ts';
 
 class AddAccountBottomSheet {
   get importAccountButton() {

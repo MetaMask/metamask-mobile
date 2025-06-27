@@ -1,6 +1,6 @@
 import { ChoosePasswordSelectorsIDs } from '../../selectors/Onboarding/ChoosePassword.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../utils/Matchers.ts';
+import Gestures from '../../utils/Gestures.ts';
 import enContent from '../../../locales/languages/en.json';
 
 class CreatePasswordView {
