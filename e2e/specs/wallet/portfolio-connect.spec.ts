@@ -16,13 +16,16 @@ import BrowserView from '../../pages/Browser/BrowserView';
 import PortfolioHomePage from '../../pages/Browser/PortfolioHomePage';
 import Assertions from '../../utils/Assertions';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
-const fixtureServer = new FixtureServer();
 
-describe(SmokeNetworkAbstractions('Connect account to Portfolio'), () => {
-  beforeAll(async () => {
+const fixtureServer: FixtureServer = new FixtureServer();
+
+describe(SmokeNetworkAbstractions('Connect account to Portfolio'), (): void => {
+  beforeAll(async (): Promise<void> => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().withKeyringController().build();
-    fixture.state.user.seedphraseBackedUp = false;
+    // TypeScript workaround: FixtureBuilder doesn't expose state.user types
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (fixture as any).state.user.seedphraseBackedUp = false;
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await TestHelpers.launchApp({
@@ -30,12 +33,14 @@ describe(SmokeNetworkAbstractions('Connect account to Portfolio'), () => {
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
   });
-  afterAll(async () => {
+
+  afterAll(async (): Promise<void> => {
     await stopFixtureServer(fixtureServer);
   });
-  const itif = (condition) => (condition ? it : it.skip);
 
-  it('should close all browser tabs', async () => {
+  const itif = (condition: boolean) => (condition ? it : it.skip);
+
+  it('should close all browser tabs', async (): Promise<void> => {
     await loginToApp();
     await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapBrowser();
@@ -44,7 +49,7 @@ describe(SmokeNetworkAbstractions('Connect account to Portfolio'), () => {
     await Assertions.checkIfVisible(BrowserView.noTabsMessage);
   });
 
-  itif(device.getPlatform() === 'ios')('should connect wallet account to portfolio', async () => {
+  itif(device.getPlatform() === 'ios')('should connect wallet account to portfolio', async (): Promise<void> => {
     await TabBarComponent.tapWallet();
     await WalletView.tapPortfolio();
     await BrowserView.waitForBrowserPageToLoad();
@@ -63,10 +68,10 @@ describe(SmokeNetworkAbstractions('Connect account to Portfolio'), () => {
     await device.enableSynchronization();
   });
 
-  it('should not open additional browser tabs to portfolio', async () => {
+  it('should not open additional browser tabs to portfolio', async (): Promise<void> => {
     await TabBarComponent.tapWallet();
     await WalletView.tapPortfolio();
     await BrowserView.waitForBrowserPageToLoad();
     await Assertions.checkIfElementToHaveText(BrowserView.tabsNumber, '1');
   });
-});
+}); 

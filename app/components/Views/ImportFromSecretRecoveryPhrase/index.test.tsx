@@ -857,6 +857,42 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
     });
 
+    it('confirm password field is cleared when new password is removed', async () => {
+      const { getByPlaceholderText } = await renderCreatePasswordUI();
+
+      const passwordInput = getByPlaceholderText(
+        strings('import_from_seed.enter_strong_password'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'StrongPass123!');
+      });
+
+      expect(passwordInput.props.value).toBe('StrongPass123!');
+
+      const confirmPasswordInput = getByPlaceholderText(
+        strings('import_from_seed.re_enter_password'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
+      });
+
+      expect(confirmPasswordInput.props.value).toBe('StrongPass123!');
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'StrongPass12');
+      });
+
+      expect(confirmPasswordInput.props.value).toBe('StrongPass123!');
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, '');
+      });
+
+      expect(confirmPasswordInput.props.value).toBe('');
+    });
+
     it('minimum password length requirement message shown when create new password field value is less than 8 characters', async () => {
       const { getByText, getByPlaceholderText } =
         await renderCreatePasswordUI();

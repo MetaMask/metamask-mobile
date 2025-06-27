@@ -1247,8 +1247,8 @@ export class Engine {
         DeFiPositionsController: defiPositionsControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
-        SnapController: snapControllerInit,
         CronjobController: cronjobControllerInit,
+        SnapController: snapControllerInit,
         SnapInterfaceController: snapInterfaceControllerInit,
         SnapsRegistry: snapsRegistryInit,
         NotificationServicesController: notificationServicesControllerInit,
@@ -1337,6 +1337,7 @@ export class Engine {
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     snapController.init();
+    cronjobController.init();
     // Notification Setup
     notificationServicesController.init();
     ///: END:ONLY_INCLUDE_IF
