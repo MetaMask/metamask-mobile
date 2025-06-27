@@ -11,6 +11,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import { SmokeNetworkAbstractions } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
+import { getMockServerPort } from '../../fixtures/utils';
 import {
   NOTIFICATION_WALLET_ACCOUNT_1,
   NOTIFICATIONS_TEAM_PASSWORD,
@@ -31,11 +32,10 @@ describe(SmokeNetworkAbstractions('Notification Settings Flow'), () => {
   let mockServer: Mockttp;
 
   beforeAll(async () => {
-    jest.setTimeout(200000);
     await TestHelpers.reverseServerPort();
 
     // Mock Server
-    mockServer = await startMockServer({});
+    mockServer = await startMockServer({}, getMockServerPort());
     await mockNotificationServices(mockServer);
 
     // Launch App
