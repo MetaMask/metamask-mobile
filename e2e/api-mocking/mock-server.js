@@ -149,9 +149,14 @@ export const startMockServer = async (events, port) => {
           }
         }
 
+        // Handle dynamic responses (functions)
+        const response = typeof matchingEvent.response === 'function'
+          ? matchingEvent.response()
+          : matchingEvent.response;
+
         return {
           statusCode: matchingEvent.responseCode,
-          body: JSON.stringify(matchingEvent.response),
+          body: JSON.stringify(response),
         };
       }
 

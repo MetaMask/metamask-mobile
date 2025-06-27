@@ -83,13 +83,6 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
   });
 
 it.only(`send an ERC721 token from a dapp using ${MEGAETH_TESTNET.nickname}`, async () => {
-    const testSpecificMock = {
-      POST: getMegaTestnetRpcMocks({
-        accounts: [DEFAULT_FIXTURE_ACCOUNT],
-        balance: '0xde0b6b3a7640000', // 1 ETH in wei
-      }),
-    };
-
     await withFixtures(
       {
         dapp: true,
@@ -101,7 +94,12 @@ it.only(`send an ERC721 token from a dapp using ${MEGAETH_TESTNET.nickname}`, as
           .build(),
         restartDevice: true,
         smartContract: NFT_CONTRACT,
-        testSpecificMock,
+        testSpecificMock: {
+          POST: getMegaTestnetRpcMocks({
+            accounts: [DEFAULT_FIXTURE_ACCOUNT],
+            balance: '0xde0b6b3a7640000', // 1 ETH in wei
+          }),
+        },
       },
       // Remove any once withFixtures is typed
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -124,11 +122,25 @@ it.only(`send an ERC721 token from a dapp using ${MEGAETH_TESTNET.nickname}`, as
 
         // Accept confirmation
         await FooterActions.tapConfirmButton();
-        await TestHelpers.delay(3000);
 
-        // Check activity tab
+        // Check activity tab immediately to see "Submitted" status
+        await TestHelpers.delay(2000);
         await TabBarComponent.tapActivity();
+
+        // Initially should show "Submitted"
         await Assertions.checkIfTextIsDisplayed('Submitted');
+
+        // Wait for transaction to be confirmed
+        // Our mock: 3s for receipt + blocks every 2s + MetaMask needs sufficient confirmations
+        // MetaMask checks every 30s, so we need enough time for multiple confirmation checks
+        await TestHelpers.delay(30000);
+
+        // Refresh the activity view to see updated status
+        await TabBarComponent.tapWallet();
+        await TabBarComponent.tapActivity();
+
+        // Now should show "Confirmed" and "sent collectible"
+        await Assertions.checkIfTextIsDisplayed('Confirmed');
         await Assertions.checkIfTextIsDisplayed(
           ActivitiesViewSelectorsText.SENT_COLLECTIBLE_MESSAGE_TEXT,
         );
