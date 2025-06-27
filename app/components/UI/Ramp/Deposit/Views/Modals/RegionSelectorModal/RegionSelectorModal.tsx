@@ -126,10 +126,21 @@ function RegionSelectorModal() {
 
   const handleOnRegionPressCallback = useCallback(
     (region: DepositRegion) => {
-      if (handleSelectRegion) {
-        handleSelectRegion(region);
+      if (region.supported) {
+        if (handleSelectRegion) {
+          handleSelectRegion(region);
+        }
+        sheetRef.current?.onCloseBottomSheet();
+      } else {
+        // For unsupported regions, close this modal first, then navigate to unsupported modal
+        sheetRef.current?.onCloseBottomSheet();
+        // Use a small delay to ensure this modal closes before opening the unsupported modal
+        setTimeout(() => {
+          if (handleSelectRegion) {
+            handleSelectRegion(region);
+          }
+        }, 300);
       }
-      sheetRef.current?.onCloseBottomSheet();
     },
     [handleSelectRegion],
   );

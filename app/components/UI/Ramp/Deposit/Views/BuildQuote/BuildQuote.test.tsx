@@ -15,6 +15,7 @@ const mockFetchKycFormData = jest.fn();
 const mockFetchUserDetails = jest.fn();
 const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
+const mockCreateUnsupportedRegionModalNavigationDetails = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -104,6 +105,10 @@ jest.mock('../../hooks/useUserDetailsPolling', () => ({
   },
 }));
 
+jest.mock('../Modals/UnsupportedRegionModal', () => ({
+  createUnsupportedRegionModalNavigationDetails: mockCreateUnsupportedRegionModalNavigationDetails,
+}));
+
 function render(Component: React.ComponentType) {
   return renderDepositTestComponent(Component, Routes.DEPOSIT.BUILD_QUOTE);
 }
@@ -117,11 +122,36 @@ describe('BuildQuote Component', () => {
     mockUseDepositTokenExchange.mockReturnValue({
       tokenAmount: '0.00',
     });
+    mockCreateUnsupportedRegionModalNavigationDetails.mockReturnValue([
+      'DepositModals',
+      'DepositUnsupportedRegionModal',
+      {
+        regionName: 'Brazil',
+        onExitToWalletHome: expect.any(Function),
+        onSelectDifferentRegion: expect.any(Function),
+      },
+    ]);
   });
 
   it('render matches snapshot', () => {
     render(BuildQuote);
     expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  describe('Unsupported Region Modal', () => {
+    it('navigates to unsupported region modal when selected region is not supported', () => {
+      render(BuildQuote);
+
+      // TODO: Add test for unsupported region modal when region is stored in the context where it can be mocked
+
+      // expect(
+      //   mockCreateUnsupportedRegionModalNavigationDetails,
+      // ).toHaveBeenCalledWith({
+      //   regionName: 'Brazil',
+      //   onExitToWalletHome: expect.any(Function),
+      //   onSelectDifferentRegion: expect.any(Function),
+      // });
+    });
   });
 
   describe('Region Selection', () => {
