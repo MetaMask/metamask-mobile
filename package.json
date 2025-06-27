@@ -93,6 +93,7 @@
     "test:wdio:android": "yarn wdio ./wdio/config/android.config.debug.js",
     "test:wdio:android:browserstack": "yarn wdio ./wdio/config/android.config.browserstack.js",
     "test:wdio:android:browserstack:local": "yarn wdio ./wdio/config/android.config.browserstack.local.js",
+    "test:native:android": "node runNativeAndroidTests.js",
     "test:depcheck": "yarn depcheck",
     "test:tgz-check": "./scripts/tgz-check.sh",
     "test:attribution-check": "./scripts/attributions-check.sh",

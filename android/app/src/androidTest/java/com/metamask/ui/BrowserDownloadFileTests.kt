@@ -1,7 +1,6 @@
 package com.metamask.ui
 
 import android.os.Environment
-import androidx.test.core.app.launchActivity
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions
 import androidx.test.espresso.assertion.ViewAssertions.matches
@@ -15,19 +14,15 @@ import androidx.test.espresso.web.webdriver.DriverAtoms.findElement
 import androidx.test.espresso.web.webdriver.DriverAtoms.webClick
 import androidx.test.espresso.web.webdriver.Locator
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
-import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiSelector
 import androidx.test.uiautomator.Until
-import com.metamask.ui.base.BaseUiTest
+import com.metamask.ui.base.BaseBrowserUiTest
 import com.metamask.ui.base.CustomMatchers
-import io.metamask.TestActivity
 import org.hamcrest.Matchers.allOf
 import org.hamcrest.Matchers.not
 import org.junit.After
 import org.junit.Assert
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
@@ -36,24 +31,13 @@ import java.io.File
  * You can use Pixel 5 Api 34 Emulator, same as for E2E tests.
  *
  * To run update in [metamask-mobile/app/util/test/utils.js] export const isE2E = true;
- * Then click Run button in Android Studio or call ./gradlew connectedFlaskDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.metamask.ui.BrowserDownloadFileTests
+ * Then click Run button in Android Studio or call
+ * ./gradlew connectedFlaskDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.metamask.ui.BrowserDownloadFileTests
  *
- * TODO: Automate steps above into Yarn command
+ * Or you can run all UI tests using yarn test:native:android
  */
 @RunWith(AndroidJUnit4::class)
-class BrowserDownloadFileTests : BaseUiTest() {
-
-  private val device by lazy(LazyThreadSafetyMode.NONE) {
-    UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
-  }
-
-  @Before
-  fun loginAndOpenBrowser() {
-    launchActivity<TestActivity>()
-    device.findObject(UiSelector().resourceId("login-password-input")).setText("123123123")
-    device.findObject(UiSelector().description("UNLOCK")).click()
-    device.findObject(UiSelector().resourceId("tab-bar-item-Browser")).click()
-  }
+class BrowserDownloadFileTests : BaseBrowserUiTest() {
 
   @After
   fun deleteDownloadedFiles() {
@@ -91,6 +75,7 @@ class BrowserDownloadFileTests : BaseUiTest() {
     Thread.sleep(1_000) // Wait for the file to download
 
     Assert.assertTrue(device.findObject(UiSelector().textContains("Download complete.")).exists())
+    device.pressBack() // Close notifications screen
     val downloadedFile = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "file.php")
     Assert.assertTrue(downloadedFile.exists())
     Assert.assertTrue(downloadedFile.length() > 1) // Verify that file doesn't weight 0 bytes
