@@ -12,7 +12,7 @@ import AccountListBottomSheet from './pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from './pages/wallet/AddAccountBottomSheet';
 import Assertions from './utils/Assertions';
 
-export async function withSolanaAccountSnap(
+export async function withSolanaAccountEnabled(
   {
     numberOfAccounts = 1,
   }: {

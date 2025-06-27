@@ -3,7 +3,7 @@ import { SmokeNetworkExpansion } from '../../../tags';
 import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
 import { connectSolanaTestDapp, navigateToSolanaTestDApp } from './testHelpers';
 import Assertions from '../../../utils/Assertions';
-import { withSolanaAccountSnap } from '../../../common-solana';
+import { withSolanaAccountEnabled } from '../../../common-solana';
 
 describe(
   SmokeNetworkExpansion('Solana Wallet Standard E2E - Sign Message'),
@@ -13,7 +13,7 @@ describe(
     });
 
     it('Should sign a message', async () => {
-      await withSolanaAccountSnap({}, async () => {
+      await withSolanaAccountEnabled({}, async () => {
         await navigateToSolanaTestDApp();
 
         await connectSolanaTestDapp();

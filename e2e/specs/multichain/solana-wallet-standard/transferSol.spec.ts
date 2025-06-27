@@ -2,7 +2,7 @@
 import { SmokeNetworkExpansion } from '../../../tags';
 import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
 import { connectSolanaTestDapp, navigateToSolanaTestDApp } from './testHelpers';
-import { withSolanaAccountSnap } from '../../../common-solana';
+import { withSolanaAccountEnabled } from '../../../common-solana';
 import Assertions from '../../../utils/Assertions';
 
 describe(
@@ -13,7 +13,7 @@ describe(
     });
 
     it('Should sign a transaction', async () => {
-      await withSolanaAccountSnap({}, async () => {
+      await withSolanaAccountEnabled({}, async () => {
         await navigateToSolanaTestDApp();
         await connectSolanaTestDapp();
 
@@ -29,7 +29,7 @@ describe(
 
     // TODO: Enable when devnet is supported on mobile (https://github.com/MetaMask/metamask-mobile/issues/15002)
     it.skip('Should send a transaction', async () => {
-      await withSolanaAccountSnap({}, async () => {
+      await withSolanaAccountEnabled({}, async () => {
         await navigateToSolanaTestDApp();
         await connectSolanaTestDapp();
 

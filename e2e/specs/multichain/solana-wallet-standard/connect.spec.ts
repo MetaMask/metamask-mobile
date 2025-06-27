@@ -9,7 +9,7 @@ import {
   navigateToSolanaTestDApp,
 } from './testHelpers';
 import TestHelpers from '../../../helpers';
-import { withSolanaAccountSnap } from '../../../common-solana';
+import { withSolanaAccountEnabled } from '../../../common-solana';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
@@ -20,7 +20,7 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
   });
 
   it('Should connect & disconnect from Solana test dapp', async () => {
-    await withSolanaAccountSnap({}, async () => {
+    await withSolanaAccountEnabled({}, async () => {
       await navigateToSolanaTestDApp();
 
       await connectSolanaTestDapp();
@@ -46,7 +46,7 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
   });
 
   it('Should be able to cancel connection and connect again', async () => {
-    await withSolanaAccountSnap({}, async () => {
+    await withSolanaAccountEnabled({}, async () => {
       await navigateToSolanaTestDApp();
 
       const header = SolanaTestDApp.getHeader();
@@ -67,7 +67,7 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
   });
 
   it('Switching between 2 accounts should reflect in the dapp', async () => {
-    await withSolanaAccountSnap(
+    await withSolanaAccountEnabled(
       {
         numberOfAccounts: 2,
       },
@@ -92,7 +92,7 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
   });
 
   it('Should stay connected after page refresh', async () => {
-    await withSolanaAccountSnap({}, async () => {
+    await withSolanaAccountEnabled({}, async () => {
       await navigateToSolanaTestDApp();
 
       await connectSolanaTestDapp();
