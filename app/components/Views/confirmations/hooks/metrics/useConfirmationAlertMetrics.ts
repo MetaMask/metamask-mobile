@@ -111,6 +111,7 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.InsufficientBalance]: 'insufficient_balance',
   [AlertKeys.SignedOrSubmitted]: 'signed_or_submitted',
   [AlertKeys.PendingTransaction]: 'pending_transaction',
+  [AlertKeys.BatchedUnusedApprovals]: 'batched_unused_approvals'
 };
 
 function getAlertName(alertKey: string): string {

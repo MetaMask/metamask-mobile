@@ -51,6 +51,7 @@ export const mockEvents = {
           confirmation_redesign: {
             signatures: false,
             staking_confirmations: false,
+            contract_deployment: false,
             contract_interaction: false,
             transfer: false,
           },
@@ -59,7 +60,7 @@ export const mockEvents = {
       responseCode: 200,
     },
 
-    remoteFeatureFlagsReDesignedConfirmations: {
+    remoteFeatureFlagsRedesignedConfirmations: {
       urlEndpoint:
         'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
       response: [
@@ -74,9 +75,9 @@ export const mockEvents = {
           confirmation_redesign: {
             signatures: true,
             staking_confirmations: true,
+            contract_deployment: true,
             contract_interaction: true,
-            // Regardless of the redesigned flags, transfer is disabled for now
-            transfer: false,
+            transfer: true,
           },
         },
       ],
@@ -112,6 +113,21 @@ export const mockEvents = {
       urlEndpoint:
         'https://defiadapters.api.cx.metamask.io/positions/0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
       response: { data: defiPositionsWithData },
+      responseCode: 200,
+    },
+
+    remoteFeatureMultichainAccountsAccountDetails: {
+      urlEndpoint:
+        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
+      response: [
+        {
+          enableMultichainAccounts: {
+            enabled: true,
+            featureVersion: '1',
+            minimumVersion: '7.46.0',
+          },
+        },
+      ],
       responseCode: 200,
     },
   },
@@ -163,6 +179,7 @@ export const mockEvents = {
     segmentTrack: {
       urlEndpoint: E2E_METAMETRICS_TRACK_URL,
       responseCode: 200,
+      response: { success: true },
     },
   },
 };

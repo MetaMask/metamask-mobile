@@ -93,7 +93,11 @@ export async function addMMOriginatedTransaction(
     params: [txParams],
   };
 
-  ppomUtil.validateRequest(reqObject, id);
+  ppomUtil.validateRequest(reqObject, { transactionMeta });
 
   return transactionMeta;
+}
+
+export function get4ByteCode(data: string) {
+  return data.slice(0, 10).toLowerCase();
 }

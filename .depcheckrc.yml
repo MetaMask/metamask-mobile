@@ -1,6 +1,7 @@
 # List things here that *are - 'used, that depcheck is wrong about'
 ignores:
   - '@metamask/oss-attribution-generator'
+  - '@metamask/test-dapp-multichain'
   - 'webpack-cli'
   - '@react-native-community/datetimepicker'
   - '@react-native-community/slider'
@@ -10,6 +11,8 @@ ignores:
   - 'babel-plugin-inline-import'
   # This is used in index.d.ts
   - '@sentry/react'
+  # These dependencies are needed for react-compiler - https://react.dev/learn/react-compiler#using-react-compiler-with-react-17-or-18
+  - 'react-compiler-runtime'
   # This is used on the patch for TokenRatesController of Assets controllers, for we to be able to use the last version of it
   - cockatiel
 

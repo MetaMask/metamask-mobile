@@ -3,6 +3,7 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import { KeyringSelector } from '@metamask/keyring-controller';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 ///: BEGIN:ONLY_INCLUDE_IF(solana)
 import {
   MultichainWalletSnapFactory,
@@ -15,6 +16,8 @@ import {
 } from '../../core/redux/slices/performance';
 import { PerformanceEventNames } from '../../core/redux/slices/performance/constants';
 import { store } from '../../store';
+import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
+import { getTraceTags } from '../../util/sentry/tags';
 
 export async function importNewSecretRecoveryPhrase(mnemonic: string) {
   const { KeyringController } = Engine.context;
@@ -64,15 +67,19 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
     async ({ keyring }) => keyring.getAccounts(),
   );
 
+  let discoveredAccountsCount = 0;
+
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
   const multichainClient = MultichainWalletSnapFactory.createClient(
     WalletClientType.Solana,
   );
 
-  await multichainClient.addDiscoveredAccounts(newKeyring.id);
+  discoveredAccountsCount = await multichainClient.addDiscoveredAccounts(newKeyring.id);
   ///: END:ONLY_INCLUDE_IF
 
-  return Engine.setSelectedAddress(newAccountAddress);
+  Engine.setSelectedAddress(newAccountAddress);
+
+  return { address: newAccountAddress, discoveredAccountsCount };
 }
 
 export async function createNewSecretRecoveryPhrase() {
@@ -94,8 +101,20 @@ export async function createNewSecretRecoveryPhrase() {
 export async function addNewHdAccount(
   keyringId?: string,
   name?: string,
-): Promise<void> {
-  const { KeyringController } = Engine.context;
+): Promise<InternalAccount> {
+  store.dispatch(
+    startPerformanceTrace({
+      eventName: PerformanceEventNames.AddHdAccount,
+    }),
+  );
+
+  trace({
+    name: TraceName.CreateHdAccount,
+    op: TraceOperation.CreateAccount,
+    tags: getTraceTags(store.getState()),
+  });
+
+  const { KeyringController, AccountsController } = Engine.context;
   const keyringSelector: KeyringSelector = keyringId
     ? {
         id: keyringId,
@@ -103,12 +122,6 @@ export async function addNewHdAccount(
     : {
         type: ExtendedKeyringTypes.hd,
       };
-
-  store.dispatch(
-    startPerformanceTrace({
-      eventName: PerformanceEventNames.AddHdAccount,
-    }),
-  );
 
   const [addedAccountAddress] = await KeyringController.withKeyring(
     keyringSelector,
@@ -120,10 +133,24 @@ export async function addNewHdAccount(
     Engine.setAccountLabel(addedAccountAddress, name);
   }
 
+  const account = AccountsController.getAccountByAddress(addedAccountAddress);
+
+  // This should always be true. If it's not, we have a bug.
+  // We query the account that was newly created and return it.
+  if (!account) {
+    throw new Error('Account not found after creation');
+  }
+
   // We consider the account to be created once it got selected and renamed.
+  endTrace({
+    name: TraceName.CreateHdAccount,
+  });
+
   store.dispatch(
     endPerformanceTrace({
       eventName: PerformanceEventNames.AddHdAccount,
     }),
   );
+
+  return account;
 }

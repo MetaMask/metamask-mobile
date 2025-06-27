@@ -52,6 +52,7 @@ describe('AccountNetworkInfoExpanded', () => {
           tokenFiat1dAgo: 0,
           ethFiat1dAgo: 0,
         },
+        isLoadingAccount: false,
       },
     });
   });

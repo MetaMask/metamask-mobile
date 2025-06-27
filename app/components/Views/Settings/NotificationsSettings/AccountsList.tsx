@@ -6,6 +6,7 @@ import {
 } from './AccountsList.hooks';
 import NotificationOptionToggle from './NotificationOptionToggle';
 import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
+import { toFormattedAddress } from '../../../../util/address';
 
 export const AccountsList = () => {
   const { accounts, accountAddresses, accountAvatarType } = useAccountProps();
@@ -32,7 +33,7 @@ export const AccountsList = () => {
             isEnabled={isAccountEnabled(item.address)}
             refetchNotificationAccounts={refetchAccountSettings}
             testID={NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
-              item.address.toLowerCase(),
+              toFormattedAddress(item.address),
             )}
           />
         )}

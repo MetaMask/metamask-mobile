@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -81,7 +81,12 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import RpcSelectionModal from './RpcSelectionModal/RpcSelectionModal';
-import { TraceName, TraceOperation, trace } from '../../../util/trace';
+import {
+  TraceName,
+  TraceOperation,
+  endTrace,
+  trace,
+} from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
@@ -98,6 +103,8 @@ import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import { useSwitchNetworks } from './useSwitchNetworks';
+import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
+import { MetaMetrics } from '../../../core/Analytics';
 
 interface infuraNetwork {
   name: string;
@@ -112,7 +119,7 @@ interface ShowConfirmDeleteModalState {
 }
 
 interface NetworkSelectorRouteParams {
-  evmChainId?: Hex;
+  chainId?: Hex;
   hostInfo?: {
     metadata?: {
       origin?: string;
@@ -121,6 +128,10 @@ interface NetworkSelectorRouteParams {
 }
 
 const NetworkSelector = () => {
+  trace({
+    name: TraceName.NetworkSwitch,
+    op: TraceOperation.NetworkSwitch,
+  });
   const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
   const [popularNetwork, setPopularNetwork] = useState<ExtendedNetwork>();
   const [showWarningModal, setShowWarningModal] = useState(false);
@@ -153,7 +164,7 @@ const NetworkSelector = () => {
 
   // origin is defined if network selector is opened from a dapp
   const origin = route.params?.hostInfo?.metadata?.origin || '';
-  const browserEvmChainId = route.params?.evmChainId || null;
+  const browserChainId = route.params?.chainId || null;
   const parentSpan = trace({
     name: TraceName.NetworkSwitch,
     tags: getTraceTags(store.getState()),
@@ -165,7 +176,7 @@ const NetworkSelector = () => {
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
   } = useNetworkInfo(origin);
-  
+
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
     ? 'networks.additional_network_information_title'
@@ -339,8 +350,8 @@ const NetworkSelector = () => {
   };
 
   const isNetworkSelected = (chainId: Hex | CaipChainId) => {
-    if (browserEvmChainId) {
-      return chainId === browserEvmChainId;
+    if (browserChainId) {
+      return chainId === browserChainId;
     }
 
     return !isEvmSelected ? false : chainId === selectedChainId;
@@ -361,6 +372,10 @@ const NetworkSelector = () => {
     closeRpcModal,
     parentSpan,
   });
+
+  useEffect(() => {
+    endTrace({ name: TraceName.NetworkSwitch });
+  }, []);
 
   const renderMainnet = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
@@ -680,25 +695,27 @@ const NetworkSelector = () => {
     Object.values(nonEvmNetworkConfigurations)
       // TODO: - [SOLANA] - Remove this filter once we want to show non evm like BTC
       .filter((network) => network.chainId === SolScope.Mainnet)
-      .map((network) => (
-        <Cell
-          key={network.chainId}
-          variant={CellVariant.Select}
-          title={network.name}
-          avatarProps={{
-            variant: AvatarVariant.Network,
-            name: 'Solana',
-            imageSource: images.SOLANA,
-            size: avatarSize,
-          }}
-          isSelected={!isEvmSelected && !browserEvmChainId}
-          onPress={() => onNonEvmNetworkChange(SolScope.Mainnet)}
-          style={
-            browserEvmChainId ? styles.networkCellDisabled : styles.networkCell
-          }
-          disabled={!!browserEvmChainId}
-        />
-      ));
+      .map((network) => {
+        const isSelected =
+          network.chainId === browserChainId ||
+          (!isEvmSelected && !browserChainId);
+        return (
+          <Cell
+            key={network.chainId}
+            variant={CellVariant.Select}
+            title={network.name}
+            avatarProps={{
+              variant: AvatarVariant.Network,
+              name: nonEvmNetworkConfigurations?.[SolScope.Mainnet]?.name,
+              imageSource: images.SOLANA,
+              size: avatarSize,
+            }}
+            isSelected={isSelected}
+            onPress={() => onNonEvmNetworkChange(SolScope.Mainnet)}
+            style={styles.networkCell}
+          />
+        );
+      });
   ///: END:ONLY_INCLUDE_IF
   const renderTestNetworksSwitch = () => (
     <View style={styles.switchContainer}>
@@ -810,6 +827,10 @@ const NetworkSelector = () => {
       const { chainId } = showConfirmDeleteModal;
       const { NetworkController } = Engine.context;
       NetworkController.removeNetwork(chainId);
+
+      MetaMetrics.getInstance().addTraitsToUser(
+        removeItemFromChainIdList(chainId),
+      );
 
       // set tokenNetworkFilter
       if (isPortfolioViewEnabled()) {

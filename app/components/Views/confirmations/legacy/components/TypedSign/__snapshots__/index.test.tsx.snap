@@ -229,12 +229,15 @@ exports[`TypedSign onConfirm signs message 1`] = `
         </View>
         <View
           style={
-            {
-              "flex": 0,
-              "flexDirection": "row",
-              "paddingHorizontal": 24,
-              "paddingVertical": 16,
-            }
+            [
+              {
+                "flex": 0,
+                "flexDirection": "row",
+                "paddingHorizontal": 16,
+                "paddingVertical": 16,
+              },
+              undefined,
+            ]
           }
         >
           <TouchableOpacity
@@ -247,7 +250,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },
@@ -309,7 +312,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },
@@ -599,12 +602,15 @@ exports[`TypedSign onReject rejects message 1`] = `
         </View>
         <View
           style={
-            {
-              "flex": 0,
-              "flexDirection": "row",
-              "paddingHorizontal": 24,
-              "paddingVertical": 16,
-            }
+            [
+              {
+                "flex": 0,
+                "flexDirection": "row",
+                "paddingHorizontal": 16,
+                "paddingVertical": 16,
+              },
+              undefined,
+            ]
           }
         >
           <TouchableOpacity
@@ -617,7 +623,7 @@ exports[`TypedSign onReject rejects message 1`] = `
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },
@@ -679,7 +685,7 @@ exports[`TypedSign onReject rejects message 1`] = `
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },

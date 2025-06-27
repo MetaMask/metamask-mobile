@@ -40,7 +40,7 @@ const useAccounts = ({
   const [evmAccounts, setEVMAccounts] = useState<Account[]>([]);
   const [ensByAccountAddress, setENSByAccountAddress] =
     useState<EnsByAccountAddress>({});
-  const chainId = useSelector(selectChainId);
+  const currentChainId = useSelector(selectChainId);
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
@@ -80,7 +80,7 @@ const useAccounts = ({
         try {
           const ens: string | undefined = await doENSReverseLookup(
             address,
-            chainId,
+            currentChainId,
           );
           if (ens) {
             latestENSbyAccountAddress[address] = ens;
@@ -111,7 +111,7 @@ const useAccounts = ({
         }));
       }
     },
-    [chainId],
+    [currentChainId],
   );
 
   // Memoize the balance calculation to prevent it from causing re-renders
@@ -121,6 +121,7 @@ const useAccounts = ({
       {
         displayBalance: string;
         balanceError: string | undefined;
+        isLoadingAccount: boolean;
       }
     > = {};
 
@@ -138,6 +139,7 @@ const useAccounts = ({
       balances[account.id] = {
         displayBalance,
         balanceError: typeof error === 'string' ? error : undefined,
+        isLoadingAccount: balanceForAccount.isLoadingAccount,
       };
     });
 
@@ -181,7 +183,9 @@ const useAccounts = ({
               : undefined,
           balanceError: accountBalance.balanceError,
           // This only works for EOAs
-          caipAccountId: `${internalAccount.scopes[0]}:${internalAccount.address}`
+          caipAccountId: `${internalAccount.scopes[0]}:${internalAccount.address}`,
+          scopes: internalAccount.scopes,
+          isLoadingAccount: accountBalance.isLoadingAccount,
         };
         // Calculate height of the account item.
         yOffset += 78;

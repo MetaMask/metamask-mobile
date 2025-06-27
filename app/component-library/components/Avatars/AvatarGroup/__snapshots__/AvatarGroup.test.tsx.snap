@@ -8,6 +8,7 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
       "flexDirection": "row",
     }
   }
+  testID="avatar-group-container"
 >
   <View
     style={

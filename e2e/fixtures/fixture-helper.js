@@ -20,6 +20,8 @@ import { startMockServer, stopMockServer } from '../api-mocking/mock-server';
 import { AnvilSeeder } from '../seeder/anvil-seeder';
 
 export const DEFAULT_DAPP_SERVER_PORT = 8085;
+export const DEFAULT_TEST_DAPP_PATH = path.join('..', '..', 'node_modules', '@metamask', 'test-dapp', 'dist');
+export const DEFAULT_MULTICHAIN_TEST_DAPP_PATH = path.join('..', '..', 'node_modules', '@metamask', 'test-dapp-multichain', 'build');
 
 // While Appium is still in use it's necessary to check if getFixturesServerPort if defined and provide a fallback in case it's not.
 const getFixturesPort =
@@ -27,6 +29,12 @@ const getFixturesPort =
     ? getFixturesServerPort
     : () => DEFAULT_FIXTURE_SERVER_PORT;
 const FIXTURE_SERVER_URL = `http://localhost:${getFixturesPort()}/state.json`;
+
+// Helper constant for multichain testing
+export const DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS = {
+  dapp: true,
+  multichainDapp: true
+};
 
 // checks if server has already been started
 const isFixtureServerStarted = async () => {
@@ -90,13 +98,12 @@ function normalizeLocalNodeOptions(localNodeOptions) {
       }
       if (typeof node === 'object' && node !== null) {
         // Case 3: Array of objects
-        const type = node.type || 'ganache';
         return {
-          type,
+          type: node.type,
           options:
-            type === 'ganache'
+            node.type === 'ganache'
               ? { ...defaultGanacheOptions, ...(node.options || {}) }
-              : type === 'anvil'
+              : node.type === 'anvil'
               ? { ...defaultOptions, ...(node.options || {}) }
               : node.options || {},
         };
@@ -108,8 +115,8 @@ function normalizeLocalNodeOptions(localNodeOptions) {
     // Case 4: Passing an options object without type
     return [
       {
-        type: 'ganache',
-        options: { ...defaultGanacheOptions, ...localNodeOptions },
+        type: 'anvil',
+        options: localNodeOptions,
       },
     ];
   }
@@ -170,10 +177,19 @@ export const stopFixtureServer = async (fixtureServer) => {
  *
  * @param {Object} options - An object containing configuration options.
  * @param {Object} options.fixture - The fixture to load.
- * @param {boolean} [options.restartDevice=false] - If true, restarts the app to apply the loaded fixture.
- * @param {Object} [options.launchArgs] - Additional launch arguments for the app.
+ * @param {boolean} [options.dapp] - The dapp to load.
+ * @param {boolean} [options.multichainDapp=false] 
+ * @param {Object} [options.ganacheOptions] - The test specific mock to load for test.
  * @param {import('detox/detox').LanguageAndLocale} [options.languageAndLocale] - The language and locale to use for the app.
+ * @param {Object} [options.launchArgs] - Additional launch arguments for the app.
+ * @param {boolean} [options.restartDevice=false] - If true, restarts the app to apply the loaded fixture.
+ * @param {Object} [options.smartContract] - The smart contract to load for test.
+ * @param {Object} [options.testSpecificMock] - The test specific mock to load for test.
  * @param {Function} testSuite - The test suite function to execute after setting up the fixture.
+ * @param {Object} testSuite.params - The parameters passed to the test suite function.
+ * @param {Object} [testSuite.params.contractRegistry] - Registry of deployed smart contracts.
+ * @param {Object} [testSuite.params.mockServer] - Mock server instance for API mocking.
+ * @param {Array} testSuite.params.localNodes - Array of local blockchain nodes (Anvil/Ganache instances).
  * @returns {Promise<void>} - A promise that resolves once the test suite completes.
  * @throws {Error} - Throws an error if an exception occurs during the test suite execution.
  */
@@ -185,7 +201,8 @@ export async function withFixtures(options, testSuite) {
     smartContract,
     disableGanache,
     dapp,
-    localNodeOptions = 'ganache',
+    multichainDapp = false,
+    localNodeOptions = 'anvil',
     dappOptions,
     dappPath = undefined,
     dappPaths,
@@ -219,8 +236,6 @@ export async function withFixtures(options, testSuite) {
             localNode = new AnvilManager();
             await localNode.start(nodeOptions);
             localNodes.push(localNode);
-            await localNode.setAccountBalance('1200');
-
             break;
 
           case 'ganache':
@@ -290,15 +305,9 @@ export async function withFixtures(options, testSuite) {
         if (dappPath || (dappPaths && dappPaths[i])) {
           dappDirectory = path.resolve(__dirname, dappPath || dappPaths[i]);
         } else {
-          dappDirectory = path.resolve(
-            __dirname,
-            '..',
-            '..',
-            'node_modules',
-            '@metamask',
-            'test-dapp',
-            'dist',
-          );
+          dappDirectory = multichainDapp
+            ? path.resolve(__dirname, DEFAULT_MULTICHAIN_TEST_DAPP_PATH)
+            : path.resolve(__dirname, DEFAULT_TEST_DAPP_PATH);
         }
         dappServer.push(createStaticServer(dappDirectory));
         dappServer[i].listen(`${dappBasePort + i}`);
@@ -309,7 +318,6 @@ export async function withFixtures(options, testSuite) {
       }
     }
 
-    // Start the fixture server
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     console.log(

@@ -144,6 +144,12 @@ const reviewActionKeys = {
   [TransactionType.stakingUnstake]: strings(
     'transactions.tx_review_staking_unstake',
   ),
+  [TransactionType.lendingDeposit]: strings(
+    'transactions.tx_review_lending_deposit',
+  ),
+  [TransactionType.lendingWithdraw]: strings(
+    'transactions.tx_review_lending_withdraw',
+  ),
 };
 
 /**
@@ -177,6 +183,12 @@ const actionKeys = {
   ),
   [TransactionType.stakingUnstake]: strings(
     'transactions.tx_review_staking_unstake',
+  ),
+  [TransactionType.lendingDeposit]: strings(
+    'transactions.tx_review_lending_deposit',
+  ),
+  [TransactionType.lendingWithdraw]: strings(
+    'transactions.tx_review_lending_withdraw',
   ),
 };
 
@@ -467,6 +479,8 @@ export async function getTransactionActionKey(transaction, chainId) {
       TransactionType.stakingClaim,
       TransactionType.stakingDeposit,
       TransactionType.stakingUnstake,
+      TransactionType.lendingDeposit,
+      TransactionType.lendingWithdraw,
     ].includes(type)
   ) {
     return type;
@@ -493,7 +507,7 @@ export async function getTransactionActionKey(transaction, chainId) {
   const toSmartContract =
     transaction.toSmartContract !== undefined
       ? transaction.toSmartContract
-      : await isSmartContractAddress(to, chainId, networkClientId);
+      : await isSmartContractAddress(to, chainId);
 
   const authorizationAddress = authorizationList?.[0]?.address;
   const isDowngrade =

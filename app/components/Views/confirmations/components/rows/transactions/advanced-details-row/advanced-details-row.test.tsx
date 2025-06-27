@@ -1,5 +1,5 @@
 import React from 'react';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, merge } from 'lodash';
 import { fireEvent } from '@testing-library/react-native';
 
 import {
@@ -58,20 +58,6 @@ describe('AdvancedDetailsRow', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('does not render when txParams.to is missing', () => {
-    // Create a state with a transaction that has no 'to' field
-    const stateWithoutTo = cloneDeep(generateContractInteractionState);
-    stateWithoutTo.engine.backgroundState.TransactionController.transactions[0].txParams.to =
-      undefined;
-
-    const { toJSON } = renderWithProvider(
-      <AdvancedDetailsRow />,
-      { state: stateWithoutTo },
-      false,
-    );
-    expect(toJSON()).toBeNull();
-  });
-
   // We can't easily test interactions in this case because our mocks are simple string replacements
   // Testing the basic rendering is still valuable
   it('should set up the component with correct props', () => {
@@ -102,6 +88,52 @@ describe('AdvancedDetailsRow', () => {
     );
     fireEvent.press(getByText('Advanced details'));
     expect(getByTestId('scroll-view-data')).toBeTruthy();
+  });
+
+  describe('Nonce editing', () => {
+    const mockSetShowNonceModal = jest.fn();
+    beforeEach(() => {
+      jest.clearAllMocks();
+      (useEditNonce as jest.Mock).mockReturnValue({
+        ...mockUseEditNonce,
+        setShowNonceModal: mockSetShowNonceModal,
+      });
+    });
+
+    it('nonce is not editable if STX is enabled', () => {
+      const swapsEnabledState = merge({}, generateContractInteractionState, {
+        swaps: {
+          featureFlags: {
+            smartTransactions: {
+              mobileActive: true,
+            },
+          },
+        },
+      });
+
+      const { getByText } = renderWithProvider(
+        <AdvancedDetailsRow />,
+        { state: swapsEnabledState },
+        false,
+      );
+
+      fireEvent.press(getByText('Advanced details'));
+      fireEvent.press(getByText('42'));
+      expect(mockSetShowNonceModal).toHaveBeenCalledTimes(0);
+    });
+
+    it('nonce is editable if STX is not enabled', () => {
+      const { getByText } = renderWithProvider(
+        <AdvancedDetailsRow />,
+        { state: generateContractInteractionState },
+        false,
+      );
+      fireEvent.press(getByText('Advanced details'));
+
+      fireEvent.press(getByText('42'));
+      expect(mockSetShowNonceModal).toHaveBeenCalledTimes(1);
+      expect(mockSetShowNonceModal).toHaveBeenCalledWith(true);
+    });
   });
 
   it('display correct information for downgrade confirmation', () => {
@@ -136,18 +168,16 @@ describe('AdvancedDetailsRow', () => {
   });
 
   it('display correct information for upgrade+batch confirmation', () => {
-    const { getByText, queryByText } = renderWithProvider(
-      <AdvancedDetailsRow />,
-      {
-        state: getAppStateForConfirmation(upgradeAccountConfirmation),
-      },
-    );
+    const { getByText } = renderWithProvider(<AdvancedDetailsRow />, {
+      state: getAppStateForConfirmation(upgradeAccountConfirmation),
+    });
 
     fireEvent.press(getByText('Advanced details'));
 
     expect(getByText('Nonce')).toBeTruthy();
     expect(getByText('Interacting with')).toBeTruthy();
     expect(getByText('Smart contract')).toBeTruthy();
-    expect(queryByText('Data')).toBeTruthy();
+    expect(getByText('Transaction 1')).toBeTruthy();
+    expect(getByText('Transaction 2')).toBeTruthy();
   });
 });

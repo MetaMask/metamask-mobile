@@ -102,6 +102,7 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
           "paddingHorizontal": 16,
         }
       }
+      testID="cancel-button"
     >
       <Text
         accessibilityRole="text"
@@ -143,6 +144,7 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
           "paddingHorizontal": 16,
         }
       }
+      testID="continue-button"
     >
       <Text
         accessibilityRole="text"

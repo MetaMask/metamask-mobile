@@ -1,6 +1,5 @@
 import {
   selectHdKeyringIndexByIdOrDefault,
-  getHdKeyringOfSelectedAccountOrPrimaryKeyring,
   getSnapAccountsByKeyringId,
 } from './index';
 import { RootState } from '../../reducers';
@@ -126,26 +125,6 @@ const mockState = (selectedAccount: InternalAccount = mockAccount1) =>
     },
   } as unknown as RootState);
 
-const mockStateWithNoSelectedAccount = {
-  engine: {
-    backgroundState: {
-      KeyringController: {
-        keyrings: [mockHDKeyring, mockHDKeyring2, mockSimpleKeyring],
-      },
-      AccountsController: {
-        internalAccounts: {
-          accounts: {
-            [mockAccount1.id]: mockAccount1,
-            [mockAccount2.id]: mockAccount2,
-            [mockAccount3.id]: mockAccount3,
-          },
-          selectedAccount: undefined,
-        },
-      },
-    },
-  },
-} as unknown as RootState;
-
 describe('multisrp selectors', () => {
   describe('selectHdKeyringIndexByIdOrDefault', () => {
     it('returns 0 when no keyringId is provided', () => {
@@ -167,35 +146,6 @@ describe('multisrp selectors', () => {
         mockHDKeyring.metadata.id,
       );
       expect(result).toBe(0);
-    });
-  });
-
-  describe('getHdKeyringOfSelectedAccountOrPrimaryKeyring', () => {
-    it('returns first HD keyring when no account is selected', () => {
-      expect(() =>
-        getHdKeyringOfSelectedAccountOrPrimaryKeyring(
-          mockStateWithNoSelectedAccount,
-        ),
-      ).toThrow('No selected account or hd keyrings');
-    });
-
-    it('returns correct HD keyring when the selected account is from the second HD keyring', () => {
-      const result = getHdKeyringOfSelectedAccountOrPrimaryKeyring(
-        mockState(mockAccount2),
-      );
-      expect(result).toStrictEqual(mockHDKeyring2);
-    });
-
-    it('returns selected account keyring when it is HD type', () => {
-      const result = getHdKeyringOfSelectedAccountOrPrimaryKeyring(mockState());
-      expect(result).toStrictEqual(mockHDKeyring);
-    });
-
-    it('returns first HD keyring when selected account keyring is not HD type', () => {
-      const result = getHdKeyringOfSelectedAccountOrPrimaryKeyring(
-        mockState(mockAccount3),
-      );
-      expect(result).toStrictEqual(mockHDKeyring);
     });
   });
 

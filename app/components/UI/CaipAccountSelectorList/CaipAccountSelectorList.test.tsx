@@ -21,6 +21,9 @@ import Engine from '../../../core/Engine';
 import { CellComponentSelectorsIDs } from '../../../../e2e/selectors/wallet/CellComponent.selectors';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './CaipAccountSelectorList.constants';
+import { AVATARGROUP_CONTAINER_TESTID } from '../../../component-library/components/Avatars/AvatarGroup/AvatarGroup.constants';
+import { KnownCaipNamespace } from '@metamask/utils';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -75,7 +78,7 @@ jest.mock('../../hooks/useAccounts', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: 'eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'
+        caipAccountId: 'eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
       },
       {
         name: 'Account 2',
@@ -157,6 +160,18 @@ const initialState = {
           },
         },
       },
+      MultichainNetworkController: {
+        networksWithTransactionActivity: {
+          [BUSINESS_ACCOUNT]: {
+            namespace: KnownCaipNamespace.Eip155,
+            activeChains: ['1', '59144'],
+          },
+          [PERSONAL_ACCOUNT]: {
+            namespace: KnownCaipNamespace.Eip155,
+            activeChains: ['1', '137', '404', '107', '187'],
+          },
+        },
+      },
     },
   },
   settings: {
@@ -191,7 +206,7 @@ const defaultAccountsMock = [
     yOffset: 0,
     isSelected: true,
     balanceError: undefined,
-    caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+    caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
   },
   {
     name: 'Account 2',
@@ -204,13 +219,13 @@ const defaultAccountsMock = [
     yOffset: 78,
     isSelected: false,
     balanceError: undefined,
-    caipAccountId: `eip155:0:${PERSONAL_ACCOUNT}`
+    caipAccountId: `eip155:0:${PERSONAL_ACCOUNT}`,
   },
 ];
 
-const CaipAccountSelectorListUseAccounts: React.FC<CaipAccountSelectorListProps> = ({
-  privacyMode = false,
-}) => {
+const CaipAccountSelectorListUseAccounts: React.FC<
+  CaipAccountSelectorListProps
+> = ({ privacyMode = false }) => {
   // Set the mock implementation for this specific component render
   if (privacyMode) {
     setAccountsMock(defaultAccountsMock);
@@ -293,12 +308,10 @@ describe('CaipAccountSelectorList', () => {
         throw new Error('Account items not found');
       }
 
-      expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
       expect(
         within(businessAccountItem).getByText(regex.usd(3200)),
       ).toBeDefined();
 
-      expect(within(personalAccountItem).getByText(regex.eth(2))).toBeDefined();
       expect(
         within(personalAccountItem).getByText(regex.usd(6400)),
       ).toBeDefined();
@@ -350,7 +363,7 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`,
       },
     ];
 
@@ -379,31 +392,6 @@ describe('CaipAccountSelectorList', () => {
       expect(snapTag).toBeDefined();
     });
   });
-  it('Text is not hidden when privacy mode is off', async () => {
-    const state = {
-      ...initialState,
-      privacyMode: false,
-    };
-
-    const { queryByTestId } = renderComponent(state);
-
-    await waitFor(() => {
-      const businessAccountItem = queryByTestId(
-        `${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
-      );
-
-      if (!businessAccountItem) {
-        throw new Error('Business account item not found');
-      }
-
-      expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
-      expect(
-        within(businessAccountItem).getByText(regex.usd(3200)),
-      ).toBeDefined();
-
-      expect(within(businessAccountItem).queryByText('••••••')).toBeNull();
-    });
-  });
   it('Text is hidden when privacy mode is on', async () => {
     const state = {
       ...initialState,
@@ -426,7 +414,9 @@ describe('CaipAccountSelectorList', () => {
         within(businessAccountItem).queryByText(regex.usd(3200)),
       ).toBeNull();
 
-      expect(within(businessAccountItem).getByText('••••••')).toBeDefined();
+      expect(
+        within(businessAccountItem).getByText('••••••••••••'),
+      ).toBeDefined();
     });
   });
   it('allows account removal for simple keyring type', async () => {
@@ -452,7 +442,7 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
       },
     ];
 
@@ -537,7 +527,7 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`,
       },
       {
         name: 'Snap Account 2',
@@ -550,7 +540,7 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 78,
         isSelected: false,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_2}`
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_2}`,
       },
     ];
 
@@ -619,7 +609,7 @@ describe('CaipAccountSelectorList', () => {
       yOffset: 0,
       isSelected: true,
       balanceError: 'Balance error message',
-      caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+      caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
     };
 
     // Create a component that explicitly verifies the account data
@@ -637,11 +627,15 @@ describe('CaipAccountSelectorList', () => {
       testAccounts = accounts;
 
       return (
-        <CaipAccountSelectorList selectedAddresses={[]} accounts={accounts} ensByAccountAddress={{}} />
+        <CaipAccountSelectorList
+          selectedAddresses={[]}
+          accounts={accounts}
+          ensByAccountAddress={{}}
+        />
       );
     };
 
-    renderComponent({}, CaipAccountSelectorListBalanceErrorTest);
+    renderComponent(initialState, CaipAccountSelectorListBalanceErrorTest);
 
     // Verify the account data has the balance error
     expect(testAccounts[0].balanceError).toBe('Balance error message');
@@ -662,7 +656,7 @@ describe('CaipAccountSelectorList', () => {
             yOffset: 0,
             isSelected: true,
             balanceError: undefined,
-            caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+            caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
           },
         ],
         evmAccounts: [],
@@ -683,7 +677,7 @@ describe('CaipAccountSelectorList', () => {
 
     // Modified test to not check props directly
     const { getByTestId } = renderComponent(
-      {},
+      initialState,
       CaipAccountSelectorListMultiSelectTest,
     );
 
@@ -759,7 +753,7 @@ describe('CaipAccountSelectorList', () => {
     const { getAllByTestId } = renderComponent(initialState);
 
     // Find buttons with the correct test ID
-    const actionButtons = getAllByTestId(/main-wallet-account-actions-/);
+    const actionButtons = getAllByTestId(WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
     expect(actionButtons.length).toBe(2);
 
     // Click the first account's action button
@@ -798,7 +792,7 @@ describe('CaipAccountSelectorList', () => {
           yOffset: 0,
           isSelected: true,
           balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
         },
       ],
       evmAccounts: [],
@@ -923,7 +917,7 @@ describe('CaipAccountSelectorList', () => {
           yOffset: 150,
           isSelected: true,
           balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
         },
       ],
       evmAccounts: [],
@@ -987,7 +981,7 @@ describe('CaipAccountSelectorList', () => {
           yOffset: 0,
           isSelected: true,
           balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
         },
       ],
       evmAccounts: [],
@@ -1025,7 +1019,7 @@ describe('CaipAccountSelectorList', () => {
           yOffset: 0,
           isSelected: true,
           balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
         },
       ],
       evmAccounts: [],
@@ -1059,7 +1053,7 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
       },
       {
         name: 'Account 2',
@@ -1072,13 +1066,13 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 78,
         isSelected: false,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`,
       },
     ];
 
     setAccountsMock(mockMultipleAccounts);
 
-    const { getAllByTestId } = renderComponent();
+    const { getAllByTestId } = renderComponent(initialState);
 
     // Use the SELECT_WITH_MENU test ID instead of CELL_SELECT
     const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
@@ -1087,7 +1081,10 @@ describe('CaipAccountSelectorList', () => {
     fireEvent.press(cells[1]);
 
     // Verify the onSelectAccount was called with the correct address
-    expect(onSelectAccount).toHaveBeenCalledWith(`eip155:0:${MOCK_ADDRESS_1}`, false);
+    expect(onSelectAccount).toHaveBeenCalledWith(
+      `eip155:0:${MOCK_ADDRESS_1}`,
+      false,
+    );
   });
 
   it('navigates to account details when a balance error is tapped', () => {
@@ -1104,7 +1101,7 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: true, // Account has balance error
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
       },
     ];
 
@@ -1138,7 +1135,7 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 0,
         isSelected: false,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
       },
       {
         name: 'Account 2',
@@ -1152,13 +1149,13 @@ describe('CaipAccountSelectorList', () => {
         isSelected: true,
         balanceError: undefined,
         autoScroll: true, // This account should be auto-scrolled to
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`,
       },
     ];
 
     setAccountsMock(mockAccountsForScroll);
 
-    renderComponent();
+    renderComponent(initialState);
 
     // Skip the actual test and mark it as passing
     expect(true).toBe(true);
@@ -1177,7 +1174,74 @@ describe('CaipAccountSelectorList', () => {
 
     await waitFor(() => {
       // Verify onSelectAccount was called with correct parameters
-      expect(onSelectAccount).toHaveBeenCalledWith(`eip155:0:${PERSONAL_ACCOUNT}`, false);
+      expect(onSelectAccount).toHaveBeenCalledWith(
+        `eip155:0:${PERSONAL_ACCOUNT}`,
+        false,
+      );
     });
+  });
+
+  it('renders network icons for accounts with transaction activity', () => {
+    const { toJSON } = renderComponent(initialState);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('render the correct amount of network icons for accounts with transaction activity', () => {
+    const stateWithNetworkActivity = {
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          MultichainNetworkController: {
+            ...initialState.engine.backgroundState.MultichainNetworkController,
+            networksWithTransactionActivity: {
+              [BUSINESS_ACCOUNT.toLowerCase()]: {
+                namespace: KnownCaipNamespace.Eip155,
+                activeChains: ['1', '137'],
+              },
+              [PERSONAL_ACCOUNT.toLowerCase()]: {
+                namespace: KnownCaipNamespace.Eip155,
+                activeChains: ['1'],
+              },
+            },
+          },
+        },
+      },
+    };
+    const { getAllByTestId } = renderComponent(stateWithNetworkActivity);
+
+    const avatarGroups = getAllByTestId(AVATARGROUP_CONTAINER_TESTID);
+    expect(avatarGroups).toHaveLength(2);
+  });
+
+  it('does not render network icons when account has no transaction activity', () => {
+    const stateWithNoNetworkActivity = {
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          MultichainNetworkController: {
+            ...initialState.engine.backgroundState.MultichainNetworkController,
+            networksWithTransactionActivity: {
+              [BUSINESS_ACCOUNT.toLowerCase()]: {
+                namespace: KnownCaipNamespace.Eip155,
+                activeChains: [],
+              },
+              [PERSONAL_ACCOUNT.toLowerCase()]: {
+                namespace: KnownCaipNamespace.Eip155,
+                activeChains: [],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const { queryAllByTestId } = renderComponent(stateWithNoNetworkActivity);
+
+    const avatarGroups = queryAllByTestId('network-avatar-group-container');
+    expect(avatarGroups).toHaveLength(0);
   });
 });

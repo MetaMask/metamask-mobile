@@ -7,27 +7,26 @@ import { SimulationDetails } from '../../../../../UI/SimulationDetails/Simulatio
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { ConfirmationInfoComponentIDs } from '../../../constants/info-ids';
 import useNavbar from '../../../hooks/ui/useNavbar';
-import { MMM_ORIGIN } from '../../../constants/confirmations';
 import { useMaxValueRefresher } from '../../../hooks/useMaxValueRefresher';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransferAssetType } from '../../../hooks/useTransferAssetType';
-import FromTo from '../../rows/transactions/from-to';
-import GasFeesDetails from '../../rows/transactions/gas-fee-details';
-import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row/advanced-details-row';
-import TokenHero from '../../rows/transactions/token-hero';
-import NetworkRow from '../../rows/transactions/network-row';
+import { HeroRow } from '../../rows/transactions/hero-row';
+import { NetworkAndOriginRow } from '../../rows/transactions/network-and-origin-row';
+import FromToRow from '../../rows/transactions/from-to-row';
+import GasFeesDetailsRow from '../../rows/transactions/gas-fee-details-row';
+import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row';
 
 const Transfer = () => {
+  // Set navbar as first to prevent Android navigation flickering
+  useNavbar(strings('confirm.review'));
   const transactionMetadata = useTransactionMetadataRequest();
-  const isDappTransfer = transactionMetadata?.origin !== MMM_ORIGIN;
   const { usdValue } = useTokenAmount();
   const { assetType } = useTransferAssetType();
   const { trackPageViewedEvent, setConfirmationMetric } =
     useConfirmationMetricEvents();
-
   useClearConfirmationOnBackSwipe();
-  useNavbar(strings('confirm.review'));
   useMaxValueRefresher();
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
 
@@ -41,18 +40,16 @@ const Transfer = () => {
   }, [assetType, usdValue, setConfirmationMetric]);
 
   return (
-    <View>
-      <TokenHero />
-      <FromTo />
-      <NetworkRow />
-      {isDappTransfer && (
-        <SimulationDetails
-          transaction={transactionMetadata as TransactionMeta}
-          enableMetrics
-          isTransactionsRedesign
-        />
-      )}
-      <GasFeesDetails />
+    <View testID={ConfirmationInfoComponentIDs.TRANSFER}>
+      <HeroRow />
+      <FromToRow />
+      <NetworkAndOriginRow />
+      <SimulationDetails
+        transaction={transactionMetadata as TransactionMeta}
+        enableMetrics
+        isTransactionsRedesign
+      />
+      <GasFeesDetailsRow />
       <AdvancedDetailsRow />
     </View>
   );

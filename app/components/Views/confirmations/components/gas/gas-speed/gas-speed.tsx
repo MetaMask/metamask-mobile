@@ -6,9 +6,7 @@ import {
   GasFeeEstimateType,
 } from '@metamask/transaction-controller';
 
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+import Text from '../../../../../../component-library/components/Texts/Text/Text';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { GasOptionIcon } from '../../../constants/gas';
@@ -97,9 +95,5 @@ export const GasSpeed = () => {
   );
 
   // Intentionally no space between text and estimated time
-  return (
-    <Text
-      variant={TextVariant.BodySM}
-    >{`${emoji} ${text}${estimatedTime}`}</Text>
-  );
+  return <Text>{`${emoji} ${text}${estimatedTime}`}</Text>;
 };

@@ -24,6 +24,11 @@
     "inline_alert_label": "Uyarı",
     "review_alerts": "Uyarıları incele",
     "review_alert": "Uyarıyı incele",
+    "upgrade_account": {
+      "title": "Hesabınız güncelleniyor",
+      "message": "Hesabınızı akıllı hesap olarak güncelliyorsunuz. Aynı hesap adresini korurken daha hızlı işlemlerin ve daha düşük ağ ücretlerinin kilidini açacaksınız.",
+      "learn_more": "Daha fazla bilgi edinin"
+    },
     "domain_mismatch": {
       "title": "Şüpheli giriş talebi",
       "message": "Talepte bulunan site giriş yaptığınız site değil. Bu, oturum açma bilgilerinizi çalma teşebbüsü olabilir."
@@ -32,6 +37,18 @@
       "title": "Para yetersiz",
       "message": "Hesabınızda ağ ücretlerini ödemek için yeterli %{nativeCurrency} yok.",
       "buy_action": "%{nativeCurrency} satın al"
+    },
+    "signed_or_submitted": {
+      "message": "Halen önceki bir işlem imzalanıyor veya gönderiliyor."
+    },
+    "pending_transaction": {
+      "title": "Bekleyen işlem",
+      "message": "Bu işlem, önceki işlem tamamlanana kadar gerçekleşmeyecek.",
+      "learn_more": "Bir işlemin nasıl iptal edileceğini veya hızlandırılacağını öğrenin."
+    },
+    "batched_unused_approvals": {
+      "title": "Gereksiz izin",
+      "message": "Bu işlem için gerekli olmamasına rağmen bir başkasına token'lerinizi çekme izni veriyorsunuz."
     }
   },
   "blockaid_banner": {
@@ -97,7 +114,7 @@
     "ok": "Tamam"
   },
   "onboarding": {
-    "title": "Cüzdan kurulumu",
+    "title": "Başlayalım!",
     "sync_desc": "Zaten MetaMask uzantısı veya başka bir cüzdan aldıysanız mevcut varlıklarınızı yönetmek için onu senkronize edin veya içe aktarın.",
     "create_desc": "İlk cüzdan kurulumunuzu yapın ve merkeziyetsiz uygulamaları keşfetmeye başlayın.",
     "import": "Mevcut bir cüzdanı içe aktarın veya yeni bir tane oluşturun.",
@@ -128,14 +145,16 @@
     "scan_step_3": "“Mobil ile Senkronize Et” düğmesine tıklayın",
     "scan_step_4": "Senkronize etmeye başlamak için QR kodunu tarayın",
     "success": "Başarılı",
-    "your_wallet": "Cüzdanınız başarılı bir şekilde silindi",
-    "delete_current": "Geçerli cüzdan siliniyor"
+    "your_wallet": "Your wallet was successfully reset",
+    "delete_current": "Reset current wallet",
+    "have_existing_wallet": "Mevcut bir cüzdanım var",
+    "import_using_srp": "Import using Secret Recovery Phrase"
   },
   "onboarding_success": {
-    "title": "Tebrikler!",
-    "description": "Cüzdanınız korunuyor ve kullanıma hazır. Gizli Kurtarma İfadenizi şurada bulabilirsiniz: ",
+    "title": "Keep your Secret Recovery Phrase safe!",
+    "description": "This Secret Recovery Phrase can help you regain access if you ever forget your password or lose access to your login.",
     "description_bold": "Ayarlar > Güvenlik ve Gizlilik.",
-    "description_continued": "Gizli Kurtarma İfadenizin hatırlatıcısını güvenli bir yerde tutun. Güvenli kurtarma ifadenizi kaybederseniz hiç kimse geri almanıza yardımcı olamaz. Daha da kötüsü, cüzdanınıza bir daha asla erişim sağlayamazsınız.",
+    "description_continued": " you can keep this phrase safe so you never lose access to your money.",
     "learn_more": "Daha fazla bilgi edin",
     "learn_how": "Nasıl olduğunu öğren",
     "leave_hint": "Kendinize bir ucu bırakmak ister misiniz?",
@@ -144,17 +163,29 @@
     "default_settings_footer": "Ayarlar, kullanım kolaylığı ve güvenlik için optimize edildi.\nBu ayarları dilediğiniz zaman değiştirin.",
     "no_srp_title": "Hatırlatıcı ayarlandı!",
     "no_srp_description": "Uygulamaya giriş yapamazsanız veya yeni bir cihaz edinirseniz paranızı kaybedersiniz. Gizli Kurtarma İfadenizi şurada yedeklediğinizden emin olun:",
-    "import_title": "Cüzdanınız hazır",
-    "import_description": "Unutmayın, Gizli Kurtarma İfadenizi kaybederseniz cüzdanınıza erişimi kaybedersiniz. ",
-    "import_description2": "paranıza her zaman erişim sağlayabilmeniz için bu sözcük dizisini saklayın.",
-    "done": "Bitti"
+    "import_title": "Your Wallet is ready!",
+    "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
+    "import_description2": "you can keep this phrase safe so you never lose access to your money.",
+    "done": "Bitti",
+    "create_hint": "Create a password hint",
+    "hint_title": "Password hint",
+    "hint_description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
+    "hint_description2": "Remember: If you lose your password, you won’t be able to use your wallet.",
+    "hint_button": "Create hint",
+    "hint_placeholder": "e.g. mom’s home",
+    "hint_saved": "Save",
+    "hint_saved_toast": "Password hint saved",
+    "remind_later": "We’ll remind you later",
+    "remind_later_description": "If you don’t back up your Secret Recovery Phrase, you’ll lose access to your funds if you get locked out of the app or get a new device.",
+    "remind_later_description2": "You can back up your wallets or see your Secret Recovery Phrase in",
+    "setting_security_privacy": "Settings > Security & Privacy"
   },
   "onboarding_carousel": {
     "title1": "MetaMask'e Hoş Geldiniz",
     "title2": "Dijital varlıklarını yönet",
     "title3": "web3 ağ geçidiniz",
     "subtitle1": "Milyonların güvendiği MetaMask web3 dünyasını herkes için erişilebilir kılan güvenli bir cüzdandır.",
-    "subtitle2": "Token, ethereum, eşsiz koleksiyonlar gibi dijital varlıkları tutun, harcayın ve gönderin.",
+    "subtitle2": "Token, Ethereum, eşsiz koleksiyonlar gibi dijital varlıkları saklayın, harcayın ve gönderin.",
     "subtitle3": "MetaMask ile oturum açın ve yatırım yapmak, kazanmak, oyun oynamak ve satmak ve daha fazlası için işlem yapın!",
     "get_started": "Başla"
   },
@@ -250,18 +281,20 @@
   "login": {
     "title": "Tekrar Hoş Geldiniz!",
     "password": "Şifre",
-    "unlock_button": "KİLİDİNİ AÇ",
+    "password_placeholder": "Enter password",
+    "unlock_button": "Unlock",
     "go_back": "Cüzdanın kilidi açılmıyor mu? Geçerli cüzdanınızı silip yeni bir tanesinin kurulumunu yapabilirsiniz",
-    "reset_wallet": "Cüzdanı Sıfırla",
+    "forgot_password": "Forgot password?",
     "cant_proceed": "‘Sil’ sözcüğünü yazana kadar ilerleyemezsiniz. Bu eylemle geçerli cüzdanınızı silmeyi seçiyorsunuz.",
-    "invalid_password": "Şifre geçersiz",
-    "type_delete": "Cüzdanınızı kalıcı olarak silmek için ‘%{delete}’ yazın",
-    "delete_my": "Cüzdanımı sil",
-    "are_you_sure": "Cüzdanınızı silmek istediğinizden emin misiniz?",
-    "your_current_wallet": "Geçerli cüzdanınız, hesaplarınız ve varlıklarınız",
-    "removed_from": "kalıcı olarak bu uygulamadan kaldırılacak.",
+    "invalid_password": "Password is incorrect, try again.",
+    "type_delete": "Type ‘%{erase}’ to confirm",
+    "erase_my": "Yes, reset wallet",
+    "cancel": "Cancel",
+    "are_you_sure": "Are you sure?",
+    "your_current_wallet": "Your wallet, accounts, and assets will be",
+    "removed_from": " permanently removed from this app",
     "this_action": "Bu eylem geri alınamaz.",
-    "you_can_only": "Bu cüzdanı SADECE",
+    "you_can_only": "You can only get this wallet back with the info used when creating it, such as your Secret Recovery Phrase, Google account, or Apple account. MetaMask doesn’t have this info.",
     "recovery_phrase": "Gizli Kurtarma İfadenizle kurtarabilirsiniz",
     "metamask_does_not": "Gizli Kurtarma İfadeniz MetaMask'in içerisinde bulunmaz.",
     "i_understand": "Anlıyorum, devam et",
@@ -271,7 +304,21 @@
     "vault_error": "Hata: Önceki bir vault olmadan kilidi açılamaz.",
     "clean_vault_error": "MetaMask, depolama limitine ulaşılmasından dolayı bir hata ile karşılaştı. Yerel veriler bozuldu. Lütfen MetaMask'ı tekrar yükleyin ve Gizli Kurtarma İfadenizi kullanarak geri yükleyin.",
     "security_alert_title": "Güvenlik Uyarısı",
-    "security_alert_desc": "İlerlemek için Parolayı veya cihazınızda desteklenen herhangi bir biyometrik kimlik doğrulama yöntemini (FaceID, TouchID veya Parmak İzi) açmanız gereklidir"
+    "security_alert_desc": "İlerlemek için Parolayı veya cihazınızda desteklenen herhangi bir biyometrik kimlik doğrulama yöntemini (FaceID, TouchID veya Parmak İzi) açmanız gereklidir",
+    "forgot_password_desc": "Forgot your password?",
+    "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
+    "forgot_password_point_1": "If you’re logged into MetaMask on a device with",
+    "forgot_password_point_1_bold": "biometrics turned on",
+    "forgot_password_point_1_1": "(like Face ID), you can reset your password there.",
+    "forgot_password_point_2": "If you have your",
+    "forgot_password_point_2_bold": "Secret Recovery Phrase,",
+    "forgot_password_point_2_1": "you can reset your current wallet and reimport using Secret Recovery Phrase.",
+    "reset_wallet": "Reset wallet",
+    "reset_wallet_desc": "Your wallet data will be",
+    "reset_wallet_desc_bold": "permanently erased",
+    "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
+    "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
+    "reset_wallet_desc_srp": "To restore your wallet, you can use your Secret Recovery Phrase. MetaMask doesn’t have this information."
   },
   "connect_hardware": {
     "title_select_hardware": "Bir donanım cüzdanı bağlayın",
@@ -285,9 +332,10 @@
     "error": "Hata"
   },
   "choose_password": {
-    "title": "Şifre oluştur",
+    "title": "MetaMask password",
+    "description": "Unlocks MetaMask on this device only.",
     "subtitle": "Bu şifre sadece bu cihazda MetaMask cüzdanınızın kilidini açar.",
-    "password": "Yeni Şifre",
+    "password": "Create new password",
     "confirm_password": "Şifreyi onayla",
     "create_button": "Şifre oluştur",
     "import_with_seed_phrase": "Gizli Kurtarma İfadesi ile içe aktar",
@@ -300,7 +348,7 @@
     "show": "Göster",
     "hide": "Gizle",
     "seed_phrase": "Gizli Kurtarma İfadesi",
-    "must_be_at_least": "En az {{number}} karakter olmalıdır",
+    "must_be_at_least": "Şifre en az {{number}} karakterden oluşmalıdır",
     "remember_me": "Beni hatırla",
     "security_alert_title": "Güvenlik Uyarısı",
     "security_alert_message": "İlerlemek için Parolayı veya cihazınızda desteklenen herhangi bir biyometri kimlik doğrulama yöntemini (FaceID, TouchID veya Parmak İzi) açmanız gerekir",
@@ -308,7 +356,10 @@
     "learn_more": "Daha fazlasını öğren.",
     "secure": "Cüzdanı güvenli hale getir",
     "confirm": "Gizli Kurtarma İfadesini onayla",
-    "disable_biometric_error": "Uygulama için biyometriyi devre dışı bıraktınız. Beni Hatırla ayarlarını güncelleyip tekrar deneyin."
+    "disable_biometric_error": "Uygulama için biyometriyi devre dışı bıraktınız. Beni Hatırla ayarlarını güncelleyip tekrar deneyin.",
+    "create_password_cta": "Create password",
+    "steps": "Adım {{currentStep}}/{{totalSteps}}",
+    "password_error": "Şifreler eşleşmiyor. Tekrar deneyin."
   },
   "reset_password": {
     "title": "Şifreyi değiştir",
@@ -338,19 +389,42 @@
     "successfully_changed": "Şifreniz başarılı bir şekilde değiştirildi"
   },
   "import_from_seed": {
-    "title": "Gizli Kurtarma İfadesinden içe aktar",
+    "title": "Bir cüzdanı içe aktar",
     "seed_phrase_placeholder": "Gizli Kurtarma İfadenizi girin",
-    "new_password": "Yeni Şifre",
+    "create_new_password": "Create new password",
     "confirm_password": "Şifreyi onayla",
     "import_button": "İÇE AKTAR",
     "cancel_button": "İptal",
     "password_length_error": "Şifre en az 8 karakter uzunluğunda olmalıdır",
     "password_dont_match": "Şifreler uyumlu değil",
     "seed_phrase_requirements": "Gizli Kurtarma İfadeleri 12, 15, 18, 21 veya 24 sözcük içerir",
-    "invalid_seed_phrase": "Gizli Kurtarma İfadesi geçersiz",
+    "invalid_seed_phrase": "Gizli Kurtarma İfadesi bulunamadı.",
     "error": "Hata",
     "invalid_qr_code_title": "QR Kodu geçersiz",
-    "invalid_qr_code_message": "Bu QR kodu geçerli bir Gizli Kurtarma İfadesini temsil etmiyor"
+    "invalid_qr_code_message": "Bu QR kodu geçerli bir Gizli Kurtarma İfadesini temsil etmiyor",
+    "enter_your_secret_recovery_phrase": "Gizli Kurtarma İfadenizi girin",
+    "metamask_password": "MetaMask password",
+    "metamask_password_description": "Unlocks MetaMask on this device only.",
+    "seed_phrase_required": "Gizli Kurtarma İfadesi gereklidir",
+    "re_enter_password": "Şifrenizi tekrar girin",
+    "use_at_least_8_characters": "En az 8 karakter kullanın",
+    "unlock_with_face_id": "Face ID ile kilidi aç?",
+    "learn_more": "If I forget this password, MetaMask can't recover it for me.",
+    "seed_phrase_length_error": "Gizli Kurtarma İfadesi 12, 15, 18, 21 veya 24 sözcükten oluşmalıdır",
+    "continue": "Devam et",
+    "clear_all": "Tümünü temizle",
+    "show_all": "Tümünü göster",
+    "paste": "Yapıştır",
+    "hide_all": "Tümünü gizle",
+    "srp": "Gizli Kurtarma İfadesi",
+    "srp_placeholder": "Her bir sözcüğün arasına bir boşluk ekleyin ve hiç kimsenin izlemediğinden emin olun 👀",
+    "learn_more_link": "Daha fazla bilgi edin",
+    "create_password_cta": "Create password",
+    "pass_flow": "Akış ile devam et",
+    "steps": "Adım {{currentStep}}/{{totalSteps}}",
+    "password_error": "Şifreler eşleşmiyor. Tekrar deneyin.",
+    "spellcheck_error": "Use only lowercase letters, check your spelling, and put the words in the original order.",
+    "enter_strong_password": "Güçlü bir şifre girin"
   },
   "bottom_tab_bar": {
     "dapps": "Merkeziyetsiz uygulamalar",
@@ -396,7 +470,80 @@
     "network_missing_id": "Zincir kimliği eksik."
   },
   "deposit": {
-    "title": "Para Yatır"
+    "title": "Para Yatır",
+    "selectRegion": "Select Region",
+    "chooseYourRegionToContinue": "Choose your region to continue",
+    "buildQuote": {
+      "payWith": "Pay with",
+      "unexpectedError": "An unexpected error occurred.",
+      "quoteFetchError": "Failed to fetch quote.",
+      "kycFormsFetchError": "Failed to fetch KYC forms."
+    },
+    "get_started": {
+      "title": "Top up your wallet with USDC",
+      "bullet_1_title": "Value-backed by the US dollar",
+      "bullet_1_description": "1:1 ratio backing with US dollars.",
+      "bullet_2_title": "Low volatility",
+      "bullet_2_description": "Maintains stable value for reliable transactions.",
+      "bullet_3_title": "Faster than banks",
+      "bullet_3_description": "Quick blockchain transfers beat traditional banking.",
+      "button": "Get started"
+    },
+    "enter_email": {
+      "title": "E-posta adresinizi girin",
+      "description": "Bunu yapanın siz olduğunuzu kontrol etmek amacıyla e-postanıza altı haneli bir kod göndereceğiz.",
+      "input_label": "E-posta",
+      "input_placeholder": "isim@alanadi.com",
+      "submit_button": "E-posta gönder",
+      "loading": "E-posta gönderiliyor...",
+      "validation_error": "Lütfen geçerli bir e-posta adresi girin"
+    },
+    "otp_code": {
+      "title": "Altı haneli kodu girin",
+      "description": "{{email}} adresine gönderdiğimiz 6 haneli kodu girin. Kodu gelen kutunuzda görmüyorsanız gereksiz/spam klasörünüzü kontrol edin.",
+      "submit_button": "Gönder",
+      "loading": "Kod doğrulanıyor...",
+      "invalid_code_error": "Kod geçersiz",
+      "validation_error": "Lütfen geçerli bir kod girin"
+    },
+    "verify_identity": {
+      "title": "Kimliğinizi doğrulayın",
+      "description": "Para yatırmak için kimliğinizi doğrulamamız gerekecek. Bu işlem, hesabınızı güvende tutmamıza ve bilgilerinizi gizli tutmamıza yardımcı olur.",
+      "privacy_policy_link": "Gizliliğinizi nasıl koruduğumuzu Gizlilik Politikası bölümümüzde öğrenebilirsiniz.",
+      "button": "Başlarken"
+    },
+    "basic_info": {
+      "title": "Temel bilgilerinizi girin",
+      "continue": "Devam et",
+      "subtitle": "Kimliğinizi doğrulamaya başlamak için bazı temel bilgilere ihtiyacımız var."
+    },
+    "enter_address": {
+      "title": "Adresinizi girin",
+      "subtitle": "Lütfen en güncel kalıcı adresinizi girin.",
+      "continue": "Devam et",
+      "address_line_1": "Adres satırı 1",
+      "address_line_2": "Adres satırı 2 (isteğe bağlı)",
+      "state": "Eyalet/Bölge",
+      "city": "Şehir",
+      "postal_code": "Posta Kodu",
+      "country": "Ülke"
+    },
+    "kyc_processing": {
+      "title": "Verifying your identity",
+      "heading": "Hang tight!\nWe’re verifying your identity now.",
+      "description": "You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.",
+      "button": "Browse tokens",
+      "error_heading": "We were unable to verify your identity.",
+      "error_description": "Try uploading your documents again and resubmit for verification.",
+      "error_button": "Retry verification",
+      "success_heading": "Identity successfully verified!",
+      "success_description": "You can now enter your payment info and complete your deposit.",
+      "success_button": "Complete your order"
+    },
+    "kyc_webview": {
+      "title": "Verifying your identity",
+      "webview_received_error": "WebView received error status code: {{code}}"
+    }
   },
   "receive": {
     "title": "Al"
@@ -446,6 +593,10 @@
     "multisrp": {
       "title": "Birden fazla Gizli Kurtarma İfadesi ekleyin",
       "subtitle": "MetaMask'te cüzdanları içe aktarın veya kullanın"
+    },
+    "solana": {
+      "title": "Solana artık destekleniyor",
+      "subtitle": "Başlamak için bir Solana hesabı oluşturun"
     }
   },
   "wallet": {
@@ -453,6 +604,7 @@
     "tokens": "Tokenler",
     "collectible": "Koleksiyon",
     "collectibles": "NFT'ler",
+    "defi": "DeFi",
     "transactions": "İŞLEMLER",
     "no_collectibles": "NFT'nizi görmüyor musunuz?",
     "no_available_tokens": "Tokeninizi görmüyor musunuz?",
@@ -482,7 +634,8 @@
     "import": "İçe aktar",
     "sort_by": "Şuna göre sırala",
     "filter_by": "Farklı filtrele",
-    "current_network": "Geçerli Ağ",
+    "current_network": "Geçerli ağ",
+    "popular_networks": "Popüler ağlar",
     "all_networks": "Tüm Ağlar",
     "declining_balance": "Azalan bakiye ({{currency}} yüksek-düşük)",
     "alphabetically": "Alfabetik olarak (A-Z)",
@@ -534,7 +687,7 @@
     "logout_to_import_seed": "Bir Gizli Kurtarma İfadesini içe aktarmak için önce oturumu kapatmanız gerekiyor.",
     "ready_to_explore": "Blokzinciri uygulamalarını keşfetmeye başlamak için hazır mısınız?",
     "unable_to_load": "Bakiye yüklenmedi",
-    "unable_to_find_conversion_rate": "dönüştürme oranı bulunamıyor",
+    "unable_to_find_conversion_rate": "dönüştürme oranı yok",
     "display_nft_media_desc": "Bir NFT'yi içe aktarmak için Ayarlar > Güvenlik ve gizlilik kısmında NFT medyasını göster seçeneğini açın.",
     "display_nft_media_cta": "NFT medyasını göster seçeneğini açın",
     "display_media_nft_warning": "NFT medyasını ve verilerini göstermek IP adresinizi merkezi sunuculara ifşa edebilir. Sadece mevcut riskleri anlıyorsanız NFT'yi içe aktarın.",
@@ -616,6 +769,19 @@
       "custom_security_tips": "Güvenlik İpuçları"
     }
   },
+  "defi_positions": {
+    "loading_positions": "DeFi pozisyonları yükleniyor...",
+    "no_positions": "Henüz pozisyon yok",
+    "error_cannot_load_page": "Bu sayfayı yükleyemedik.",
+    "error_visit_again": "Daha sonra tekrar ziyaret etmeyi deneyin.",
+    "single_token": "Yalnızca {{symbol}}",
+    "two_tokens": "{{symbol}} +1 diğer",
+    "multiple_tokens": "{{symbol}} +{{count}} diğer",
+    "supply": "Sağlanan",
+    "stake": "Stake Edilen",
+    "borrow": "Ödünç Alınan",
+    "reward": "Ödüller"
+  },
   "terms_and_conditions": {
     "title": "Şart ve Koşullar",
     "description": "İlerleyerek şu bölümleri kabul edersiniz: ",
@@ -636,9 +802,9 @@
     "action_description_1_prefix": "Özel:",
     "action_description_2_prefix": "Genel:",
     "action_description_3_prefix": "İsteğe bağlı:",
-    "action_description_1_description": "uygulama üzerindeki tıklamalar ve görüntülemeler depolanır ancak diğer bilgiler (genel adresiniz gibi) saklanmaz.",
-    "action_description_2_description": "genel bir konumu (ülkeniz veya bölgeniz gibi) algılamak için geçici olarak IP adresinizi kullanırız ancak bu bilgi asla saklanmaz.",
-    "action_description_3_description": "kullanım verilerinizi paylaşmak veya silmek isteyip istemediğinize dilediğiniz zaman ayarlar kısmından siz karar verirsiniz.",
+    "action_description_1_description": "Clicks and views on the app are stored, but other details (like your public address) are not.",
+    "action_description_2_description": "We temporarily use your IP address to detect a general location (like your country or region), but it's never stored.",
+    "action_description_3_description": "You decide if you want to share or delete your usage data via settings any time.",
     "cta_no_thanks": "Hayır, istemiyorum",
     "cta_i_agree": "Kabul ediyorum",
     "fine_print_1_legacy": "Bu veriler birleştirilmiştir ve bu nedenle 2016/679 sayılı Genel Veri Koruma Tüzüğü (AB) kapsamında isimsizdir.",
@@ -696,7 +862,8 @@
     "circulating_supply": "Dolaşımdaki arz",
     "all_time_high": "Tüm zamanların en yükseği",
     "all_time_low": "Tüm zamanların en düşüğü",
-    "fully_diluted": "Tamamen seyreltilmiş"
+    "fully_diluted": "Tamamen seyreltilmiş",
+    "unknown": "Bilinmeyen"
   },
   "collectible": {
     "collectible_address": "Adres",
@@ -730,8 +897,10 @@
     "receive": "AL"
   },
   "accounts": {
+    "srp_index": "SRP #{{index}}",
     "snap_account_tag": "Snaps (Beta)",
     "create_new_account": "Yeni hesap oluştur",
+    "new_account": "Yeni hesap",
     "import_account": "Bir hesabı içe aktar",
     "connect_hardware": "Donanım cüzdanı bağla",
     "imported": "İçe aktarıldı",
@@ -801,6 +970,10 @@
     },
     "error_messages": {
       "failed_to_create_account": "{{clientType}} hesabı oluşturulamadı"
+    },
+    "account_connect_create_initial_account": {
+      "description": "Bu siteye bağlanmak için bir Solana hesabı gereklidir.",
+      "button": "Solana hesabı oluştur"
     }
   },
   "toast": {
@@ -860,8 +1033,6 @@
     "reset_notifications_description": "Bildirimlerin sıfırlanması, bildirim depolama anahtarlarınızı sildiğiniz ve tüm bildirim geçmişinizi sıfırladığınız anlamına gelir. Bunu yapmak istediğinizden emin misiniz?",
     "reset_notifications": "Bildirimleri sıfırla",
     "reset_notifications_success": "Bildirim depolama anahtarı silindi/yeniden oluşturuldu ve bildirim geçmişi sıfırlandı.",
-    "enabling_profile_sync": "Profil senkronizasyonu etkinleştiriliyor...",
-    "disabling_profile_sync": "Profil senkronizasyonu devre dışı bırakılıyor...",
     "notifications_dismiss_modal": "Yok say",
     "select_rpc_url": "RPC URL adresini seç",
     "title": "Ayarlar",
@@ -909,9 +1080,9 @@
     "clear_browser_cookies_desc": "Tarayıcı çerezlerini temizle",
     "clear": "TEMİZLE",
     "protect_cta": "Koru",
-    "protect_title": "Cüzdanınızı koruyun",
+    "protect_title": "Wallet recovery",
     "video_failed": "Video Yükleme İşlemi Başarısız Oldu.",
-    "protect_desc": "Gizli Kurtarma İfadenizi sadece sizin erişim sağlayabileceğiniz ve unutmayacağınız bir yerde saklayarak cüzdanınızı koruyun. En iyi güvenlik için çevrim dışı ortamda tuttuğunuzdan emin olun.",
+    "protect_desc": "Back up your Secret Recovery Phrase so you never lose access to your wallet. Be sure to store it in a safe place that only you can access and won’t forget.",
     "protect_desc_no_backup": "Bu sizin cüzdanınızın 12 sözcükten oluşan ifadesidir. Bu ifade, cüzdanınızda para gönderme kabiliyeti de dahil olmak üzere tüm şimdiki ve gelecekteki hesaplarınızı kontrol etmek için kullanılabilir. Bu ifadeyi güvenli bir şekilde saklayın, hiç kimseyle PAYLAŞMAYIN. MetaMask bu anahtarı kurtarmanıza yardımcı olamaz.",
     "learn_more": "Daha fazlasını öğren.",
     "seedphrase_not_backed_up": "Önemli! Gizli Kurtarma İfadesi yedeklenmedi",
@@ -972,7 +1143,7 @@
     "no_permissions_desc": "Bir siteye veya bir uygulamaya bağladığınız hesabı burada göreceksiniz.",
     "security_title": "Güvenlik ve Gizlilik",
     "back": "Geri",
-    "security_desc": "Gizlilik ayarları, MetaMetrics, özel anahtar ve cüzdan Gizli Kurtarma İfadesi",
+    "security_desc": "Privacy settings, MetaMetrics, private key, and Secret Recovery Phrase.",
     "networks_title": "Ağlar",
     "networks_default_title": "Varsayılan Ağ",
     "network_delete": "Bu ağı silerseniz bu ağdaki varlıklarınızı görüntülemek için bu ağı tekrar eklemeniz gerekir",
@@ -1118,7 +1289,9 @@
       "key": "Anahtar",
       "add": "Ekle",
       "update": "Güncelle",
-      "cancel": "İptal"
+      "cancel": "İptal",
+      "deposit_provider_logout_button": "Log out of {{depositProviderName}}",
+      "deposit_provider_logged_out": "Logged out of {{depositProviderName}}"
     },
     "request_feature": "Bir özellik talep et",
     "contact_support": "Destek ile iletişim kurun",
@@ -1194,7 +1367,13 @@
           "endowment:caveat:transaction-origin": "İşlem öneren web sitelerinin kökenlerini gör",
           "endowment:extend-runtime": "Çalışma süresini uzat",
           "snap_dialog": "Özel iletişim kutuları görüntüle",
-          "snap_manageAccounts": "Ethereum hesaplarını ekle ve kontrol et"
+          "snap_manageAccounts": "Ethereum hesaplarını ekle ve kontrol et",
+          "endowment:signature-insight": "İmza içgörüleri kipini görüntüle",
+          "endowment:protocol": "Bir veya daha fazla zincir için protokol verileri sağla",
+          "snap_getPreferences": "Tercih ettiğiniz dil ve fiat para gibi bilgileri görün",
+          "endowment:lifecycle-hooks": "Yaşam döngüsü kancalarını kullan",
+          "endowment:name-lookup": "Alan adı ve adres sorgulamaları sağla",
+          "endowment:page-home": "Özelleştirilmiş bir ekran görüntüle"
         }
       }
     },
@@ -1208,6 +1387,8 @@
     "blockaid_desc": "Bu özellik, işlem ve imza taleplerini aktif bir şekilde inceleyerek kötü amaçlı aktivite konusunda sizi uyarır.",
     "security_alerts": "Güvenlik uyarıları",
     "security_alerts_desc": "Bu özellik, işlem ve imza taleplerinizi yerel olarak incelerken gizliliğinizi koruyarak Ethereum Ana Ağındaki kötü amaçlı aktivitelere karşı sizi uyarır. Talepleri onaylamadan önce her zaman gereken özeni kendiniz gösterin. Bu özelliğin tüm kötü amaçlı faaliyetleri algılayacağına dair herhangi bir garanti bulunmamaktadır. Bu özelliği etkinleştirerek sağlayıcının kullanım koşullarını kabul etmiş olursunuz.",
+    "dismiss_smart_account_update_heading": "\"Akıllı Hesaba Geçiş Yap\" önerisini yok say",
+    "dismiss_smart_account_update_desc": "Artık herhangi bir hesapta \"Akıllı Hesaba Geçiş Yap\" önerisini görmemek için bunu açın. Akıllı hesaplar daha hızlı işlemlerin, daha düşük ağ ücretlerinin ve bunların ödemesinde daha fazla esnekliğin kilidini açar.",
     "smart_transactions_opt_in_heading": "Akıllı İşlemler",
     "smart_transactions_opt_in_desc_supported_networks": "Desteklenen ağlarda daha güvenilir ve güvenli işlemler için Akıllı İşlemleri açın.",
     "smart_transactions_learn_more": "Daha fazla bilgi edinin.",
@@ -1351,7 +1532,8 @@
     "password_title": "Şifre",
     "password_desc": "Cihazınızda MetaMask uygulamasının kilidini açmak için güçlü bir şifre seçin. Bu şifreyi kaybettiğiniz takdirde cüzdanınızı yeniden içe aktarmak için Gizli Kurtarma İfadenize ihtiyacınız olacaktır.",
     "password_learn_more": "Daha fazlasını öğren.",
-    "change_password": "Şifreyi değiştir"
+    "change_password": "Şifreyi değiştir",
+    "password_hint": "Password hint"
   },
   "asset_overview": {
     "send_button": "Gönder",
@@ -1359,7 +1541,7 @@
     "token_marketplace": "Token pazar yeri",
     "sell_button": "Sat",
     "receive_button": "Al",
-    "portfolio_button": "Portföy",
+    "portfolio_button": "Portfolio",
     "earn_button": "Kazan",
     "add_collectible_button": "Ekle",
     "info": "Bilgi",
@@ -1763,6 +1945,8 @@
     "tx_review_staking_claim": "Stake Yapma Talebi",
     "tx_review_staking_deposit": "Stake Para Yatırma",
     "tx_review_staking_unstake": "Unstake",
+    "tx_review_lending_deposit": "Lending Deposit",
+    "tx_review_lending_withdraw": "Lending Withdrawal",
     "sent_ether": "Ether Gönderdi",
     "self_sent_ether": "Sana Ether Gönderdi",
     "received_ether": "Ether Aldı",
@@ -1829,8 +2013,44 @@
     "sign_description_2": "İmzayı Al tuşuna tıklayın",
     "sign_get_signature": "İmza Al",
     "transaction_id": "İşlem Kimliği",
+    "network": "Ağ",
+    "request_from": "Talebi gönderen",
     "network_fee": "Ağ Ücreti",
-    "network_fee_tooltip": "Ağ üzerinde işlemi gerçekleştirmek için ödenen tutar."
+    "network_fee_tooltip": "Ağ üzerinde işlemi gerçekleştirmek için ödenen tutar.",
+    "smart_account_upgrade": "Akıllı hesaba yükselt",
+    "smart_account_downgrade": "Standart hesaba geçiş yap",
+    "batched_transactions": "Toplu işlemler",
+    "gas_modal": {
+      "edit_network_fee": "Ağ ücretini düzenle",
+      "advanced_gas_fee": "Gelişmiş ağ ücreti",
+      "site_suggested": "Önerilen site",
+      "advanced": "Gelişmiş",
+      "low": "Düşük",
+      "medium": "Piyasa",
+      "high": "Agresif",
+      "network_suggested": "Önerilen ağ",
+      "gas_limit": "Gaz Limiti",
+      "save": "Kaydet",
+      "max_base_fee": "Maks. Baz Ücret",
+      "priority_fee": "Öncelik Ücreti",
+      "current_priority_fee": "Geçerli: {{min}} - {{max}} GWEI",
+      "historical_priority_fee": "12 sa: {{min}} - {{max}} GWEI",
+      "estimated_base_fee": "Geçerli: {{value}} GWEI",
+      "historical_base_fee": "12 sa: {{min}} - {{max}} GWEI",
+      "gas_price": "Gaz fiyatı",
+      "field_required": "{{field}} gereklidir",
+      "max_base_fee_required": "Maks. baz ücret gereklidir",
+      "gas_price_required": "Gaz fiyatı gereklidir",
+      "priority_fee_required": "Öncelik ücreti gereklidir",
+      "gas_limit_required": "Gaz limiti gereklidir",
+      "only_numbers_allowed": "Yalnızca sayılara izin verilir",
+      "negative_values_not_allowed": "Negatif değerlere izin verilmez",
+      "max_base_fee_must_be_greater_than_priority_fee": "Maks. baz ücret öncelik ücretinden büyük olmalıdır",
+      "gas_limit_too_low": "Gaz limiti 21000 üzerinde olmalıdır",
+      "priority_fee_too_high": "Öncelik ücreti maks. baz ücretten küçük olmalıdır",
+      "no_zero_value": "{{field}}, 0'dan büyük olmalıdır",
+      "speed": "Hız"
+    }
   },
   "smart_transactions": {
     "status_submitting_header": "İşleminiz gönderiliyor",
@@ -1981,6 +2201,9 @@
     "permitted_networks_info_sheet_description": "Bu, daha önce bu sitede kullanılmasına izin verdiğiniz ağların bir listesidir. Listeden bir ağı seçin veya bu site için ağ izinlerinin düzenleyin.",
     "connect_an_account": "Bir hesabı bağla"
   },
+  "account_dapp_connections": {
+    "account_summary_header": "Bu web sitesini MetaMask'e bağla"
+  },
   "select": {
     "cancel": "İptal",
     "done": "Bitti"
@@ -2122,16 +2345,21 @@
     "info_text_1_2": "Gizli Kurtarma İfadesi",
     "info_text_1_3": "güvendiğiniz bir yere kaydedin.",
     "info_text_1_4": "Uygulamaya giriş yapamadığınızda veya yeni bir cihaz edindiğinizde cüzdanınızı kurtarmanın tek yolu budur.",
-    "cta_text": "Başla",
+    "cta_text": "Get started",
     "cta_subText": "Mutlaka önerilir",
     "skip_button_cancel": "Şimdi koru",
     "skip_button_confirm": "Atla",
     "skip_title": "Hesap güvenliğini atla?",
-    "skip_check": "Gizli Kurtarma İfademi kaybettiğim takdirde cüzdanıma erişim sağlayamayacağımı anlıyorum.",
-    "what_is_seedphrase_title": "‘Gizli Kurtarma İfadesi’ nedir",
-    "what_is_seedphrase_text_1": "Gizli Kurtarma İfadesi, paranız da dahil olmak üzere cüzdanınız hakkında tüm bilgileri içeren on iki sözcükten oluşan bir dizidir. Cüzdanınıza erişim sağlamak için kullanılan gizli bir kod gibidir.",
+    "skip_check": "If you lose this Secret Recovery Phrase, you won’t be able to access this wallet.",
+    "what_is_seedphrase_title": "What’s a Secret Recovery Phrase?",
+    "what_is_seedphrase_text_1": "A Secret Recovery Phrase, also called a seed phrase or mnemonic, is a set of words that lets you access and control your crypto wallet. To move your wallet to MetaMask, you need this phrase.",
     "what_is_seedphrase_text_2": "Gizli Kurtarma İfadenizi gizli ve güvende tutmalısınız. Gizli Kurtarma İfadenizi ele geçiren biri hesaplarınızın kontrolünü de ele geçirir.",
-    "what_is_seedphrase_text_3": "Sadece sizin erişim sağlayabileceğiniz bir yere kaydedin. Kaybettiğiniz takdirde onu kurtarmanıza MetaMask bile yardımcı olamaz."
+    "what_is_seedphrase_text_3": "Sadece sizin erişim sağlayabileceğiniz bir yere kaydedin. Kaybettiğiniz takdirde onu kurtarmanıza MetaMask bile yardımcı olamaz.",
+    "what_is_seedphrase_text_4": "Anyone with your Secret Recovery Phrase can:",
+    "seedPhrase_point_1": "Take all your money",
+    "seedPhrase_point_2": "Confirm transactions",
+    "seedPhrase_point_3": "Change your login information",
+    "what_is_seedphrase_confirm": "Got it"
   },
   "account_backup_step_1B": {
     "title": "Cüzdanınızı koruyun",
@@ -2222,25 +2450,40 @@
     "progressThree": "Gizli Kurtarma İfadesini onayla"
   },
   "manual_backup_step_1": {
-    "action": "Gizli Kurtarma İfadenizi yazın",
-    "info": "Bu sizin Gizli Kurtarma İfadenizdir. Bunu kağıda yazıp güvenli bir yerde tutun. Sonraki adımda bu ifadeyi (sırasıyla) tekrar girmeniz istenecek.",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Save your Secret Recovery Phrase",
+    "info-1": "This is your",
+    "info-2": "Secret Recovery Phrase",
+    "info-3": "Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.",
+    "info-4": "Don’t share it with anyone, ever.",
     "continue": "Devam",
-    "reveal": "Gizli Kurtarma İfadenizi göstermek için dokunun",
+    "reveal": "Tap to reveal",
     "watching": "Hiç kimsenin ekranınızı izlemediğinden emin olun.",
     "view": "Görüntüle",
     "confirm_password": "Şifrenizi onaylayın",
     "before_continiuing": "Devam etmeden önce şifrenizi onaylamanız gerekiyor",
-    "confirm": "ONAYLA",
+    "enter_current_password": "Enter your current password",
+    "confirm": "Confirm",
     "got_it": "Anladım",
-    "learn_more": "Daha Fazlasını Öğren"
+    "learn_more": "Daha Fazlasını Öğren",
+    "password": "Password"
   },
   "manual_backup_step_2": {
-    "action": "Gizli Kurtarma İfadesini onayla",
-    "info": "Her bir sözcüğü size sunulan sıralamada seçin.",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Confirm your Secret Recovery Phrase",
+    "info": "Select the missing words in the correct order.",
     "complete": "Yedeklemeyi tamamla",
-    "success": "Başarılı"
+    "success": "Başarılı",
+    "error-title": "Not quite right",
+    "error-description": "Double-check your Secret Recovery Phrase and try again.",
+    "success-title": "Perfect!",
+    "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
+    "success-button": "Got it",
+    "error-button": "Try again",
+    "continue": "Continue"
   },
   "manual_backup_step_3": {
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
     "congratulations": "Tebrikler",
     "success": "Cüzdanınızı başarılı bir şekilde korudunuz! Gizli Kurtarma İfadenizi güvende tutmayı unutmayın, bu sizin sorumluluğunuzdadır!",
     "hint": "Kendine bir ipucu bırak?",
@@ -2858,7 +3101,8 @@
       "sale_pending_title": "{{currency}} satışı gerçekleştiriliyor",
       "sale_pending_description": "Emriniz şu anda gerçekleştiriliyor.",
       "no_date": "Bilinmeyen"
-    }
+    },
+    "deposit_order_title": "{{currency}} Deposit"
   },
   "swaps": {
     "title": "Swap Yap",
@@ -3294,15 +3538,6 @@
     "enable_remember_me": "Beni Hatırla özelliğini aç",
     "enable_remember_me_description": "Beni Hatırla özelliği açıldığında telefonunuza erişimi olan herkes MetaMask hesabınıza erişim sağlayabilir."
   },
-  "profile_sync": {
-    "title": "Profil Senkronizasyonu",
-    "disable_warning": "Profil senkronizasyonunu kapatırsanız bildirimleri alamayacaksınız.",
-    "enable_description": "MetaMask'in cihazlarınız arasında bazı ayarları senkronize etmek için kullandığı bir profil oluşturur. Bildirim almak için bu gereklidir. ",
-    "enable_description2": " daha fazla bilgi edinin.",
-    "enable_privacy_link": "Gizliliğinizi nasıl koruduğumuzu öğrenin",
-    "bottomSheetTurnOn": "Profil Senkronizasyonu Açılıyor",
-    "bottomSheetTurnOff": "Profil Senkronizasyonu Kapatılıyor"
-  },
   "turn_off_remember_me": {
     "title": "Beni Hatırla özelliğini kapatmak için şifrenizi girin",
     "placeholder": "Şifre",
@@ -3321,16 +3556,16 @@
     "description": "Güncellemelerin otomatik kontrolü IP adresini GitHub sunucularında açığa çıkarabilir. Bu durum sadece IP adresinin MetaMask kullandığını gösterir. Başka hiçbir bilgi ya da hesap adresi açığa çıkmaz."
   },
   "terms_of_use_modal": {
-    "title": "En yeni Kullanım Şartları bölümümüzü inceleyin",
+    "title": "Kullanım Şartları bölümümüzü inceleyin",
     "terms_of_use_check_description": "MetaMask ve tüm özelliklerini kullanırken geçerli olan Kullanım Koşulları bölümünü kabul ediyorum",
     "accept_cta": "Kabul Edin",
-    "accept_helper_description": "Tüm bölümleri okumak için lütfen kaydırın"
+    "accept_helper_description": "Tüm bölümleri okumak için lütfen kaydırın",
+    "agree_cta": "Kabul Ediyorum"
   },
   "update_needed": {
-    "title": "Güncellemeler gerekli",
-    "description": "Cüzdanınızın güvenliğini artırdık! Kendinizi korumak ve en son sürüme güncellemek için lütfen bir dakikanızı ayırın.",
-    "primary_action": "En son sürüme güncelle",
-    "secondary_action": "Daha sonra hatırlat"
+    "title": "En yeni özelliklere sahip olun",
+    "description": "Cüzdanınızı daha güvenli, daha sorunsuz hale getirdik ve bazı yeni özellikler ekledik. Korunmaya devam etmek ve en yeni iyileştirmelerimizi kullanmak için şimdi güncelleyin.",
+    "primary_action": "En son sürüme güncelle"
   },
   "enable_automatic_security_check_modal": {
     "title": "Güvenlik güncellemelerini otomatik kontrol et?",
@@ -3505,6 +3740,7 @@
     "connect_hardware_wallet": "Bir hesabı bağla",
     "import_wallet_or_account": "Bir cüzdanı veya hesabı içe aktar",
     "add_account": "Yeni bir hesap oluştur",
+    "add_multichain_account": "Yeni bir {{networkName}} hesabı oluştur",
     "create_an_account": "Yeni bir hesap oluştur",
     "add_new_account": "Ethereum hesabı",
     "import_srp": "Gizli Kurtarma İfadesi",
@@ -3512,7 +3748,12 @@
     "import_account": "Özel anahtar",
     "add_bitcoin_account_testnet": "Bitcoin test ağı hesabı",
     "add_bitcoin_account_mainnet": "Bitcoin hesabı",
-    "add_solana_account": "Solana hesabı"
+    "add_solana_account": "Solana hesabı",
+    "switch_to_smart_account": "Akıllı Hesaba Geçiş Yap",
+    "headers": {
+      "bitcoin": "Bitcoin",
+      "solana": "Solana"
+    }
   },
   "show_nft": {
     "show_nft_title": "NFT'yi göster",
@@ -3535,13 +3776,14 @@
     "title": "MetaMask'te Solana",
     "create_solana_account": "Solana hesabı oluştur",
     "not_now": "Şimdi değil",
-    "got_it": "Anladım",
+    "view_solana_account": "Solana hesabını görüntüle",
     "feature_1_title": "Token'ları gönder, al ve swap yap",
     "feature_1_description": "SOL, USDC ve diğerleri gibi token'larla transfer ve işlem yap.",
     "feature_2_title": "Solana hesaplarını içe aktar",
     "feature_2_description": "Başka bir cüzdandan Solana hesabınızı taşımak için bir Gizli Kurtarma İfadesini içe aktarın.",
     "feature_3_title": "Daha fazla özellik çok yakında",
-    "feature_3_description": "Solana merkeziyetsiz uygulamaları, NFT'ler, donanım cüzdanı desteği ve daha fazlası çok yakında."
+    "feature_3_description": "Solana merkeziyetsiz uygulamaları, NFT'ler, donanım cüzdanı desteği ve daha fazlası çok yakında.",
+    "learn_more": "Solana hesapları hakkında daha fazla bilgi edinin"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS ağ geçidi",
@@ -3572,9 +3814,80 @@
   "earn": {
     "empty_state_cta": {
       "heading": "{{tokenSymbol}} borç verin ve kazanın",
-      "body_prefix": "Yılda",
-      "body_suffix": "tutara kadar kazanmak için {{tokenSymbol}} borç verebilirsiniz.",
-      "start_earning": "Kazanmaya başlayın"
+      "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
+      "annually": "annually.",
+      "learn_more": "Learn more.",
+      "earn": "Earn"
+    },
+    "service_interruption_banner": {
+      "maintenance_message": "Bakım çalışması nedeniyle kapalıyız. Kısa sürede tekrar burada olacağız!"
+    },
+    "deposit": "Para Yatır",
+    "approve": "Onayla",
+    "approval": "Onay",
+    "confirm": "Onayla",
+    "cancel": "İptal",
+    "transaction_submitted": "İşlem Gönderildi",
+    "every_minute": "Her dakika",
+    "immediate": "Hemen",
+    "apr": "APR",
+    "protocol": "Protokol",
+    "receive_tooltip": "araç ipucunu al",
+    "button": "düğme",
+    "receive": "Al",
+    "tooltip_content": {
+      "apr": {
+        "part_one": "Geçen haftanın ödül oranına göre para yatırma işleminizin değerinde beklenen yıllık artış.",
+        "part_two": "Not: APR zaman içinde değişir."
+      },
+      "protocol": "Borç verme protokolü, token'leri ödünç vererek ödül kazanmanıza olanak sağlayan bir akıllı sözleşmedir. Aynı zamanda kullanıcıların, borç verenlere ödenen bir ücret karşılığında başka token'leri teminat olarak göstererek token ödünç almasına da olanak sağlar.",
+      "reward_frequency": "Ödüllerinizin hesaplanma sıklığı.",
+      "withdrawal_time": "Token'inizi protokolden çekip cüzdanınıza geri almanızın süresi",
+      "receive": "Bu token, varlıklarınızı ve ödüllerinizi takip etmek için kullanılır. Bunu transfer etmeyin veya bununla işlem yapmayın, aksi takdirde varlıklarınızı çekemezsiniz.",
+      "health_factor": {
+        "your_health_factor_measures_liquidation_risk": "Your Health Factor measures liquidation risk",
+        "above_two_dot_zero": "Above 2.0",
+        "safe_position": "Safe position",
+        "between_one_dot_five_and_2_dot_zero": "Between 1.5-2.0",
+        "medium_liquidation_risk": "Medium Liquidation risk",
+        "below_one_dot_five": "Below 1.5",
+        "higher_liquidation_risk": "Higher liquidation risk"
+      },
+      "lending_risk_aware_withdrawal_tooltip": {
+        "why_cant_i_withdraw_full_balance": "Why can't I withdraw my full balance?",
+        "your_withdrawal_amount_may_be_limited_by": "Your withdrawal amount may be limited by",
+        "pool_liquidity": "Pool Liquidity",
+        "not_enough_funds_available_in_the_lending_pool_right_now": "Not enough funds available in the lending pool right now.",
+        "existing_borrow_positions": "Existing Borrow Positions",
+        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "Withdrawing could put your existing loan positions at risk of liquidation."
+      }
+    },
+    "withdraw": "Çek",
+    "deposit_more": "Daha fazla para yatır",
+    "earning": "Earning",
+    "withdrawal_time": "Withdrawal time",
+    "withdrawing_to": "Withdrawing to",
+    "network": "Network",
+    "health_factor": "Health factor",
+    "liquidation_risk": "Liquidation risk",
+    "insufficient_pool_liquidity": "Insufficient Pool Liquidity",
+    "available_to_withdraw": "available to withdraw",
+    "unknown": "unknown",
+    "how_it_works": "How it works",
+    "market_historic_apr_modal": {
+      "earn_rewards_on_your_token": "Earn rewards on your {{tokenSymbol}}",
+      "lend_and_earn_daily_rewards": "Lend your {{tokenSymbol}} with {{protocol}} and earn daily rewards. Rewards grow over time and APR varies.",
+      "withdraw_whenever_you_want": "Withdraw whenever you want",
+      "get_asset_back_in_your_wallet_instantly": "Get {{tokenSymbol}} back in your wallet instantly."
+    },
+    "amount_exceeds_safe_withdrawal_limit": "Amount exceeds safe withdrawal limit",
+    "view_earnings_history": {
+      "lending": "View position history",
+      "staking": "View earnings history"
+    },
+    "earnings_history_list_title": {
+      "lending": "Position history",
+      "staking": "Payout history"
     }
   },
   "stake": {
@@ -3676,13 +3989,11 @@
     "proceed_anyway": "Yine de devam et",
     "gas_cost_impact": "Gaz maliyeti etkisi",
     "select_a_token": "Bir token seç",
-    "you_could_earn": "Token'larınızdan yılda",
+    "you_could_earn_up_to": "You could earn up to",
     "per_year_on_your_tokens": "kazanabilirsiniz",
     "deposit": "Para Yatır",
     "gas_cost_impact_warning": "Uyarı: İşlemin gaz maliyeti yatırdığınız paranın %{{percentOverDeposit}} fazlası olacaktır.",
-    "view_earnings_history": "Kazanç geçmişini görüntüle",
     "earnings_history_title": "{{ticker}} kazançları",
-    "earnings_history_list_title": "Ödeme geçmişi",
     "apr": "APR",
     "interactive_chart": {
       "timespan_buttons": {
@@ -3709,12 +4020,17 @@
     "basic_functionality": "Temel işlevsellik",
     "manage_networks": "Ağınızı seçin",
     "manage_networks_body": "Ethereum verilerine mümkün olan en güvenilir ve gizli erişimi sunmak amacıyla uzak yordam çağrısı (RPC) sağlayıcısı olarak Infura kullanırız. Kendi RPC'nizi seçebilirsiniz ancak tüm RPC'lerin işlemleri gerçekleştirmek için IP adresinizi ve Ethereum cüzdanınızı alacağını unutmayın. Infura'nın verileri nasıl kullandığı hakkında daha fazla bilgi edinmek için ",
-    "manage_networks_body2": " $1 bölümümüzü okuyun.",
+    "manage_networks_body2": " ve Infura'nın EVM hesaplarının verilerini nasıl ele aldığını öğrenin; Solana hesapları için ise ",
+    "manage_networks_body3": "buraya tıklayın.",
     "functionality_body": "MetaMask, internet hizmetleri üzerinden token bilgileri ve gaz ayarları gibi temel özellikler sunar. İnternet hizmetlerini kullandığınızda IP adresiniz, bu durumda MetaMask ile, paylaşılır. Bu tıpkı herhangi bir web sitesini ziyaret ettiğinizde olduğu gibidir. MetaMask bu verileri geçici olarak kullanır ve verilerinizi hiçbir zaman satmaz. Bir VPN kullanabilir veya bu hizmetleri kapatabilirsiniz ancak bu durum MetaMask deneyiminizi etkileyebilir. Daha fazla bilgi için ",
     "functionality_body2": " bölümümüzü okuyun.",
     "sheet": {
       "title_off": "Temel işlevselliği kapat",
       "description_off": "Bu, MetaMask'te zamanınızı tamamen optimize edemeyeceğiniz anlamına gelir. Temel özellikler (token bilgileri, en iyi gaz ayarları vb. gibi) sizin için sunulmayacaktır.",
+      "description_off2": "Bunu kapattığınızda şuradaki tüm özellikler de devre dışı bırakılır:",
+      "description_off2_related_features1": "güvenlik ve gizlilik, yedekleme ve senkronizasyon",
+      "description_off2_related_features1_and": "ve",
+      "description_off2_related_features2": "bildirimler.",
       "title_on": "Temel işlevselliği aç",
       "description_on": "MetaMask'te zamanınızı tamamen optimize etmek için bu özelliği açmanız gerekecektir. Temel özellikler (token bilgileri, en iyi gaz ayarları, bildirimler vb. gibi) web3 deneyimi için önemlidir.",
       "checkbox_label": "Anlıyorum ve devam etmek istiyorum",
@@ -3737,7 +4053,7 @@
     "failed": "Tahmininiz yüklenirken bir hata oldu.",
     "fiat_not_available": "Mevcut Değil",
     "incoming_heading": "Aldığınız",
-    "no_balance_changes": "Cüzdanınız için herhangi bir değişiklik öngörülmüyor",
+    "no_balance_changes": "Değişiklik yok",
     "outgoing_heading": "Gönderdiğiniz",
     "reverted": "Bu işlemin başarısız olması muhtemel",
     "title": "Tahmini değişiklikler",
@@ -3796,7 +4112,9 @@
       "primary_type": "Birincil tür",
       "request_from": "Talebi gönderen",
       "signing_in_with": "Şununla giriş yapılıyor:",
-      "spender": "Harcayan"
+      "spender": "Harcayan",
+      "now": "Şimdi",
+      "switching_to": "Geçiş Yapılan"
     },
     "title": {
       "signature": "İmza talebi",
@@ -3804,25 +4122,33 @@
       "permit_revoke": "İzni kaldır",
       "permit_NFTs": "Para çekme talebi",
       "signature_siwe": "Giriş talebi",
-      "contract_interaction": "İşlem talebi"
+      "contract_interaction": "İşlem talebi",
+      "transfer": "Transfer talebi",
+      "switch_account_type": "Hesap güncellemesi",
+      "approve": "Approve request"
     },
     "sub_title": {
       "permit": "Bu site token'larınızı harcamak için izin istiyor.",
       "permit_NFTs": "Bu site NFT'lerinizi çekmek için izin istiyor.",
       "signature": "Onaylamadan önce talep bilgilerini inceleyin.",
       "signature_siwe": "Bir site, bu hesabın sahibinin siz olduğunuzu kanıtlamak için giriş yapmanızı istiyor.",
-      "contract_interaction": "Onaylamadan önce talep bilgilerini inceleyin."
+      "contract_interaction": "Onaylamadan önce talep bilgilerini inceleyin.",
+      "switch_to_smart_account": "Akıllı bir hesaba geçiş yapıyorsunuz.",
+      "switch_to_standard_account": "Tekrar standart bir hesaba geçiş yapıyorsunuz (EOA)."
     },
     "request_from": "Talebi gönderen",
     "staking_from": "Stake edilecek yer",
     "signing_in_with": "Şununla giriş yapılıyor:",
     "message": "Mesaj",
     "personal_sign_tooltip": "Bu site imzanızı istiyor",
-    "transaction_tooltip": "Bu site işleminizi istiyor",
+    "transaction_tooltip": "Bu site, işleminizi istiyor",
     "details": "Ayrıntılar",
     "qr_get_sign": "İmza Al",
     "qr_scan_text": "Donanım cüzdanınızla tarayın",
     "sign_with_ledger": "Ledger ile oturum aç",
+    "smart_account": "Akıllı Hesap",
+    "smart_contract": "Akıllı sözleşme",
+    "standard_account": "Standart Hesap",
     "siwe_message": {
       "url": "URL Adresi",
       "network": "Ağ",
@@ -3835,8 +4161,12 @@
       "resources": "Kaynaklar"
     },
     "simulation": {
+      "cancel": "İptal",
       "decoded_tooltip_bid_nft": "Teklif kabul edildiğinde NFT cüzdanınıza yansıyacak.",
       "decoded_tooltip_list_nft": "Sadece biri NFT'lerinizi satın alırsa değişiklik olmasını bekleyin.",
+      "edit_approval_limit_description": "Sizin adınıza harcanması konusunda rahat hissettiğiniz tutarı girin.",
+      "edit_approval_limit_title": "Onay limitini düzenle",
+      "edit_value_balance_info": "Hesap bakiyesi:",
       "info_permit": "Harcama yapan tarafa hesabınızdan bu kadar token harcama izni veriyorsunuz.",
       "info_revoke": "Birinin hesabınızdan token harcama iznini kaldırıyorsunuz.",
       "label_change_type_bidding": "Teklifiniz",
@@ -3847,16 +4177,43 @@
       "label_change_type_receive": "Aldığınız",
       "label_change_type_revoke": "İptal et",
       "label_change_type_transfer": "Gönderdiğiniz",
+      "label_change_type_approve": "Şunları onaylarsınız:",
       "personal_sign_info": "Bir siteye giriş yapıyorsunuz ve hesabınız için öngörülen herhangi bir değişiklik yok.",
+      "save": "Kaydet",
       "title": "Tahmini değişiklikler",
       "tooltip": "Tahmini değişiklikler bu işlemi gerçekleştirirseniz meydana gelebilecek değişikliklerdir. Bu bir garanti değil, sadece bir tahmindir.",
       "unavailable": "Mevcut değil"
     },
+    "7702_functionality": {
+      "smartAccountLabel": "Akıllı Hesap",
+      "standardAccountLabel": "Standart Hesap",
+      "switch": "Değiştir",
+      "splashpage": {
+        "accept": "Evet",
+        "betterTransaction": "Daha hızlı işlemler, daha düşük ücretler",
+        "betterTransactionDescription": "İşlemleri bir arada gerçekleştirerek hem zamandan hem de paradan tasarruf edin.",
+        "featuresDescription": "Aynı hesap adresini koruyun; dilediğiniz zaman tekrar geçiş yapabilirsiniz.",
+        "payToken": "Dilediğiniz token ile dilediğiniz zaman ödeme yapın",
+        "payTokenDescription": "Zaten sahip olduğunuz token'leri kullanarak ağ ücretlerini karşılayın.",
+        "reject": "Hayır",
+        "requestFor": "Talep edilen",
+        "sameAccount": "Aynı hesap, daha akıllı özellikler.",
+        "splashTitle": "Akıllı hesap kullanılsın mı?",
+        "upgradeBannerDescription": "Aynı adres. Daha akıllı özellikler.",
+        "upgradeBannerTitle": "Akıllı hesaba geçiş yap"
+      },
+      "includes_transaction": "{{transactionCount}} işlem içerir"
+    },
     "unlimited": "Sınırsız",
+    "all": "Tümü",
     "none": "Hiçbiri",
     "advanced_details": "Gelişmiş bilgiler",
     "interacting_with": "Etkileşimde",
-    "review": "Review"
+    "data": "Veriler",
+    "review": "İncele",
+    "transferRequest": "Transfer talebi",
+    "nested_transaction_heading": "{{index}} işlemi",
+    "transaction": "Transaction"
   },
   "change_in_simulation_modal": {
     "title": "Sonuçlar değişti",
@@ -3877,6 +4234,8 @@
   },
   "bridge": {
     "continue": "Devam et",
+    "confirm_bridge": "Köprü İşlemini Onayla",
+    "confirm_swap": "Swap İşlemini Onayla",
     "terms_and_conditions": "Şart ve Koşullar",
     "select_token": "Token seç",
     "select_network": "Ağ seç",
@@ -3898,19 +4257,22 @@
     "quote_info_content": "Aramamıza göre bu teklif en iyi getiriyi sunmaktadır. Swap oranına dayanır ve köprüleme ücretleri ve %0,875 MetaMask ücreti dahildir ancak gaz ücretleri dahil değildir. Gaz ücretleri ağ faaliyetine ve işlemin karmaşıklığına göre değişiklik gösterebilir.",
     "quote_info_title": "Neden bu teklifi öneriyoruz",
     "see_other_quotes": "Diğer teklifleri gör",
-    "receive_at": "Alınacak",
-    "error_banner_description": "Bu işlem rotası şu anda kullanılamıyor. Tutarı, ağı veya token'ı değiştirmeyi deneyin ve en iyi seçeneği bulalım.",
+    "receive_at": "Şurada alınacak:",
+    "error_banner_description": "Bu işlem rotası şu anda kullanılamıyor. Tutarı, ağı veya token'ı değiştirmeyi deneyin ve sizin için en iyi seçeneği bulalım.",
     "insufficient_funds": "Para yetersiz",
     "select_amount": "Tutar seçin",
-    "bridge_to": "Köprü yapılan",
+    "bridge_to": "Köprü yapılan:",
     "title": "Köprü",
     "submitting_transaction": "Gönderiliyor",
-    "fetching_quote": "Teklif alınıyor"
+    "fetching_quote": "Teklif alınıyor",
+    "fee_disclaimer": "%0,875 MM ücreti dahildir",
+    "hardware_wallet_not_supported": "Donanım cüzdanları henüz desteklenmiyor. Devam etmek için sıcak cüzdan kullanın.",
+    "hardware_wallet_not_supported_solana": "Donanım cüzdanları henüz Solana için desteklenmiyor. Devam etmek için sıcak cüzdan kullanın."
   },
   "quote_expired_modal": {
-    "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
-    "get_new_quote": "Get new quote"
+    "title": "Yeni teklifler mevcut",
+    "description": "Oranlar {{refreshRate}} dakikada bir güncellenir, bu yüzden hazır olduğunuzda Yeni teklif al seçeneğine dokunun.",
+    "get_new_quote": "Yeni teklif al"
   },
   "bridge_transaction_details": {
     "status": "Durum",
@@ -3922,9 +4284,125 @@
     "bridge_step_action_swap_complete": "{{srcSymbol}} - {{destSymbol}} swap işlemi gerçekleştirildi",
     "bridge_step_action_swap_pending": "{{srcSymbol}} - {{destSymbol}} swap işlemi gerçekleştiriliyor",
     "view_on_block_explorer": "Blok Gezgininde Görüntüle",
-    "block_explorer_description": "Bu işlem iki ağda da bulunuyor. Birinci bağlantı kaynağı gösterir, ikincisi onaylandıktan sonra hedefi gösterir.",
+    "block_explorer_description": "Bu işlem iki ağda da bulunuyor. Birinci bağlantı, kaynağı gösterirken ikincisi onaylandıktan sonra hedefi gösterir.",
     "transaction_details": "İşlem Bilgileri",
     "bridge_to_chain": "{{chainName}} için köprü",
     "recipient": "Alıcı"
+  },
+  "backupAndSync": {
+    "title": "Yedekleme ve senkronizasyon",
+    "description": "Hesaplarınızı yedekleyin ve ayarları senkronize edin.",
+    "enabling": "Yedekleme ve senkronizasyon etkinleştiriliyor",
+    "disabling": "Yedekleme ve senkronizasyon devre dışı bırakılıyor",
+    "enable": {
+      "title": "Yedekleme ve senkronizasyonu aç",
+      "confirmation": "Yedekleme ve senkronizasyonu açtığınızda temel işlevselliği de açarsınız. Devam etmek istiyor musunuz?",
+      "description": "Yedekleme ve senkronizasyon, özel ayarlarınız ve özellikleriniz için şifrelenmiş verileri depolamamızı sağlar. Bu, cihazlar arasında aynı MetaMask deneyimini yaşamanızı sağlar ve MetaMask'i yeniden yüklemeniz gerekirse ayarları ve özellikleri geri yükler. Bu işlem Gizli Kurtarma İfadenizi yedeklemez.",
+      "updatePreferences": "Tercihlerinizi dilediğiniz zaman şurada güncelleyebilirsiniz:",
+      "settingsPath": "Ayarlar > Yedekleme ve senkronizasyon."
+    },
+    "privacyLink": "Gizliliğinizi nasıl koruduğumuzu öğrenin",
+    "features": {
+      "accounts": "Hesaplar",
+      "contacts": "Contacts"
+    },
+    "manageWhatYouSync": {
+      "title": "Neleri senkronize ettiğinizi yönetin",
+      "description": "Cihazlarınız arasında nelerin senkronize edildiğini açın."
+    }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "Bir varlık seçin"
+    },
+    "hideSentitiveInfo": {
+      "message": "Hassas bilgileri gizle"
+    },
+    "doNotShare": {
+      "message": "Bunu hiç kimseyle paylaşmayın"
+    },
+    "revealSensitiveContent": {
+      "message": "Hassas içeriği göster"
+    },
+    "show_more": "daha fazla",
+    "show_less": "daha az"
+  },
+  "multichain_accounts": {
+    "account_details": {
+      "header_title": "Hesap Bilgileri",
+      "account_name": "Hesap Adı",
+      "account_address": "Hesap Adresi",
+      "wallet": "Cüzdan",
+      "private_key": "Özel anahtar"
+    },
+    "accounts_list": {
+      "details": "Details"
+    },
+    "smart_account": {
+      "title": "Akıllı Hesabı Etkinleştir",
+      "description": "You can enable smart account features on supported networks.",
+      "learn_more": "Daha fazla bilgi edin"
+    },
+    "edit_account_name": {
+      "title": "Hesap Adını Düzenle",
+      "name": "Adı",
+      "save_button": "Kaydet",
+      "error_duplicate_name": "Bu hesap adı zaten mevcut"
+    },
+    "delete_account": {
+      "title": "Hesabı Kaldır",
+      "warning_title": "Bu hesap MetaMask'ten kaldırılacak.",
+      "warning_description": "Kaldırmadan önce bu hesaba ait Gizli Kurtarma İfadenizin veya özel anahtarınızın olduğundan emin olun.",
+      "remove_button": "Kaldır",
+      "cancel_button": "İptal",
+      "error": "Hesap silinemedi"
+    },
+    "share_address": {
+      "title": "Adresi Paylaş",
+      "copy_address": "Adresi kopyala",
+      "view_on_explorer_button": "{{explorer}} üzerinde görüntüle",
+      "view_on_block_explorer": "Blok Gezgininde Görüntüle"
+    },
+    "export_credentials": {
+      "export_private_key": "Özel anahtar",
+      "private_key_warning_title": "Bu anahtarı asla paylaşmayın.",
+      "private_key_warning_description": "Özel anahtarınıza sahip olan herkes, hesabınızda tutulan tüm varlıkları tehlikeye atabilir.",
+      "credential_as_text": "Metin",
+      "credential_as_qr": "QR kodu",
+      "export_mnemonic": "Kurtarma ifadesini dışa aktar",
+      "backup": "Yedekle"
+    },
+    "reveal_private_key": {
+      "title": "Özel anahtarı göster",
+      "banner_title": "Bu anahtarı asla paylaşmayın.",
+      "banner_description": "Özel anahtarınıza sahip olan herkes, hesabınızda tutulan tüm varlıkları tehlikeye atabilir.",
+      "enter_password": "Şifrenizi girin",
+      "password_placeholder": "Şifre",
+      "next": "Sonraki",
+      "copy": "Kopyala"
+    },
+    "reveal_srp": {
+      "header": "Güvenlik testi",
+      "description": "Gizli Kurtarma İfadenizi görmek için iki soruyu doğru cevaplamanız gerekmektedir",
+      "get_started": "Başlarken",
+      "learn_more": "Daha fazla bilgi edin"
+    }
+  },
+  "deep_link_modal": {
+    "private_link": {
+      "title": "Redirecting you to MetaMask",
+      "description": "You'll open {{pageTitle}} if you continue.",
+      "checkbox_label": "Don't remind me again"
+    },
+    "public_link": {
+      "title": "Proceed with caution",
+      "description": "You were sent here by a third party, not MetaMask. You'll open {{pageTitle}} if you continue."
+    },
+    "invalid": {
+      "title": "This page doesn't exist",
+      "description": "We can't find the page you're looking for."
+    },
+    "back_button": "Back",
+    "continue_button": "Continue"
   }
 }

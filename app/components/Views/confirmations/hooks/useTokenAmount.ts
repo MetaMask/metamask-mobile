@@ -30,6 +30,7 @@ interface TokenAmountProps {
 interface TokenAmount {
   amountPrecise: string | undefined;
   amount: string | undefined;
+  isNative: boolean | undefined;
   fiat: string | undefined;
   usdValue: string | null;
 }
@@ -54,7 +55,7 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
   const nativeConversionRate = new BigNumber(
     useSelector((state: RootState) =>
       selectConversionRateByChainId(state, chainId as Hex),
-    ) ?? 1,
+    ) ?? 0,
   );
   const { networkNativeCurrency } = useNetworkInfo(chainId as Hex);
   const currencyRates = useSelector(selectCurrencyRates);
@@ -71,6 +72,7 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
       amountPrecise: undefined,
       amount: undefined,
       fiat: undefined,
+      isNative: undefined,
       usdValue: null,
     };
   }
@@ -84,6 +86,7 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
 
   let fiat;
   let usdValue = null;
+  let isNative = false;
 
   switch (transactionType) {
     case TransactionType.simpleSend:
@@ -94,6 +97,7 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
       fiat = amount.times(nativeConversionRate);
       const usdAmount = amount.times(usdConversionRate);
       usdValue = usdConversionRateFromCurrencyRates ? usdAmount.toFixed(2): null;
+      isNative = true;
       break;
     }
     case TransactionType.contractInteraction:
@@ -115,6 +119,7 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
     amountPrecise: formatAmountMaxPrecision(I18n.locale, amount),
     amount: formatAmount(I18n.locale, amount),
     fiat: fiat ? fiatFormatter(fiat) : undefined,
+    isNative,
     usdValue,
   };
 };

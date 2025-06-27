@@ -11,11 +11,6 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { trace, TraceName, TraceOperation } from '../../../util/trace';
-import { getTraceTags } from '../../../util/sentry/tags';
-import { store } from '../../../store';
-///: END:ONLY_INCLUDE_IF
 
 // Internal dependencies
 import { AddAccountActionsProps } from './AddAccountActions.types';
@@ -46,6 +41,7 @@ import {
 // eslint-disable-next-line no-duplicate-imports, import/no-duplicates
 import { BtcScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
+import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -82,6 +78,11 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
     onBack();
   }, [onBack, navigate, trackEvent, createEventBuilder]);
 
+  const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
+    onFirstLoad: false,
+    onTransactionComplete: false,
+  });
+
   const createNewAccount = useCallback(async () => {
     if (hasMultipleSRPs) {
       navigate(Routes.SHEET.ADD_ACCOUNT, {});
@@ -92,6 +93,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
       setIsLoading(true);
 
       await addNewHdAccount();
+      fetchAccountsWithActivity();
 
       trackEvent(
         createEventBuilder(
@@ -107,7 +109,14 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
 
       setIsLoading(false);
     }
-  }, [hasMultipleSRPs, navigate, trackEvent, createEventBuilder, onBack]);
+  }, [
+    hasMultipleSRPs,
+    navigate,
+    trackEvent,
+    createEventBuilder,
+    onBack,
+    fetchAccountsWithActivity,
+  ]);
 
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   const isBtcMainnetAccountAlreadyCreated = useSelector(
@@ -126,11 +135,6 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const createSolanaAccount = async (scope: CaipChainId) => {
-    trace({
-      name: TraceName.CreateSnapAccount,
-      op: TraceOperation.CreateSnapAccount,
-      tags: getTraceTags(store.getState()),
-    });
     navigate(Routes.SHEET.ADD_ACCOUNT, {
       scope,
       clientType: WalletClientType.Solana,

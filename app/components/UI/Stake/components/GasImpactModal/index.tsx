@@ -54,6 +54,7 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
     amountFiat,
     estimatedGasFee,
     estimatedGasFeePercentage,
+    chainId,
   } = route.params;
 
   const metricsEvent = useCallback(
@@ -94,13 +95,19 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
     const amountWeiString = amountWei.toString();
 
     if (isStakingDepositRedesignedEnabled) {
-      await attemptDepositTransaction(
-        amountWeiString,
-        activeAccount?.address as string,
-      );
-      navigate('StakeScreens', {
-        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
-      });
+      if (!attemptDepositTransaction) return;
+
+      try {
+        await attemptDepositTransaction(
+          amountWeiString,
+          activeAccount?.address as string,
+        );
+        navigate('StakeScreens', {
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        });
+      } catch (error) {
+        console.error(error);
+      }
     } else {
       navigate('StakeScreens', {
         screen: Routes.STAKING.STAKE_CONFIRMATION,
@@ -110,21 +117,23 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
           annualRewardsETH,
           annualRewardsFiat,
           annualRewardRate,
+          chainId,
         },
       });
     }
     metricsEvent(MetaMetricsEvents.STAKE_GAS_COST_IMPACT_PROCEEDED_CLICKED);
   }, [
-    activeAccount?.address,
-    amountFiat,
     amountWei,
+    isStakingDepositRedesignedEnabled,
+    metricsEvent,
+    attemptDepositTransaction,
+    activeAccount?.address,
+    navigate,
+    amountFiat,
     annualRewardsETH,
     annualRewardsFiat,
     annualRewardRate,
-    attemptDepositTransaction,
-    isStakingDepositRedesignedEnabled,
-    metricsEvent,
-    navigate,
+    chainId,
   ]);
 
   const footerButtons: ButtonProps[] = [
