@@ -448,6 +448,19 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                   >
                                     US
                                   </Text>
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="ArrowDown"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
                                 </View>
                               </TouchableOpacity>
                             </View>
@@ -2149,6 +2162,19 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                   >
                                     US
                                   </Text>
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="ArrowDown"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
                                 </View>
                               </TouchableOpacity>
                             </View>
@@ -3850,6 +3876,19 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                   >
                                     US
                                   </Text>
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="ArrowDown"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
                                 </View>
                               </TouchableOpacity>
                             </View>
@@ -5527,6 +5566,19 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                   >
                                     US
                                   </Text>
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="ArrowDown"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
                                 </View>
                               </TouchableOpacity>
                             </View>
@@ -7204,6 +7256,19 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                   >
                                     US
                                   </Text>
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="ArrowDown"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
                                 </View>
                               </TouchableOpacity>
                             </View>
@@ -8881,6 +8946,19 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                   >
                                     US
                                   </Text>
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="ArrowDown"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
                                 </View>
                               </TouchableOpacity>
                             </View>
@@ -10558,6 +10636,19 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                   >
                                     US
                                   </Text>
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="ArrowDown"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
                                 </View>
                               </TouchableOpacity>
                             </View>
