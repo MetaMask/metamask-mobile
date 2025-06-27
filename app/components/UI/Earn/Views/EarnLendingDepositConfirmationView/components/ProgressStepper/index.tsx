@@ -161,8 +161,25 @@ const ProgressStepper = ({
             testID={`${PROGRESS_STEPPER_TEST_IDS.STEP}-${index}`}
           >
             {getStepIcon(index, isLoading)}
-            <Text variant={TextVariant.BodySM} color={TextColor.Primary}>
-              {label}
+            <Text
+              style={styles.stepLabelContainer}
+              variant={TextVariant.BodySM}
+              color={TextColor.Primary}
+            >
+              {label.split(' ').map((word, wordIndex) => (
+                <>
+                  <Text
+                    key={`${word}-${wordIndex}`}
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Primary}
+                  >
+                    {word}
+                  </Text>
+                  {wordIndex !== label.split(' ').length - 1 && (
+                    <Text>{'\n'}</Text>
+                  )}
+                </>
+              ))}
             </Text>
           </View>
         ))}

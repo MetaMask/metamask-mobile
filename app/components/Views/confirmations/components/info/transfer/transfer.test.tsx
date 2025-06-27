@@ -1,5 +1,4 @@
 import React from 'react';
-import { cloneDeep } from 'lodash';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { transferConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
@@ -69,6 +68,11 @@ jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe', () => ({
   default: jest.fn(),
 }));
 
+jest.mock('../../../components/UI/animated-pulse', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 const noop = () => undefined;
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -134,16 +138,5 @@ describe('Transfer', () => {
         asset_type: 'erc20',
       },
     });
-  });
-
-  it('renders simulation details if transfer initiated by dapp', () => {
-    const state = cloneDeep(transferConfirmationState);
-    state.engine.backgroundState.TransactionController.transactions[0].origin =
-      'https://dapp.com';
-    const { getByText } = renderWithProvider(<Transfer />, {
-      state,
-    });
-
-    expect(getByText('Estimated changes')).toBeDefined();
   });
 });

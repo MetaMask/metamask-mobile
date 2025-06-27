@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import {
@@ -31,6 +32,7 @@ const MOCK_NETWORK = {
   ],
 } as unknown as EIP7702NetworkConfiguration;
 
+const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useRoute: jest.fn().mockReturnValue({
@@ -38,6 +40,7 @@ jest.mock('@react-navigation/native', () => ({
   }),
   useNavigation: () => ({
     navigate: jest.fn(),
+    goBack: mockGoBack,
   }),
 }));
 
@@ -99,5 +102,19 @@ describe('Switch Account Type Modal', () => {
     expect(queryByText('Smart Account')).toBeNull();
     expect(queryByText('Switch')).toBeNull();
     expect(getByTestId('network-data-loader')).toBeTruthy();
+  });
+
+  it('navigates back when back button is clicked', () => {
+    jest.spyOn(Networks7702, 'useEIP7702Networks').mockReturnValue({
+      pending: false,
+      network7702List: [MOCK_NETWORK],
+      networkSupporting7702Present: true,
+    });
+
+    const { getByTestId } = renderWithProvider(<SwitchAccountTypeModal />, {
+      state: MOCK_STATE,
+    });
+    fireEvent.press(getByTestId('switch-account-goback'));
+    expect(mockGoBack).toHaveBeenCalled();
   });
 });

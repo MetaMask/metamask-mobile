@@ -83,16 +83,18 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       case ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP:
         return (
           <>
-            <Text variant={TextVariant.DisplayMD}>
+            <Text variant={TextVariant.DisplayMD} style={styles.textTitle}>
               {strings('onboarding_success.title')}
             </Text>
-            <LottieView
-              style={styles.walletReadyImage}
-              autoPlay
-              loop
-              source={SearchingFox}
-              resizeMode="contain"
-            />
+            <View style={styles.imageWrapper}>
+              <LottieView
+                style={styles.walletReadyImage}
+                autoPlay
+                loop
+                source={SearchingFox}
+                resizeMode="contain"
+              />
+            </View>
             <View style={styles.descriptionWrapper}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('onboarding_success.description')}
@@ -118,16 +120,18 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       case ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP:
         return (
           <>
-            <Text variant={TextVariant.DisplayMD}>
+            <Text variant={TextVariant.DisplayMD} style={styles.textTitle}>
               {strings('onboarding_success.remind_later')}
             </Text>
-            <LottieView
-              style={styles.walletReadyImage}
-              autoPlay
-              loop
-              source={SearchingFox}
-              resizeMode="contain"
-            />
+            <View style={styles.imageWrapper}>
+              <LottieView
+                style={styles.walletReadyImage}
+                autoPlay
+                loop
+                source={SearchingFox}
+                resizeMode="contain"
+              />
+            </View>
             <View style={styles.descriptionWrapper}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('onboarding_success.remind_later_description')}
@@ -147,20 +151,19 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
             <Text variant={TextVariant.DisplayMD} style={styles.textTitle}>
               {strings('onboarding_success.import_title')}
             </Text>
-
-            <LottieView
-              style={styles.walletReadyImage}
-              autoPlay
-              loop
-              source={CelebratingFox}
-              resizeMode="contain"
-            />
-
+            <View style={styles.imageWrapper}>
+              <LottieView
+                style={styles.walletReadyImage}
+                autoPlay
+                loop
+                source={CelebratingFox}
+                resizeMode="contain"
+              />
+            </View>
             <View style={styles.descriptionWrapper}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('onboarding_success.import_description')}
               </Text>
-
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 <Text
                   color={TextColor.Primary}

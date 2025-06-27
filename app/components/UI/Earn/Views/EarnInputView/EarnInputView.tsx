@@ -66,6 +66,7 @@ import {
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
+import { doesTokenRequireAllowanceReset } from '../../utils';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -279,9 +280,20 @@ const EarnInputView = () => {
       ? allowanceMinimalTokenUnitBN.toString()
       : '0';
 
-    const needsAllowanceIncrease = new BigNumber(
-      allowanceMinimalTokenUnit ?? '',
-    ).isLessThan(amountTokenMinimalUnitString);
+    const needsAllowanceIncrease = (() => {
+      const isExistingAllowanceLowerThanNeeded = new BigNumber(
+        allowanceMinimalTokenUnit ?? '',
+      ).isLessThan(amountTokenMinimalUnitString);
+
+      if (
+        doesTokenRequireAllowanceReset(earnToken.chainId, earnToken.symbol) &&
+        isExistingAllowanceLowerThanNeeded &&
+        allowanceMinimalTokenUnit !== '0'
+      )
+        return true;
+
+      return isExistingAllowanceLowerThanNeeded;
+    })();
 
     const lendingPoolContractAddress =
       CHAIN_ID_TO_AAVE_POOL_CONTRACT[getDecimalChainId(earnToken.chainId)] ??
@@ -362,8 +374,6 @@ const EarnInputView = () => {
           token,
           amountTokenMinimalUnit: amountTokenMinimalUnit.toString(),
           amountFiat: amountFiatNumber,
-          // TODO: These values are inaccurate since useEarnInputHandlers doesn't support stablecoin lending yet.
-          // Make sure these values are accurate after updating useEarnInputHandlers to support stablecoin lending.
           annualRewardsToken,
           annualRewardsFiat,
           annualRewardRate,
@@ -372,6 +382,7 @@ const EarnInputView = () => {
           action: needsAllowanceIncrease
             ? EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE
             : EARN_LENDING_ACTIONS.DEPOSIT,
+          allowanceMinimalTokenUnit,
         },
       });
     };

@@ -774,7 +774,7 @@ describe('EarnInputView', () => {
       });
     });
 
-    it('earn lending deposit view', async () => {
+    it('earn lending deposit view to increase token allowance', async () => {
       selectConversionRateMock.mockReturnValueOnce(1);
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
       const getErc20SpendingLimitSpy = jest
@@ -853,6 +853,97 @@ describe('EarnInputView', () => {
             token: {
               ...MOCK_USDC_MAINNET_ASSET,
             },
+            allowanceMinimalTokenUnit: '0',
+          },
+        });
+      });
+    });
+
+    it('earn lending deposit view to deposit tokens', async () => {
+      selectConversionRateMock.mockReturnValueOnce(1);
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      const getErc20SpendingLimitSpy = jest
+        .spyOn(Engine.context.EarnController, 'getLendingTokenAllowance')
+        .mockResolvedValue(EthersBigNumber.from('0'));
+      (useEarnMetadata as jest.Mock).mockReturnValue({
+        annualRewardRate: '2.5%',
+        annualRewardRateDecimal: 0.025,
+        isLoadingEarnMetadata: false,
+      });
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          chainId: CHAIN_IDS.MAINNET,
+          address: '0x123232',
+          balance: '100',
+          balanceFiat: '$100',
+          balanceWei: new BN4('100000000'), // 100 USDC in minimal units (6 decimals)
+          balanceMinimalUnit: '100000000', // 100 USDC in minimal units (6 decimals)
+          balanceFiatNumber: 100,
+          tokenUsdExchangeRate: 1,
+          experience: {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '2.5%',
+            estimatedAnnualRewardsFormatted: '$3.00',
+            estimatedAnnualRewardsFiatNumber: 3,
+            estimatedAnnualRewardsTokenMinimalUnit: '3000000',
+            estimatedAnnualRewardsTokenFormatted: '3 USDC',
+            market: {
+              protocol: 'AAVE v3',
+              underlying: {
+                address: MOCK_USDC_MAINNET_ASSET.address,
+              },
+            },
+          },
+        })),
+        getOutputToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          chainId: CHAIN_IDS.MAINNET,
+        })),
+      });
+
+      // User has exact allowance needed to directly deposit
+      (
+        Engine.context.EarnController.getLendingTokenAllowance as jest.Mock
+      ).mockResolvedValue('25000000');
+
+      const routeParamsWithUSDC: EarnInputViewProps['route'] = {
+        params: {
+          token: MOCK_USDC_MAINNET_ASSET,
+        },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      };
+
+      const { getByText } = render(EarnInputView, routeParamsWithUSDC);
+
+      await act(async () => {
+        fireEvent.press(getByText('25%'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('stake.review')));
+      });
+
+      expect(getErc20SpendingLimitSpy).toHaveBeenCalledTimes(1);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
+          screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
+          params: {
+            action: 'DEPOSIT',
+            amountFiat: '25',
+            amountTokenMinimalUnit: '25000000',
+            annualRewardRate: '2.5%',
+            annualRewardsFiat: '0.63 USD',
+            annualRewardsToken: '0.625 USDC',
+            lendingContractAddress:
+              '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2',
+            lendingProtocol: 'AAVE v3',
+            token: {
+              ...MOCK_USDC_MAINNET_ASSET,
+            },
+            allowanceMinimalTokenUnit: '25000000',
           },
         });
       });

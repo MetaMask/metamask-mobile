@@ -10,7 +10,7 @@ import {
   filterEvents,
   getEventsPayloads,
   onboardingEvents,
-} from './helpers';
+} from '../analytics/helpers';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import {
   getBalanceMocks,

@@ -229,12 +229,15 @@ exports[`TypedSign onConfirm signs message 1`] = `
         </View>
         <View
           style={
-            {
-              "flex": 0,
-              "flexDirection": "row",
-              "paddingHorizontal": 24,
-              "paddingVertical": 16,
-            }
+            [
+              {
+                "flex": 0,
+                "flexDirection": "row",
+                "paddingHorizontal": 16,
+                "paddingVertical": 16,
+              },
+              undefined,
+            ]
           }
         >
           <TouchableOpacity
@@ -599,12 +602,15 @@ exports[`TypedSign onReject rejects message 1`] = `
         </View>
         <View
           style={
-            {
-              "flex": 0,
-              "flexDirection": "row",
-              "paddingHorizontal": 24,
-              "paddingVertical": 16,
-            }
+            [
+              {
+                "flex": 0,
+                "flexDirection": "row",
+                "paddingHorizontal": 16,
+                "paddingVertical": 16,
+              },
+              undefined,
+            ]
           }
         >
           <TouchableOpacity

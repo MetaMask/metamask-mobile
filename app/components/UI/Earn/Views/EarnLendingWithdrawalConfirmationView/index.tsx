@@ -307,7 +307,9 @@ const EarnLendingWithdrawalConfirmationView = () => {
         protocol: outputToken.experience?.market?.protocol,
         underlyingTokenAddress:
           outputToken.experience?.market?.underlying?.address,
-        gasOptions: {},
+        gasOptions: {
+          gasLimit: 'none', // pass gas handling to Transactions Controller
+        },
         txOptions: {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
           networkClientId,
@@ -364,6 +366,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
           emitWithdrawalTxMetaMetric(
             MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED,
           );
+          navigation.navigate(Routes.TRANSACTIONS_VIEW);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
@@ -374,7 +377,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
           emitWithdrawalTxMetaMetric(
             MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED,
           );
-          navigation.navigate(Routes.TRANSACTIONS_VIEW);
         },
         (transactionMeta) => transactionMeta.id === transactionId,
       );

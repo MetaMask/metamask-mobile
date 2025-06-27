@@ -70,17 +70,9 @@ const styleSheet = (params: { theme: Theme }) => {
       borderColor: theme.colors.border.muted,
     },
     paymentMethodBox: {
-      backgroundColor: theme.colors.background.default,
       borderRadius: 12,
-      paddingVertical: 8,
-      paddingHorizontal: 16,
       borderWidth: 1,
       borderColor: theme.colors.border.muted,
-    },
-    paymentMethodContent: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
     },
     keypad: {
       paddingHorizontal: 0,

@@ -14,6 +14,8 @@ import {
 } from '../../../../../constants/on-ramp';
 import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
 import { strings } from '../../../../../../locales/i18n';
+import { DepositPaymentMethod } from '../constants';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn(),
@@ -152,6 +154,7 @@ describe('Transak Utils', () => {
           id: 'credit_debit_card',
           name: 'Credit/Debit Card',
           duration: 'instant',
+          icon: IconName.Card,
         }),
       ).toBe('credit_debit_card');
     });
@@ -162,7 +165,7 @@ describe('Transak Utils', () => {
           id: 'unsupported',
           name: 'Unsupported',
           duration: 'unknown',
-        }),
+        } as unknown as DepositPaymentMethod),
       ).toThrow('Unsupported payment method: unsupported');
     });
   });

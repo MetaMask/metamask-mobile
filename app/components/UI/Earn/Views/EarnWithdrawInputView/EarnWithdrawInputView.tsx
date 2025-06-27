@@ -136,7 +136,7 @@ const EarnWithdrawInputView = () => {
   }, []);
 
   const [maxRiskAwareWithdrawalAmount, setMaxRiskAwareWithdrawalAmount] =
-    useState('0');
+    useState<string | undefined>(undefined);
   const [
     isLoadingMaxSafeWithdrawalAmount,
     setIsLoadingMaxSafeWithdrawalAmount,
@@ -474,6 +474,10 @@ const EarnWithdrawInputView = () => {
     if (maxRiskAwareWithdrawalAmount === receiptToken?.balanceMinimalUnit)
       return;
 
+    if (!maxRiskAwareWithdrawalAmount) {
+      return;
+    }
+
     return renderFromTokenMinimalUnit(
       maxRiskAwareWithdrawalAmount,
       receiptToken?.decimals as number,
@@ -490,6 +494,10 @@ const EarnWithdrawInputView = () => {
     if (
       receiptToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING
     ) {
+      return false;
+    }
+
+    if (!maxRiskAwareWithdrawalAmount) {
       return false;
     }
 
