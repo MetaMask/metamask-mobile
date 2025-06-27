@@ -163,7 +163,7 @@
     "default_settings_footer": "Settings are optimized for ease of use and security.\nChange these at any time.",
     "no_srp_title": "Reminder set!",
     "no_srp_description": "If you get locked out of the app or get a new device, you will lose your funds. Be sure to back up your Secret Recovery Phrase in",
-    "import_title": "Your Wallet is ready!",
+    "import_title": "Your wallet is ready!",
     "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
     "import_description2": "you can keep this phrase safe so you never lose access to your money.",
     "done": "Done",
@@ -1527,14 +1527,14 @@
     "done": "Done",
     "confirm": "Next",
     "seed_phrase_explanation": [
-      "The",
-      "Secret Recovery Phrase (SRP)",
+      "Your",
+      "Secret Recovery Phrase",
       "gives",
       "full access to your wallet, funds and accounts.\n\n",
       "MetaMask is a",
       "non-custodial wallet.",
       "That means,",
-      "you are the owner of your SRP."
+      "you are the owner of your Secret Recovery Phrase."
     ],
     "private_key_explanation": "Save it somewhere safe and secret.",
     "private_key_warning": "This is the private key for the current selected account: {{accountName}}. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
