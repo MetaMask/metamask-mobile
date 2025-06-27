@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import {
@@ -11,8 +12,6 @@ import { RootState } from '../../../../../../reducers';
 import * as Networks7702 from '../../../hooks/7702/useEIP7702Networks';
 import { EIP7702NetworkConfiguration } from '../../../hooks/7702/useEIP7702Networks';
 import SwitchAccountTypeModal from './switch-account-type-modal';
-import { useNavigation } from '@react-navigation/native';
-import { fireEvent } from '@testing-library/react-native';
 
 const MOCK_NETWORK = {
   chainId: '0xaa36a7',
