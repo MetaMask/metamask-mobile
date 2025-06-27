@@ -422,6 +422,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   </Text>
                 </View>
               </TouchableOpacity>
+              <View />
             </View>
           </View>
         </View>
@@ -1011,6 +1012,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             </Text>
           </TouchableOpacity>
         </View>
+        <View />
       </View>
       <View
         style={
@@ -1187,6 +1189,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           </TouchableOpacity>
         </View>
       </View>
+      <View />
       <Text
         accessibilityRole="text"
         style={
@@ -1935,6 +1938,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           </TouchableOpacity>
         </View>
       </View>
+      <View />
       <View
         style={
           {
@@ -2798,6 +2802,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           </TouchableOpacity>
         </View>
       </View>
+      <View />
       <View
         style={
           {
@@ -2886,7 +2891,9 @@ exports[`SecuritySettings should render correctly 1`] = `
           </TouchableOpacity>
         </View>
       </View>
+      <View />
     </View>
+    <View />
   </View>
 </RCTScrollView>
 `;

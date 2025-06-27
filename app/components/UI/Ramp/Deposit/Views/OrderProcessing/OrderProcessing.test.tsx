@@ -1,73 +1,148 @@
 import React from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { screen, fireEvent } from '@testing-library/react-native';
 import OrderProcessing from './OrderProcessing';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { getOrderById } from '../../../../../../reducers/fiatOrders';
 import Routes from '../../../../../../constants/navigation/Routes';
-import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
+import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 
 const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
-const mockSetNavigationOptions = jest.fn();
-
-const mockQuoteId = 'test-quote-id-12345';
+const mockSetOptions = jest.fn();
+const mockLinkingOpenURL = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
-  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  const actualNav = jest.requireActual('@react-navigation/native');
   return {
-    ...actualReactNavigation,
+    ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
-      goBack: mockGoBack,
-      setOptions: mockSetNavigationOptions.mockImplementation(
-        actualReactNavigation.useNavigation().setOptions,
-      ),
+      setOptions: mockSetOptions,
     }),
     useRoute: () => ({
-      params: { quoteId: mockQuoteId },
+      params: {
+        orderId: 'test-order-id',
+      },
     }),
   };
 });
 
-jest.mock('../../../../../UI/Navbar', () => ({
-  getDepositNavbarOptions: jest.fn().mockReturnValue({
-    title: 'Order Processing',
-  }),
+jest.mock('react-native', () => {
+  const actualReactNative = jest.requireActual('react-native');
+  return {
+    ...actualReactNative,
+    Linking: {
+      ...actualReactNative.Linking,
+      openURL: mockLinkingOpenURL,
+    },
+  };
+});
+
+jest.mock('../../../../../../reducers/fiatOrders', () => ({
+  getOrderById: jest.fn(),
 }));
 
-function render(Component: React.ComponentType) {
-  return renderDepositTestComponent(Component, Routes.DEPOSIT.ORDER_PROCESSING);
-}
-
 describe('OrderProcessing Component', () => {
+  const mockOrder = {
+    id: 'test-order-id',
+    amount: '100',
+    currency: 'USD',
+    cryptoAmount: '0.05',
+    cryptocurrency: 'ETH',
+    fee: '2.50',
+    state: FIAT_ORDER_STATES.COMPLETED,
+    data: {
+      providerOrderLink: 'https://transak.com/order/123',
+    },
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+    (getOrderById as jest.Mock).mockReturnValue(mockOrder);
   });
 
-  it('render matches snapshot', () => {
-    render(OrderProcessing);
-    expect(screen.toJSON()).toMatchSnapshot();
-  });
-
-  it('calls setOptions when the component mounts', () => {
-    render(OrderProcessing);
-    expect(mockSetNavigationOptions).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'Order Processing',
-      }),
-    );
-  });
-
-  it('displays the quote ID', () => {
-    render(OrderProcessing);
-    expect(screen.toJSON()).toMatchSnapshot();
-  });
-
-  it('navigates to wallet home on button press', async () => {
-    render(OrderProcessing);
-    const button = screen.getByRole('button');
-    fireEvent.press(button);
-
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+  it('renders success state correctly', () => {
+    renderWithProvider(<OrderProcessing />, {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
     });
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders error state correctly', () => {
+    const errorOrder = { ...mockOrder, state: FIAT_ORDER_STATES.FAILED };
+    (getOrderById as jest.Mock).mockReturnValue(errorOrder);
+
+    renderWithProvider(<OrderProcessing />, {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    });
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders processing state correctly', () => {
+    const processingOrder = { ...mockOrder, state: FIAT_ORDER_STATES.PENDING };
+    (getOrderById as jest.Mock).mockReturnValue(processingOrder);
+
+    renderWithProvider(<OrderProcessing />, {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    });
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders no order found state', () => {
+    (getOrderById as jest.Mock).mockReturnValue(null);
+
+    renderWithProvider(<OrderProcessing />, {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    });
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('navigates to correct screen on main button press', () => {
+    renderWithProvider(<OrderProcessing />, {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    });
+
+    const mainButton = screen.getByTestId('main-action-button');
+    fireEvent.press(mainButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+  });
+
+  it('navigates to build quote on main button press when error state', () => {
+    const errorOrder = { ...mockOrder, state: FIAT_ORDER_STATES.FAILED };
+    (getOrderById as jest.Mock).mockReturnValue(errorOrder);
+
+    renderWithProvider(<OrderProcessing />, {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    });
+
+    const mainButton = screen.getByTestId('main-action-button');
+    fireEvent.press(mainButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.BUILD_QUOTE);
   });
 });

@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import { TransactionType } from '@metamask/transaction-controller';
 
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import Routes from '../../../../constants/navigation/Routes';
@@ -34,6 +35,8 @@ export const useConfirmActions = () => {
     selectShouldUseSmartTransaction(state, transactionMetadata?.chainId),
   );
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
+  const shouldRedirectToTransactionsView =
+    transactionMetadata?.type === TransactionType.deployContract;
 
   const isSignatureReq =
     approvalRequest?.type && isSignatureRequest(approvalRequest?.type);
@@ -72,7 +75,7 @@ export const useConfirmActions = () => {
       handleErrors: false,
     });
 
-    if (isFullScreenConfirmation) {
+    if (isFullScreenConfirmation || shouldRedirectToTransactionsView) {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } else {
       navigation.goBack();
@@ -93,6 +96,7 @@ export const useConfirmActions = () => {
     isSignatureReq,
     isFullScreenConfirmation,
     shouldUseSmartTransaction,
+    shouldRedirectToTransactionsView,
   ]);
 
   return { onConfirm, onReject };

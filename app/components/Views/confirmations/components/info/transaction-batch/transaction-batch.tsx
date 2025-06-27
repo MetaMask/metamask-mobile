@@ -8,6 +8,7 @@ import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmat
 import useNavbar from '../../../hooks/ui/useNavbar';
 import AccountNetworkInfo from '../../rows/account-network-info-row';
 import OriginRow from '../../rows/origin-row';
+import GasFeesDetailsRow from '../../rows/transactions/gas-fee-details-row';
 
 const TransactionBatch = () => {
   useNavbar(strings('confirm.transaction'), true);
@@ -24,6 +25,7 @@ const TransactionBatch = () => {
     <View>
       <AccountNetworkInfo />
       {!isWalletInitiated && <OriginRow isSignatureRequest={false} />}
+      <GasFeesDetailsRow disableUpdate />
     </View>
   );
 };

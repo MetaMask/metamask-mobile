@@ -10,7 +10,6 @@ exports[`Carousel render an expected snapshot 1`] = `
       "width": 728,
     }
   }
-  testID="carousel-container"
 >
   <View
     style={
@@ -114,6 +113,7 @@ exports[`Carousel render an expected snapshot 1`] = `
       scrollEventThrottle={0.0001}
       showsHorizontalScrollIndicator={false}
       stickyHeaderIndices={[]}
+      testID="carousel-container"
       viewabilityConfigCallbackPairs={[]}
     >
       <View>

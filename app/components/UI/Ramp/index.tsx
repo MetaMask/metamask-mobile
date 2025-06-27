@@ -27,7 +27,8 @@ import { trackEvent } from './Aggregator/hooks/useAnalytics';
 import { CustomIdData } from '../../../reducers/fiatOrders/types';
 import { callbackBaseUrl } from './Aggregator/sdk';
 import useFetchRampNetworks from './Aggregator/hooks/useFetchRampNetworks';
-import { getNotificationDetails, stateHasOrder } from './Aggregator/utils';
+import getNotificationDetails from './utils/getNotificationDetails';
+import stateHasOrder from './utils/stateHasOrder';
 import Routes from '../../../constants/navigation/Routes';
 import getOrderAnalyticsPayload from './utils/getOrderAnalyticsPayload';
 
@@ -216,7 +217,7 @@ function FiatOrders() {
           key={url}
           style={styles.hiddenView}
           source={{ uri: url }}
-          onNavigationStateChange={(navState) =>
+          onNavigationStateChange={(navState: WebViewNavigation) =>
             handleNavigationStateChange(navState, url)
           }
           onHttpError={() => dispatch(removeAuthenticationUrl(url))}

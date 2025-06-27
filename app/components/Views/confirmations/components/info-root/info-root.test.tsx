@@ -14,6 +14,7 @@ import { approveERC20TransactionStateMock } from '../../__mocks__/approve-transa
 import * as QRHardwareHook from '../../context/qr-hardware-context/qr-hardware-context';
 import { ConfirmationInfoComponentIDs } from '../../constants/info-ids';
 import Info from './info-root';
+import { contractDeploymentTransactionStateMock } from '../../__mocks__/contract-deployment-transaction-mock';
 
 jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
@@ -132,5 +133,14 @@ describe('Info', () => {
       state: approveERC20TransactionStateMock,
     });
     expect(getByTestId(ConfirmationInfoComponentIDs.APPROVE)).toBeDefined();
+  });
+
+  it('renders expected elements for contract deployment', () => {
+    const { getByTestId } = renderWithProvider(<Info />, {
+      state: contractDeploymentTransactionStateMock,
+    });
+    expect(
+      getByTestId(ConfirmationInfoComponentIDs.CONTRACT_DEPLOYMENT),
+    ).toBeDefined();
   });
 });

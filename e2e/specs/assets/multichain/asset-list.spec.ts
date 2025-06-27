@@ -125,4 +125,4 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await Assertions.checkIfVisible(TokenOverview.receiveButton);
     await Assertions.checkIfVisible(TokenOverview.sendButton);
   });
-}); 
+});

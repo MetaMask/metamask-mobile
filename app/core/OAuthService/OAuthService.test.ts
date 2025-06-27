@@ -3,7 +3,6 @@ import {
   AuthResponse,
   LoginHandlerResult,
 } from './OAuthInterface';
-import OAuthLoginService from './OAuthService';
 import ReduxService, { ReduxStore } from '../redux';
 import Engine from '../Engine';
 import { OAuthError, OAuthErrorType } from './error';
@@ -14,6 +13,40 @@ const MOCK_USER_ID = 'user-id';
 const MOCK_JWT_TOKEN =
   'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN3bmFtOTA5QGdtYWlsLmNvbSIsInN1YiI6InN3bmFtOTA5QGdtYWlsLmNvbSIsImlzcyI6Im1ldGFtYXNrIiwiYXVkIjoibWV0YW1hc2siLCJpYXQiOjE3NDUyMDc1NjYsImVhdCI6MTc0NTIwNzg2NiwiZXhwIjoxNzQ1MjA3ODY2fQ.nXRRLB7fglRll7tMzFFCU0u7Pu6EddqEYf_DMyRgOENQ6tJ8OLtVknNf83_5a67kl_YKHFO-0PEjvJviPID6xg';
 
+jest.mock('./OAuthLoginHandlers/constants', () => ({
+  web3AuthNetwork: 'sapphire_mainnet',
+  AuthServerUrl: 'https://auth.example.com',
+  IosGID: 'mock-ios-google-client-id',
+  IosGoogleRedirectUri: 'mock-ios-google-redirect-uri',
+  IosAppleClientId: 'mock-ios-apple-client-id',
+  AndroidGoogleWebGID: 'mock-android-google-client-id',
+  AppleWebClientId: 'mock-android-apple-client-id',
+  AuthConnectionConfig: {
+    'android': {
+      'google': {
+        authConnectionId: 'mock-auth-connection-id',
+        groupedAuthConnectionId: 'mock-grouped-auth-connection-id',
+      },
+      'apple': {
+        authConnectionId: 'mock-auth-connection-id',
+        groupedAuthConnectionId: 'mock-grouped-auth-connection-id',
+      },
+    },
+    'ios': {
+      'google': {
+        authConnectionId: 'mock-auth-connection-id',
+        groupedAuthConnectionId: 'mock-grouped-auth-connection-id',
+      },
+      'apple': {
+        authConnectionId: 'mock-auth-connection-id',
+        groupedAuthConnectionId: 'mock-grouped-auth-connection-id',
+      },
+    }
+  },
+  AppleServerRedirectUri: 'https://auth.example.com/api/v1/oauth/callback',
+}));
+
+import OAuthLoginService from './OAuthService';
 let mockLoginHandlerResponse: () => LoginHandlerResult | undefined = jest
   .fn()
   .mockImplementation(() => ({
@@ -33,6 +66,7 @@ let mockGetAuthTokens: () => Promise<AuthResponse> = jest
   }));
 
 const mockCreateLoginHandler = jest.fn().mockImplementation(() => ({
+  authConnection: AuthConnection.Google,
   login: () => mockLoginHandlerResponse(),
   getAuthTokens: mockGetAuthTokens,
   decodeIdToken: () =>
@@ -91,7 +125,7 @@ describe('OAuth login service', () => {
     } as unknown as ReduxStore);
   });
 
-  it('should return a type success', async () => {
+  it('return a type success', async () => {
     const loginHandler = mockCreateLoginHandler();
     const result = (await OAuthLoginService.handleOAuthLogin(loginHandler)) as {
       type: string;
@@ -106,7 +140,7 @@ describe('OAuth login service', () => {
     expect(mockAuthenticate).toHaveBeenCalledTimes(1);
   });
 
-  it('should return a type success, existing user', async () => {
+  it('return a type success, existing user', async () => {
     const loginHandler = mockCreateLoginHandler();
     mockAuthenticate = jest.fn().mockImplementation(() => ({
       nodeAuthTokens: [],
@@ -124,7 +158,7 @@ describe('OAuth login service', () => {
     expect(mockAuthenticate).toHaveBeenCalledTimes(1);
   });
 
-  it('should throw on SeedlessOnboardingController error', async () => {
+  it('throw on SeedlessOnboardingController error', async () => {
     const loginHandler = mockCreateLoginHandler();
     mockAuthenticate = jest.fn().mockImplementation(() => {
       throw new Error('Test error');
@@ -143,7 +177,7 @@ describe('OAuth login service', () => {
     expect(mockAuthenticate).toHaveBeenCalledTimes(1);
   });
 
-  it('should throw on AuthServerError', async () => {
+  it('throw on AuthServerError', async () => {
     mockGetAuthTokens = jest.fn().mockImplementation(() => {
       throw new OAuthError('Auth server error', OAuthErrorType.AuthServerError);
     });
@@ -159,7 +193,7 @@ describe('OAuth login service', () => {
     expect(mockAuthenticate).toHaveBeenCalledTimes(0);
   });
 
-  it('should throw on dismiss', async () => {
+  it('throw on dismiss', async () => {
     const loginHandler = mockCreateLoginHandler();
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
       getState: () => ({ security: { allowLoginWithRememberMe: true } }),
@@ -180,7 +214,7 @@ describe('OAuth login service', () => {
     expect(mockAuthenticate).toHaveBeenCalledTimes(0);
   });
 
-  it('should throw on login error', async () => {
+  it('throw on login error', async () => {
     const loginHandler = mockCreateLoginHandler();
     mockLoginHandlerResponse = jest.fn().mockImplementation(() => {
       throw new OAuthError('Login error', OAuthErrorType.LoginError);

@@ -2,7 +2,7 @@ import {
   LoginHandlerIdTokenResult,
   AuthConnection,
 } from '../../OAuthInterface';
-import { signInWithGoogle } from 'react-native-google-acm';
+import { signInWithGoogle } from '@metamask/react-native-acm';
 import { BaseLoginHandler } from '../baseHandler';
 import { OAuthErrorType, OAuthError } from '../../error';
 

@@ -168,7 +168,7 @@ class ConnectedAccountsModal {
   }
   async getNetworkName() {
 
-    const networkNameElement  = this.navigateToEditNetworksPermissionsButton
+    const networkNameElement  = this.navigateToEditNetworksPermissionsButton;
     const attributes = await networkNameElement.label;
     return attributes;
   }

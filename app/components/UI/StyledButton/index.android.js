@@ -1,15 +1,14 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import {
-  Text,
-  View,
-  TouchableNativeFeedback,
-} from 'react-native';
+import { Text, View, TouchableNativeFeedback } from 'react-native';
 import coalesceNonElementChildren from '@metamask/react-native-button/coalesceNonElementChildren';
 import getStyles from './styledButtonStyles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
-import { ViewPropTypes, TextPropTypes } from 'deprecated-react-native-prop-types';
+import {
+  ViewPropTypes,
+  TextPropTypes,
+} from 'deprecated-react-native-prop-types';
 
 /**
  * @deprecated The `<StyledButton>` component has been deprecated in favor of the new `<Button>` component from the component-library.
@@ -135,6 +134,7 @@ export default class StyledButton extends PureComponent {
         accessible
         accessibilityLabel={this.props.testID}
         accessibilityRole="button"
+        testID={this.props.testID}
       >
         <View style={containerStyles}>
           {this.renderGroupedChildren(fontStyle, containerStyles)}
