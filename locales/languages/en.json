@@ -3953,7 +3953,8 @@
     "earnings_history_list_title": {
       "lending": "Position history",
       "staking": "Payout history"
-    }
+    },
+    "allowance_reset": "Allowance Reset"
   },
   "stake": {
     "stake": "Stake",
