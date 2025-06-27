@@ -953,11 +953,33 @@ class FixtureBuilder {
     return this.ensureSolanaModalSuppressed();
   }
 
+  withImportedAccountKeyringController() {
+
+
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings: [
+        {
+          type: 'HD Key Tree',
+          accounts: [DEFAULT_FIXTURE_ACCOUNT],
+        },
+        {
+          type: 'Simple Key Pair',
+          accounts: ['0xDDFFa077069E1d4d478c5967809f31294E24E674'],
+        },
+      ],
+      vault:
+        '{"cipher":"vxFqPMlClX2xjUidoCTiwazr43W59dKIBp6ihT2lX66q8qPTeBRwv7xgBaGDIwDfk4DpJ3r5FBety1kFpS9ni3HtcoNQsDN60Pa80L94gta0Fp4b1jVeP8EJ7Ho71mJ360aDFyIgxPBSCcHWs+l27L3WqF2VpEuaQonK1UTF7c3WQ4pyio4jMAH9x2WQtB11uzyOYiXWmiD3FMmWizqYZY4tHuRlzJZTWrgE7njJLaGMlMmw86+ZVkMf55jryaDtrBVAoqVzPsK0bvo1cSsonxpTa6B15A5N2ANyEjDAP1YVl17roouuVGVWZk0FgDpP82i0YqkSI9tMtOTwthi7/+muDPl7Oc7ppj9LU91JYH6uHGomU/pYj9ufrjWBfnEH/+ZDvPoXl00H1SmX8FWs9NvOg7DZDB6ULs4vAi2/5KGs7b+Td2PLmDf75NKqt03YS2XeRGbajZQ/jjmRt4AhnWgnwRzsSavzyjySWTWiAgn9Vp/kWpd70IgXWdCOakVf2TtKQ6cFQcAf4JzP+vqC0EzgkfbOPRetrovD8FHEFXQ+crNUJ7s41qRw2sketk7FtYUDCz/Junpy5YnYgkfcOTRBHAoOy6BfDFSncuY+08E6eiRHzXsXtbmVXenor15pfbEp/wtfV9/vZVN7ngMpkho3eGQjiTJbwIeA9apIZ+BtC5b7TXWLtGuxSZPhomVkKvNx/GNntjD7ieLHvzCWYmDt6BA9hdfOt1T3UKTN4yLWG0v+IsnngRnhB6G3BGjJHUvdR6Zp5SzZraRse8B3z5ixgVl2hBxOS8+Uvr6LlfImaUcZLMMzkRdKeowS/htAACLowVJe3pU544IJ2CGTsnjwk9y3b5bUJKO3jXukWjDYtrLNKfdNuQjg+kqvIHaCQW40t+vfXGhC5IDBWC5kuev4DJAIFEcvJfJgRrm8ua6LrzEfH0GuhjLwYb+pnQ/eg8dmcXwzzggJF7xK56kxgnA4qLtOqKV4NgjVR0QsCqOBKb3l5LQMlSktdfgp9hlW","iv":"b09c32a79ed33844285c0f1b1b4d1feb","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"GYNFQCSCigu8wNp8cS8C3w=="}',
+    });
+    return this;
+  }
+
   withPopularNetworks() {
     const fixtures = this.fixture.state.engine.backgroundState;
     const networkConfigurationsByChainId = {
       ...fixtures.NetworkController.networkConfigurationsByChainId,
     }; // Object to store network configurations
+
+    let firstNetworkClientId = null;
 
     // Loop through each network in PopularNetworksList
     for (const key in PopularNetworksList) {
@@ -973,6 +995,10 @@ class FixtureBuilder {
       const newNetworkClientId = `networkClientId${
         Object.keys(networkConfigurationsByChainId).length + 1
       }`;
+
+      if (!firstNetworkClientId) {
+        firstNetworkClientId = newNetworkClientId;
+      }
 
       // Define the network configuration
       const networkConfig = {
@@ -1000,6 +1026,11 @@ class FixtureBuilder {
       ...fixtures.NetworkController,
       networkConfigurationsByChainId,
     };
+
+    // Set the selectedNetworkClientId to the first network added
+    if (firstNetworkClientId) {
+      fixtures.NetworkController.selectedNetworkClientId = firstNetworkClientId;
+    }
 
     // Ensure Solana feature modal is suppressed
     return this.ensureSolanaModalSuppressed();
