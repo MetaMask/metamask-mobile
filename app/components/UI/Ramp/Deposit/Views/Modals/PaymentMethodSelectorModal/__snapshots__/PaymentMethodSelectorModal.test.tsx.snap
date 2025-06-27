@@ -524,6 +524,7 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                             </View>
                           </View>
                           <RCTScrollView
+                            collapsable={false}
                             data={
                               [
                                 {
@@ -547,10 +548,14 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                             extraData="credit_debit_card"
                             getItem={[Function]}
                             getItemCount={[Function]}
+                            handlerTag={-1}
+                            handlerType="NativeViewGestureHandler"
                             keyExtractor={[Function]}
                             keyboardDismissMode="none"
                             keyboardShouldPersistTaps="always"
                             onContentSizeChange={[Function]}
+                            onGestureHandlerEvent={[Function]}
+                            onGestureHandlerStateChange={[Function]}
                             onLayout={[Function]}
                             onMomentumScrollBegin={[Function]}
                             onMomentumScrollEnd={[Function]}
@@ -559,6 +564,7 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                             onScrollEndDrag={[Function]}
                             removeClippedSubviews={false}
                             renderItem={[Function]}
+                            renderScrollComponent={[Function]}
                             scrollEventThrottle={0.0001}
                             stickyHeaderIndices={[]}
                             style={
