@@ -6,12 +6,20 @@ import {
 } from '../../selectors/Bridge/QuoteView.selectors';
 
 class QuoteView {
-  get confirmButton(): DetoxElement {
+  get confirmBridge(): DetoxElement {
     return Matchers.getElementByText(QuoteViewSelectorText.CONFIRM_BRIDGE);
+  }
+
+  get confirmSwap(): DetoxElement {
+    return Matchers.getElementByText(QuoteViewSelectorText.CONFIRM_SWAP);
   }
 
   get bridgeTo(): DetoxElement {
     return Matchers.getElementByText(QuoteViewSelectorText.BRIDGE_TO);
+  }
+
+  get swapTo(): DetoxElement {
+    return Matchers.getElementByText(QuoteViewSelectorText.SWAP_TO);
   }
 
   get searchToken(): Promise<Detox.IndexableNativeElement> {
@@ -22,16 +30,20 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.NETWORK_FEE);
   }
 
-  token(symbol: string): DetoxElement {
+  sourceToken(symbol: string): DetoxElement {
+    return Matchers.getElementByText(symbol);
+  }
+
+  destToken(symbol: string): DetoxElement {
     return Matchers.getElementByID(`asset-${symbol}`);
   }
 
   async enterAmount(amount: string): Promise<void> {
-  for (const digit of amount) {
-    const button = Matchers.getElementByText(digit);
-    await Gestures.waitAndTap(button);
+    for (const digit of amount) {
+      const button = await Matchers.getElementByText(digit);
+      await Gestures.waitAndTap(button, { delayBeforeTap: 500});
+    }
   }
-}
 
   async tapSearchToken(): Promise<void> {
     await Gestures.waitAndTap(this.searchToken);
@@ -41,22 +53,39 @@ class QuoteView {
     await Gestures.waitAndTap(this.bridgeTo);
   }
 
+  async tapToken(symbol: string): Promise<void> {
+    await Gestures.waitAndTap(this.sourceToken(symbol), { delayBeforeTap: 1000 });
+  }
+
+  async tapSwapTo(): Promise<void> {
+    await Gestures.waitAndTap(this.swapTo);
+  }
+
   async selectNetwork(network: string): Promise<void> {
     const networkElement = Matchers.getElementByText(network);
-    await Gestures.waitAndTap(networkElement);
+    await Gestures.waitAndTap(networkElement, { delayBeforeTap: 1000 });
   }
 
   async typeSearchToken(symbol: string): Promise<void> {
     await Gestures.typeTextAndHideKeyboard(this.searchToken, symbol);
   }
 
-  async selectToken(symbol: string): Promise<void> {
-    const token = this.token(symbol);
+  async selectSourceToken(symbol: string): Promise<void> {
+    const token = this.sourceToken(symbol);
     await Gestures.waitAndTap(token);
   }
 
-  async tapConfirm(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmButton);
+  async selectDestToken(symbol: string): Promise<void> {
+    const token = this.destToken(symbol);
+    await Gestures.waitAndTap(token, { delayBeforeTap: 1000});
+  }
+
+  async tapConfirmBridge(): Promise<void> {
+    await Gestures.waitAndTap(this.confirmBridge);
+  }
+
+  async tapConfirmSwap(): Promise<void> {
+    await Gestures.waitAndTap(this.confirmSwap);
   }
 }
 

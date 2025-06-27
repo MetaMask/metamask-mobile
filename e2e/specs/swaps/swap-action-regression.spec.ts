@@ -92,10 +92,9 @@ describe(Regression('Multiple Swaps from Actions'), () => {
   `(
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol }) => {
-      await TabBarComponent.tapWallet();
-      await Assertions.checkIfVisible(WalletView.container);
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapSwapButton();
+       await TabBarComponent.tapActions();
+       await Assertions.checkIfVisible(WalletActionsBottomSheet.swapButton);
+       await WalletActionsBottomSheet.tapSwapButton();
 
       // Submit the Swap
       if (isUnifiedUIEnabled) {
@@ -115,7 +114,6 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       }
 
       // Check the swap activity completed
-      await TabBarComponent.tapActivity();
       await Assertions.checkIfVisible(ActivitiesView.title);
       await Assertions.checkIfVisible(
         ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
