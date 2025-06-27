@@ -234,7 +234,8 @@ export default class Utilities {
       throw new Error(errorMessage);
     }
 
-    return
+    // This should never be reached, but TypeScript requires a return statement
+    throw new Error(`Unexpected end of retry loop for ${description}`);
   }
 }
 
