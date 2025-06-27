@@ -25,6 +25,11 @@ import BadgeWrapper, {
 import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
+import ListItem from '../../../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../../../component-library/components/List/ListItemColumn';
+import TagBase from '../../../../../../component-library/base-components/TagBase';
 
 import AccountSelector from '../../components/AccountSelector';
 import RegionModal from '../../components/RegionModal';
@@ -35,6 +40,7 @@ import useDepositTokenExchange from '../../hooks/useDepositTokenExchange';
 import { KycStatus } from '../../hooks/useUserDetailsPolling';
 import { useStyles } from '../../../../../hooks/useStyles';
 import useSupportedTokens from '../../hooks/useSupportedTokens';
+import usePaymentMethods from '../../hooks/usePaymentMethods';
 
 import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
 import { createProviderWebviewNavDetails } from '../ProviderWebview/ProviderWebview';
@@ -42,6 +48,7 @@ import { createBasicInfoNavDetails } from '../BasicInfo/BasicInfo';
 import { createKycWebviewNavDetails } from '../KycWebview/KycWebview';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 import { createTokenSelectorModalNavigationDetails } from '../Modals/TokenSelectorModal/TokenSelectorModal';
+import { createPaymentMethodSelectorModalNavigationDetails } from '../Modals/PaymentMethodSelectorModal/PaymentMethodSelectorModal';
 
 import {
   getTransakCryptoCurrencyId,
@@ -72,8 +79,9 @@ const BuildQuote = () => {
   const { styles, theme } = useStyles(styleSheet, {});
 
   const supportedTokens = useSupportedTokens();
+  const paymentMethods = usePaymentMethods();
 
-  const [paymentMethod] = useState<DepositPaymentMethod>(
+  const [paymentMethod, setPaymentMethod] = useState<DepositPaymentMethod>(
     DEBIT_CREDIT_PAYMENT_METHOD,
   );
   const [cryptoCurrency, setCryptoCurrency] =
@@ -255,10 +263,6 @@ const BuildQuote = () => {
     [],
   );
 
-  const handlePaymentMethodPress = useCallback(() => {
-    // TODO: Implement payment method selection logic
-  }, []);
-
   const handleRegionPress = useCallback(() => {
     setIsRegionModalVisible(true);
   }, []);
@@ -304,6 +308,27 @@ const BuildQuote = () => {
       ),
     [cryptoCurrency, navigation, handleSelectAssetId],
   );
+
+  const handleSelectPaymentMethodId = useCallback(
+    (selectedPaymentMethodId: string) => {
+      const selectedPaymentMethod = paymentMethods.find(
+        (_paymentMethod) => _paymentMethod.id === selectedPaymentMethodId,
+      );
+      if (selectedPaymentMethod) {
+        setPaymentMethod(selectedPaymentMethod);
+      }
+    },
+    [paymentMethods],
+  );
+
+  const handlePaymentMethodPress = useCallback(() => {
+    navigation.navigate(
+      ...createPaymentMethodSelectorModalNavigationDetails({
+        selectedPaymentMethodId: paymentMethod.id,
+        handleSelectPaymentMethodId,
+      }),
+    );
+  }, [handleSelectPaymentMethodId, navigation, paymentMethod.id]);
 
   const networkName = allNetworkConfigurations[cryptoCurrency.chainId]?.name;
   const networkImageSource = getNetworkImageSource({
@@ -395,25 +420,37 @@ const BuildQuote = () => {
             style={styles.paymentMethodBox}
             onPress={handlePaymentMethodPress}
           >
-            <View style={styles.paymentMethodContent}>
-              <View>
+            <ListItem gap={8}>
+              <ListItemColumn widthType={WidthType.Fill}>
                 <Text variant={TextVariant.BodyMD}>
                   {strings('deposit.buildQuote.payWith')}
                 </Text>
-
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
-                  {DEBIT_CREDIT_PAYMENT_METHOD.name}
+                  {paymentMethod.name}
                 </Text>
-              </View>
-              <Icon
-                name={IconName.ArrowRight}
-                size={IconSize.Md}
-                color={theme.colors.icon.alternative}
-              />
-            </View>
+              </ListItemColumn>
+
+              <ListItemColumn>
+                <TagBase
+                  includesBorder
+                  textProps={{ variant: TextVariant.BodySM }}
+                >
+                  {strings(
+                    `deposit.payment_duration.${paymentMethod.duration}`,
+                  )}
+                </TagBase>
+              </ListItemColumn>
+              <ListItemColumn>
+                <Icon
+                  name={IconName.ArrowRight}
+                  size={IconSize.Md}
+                  color={theme.colors.icon.alternative}
+                />
+              </ListItemColumn>
+            </ListItem>
           </TouchableOpacity>
 
           <Keypad

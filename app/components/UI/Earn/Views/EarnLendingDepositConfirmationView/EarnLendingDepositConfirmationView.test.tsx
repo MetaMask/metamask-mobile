@@ -31,6 +31,7 @@ import {
 } from './components/ConfirmationFooter';
 import { DEPOSIT_DETAILS_SECTION_TEST_ID } from './components/DepositInfoSection';
 import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from './components/DepositReceiveSection';
+import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../../../selectors/accountsController'),
@@ -491,6 +492,8 @@ describe('EarnLendingDepositConfirmationView', () => {
           })
           .build(),
       );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
 
       // Clear and test confirmed status
       mockTrackEvent.mockClear();
