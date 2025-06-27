@@ -25,14 +25,14 @@ const MOCK_ENS_CACHED_NAME = 'fox.eth';
 
 const MOCK_CHAIN_ID = '0x1';
 
-const MOCK_ACCOUNT_ADDRESSES = Object.values(
+const MOCK_ACCOUNTS = Object.values(
   MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
-).map((account) => account.address);
+);
 
 const MOCK_ACCOUNT_1: Account = {
-  id: 'mock-account-id-1',
+  id: MOCK_ACCOUNTS[0].id,
   name: 'Account 1',
-  address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[0]) as Hex,
+  address: toChecksumAddress(MOCK_ACCOUNTS[0].address) as Hex,
   type: KeyringTypes.hd,
   yOffset: 0,
   isSelected: false,
@@ -40,14 +40,14 @@ const MOCK_ACCOUNT_1: Account = {
     fiatBalance: '$0.00\n0 ETH',
   },
   balanceError: undefined,
-  caipAccountId: `eip155:0:${MOCK_ACCOUNT_ADDRESSES[0]}`,
+  caipAccountId: `eip155:0:${MOCK_ACCOUNTS[0].address}`,
   scopes: [EthScope.Eoa],
   isLoadingAccount: false,
 };
 const MOCK_ACCOUNT_2: Account = {
-  id: 'mock-account-id-2',
+  id: MOCK_ACCOUNTS[1].id,
   name: 'Account 2',
-  address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[1]) as Hex,
+  address: toChecksumAddress(MOCK_ACCOUNTS[1].address) as Hex,
   type: KeyringTypes.hd,
   yOffset: 78,
   isSelected: true,
@@ -55,7 +55,7 @@ const MOCK_ACCOUNT_2: Account = {
     fiatBalance: '$0.00\n0 ETH',
   },
   balanceError: undefined,
-  caipAccountId: `eip155:0:${MOCK_ACCOUNT_ADDRESSES[1]}`,
+  caipAccountId: `eip155:0:${MOCK_ACCOUNTS[1].address}`,
   scopes: [EthScope.Eoa],
   isLoadingAccount: false,
 };

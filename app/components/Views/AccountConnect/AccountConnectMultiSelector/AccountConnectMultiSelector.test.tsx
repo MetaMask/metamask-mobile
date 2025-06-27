@@ -38,11 +38,21 @@ jest.mock('../../../../core/Engine', () => ({
               address: '0x1234',
               name: 'Account 1',
               type: 'simple',
+              metadata: {
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+              },
             },
             '0x5678': {
               address: '0x5678',
               name: 'Account 2',
               type: 'simple',
+              metadata: {
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+              },
             },
           },
         },
