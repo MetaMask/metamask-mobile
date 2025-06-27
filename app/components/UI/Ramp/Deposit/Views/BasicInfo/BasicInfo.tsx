@@ -181,7 +181,6 @@ const BasicInfo = (): JSX.Element => {
               value={formData.mobileNumber}
               onChangeText={handleFormDataChange('mobileNumber')}
               error={errors.mobileNumber}
-              testID="phone-number-input"
               ref={phoneInputRef}
               onSubmitEditing={handleSubmitEditing(dateInputRef)}
             />
