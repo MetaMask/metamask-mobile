@@ -91,9 +91,7 @@ import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@met
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import { useMetrics } from '../../hooks/useMetrics';
-///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -131,9 +129,7 @@ const Login: React.FC = () => {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
-  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   const { isEnabled: isMetricsEnabled } = useMetrics();
-  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   const dispatch = useDispatch();
   const setOnboardingWizardStep = (step: number) =>
     dispatch(setOnboardingWizardStepUtil(step));
@@ -318,11 +314,9 @@ const Login: React.FC = () => {
         rememberMe,
       );
 
-      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       if (oauthLoginSuccess) {
         await Authentication.rehydrateSeedPhrase(password, authType);
       } else {
-        ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
         await trace(
           {
             name: TraceName.AuthenticateUser,
@@ -332,17 +326,13 @@ const Login: React.FC = () => {
             await Authentication.userEntryAuth(password, authType);
           },
         );
-
-        ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       }
-      ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
       Keyboard.dismiss();
 
       // Get onboarding wizard state
       const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
 
-      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       if (oauthLoginSuccess) {
         if (onboardingWizard) {
           setOnboardingWizardStep(1);
@@ -369,7 +359,6 @@ const Login: React.FC = () => {
           });
         }
       } else {
-        ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
         // eslint-disable-next-line no-lonely-if
         if (onboardingWizard) {
           navigation.replace(Routes.ONBOARDING.HOME_NAV);
@@ -377,9 +366,7 @@ const Login: React.FC = () => {
           setOnboardingWizardStep(1);
           navigation.replace(Routes.ONBOARDING.HOME_NAV);
         }
-        ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       }
-      ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
       setPassword('');

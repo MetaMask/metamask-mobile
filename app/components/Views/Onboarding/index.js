@@ -50,11 +50,9 @@ import Button, {
 import fox from '../../../animations/Searching_Fox.json';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 
-///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
-///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -350,9 +348,9 @@ class Onboarding extends PureComponent {
   };
 
   onPressCreate = () => {
-    ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
-    OAuthLoginService.resetOauthState();
-    ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+    if (process.env.OAUTH_ENABLED) {
+      OAuthLoginService.resetOauthState();
+    }
     trace({ name: TraceName.OnboardingCreateWallet });
     const action = () => {
       this.props.navigation.navigate('ChoosePassword', {
@@ -368,9 +366,9 @@ class Onboarding extends PureComponent {
   };
 
   onPressImport = () => {
-    ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
-    OAuthLoginService.resetOauthState();
-    ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+    if (process.env.OAUTH_ENABLED) {
+      OAuthLoginService.resetOauthState();
+    }
     const action = async () => {
       this.props.navigation.navigate(
         Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
@@ -385,7 +383,6 @@ class Onboarding extends PureComponent {
     this.handleExistingUser(action);
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   handlePostSocialLogin = (result, createWallet) => {
     if (result.type === 'success') {
       if (createWallet) {
@@ -471,7 +468,6 @@ class Onboarding extends PureComponent {
       },
     });
   };
-  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   track = (event, properties) => {
     trackOnboarding(
       MetricsEventBuilder.createEventBuilder(event)
@@ -497,7 +493,6 @@ class Onboarding extends PureComponent {
   handleCtaActions = (actionType) => {
     let seedlessOnboarding;
     seedlessOnboarding = false;
-    ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
     this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.ONBOARDING_SHEET,
       params: {
@@ -509,7 +504,6 @@ class Onboarding extends PureComponent {
       },
     });
     seedlessOnboarding = true;
-    ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
     if (!seedlessOnboarding) {
       if (actionType === 'create') {
         this.onPressCreate();

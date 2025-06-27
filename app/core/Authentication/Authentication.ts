@@ -40,14 +40,12 @@ import {
 } from '../SnapKeyring/MultichainWalletSnapClient';
 ///: END:ONLY_INCLUDE_IF
 
-///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import OAuthService from '../OAuthService/OAuthService';
 import { KeyringTypes } from '@metamask/keyring-controller';
-///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 /**
  * Holds auth data used to determine auth configuration
@@ -73,11 +71,9 @@ class AuthenticationService {
     ReduxService.store.dispatch(logOut());
   }
 
-  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   private dispatchOauthReset(): void {
     OAuthService.resetOauthState();
   }
-  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
   /**
    * This method recreates the vault upon login if user is new and is not using the latest encryption lib
@@ -392,16 +388,12 @@ class AuthenticationService {
     authData: AuthData,
   ): Promise<void> => {
     try {
-      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       // check for oauth2 login
       if (authData.oauth2Login) {
         await this.createAndBackupSeedPhrase(password);
       } else {
-        ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
         await this.createWalletVaultAndKeychain(password);
-        ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       }
-      ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
       await this.storePassword(password, authData?.currentAuthType);
       await StorageWrapper.setItem(EXISTING_USER, TRUE);
@@ -569,7 +561,6 @@ class AuthenticationService {
   getType = async (): Promise<AuthData> =>
     await this.checkAuthenticationMethod();
 
-  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   createAndBackupSeedPhrase = async (password: string): Promise<void> => {
     const { SeedlessOnboardingController, KeyringController } = Engine.context;
     // rollback on fail ( reset wallet )
@@ -666,7 +657,6 @@ class AuthenticationService {
       throw error;
     }
   };
-  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 }
 
 export const Authentication = new AuthenticationService();
