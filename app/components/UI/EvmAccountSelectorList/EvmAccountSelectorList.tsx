@@ -121,13 +121,7 @@ const EvmAccountSelectorList = ({
 
   const accountTreeSections = useSelector(selectAccountSections);
 
-  // console.log(
-  //   'accountTreeSections',
-  //   JSON.stringify(accountTreeSections, null, 2),
-  // );
   const internalAccounts = useSelector(selectInternalAccounts);
-
-  // console.log('internalAccounts', JSON.stringify(internalAccounts, null, 2));
 
   const accountSections = useMemo((): AccountSection[] => {
     if (accountTreeSections) {
