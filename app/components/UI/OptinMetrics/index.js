@@ -203,10 +203,10 @@ class OptinMetrics extends PureComponent {
       prevState.isEndReached !== isEndReached ||
       prevState.scrollViewHeight !== scrollViewHeight
     ) {
-      if (scrollViewContentHeight === undefined || isEndReached) return;
+      if (scrollViewContentHeight === undefined) return;
 
       // Check if content fits view port of scroll view
-      if (scrollViewHeight >= scrollViewContentHeight) {
+      if (scrollViewHeight >= scrollViewContentHeight && !isEndReached) {
         this.onScrollEndReached();
       }
     }
@@ -557,7 +557,6 @@ class OptinMetrics extends PureComponent {
    * @param {Object} event
    */
   onScroll = ({ nativeEvent }) => {
-    if (this.state.isEndReached) return;
     const currentYOffset = nativeEvent.contentOffset.y;
     const paddingAllowance = Platform.select({
       ios: 16,
@@ -567,8 +566,11 @@ class OptinMetrics extends PureComponent {
       nativeEvent.contentSize.height -
       nativeEvent.layoutMeasurement.height -
       paddingAllowance;
+
     // Check when scroll has reached the end.
-    if (currentYOffset >= endThreshold) this.onScrollEndReached();
+    if (currentYOffset >= endThreshold && !this.state.isEndReached) {
+      this.onScrollEndReached();
+    }
   };
 
   render() {

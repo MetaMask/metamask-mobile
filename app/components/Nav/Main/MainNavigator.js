@@ -57,6 +57,7 @@ import { RampType } from '../../UI/Ramp/Aggregator/types';
 import RampSettings from '../../UI/Ramp/Aggregator/Views/Settings';
 import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm';
 
+import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import DepositRoutes, {
   DepositModalsRoutes,
 } from '../../UI/Ramp/Deposit/routes';
@@ -215,6 +216,10 @@ const TransactionsHome = () => (
       options={{ headerShown: false }}
     />
     <Stack.Screen name={Routes.RAMP.ORDER_DETAILS} component={OrderDetails} />
+    <Stack.Screen
+      name={Routes.DEPOSIT.ORDER_DETAILS}
+      component={DepositOrderDetails}
+    />
     <Stack.Screen
       name={Routes.RAMP.SEND_TRANSACTION}
       component={SendTransaction}
