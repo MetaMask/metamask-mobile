@@ -1068,12 +1068,15 @@ exports[`TransactionReview should match snapshot 1`] = `
             </View>
             <View
               style={
-                {
-                  "flex": 0,
-                  "flexDirection": "row",
-                  "paddingHorizontal": 24,
-                  "paddingVertical": 16,
-                }
+                [
+                  {
+                    "flex": 0,
+                    "flexDirection": "row",
+                    "paddingHorizontal": 16,
+                    "paddingVertical": 16,
+                  },
+                  undefined,
+                ]
               }
             >
               <TouchableOpacity
