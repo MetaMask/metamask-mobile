@@ -35,7 +35,6 @@ import Logger from '../../../app/util/Logger';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { AddressBookControllerState } from '@metamask/address-book-controller';
 import {
-  isEqualCaseInsensitive,
   toChecksumHexAddress,
   type NetworkType,
 } from '@metamask/controller-utils';
@@ -43,12 +42,10 @@ import type {
   NetworkClientId,
   NetworkState,
 } from '@metamask/network-controller';
-import { KeyringObject, KeyringTypes } from '@metamask/keyring-controller';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import { type Hex, isHexString } from '@metamask/utils';
 import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
 import { EntropySourceId } from '@metamask/keyring-api';
-import { HdKeyring } from '@metamask/eth-hd-keyring';
-import internal from 'stream';
 
 const {
   ASSET: { ERC721, ERC1155 },
