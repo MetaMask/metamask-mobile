@@ -20,6 +20,7 @@ const ETH_MAINNET_INFURA_URL = `https://mainnet.infura.io/v3/${process.env.MM_IN
 const BASE_INFURA_URL = `https://base-mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`;
 const LINEA_INFURA_URL = `https://linea-mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`;
 const ARBITRUM_INFURA_URL = `https://arbitrum-mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`;
+const BSC_INFURA_URL = `https://bsc-dataseed.bnbchain.org`;
 
 // Minimal ERC20 ABI containing only needed function signatures/
 const erc20Abi = [
@@ -46,6 +47,7 @@ const CHAIN_ID_TO_INFURA_URL_MAPPING: Record<string, string> = {
   '0x2105': BASE_INFURA_URL,
   '0xe708': LINEA_INFURA_URL,
   '0xa4b1': ARBITRUM_INFURA_URL,
+  '0x38': BSC_INFURA_URL,
 };
 
 const ETHEREUM_MAINNET_AAVE_V3_POOL_CONTRACT_ADDRESS =
@@ -63,6 +65,9 @@ const SEPOLIA_AAVE_V3_POOL_CONTRACT_ADDRESS =
 const ARBITRUM_ONE_AAVE_V3_POOL_CONTRACT_ADDRESS =
   '0x794a61358D6845594F94dc1DB02A252b5b4814aD';
 
+const BSC_AAVE_V3_POOL_CONTRACT_ADDRESS =
+  '0x6807dc923806fE8Fd134338EABCA509979a7e0cB';
+
 export const CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS: Record<string, string> =
   {
     '0x1': ETHEREUM_MAINNET_AAVE_V3_POOL_CONTRACT_ADDRESS,
@@ -70,6 +75,7 @@ export const CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS: Record<string, string> =
     '0xe708': LINEA_AAVE_V3_POOL_CONTRACT_ADDRESS,
     '0xa4b1': ARBITRUM_ONE_AAVE_V3_POOL_CONTRACT_ADDRESS,
     '0xaa36a7': SEPOLIA_AAVE_V3_POOL_CONTRACT_ADDRESS,
+    '0x38': BSC_AAVE_V3_POOL_CONTRACT_ADDRESS,
   };
 
 export const getErc20SpendingLimit = async (
@@ -634,26 +640,30 @@ export const getAaveV3MaxRiskAwareWithdrawalAmount = async (
     !receiptToken?.chainId ||
     !receiptToken?.balanceMinimalUnit
   )
-    return '0';
+    return undefined;
 
-  const userData = await getAaveUserAccountData(
-    activeAccountAddress,
-    receiptToken.chainId,
-  );
+  try {
+    const userData = await getAaveUserAccountData(
+      activeAccountAddress,
+      receiptToken.chainId,
+    );
+    const [poolLiquidityInTokens, maxHealthFactorWithdrawalInTokens] =
+      await Promise.all([
+        getLendingPoolLiquidity(
+          receiptToken.experience.market.underlying.address,
+          receiptToken.address,
+          receiptToken.chainId,
+        ),
+        getAaveV3MaxSafeWithdrawal(userData, receiptToken as EarnTokenDetails),
+      ]);
 
-  const [poolLiquidityInTokens, maxHealthFactorWithdrawalInTokens] =
-    await Promise.all([
-      getLendingPoolLiquidity(
-        receiptToken.experience.market.underlying.address,
-        receiptToken.address,
-        receiptToken.chainId,
-      ),
-      getAaveV3MaxSafeWithdrawal(userData, receiptToken as EarnTokenDetails),
-    ]).catch((_e) => '0');
-
-  return BigNumber.min(
-    poolLiquidityInTokens,
-    maxHealthFactorWithdrawalInTokens,
-    receiptToken.balanceMinimalUnit,
-  ).toString();
+    return BigNumber.min(
+      poolLiquidityInTokens,
+      maxHealthFactorWithdrawalInTokens,
+      receiptToken.balanceMinimalUnit,
+    ).toString();
+  } catch (e) {
+    console.error('error getting max risk aware withdrawal amount', e);
+    return undefined;
+  }
 };
