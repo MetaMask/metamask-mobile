@@ -109,7 +109,7 @@ describe('RegionSelectorModal Component', () => {
 
     it('calls handleSelectRegion when supported region is pressed', () => {
       const { getByText } = renderWithProvider(RegionSelectorModal);
-
+      
       const germanyRegion = getByText('Germany');
       fireEvent.press(germanyRegion);
 
@@ -124,7 +124,7 @@ describe('RegionSelectorModal Component', () => {
 
     it('does not call handleSelectRegion when unsupported region is pressed', () => {
       const { getByText } = renderWithProvider(RegionSelectorModal);
-
+      
       const canadaRegion = getByText('Canada');
       fireEvent.press(canadaRegion);
 
@@ -138,7 +138,7 @@ describe('RegionSelectorModal Component', () => {
       });
 
       const { getByText } = renderWithProvider(RegionSelectorModal);
-
+      
       const germanyRegion = getByText('Germany');
       fireEvent.press(germanyRegion);
 

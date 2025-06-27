@@ -489,6 +489,13 @@
       "search_by_country": "Search by country",
       "no_regions_found": "No regions match \"{{searchString}}\""
     },
+    "payment_modal": {
+      "select_a_payment_method": "Select a Payment Method"
+    },
+    "payment_duration": {
+      "instant":"Instant",
+      "1_to_2_days": "1 to 2 days"
+    },
     "get_started": {
       "title": "Top up your wallet with USDC",
       "bullet_1_title": "Value-backed by the US dollar",
@@ -530,7 +537,6 @@
     },
     "basic_info": {
       "title": "Enter your basic info",
-      "enter_phone_number": "Enter your phone number",
       "continue": "Continue",
       "subtitle": "To begin verifying your identity, we need some basic information.",
       "first_name": "First Name",
@@ -3947,7 +3953,8 @@
     "earnings_history_list_title": {
       "lending": "Position history",
       "staking": "Payout history"
-    }
+    },
+    "allowance_reset": "Allowance Reset"
   },
   "stake": {
     "stake": "Stake",

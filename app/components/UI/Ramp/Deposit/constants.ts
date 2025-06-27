@@ -1,4 +1,10 @@
 import { CaipChainId } from '@metamask/utils';
+import {
+  IconColor,
+  IconName,
+} from '../../../../component-library/components/Icons/Icon';
+import { brandColor } from '@metamask/design-tokens';
+import { AppThemeKey } from '../../../../util/theme/models';
 
 export const FIAT_CURRENCIES = ['USD', 'EUR'];
 
@@ -16,7 +22,12 @@ export interface DepositCryptoCurrency {
 export interface DepositPaymentMethod {
   id: string;
   name: string;
-  duration: string;
+  duration: 'instant' | '1_to_2_days';
+  icon: IconName;
+  iconColor?:
+    | string
+    | IconColor
+    | { [AppThemeKey.light]: string; [AppThemeKey.dark]: string };
 }
 
 export interface DepositFiatCurrency {
@@ -32,8 +43,7 @@ export interface DepositRegion {
   name: string;
   phonePrefix: string;
   currency: string;
-  template: string;
-  placeholder: string;
+  phoneDigitCount: number;
   recommended?: boolean;
   supported: boolean;
 }
@@ -70,8 +80,25 @@ export const SUPPORTED_DEPOSIT_TOKENS: DepositCryptoCurrency[] = [
 export const DEBIT_CREDIT_PAYMENT_METHOD: DepositPaymentMethod = {
   id: 'credit_debit_card',
   name: 'Debit or Credit',
-  duration: 'Instant',
+  duration: 'instant',
+  icon: IconName.Card,
 };
+
+export const APPLE_PAY_PAYMENT_METHOD: DepositPaymentMethod = {
+  id: 'apple_pay',
+  name: 'Apple Pay',
+  duration: 'instant',
+  icon: IconName.Apple,
+  iconColor: {
+    light: brandColor.black,
+    dark: brandColor.white,
+  },
+};
+
+export const SUPPORTED_PAYMENT_METHODS: DepositPaymentMethod[] = [
+  DEBIT_CREDIT_PAYMENT_METHOD,
+  APPLE_PAY_PAYMENT_METHOD,
+];
 
 export const USD_CURRENCY: DepositFiatCurrency = {
   id: 'USD',
@@ -99,8 +126,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Andorra',
     phonePrefix: '+376',
     currency: 'EUR',
-    template: 'XXX XXX',
-    placeholder: '123 456',
+    phoneDigitCount: 6,
     supported: true,
   },
   {
@@ -109,8 +135,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Austria',
     phonePrefix: '+43',
     currency: 'EUR',
-    template: 'XXX XXX XXX',
-    placeholder: '664 123 456',
+    phoneDigitCount: 10,
     supported: true,
   },
   {
@@ -119,8 +144,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Belgium',
     phonePrefix: '+32',
     currency: 'EUR',
-    template: 'XXX XXX XXX',
-    placeholder: '470 123 456',
+    phoneDigitCount: 9,
     supported: true,
   },
   {
@@ -129,8 +153,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Czech Republic',
     phonePrefix: '+420',
     currency: 'CZK',
-    template: 'XXX XXX XXX',
-    placeholder: '601 123 456',
+    phoneDigitCount: 9,
     supported: true,
   },
   {
@@ -139,8 +162,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Denmark',
     phonePrefix: '+45',
     currency: 'DKK',
-    template: 'XX XX XX XX',
-    placeholder: '12 34 56 78',
+    phoneDigitCount: 8,
     supported: true,
   },
   {
@@ -149,8 +171,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Estonia',
     phonePrefix: '+372',
     currency: 'EUR',
-    template: 'XXX XXX XXX',
-    placeholder: '512 345 678',
+    phoneDigitCount: 8,
     supported: true,
   },
   {
@@ -159,8 +180,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Finland',
     phonePrefix: '+358',
     currency: 'EUR',
-    template: 'XXX XXX XXXX',
-    placeholder: '40 123 4567',
+    phoneDigitCount: 9,
     supported: true,
   },
   {
@@ -169,8 +189,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'France',
     phonePrefix: '+33',
     currency: 'EUR',
-    template: 'X XX XX XX XX',
-    placeholder: '6 12 34 56 78',
+    phoneDigitCount: 9,
     supported: true,
   },
   {
@@ -179,8 +198,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Germany',
     phonePrefix: '+49',
     currency: 'EUR',
-    template: 'XXX XXXXXXX',
-    placeholder: '151 12345678',
+    phoneDigitCount: 10,
     supported: true,
   },
   {
@@ -189,8 +207,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Greece',
     phonePrefix: '+30',
     currency: 'EUR',
-    template: 'XXX XXX XXXX',
-    placeholder: '691 234 5678',
+    phoneDigitCount: 10,
     supported: true,
   },
   {
@@ -199,8 +216,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Hungary',
     phonePrefix: '+36',
     currency: 'HUF',
-    template: 'XX XXX XXXX',
-    placeholder: '20 123 4567',
+    phoneDigitCount: 9,
     supported: true,
   },
   {
@@ -209,8 +225,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Iceland',
     phonePrefix: '+354',
     currency: 'ISK',
-    template: 'XXX XXXX',
-    placeholder: '612 3456',
+    phoneDigitCount: 7,
     supported: true,
   },
   {
@@ -219,8 +234,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Ireland',
     phonePrefix: '+353',
     currency: 'EUR',
-    template: 'XX XXX XXXX',
-    placeholder: '83 123 4567',
+    phoneDigitCount: 9,
     supported: true,
   },
   {
@@ -229,8 +243,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Italy',
     phonePrefix: '+39',
     currency: 'EUR',
-    template: 'XXX XXX XXXX',
-    placeholder: '312 345 6789',
+    phoneDigitCount: 10,
     supported: true,
   },
   {
@@ -239,8 +252,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Latvia',
     phonePrefix: '+371',
     currency: 'EUR',
-    template: 'XX XXX XXX',
-    placeholder: '21 234 567',
+    phoneDigitCount: 8,
     supported: true,
   },
   {
@@ -249,8 +261,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Lithuania',
     phonePrefix: '+370',
     currency: 'EUR',
-    template: 'XXX XXXXX',
-    placeholder: '612 34567',
+    phoneDigitCount: 8,
     supported: true,
   },
   {
@@ -259,8 +270,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Luxembourg',
     phonePrefix: '+352',
     currency: 'EUR',
-    template: 'XXX XXX XXX',
-    placeholder: '621 123 456',
+    phoneDigitCount: 9,
     supported: true,
   },
   {
@@ -269,8 +279,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Malta',
     phonePrefix: '+356',
     currency: 'EUR',
-    template: 'XXXX XXXX',
-    placeholder: '2123 4567',
+    phoneDigitCount: 8,
     supported: true,
   },
   {
@@ -279,8 +288,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Montenegro',
     phonePrefix: '+382',
     currency: 'EUR',
-    template: 'XX XXX XXX',
-    placeholder: '67 123 456',
+    phoneDigitCount: 8,
     supported: true,
   },
   {
@@ -289,8 +297,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Netherlands',
     phonePrefix: '+31',
     currency: 'EUR',
-    template: 'X XXX XXX XXX',
-    placeholder: '6 123 456 789',
+    phoneDigitCount: 9,
     supported: true,
   },
   {
@@ -299,8 +306,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Norway',
     phonePrefix: '+47',
     currency: 'NOK',
-    template: 'XXX XX XXX',
-    placeholder: '123 45 678',
+    phoneDigitCount: 8,
     supported: true,
   },
   {
@@ -309,8 +315,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Poland',
     phonePrefix: '+48',
     currency: 'PLN',
-    template: 'XXX XXX XXX',
-    placeholder: '123 456 789',
+    phoneDigitCount: 9,
     supported: true,
   },
   {
@@ -319,8 +324,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Portugal',
     phonePrefix: '+351',
     currency: 'EUR',
-    template: 'XXX XXX XXX',
-    placeholder: '912 345 678',
+    phoneDigitCount: 9,
     supported: true,
   },
   {
@@ -329,8 +333,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Romania',
     phonePrefix: '+40',
     currency: 'RON',
-    template: 'XXX XXX XXX',
-    placeholder: '712 345 678',
+    phoneDigitCount: 9,
     supported: true,
   },
   {
@@ -339,8 +342,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Serbia',
     phonePrefix: '+381',
     currency: 'RSD',
-    template: 'XX XXX XXXX',
-    placeholder: '60 123 4567',
+    phoneDigitCount: 8,
     supported: true,
   },
   {
@@ -349,8 +351,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Slovakia',
     phonePrefix: '+421',
     currency: 'EUR',
-    template: 'XXX XXX XXX',
-    placeholder: '904 123 456',
+    phoneDigitCount: 9,
     supported: true,
   },
   {
@@ -359,8 +360,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Slovenia',
     phonePrefix: '+386',
     currency: 'EUR',
-    template: 'XX XXX XXX',
-    placeholder: '31 234 567',
+    phoneDigitCount: 8,
     supported: true,
   },
   {
@@ -369,8 +369,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Spain',
     phonePrefix: '+34',
     currency: 'EUR',
-    template: 'XXX XXX XXX',
-    placeholder: '612 345 678',
+    phoneDigitCount: 9,
     supported: true,
   },
   {
@@ -379,8 +378,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Sweden',
     phonePrefix: '+46',
     currency: 'SEK',
-    template: 'XX XXX XXXX',
-    placeholder: '70 123 4567',
+    phoneDigitCount: 9,
     supported: true,
   },
   {
@@ -389,8 +387,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Switzerland',
     phonePrefix: '+41',
     currency: 'CHF',
-    template: 'XX XXX XXXX',
-    placeholder: '76 123 4567',
+    phoneDigitCount: 9,
     supported: true,
   },
   {
@@ -399,8 +396,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'United Kingdom',
     phonePrefix: '+44',
     currency: 'GBP',
-    template: 'XXXX XXXXXX',
-    placeholder: '7123 456789',
+    phoneDigitCount: 10,
     supported: true,
   },
   {
@@ -409,8 +405,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Åland Islands',
     phonePrefix: '+358',
     currency: 'EUR',
-    template: 'XXX XXX XXXX',
-    placeholder: '40 123 4567',
+    phoneDigitCount: 9,
     supported: true,
   },
 
@@ -421,8 +416,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Bermuda',
     phonePrefix: '+1',
     currency: 'BMD',
-    template: '(XXX) XXX-XXXX',
-    placeholder: '(555) 123-4567',
+    phoneDigitCount: 10,
     supported: false,
   },
   {
@@ -431,8 +425,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Canada',
     phonePrefix: '+1',
     currency: 'CAD',
-    template: 'XXX XXX XXXX',
-    placeholder: '555 123 4567',
+    phoneDigitCount: 10,
     supported: false,
   },
   {
@@ -441,8 +434,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Guadeloupe',
     phonePrefix: '+590',
     currency: 'EUR',
-    template: 'XXX XXX XXX',
-    placeholder: '123 456 789',
+    phoneDigitCount: 9,
     supported: false,
   },
   {
@@ -451,8 +443,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Martinique',
     phonePrefix: '+596',
     currency: 'EUR',
-    template: 'XXX XXX XXX',
-    placeholder: '123 456 789',
+    phoneDigitCount: 9,
     supported: false,
   },
   {
@@ -461,8 +452,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Mexico',
     phonePrefix: '+52',
     currency: 'MXN',
-    template: 'XX XXXX XXXX',
-    placeholder: '55 1234 5678',
+    phoneDigitCount: 10,
     supported: false,
   },
   {
@@ -471,8 +461,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Puerto Rico',
     phonePrefix: '+1',
     currency: 'USD',
-    template: '(XXX) XXX-XXXX',
-    placeholder: '(555) 123-4567',
+    phoneDigitCount: 10,
     supported: false,
   },
   {
@@ -481,8 +470,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Saint Martin',
     phonePrefix: '+590',
     currency: 'EUR',
-    template: 'XXX XXX XXX',
-    placeholder: '123 456 789',
+    phoneDigitCount: 9,
     supported: false,
   },
 
@@ -493,8 +481,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'United States',
     phonePrefix: '+1',
     currency: 'USD',
-    template: '(XXX) XXX-XXXX',
-    placeholder: '(555) 123-4567',
+    phoneDigitCount: 10,
     recommended: true,
     supported: true,
   },
@@ -506,8 +493,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Cyprus',
     phonePrefix: '+357',
     currency: 'EUR',
-    template: 'XX XXX XXX',
-    placeholder: '12 345 678',
+    phoneDigitCount: 8,
     supported: false,
   },
   {
@@ -516,8 +502,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Georgia',
     phonePrefix: '+995',
     currency: 'GEL',
-    template: 'XXX XXX XXX',
-    placeholder: '123 456 789',
+    phoneDigitCount: 9,
     supported: false,
   },
   {
@@ -526,8 +511,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Hong Kong',
     phonePrefix: '+852',
     currency: 'HKD',
-    template: 'XXXX XXXX',
-    placeholder: '1234 5678',
+    phoneDigitCount: 8,
     supported: false,
   },
   {
@@ -536,8 +520,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'India',
     phonePrefix: '+91',
     currency: 'INR',
-    template: 'XXXXX XXXXX',
-    placeholder: '98765 43210',
+    phoneDigitCount: 10,
     supported: false,
   },
   {
@@ -546,8 +529,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Israel',
     phonePrefix: '+972',
     currency: 'ILS',
-    template: 'XXX XXX XXX',
-    placeholder: '123 456 789',
+    phoneDigitCount: 9,
     supported: false,
   },
   {
@@ -556,8 +538,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Kuwait',
     phonePrefix: '+965',
     currency: 'KWD',
-    template: 'XXXX XXXX',
-    placeholder: '1234 5678',
+    phoneDigitCount: 8,
     supported: false,
   },
   {
@@ -566,8 +547,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Malaysia',
     phonePrefix: '+60',
     currency: 'MYR',
-    template: 'XXX XXX XXX',
-    placeholder: '123 456 789',
+    phoneDigitCount: 9,
     supported: false,
   },
   {
@@ -576,8 +556,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Philippines',
     phonePrefix: '+63',
     currency: 'PHP',
-    template: 'XXX XXX XXXX',
-    placeholder: '123 456 7890',
+    phoneDigitCount: 9,
     supported: false,
   },
 
@@ -588,8 +567,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Brazil',
     phonePrefix: '+55',
     currency: 'BRL',
-    template: 'XX XXXXX-XXXX',
-    placeholder: '11 98765-4321',
+    phoneDigitCount: 11,
     supported: false,
   },
   {
@@ -598,8 +576,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'French Guiana',
     phonePrefix: '+594',
     currency: 'EUR',
-    template: 'XXX XXX XXX',
-    placeholder: '123 456 789',
+    phoneDigitCount: 9,
     supported: false,
   },
 
@@ -610,8 +587,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Australia',
     phonePrefix: '+61',
     currency: 'AUD',
-    template: 'XXX XXX XXX',
-    placeholder: '412 345 678',
+    phoneDigitCount: 9,
     supported: false,
   },
   {
@@ -620,8 +596,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Guam',
     phonePrefix: '+1',
     currency: 'USD',
-    template: '(XXX) XXX-XXXX',
-    placeholder: '(555) 123-4567',
+    phoneDigitCount: 10,
     supported: false,
   },
   {
@@ -630,8 +605,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'New Zealand',
     phonePrefix: '+64',
     currency: 'NZD',
-    template: 'XXX XXX XXX',
-    placeholder: '123 456 789',
+    phoneDigitCount: 9,
     supported: false,
   },
 
@@ -642,8 +616,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Mayotte',
     phonePrefix: '+262',
     currency: 'EUR',
-    template: 'XXX XXX XXX',
-    placeholder: '123 456 789',
+    phoneDigitCount: 9,
     supported: false,
   },
   {
@@ -652,8 +625,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'Réunion',
     phonePrefix: '+262',
     currency: 'EUR',
-    template: 'XXX XXX XXX',
-    placeholder: '123 456 789',
+    phoneDigitCount: 9,
     supported: false,
   },
 ];
