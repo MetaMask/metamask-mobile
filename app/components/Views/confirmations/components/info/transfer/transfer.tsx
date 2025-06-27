@@ -41,7 +41,7 @@ const Transfer = () => {
 
   return (
     <View testID={ConfirmationInfoComponentIDs.TRANSFER}>
-      <HeroRow />
+      {/* <HeroRow /> */}
       <FromToRow />
       <NetworkAndOriginRow />
       <SimulationDetails

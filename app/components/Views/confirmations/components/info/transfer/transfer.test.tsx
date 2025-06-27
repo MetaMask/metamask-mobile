@@ -1,5 +1,4 @@
 import React from 'react';
-import { cloneDeep } from 'lodash';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { transferConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
@@ -67,6 +66,11 @@ jest.mock('../../../hooks/metrics/useConfirmationMetricEvents', () => ({
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe', () => ({
   __esModule: true,
   default: jest.fn(),
+}));
+
+jest.mock('../../../components/UI/animated-pulse', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 const noop = () => undefined;
