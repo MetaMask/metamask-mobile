@@ -10,7 +10,7 @@ import { useTheme } from '../../../../../../util/theme';
 import { useRampSDK } from '../../sdk';
 import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
 import Routes from '../../../../../../constants/navigation/Routes';
-import useAnalytics from '../../hooks/useAnalytics';
+import useAnalytics from '../../../hooks/useAnalytics';
 import useRampNetwork from '../../hooks/useRampNetwork';
 import styles from './GetStarted.styles';
 import useRegions from '../../hooks/useRegions';

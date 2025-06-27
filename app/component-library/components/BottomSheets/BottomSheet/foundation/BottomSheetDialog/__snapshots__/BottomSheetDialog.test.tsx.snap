@@ -33,7 +33,7 @@ exports[`BottomSheetDialog should render correctly 1`] = `
           "borderTopLeftRadius": 8,
           "borderTopRightRadius": 8,
           "borderWidth": 1,
-          "maxHeight": 1333,
+          "maxHeight": 5,
           "overflow": "hidden",
           "paddingBottom": 3,
           "shadowColor": "#0000001a",
@@ -47,7 +47,7 @@ exports[`BottomSheetDialog should render correctly 1`] = `
         {
           "transform": [
             {
-              "translateY": 1334,
+              "translateY": 6,
             },
           ],
         },

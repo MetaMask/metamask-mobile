@@ -32,6 +32,7 @@ import SOPHON_TESTNET from './sophon-testnet.png';
 import APECHAIN_TOKEN from './apechain-token.png';
 import BERACHAIN_TOKEN from './berachain-token.png';
 import EDU from './edu.png';
+import ABSTRACT from './abstract.png';
 
 export default {
   PALM,
@@ -70,4 +71,5 @@ export default {
   APE: APECHAIN_TOKEN,
   BERA: BERACHAIN_TOKEN,
   EDU,
+  ABSTRACT,
 };

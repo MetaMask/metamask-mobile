@@ -25,16 +25,10 @@ export enum SupportedPlatforms {
   IOS = 'ios',
 }
 
-export const AuthConnectionConfig: Record<
-  SupportedPlatforms,
-  Record<
-    AuthConnection,
-    {
-      authConnectionId: string;
-      groupedAuthConnectionId?: string;
-    }
-  >
-> = {
+export const AuthConnectionConfig: Record<SupportedPlatforms, Record<AuthConnection, {
+  authConnectionId: string;
+  groupedAuthConnectionId?: string;
+}>> = {
   [SupportedPlatforms.Android]: {
     [AuthConnection.Google]: {
       authConnectionId:

@@ -12,15 +12,8 @@ process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
 process.env.LAUNCH_DARKLY_URL =
   'https://client-config.dev-api.cx.metamask.io/v1';
 
-// process.env.IOS_GOOGLE_REDIRECT_URI =
-//   'com.googleusercontent.apps.882363291751-nbbp9n0o307cfil1lup766g1s99k0932:/oauth2redirect/google';
-
-// process.env.ANDROID_GOOGLE_CLIENT_ID =
-//   '882363291751-nbbp9n0o307cfil1lup766g1s99k0932.apps.googleusercontent.com';
-
 
 process.env.MM_SMART_ACCOUNT_UI_ENABLED = 'true';
-
 
 
 process.env.AUTH_SERVER_URL = 'https://api-develop-torus-byoa.web3auth.io';
