@@ -15,6 +15,7 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { selectShowFiatInTestnets } from '../../selectors/settings';
 import { isTestNet } from '../../util/networks';
 import { useMemo } from 'react';
+import { selectFormattedAddressByInternalAccountId } from '../../selectors/accountsController';
 
 interface TokenFiatBalancesCrossChains {
   chainId: string;
@@ -44,6 +45,7 @@ export const useGetTotalFiatBalanceCrossChains = (
   const currencyRates = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const accountsByChainId = useSelector(selectAccountsByChainId);
+  const addressesByAccountId = useSelector(selectFormattedAddressByInternalAccountId);
   const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
   const currentChainId = useSelector(selectChainId);
 
@@ -102,7 +104,7 @@ export const useGetTotalFiatBalanceCrossChains = (
           (token) => token.tokenBalanceFiat,
         );
 
-        const checksumAddress = toChecksumHexAddress(account.address);
+        const checksumAddress = addressesByAccountId[account.id];
         const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
         const conversionRate =
           currencyRates?.[matchedChainSymbol]?.conversionRate ?? 0;
