@@ -6,7 +6,9 @@ import {
   ViewStyle,
   TouchableOpacity,
   useWindowDimensions,
+  ScrollViewProps,
 } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { CaipChainId } from '@metamask/utils';
 import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -506,7 +508,6 @@ const EvmAccountSelectorList = ({
 
       return (
         <Cell
-          key={address}
           onLongPress={handleLongPress}
           variant={cellVariant}
           isSelected={isSelectedAccount}
@@ -580,13 +581,15 @@ const EvmAccountSelectorList = ({
     }
   }, [accounts, accountListRef, selectedAddresses, isAutoScrollEnabled]);
 
-  const { maxSheetHeight } = useSheetStyleStyleVars();
-  const listItemHeight = 80;
+  const { maxSheetHeight, screenWidth } = useSheetStyleStyleVars();
+  const listItemHeight = 80; // Height of the cell
   const addAccountBuffer = 200;
   // Clamp between 300 to maxSheetSize, and subtract the add account button area
   const listHeight =
     Math.max(300, Math.min(maxSheetHeight, listItemHeight * accounts.length)) -
     addAccountBuffer;
+
+  const estimatedListSize = { height: listHeight, width: screenWidth };
 
   return (
     <View style={{ height: listHeight }}>
@@ -597,7 +600,12 @@ const EvmAccountSelectorList = ({
         keyExtractor={getKeyExtractor}
         renderItem={renderItem}
         estimatedItemSize={listItemHeight}
+        renderScrollComponent={
+          ScrollView as React.ComponentType<ScrollViewProps>
+        }
+        estimatedListSize={estimatedListSize}
         testID={ACCOUNT_SELECTOR_LIST_TESTID}
+        disableAutoLayout
         {...props}
       />
     </View>
