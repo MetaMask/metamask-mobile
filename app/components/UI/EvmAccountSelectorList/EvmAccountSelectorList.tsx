@@ -401,15 +401,10 @@ const EvmAccountSelectorList = ({
         type,
         isSelected,
         balanceError,
-        scopes,
         isLoadingAccount,
         internalAccount,
       } = item.data;
 
-      const partialAccount = {
-        address,
-        scopes,
-      };
       const shortAddress = formatAddress(address, 'short');
       const tagLabel = accountTreeSections
         ? undefined
@@ -503,7 +498,7 @@ const EvmAccountSelectorList = ({
         >
           {renderRightAccessory?.(address, accountName) ||
             (assets &&
-              renderAccountBalances(assets, partialAccount, isLoadingAccount))}
+              renderAccountBalances(assets, item.data, isLoadingAccount))}
         </Cell>
       );
     },
