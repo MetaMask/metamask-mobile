@@ -233,7 +233,7 @@ function RegionSelectorModal() {
         style={styles.list}
         keyboardDismissMode="none"
         keyboardShouldPersistTaps="always"
-        nestedScrollEnabled={true}
+        nestedScrollEnabled
         sections={dataSearchResults}
         renderItem={renderRegionItem}
         renderSectionHeader={renderSectionHeader}
