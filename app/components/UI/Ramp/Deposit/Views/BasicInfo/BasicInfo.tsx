@@ -111,7 +111,7 @@ const BasicInfo = (): JSX.Element => {
   }, [navigation, theme]);
 
   const handleOnPressContinue = useCallback(() => {
-    if (validateFormData() && selectedRegion) {
+    if (validateFormData()) {
       navigation.navigate(
         ...createEnterAddressNavDetails({
           formData,
@@ -120,7 +120,7 @@ const BasicInfo = (): JSX.Element => {
         }),
       );
     }
-  }, [navigation, validateFormData, formData, quote, kycUrl, selectedRegion]);
+  }, [navigation, validateFormData, formData, quote, kycUrl]);
 
   const handleSubmitEditing = useCallback(
     (nextRef: React.RefObject<TextInput>) => () => {
