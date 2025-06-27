@@ -1572,9 +1572,8 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -3172,9 +3171,8 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -4749,9 +4747,8 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -6326,9 +6323,8 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -7903,9 +7899,8 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -9480,9 +9475,8 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -11057,9 +11051,8 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -14470,9 +14463,8 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -17883,9 +17875,8 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
