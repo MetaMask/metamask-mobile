@@ -53,7 +53,7 @@ import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants
 import { toHex } from '@metamask/controller-utils';
 import AccountNetworkIndicator from '../AccountNetworkIndicator';
 import { Skeleton } from '../../../component-library/components/Skeleton';
-import { selectInternalAccounts, selectInternalAccountsById } from '../../../selectors/accountsController';
+import { selectInternalAccounts, selectInternalAccountsById , selectFormattedAddressByAccountId } from '../../../selectors/accountsController';
 import { AccountWallet } from '@metamask/account-tree-controller';
 
 /**
@@ -103,6 +103,7 @@ const EvmAccountSelectorList = ({
   const accountTreeSections = useSelector(selectAccountSections);
   const internalAccounts = useSelector(selectInternalAccounts);
   const internalAccountsById = useSelector(selectInternalAccountsById);
+  const formattedAddressByAccountId = useSelector(selectFormattedAddressByAccountId);
 
   const accountSections = useMemo((): AccountSection[] => {
     if (accountTreeSections) {
@@ -421,7 +422,7 @@ const EvmAccountSelectorList = ({
       let isSelectedAccount = isSelected;
       if (selectedAddressesLookup) {
         isSelectedAccount = selectedAddressesLookup.has(
-          toFormattedAddress(address),
+          formattedAddressByAccountId[internalAccount.id],
         );
       }
 
@@ -500,6 +501,7 @@ const EvmAccountSelectorList = ({
       );
     },
     [
+      formattedAddressByAccountId,
       ensByAccountAddress,
       isLoading,
       isSelectionDisabled,
