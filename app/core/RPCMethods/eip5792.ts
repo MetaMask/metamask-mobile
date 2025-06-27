@@ -301,7 +301,7 @@ async function getAlternateGasFeesCapability(
       (isSmartTransaction || (isSupported && relaySupportedForChain));
 
     if (alternateGasFees) {
-      acc[chainId as Hex] = {
+      acc[chainId] = {
         alternateGasFees: {
           supported: true,
         },
@@ -368,7 +368,7 @@ export async function getCapabilities(address: Hex, chainIds?: Hex[]) {
         ? AtomicCapabilityStatus.Supported
         : AtomicCapabilityStatus.Ready;
 
-      if (acc[chainIdNormalised] === undefined) {
+      if (!acc[chainIdNormalised]) {
         acc[chainIdNormalised] = {};
       }
 
