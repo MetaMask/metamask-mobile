@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`RegionSelectorModal Component (snapshot) renders empty state 1`] = `
+exports[`RegionSelectorModal Component region selector modal renders empty state 1`] = `
 <View
   style={
     {
@@ -668,6 +668,7 @@ exports[`RegionSelectorModal Component (snapshot) renders empty state 1`] = `
                             keyExtractor={[Function]}
                             keyboardDismissMode="none"
                             keyboardShouldPersistTaps="always"
+                            nestedScrollEnabled={true}
                             onContentSizeChange={[Function]}
                             onLayout={[Function]}
                             onMomentumScrollBegin={[Function]}
@@ -727,7 +728,7 @@ exports[`RegionSelectorModal Component (snapshot) renders empty state 1`] = `
 </View>
 `;
 
-exports[`RegionSelectorModal Component (snapshot) renders the default modal 1`] = `
+exports[`RegionSelectorModal Component region selector modal renders the default modal 1`] = `
 <View
   style={
     {
@@ -1368,78 +1369,6 @@ exports[`RegionSelectorModal Component (snapshot) renders the default modal 1`] 
                                 {
                                   "data": [
                                     {
-                                      "code": "AD",
-                                      "currency": "EUR",
-                                      "flag": "🇦🇩",
-                                      "name": "Andorra",
-                                      "phoneDigitCount": 6,
-                                      "phonePrefix": "+376",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "AT",
-                                      "currency": "EUR",
-                                      "flag": "🇦🇹",
-                                      "name": "Austria",
-                                      "phoneDigitCount": 10,
-                                      "phonePrefix": "+43",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "BE",
-                                      "currency": "EUR",
-                                      "flag": "🇧🇪",
-                                      "name": "Belgium",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+32",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "CZ",
-                                      "currency": "CZK",
-                                      "flag": "🇨🇿",
-                                      "name": "Czech Republic",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+420",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "DK",
-                                      "currency": "DKK",
-                                      "flag": "🇩🇰",
-                                      "name": "Denmark",
-                                      "phoneDigitCount": 8,
-                                      "phonePrefix": "+45",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "EE",
-                                      "currency": "EUR",
-                                      "flag": "🇪🇪",
-                                      "name": "Estonia",
-                                      "phoneDigitCount": 8,
-                                      "phonePrefix": "+372",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "FI",
-                                      "currency": "EUR",
-                                      "flag": "🇫🇮",
-                                      "name": "Finland",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+358",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "FR",
-                                      "currency": "EUR",
-                                      "flag": "🇫🇷",
-                                      "name": "France",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+33",
-                                      "supported": true,
-                                    },
-                                    {
                                       "code": "DE",
                                       "currency": "EUR",
                                       "flag": "🇩🇪",
@@ -1447,222 +1376,6 @@ exports[`RegionSelectorModal Component (snapshot) renders the default modal 1`] 
                                       "phoneDigitCount": 10,
                                       "phonePrefix": "+49",
                                       "supported": true,
-                                    },
-                                    {
-                                      "code": "GR",
-                                      "currency": "EUR",
-                                      "flag": "🇬🇷",
-                                      "name": "Greece",
-                                      "phoneDigitCount": 10,
-                                      "phonePrefix": "+30",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "HU",
-                                      "currency": "HUF",
-                                      "flag": "🇭🇺",
-                                      "name": "Hungary",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+36",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "IS",
-                                      "currency": "ISK",
-                                      "flag": "🇮🇸",
-                                      "name": "Iceland",
-                                      "phoneDigitCount": 7,
-                                      "phonePrefix": "+354",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "IE",
-                                      "currency": "EUR",
-                                      "flag": "🇮🇪",
-                                      "name": "Ireland",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+353",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "IT",
-                                      "currency": "EUR",
-                                      "flag": "🇮🇹",
-                                      "name": "Italy",
-                                      "phoneDigitCount": 10,
-                                      "phonePrefix": "+39",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "LV",
-                                      "currency": "EUR",
-                                      "flag": "🇱🇻",
-                                      "name": "Latvia",
-                                      "phoneDigitCount": 8,
-                                      "phonePrefix": "+371",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "LT",
-                                      "currency": "EUR",
-                                      "flag": "🇱🇹",
-                                      "name": "Lithuania",
-                                      "phoneDigitCount": 8,
-                                      "phonePrefix": "+370",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "LU",
-                                      "currency": "EUR",
-                                      "flag": "🇱🇺",
-                                      "name": "Luxembourg",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+352",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "MT",
-                                      "currency": "EUR",
-                                      "flag": "🇲🇹",
-                                      "name": "Malta",
-                                      "phoneDigitCount": 8,
-                                      "phonePrefix": "+356",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "ME",
-                                      "currency": "EUR",
-                                      "flag": "🇲🇪",
-                                      "name": "Montenegro",
-                                      "phoneDigitCount": 8,
-                                      "phonePrefix": "+382",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "NL",
-                                      "currency": "EUR",
-                                      "flag": "🇳🇱",
-                                      "name": "Netherlands",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+31",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "NO",
-                                      "currency": "NOK",
-                                      "flag": "🇳🇴",
-                                      "name": "Norway",
-                                      "phoneDigitCount": 8,
-                                      "phonePrefix": "+47",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "PL",
-                                      "currency": "PLN",
-                                      "flag": "🇵🇱",
-                                      "name": "Poland",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+48",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "PT",
-                                      "currency": "EUR",
-                                      "flag": "🇵🇹",
-                                      "name": "Portugal",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+351",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "RO",
-                                      "currency": "RON",
-                                      "flag": "🇷🇴",
-                                      "name": "Romania",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+40",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "RS",
-                                      "currency": "RSD",
-                                      "flag": "🇷🇸",
-                                      "name": "Serbia",
-                                      "phoneDigitCount": 8,
-                                      "phonePrefix": "+381",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "SK",
-                                      "currency": "EUR",
-                                      "flag": "🇸🇰",
-                                      "name": "Slovakia",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+421",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "SI",
-                                      "currency": "EUR",
-                                      "flag": "🇸🇮",
-                                      "name": "Slovenia",
-                                      "phoneDigitCount": 8,
-                                      "phonePrefix": "+386",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "ES",
-                                      "currency": "EUR",
-                                      "flag": "🇪🇸",
-                                      "name": "Spain",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+34",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "SE",
-                                      "currency": "SEK",
-                                      "flag": "🇸🇪",
-                                      "name": "Sweden",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+46",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "CH",
-                                      "currency": "CHF",
-                                      "flag": "🇨🇭",
-                                      "name": "Switzerland",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+41",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "GB",
-                                      "currency": "GBP",
-                                      "flag": "🇬🇧",
-                                      "name": "United Kingdom",
-                                      "phoneDigitCount": 10,
-                                      "phonePrefix": "+44",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "AX",
-                                      "currency": "EUR",
-                                      "flag": "🇦🇽",
-                                      "name": "Åland Islands",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+358",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "BM",
-                                      "currency": "BMD",
-                                      "flag": "🇧🇲",
-                                      "name": "Bermuda",
-                                      "phoneDigitCount": 10,
-                                      "phonePrefix": "+1",
-                                      "supported": false,
                                     },
                                     {
                                       "code": "CA",
@@ -1674,184 +1387,13 @@ exports[`RegionSelectorModal Component (snapshot) renders the default modal 1`] 
                                       "supported": false,
                                     },
                                     {
-                                      "code": "GP",
+                                      "code": "FR",
                                       "currency": "EUR",
-                                      "flag": "🇬🇵",
-                                      "name": "Guadeloupe",
+                                      "flag": "🇫🇷",
+                                      "name": "France",
                                       "phoneDigitCount": 9,
-                                      "phonePrefix": "+590",
-                                      "supported": false,
-                                    },
-                                    {
-                                      "code": "MQ",
-                                      "currency": "EUR",
-                                      "flag": "🇲🇶",
-                                      "name": "Martinique",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+596",
-                                      "supported": false,
-                                    },
-                                    {
-                                      "code": "MX",
-                                      "currency": "MXN",
-                                      "flag": "🇲🇽",
-                                      "name": "Mexico",
-                                      "phoneDigitCount": 10,
-                                      "phonePrefix": "+52",
-                                      "supported": false,
-                                    },
-                                    {
-                                      "code": "PR",
-                                      "currency": "USD",
-                                      "flag": "🇵🇷",
-                                      "name": "Puerto Rico",
-                                      "phoneDigitCount": 10,
-                                      "phonePrefix": "+1",
-                                      "supported": false,
-                                    },
-                                    {
-                                      "code": "MF",
-                                      "currency": "EUR",
-                                      "flag": "🇲🇫",
-                                      "name": "Saint Martin",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+590",
-                                      "supported": false,
-                                    },
-                                    {
-                                      "code": "CY",
-                                      "currency": "EUR",
-                                      "flag": "🇨🇾",
-                                      "name": "Cyprus",
-                                      "phoneDigitCount": 8,
-                                      "phonePrefix": "+357",
-                                      "supported": false,
-                                    },
-                                    {
-                                      "code": "GE",
-                                      "currency": "GEL",
-                                      "flag": "🇬🇪",
-                                      "name": "Georgia",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+995",
-                                      "supported": false,
-                                    },
-                                    {
-                                      "code": "HK",
-                                      "currency": "HKD",
-                                      "flag": "🇭🇰",
-                                      "name": "Hong Kong",
-                                      "phoneDigitCount": 8,
-                                      "phonePrefix": "+852",
-                                      "supported": false,
-                                    },
-                                    {
-                                      "code": "IN",
-                                      "currency": "INR",
-                                      "flag": "🇮🇳",
-                                      "name": "India",
-                                      "phoneDigitCount": 10,
-                                      "phonePrefix": "+91",
-                                      "supported": false,
-                                    },
-                                    {
-                                      "code": "IL",
-                                      "currency": "ILS",
-                                      "flag": "🇮🇱",
-                                      "name": "Israel",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+972",
-                                      "supported": false,
-                                    },
-                                    {
-                                      "code": "KW",
-                                      "currency": "KWD",
-                                      "flag": "🇰🇼",
-                                      "name": "Kuwait",
-                                      "phoneDigitCount": 8,
-                                      "phonePrefix": "+965",
-                                      "supported": false,
-                                    },
-                                    {
-                                      "code": "MY",
-                                      "currency": "MYR",
-                                      "flag": "🇲🇾",
-                                      "name": "Malaysia",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+60",
-                                      "supported": false,
-                                    },
-                                    {
-                                      "code": "PH",
-                                      "currency": "PHP",
-                                      "flag": "🇵🇭",
-                                      "name": "Philippines",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+63",
-                                      "supported": false,
-                                    },
-                                    {
-                                      "code": "BR",
-                                      "currency": "BRL",
-                                      "flag": "🇧🇷",
-                                      "name": "Brazil",
-                                      "phoneDigitCount": 11,
-                                      "phonePrefix": "+55",
-                                      "supported": false,
-                                    },
-                                    {
-                                      "code": "GF",
-                                      "currency": "EUR",
-                                      "flag": "🇬🇫",
-                                      "name": "French Guiana",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+594",
-                                      "supported": false,
-                                    },
-                                    {
-                                      "code": "AU",
-                                      "currency": "AUD",
-                                      "flag": "🇦🇺",
-                                      "name": "Australia",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+61",
-                                      "supported": false,
-                                    },
-                                    {
-                                      "code": "GU",
-                                      "currency": "USD",
-                                      "flag": "🇬🇺",
-                                      "name": "Guam",
-                                      "phoneDigitCount": 10,
-                                      "phonePrefix": "+1",
-                                      "supported": false,
-                                    },
-                                    {
-                                      "code": "NZ",
-                                      "currency": "NZD",
-                                      "flag": "🇳🇿",
-                                      "name": "New Zealand",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+64",
-                                      "supported": false,
-                                    },
-                                    {
-                                      "code": "YT",
-                                      "currency": "EUR",
-                                      "flag": "🇾🇹",
-                                      "name": "Mayotte",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+262",
-                                      "supported": false,
-                                    },
-                                    {
-                                      "code": "RE",
-                                      "currency": "EUR",
-                                      "flag": "🇷🇪",
-                                      "name": "Réunion",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+262",
-                                      "supported": false,
+                                      "phonePrefix": "+33",
+                                      "supported": true,
                                     },
                                   ],
                                   "title": "Regions",
@@ -1863,6 +1405,7 @@ exports[`RegionSelectorModal Component (snapshot) renders the default modal 1`] 
                             keyExtractor={[Function]}
                             keyboardDismissMode="none"
                             keyboardShouldPersistTaps="always"
+                            nestedScrollEnabled={true}
                             onContentSizeChange={[Function]}
                             onLayout={[Function]}
                             onMomentumScrollBegin={[Function]}
@@ -2152,7 +1695,7 @@ exports[`RegionSelectorModal Component (snapshot) renders the default modal 1`] 
                                                 }
                                               }
                                             >
-                                              🇦🇩
+                                              🇩🇪
                                             </Text>
                                           </View>
                                           <View>
@@ -2169,7 +1712,105 @@ exports[`RegionSelectorModal Component (snapshot) renders the default modal 1`] 
                                                 }
                                               }
                                             >
-                                              Andorra
+                                              Germany
+                                            </Text>
+                                          </View>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
+                                </TouchableOpacity>
+                              </View>
+                              <View
+                                onFocusCapture={[Function]}
+                                onLayout={[Function]}
+                                style={null}
+                              >
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  disabled={true}
+                                  onPress={[Function]}
+                                  style={
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
+                                  }
+                                >
+                                  <View
+                                    accessibilityRole="none"
+                                    accessible={true}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "flex": 1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "flexDirection": "row",
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              {
+                                                "marginRight": 12,
+                                              }
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#686e7d",
+                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontSize": 18,
+                                                  "fontWeight": "500",
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                            >
+                                              🇨🇦
+                                            </Text>
+                                          </View>
+                                          <View>
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#686e7d",
+                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontSize": 18,
+                                                  "fontWeight": "500",
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                            >
+                                              Canada
                                             </Text>
                                           </View>
                                         </View>
@@ -2250,7 +1891,7 @@ exports[`RegionSelectorModal Component (snapshot) renders the default modal 1`] 
                                                 }
                                               }
                                             >
-                                              🇦🇹
+                                              🇫🇷
                                             </Text>
                                           </View>
                                           <View>
@@ -2267,7 +1908,7 @@ exports[`RegionSelectorModal Component (snapshot) renders the default modal 1`] 
                                                 }
                                               }
                                             >
-                                              Austria
+                                              France
                                             </Text>
                                           </View>
                                         </View>
@@ -2280,400 +1921,6 @@ exports[`RegionSelectorModal Component (snapshot) renders the default modal 1`] 
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
                                 style={null}
-                              >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
-                                  }
-                                >
-                                  <View
-                                    accessibilityRole="none"
-                                    accessible={true}
-                                    style={
-                                      {
-                                        "padding": 16,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          {
-                                            "flex": 1,
-                                          }
-                                        }
-                                        testID="listitemcolumn"
-                                      >
-                                        <View
-                                          style={
-                                            {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              {
-                                                "marginRight": 12,
-                                              }
-                                            }
-                                          >
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
-                                                  "fontSize": 18,
-                                                  "fontWeight": "500",
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              🇧🇪
-                                            </Text>
-                                          </View>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
-                                                  "fontSize": 18,
-                                                  "fontWeight": "500",
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              Belgium
-                                            </Text>
-                                          </View>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </View>
-                                </TouchableOpacity>
-                              </View>
-                              <View
-                                onFocusCapture={[Function]}
-                                onLayout={[Function]}
-                                style={null}
-                              >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
-                                  }
-                                >
-                                  <View
-                                    accessibilityRole="none"
-                                    accessible={true}
-                                    style={
-                                      {
-                                        "padding": 16,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          {
-                                            "flex": 1,
-                                          }
-                                        }
-                                        testID="listitemcolumn"
-                                      >
-                                        <View
-                                          style={
-                                            {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              {
-                                                "marginRight": 12,
-                                              }
-                                            }
-                                          >
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
-                                                  "fontSize": 18,
-                                                  "fontWeight": "500",
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              🇨🇿
-                                            </Text>
-                                          </View>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
-                                                  "fontSize": 18,
-                                                  "fontWeight": "500",
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              Czech Republic
-                                            </Text>
-                                          </View>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </View>
-                                </TouchableOpacity>
-                              </View>
-                              <View
-                                onFocusCapture={[Function]}
-                                onLayout={[Function]}
-                                style={null}
-                              >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
-                                  }
-                                >
-                                  <View
-                                    accessibilityRole="none"
-                                    accessible={true}
-                                    style={
-                                      {
-                                        "padding": 16,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          {
-                                            "flex": 1,
-                                          }
-                                        }
-                                        testID="listitemcolumn"
-                                      >
-                                        <View
-                                          style={
-                                            {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              {
-                                                "marginRight": 12,
-                                              }
-                                            }
-                                          >
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
-                                                  "fontSize": 18,
-                                                  "fontWeight": "500",
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              🇩🇰
-                                            </Text>
-                                          </View>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
-                                                  "fontSize": 18,
-                                                  "fontWeight": "500",
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              Denmark
-                                            </Text>
-                                          </View>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </View>
-                                </TouchableOpacity>
-                              </View>
-                              <View
-                                onFocusCapture={[Function]}
-                                onLayout={[Function]}
-                                style={null}
-                              >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
-                                  }
-                                >
-                                  <View
-                                    accessibilityRole="none"
-                                    accessible={true}
-                                    style={
-                                      {
-                                        "padding": 16,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          {
-                                            "flex": 1,
-                                          }
-                                        }
-                                        testID="listitemcolumn"
-                                      >
-                                        <View
-                                          style={
-                                            {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              {
-                                                "marginRight": 12,
-                                              }
-                                            }
-                                          >
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
-                                                  "fontSize": 18,
-                                                  "fontWeight": "500",
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              🇪🇪
-                                            </Text>
-                                          </View>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
-                                                  "fontSize": 18,
-                                                  "fontWeight": "500",
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              Estonia
-                                            </Text>
-                                          </View>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </View>
-                                </TouchableOpacity>
-                              </View>
-                              <View
-                                style={
-                                  {
-                                    "height": 0,
-                                  }
-                                }
                               />
                             </View>
                           </RCTScrollView>
@@ -2692,7 +1939,7 @@ exports[`RegionSelectorModal Component (snapshot) renders the default modal 1`] 
 </View>
 `;
 
-exports[`RegionSelectorModal Component (snapshot) renders with search results 1`] = `
+exports[`RegionSelectorModal Component region selector modal renders with search results 1`] = `
 <View
   style={
     {
@@ -3377,6 +2624,7 @@ exports[`RegionSelectorModal Component (snapshot) renders with search results 1`
                             keyExtractor={[Function]}
                             keyboardDismissMode="none"
                             keyboardShouldPersistTaps="always"
+                            nestedScrollEnabled={true}
                             onContentSizeChange={[Function]}
                             onLayout={[Function]}
                             onMomentumScrollBegin={[Function]}
