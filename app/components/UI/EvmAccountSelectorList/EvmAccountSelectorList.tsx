@@ -558,7 +558,7 @@ const EvmAccountSelectorList = ({
       keyExtractor={getKeyExtractor}
       renderItem={renderItem}
       // Increasing number of items at initial render fixes scroll issue.
-      initialNumToRender={accounts.length} // Using the optimal numbers seems ok here.
+      initialNumToRender={flattenedData.length} // Using the optimal number of items.
       testID={ACCOUNT_SELECTOR_LIST_TESTID}
       {...props}
     />
