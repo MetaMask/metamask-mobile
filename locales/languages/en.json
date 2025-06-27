@@ -484,6 +484,11 @@
       "search_by_name_or_address": "Search token by name or address",
       "no_tokens_found": "No tokens match \"{{searchString}}\""
     },
+    "region_modal": {
+      "select_a_region": "Select a region",
+      "search_by_country": "Search by country",
+      "no_regions_found": "No regions match \"{{searchString}}\""
+    },
     "payment_modal": {
       "select_a_payment_method": "Select a Payment Method"
     },
