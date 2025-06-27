@@ -1,4 +1,10 @@
 import { CaipChainId } from '@metamask/utils';
+import {
+  IconColor,
+  IconName,
+} from '../../../../component-library/components/Icons/Icon';
+import { brandColor } from '@metamask/design-tokens';
+import { AppThemeKey } from '../../../../util/theme/models';
 
 export const FIAT_CURRENCIES = ['USD', 'EUR'];
 
@@ -16,7 +22,12 @@ export interface DepositCryptoCurrency {
 export interface DepositPaymentMethod {
   id: string;
   name: string;
-  duration: string;
+  duration: 'instant' | '1_to_2_days';
+  icon: IconName;
+  iconColor?:
+    | string
+    | IconColor
+    | { [AppThemeKey.light]: string; [AppThemeKey.dark]: string };
 }
 
 export interface DepositFiatCurrency {
@@ -70,8 +81,25 @@ export const SUPPORTED_DEPOSIT_TOKENS: DepositCryptoCurrency[] = [
 export const DEBIT_CREDIT_PAYMENT_METHOD: DepositPaymentMethod = {
   id: 'credit_debit_card',
   name: 'Debit or Credit',
-  duration: 'Instant',
+  duration: 'instant',
+  icon: IconName.Card,
 };
+
+export const APPLE_PAY_PAYMENT_METHOD: DepositPaymentMethod = {
+  id: 'apple_pay',
+  name: 'Apple Pay',
+  duration: 'instant',
+  icon: IconName.Apple,
+  iconColor: {
+    light: brandColor.black,
+    dark: brandColor.white,
+  },
+};
+
+export const SUPPORTED_PAYMENT_METHODS: DepositPaymentMethod[] = [
+  DEBIT_CREDIT_PAYMENT_METHOD,
+  APPLE_PAY_PAYMENT_METHOD,
+];
 
 export const USD_CURRENCY: DepositFiatCurrency = {
   id: 'USD',
@@ -92,7 +120,6 @@ export const TRANSAK_NETWORKS: Record<string, CaipChainId> = {
 };
 
 export const DEPOSIT_REGIONS: DepositRegion[] = [
-  // Europe - Supported
   {
     code: 'AD',
     flag: '🇦🇩',
@@ -485,8 +512,6 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     placeholder: '123 456 789',
     supported: false,
   },
-
-  // United States - Supported
   {
     code: 'US',
     flag: '🇺🇸',
@@ -498,8 +523,6 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     recommended: true,
     supported: true,
   },
-
-  // Asia - Not Supported
   {
     code: 'CY',
     flag: '🇨🇾',
@@ -580,8 +603,6 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     placeholder: '123 456 7890',
     supported: false,
   },
-
-  // South America - Not Supported
   {
     code: 'BR',
     flag: '🇧🇷',
@@ -602,8 +623,6 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     placeholder: '123 456 789',
     supported: false,
   },
-
-  // Oceania - Not Supported
   {
     code: 'AU',
     flag: '🇦🇺',
@@ -634,8 +653,6 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     placeholder: '123 456 789',
     supported: false,
   },
-
-  // Africa - Not Supported
   {
     code: 'YT',
     flag: '🇾🇹',

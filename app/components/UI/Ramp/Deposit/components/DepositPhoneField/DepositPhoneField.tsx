@@ -1,15 +1,48 @@
 import React, { useCallback, forwardRef } from 'react';
 import { TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { Theme } from '../../../../../../util/theme/models';
 import { useStyles } from '../../../../../../component-library/hooks';
-import { formatNumberToTemplate } from './formatNumberToTemplate.ts';
 import { DepositRegion } from '../../constants';
 import { useDepositSDK } from '../../sdk';
 import { createRegionSelectorModalNavigationDetails } from '../../Views/Modals/RegionSelectorModal';
 import DepositTextField from '../DepositTextField/DepositTextField';
+
+
+/**
+ * Formats a number string to match a template pattern
+ * @param value - The number string to format
+ * @param template - The template pattern (e.g., "XXX XXX XXXX")
+ * @returns The formatted string matching the template
+ */
+export const formatNumberByTemplate = (
+  value: string,
+  template: string,
+): string => {
+  const digits = value.replace(/\D/g, '');
+
+  if (!digits) return '';
+
+  const templateDigitCount = (template.match(/X/g) || []).length;
+  if (digits.length > templateDigitCount) return digits;
+  let result = '';
+  let digitIndex = 0;
+
+  for (let i = 0; i < template.length && digitIndex < digits.length; i++) {
+    const templateChar = template[i];
+
+    if (templateChar === 'X') {
+      result += digits[digitIndex];
+      digitIndex++;
+    } else {
+      result += templateChar;
+    }
+  }
+
+  return result;
+};
+
 
 interface PhoneFieldProps {
   label: string;
@@ -40,7 +73,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
 const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
   ({ label, value = '', onChangeText, error, onSubmitEditing }, ref) => {
-    const { styles, theme } = useStyles(styleSheet, {});
+    const { styles } = useStyles(styleSheet, {});
     const { selectedRegion, setSelectedRegion } = useDepositSDK();
     const navigation = useNavigation();
     const template = selectedRegion?.template || '(XXX) XXX-XXXX';
@@ -51,7 +84,7 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
         new RegExp(`^${selectedRegion?.phonePrefix?.replace(/\D/g, '')}`),
         '',
       );
-    const formattedValue = formatNumberToTemplate(rawDigits, template);
+    const formattedValue = formatNumberByTemplate(rawDigits, template);
 
     const handleChangeText = useCallback(
       (text: string) => {
@@ -62,7 +95,7 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
         const fullNumber = selectedRegion.phonePrefix + digits;
         onChangeText(fullNumber);
       },
-      [onChangeText, selectedRegion?.phonePrefix],
+      [onChangeText, selectedRegion],
     );
 
     const handleRegionSelect = useCallback(

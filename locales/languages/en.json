@@ -489,6 +489,13 @@
       "search_by_country": "Search by country",
       "no_regions_found": "No regions match \"{{searchString}}\""
     },
+    "payment_modal": {
+      "select_a_payment_method": "Select a Payment Method"
+    },
+    "payment_duration": {
+      "instant":"Instant",
+      "1_to_2_days": "1 to 2 days"
+    },
     "get_started": {
       "title": "Top up your wallet with USDC",
       "bullet_1_title": "Value-backed by the US dollar",

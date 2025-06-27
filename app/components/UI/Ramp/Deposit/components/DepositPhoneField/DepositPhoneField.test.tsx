@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import DepositPhoneField from './DepositPhoneField';
+import DepositPhoneField, { formatNumberByTemplate } from './DepositPhoneField';
 
 const mockSetSelectedRegion = jest.fn();
 const mockNavigation = {
@@ -32,6 +32,40 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../Views/Modals/RegionSelectorModal', () => ({
   createRegionSelectorModalNavigationDetails: jest.fn(() => ['RouteName', {}]),
 }));
+
+describe('formatNumberByTemplate', () => {
+  it('should format a number string to match a template pattern', () => {
+    expect(formatNumberByTemplate('3022297388', 'XXX XXX XXXX')).toBe(
+      '302 229 7388',
+    );
+  });
+
+  it('should handle phone number with parentheses and dashes', () => {
+    expect(formatNumberByTemplate('1234567890', '(XXX) XXX-XXXX')).toBe(
+      '(123) 456-7890',
+    );
+  });
+
+  it('should handle shorter number than template', () => {
+    expect(formatNumberByTemplate('123456', 'XX-XX-XX')).toBe('12-34-56');
+  });
+
+  it('should return unformatted number for longer number than template', () => {
+    expect(formatNumberByTemplate('1234567890123', 'XXX XXX XXXX')).toBe(
+      '1234567890123',
+    );
+  });
+
+  it('should handle empty input', () => {
+    expect(formatNumberByTemplate('', 'XXX XXX XXXX')).toBe('');
+  });
+
+  it('should handle input with non-digit characters', () => {
+    expect(formatNumberByTemplate('302-229-7388', 'XXX XXX XXXX')).toBe(
+      '302 229 7388',
+    );
+  });
+});
 
 describe('DepositPhoneField', () => {
   const mockOnChangeText = jest.fn();

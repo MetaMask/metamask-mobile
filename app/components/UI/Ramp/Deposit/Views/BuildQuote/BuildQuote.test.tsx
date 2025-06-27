@@ -154,6 +154,21 @@ describe('BuildQuote Component', () => {
     });
   });
 
+  describe('Payment Method Selection', () => {
+    it('navigates to payment method selection payment button is pressed', () => {
+      render(BuildQuote);
+      const payWithButton = screen.getByText('Pay with');
+      fireEvent.press(payWithButton);
+      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositPaymentMethodSelectorModal',
+        params: {
+          handleSelectPaymentMethodId: expect.any(Function),
+          selectedPaymentMethodId: 'credit_debit_card',
+        },
+      });
+    });
+  });
+
   describe('Keypad Functionality', () => {
     it('updates amount when keypad is used', () => {
       render(BuildQuote);
