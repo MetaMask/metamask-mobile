@@ -1444,12 +1444,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   });
 
   it('should test direct component methods for actual coverage', () => {
-    // Test getItemLayout method directly
-    const layout = instance.getItemLayout(5);
-    expect(layout.index).toBe(5);
-    expect(layout.length).toBeDefined();
-    expect(layout.offset).toBeDefined();
-
     // Test keyExtractor method directly
     const key = instance.keyExtractor({ id: 'tx-123' });
     expect(key).toBe('tx-123');

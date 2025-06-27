@@ -27,6 +27,7 @@ import {
   ARBITRUM_CHAIN_ID,
   ZKSYNC_ERA_CHAIN_ID,
 } from '@metamask/swaps-controller/dist/constants';
+import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { Box } from '../../Box/Box';
 import { getNetworkImageSource } from '../../../../util/networks';
@@ -79,6 +80,7 @@ const ChainPopularity: Record<Hex | CaipChainId, number> = {
   [AVALANCHE_CHAIN_ID]: 9,
   [POLYGON_CHAIN_ID]: 8,
   [ZKSYNC_ERA_CHAIN_ID]: 10,
+  [NETWORKS_CHAIN_ID.SEI]: 11,
 };
 
 const ShortChainNames: Record<Hex | CaipChainId, string> = {

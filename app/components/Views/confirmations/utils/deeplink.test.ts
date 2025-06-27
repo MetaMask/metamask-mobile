@@ -58,6 +58,7 @@ describe('isDeeplinkRedesignedConfirmationCompatible', () => {
     approve: false,
     transfer: true,
     signatures: true,
+    contract_deployment: false,
     staking_confirmations: false,
     contract_interaction: false,
   };

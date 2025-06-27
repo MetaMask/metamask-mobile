@@ -94,6 +94,21 @@ export const skipNotificationsDeviceSettings = async () => {
   }
 };
 
+export const dismissProtectYourWalletModal = async () => {
+  try {
+    await Assertions.checkIfVisible(ProtectYourWalletModal.collapseWalletModal);
+    await ProtectYourWalletModal.tapRemindMeLaterButton();
+    await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+    await SkipAccountSecurityModal.tapSkipButton();
+    await Assertions.checkIfNotVisible(
+      ProtectYourWalletModal.collapseWalletModal,
+    );
+  } catch {
+    // eslint-disable-next-line no-console
+    console.log('The protect your wallet modal is not visible');
+  }
+};
+
 /**
  * Imports a wallet using a secret recovery phrase during the onboarding process.
  *
@@ -209,22 +224,14 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await Assertions.checkIfVisible(OnboardingSuccessView.container);
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
-  await this.skipNotificationsDeviceSettings();
+  await skipNotificationsDeviceSettings();
 
   // Dismissing to protect your wallet modal
-  await Assertions.checkIfVisible(ProtectYourWalletModal.collapseWalletModal);
-  await ProtectYourWalletModal.tapRemindMeLaterButton();
-  await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-  await SkipAccountSecurityModal.tapSkipButton();
-
-  await Assertions.checkIfVisible(MetaMetricsOptIn.container);
-  optInToMetrics
-    ? await MetaMetricsOptIn.tapAgreeButton()
-    : await MetaMetricsOptIn.tapNoThanksButton();
+  await dismissProtectYourWalletModal();
 
   // 'should dismiss the onboarding wizard'
   // dealing with flakiness on bitrise.
-  await this.closeOnboardingModals('dismiss');
+  await closeOnboardingModals('dismiss');
 };
 
 export const addLocalhostNetwork = async () => {

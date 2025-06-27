@@ -433,7 +433,7 @@ export const Browser = (props) => {
               newTab={newTab}
               updateTabInfo={updateTabInfo}
             />
-          )
+          );
         }),
     [
       tabs,

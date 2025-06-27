@@ -1108,7 +1108,7 @@ describe('EvmAccountSelectorList', () => {
 
     // Render the component to ensure it handles accounts with balance errors
     const { getByTestId } = renderComponent(initialState);
-    
+
     // Verify the component renders successfully even with balance errors
     expect(getByTestId(ACCOUNT_SELECTOR_LIST_TESTID)).toBeDefined();
   });
@@ -1311,10 +1311,10 @@ describe('EvmAccountSelectorList', () => {
     jest
       .requireMock('../../../util/address')
       .getLabelTextByAddress.mockReturnValue('Imported');
-    
+
     const multichainState = getMultichainState();
     const { queryByText } = renderComponent(multichainState);
-    
+
     // Tag labels should not be rendered when multichain is enabled
     // Even though getLabelTextByAddress might be called, its result shouldn't be displayed
     expect(queryByText('Imported')).toBeNull();

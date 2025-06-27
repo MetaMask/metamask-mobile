@@ -5,12 +5,18 @@
 import { useNavigation } from '@react-navigation/native';
 import { parse } from 'eth-url-parser';
 import { isValidAddress } from 'ethereumjs-util';
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 import { Alert, Image, InteractionManager, View, Linking } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { RNCamera } from 'react-native-camera';
+import {
+  Camera,
+  useCameraDevice,
+  useCameraPermission,
+  useCodeScanner,
+  Code,
+} from 'react-native-vision-camera';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { PROTOCOLS } from '../../../constants/deeplinks';
@@ -51,9 +57,18 @@ const QRScanner = ({
   const mountedRef = useRef<boolean>(true);
   const shouldReadBarCodeRef = useRef<boolean>(true);
 
+  const cameraDevice = useCameraDevice('back');
+  const { hasPermission, requestPermission } = useCameraPermission();
+
   const currentChainId = useSelector(selectChainId);
   const theme = useTheme();
   const styles = createStyles(theme);
+
+  useEffect(() => {
+    if (!hasPermission) {
+      requestPermission();
+    }
+  }, [hasPermission, requestPermission]);
 
   const end = useCallback(() => {
     mountedRef.current = false;
@@ -97,7 +112,10 @@ const QRScanner = ({
   );
 
   const onBarCodeRead = useCallback(
-    async (response: { data: string }) => {
+    async (codes: Code[]) => {
+      if (!codes.length) return;
+
+      const response = { data: codes[0].value };
       let content = response.data;
       /**
        * Barcode read triggers multiple times
@@ -247,6 +265,11 @@ const QRScanner = ({
     ],
   );
 
+  const codeScanner = useCodeScanner({
+    codeTypes: ['qr'],
+    onCodeScanned: onBarCodeRead,
+  });
+
   const showCameraNotAuthorizedAlert = () =>
     Alert.alert(
       strings('qr_scanner.not_allowed_error_title'),
@@ -275,32 +298,30 @@ const QRScanner = ({
     [onScanError, navigation],
   );
 
-  const onStatusChange = useCallback(
-    (event: { cameraStatus: string }) => {
-      if (event.cameraStatus === 'NOT_AUTHORIZED') {
-        showCameraNotAuthorizedAlert();
-        navigation.goBack();
-      }
-    },
-    [navigation],
-  );
+  if (!hasPermission) {
+    showCameraNotAuthorizedAlert();
+    return null;
+  }
+
+  if (!cameraDevice) {
+    return (
+      <View style={styles.container}>
+        <Text variant={TextVariant.BodyLGMedium} style={styles.overlayText}>
+          {strings('qr_scanner.camera_not_available')}
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <RNCamera
-        onMountError={onError}
-        captureAudio={false}
+      <Camera
         style={styles.preview}
-        type={RNCamera.Constants.Type.back}
-        onBarCodeRead={onBarCodeRead}
-        flashMode={RNCamera.Constants.FlashMode.auto}
-        androidCameraPermissionOptions={{
-          title: strings('qr_scanner.allow_camera_dialog_title'),
-          message: strings('qr_scanner.allow_camera_dialog_message'),
-          buttonPositive: strings('qr_scanner.ok'),
-          buttonNegative: strings('qr_scanner.cancel'),
-        }}
-        onStatusChange={onStatusChange}
+        device={cameraDevice}
+        isActive={mountedRef.current}
+        codeScanner={codeScanner}
+        torch="off"
+        onError={onError}
       />
       <View style={styles.overlayContainerColumn}>
         <View style={styles.overlay} />

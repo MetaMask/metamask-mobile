@@ -4,7 +4,7 @@ import useNotificationHandler from './index';
 // eslint-disable-next-line import/no-namespace
 import * as UseRegisterPushNotificationsEffect from './useRegisterPushNotificationsEffect';
 // eslint-disable-next-line import/no-namespace
-import * as UseNotifications from './useNotifications';
+import * as UseNotifications from './useStartupNotificationsEffect';
 
 describe('useNotificationHandler', () => {
   beforeEach(() => {
@@ -25,7 +25,7 @@ describe('useNotificationHandler', () => {
       .mockImplementation(jest.fn());
 
     const mockUseListNotificationsEffect = jest
-      .spyOn(UseNotifications, 'useListNotificationsEffect')
+      .spyOn(UseNotifications, 'useStartupNotificationsEffect')
       .mockImplementation(jest.fn());
 
     return {

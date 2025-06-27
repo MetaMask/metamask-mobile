@@ -23,6 +23,8 @@ import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import {
   importAccountFromPrivateKey,
+} from '../../../util/importAccountFromPrivateKey';
+import {
   getLabelTextByAddress,
 } from '../../../util/address';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';

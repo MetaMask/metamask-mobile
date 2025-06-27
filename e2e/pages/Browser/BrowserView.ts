@@ -10,7 +10,10 @@ import { AddBookmarkViewSelectorsIDs } from '../../selectors/Browser/AddBookmark
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 import { waitForTestDappToLoad } from '../../viewHelper';
-import { TEST_DAPP_LOCAL_URL, getSecondTestDappLocalUrl } from '../../fixtures/utils';
+import {
+  TEST_DAPP_LOCAL_URL,
+  getSecondTestDappLocalUrl,
+} from '../../fixtures/utils';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
@@ -124,7 +127,7 @@ class Browser {
   }
 
   async tapUrlInputBox(): Promise<void> {
-    await Gestures.waitAndTap(this.addressBar);
+    await Gestures.waitAndTap(this.urlInputBoxID);
   }
 
   async tapLocalHostDefaultAvatar(): Promise<void> {
@@ -207,9 +210,12 @@ class Browser {
   }
 
   async navigateToURL(url: string): Promise<void> {
-    await device.disableSynchronization();// because animations makes typing into the browser slow
-    await Gestures.typeTextAndHideKeyboard(this.urlInputBoxID as Promise<IndexableNativeElement>, url);
-    await device.enableSynchronization();// re-enabling synchronization
+    await device.disableSynchronization(); // because animations makes typing into the browser slow
+    await Gestures.typeTextAndHideKeyboard(
+      this.urlInputBoxID as Promise<IndexableNativeElement>,
+      url,
+    );
+    await device.enableSynchronization(); // re-enabling synchronization
   }
 
   async waitForBrowserPageToLoad(): Promise<void> {
@@ -228,7 +234,11 @@ class Browser {
     await waitForTestDappToLoad();
   }
 
-  async navigateToTestDAppTransaction({ transactionParams }: { transactionParams: TransactionParams }): Promise<void> {
+  async navigateToTestDAppTransaction({
+    transactionParams,
+  }: {
+    transactionParams: TransactionParams;
+  }): Promise<void> {
     // Intentionally open the test dapp first to avoid flakiness
     await this.navigateToTestDApp();
     await this.tapUrlInputBox();

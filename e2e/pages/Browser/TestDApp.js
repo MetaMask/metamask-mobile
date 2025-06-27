@@ -183,6 +183,13 @@ class TestDApp {
     );
   }
 
+  get deployContractButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.DEPLOY_CONTRACT_BUTTON_ID,
+    );
+  }
+
   async connect() {
     await this.tapButton(this.DappConnectButton);
   }
@@ -286,6 +293,10 @@ class TestDApp {
 
   async tapSendEIP1559Button() {
     await this.tapButton(this.sendEIP1559Button);
+  }
+
+  async tapDeployContractButton() {
+    await this.tapButton(this.deployContractButton);
   }
 }
 

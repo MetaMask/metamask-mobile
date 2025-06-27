@@ -4,7 +4,11 @@ import ProviderWebview from './ProviderWebview';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
-import { OttResponse } from '@consensys/native-ramps-sdk';
+import {
+  OttResponse,
+  DepositOrder,
+  DepositOrderType,
+} from '@consensys/native-ramps-sdk';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -40,9 +44,9 @@ jest.mock('../../../../../UI/Navbar', () => ({
 }));
 
 jest.mock('../OrderProcessing/OrderProcessing', () => ({
-  createOrderProcessingNavDetails: jest.fn(({ quoteId }) => [
+  createOrderProcessingNavDetails: jest.fn(({ orderId }) => [
     'OrderScreen',
-    { quoteId },
+    { orderId },
   ]),
 }));
 
@@ -66,7 +70,12 @@ function setupDepositSdkMocks(
   paymentUrlData: string | null = null,
   paymentUrlError: string | null = null,
   paymentUrlIsFetching: boolean = false,
+  orderData: Partial<DepositOrder> | null = null,
+  orderError: string | null = null,
+  orderIsFetching: boolean = false,
 ) {
+  const mockGetOrder = jest.fn().mockResolvedValue(orderData);
+
   (useDepositSdkMethod as jest.Mock).mockImplementation(
     (options: string | { method: string }) => {
       const method = typeof options === 'string' ? options : options.method;
@@ -85,6 +94,12 @@ function setupDepositSdkMocks(
             isFetching: paymentUrlIsFetching,
           },
           mockGeneratePaymentUrl,
+        ];
+      }
+      if (method === 'getOrder') {
+        return [
+          { data: orderData, error: orderError, isFetching: orderIsFetching },
+          mockGetOrder,
         ];
       }
       return [{ data: null, error: null, isFetching: false }, jest.fn()];
@@ -145,7 +160,23 @@ describe('ProviderWebview Component', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('navigates to order processing when URL contains orderId', () => {
+  it('navigates to order processing when URL contains orderId', async () => {
+    const mockOrder: Partial<DepositOrder> = {
+      id: 'abc123',
+      provider: 'test-provider',
+      createdAt: 1673886669608,
+      fiatAmount: 123,
+      totalFeesFiat: 9,
+      cryptoAmount: 0.012361263,
+      cryptoCurrency: 'BTC',
+      fiatCurrency: 'USD',
+      network: 'ethereum',
+      status: 'COMPLETED',
+      orderType: DepositOrderType.Deposit,
+      walletAddress: '0x1234',
+      txHash: '0x987654321',
+    };
+
     setupDepositSdkMocks(
       { token: 'test-token' },
       null,
@@ -153,17 +184,22 @@ describe('ProviderWebview Component', () => {
       'https://test-payment-url.com',
       null,
       false,
+      mockOrder,
+      null,
+      false,
     );
 
     render(ProviderWebview);
 
     // Simulate navigation state change
-    mockWebViewProps.onNavigationStateChange({
-      url: 'https://metamask.io/checkout?orderId=abc123',
+    await act(async () => {
+      await mockWebViewProps.onNavigationStateChange({
+        url: 'https://metamask.io/checkout?orderId=abc123',
+      });
     });
 
     expect(mockNavigate).toHaveBeenCalledWith('OrderScreen', {
-      quoteId: 'abc123',
+      orderId: 'abc123',
     });
   });
 

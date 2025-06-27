@@ -51,6 +51,7 @@ export const mockEvents = {
           confirmation_redesign: {
             signatures: false,
             staking_confirmations: false,
+            contract_deployment: false,
             contract_interaction: false,
             transfer: false,
           },
@@ -74,6 +75,7 @@ export const mockEvents = {
           confirmation_redesign: {
             signatures: true,
             staking_confirmations: true,
+            contract_deployment: true,
             contract_interaction: true,
             transfer: true,
           },
@@ -177,6 +179,7 @@ export const mockEvents = {
     segmentTrack: {
       urlEndpoint: E2E_METAMETRICS_TRACK_URL,
       responseCode: 200,
+      response: { success: true },
     },
   },
 };

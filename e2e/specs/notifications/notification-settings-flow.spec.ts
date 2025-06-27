@@ -60,7 +60,7 @@ describe(SmokeNetworkAbstractions('Notification Settings Flow'), () => {
 
   it('enables notifications toggle', async () => {
     await NotificationSettingsView.tapNotificationToggle();
-    TestHelpers.delay(2000);
+    await TestHelpers.delay(2000);
     await Assertions.checkIfVisible(
       NotificationSettingsView.pushNotificationsToggle,
     );
@@ -74,16 +74,16 @@ describe(SmokeNetworkAbstractions('Notification Settings Flow'), () => {
 
   it('toggles push notification switch on and off', async () => {
     await NotificationSettingsView.tapPushNotificationsToggle();
-    TestHelpers.delay(2000);
+    await TestHelpers.delay(2000);
     await NotificationSettingsView.tapPushNotificationsToggle();
-    TestHelpers.delay(2000);
+    await TestHelpers.delay(2000);
   });
 
   it('toggles feature announcement switch on and off', async () => {
     await NotificationSettingsView.tapFeatureAnnouncementsToggle();
-    TestHelpers.delay(2000);
+    await TestHelpers.delay(2000);
     await NotificationSettingsView.tapFeatureAnnouncementsToggle();
-    TestHelpers.delay(2000);
+    await TestHelpers.delay(2000);
   });
 
   it('toggles account notifications switch on and off', async () => {
@@ -99,7 +99,7 @@ describe(SmokeNetworkAbstractions('Notification Settings Flow'), () => {
 
   it('disables notifications', async () => {
     await NotificationSettingsView.tapNotificationToggle();
-    TestHelpers.delay(2000);
+    await TestHelpers.delay(2000);
     await Assertions.checkIfNotVisible(
       NotificationSettingsView.pushNotificationsToggle as Promise<IndexableNativeElement>,
     );
