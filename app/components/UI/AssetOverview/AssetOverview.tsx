@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -165,26 +165,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
 
-  // Create a ref to track the last fetch to prevent duplicate requests
-  const lastFetchRef = useRef<string>('');
-  const fetchInProgressRef = useRef<boolean>(false);
-
   // Debounced fetch function to prevent excessive API calls
   const debouncedFetchTokenWithCache = useMemo(
     () =>
       debounce(async (networkClientId: string) => {
-        if (fetchInProgressRef.current) {
-          return;
-        }
-
-        if (lastFetchRef.current === networkClientId) {
-          return; // Skip if we've already fetched for this network recently
-        }
-
         try {
-          fetchInProgressRef.current = true;
-          lastFetchRef.current = networkClientId;
-
           const { SwapsController } = Engine.context;
           await SwapsController.fetchTokenWithCache({
             networkClientId,
@@ -194,11 +179,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             error as Error,
             'AssetOverview: Error fetching tokens with cache',
           );
-
-          // Reset cache key on error to allow retry
-          lastFetchRef.current = '';
-        } finally {
-          fetchInProgressRef.current = false;
         }
       }, 300), // 300ms debounce
     [],
