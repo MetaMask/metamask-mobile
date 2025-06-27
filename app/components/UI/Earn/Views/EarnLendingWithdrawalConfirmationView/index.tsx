@@ -364,6 +364,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
           emitWithdrawalTxMetaMetric(
             MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED,
           );
+          navigation.navigate(Routes.TRANSACTIONS_VIEW);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
@@ -374,7 +375,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
           emitWithdrawalTxMetaMetric(
             MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED,
           );
-          navigation.navigate(Routes.TRANSACTIONS_VIEW);
         },
         (transactionMeta) => transactionMeta.id === transactionId,
       );
