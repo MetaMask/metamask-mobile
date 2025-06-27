@@ -85,6 +85,14 @@ const styleSheet = (params: { theme: Theme }) => {
     text: {
       color: colors.text.alternative,
     },
+    modalStyle: {
+      justifyContent: 'flex-end',
+      margin: 0,
+    },
+    modalContent: {
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+    },
   });
 };
 

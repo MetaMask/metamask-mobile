@@ -513,7 +513,13 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                 }
                 width={20}
               />
-              <View>
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
                 <Text
                   accessibilityRole="text"
                   style={

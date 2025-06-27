@@ -133,6 +133,7 @@ exports[`Earnings displays lending maintenance banner when feature flag is enabl
                 "width": 24,
               }
             }
+            testID="annual-rate-tooltip"
           >
             <SvgMock
               color="#9ca1af"
@@ -481,6 +482,7 @@ exports[`Earnings displays pooled-staking maintenance banner when feature flag i
                 "width": 24,
               }
             }
+            testID="annual-rate-tooltip"
           >
             <SvgMock
               color="#9ca1af"
@@ -770,6 +772,7 @@ exports[`Earnings should render correctly 1`] = `
                 "width": 24,
               }
             }
+            testID="annual-rate-tooltip"
           >
             <SvgMock
               color="#9ca1af"
