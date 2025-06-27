@@ -76,7 +76,7 @@ describe('BasicInfo Component', () => {
       '1234567890',
     );
     fireEvent.changeText(
-      screen.getByPlaceholderText('MM/DD/YYYY'),
+      screen.getByTestId('date-of-birth-input'),
       '01/01/1990',
     );
     fireEvent.changeText(

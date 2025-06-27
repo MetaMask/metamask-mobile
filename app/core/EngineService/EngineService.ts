@@ -110,6 +110,9 @@ export class EngineService {
           Logger.log('keyringController vault missing for INIT_BG_STATE_KEY');
         }
         this.updateBatcher.add(INIT_BG_STATE_KEY);
+        // immediately flush the redux action
+        // so that the initial state is available to the redux store
+        this.updateBatcher.flush();
         this.engineInitialized = true;
       },
       () => !this.engineInitialized,
@@ -139,17 +142,17 @@ export class EngineService {
       }
    */
   async initializeVaultFromBackup(): Promise<VaultBackupResult> {
-    const keyringState = await getVaultFromBackup();
+    const vaultBackupResult = await getVaultFromBackup();
     const reduxState = ReduxService.store.getState();
     const state = reduxState?.engine?.backgroundState ?? {};
     const Engine = UntypedEngine;
     // This ensures we create an entirely new engine
     await Engine.destroyEngine();
     this.engineInitialized = false;
-    if (keyringState) {
+    if (vaultBackupResult.success) {
       const newKeyringState: KeyringControllerState = {
         keyrings: [],
-        vault: keyringState.vault,
+        vault: vaultBackupResult.vault,
         isUnlocked: false,
       };
 

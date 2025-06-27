@@ -74,6 +74,9 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
     >
       <View
         collapsable={false}
+        enabled={false}
+        handlerTag={1}
+        handlerType="PanGestureHandler"
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
         onLayout={[Function]}
@@ -85,7 +88,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
               "borderTopLeftRadius": 8,
               "borderTopRightRadius": 8,
               "borderWidth": 1,
-              "maxHeight": 1334,
+              "maxHeight": 640,
               "overflow": "hidden",
               "paddingBottom": 0,
               "shadowColor": "#0000001a",
@@ -99,7 +102,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
             {
               "transform": [
                 {
-                  "translateY": 1334,
+                  "translateY": 640,
                 },
               ],
             },

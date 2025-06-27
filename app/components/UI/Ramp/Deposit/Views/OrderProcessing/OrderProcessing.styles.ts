@@ -2,16 +2,17 @@ import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
-    container: {
+    content: {
+      flex: 1,
+      paddingHorizontal: 16,
+    },
+    errorContainer: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      paddingHorizontal: 4,
     },
-    heading: {
-      textAlign: 'center',
-      marginTop: 12,
-      marginBottom: 16,
+    buttonContainer: {
+      gap: 16,
     },
   });
 

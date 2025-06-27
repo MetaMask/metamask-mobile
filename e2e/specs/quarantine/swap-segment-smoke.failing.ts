@@ -59,7 +59,6 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
       permissions: { notifications: 'YES' },
       launchArgs: {
         fixtureServerPort: `${getFixturesServerPort()}`,
-        sendMetaMetricsinE2E: true,
       },
     });
     await loginToApp();
@@ -112,10 +111,12 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
     await QuoteView.tapOnGetQuotes();
     await Assertions.checkIfVisible(SwapView.quoteSummary);
     await SwapView.tapIUnderstandPriceWarning();
+    await device.disableSynchronization();
     await SwapView.tapViewDetailsAllQuotes();
     await Assertions.checkIfVisible(QuotesModal.header);
     await QuotesModal.close();
     await Assertions.checkIfNotVisible(QuotesModal.header);
+    await device.enableSynchronization();
   });
 
   it('should validate segment/metametric events for a cancel and viewing all available quotes', async () => {
@@ -142,25 +143,25 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
 
     await softAssert.checkAndCollect(
       async () => Assertions.checkIfObjectContains(
-        allAvailableQuotesOpenedEvent.properties,
-        {
-          action: 'Quote',
-          name: 'Swaps',
-          token_from: 'ETH',
-          token_to: 'DAI',
-          request_type: 'Order',
-          slippage: 2,
-          custom_slippage: false,
-          chain_id: '1',
-          token_from_amount: '0.01',
-        },
-      ),
+          allAvailableQuotesOpenedEvent.properties,
+          {
+            action: 'Quote',
+            name: 'Swaps',
+            token_from: 'ETH',
+            token_to: 'DAI',
+            request_type: 'Order',
+            slippage: 2,
+            custom_slippage: false,
+            chain_id: '1',
+            token_from_amount: '0.01',
+          },
+        ),
       'All Available Quotes Opened: Check main properties',
     );
 
     await softAssert.checkAndCollect(
       () =>
-        Assertions.checkIfValueIsPresent(
+        Assertions.checkIfValueIsDefined(
           allAvailableQuotesOpenedEvent.properties.response_time,
         ),
       'All Available Quotes Opened: Check response_time',
@@ -168,7 +169,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
 
     await softAssert.checkAndCollect(
       () =>
-        Assertions.checkIfValueIsPresent(
+        Assertions.checkIfValueIsDefined(
           allAvailableQuotesOpenedEvent.properties.best_quote_source,
         ),
       'All Available Quotes Opened: Check best_quote_source',
@@ -176,7 +177,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
 
     await softAssert.checkAndCollect(
       () =>
-        Assertions.checkIfValueIsPresent(
+        Assertions.checkIfValueIsDefined(
           allAvailableQuotesOpenedEvent.properties.network_fees_USD,
         ),
       'All Available Quotes Opened: Check network_fees_USD',
@@ -184,7 +185,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
 
     await softAssert.checkAndCollect(
       () =>
-        Assertions.checkIfValueIsPresent(
+        Assertions.checkIfValueIsDefined(
           allAvailableQuotesOpenedEvent.properties.network_fees_ETH,
         ),
       'All Available Quotes Opened: Check network_fees_ETH',
@@ -192,7 +193,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
 
     await softAssert.checkAndCollect(
       () =>
-        Assertions.checkIfValueIsPresent(
+        Assertions.checkIfValueIsDefined(
           allAvailableQuotesOpenedEvent.properties.available_quotes,
         ),
       'All Available Quotes Opened: Check available_quotes',
@@ -200,7 +201,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
 
     await softAssert.checkAndCollect(
       () =>
-        Assertions.checkIfValueIsPresent(
+        Assertions.checkIfValueIsDefined(
           allAvailableQuotesOpenedEvent.properties.token_to_amount,
         ),
       'All Available Quotes Opened: Check token_to_amount',
@@ -212,24 +213,24 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
 
     await softAssert.checkAndCollect(
       async () => Assertions.checkIfObjectContains(
-        quotesRequestCancelledEvent.properties,
-        {
-          action: 'Quote',
-          name: 'Swaps',
-          token_from: 'ETH',
-          token_to: 'DAI',
-          request_type: 'Order',
-          custom_slippage: false,
-          chain_id: '1',
-          token_from_amount: '0.01',
-        },
-      ),
+          quotesRequestCancelledEvent.properties,
+          {
+            action: 'Quote',
+            name: 'Swaps',
+            token_from: 'ETH',
+            token_to: 'DAI',
+            request_type: 'Order',
+            custom_slippage: false,
+            chain_id: '1',
+            token_from_amount: '0.01',
+          },
+        ),
       'Quotes Request Cancelled: Check properties',
     );
 
     await softAssert.checkAndCollect(
       () =>
-        Assertions.checkIfValueIsPresent(
+        Assertions.checkIfValueIsDefined(
           quotesRequestCancelledEvent.properties.responseTime,
         ),
       'Quotes Request Cancelled: Check responseTime',

@@ -80,7 +80,7 @@ describe('Switch Account Type Modal', () => {
     expect(getByText('Account 1')).toBeTruthy();
     expect(getByText('Sepolia')).toBeTruthy();
     expect(getByText('Smart Account')).toBeTruthy();
-    expect(getByText('Switch')).toBeTruthy();
+    expect(getByText('Switch back')).toBeTruthy();
   });
 
   it('displays spinner when network list is loading', () => {
