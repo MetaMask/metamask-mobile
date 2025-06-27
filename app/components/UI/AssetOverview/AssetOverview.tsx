@@ -165,12 +165,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
 
-  // Memoize the network client ID to prevent unnecessary re-renders
-  const memoizedNetworkClientId = useMemo(
-    () => selectedNetworkClientId,
-    [selectedNetworkClientId],
-  );
-
   // Create a ref to track the last fetch to prevent duplicate requests
   const lastFetchRef = useRef<string>('');
   const fetchInProgressRef = useRef<boolean>(false);
@@ -211,10 +205,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   );
 
   const fetchTokenWithCache = useCallback(async () => {
-    if (!memoizedNetworkClientId) return;
+    if (!selectedNetworkClientId) return;
 
-    await debouncedFetchTokenWithCache(memoizedNetworkClientId);
-  }, [memoizedNetworkClientId, debouncedFetchTokenWithCache]);
+    await debouncedFetchTokenWithCache(selectedNetworkClientId);
+  }, [selectedNetworkClientId, debouncedFetchTokenWithCache]);
 
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });
