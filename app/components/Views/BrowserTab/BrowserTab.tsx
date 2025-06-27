@@ -469,7 +469,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
   const triggerDappViewedEvent = useCallback((urlToTrigger: string) => {
     const permissionsControllerState =
       Engine.context.PermissionController.state;
-    const hostname = new URLParse(urlToTrigger).hostname;
+    const hostname = new URLParse(urlToTrigger).origin;
     const connectedAccounts = getPermittedCaipAccountIdsByHostname(
       permissionsControllerState,
       hostname,

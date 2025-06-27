@@ -248,7 +248,7 @@ const PermissionsSummary = ({
                       metadata: {
                         origin:
                           currentPageInformation?.url &&
-                          new URL(currentPageInformation?.url).hostname,
+                          new URL(currentPageInformation?.url).origin,
                       },
                     },
                     connectionDateTime: new Date().getTime(),
