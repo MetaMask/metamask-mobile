@@ -4,10 +4,10 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import WalletAddAccountActions from './WalletAddAccountActions';
 
 // Mock dependencies
-jest.mock('../../../../../core/SnapKeyring/MultichainWalletSnapClient');
-jest.mock('../../../../../core/SnapKeyring/utils/getMultichainAccountName');
-jest.mock('../../../../../util/Logger');
-jest.mock('../../../../../actions/multiSrp');
+jest.mock('../../../../../../core/SnapKeyring/MultichainWalletSnapClient');
+jest.mock('../../../../../../core/SnapKeyring/utils/getMultichainAccountName');
+jest.mock('../../../../../../util/Logger');
+jest.mock('../../../../../../actions/multiSrp');
 
 const mockOnBack = jest.fn();
 
