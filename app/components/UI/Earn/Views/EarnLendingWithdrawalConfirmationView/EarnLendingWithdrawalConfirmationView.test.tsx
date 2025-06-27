@@ -280,7 +280,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       Engine.context.EarnController.executeLendingWithdraw,
     ).toHaveBeenCalledWith({
       amount: '1000000',
-      gasOptions: {},
+      gasOptions: {
+        gasLimit: 'none',
+      },
       protocol: LendingProtocol.AAVE,
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
@@ -418,7 +420,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       Engine.context.EarnController.executeLendingWithdraw,
     ).toHaveBeenCalledWith({
       amount: '1000000',
-      gasOptions: {},
+      gasOptions: {
+        gasLimit: 'none',
+      },
       protocol: LendingProtocol.AAVE,
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
@@ -463,7 +467,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     ).toHaveBeenCalledWith({
       amount:
         '115792089237316195423570985008687907853269984665640564039457584007913129639935', // MaxUint256
-      gasOptions: {},
+      gasOptions: {
+        gasLimit: 'none',
+      },
       protocol: LendingProtocol.AAVE,
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
@@ -505,7 +511,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       Engine.context.EarnController.executeLendingWithdraw,
     ).toHaveBeenCalledWith({
       amount: '500000', // Actual amount, not MaxUint256
-      gasOptions: {},
+      gasOptions: {
+        gasLimit: 'none',
+      },
       protocol: LendingProtocol.AAVE,
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',

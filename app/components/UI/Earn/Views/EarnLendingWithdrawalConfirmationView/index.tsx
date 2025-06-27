@@ -307,7 +307,9 @@ const EarnLendingWithdrawalConfirmationView = () => {
         protocol: outputToken.experience?.market?.protocol,
         underlyingTokenAddress:
           outputToken.experience?.market?.underlying?.address,
-        gasOptions: {},
+        gasOptions: {
+          gasLimit: 'none', // pass gas handling to Transactions Controller
+        },
         txOptions: {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
           networkClientId,
