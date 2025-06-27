@@ -1,5 +1,6 @@
+/* eslint-disable no-console */
 // Third party dependencies.
-import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
@@ -8,6 +9,7 @@ import { doENSReverseLookup } from '../../../util/ENSUtils';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectIsMultiAccountBalancesEnabled } from '../../../selectors/preferencesController';
 import {
+  selectFormattedAddressByAccountId,
   selectInternalAccounts,
   selectSelectedInternalAccount,
 } from '../../../selectors/accountsController';
@@ -21,7 +23,6 @@ import {
 } from './useAccounts.types';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
-  getFormattedAddressFromInternalAccount,
   isNonEvmAddress,
 } from '../../../core/Multichain/utils';
 import { useMultichainBalancesForAllAccounts } from '../useMultichainBalances';
@@ -35,14 +36,12 @@ const useAccounts = ({
   checkBalanceError: checkBalanceErrorFn,
   isLoading = false,
 }: UseAccountsParams = {}): UseAccounts => {
-  const isMountedRef = useRef(false);
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [evmAccounts, setEVMAccounts] = useState<Account[]>([]);
-  const [ensByAccountAddress, setENSByAccountAddress] =
-    useState<EnsByAccountAddress>({});
   const currentChainId = useSelector(selectChainId);
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const formattedAddressByAccountId = useSelector(selectFormattedAddressByAccountId);
+  const [ensByAccountAddress, setENSByAccountAddress] =
+    useState<EnsByAccountAddress>({});
 
   const { multichainBalancesForAllAccounts } =
     useMultichainBalancesForAllAccounts();
@@ -55,6 +54,7 @@ const useAccounts = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
+
   const fetchENSNames = useCallback(
     async ({
       flattenedAccounts,
@@ -93,7 +93,6 @@ const useAccounts = ({
 
       // Iterate outwards in both directions starting at the starting index.
       while (mirrorIndex >= 0 || safeStartingIndex < flattenedAccounts.length) {
-        if (!isMountedRef.current) return;
         if (safeStartingIndex < flattenedAccounts.length) {
           await fetchENSName(safeStartingIndex);
         }
@@ -104,7 +103,7 @@ const useAccounts = ({
         safeStartingIndex++;
       }
       // Only update state if we have new ENS names
-      if (hasChanges && isMountedRef.current) {
+      if (hasChanges) {
         setENSByAccountAddress((prevState) => ({
           ...prevState,
           ...latestENSbyAccountAddress,
@@ -146,88 +145,74 @@ const useAccounts = ({
     return balances;
   }, [internalAccounts, multichainBalancesForAllAccounts, checkBalanceError]);
 
-  const getAccounts = useCallback(() => {
-    if (!isMountedRef.current) return;
+  const { flattenedAccounts, selectedAccountIndex } = useMemo(() => {
+    if (isLoading) {
+      return { flattenedAccounts: [], selectedAccountIndex: 0 };
+    }
+
     // Keep track of the Y position of account item. Used for scrolling purposes.
     let yOffset = 0;
     let selectedIndex = 0;
-    const flattenedAccounts: Account[] = internalAccounts.map(
-      (internalAccount: InternalAccount, index: number) => {
-        const formattedAddress =
-          getFormattedAddressFromInternalAccount(internalAccount);
-        const isSelected =
-          selectedInternalAccount?.address === internalAccount.address;
-        if (isSelected) {
-          selectedIndex = index;
-        }
 
-        const accountBalance = accountBalances[internalAccount.id] || {
-          displayBalance: '',
-          balanceError: undefined,
-        };
+    const accounts =  internalAccounts.map(
+    (internalAccount: InternalAccount, index: number) => {
+      const formattedAddress =
+        formattedAddressByAccountId[internalAccount.id];
+      const isSelected =
+        selectedInternalAccount?.address === internalAccount.address;
+      if (isSelected) {
+        selectedIndex = index;
+      }
 
-        const isBalanceAvailable = isMultiAccountBalancesEnabled || isSelected;
-        const mappedAccount: Account = {
-          name: internalAccount.metadata.name,
-          address: formattedAddress,
-          type: internalAccount.metadata.keyring.type as KeyringTypes,
-          yOffset,
-          isSelected,
-          // TODO - Also fetch assets. Reference AccountList component.
-          // assets
-          assets:
-            isBalanceAvailable && accountBalance.displayBalance
-              ? {
-                  fiatBalance: accountBalance.displayBalance,
-                }
-              : undefined,
-          balanceError: accountBalance.balanceError,
-          // This only works for EOAs
-          caipAccountId: `${internalAccount.scopes[0]}:${internalAccount.address}`,
-          scopes: internalAccount.scopes,
-          isLoadingAccount: accountBalance.isLoadingAccount,
-          // Keep reference to the internal account to avoid unnecessary lookup.
-          internalAccount,
-        };
-        // Calculate height of the account item.
-        yOffset += 78;
-        if (accountBalance.balanceError) {
-          yOffset += 22;
-        }
-        if (internalAccount.metadata.keyring.type !== KeyringTypes.hd) {
-          yOffset += 24;
-        }
-        return mappedAccount;
-      },
-    );
+      const accountBalance = accountBalances[internalAccount.id] || {
+        displayBalance: '',
+        balanceError: undefined,
+      };
 
-    setAccounts(flattenedAccounts);
-    setEVMAccounts(
-      flattenedAccounts.filter((account) => !isNonEvmAddress(account.address)),
-    );
-    fetchENSNames({ flattenedAccounts, startingIndex: selectedIndex });
-  }, [
-    internalAccounts,
-    fetchENSNames,
-    selectedInternalAccount?.address,
-    accountBalances, // Use the memoized balances instead of multichainBalancesForAllAccounts
-    isMultiAccountBalancesEnabled,
-  ]);
+      const isBalanceAvailable = isMultiAccountBalancesEnabled || isSelected;
+      const mappedAccount: Account = {
+        name: internalAccount.metadata.name,
+        address: formattedAddress,
+        type: internalAccount.metadata.keyring.type as KeyringTypes,
+        yOffset,
+        isSelected,
+        // TODO - Also fetch assets. Reference AccountList component.
+        // assets
+        assets:
+          isBalanceAvailable && accountBalance.displayBalance
+            ? {
+                fiatBalance: accountBalance.displayBalance,
+              }
+            : undefined,
+        balanceError: accountBalance.balanceError,
+        // This only works for EOAs
+        caipAccountId: `${internalAccount.scopes[0]}:${internalAccount.address}`,
+        scopes: internalAccount.scopes,
+        isLoadingAccount: accountBalance.isLoadingAccount,
+        // Keep reference to the internal account to avoid unnecessary lookup.
+        internalAccount,
+      };
+      // Calculate height of the account item.
+      yOffset += 78;
+      if (accountBalance.balanceError) {
+        yOffset += 22;
+      }
+      if (internalAccount.metadata.keyring.type !== KeyringTypes.hd) {
+        yOffset += 24;
+      }
+      return mappedAccount;
+    });
+
+    return { flattenedAccounts: accounts, selectedAccountIndex: selectedIndex };
+  }, [accountBalances, formattedAddressByAccountId, internalAccounts, isLoading, isMultiAccountBalancesEnabled, selectedInternalAccount?.address]);
 
   useEffect(() => {
-    if (!isMountedRef.current) {
-      isMountedRef.current = true;
-    }
-    if (isLoading) return;
-    getAccounts();
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, [getAccounts, isLoading]);
+    fetchENSNames({ flattenedAccounts, startingIndex: selectedAccountIndex });
+  }, [fetchENSNames, flattenedAccounts, selectedAccountIndex]);
 
   return {
-    accounts,
-    evmAccounts,
+    accounts: flattenedAccounts,
+    evmAccounts: flattenedAccounts.filter((account) => !isNonEvmAddress(account.address)),
     ensByAccountAddress,
   };
 };
