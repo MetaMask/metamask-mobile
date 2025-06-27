@@ -89,7 +89,7 @@ describe('BasicInfo Component', () => {
     fireEvent.changeText(screen.getByTestId('last-name-input'), 'Smith');
     fireEvent.changeText(
       screen.getByTestId('deposit-phone-field-test-id'),
-      '1234567890',
+      '234567890',
     );
     fireEvent.changeText(
       screen.getByTestId('date-of-birth-input'),
