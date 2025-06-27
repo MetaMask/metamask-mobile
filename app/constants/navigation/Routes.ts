@@ -38,6 +38,8 @@ const Routes = {
     MODALS: {
       ID: 'DepositModals',
       TOKEN_SELECTOR: 'DepositTokenSelectorModal',
+      REGION_SELECTOR: 'DepositRegionSelectorModal',
+      PAYMENT_METHOD_SELECTOR: 'DepositPaymentMethodSelectorModal',
     },
   },
   HW: {
