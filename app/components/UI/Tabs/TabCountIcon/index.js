@@ -52,7 +52,7 @@ class TabCountIcon extends PureComponent {
           style={styles.tabCount}
           testID={BrowserViewSelectorsIDs.TABS_NUMBER}
         >
-          {tabCount}
+          {tabCount === 0 ? '+' : tabCount}
         </Text>
       </View>
     );

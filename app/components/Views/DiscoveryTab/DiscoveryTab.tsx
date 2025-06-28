@@ -16,7 +16,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
-import { type RootState } from '../../../reducers';
 import { type DiscoveryTabProps } from './types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import BrowserUrlBar, {
@@ -24,21 +23,19 @@ import BrowserUrlBar, {
   ConnectionType
 } from '../../UI/BrowserUrlBar';
 import UrlAutocomplete, {
-  AutocompleteSearchResult,
   UrlAutocompleteRef,
 } from '../../UI/UrlAutocomplete';
 import { TokenDiscovery } from '../TokenDiscovery';
 import { noop } from 'lodash';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
-import BrowserBottomBar from '../../UI/BrowserBottomBar';
+import { SearchDiscoveryResultItem } from '../../UI/SearchDiscoveryResult/types';
 
 /**
  * Tab component for the in-app browser
  */
 export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
-  id: tabId,
   showTabs,
-  updateTabInfo,
+  newTab,
 }) => {
   // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -47,12 +44,6 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
   const [isUrlBarFocused, setIsUrlBarFocused] = useState(false);
   const urlBarRef = useRef<BrowserUrlBarRef>(null);
   const autocompleteRef = useRef<UrlAutocompleteRef>(null);
-  /**
-   * Is the current tab the active tab
-   */
-  const isTabActive = useSelector(
-    (state: RootState) => state.browser.activeTab === tabId,
-  );
 
   /**
   * Hide the autocomplete results
@@ -70,16 +61,16 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
       hideAutocomplete();
       // Format url for browser to be navigatable by webview
       const processedUrl = processUrlForBrowser(text, searchEngine);
-      updateTabInfo(tabId, { url: processedUrl });
+      newTab(processedUrl);
     },
-    [searchEngine, updateTabInfo, tabId, hideAutocomplete],
+    [searchEngine, hideAutocomplete, newTab],
   );
 
   /**
    * Handle autocomplete selection
    */
   const onSelect = useCallback(
-    (item: AutocompleteSearchResult) => {
+    (item: SearchDiscoveryResultItem) => {
       if (item.category === 'tokens') {
         navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
           chainId: item.chainId,
@@ -117,23 +108,6 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
     autocompleteRef.current?.search(text);
   }, []);
 
-  const toggleUrlModal = useCallback(() => {
-    urlBarRef.current?.focus();
-  }, []);
-
-  /**
-   * Render the bottom (navigation/options) bar
-   */
-  const renderBottomBar = () =>
-    isTabActive && !isUrlBarFocused ? (
-      <BrowserBottomBar
-        canGoBack={false}
-        canGoForward={false}
-        showTabs={showTabs}
-        showUrlModal={toggleUrlModal}
-      />
-    ) : null;
-
   /**
    * Main render
    */
@@ -141,7 +115,7 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
     <ErrorBoundary navigation={navigation} view="DiscoveryTab">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={[styles.wrapper, !isTabActive && styles.hide]}
+        style={styles.wrapper}
       >
         <View
           style={styles.wrapper}
@@ -159,10 +133,13 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
             onBlur={noop}
             activeUrl=""
             connectedAccounts={[]}
+            discoveryMode
+            showTabs={showTabs}
+            newTab={newTab}
           />
           <View style={styles.wrapper}>
             <View style={styles.webview}>
-              <TokenDiscovery />
+              <TokenDiscovery onSelect={onSelect} />
             </View>
             <UrlAutocomplete
               ref={autocompleteRef}
@@ -170,7 +147,6 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
               onDismiss={onDismissAutocomplete}
             />
           </View>
-          {renderBottomBar()}
         </View>
       </KeyboardAvoidingView>
     </ErrorBoundary>

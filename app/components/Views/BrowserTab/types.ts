@@ -30,9 +30,9 @@ export enum WebViewNavigationEventName {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type BrowserTabProps = SharedTabProps & {
   /**
-   * Function to open a new tab
+   * The ID of the current tab
    */
-  newTab: (url?: string) => void;
+  id: number;
   /**
    * Represents the current chain id
    */
@@ -107,7 +107,15 @@ export type BrowserTabProps = SharedTabProps & {
    */
   isIpfsGatewayEnabled: boolean;
   /**
-   * Home page url that is appended with metricsEnabled and marketingEnabled
+   * Function to go to the discovery view
+   */
+  goToDiscovery: () => void;
+  /**
+   * Update the tab information
+   */
+  updateTabInfo: (tabID: number, info: { url?: string; isArchived?: boolean; image?: string }) => void;
+  /**
+   * Homepage URL
    */
   homePageUrl: string;
 };

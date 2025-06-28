@@ -14,7 +14,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { act } from '@testing-library/react';
-import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { useAccounts } from '../../hooks/useAccounts';
 import {
@@ -24,6 +23,7 @@ import {
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 import { parseCaipAccountId } from '@metamask/utils';
+import { tokenDiscoveryBrowserEnabled } from '../../../selectors/featureFlagController/tokenDiscoveryBrowser';
 
 jest.useFakeTimers();
 
@@ -49,6 +49,11 @@ jest.mock('../BrowserTab/BrowserTab', () => ({
 jest.mock('../../UI/Tabs/TabThumbnail/TabThumbnail', () => ({
   __esModule: true,
   default: jest.fn(() => 'TabThumbnail'),
+}));
+
+jest.mock('../../../selectors/featureFlagController/tokenDiscoveryBrowser', () => ({
+  __esModule: true,
+  tokenDiscoveryBrowserEnabled: jest.fn().mockReturnValue(false),
 }));
 
 const mockTabs = [
@@ -79,7 +84,9 @@ const mockInitialState = {
   browser: {
     tabs: mockTabs,
     activeTab: 1,
+    history: [],
   },
+  bookmarks: [],
 };
 
 jest.mock('../../../core/Engine', () => {
@@ -99,6 +106,9 @@ jest.mock('../../../core/Engine', () => {
         getCaveat: jest.fn(), // Default mock, can be configured in tests
         getPermittedAccountsByHostname: jest.fn(),
       },
+      CurrencyRateController: {
+        updateExchangeRate: jest.fn(),
+      },
     },
   };
 });
@@ -114,11 +124,6 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 jest.mock('../../../util/phishingDetection', () => ({
   isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
   getPhishingTestResult: jest.fn().mockReturnValue({ result: false }),
-}));
-
-jest.mock('../../../util/browser', () => ({
-  ...jest.requireActual('../../../util/browser'),
-  isTokenDiscoveryBrowserEnabled: jest.fn().mockReturnValue(false),
 }));
 
 const Stack = createStackNavigator();
@@ -137,6 +142,11 @@ const mockNavigation = {
 
 const mockGetPermittedCaipAccountIdsByHostname = getPermittedCaipAccountIdsByHostname as jest.Mock;
 const mockSortMultichainAccountsByLastSelected = sortMultichainAccountsByLastSelected as jest.Mock;
+
+jest.mock('../../../selectors/featureFlagController/tokenDiscoveryBrowser', () => ({
+  __esModule: true,
+  tokenDiscoveryBrowserEnabled: jest.fn().mockReturnValue(false),
+}));
 
 describe('Browser', () => {
   it('should render correctly', () => {
@@ -167,6 +177,36 @@ describe('Browser', () => {
       { state: { ...mockInitialState } },
     );
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should render the discovery tab when the token discovery browser is enabled', () => {
+    jest.mocked(tokenDiscoveryBrowserEnabled).mockReturnValue(true);
+    const { getByText } = renderWithProvider(
+      <Provider store={mockStore(mockInitialState)}>
+        <NavigationContainer independent>
+          <Stack.Navigator>
+            <Stack.Screen name={Routes.BROWSER.VIEW}>
+              {() => (
+                <Browser
+                  route={routeMock}
+                  tabs={[]}
+                  activeTab={1}
+                  navigation={mockNavigation}
+                  createNewTab={jest.fn}
+                  closeAllTabs={jest.fn}
+                  closeTab={jest.fn}
+                  setActiveTab={jest.fn}
+                  updateTab={jest.fn}
+                />
+              )}
+            </Stack.Screen>
+          </Stack.Navigator>
+        </NavigationContainer>
+      </Provider>,
+      { state: { ...mockInitialState } },
+    );
+    expect(getByText('Popular Tokens')).toBeTruthy();
+    jest.mocked(tokenDiscoveryBrowserEnabled).mockReturnValue(false);
   });
 
   it('should create a new homepage tab when rendered with no tabs', () => {
@@ -201,38 +241,6 @@ describe('Browser', () => {
 
     expect(mockCreateNewTab).toHaveBeenCalled();
     expect(passedUrl).toMatch(/^https:\/\//);
-  });
-
-  it('should create a new token discovery tab when rendered with no tabs and token discovery browser is enabled', () => {
-    jest.mocked(isTokenDiscoveryBrowserEnabled).mockReturnValue(true);
-    const mockCreateNewTab = jest.fn();
-    renderWithProvider(
-      <Provider store={mockStore(mockInitialState)}>
-        <NavigationContainer independent>
-          <Stack.Navigator>
-            <Stack.Screen name={Routes.BROWSER.VIEW}>
-              {() => (
-                <Browser
-                  route={routeMock}
-                  tabs={[]}
-                  activeTab={1}
-                  navigation={mockNavigation}
-                  createNewTab={mockCreateNewTab}
-                  closeAllTabs={jest.fn}
-                  closeTab={jest.fn}
-                  setActiveTab={jest.fn}
-                  updateTab={jest.fn}
-                />
-              )}
-            </Stack.Screen>
-          </Stack.Navigator>
-        </NavigationContainer>
-      </Provider>,
-      { state: { ...mockInitialState } },
-    );
-
-    expect(mockCreateNewTab).toHaveBeenCalledWith(undefined, undefined);
-    jest.mocked(isTokenDiscoveryBrowserEnabled).mockReturnValue(false);
   });
 
   it('should call navigate when route param `newTabUrl` and `timestamp` are added', () => {

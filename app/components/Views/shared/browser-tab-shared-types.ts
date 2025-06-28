@@ -3,19 +3,13 @@
  */
 export interface SharedTabProps {
   /**
-   * The ID of the current tab
-   */
-  id: number;
-
-  /**
    * Function to update the tab information
    */
   showTabs: () => void;
-
   /**
-   * Function to update the tab information
+   * Function to open a new tab
    */
-  updateTabInfo: (tabID: number, info: { url?: string; isArchived?: boolean; image?: string }) => void;
+  newTab: (url?: string) => void;
 }
 
 /**

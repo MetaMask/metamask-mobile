@@ -104,7 +104,13 @@
     "recents": "Recents",
     "favorites": "Favorites",
     "sites": "Sites",
-    "tokens": "Tokens"
+    "tokens": "Tokens",
+    "tokenNotFound": "This token address is currently not available.",
+    "goToUrl": "Go to URL",
+    "search": "Search '{{search_term}}'"
+  },
+  "tokenDiscovery": {
+    "popularTokens": "Popular Tokens"
   },
   "navigation": {
     "back": "Back",

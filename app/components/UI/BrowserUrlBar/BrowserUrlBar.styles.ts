@@ -55,6 +55,11 @@ const styleSheet = ({
       ...fontStyles.normal,
     },
     rightButton: { height: 50, justifyContent: 'center' },
+    newTabButton: {
+      marginRight: 16,
+      width: 24,
+      height: 24,
+    }
   });
 
 export default styleSheet;

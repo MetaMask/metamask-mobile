@@ -85,6 +85,10 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
           case Routes.BROWSER_VIEW:
             navigation.navigate(Routes.BROWSER.HOME, {
               screen: Routes.BROWSER_VIEW,
+              params: {
+                // Renew the param to trigger the discovery view
+                navigationTimestamp: Date.now(),
+              },
             });
             break;
           case Routes.TRANSACTIONS_VIEW:
