@@ -108,11 +108,11 @@ describe(Regression('Multiple Swaps from Actions'), () => {
         );
       } else {
         await submitSwapLegacyUI(
-          type,
           quantity,
           sourceTokenSymbol,
           destTokenSymbol,
         );
+        await TabBarComponent.tapActivity();
       }
 
       // Check the swap activity completed

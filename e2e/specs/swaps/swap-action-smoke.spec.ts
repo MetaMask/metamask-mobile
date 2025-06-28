@@ -82,8 +82,8 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
   it.each`
     type        | quantity | sourceTokenSymbol | destTokenSymbol | network
-    ${'swap'}   | ${'1'}   | ${'ETH'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet}
-    ${'swap'}   | ${'10'}  | ${'USDC'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
+    ${'swap'}   | ${'1'}   | ${'ETH'}          | ${'USDT'}       | ${CustomNetworks.Tenderly.Mainnet}
+    ${'swap'}   | ${'10'}  | ${'USDT'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
     ${'wrap'}   | ${'.03'} | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
     ${'unwrap'} | ${'.01'} | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
   `(
@@ -104,11 +104,11 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
          );
        } else {
          await submitSwapLegacyUI(
-           type,
            quantity,
            sourceTokenSymbol,
            destTokenSymbol,
          );
+        await TabBarComponent.tapActivity();
        }
 
       // Check the swap activity completed
@@ -136,7 +136,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     },
   );
 
-  it.skip('should validate segment/metametric events for a successful swap', async (): Promise<void> => {
+  it('should validate segment/metametric events for a successful swap', async (): Promise<void> => {
 
     const testCases = [
       {

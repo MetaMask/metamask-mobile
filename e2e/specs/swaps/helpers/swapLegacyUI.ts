@@ -4,7 +4,6 @@ import Assertions from '../../../utils/Assertions';
 import TestHelpers from '../../../helpers';
 
 export async function submitSwapLegacyUI(
-  type: string,
   quantity: string,
   sourceTokenSymbol: string,
   destTokenSymbol: string,
@@ -13,12 +12,9 @@ export async function submitSwapLegacyUI(
 
   await device.disableSynchronization();
   // Select source token, if native token can skip because already selected
-  if (type !== 'native') {
+  if (sourceTokenSymbol !== 'ETH') {
     await LegacyUIQuoteView.tapOnSelectSourceToken();
-    await LegacyUIQuoteView.tapSearchToken();
-    await LegacyUIQuoteView.typeSearchToken(sourceTokenSymbol);
-    await TestHelpers.delay(2000);
-    await LegacyUIQuoteView.selectToken(sourceTokenSymbol);
+    await LegacyUIQuoteView.selectToken(sourceTokenSymbol, firstElement);
   }
   await LegacyUIQuoteView.enterSwapAmount(quantity);
 
@@ -27,7 +23,6 @@ export async function submitSwapLegacyUI(
   if (destTokenSymbol !== 'ETH') {
     await LegacyUIQuoteView.tapSearchToken();
     await LegacyUIQuoteView.typeSearchToken(destTokenSymbol);
-    await TestHelpers.delay(2000);
     await LegacyUIQuoteView.selectToken(destTokenSymbol);
   } else {
     await LegacyUIQuoteView.selectToken(destTokenSymbol, firstElement);
@@ -55,7 +50,6 @@ export async function submitSwapLegacyUI(
     // eslint-disable-next-line no-console
     console.log(`Swap complete didn't pop up: ${e}`);
   }
-  await device.enableSynchronization();
   await TestHelpers.delay(10000);
 }
 
