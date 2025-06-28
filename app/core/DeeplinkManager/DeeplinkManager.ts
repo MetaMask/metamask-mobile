@@ -107,7 +107,7 @@ class DeeplinkManager {
     this.navigation.navigate(Routes.SWAPS);
   }
 
-  async parse(
+  parse(
     url: string,
     {
       browserCallBack,
@@ -119,7 +119,7 @@ class DeeplinkManager {
       onHandled?: () => void;
     },
   ) {
-    return await parseDeeplink({
+    return parseDeeplink({
       deeplinkManager: this,
       url,
       origin,
