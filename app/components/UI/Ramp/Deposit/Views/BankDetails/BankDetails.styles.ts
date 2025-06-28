@@ -38,8 +38,15 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'center',
       gap: 8,
     },
-    buttonContainer: {
+    bottomContainer: {
       gap: 16,
+    },
+    buttonContainer: {
+      flexDirection: 'row',
+      gap: 16,
+    },
+    button: {
+      flex: 1,
     },
   });
 };

@@ -57,13 +57,12 @@ export const depositOrderToFiatOrder = (depositOrder: DepositOrder) => ({
 
 export async function processDepositOrder(
   order: FiatOrder,
-  _options?: ProcessorOptions,
+  options?: ProcessorOptions,
 ): Promise<FiatOrder> {
   try {
-    const updatedOrder = await DepositSDKOrders.getOrder(
-      order.id,
-      order.account,
-    );
+    const sdk = options?.sdk || DepositSDKOrders;
+
+    const updatedOrder = await sdk.getOrder(order.id, order.account);
     if (!updatedOrder) {
       throw new Error('Deposit order not found');
     }

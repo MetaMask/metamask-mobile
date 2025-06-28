@@ -3,7 +3,6 @@ import { Linking, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import styleSheet from './OrderProcessing.styles';
 import { useNavigation } from '@react-navigation/native';
-import StyledButton from '../../../../StyledButton';
 import {
   createNavigationDetails,
   useParams,
@@ -13,6 +12,7 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { getOrderById } from '../../../../../../reducers/fiatOrders';
@@ -20,8 +20,13 @@ import { RootState } from '../../../../../../reducers';
 import { strings } from '../../../../../../../locales/i18n';
 import DepositOrderContent from '../../components/DepositOrderContent/DepositOrderContent';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
-import { TRANSAK_SUPPORT_URL } from '../../constants';
+import { SEPA_PAYMENT_METHOD, TRANSAK_SUPPORT_URL } from '../../constants';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../../../component-library/components/Buttons/Button';
+import { isDepositOrder } from '../../utils';
 
 export interface OrderProcessingParams {
   orderId: string;
@@ -66,17 +71,10 @@ const OrderProcessing = () => {
   const handleCancelOrder = useCallback(async () => {
     try {
       await cancelOrder();
-
-      if (cancelOrderError) {
-        console.error(cancelOrderError);
-        return;
-      }
-
-      navigation.navigate(Routes.WALLET.HOME);
     } catch (error) {
       console.error(error);
     }
-  }, [cancelOrder, cancelOrderError, navigation]);
+  }, [cancelOrder]);
 
   useEffect(() => {
     const title =
@@ -92,6 +90,12 @@ const OrderProcessing = () => {
     );
   }, [navigation, theme, order?.state]);
 
+  useEffect(() => {
+    if (order?.state === FIAT_ORDER_STATES.CANCELLED) {
+      navigation.navigate(Routes.WALLET.HOME);
+    }
+  }, [order?.state, navigation, orderId]);
+
   if (!order) {
     return (
       <ScreenLayout>
@@ -106,15 +110,13 @@ const OrderProcessing = () => {
         </ScreenLayout.Body>
         <ScreenLayout.Footer>
           <ScreenLayout.Content>
-            <View style={styles.buttonContainer}>
-              <StyledButton
-                type="confirm"
-                onPress={() => navigation.navigate(Routes.WALLET.HOME)}
-                testID="no-order-back-button"
-              >
-                {strings('deposit.order_processing.back_to_wallet')}
-              </StyledButton>
-            </View>
+            <Button
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              onPress={() => navigation.navigate(Routes.WALLET.HOME)}
+              testID="no-order-back-button"
+              label={strings('deposit.order_processing.back_to_wallet')}
+            />
           </ScreenLayout.Content>
         </ScreenLayout.Footer>
       </ScreenLayout>
@@ -130,29 +132,53 @@ const OrderProcessing = () => {
       </ScreenLayout.Body>
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
-          <View style={styles.buttonContainer}>
-            <StyledButton
-              type="confirm"
-              onPress={handleMainAction}
-              testID="main-action-button"
-            >
-              {order.state === FIAT_ORDER_STATES.CANCELLED ||
-              order.state === FIAT_ORDER_STATES.FAILED
-                ? strings('deposit.order_processing.error_button')
-                : strings('deposit.order_processing.button')}
-            </StyledButton>
+          <View style={styles.bottomContainer}>
+            {cancelOrderError && (
+              <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
+                {strings('deposit.order_processing.error_message')}
+              </Text>
+            )}
+
             {(order.state === FIAT_ORDER_STATES.CANCELLED ||
               order.state === FIAT_ORDER_STATES.FAILED) && (
-              <StyledButton type="normal" onPress={handleContactSupport}>
-                {strings('deposit.order_processing.contact_support_button')}
-              </StyledButton>
+              <Button
+                style={styles.button}
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Lg}
+                onPress={handleContactSupport}
+                label={strings(
+                  'deposit.order_processing.contact_support_button',
+                )}
+              />
             )}
-            {order.state === FIAT_ORDER_STATES.CREATED && (
-              // TODO: Confirm styling of this button
-              <StyledButton type="cancel" onPress={handleCancelOrder}>
-                {strings('deposit.order_processing.cancel_order_button')}
-              </StyledButton>
-            )}
+            <View style={styles.buttonsContainer}>
+              {isDepositOrder(order.data) &&
+                order.data.paymentMethod === SEPA_PAYMENT_METHOD.id &&
+                order.state === FIAT_ORDER_STATES.PENDING && (
+                  <Button
+                    style={styles.button}
+                    variant={ButtonVariants.Secondary}
+                    size={ButtonSize.Lg}
+                    onPress={handleCancelOrder}
+                    label={strings(
+                      'deposit.order_processing.cancel_order_button',
+                    )}
+                  />
+                )}
+              <Button
+                style={styles.button}
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Lg}
+                onPress={handleMainAction}
+                testID="main-action-button"
+                label={
+                  order.state === FIAT_ORDER_STATES.CANCELLED ||
+                  order.state === FIAT_ORDER_STATES.FAILED
+                    ? strings('deposit.order_processing.error_button')
+                    : strings('deposit.order_processing.button')
+                }
+              />
+            </View>
           </View>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

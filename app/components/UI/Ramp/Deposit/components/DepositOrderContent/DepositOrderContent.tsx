@@ -14,10 +14,13 @@ import Icon, {
   IconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../../locales/i18n';
-import { formatCurrency, getCryptoCurrencyFromTransakId } from '../../utils';
+import {
+  formatCurrency,
+  getCryptoCurrencyFromTransakId,
+  isDepositOrder,
+} from '../../utils';
 import { selectChainId } from '../../../../../../selectors/networkController';
 import { selectEvmNetworkName } from '../../../../../../selectors/networkInfos';
-import { DepositOrder } from '@consensys/native-ramps-sdk';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { useAccountName } from '../../../../../hooks/useAccountName';
 import Avatar, {
@@ -30,6 +33,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../..
 import { FiatOrder } from '../../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import styleSheet from './DepositOrderContent.styles';
+import { SEPA_PAYMENT_METHOD } from '../../constants';
 
 interface DepositOrderContentProps {
   order: FiatOrder;
@@ -48,12 +52,6 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
-  );
-
-  const isDepositOrder = useCallback(
-    (data: unknown): data is DepositOrder =>
-      data !== null && typeof data === 'object',
-    [],
   );
 
   const getCryptoToken = () => {
@@ -88,7 +86,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
     if (isDepositOrder(order?.data) && order.data.providerOrderLink) {
       Linking.openURL(order.data.providerOrderLink);
     }
-  }, [order?.data, isDepositOrder]);
+  }, [order?.data]);
 
   const shortOrderId = order.id.slice(-6);
   const totalAmount =
@@ -102,6 +100,36 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
     order.fee || order.cryptoFee || 0,
     order.currency,
   );
+
+  const getSubtitle = () => {
+    if (!isDepositOrder(order.data)) {
+      return strings('deposit.order_processing.description');
+    }
+
+    if (order.state === FIAT_ORDER_STATES.COMPLETED) {
+      return strings('deposit.order_processing.success_description', {
+        amount: order.amount,
+        currency: order.currency,
+      });
+    }
+
+    if (order.state === FIAT_ORDER_STATES.FAILED) {
+      return strings('deposit.order_processing.error_description');
+    }
+
+    if (order.state === FIAT_ORDER_STATES.CANCELLED) {
+      return strings('deposit.order_processing.cancel_order_description');
+    }
+
+    if (
+      order.state === FIAT_ORDER_STATES.PENDING &&
+      order.data.paymentMethod === SEPA_PAYMENT_METHOD.id
+    ) {
+      return strings('deposit.order_processing.bank_transfer_description');
+    }
+
+    return strings('deposit.order_processing.description');
+  };
 
   return (
     <>
@@ -142,17 +170,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           color={TextColor.Alternative}
           style={styles.subtitle}
         >
-          {order.state === FIAT_ORDER_STATES.COMPLETED
-            ? strings('deposit.order_processing.success_description', {
-                amount: order.amount,
-                currency: order.currency,
-              })
-            : order.state === FIAT_ORDER_STATES.CANCELLED ||
-              order.state === FIAT_ORDER_STATES.FAILED
-            ? strings('deposit.order_processing.error_description')
-            : order.state === FIAT_ORDER_STATES.CREATED
-            ? strings('deposit.order_processing.bank_transfer_description')
-            : strings('deposit.order_processing.description')}
+          {getSubtitle()}
         </Text>
       </View>
 

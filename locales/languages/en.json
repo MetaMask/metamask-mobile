@@ -573,6 +573,7 @@
       "success_description": "Your deposit of {{amount}} {{currency}} was successful!",
       "error_title": "Deposit failed",
       "error_description": "We were unable to complete your deposit",
+      "cancel_order_description": "You requested a cancellation of your deposit.",
       "error_button": "Try again",
       "contact_support_button": "Contact support",
       "account": "Account",
@@ -583,14 +584,15 @@
       "view_order_details_in_transak": "View order details in Transak",
       "no_order_found": "No order found",
       "back_to_wallet": "Back to Wallet",
-      "cancel_order_button": "Cancel"
+      "cancel_order_button": "Cancel order"
     },
     "order_details": {
       "title": "Deposit Order"
     },
     "bank_details": {
       "title": "{{paymentMethod}} bank transfer",
-      "button": "Bank transfer sent",
+      "button": "Transfer sent",
+      "button_cancel": "Cancel order",
       "main_title": "To complete your order",
       "main_content_1": "Initiate a transfer from your preferred bank using the information below.",
       "main_content_2": "Once you’re finished, come back and click “Bank transfer sent” to confirm.",
@@ -613,7 +615,7 @@
       "deposit_failed_title": "Deposit of {{currency}} has failed! Please try again, sorry for the inconvenience!",
       "deposit_failed_description": "Verify your payment method and card support",
       "deposit_cancelled_title": "Your deposit was cancelled",
-      "deposit_cancelled_description": "Verify your payment method and card support",
+      "deposit_cancelled_description": "You requested a cancellation of your deposit.",
       "deposit_completed_title": "Your deposit of {{amount}} {{currency}} was successful!",
       "deposit_completed_description": "Your {{currency}} is now available in your wallet",
       "deposit_pending_title": "Processing your deposit of {{currency}}",

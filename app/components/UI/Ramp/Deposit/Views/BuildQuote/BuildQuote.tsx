@@ -214,7 +214,12 @@ const BuildQuote = () => {
 
             await handleNewOrder(processedOrder);
 
-            navigation.navigate(...createBankDetailsNavDetails({ order }));
+            navigation.navigate(
+              ...createBankDetailsNavDetails({
+                orderId: order.id,
+                shouldUpdate: false,
+              }),
+            );
           } else {
             navigation.navigate(...createProviderWebviewNavDetails({ quote }));
           }

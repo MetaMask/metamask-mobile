@@ -33,6 +33,7 @@ import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import { renderNumber } from '../../../../../util/number';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import I18n, { strings } from '../../../../../../locales/i18n';
+import { DepositOrder } from '@consensys/native-ramps-sdk';
 
 const TRANSAK_CRYPTO_IDS: Record<string, string> = {
   'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': 'USDC',
@@ -235,3 +236,11 @@ export function getCryptoCurrencyFromTransakId(
     SUPPORTED_DEPOSIT_TOKENS.find((token) => token.assetId === assetId) || null
   );
 }
+
+/**
+ * Type guard to check if data object is a DepositOrder
+ * @param data - The data to check
+ * @returns True if data object is a DepositOrder, false otherwise
+ */
+export const isDepositOrder = (data: unknown): data is DepositOrder =>
+  data !== null && typeof data === 'object';

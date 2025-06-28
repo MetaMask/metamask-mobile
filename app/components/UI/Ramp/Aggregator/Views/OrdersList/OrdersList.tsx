@@ -29,6 +29,8 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import { createDepositOrderDetailsNavDetails } from '../../../Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { isDepositOrder } from '../../../Deposit/utils';
+import { SEPA_PAYMENT_METHOD } from '../../../Deposit/constants';
 
 type filterType = 'ALL' | 'PURCHASE' | 'SELL';
 
@@ -85,7 +87,15 @@ function OrdersList() {
     (orderId: string) => {
       const order = orders.find((o) => o.id === orderId);
 
-      if (order?.state === FIAT_ORDER_STATES.CREATED) {
+      const isBankTransfer =
+        isDepositOrder(order?.data) &&
+        order?.data.paymentMethod === SEPA_PAYMENT_METHOD.id;
+
+      if (
+        isBankTransfer &&
+        (order?.state === FIAT_ORDER_STATES.CREATED ||
+          order.state === FIAT_ORDER_STATES.PENDING)
+      ) {
         navigation.navigate(Routes.DEPOSIT.ID, {
           screen: Routes.DEPOSIT.ROOT,
         });
