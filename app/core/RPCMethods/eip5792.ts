@@ -11,6 +11,8 @@ import { JsonRpcError, rpcErrors } from '@metamask/rpc-errors';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { v4 as uuidv4 } from 'uuid';
 import {
+  IsAtomicBatchSupportedResult,
+  IsAtomicBatchSupportedResultEntry,
   Log,
   TransactionControllerGetStateAction,
   TransactionMeta,
@@ -19,12 +21,16 @@ import {
 } from '@metamask/transaction-controller';
 import { Messenger } from '@metamask/base-controller';
 import { NetworkControllerGetNetworkClientByIdAction } from '@metamask/network-controller';
+import { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
 
 import ppomUtil from '../../lib/ppom/ppom-util';
 import { EIP5792ErrorCode } from '../../constants/transaction';
+import { areAddressesEqual } from '../../util/address';
+import { selectSmartTransactionsEnabled } from '../../selectors/smartTransactionsController';
+import { store } from '../../store/index';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import Engine from '../Engine';
-import { areAddressesEqual } from '../../util/address';
+import { isRelaySupported } from './transaction-relay.ts';
 
 const VERSION = '2.0.0';
 const SUPPORTED_KEYRING_TYPES = [KeyringTypes.hd, KeyringTypes.simple];
@@ -203,7 +209,8 @@ function getStatusCode(transactionMeta: TransactionMeta) {
 type Actions =
   | AccountsControllerGetSelectedAccountAction
   | NetworkControllerGetNetworkClientByIdAction
-  | TransactionControllerGetStateAction;
+  | TransactionControllerGetStateAction
+  | PreferencesControllerGetStateAction;
 
 export type EIP5792Messenger = Messenger<Actions, never>;
 
@@ -256,20 +263,93 @@ export enum AtomicCapabilityStatus {
   Unsupported = 'unsupported',
 }
 
+async function getAlternateGasFeesCapability(
+  chainIds: Hex[],
+  batchSupport: IsAtomicBatchSupportedResult,
+  messenger: EIP5792Messenger,
+) {
+  const simulationEnabled = messenger.call(
+    'PreferencesController:getState',
+  ).useTransactionSimulations;
+
+  const relaySupportedChains = await Promise.all(
+    batchSupport
+      .map(({ chainId }) => chainId)
+      .map((chainId) => isRelaySupported(chainId)),
+  );
+  const updatedBatchSupport = batchSupport.map((support, index) => ({
+    ...support,
+    relaySupportedForChain: relaySupportedChains[index],
+  }));
+
+  return chainIds.reduce<GetCapabilitiesResult>((acc, chainId) => {
+    const chainBatchSupport = (updatedBatchSupport.find(
+      ({ chainId: batchChainId }) => batchChainId === chainId,
+    ) ?? {}) as IsAtomicBatchSupportedResultEntry & {
+      relaySupportedForChain: boolean;
+    };
+
+    const { isSupported = false, relaySupportedForChain } = chainBatchSupport;
+
+    const isSmartTransaction = selectSmartTransactionsEnabled(
+      store.getState(),
+      chainId,
+    );
+
+    const alternateGasFees =
+      simulationEnabled &&
+      (isSmartTransaction || (isSupported && relaySupportedForChain));
+
+    if (alternateGasFees) {
+      acc[chainId] = {
+        alternateGasFees: {
+          supported: true,
+        },
+      };
+    }
+
+    return acc;
+  }, {});
+}
+
 export async function getCapabilities(address: Hex, chainIds?: Hex[]) {
-  const { TransactionController } = Engine.context;
+  const {
+    controllerMessenger,
+    context: { TransactionController },
+  } = Engine;
+
+  let chainIdsNormalized = chainIds?.map(
+    (chainId) => chainId.toLowerCase() as Hex,
+  );
+
+  if (!chainIdsNormalized?.length) {
+    const networkConfigurations = controllerMessenger.call(
+      'NetworkController:getState',
+    ).networkConfigurationsByChainId;
+    chainIdsNormalized = Object.keys(networkConfigurations) as Hex[];
+  }
+
   const batchSupport = await TransactionController.isAtomicBatchSupported({
     address,
     chainIds,
   });
-  return batchSupport.reduce<GetCapabilitiesResult>(
-    (acc, chainBatchSupport) => {
-      const {
-        chainId,
-        delegationAddress,
-        isSupported,
-        upgradeContractAddress,
-      } = chainBatchSupport;
+
+  const alternateGasFeesAcc = await getAlternateGasFeesCapability(
+    chainIdsNormalized,
+    batchSupport,
+    controllerMessenger as unknown as EIP5792Messenger,
+  );
+
+  return chainIdsNormalized.reduce<GetCapabilitiesResult>(
+    (acc, chainIdNormalised) => {
+      const chainBatchSupport = (batchSupport.find(
+        ({ chainId: batchChainId }) => batchChainId === chainIdNormalised,
+      ) ?? {}) as IsAtomicBatchSupportedResultEntry & {
+        isRelaySupported: boolean;
+      };
+
+      const { delegationAddress, isSupported, upgradeContractAddress } =
+        chainBatchSupport;
 
       let isSupportedAccount = false;
       try {
@@ -287,14 +367,17 @@ export async function getCapabilities(address: Hex, chainIds?: Hex[]) {
       const status = isSupported
         ? AtomicCapabilityStatus.Supported
         : AtomicCapabilityStatus.Ready;
-      acc[chainId] = {
-        atomic: {
-          status,
-        },
+
+      if (!acc[chainIdNormalised]) {
+        acc[chainIdNormalised] = {};
+      }
+
+      acc[chainIdNormalised].atomic = {
+        status,
       };
       return acc;
     },
-    {},
+    alternateGasFeesAcc,
   );
 }
 
