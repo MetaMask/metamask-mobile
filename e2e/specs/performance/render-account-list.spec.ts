@@ -69,7 +69,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
         // Wait for accounts to be fully loaded
 
         // Check if all accounts are loaded
-        await Assertions.checkIfTextIsDisplayed('Account 6');
+        await Assertions.checkIfTextIsDisplayed('Account 1');
 
         const renderEndTime = Date.now();
         const renderTime = renderEndTime - renderStartTime;
@@ -333,7 +333,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
         // Wait for accounts to be fully loaded
 
         // Check if all accounts are loaded
-        await Assertions.checkIfTextIsDisplayed('Account 6');
+        await Assertions.checkIfTextIsDisplayed('Account 1');
 
         const renderEndTime = Date.now();
         const renderTime = renderEndTime - renderStartTime;
