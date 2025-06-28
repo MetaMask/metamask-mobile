@@ -21,8 +21,8 @@ export interface iEventAction extends Action {
 
 /**
  * Set the new RPC event stage.
- * @param {string} rpcName - the rpc mehtod name which fires the event
- * @param {string} eventStage - the crrent stage of the eventflow
+ * @param {string} rpcName - the rpc method name which fires the event
+ * @param {string} eventStage - the current stage of the eventflow
  * @returns {iEventAction} - Action object with type and payload to be passed to reducer
  */
 export function setEventStage(
