@@ -383,9 +383,8 @@ exports[`SendTo Component render matches snapshot 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 18,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "marginHorizontal": 16,

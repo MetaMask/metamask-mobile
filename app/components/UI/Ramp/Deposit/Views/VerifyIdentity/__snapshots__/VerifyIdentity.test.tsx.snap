@@ -369,9 +369,8 @@ exports[`VerifyIdentity Component render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 16,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                   "marginTop": 16,
@@ -386,9 +385,8 @@ exports[`VerifyIdentity Component render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 14,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginTop": 8,
