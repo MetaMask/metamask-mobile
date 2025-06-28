@@ -19,8 +19,8 @@ import ChangePasswordView from '../../pages/Settings/SecurityAndPrivacy/ChangePa
 import LoginView from '../../pages/wallet/LoginView.js';
 import Matchers from '../../utils/Matchers.js';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
-import Gestures from '../../utils/Gestures.js';
 import Assertions from '../../utils/Assertions.js';
+import ToastModal from '../../pages/wallet/ToastModal.js';
 
 const fixtureServer = new FixtureServer();
 describe(Regression('change password'), () => {
@@ -57,7 +57,12 @@ describe(Regression('change password'), () => {
     await ChangePasswordView.typeInConfirmPasswordInputBox(NEWPASSWORD);
     await ChangePasswordView.reEnterPassword(NEWPASSWORD);
     await ChangePasswordView.tapIUnderstandCheckBox();
-    await Gestures.waitAndTap(ChangePasswordView.submitButton);
+    await ChangePasswordView.tapSubmitButton();
+
+    //wait for screen transitions after password change
+    await Assertions.checkIfNotVisible(ChangePasswordView.submitButton, 25000);
+    await Assertions.checkIfVisible(ToastModal.notificationTitle);
+    await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
 
     await TabBarComponent.tapWallet();
     await WalletView.tapIdenticon();

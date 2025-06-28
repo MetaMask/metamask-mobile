@@ -37,9 +37,9 @@ class ChangePasswordView {
   }
 
   get submitButton() {
-    return Matchers.getElementByID(
-      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-    );
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByText(ChoosePasswordSelectorsIDs.RESET_PASSWORD_BUTTON_TEXT)
+      : Matchers.getElementByID(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
   }
 
   async typeInConfirmPasswordInputBox(PASSWORD) {
@@ -52,18 +52,15 @@ class ChangePasswordView {
 
   async tapIUnderstandCheckBox() {
     if (device.getPlatform() === 'ios') {
-      await Gestures.waitAndTap(this.iosUnderstandCheck);
+      await Gestures.waitAndTap(this.iosUnderstandCheck, {delayBeforeTap: 1000});
     } else {
       // Tap by the I understand text
-      await TestHelpers.delay(1000);
-      await Gestures.waitAndTap(this.androidUnderstandCheck);
+      await Gestures.waitAndTap(this.androidUnderstandCheck, {delayBeforeTap: 1000});
     }
   }
 
   async tapSubmitButton() {
-    if (device.getPlatform() === 'android') {
-      await Gestures.waitAndTap(this.submitButton);
-    }
+    await Gestures.waitAndTap(this.submitButton, {delayBeforeTap: 3000});
   }
 }
 

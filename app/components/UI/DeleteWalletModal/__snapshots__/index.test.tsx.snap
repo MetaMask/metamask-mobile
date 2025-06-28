@@ -440,6 +440,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                                 "width": "100%",
                               }
                             }
+                            testID="forgot-password-modal-container"
                           >
                             <Text
                               accessibilityRole="text"
@@ -457,6 +458,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                                   "width": "80%",
                                 }
                               }
+                              testID="forgot-password-modal-title"
                             >
                               Forgot your password?
                             </Text>
@@ -472,6 +474,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                                   "lineHeight": 24,
                                 }
                               }
+                              testID="forgot-password-modal-description"
                             >
                               MetaMask can’t recover your password for you.
                             </Text>
@@ -625,7 +628,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                                   "paddingHorizontal": 16,
                                 }
                               }
-                              testID="delete-modal-understand-continue"
+                              testID="forgot-password-modal-reset-wallet-button"
                             >
                               <Text
                                 accessibilityRole="text"
