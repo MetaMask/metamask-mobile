@@ -1,43 +1,72 @@
 import { StyleSheet } from 'react-native';
 import Device from '../../../util/device';
-import { fontStyles } from '../../../styles/common';
+import { colors as importedColors } from '../../../styles/common';
 
-const createStyles = (colors: {
-  background: { default: string };
-  text: { default: string };
-  primary: { default: string };
-}) =>
+const createStyles = () =>
   StyleSheet.create({
-    modal: {
-      margin: 0,
-      justifyContent: 'flex-end',
+    scroll: {
+      flex: 1,
     },
     wrapper: {
-      backgroundColor: colors.background.default,
-      borderRadius: 12,
-      padding: 24,
-      paddingBottom: Device.isAndroid() ? 24 : 0,
+      flex: 1,
       alignItems: 'center',
+      paddingVertical: 30,
+    },
+    image: {
+      alignSelf: 'center',
+      width: Device.isLargeDevice() ? 300 : 220,
+      height: Device.isLargeDevice() ? 300 : 220,
+    },
+    largeFoxWrapper: {
+      alignItems: 'center',
+      paddingTop: Device.isLargeDevice() ? 60 : 40,
+      paddingBottom: Device.isLargeDevice() ? 100 : 40,
     },
     title: {
-      ...fontStyles.bold,
-      fontSize: 18,
-      color: colors.text.default,
-      marginTop: 20,
-      marginBottom: 20,
+      fontSize: 50,
+      lineHeight: 50,
+      justifyContent: 'center',
       textAlign: 'center',
+      paddingHorizontal: 60,
+      paddingTop: 20,
+      fontFamily: 'MMPoly-Regular',
     },
-    featureList: {
+    titleDescription: {
+      paddingTop: 10,
+      textAlign: 'center',
+      fontSize: 16,
+      fontFamily: 'MMSans-Regular',
+    },
+    ctas: {
+      flex: 1,
+      position: 'relative',
       width: '100%',
-      marginBottom: 24,
+      paddingHorizontal: 20,
+      paddingTop: 20,
     },
-    cancelButton: {
-      marginTop: 12,
+    createWrapper: {
+      flex: 1,
+      flexDirection: 'column',
+      justifyContent: 'flex-end',
+      rowGap: 16,
+      marginBottom: 16,
     },
-    learnMore: {
-      ...fontStyles.normal,
-      color: colors.text.default,
-      marginBottom: 12,
+    learnMoreButton: {
+      textDecorationLine: 'underline',
+      fontFamily: 'MMSans-Regular',
+      color: importedColors.gettingStartedTextColor,
+      textAlign: 'center',
+      paddingTop: 10,
+    },
+    importWalletButton: {
+      borderRadius: 12,
+      backgroundColor: importedColors.gettingStartedTextColor,
+    },
+    notNowButton: {
+      borderRadius: 12,
+      backgroundColor: importedColors.transparent,
+      borderWidth: 1,
+      borderColor: importedColors.transparent,
     },
   });
 
