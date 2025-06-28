@@ -38,6 +38,9 @@ import { getSeedlessOnboardingControllerMessenger } from './seedless-onboarding-
 ///: END:ONLY_INCLUDE_IF
 
 import { getApprovalControllerMessenger } from './approval-controller-messenger';
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFeature/controllers/sample-petnames-controller-messenger';
+///: END:ONLY_INCLUDE_IF
 /**
  * The messengers for the controllers that have been.
  */
@@ -137,6 +140,12 @@ export const CONTROLLER_MESSENGERS = {
   ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   SeedlessOnboardingController: {
     getMessenger: getSeedlessOnboardingControllerMessenger,
+    getInitMessenger: noop,
+  },
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  SamplePetnamesController: {
+    getMessenger: getSamplePetnamesControllerMessenger,
     getInitMessenger: noop,
   },
   ///: END:ONLY_INCLUDE_IF
