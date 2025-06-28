@@ -119,9 +119,11 @@ import {
   getPhishingTestResultAsync,
   isProductSafetyDappScanningEnabled,
 } from '../../../util/phishingDetection';
-import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import { toHex } from '@metamask/controller-utils';
 import { parseCaipAccountId } from '@metamask/utils';
+import { PermissionKeys } from '../../../core/Permissions/specifications';
+import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
+import { CaveatTypes } from '../../../core/Permissions/constants';
 
 /**
  * Tab component for the in-app browser
@@ -704,7 +706,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
         Logger.error(checkTabPermissionsError, 'Error in checkTabPermissions');
       }
     }
-  }, [activeChainId, navigation, isFocused, isInTabsView, isTabActive]);
+  }, [
+    activeChainId,
+    navigation,
+    isFocused,
+    isInTabsView,
+    isTabActive,
+    isPerDappSelectedNetworkEnabled,
+  ]);
 
   /**
    * Handles state changes for when the url changes
@@ -761,6 +770,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
       addToBrowserHistory,
       navigation,
       checkTabPermissions,
+      isPerDappSelectedNetworkEnabled,
     ],
   );
 
