@@ -758,9 +758,7 @@ const NetworkSelector = () => {
           showNetworkModal={showNetworkModal}
           switchTab={undefined}
           shouldNetworkSwitchPopToWallet={false}
-          customNetworksList={
-            searchString.length > 0 ? filteredNetworks : undefined
-          }
+          customNetworksList={filteredNetworks}
           showCompletionMessage={false}
           showPopularNetworkModal
           hideWarningIcons

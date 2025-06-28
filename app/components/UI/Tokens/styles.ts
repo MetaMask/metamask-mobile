@@ -13,17 +13,6 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.background.default,
       flex: 1,
     },
-    bottomSheetWrapper: {
-      alignItems: 'flex-start',
-    },
-    bottomSheetTitle: {
-      alignSelf: 'center',
-      paddingTop: 16,
-      paddingBottom: 16,
-    },
-    bottomSheetText: {
-      width: '100%',
-    },
     emptyView: {
       backgroundColor: colors.background.default,
       justifyContent: 'center',
@@ -249,10 +238,6 @@ const createStyles = (colors: Colors) =>
     },
     portfolioButtonContainer: {
       alignItems: 'center',
-    },
-    networkImageContainer: {
-      position: 'absolute',
-      right: 0,
     },
     badge: {
       marginTop: 8,
