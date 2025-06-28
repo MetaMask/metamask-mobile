@@ -259,9 +259,13 @@ const Login: React.FC = () => {
 
   const checkMetricsUISeen = async () => {
     if (!isMetaMetricsUISeen) {
-      navigation.navigate('OptinMetrics', {
-        onContinue: () => {
-          navigateToHome();
+      navigation.navigate(Routes.ONBOARDING.ROOT_NAV, {
+        screen: Routes.ONBOARDING.NAV,
+        params: {
+          screen: Routes.ONBOARDING.OPTIN_METRICS,
+          params: {
+            onContinue: () => navigateToHome(),
+          },
         },
       });
     } else {
