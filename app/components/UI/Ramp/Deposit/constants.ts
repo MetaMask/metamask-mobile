@@ -43,9 +43,10 @@ export interface DepositRegion {
   name: string;
   phonePrefix: string;
   currency: string;
-  phoneDigitCount: number;
   recommended?: boolean;
   supported: boolean;
+  template: string;
+  placeholder: string;
 }
 
 export const USDC_TOKEN: DepositCryptoCurrency = {

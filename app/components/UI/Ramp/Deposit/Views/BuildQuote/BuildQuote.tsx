@@ -349,6 +349,11 @@ const BuildQuote = () => {
               <View style={styles.regionContent}>
                 <Text variant={TextVariant.BodyMD}>{selectedRegion?.flag}</Text>
                 <Text variant={TextVariant.BodyMD}>{selectedRegion?.code}</Text>
+                <Icon
+                  name={IconName.ArrowDown}
+                  size={IconSize.Sm}
+                  color={theme.colors.icon.alternative}
+                />
               </View>
             </TouchableOpacity>
           </View>
