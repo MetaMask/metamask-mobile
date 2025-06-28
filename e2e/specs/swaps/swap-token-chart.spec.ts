@@ -113,11 +113,11 @@ describe(Regression('Swap from Token view'), (): void => {
         );
       } else {
         await submitSwapLegacyUI(
-          type,
           quantity,
           sourceTokenSymbol,
           destTokenSymbol,
         );
+        await TabBarComponent.tapActivity();
       }
 
     // After the swap is complete, the DAI balance shouldn't be 0
