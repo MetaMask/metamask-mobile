@@ -496,6 +496,13 @@
       "instant":"Instant",
       "1_to_2_days": "1 to 2 days"
     },
+    "unsupported_region_modal": {
+      "title": "Region not supported",
+      "message": "We're sorry, but we don't support deposits in %{regionName} yet. Please try a different region or contact support for assistance.",
+      "description": "We're sorry, but we don't support deposits in your region yet. Please try a different region or contact support for assistance.",
+      "select_different_region": "Select a different region",
+      "exit_to_wallet_home": "Exit to wallet home"
+    },
     "get_started": {
       "title": "Top up your wallet with USDC",
       "bullet_1_title": "Value-backed by the US dollar",

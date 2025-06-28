@@ -126,10 +126,10 @@ function RegionSelectorModal() {
 
   const handleOnRegionPressCallback = useCallback(
     (region: DepositRegion) => {
-      if (handleSelectRegion) {
+      if (region.supported && handleSelectRegion) {
         handleSelectRegion(region);
+        sheetRef.current?.onCloseBottomSheet();
       }
-      sheetRef.current?.onCloseBottomSheet();
     },
     [handleSelectRegion],
   );
@@ -152,7 +152,9 @@ function RegionSelectorModal() {
             <View style={styles.emoji}>
               <Text
                 variant={TextVariant.BodyLGMedium}
-                color={region.supported ? TextColor.Default : TextColor.Alternative}
+                color={
+                  region.supported ? TextColor.Default : TextColor.Alternative
+                }
               >
                 {region.flag}
               </Text>
@@ -160,7 +162,9 @@ function RegionSelectorModal() {
             <View>
               <Text
                 variant={TextVariant.BodyLGMedium}
-                color={region.supported ? TextColor.Default : TextColor.Alternative}
+                color={
+                  region.supported ? TextColor.Default : TextColor.Alternative
+                }
               >
                 {region.name}
               </Text>
@@ -169,7 +173,12 @@ function RegionSelectorModal() {
         </ListItemColumn>
       </ListItemSelect>
     ),
-    [handleOnRegionPressCallback, selectedRegionCode, styles.region, styles.emoji],
+    [
+      handleOnRegionPressCallback,
+      selectedRegionCode,
+      styles.region,
+      styles.emoji,
+    ],
   );
 
   const renderEmptyList = useMemo(
