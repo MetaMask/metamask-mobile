@@ -13,7 +13,7 @@ import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
 import TestHelpers from '../../../helpers';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../utils/Assertions.ts';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
 import { mockIdentityServices } from '../utils/mocks';
@@ -39,7 +39,6 @@ describe(
 
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
-
       mockServer = await startMockServer({}, TEST_SPECIFIC_MOCK_SERVER_PORT);
 
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
@@ -87,12 +86,17 @@ describe(
       });
 
       await WalletView.tapIdenticon();
-      await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-      await TestHelpers.delay(4000);
+      await Assertions.expectVisible(AccountListBottomSheet.accountList, {
+        description: 'Account List Bottom Sheet should be visible',
+      });
+
 
       for (const accountName of decryptedAccountNames) {
-        await Assertions.checkIfVisible(
+        await Assertions.expectVisible(
           AccountListBottomSheet.getAccountElementByAccountName(accountName),
+          {
+            description: `Account with name "${accountName}" should be visible`,
+          },
         );
       }
 
@@ -106,14 +110,13 @@ describe(
 
       await AccountListBottomSheet.tapAddAccountButton();
       await AddAccountBottomSheet.tapCreateAccount();
-      await TestHelpers.delay(2000);
 
       await AccountListBottomSheet.tapEditAccountActionsAtIndex(2);
       await AccountActionsBottomSheet.renameActiveAccount(NEW_ACCOUNT_NAME);
 
       await waitUntilEventsEmittedNumberEquals(2);
 
-      await Assertions.checkIfElementToHaveText(
+      await Assertions.expectText(
         WalletView.accountName,
         NEW_ACCOUNT_NAME,
       );
@@ -130,11 +133,12 @@ describe(
       });
 
       await WalletView.tapIdenticon();
-      await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-      await TestHelpers.delay(4000);
+      await Assertions.expectVisible(AccountListBottomSheet.accountList);
 
-      await Assertions.checkIfVisible(
-        AccountListBottomSheet.getAccountElementByAccountName(NEW_ACCOUNT_NAME),
+      await Assertions.expectVisible(
+        AccountListBottomSheet.getAccountElementByAccountName(NEW_ACCOUNT_NAME), {
+          description: `Account with name "${NEW_ACCOUNT_NAME}" should be visible`,
+        }
       );
     });
   },

@@ -1,7 +1,7 @@
 import { ChoosePasswordSelectorsIDs } from '../../selectors/Onboarding/ChoosePassword.selectors';
 import { ImportFromSeedSelectorsIDs } from '../../selectors/Onboarding/ImportFromSeed.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../utils/Matchers.ts';
+import Gestures from '../../utils/Gestures.ts';
 
 class ImportWalletView {
   get container() {

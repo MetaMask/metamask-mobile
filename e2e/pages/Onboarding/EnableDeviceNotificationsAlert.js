@@ -1,5 +1,5 @@
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures.ts';
+import Matchers from '../../utils/Matchers.ts';
 
 import {
   EnableDeviceNotificationsAlertSelectorText
