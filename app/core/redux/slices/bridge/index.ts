@@ -413,7 +413,7 @@ export const selectIsUnifiedSwapsEnabled = createSelector(
     ) {
       return true;
     }
-    return true;
+    return false;
   },
 );
 
