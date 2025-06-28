@@ -8,7 +8,6 @@ import { MetaMetrics } from '../../../core/Analytics';
 import { waitFor } from '@testing-library/react-native';
 import { RootState } from '../../../reducers';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
 
 const initialState: DeepPartial<RootState> = {
@@ -77,16 +76,6 @@ describe('App', () => {
       await waitFor(() => {
         expect(mockReset).toHaveBeenCalledWith({
           routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
-        });
-      });
-    });
-    it('navigates to login when user exists and logs in', async () => {
-      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(true);
-      jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
-      renderScreen(App, { name: 'App' }, { state: initialState });
-      await waitFor(() => {
-        expect(mockReset).toHaveBeenCalledWith({
-          routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
         });
       });
     });

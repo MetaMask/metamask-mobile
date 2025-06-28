@@ -76,12 +76,21 @@ class FixtureBuilder {
       this.fixture.asyncState = {};
     }
     this.fixture.asyncState = {
-      '@MetaMask:existingUser': 'true',
       '@MetaMask:onboardingWizard': 'explored',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
       '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
       '@MetaMask:solanaFeatureModalShown': 'false',
     };
+    
+    // Set existingUser in Redux state instead of asyncState
+    if (!this.fixture.state) {
+      this.fixture.state = {};
+    }
+    if (!this.fixture.state.user) {
+      this.fixture.state.user = {};
+    }
+    this.fixture.state.user.existingUser = true;
+    
     return this;
   }
 
@@ -516,6 +525,7 @@ class FixtureBuilder {
           isAuthChecked: false,
           initialScreen: '',
           appTheme: 'os',
+          existingUser: true,
         },
         wizard: {
           step: 0,
@@ -688,7 +698,6 @@ class FixtureBuilder {
         },
       },
       asyncState: {
-        '@MetaMask:existingUser': 'true',
         '@MetaMask:onboardingWizard': 'explored',
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
         '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
