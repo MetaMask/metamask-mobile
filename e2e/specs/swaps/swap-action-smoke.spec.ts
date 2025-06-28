@@ -38,9 +38,10 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
   const SECOND_ROW: number = 1;
   const wallet: ethers.Wallet = ethers.Wallet.createRandom();
   let isUnifiedUIEnabled: boolean | undefined;
+  const isBuildTypeFlask = process.env.METAMASK_BUILD_TYPE === "flask";
 
   beforeAll(async (): Promise<void> => {
-      isUnifiedUIEnabled = await isUnifiedUIEnabledForChain('1');
+    isUnifiedUIEnabled = await isUnifiedUIEnabledForChain('1');
 
     await Tenderly.addFunds(
       CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
@@ -80,11 +81,11 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
   });
 
   it.each`
-    type        | quantity | sourceTokenSymbol | destTokenSymbol | network 
-    ${'swap'}   | ${'1'}   | ${'ETH'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet} 
-    ${'swap'}   | ${'10'}   | ${'USDC'}          | ${'ETH'}       | ${CustomNetworks.Tenderly.Mainnet}
-    ${'wrap'}   | ${'.03'} | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet} 
-    ${'unwrap'} | ${'.01'} | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet} 
+    type        | quantity | sourceTokenSymbol | destTokenSymbol | network
+    ${'swap'}   | ${'1'}   | ${'ETH'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet}
+    ${'swap'}   | ${'10'}  | ${'USDC'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
+    ${'wrap'}   | ${'.03'} | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
+    ${'unwrap'} | ${'.01'} | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
   `(
     "should $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }): Promise<void> => {
@@ -93,7 +94,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
        await WalletActionsBottomSheet.tapSwapButton();
 
        // Submit the Swap
-       if (isUnifiedUIEnabled) {
+       if (isUnifiedUIEnabled && isBuildTypeFlask) {
          await submitSwapUnifiedUI(
            type,
            quantity,

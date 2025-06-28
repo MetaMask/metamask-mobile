@@ -36,6 +36,7 @@ describe(Regression('Multiple Swaps from Actions'), () => {
   const SECOND_ROW: number = 1;
   const wallet: ethers.Wallet = ethers.Wallet.createRandom();
   let isUnifiedUIEnabled: boolean | undefined;
+  const isBuildTypeFlask = process.env.METAMASK_BUILD_TYPE === "flask";
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
@@ -91,18 +92,19 @@ describe(Regression('Multiple Swaps from Actions'), () => {
     ${'erc20'}      | ${'10'}  | ${'DAI'}          | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
   `(
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
-    async ({ type, quantity, sourceTokenSymbol, destTokenSymbol }) => {
+    async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }) => {
        await TabBarComponent.tapActions();
        await Assertions.checkIfVisible(WalletActionsBottomSheet.swapButton);
        await WalletActionsBottomSheet.tapSwapButton();
 
       // Submit the Swap
-      if (isUnifiedUIEnabled) {
+      if (isUnifiedUIEnabled && isBuildTypeFlask) {
         await submitSwapUnifiedUI(
           type,
           quantity,
           sourceTokenSymbol,
           destTokenSymbol,
+          network.providerConfig.chainId,
         );
       } else {
         await submitSwapLegacyUI(

@@ -36,6 +36,7 @@ describe(Regression('Swap from Token view'), (): void => {
   const swapOnboarded: boolean = true; // TODO: Set it to false once we show the onboarding page again.
   const wallet: ethers.Wallet = ethers.Wallet.createRandom();
   let isUnifiedUIEnabled: boolean | undefined;
+  const isBuildTypeFlask = process.env.METAMASK_BUILD_TYPE === "flask";
 
   beforeAll(async (): Promise<void> => {
 
@@ -102,12 +103,13 @@ describe(Regression('Swap from Token view'), (): void => {
     if (!swapOnboarded) await Onboarding.tapStartSwapping();
 
     // Submit the Swap
-      if (isUnifiedUIEnabled) {
+      if (isUnifiedUIEnabled && isBuildTypeFlask) {
         await submitSwapUnifiedUI(
           type,
           quantity,
           sourceTokenSymbol,
           destTokenSymbol,
+          CustomNetworks.Tenderly.Mainnet.providerConfig.chainId,
         );
       } else {
         await submitSwapLegacyUI(
