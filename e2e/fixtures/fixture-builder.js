@@ -954,8 +954,6 @@ class FixtureBuilder {
   }
 
   withImportedAccountKeyringController() {
-
-
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
       keyrings: [
         {
@@ -1222,13 +1220,52 @@ class FixtureBuilder {
     return this;
   }
 
-  withTokens(tokens) {
+  // Mirrors the vault contents from the extension fixture.
+  withMultiSRPKeyringController() {
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      vault:
+        '{"keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","cipher":"LOubqgWR4O7Hv/RcdHPZ0Xi0GmCPD6whWLbO/jtnv44cAbBDumnAKX1NK1vgDNORSPVlUTkjyZwaHaStzuTIoJDurCBJN4TtsNUe5qIoJgttZ4Yv4hHxlg04V4nq/DXqAQaXedILMXnhbqZ+DP+tMc7JBXcVi12GIOiqV+ycLj8xFcasS/cdxtU6Os3pItdEZS89Rp7U58YOJBRQ2dlhBg0tCo2JnCrRhQmPGcTBuQVpn7SdkDx5PPC2slz3TRCjaHXWGCMPmx6jCDqI2sJL9ljpFB0/Jvlp18/9PE/cZ53GxybdtQiJ9andNHlfPf5WK+qI+QgySR8CMSRDWaP3hfEGHF1H0oqO7y/v6/pkShitdx7i5bC8Wt++heUOT8qpHTo1gDgUmNuZJsF4sG0Y18Hw8vLu+LfkoZgundb+cFjPFD1teTEnl2mmkpBvQCciynsCHPnHgnhKNHj6KMLhlSXWEItuYL/FY7dRpttfXzWfVQt56dQLLEYEYmO/f7C1uzAv6jbHBHqg16QtX3hCEnX0qzi1h3DQ8J5v44ckkQ/UGVvy6bOUC83b8DMLNPiSoMJDSsMaDzMmQ4J4xHzoHdD7/wBcXcbtUwccMGRHXv3jFLtHjuV+HQo0//I9xnjjAxfxX9SgyBQE8WCvUOxgCdwF8W7aBKcFEsoksLAWIQFxerWc3OxdvKSzvinI/j/MvyFMvVP5pm/BLWNj639GpFmIJVMprxkDL4H45CsgUcMe1Kiim/PFvo0D449vO1XL31ZIl9TxRVLaIr2cE3a95MFbzru9stqNkXz0EHrhSltFyoANMCim1HFxK/1yRl5Tt4u9Vjjyvj6a4Wtzy7SyLHhx0PfrlARq2euwGQal46cZYYKuMsnwvQf3ba/uJF3hF3FyAl9fn28HKRurImsiKNDvT+kaoUMFYoX6i+qR0LHoA7OfeqXpsKYyMx8LnUq7zKP4ZVc8sysI95YYYwdzhq2xzHDQfOplYRFkQllxqtkoTxMPHz/J1W1kjBTpCI7M8n8qLv53ryNq4y+hQx0RQNtvGPE9OcQTDUpkCM5dv7p8Ja8uLTDehKeKzs315IRBVJN8mdGy18EK5sjDoileDQ==","iv":"e88d2415e223bb8cc67c74ce47de1a6b","salt":"BX+ED3hq9K3tDBdnobBphA=="}',
+    });
+
+    return this;
+  }
+
+  withTokens(tokens, chainId = CHAIN_IDS.MAINNET) {
     merge(this.fixture.state.engine.backgroundState.TokensController, {
       allTokens: {
-        [CHAIN_IDS.MAINNET]: {
+        [chainId]: {
           [DEFAULT_FIXTURE_ACCOUNT]: tokens,
         },
       },
+    });
+    return this;
+  }
+
+  withTokensForAllPopularNetworks(tokens) {
+    // Get all popular network chain IDs using proper constants
+    const popularChainIds = [
+      CHAIN_IDS.MAINNET, // Ethereum Mainnet
+      CHAIN_IDS.POLYGON, // Polygon Mainnet
+      CHAIN_IDS.BSC, // BNB Smart Chain
+      CHAIN_IDS.OPTIMISM, // Optimism
+      CHAIN_IDS.ARBITRUM, // Arbitrum One
+      CHAIN_IDS.AVALANCHE, // Avalanche C-Chain
+      CHAIN_IDS.BASE, // Base
+      CHAIN_IDS.ZKSYNC_ERA, // zkSync Era
+      CHAIN_IDS.SEI, // Sei Network
+    ];
+
+    const allTokens = {};
+
+    // Add tokens to each popular network
+    popularChainIds.forEach((chainId) => {
+      allTokens[chainId] = {
+        [DEFAULT_FIXTURE_ACCOUNT]: tokens,
+      };
+    });
+
+    merge(this.fixture.state.engine.backgroundState.TokensController, {
+      allTokens,
     });
     return this;
   }
