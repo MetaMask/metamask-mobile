@@ -11,6 +11,7 @@ const SECURITY_ALERTS_API_URL =
 
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
+  METAMASK_BUILD_TYPE: process.env.METAMASK_BUILD_TYPE,
   DEFAULT_LOCK_TIMEOUT: 30000,
   DEFAULT_SEARCH_ENGINE: 'Google',
   TX_CHECK_BACKGROUND_FREQUENCY: 30000,
@@ -236,9 +237,6 @@ export default {
     BASE_URL: 'https://client-config.api.cx.metamask.io',
     VERSION: 'v1',
     DEFAULT_FETCH_INTERVAL: 15 * 60 * 1000, // 15 minutes
-  },
-  SEEDLESS_ONBOARDING: {
-    WEB3AUTH_NETWORK: process.env.WEB3AUTH_NETWORK,
   },
   TOKEN_DISCOVERY_BROWSER_ENABLED:
     process.env.TOKEN_DISCOVERY_BROWSER_ENABLED === 'true',
