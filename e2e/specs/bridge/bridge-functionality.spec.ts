@@ -82,6 +82,8 @@ describe(SmokeTrade('Bridge functionality'), () => {
   });
 
   it('should bridge ETH (Mainnet) to SOL (Solana)', async () => {
+    const destChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+
     await TabBarComponent.tapWallet();
     await WalletView.tapIdenticon();
     await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
@@ -111,9 +113,9 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await QuoteView.tapSwapTo();
     await TestHelpers.delay(1000);
     await QuoteView.selectNetwork('Solana');
-    await Assertions.checkIfVisible(QuoteView.destToken('SOL'));
+    await Assertions.checkIfVisible(QuoteView.destToken(destChainId, 'SOL'));
     await TestHelpers.delay(1000);
-    await QuoteView.selectDestToken('SOL');
+    await QuoteView.selectDestToken(destChainId, 'SOL');
     await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
     await Assertions.checkIfVisible(QuoteView.confirmBridge);
     await QuoteView.tapConfirmBridge();
@@ -283,6 +285,8 @@ describe(SmokeTrade('Bridge functionality'), () => {
   });
 
   it('should bridge ETH (Mainnet) to ETH (Base Network)', async () => {
+    const destChainId = '0x2105';
+
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapActions();
@@ -291,8 +295,8 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await QuoteView.enterAmount('1');
     await QuoteView.tapSwapTo();
     await QuoteView.selectNetwork('Base');
-    await Assertions.checkIfVisible(QuoteView.destToken('ETH'));
-    await QuoteView.selectDestToken('ETH');
+    await Assertions.checkIfVisible(QuoteView.destToken(destChainId, 'ETH'));
+    await QuoteView.selectDestToken(destChainId, 'ETH');
     await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
     await Assertions.checkIfVisible(QuoteView.confirmBridge);
     await QuoteView.tapConfirmBridge();
@@ -311,7 +315,9 @@ describe(SmokeTrade('Bridge functionality'), () => {
     );
   });
 
-  it('should bridge ETH (Mainnet) to ETH (BNB Smart Chain Mainnet)', async () => {
+  it('should bridge ETH (Mainnet) to ETH (Optimism)', async () => {
+    const destChainId = '0xa';
+
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
 
@@ -329,8 +335,8 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await QuoteView.tapSwapTo();
     await TestHelpers.delay(1000);
     await QuoteView.selectNetwork('OP Mainnet');
-    await Assertions.checkIfVisible(QuoteView.destToken('ETH'));
-    await QuoteView.selectDestToken('ETH');
+    await Assertions.checkIfVisible(QuoteView.destToken(destChainId, 'ETH'));
+    await QuoteView.selectDestToken(destChainId, 'ETH');
     await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
     await Assertions.checkIfVisible(QuoteView.confirmBridge);
     await QuoteView.tapConfirmBridge();
