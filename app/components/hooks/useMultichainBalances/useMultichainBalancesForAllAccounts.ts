@@ -25,7 +25,7 @@ import {
 } from '../../../selectors/multichain';
 import { selectSelectedNonEvmNetworkChainId } from '../../../selectors/multichainNetworkController';
 ///: END:ONLY_INCLUDE_IF
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
   getAccountBalanceData,
   getAggregatedBalance,
@@ -46,6 +46,17 @@ const useMultichainBalancesForAllAccounts =
     const allChainIDs = useSelector(getChainIdsToPoll);
     const { type } = useSelector(selectProviderConfig);
     const ticker = useSelector(selectEvmTicker);
+
+    const renderCount = useRef(0);
+
+    useEffect(() => {
+      renderCount.current++;
+      // eslint-disable-next-line no-console
+      console.log(
+        'useMultichainBalancesForAllAccounts renderCount',
+        renderCount.current,
+      );
+    }, []);
 
     const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
       accountsList,

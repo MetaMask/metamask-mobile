@@ -5,8 +5,10 @@ import {
   View,
   ViewStyle,
   TouchableOpacity,
+  useWindowDimensions,
+  ScrollViewProps,
 } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native-gesture-handler';
 import { CaipChainId } from '@metamask/utils';
 import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -56,6 +58,22 @@ import { Skeleton } from '../../../component-library/components/Skeleton';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 import { AccountWallet } from '@metamask/account-tree-controller';
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+export const useSheetStyleStyleVars = () => {
+  const { top: screenTopPadding, bottom: screenBottomPadding } =
+    useSafeAreaInsets();
+  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
+  const maxSheetHeight = screenHeight - screenTopPadding;
+  return {
+    maxSheetHeight,
+    screenHeight,
+    screenWidth,
+    screenTopPadding,
+    screenBottomPadding,
+  };
+};
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
@@ -102,7 +120,14 @@ const EvmAccountSelectorList = ({
   );
 
   const accountTreeSections = useSelector(selectAccountSections);
+
+  // console.log(
+  //   'accountTreeSections',
+  //   JSON.stringify(accountTreeSections, null, 2),
+  // );
   const internalAccounts = useSelector(selectInternalAccounts);
+
+  // console.log('internalAccounts', JSON.stringify(internalAccounts, null, 2));
 
   const accountSections = useMemo((): AccountSection[] => {
     if (accountTreeSections) {
@@ -383,8 +408,8 @@ const EvmAccountSelectorList = ({
     scrollToSelectedAccount();
   }, [scrollToSelectedAccount]);
 
-  const renderItem = useCallback(
-    ({ item }: { item: FlattenedAccountListItem }) => {
+  const renderItem: ListRenderItem<FlattenedAccountListItem> = useCallback(
+    ({ item }) => {
       if (item.type === 'header') {
         return renderSectionHeader(item.data);
       }
@@ -483,7 +508,6 @@ const EvmAccountSelectorList = ({
 
       return (
         <Cell
-          key={address}
           onLongPress={handleLongPress}
           variant={cellVariant}
           isSelected={isSelectedAccount}
@@ -557,18 +581,34 @@ const EvmAccountSelectorList = ({
     }
   }, [accounts, accountListRef, selectedAddresses, isAutoScrollEnabled]);
 
+  const { maxSheetHeight, screenWidth } = useSheetStyleStyleVars();
+  const listItemHeight = 80; // Height of the cell
+  const addAccountBuffer = 200;
+  // Clamp between 300 to maxSheetSize, and subtract the add account button area
+  const listHeight =
+    Math.max(300, Math.min(maxSheetHeight, listItemHeight * accounts.length)) -
+    addAccountBuffer;
+
+  const estimatedListSize = { height: listHeight, width: screenWidth };
+
   return (
-    <FlatList
-      ref={accountListRef}
-      onContentSizeChange={onContentSizeChanged}
-      data={flattenedData}
-      keyExtractor={getKeyExtractor}
-      renderItem={renderItem}
-      // Increasing number of items at initial render fixes scroll issue.
-      initialNumToRender={999}
-      testID={ACCOUNT_SELECTOR_LIST_TESTID}
-      {...props}
-    />
+    <View style={{ height: listHeight }}>
+      <FlashList
+        ref={accountListRef}
+        onContentSizeChange={onContentSizeChanged}
+        data={flattenedData}
+        keyExtractor={getKeyExtractor}
+        renderItem={renderItem}
+        estimatedItemSize={listItemHeight}
+        renderScrollComponent={
+          ScrollView as React.ComponentType<ScrollViewProps>
+        }
+        estimatedListSize={estimatedListSize}
+        testID={ACCOUNT_SELECTOR_LIST_TESTID}
+        disableAutoLayout
+        {...props}
+      />
+    </View>
   );
 };
 
