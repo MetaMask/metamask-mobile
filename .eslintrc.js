@@ -16,6 +16,40 @@ module.exports = {
   plugins: ['@typescript-eslint', '@metamask/design-tokens', 'react-compiler'],
   overrides: [
     {
+      files: ['e2e/**/*.{js,ts}'],
+      rules: {
+        // E2E Framework Best Practices (start with warnings, we will be changing to errors when the migration is complete)
+        'no-console': 'off',
+        'no-restricted-syntax': [
+          'warn',
+          {
+            selector: "CallExpression[callee.object.name='TestHelpers'][callee.property.name='delay']",
+            message: 'Avoid TestHelpers.delay(). Use proper waiting with Assertions.expectVisible() or similar framework methods instead.',
+          },
+          {
+            selector: "CallExpression[callee.name='setTimeout']",
+            message: 'Avoid arbitrary setTimeout() in tests. Use framework waiting methods with proper conditions instead.',
+          },
+          {
+            selector: "CallExpression[callee.object.name='Assertions'][callee.property.name='checkIfVisible']",
+            message: 'Deprecated: "checkIfVisible" is deprecated. Use "expectVisible" instead for better error handling and retry mechanisms.',
+          },
+          {
+            selector: "CallExpression[callee.object.name='Assertions'][callee.property.name='checkIfTextIsDisplayed']",
+            message: 'Deprecated: "checkIfTextIsDisplayed" is deprecated. Use "expectTextDisplayed" instead for better error handling and retry mechanisms.',
+          },
+          {
+            selector: "CallExpression[callee.object.name='Gestures'][callee.property.name='tapAndLongPress']",
+            message: 'Deprecated: "tapAndLongPress" is deprecated. Use "longPress" instead for better error handling and retry mechanisms.',
+          },
+          {
+            selector: "CallExpression[callee.object.name='Gestures'][callee.property.name='clearField']",
+            message: 'Deprecated: "clearField" is deprecated. Use "typeText" with clearFirst option instead for better error handling and retry mechanisms.',
+          },
+        ],
+      },
+    },
+    {
       files: ['*.{ts,tsx}'],
       extends: ['@metamask/eslint-config-typescript'],
       rules: {
