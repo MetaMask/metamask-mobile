@@ -1253,6 +1253,7 @@ class FixtureBuilder {
 
     return this;
   }
+
   // Mirrors the vault contents from the extension fixture.
   withMultiSRPKeyringController() {
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
@@ -1263,13 +1264,42 @@ class FixtureBuilder {
     return this;
   }
 
-  withTokens(tokens) {
+  withTokens(tokens, chainId = CHAIN_IDS.MAINNET) {
     merge(this.fixture.state.engine.backgroundState.TokensController, {
       allTokens: {
-        [CHAIN_IDS.MAINNET]: {
+        [chainId]: {
           [DEFAULT_FIXTURE_ACCOUNT]: tokens,
         },
       },
+    });
+    return this;
+  }
+
+  withTokensForAllPopularNetworks(tokens) {
+    // Get all popular network chain IDs using proper constants
+    const popularChainIds = [
+      CHAIN_IDS.MAINNET, // Ethereum Mainnet
+      CHAIN_IDS.POLYGON, // Polygon Mainnet
+      CHAIN_IDS.BSC, // BNB Smart Chain
+      CHAIN_IDS.OPTIMISM, // Optimism
+      CHAIN_IDS.ARBITRUM, // Arbitrum One
+      CHAIN_IDS.AVALANCHE, // Avalanche C-Chain
+      CHAIN_IDS.BASE, // Base
+      CHAIN_IDS.ZKSYNC_ERA, // zkSync Era
+      CHAIN_IDS.SEI, // Sei Network
+    ];
+
+    const allTokens = {};
+    
+    // Add tokens to each popular network
+    popularChainIds.forEach(chainId => {
+      allTokens[chainId] = {
+        [DEFAULT_FIXTURE_ACCOUNT]: tokens,
+      };
+    });
+
+    merge(this.fixture.state.engine.backgroundState.TokensController, {
+      allTokens,
     });
     return this;
   }
