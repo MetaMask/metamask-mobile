@@ -21,6 +21,8 @@ import OrderProcessing from '../Views/OrderProcessing';
 import BankDetails from '../Views/BankDetails';
 
 import TokenSelectorModal from '../Views/Modals/TokenSelectorModal';
+import RegionSelectorModal from '../Views/Modals/RegionSelectorModal';
+import PaymentMethodSelectorModal from '../Views/Modals/PaymentMethodSelectorModal';
 
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -127,6 +129,14 @@ export const DepositModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.DEPOSIT.MODALS.TOKEN_SELECTOR}
       component={TokenSelectorModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.DEPOSIT.MODALS.PAYMENT_METHOD_SELECTOR}
+      component={PaymentMethodSelectorModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.DEPOSIT.MODALS.REGION_SELECTOR}
+      component={RegionSelectorModal}
     />
   </ModalsStack.Navigator>
 );

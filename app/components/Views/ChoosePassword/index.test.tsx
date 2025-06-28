@@ -472,4 +472,49 @@ describe('ChoosePassword', () => {
     // // Clean up mock
     mockNewWalletAndKeychain.mockRestore();
   });
+
+  it('confirm password input is cleared when password input is cleared', async () => {
+    const props: ChoosePasswordProps = {
+      route: { params: { [ONBOARDING]: true } },
+      navigation: mockNavigation,
+    };
+
+    const component = renderWithProviders(<ChoosePassword {...props} />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'StrongPassword123!@#');
+    });
+
+    expect(passwordInput.props.value).toBe('StrongPassword123!@#');
+
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!@#');
+    });
+
+    expect(confirmPasswordInput.props.value).toBe('StrongPassword123!@#');
+
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'StrongPassword123!@');
+    });
+
+    expect(confirmPasswordInput.props.value).toBe('StrongPassword123!@#');
+
+    await act(async () => {
+      fireEvent.changeText(passwordInput, '');
+    });
+
+    expect(confirmPasswordInput.props.value).toBe('');
+  });
 });
