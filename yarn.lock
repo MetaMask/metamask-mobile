@@ -4763,10 +4763,10 @@
     "@metamask/snaps-utils" "^9.4.0"
     lodash "^4.17.21"
 
-"@metamask/accounts-controller@^30.0.0":
-  version "30.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-30.0.0.tgz#641f007a9a4ccb0e5eedbc0deb38c543058b64af"
-  integrity sha512-nbTOtT4J9ovc3dMdv6kECyoT8nr36qeeAmbnvrfwBsnGdGb6ELm3NGj+oJ2WfPxq1Mqo9ImpeNmFe5zt8QaZjg==
+"@metamask/accounts-controller@^31.0.0":
+  version "31.0.0"
+  resolved "https://registry.npmjs.org/@metamask/accounts-controller/-/accounts-controller-31.0.0.tgz#7736c7e30c8a957906025c36eb7e4e69c3fa965a"
+  integrity sha512-ie1jnPl+FCaeURynxcf8F+4+eTtGDFZW4uCfi2t/DkoyZWkJ1xv2jI9ICJVw1aA91JXgPm4k2B/NQQbnVMKO4w==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@metamask/base-controller" "^8.0.1"
@@ -4887,10 +4887,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.12.1.tgz#2b60ac613992e97302a9898b3d4030395b2b2123"
   integrity sha512-8gsN7a5OyRMg6c0jw0tDrqePHjFv9uHi36eL2PdTMUYU9J3dL/t9cOWe/3RPSwu7tw/tMNXyM4mzwZvq7Kxs2Q==
 
-"@metamask/bridge-controller@^32.1.1":
-  version "32.1.1"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-32.1.1.tgz#c83529f2fac607c9405df635253963c46d6919ac"
-  integrity sha512-6DbaIAUYfJ7pzTmBPIFzEpmN7pIXqTBYHnGjxHVeFEf85G2HRbxKTnZFJRWq90hpTdoFYD8kNFWpZfhV4SgOKg==
+"@metamask/bridge-controller@^32.2.0":
+  version "32.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-32.2.0.tgz#b2b624edafb3a7e484074fa27767281d555459ee"
+  integrity sha512-sUF/ZqOjpYTT9ZuyQHqWf8ACukNYfzhR/xo7msq/lDoVSLd0GM92kgFRh27Rvh0W1gla8EQ+2ORKiU59ByrZYw==
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
@@ -4898,7 +4898,7 @@
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.9.0"
+    "@metamask/controller-utils" "^11.10.0"
     "@metamask/gas-fee-controller" "^23.0.0"
     "@metamask/keyring-api" "^18.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
@@ -4909,13 +4909,13 @@
     reselect "^5.1.1"
     uuid "^8.3.2"
 
-"@metamask/bridge-status-controller@^29.1.0":
-  version "29.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-29.1.0.tgz#a0b4931b02ce57b04a71b17f6d015e7ea590b29d"
-  integrity sha512-hCdjH2Oqfiu420Dar1yYL/mX5IeDWcX3/gyxpA6FCtlohGYI/tUYpi6uHP+Du3r9qYCfZWxezYXoMGT5puCC8w==
+"@metamask/bridge-status-controller@^30.0.0":
+  version "30.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-30.0.0.tgz#c7348cc7a7f23807638c7ff531556d3a8e2a7268"
+  integrity sha512-jK92NXsRaXjTEbKlt53ux/kgS1KwpKjBwSTudjnkd20LpY3QXy86GXLwYTisogoBVs+YJ0JlipxSGtV/6LgZ8g==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.9.0"
+    "@metamask/controller-utils" "^11.10.0"
     "@metamask/keyring-api" "^18.0.0"
     "@metamask/polling-controller" "^13.0.0"
     "@metamask/superstruct" "^3.1.0"
@@ -5006,10 +5006,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-7.0.0.tgz#3434c19fb52a0cba15242085867236c3ec1c2aea"
   integrity sha512-M92BTgygZ4zteKL0tlWnXMpeWUY2cyraP1g+f6xIH67litdSu5iUyp2nhzVIlzHwGR+ycQAaicSscKyKm3aUVQ==
 
-"@metamask/earn-controller@^1.1.1":
-  version "1.1.1"
-  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-1.1.1.tgz#1c64338be56cf1e920ffe162efb198d31c19e8be"
-  integrity sha512-O5Py8A/I36wiqmJvZX/g20jtcBL3qAGQw4Ss8XEIoUNsC2xRjNsL1q0zF43CpUQYIy8zg1yu6zLnKHtIZirkEA==
+"@metamask/earn-controller@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-2.0.1.tgz#e3486fc2e9aeb8dc292629ad01d8de075ac64326"
+  integrity sha512-sriAsbMjvTQ1sx6K6gRgzEKlLW0wlJidvGhbI/nWZvZKaYy3xhPPmVBXIau4huwWUfSy1ohINPEnqsjRS2WInw==
   dependencies:
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
@@ -5870,10 +5870,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/slip44/-/slip44-4.2.0.tgz#cba629120b5ea45761c1bf58069d87a12c30af4d"
   integrity sha512-pcPwwaedVmZwcoWbxUY27ZaMBrt3+LXrWprmCeoNNbZSkJh1fK4RcrDS7mB1oXX/ZGsREBrayzZ+VZASDmM2kw==
 
-"@metamask/smart-transactions-controller@^16.3.1":
-  version "16.3.1"
-  resolved "https://registry.yarnpkg.com/@metamask/smart-transactions-controller/-/smart-transactions-controller-16.3.1.tgz#1618bcc4394b5a1969493d6cf828c1a133788f82"
-  integrity sha512-L2rrev+lXadK94xtSWxHU0DAdXYaj8nLxPSFPXvyUyYBQeXZY9BEKd9UxnZo4v1WKjv8vRJ2kgsDvYikStq/Sg==
+"@metamask/smart-transactions-controller@^16.4.0":
+  version "16.4.0"
+  resolved "https://registry.yarnpkg.com/@metamask/smart-transactions-controller/-/smart-transactions-controller-16.4.0.tgz#9478a290384db85d21b572986b865846550712c4"
+  integrity sha512-Q2D6MDI84bRkisgUmT9y1G0esJU0x4dhpiggaxvuazYq/AnuXAG1hQ1DrNOT6vuvHpTZRNX9UMcIXCxb7Kdsqg==
   dependencies:
     "@babel/runtime" "^7.24.1"
     "@ethereumjs/tx" "^5.2.1"
