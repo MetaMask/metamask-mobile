@@ -46,6 +46,9 @@ describe(Regression('Transaction'), () => {
 
         await WalletView.tapOnToken(ETHEREUM_NAME);
         await TokenOverview.tapSendButton();
+        if (device.getPlatform() === 'ios') {
+          await NetworkEducationModal.tapNetworkName(ETHEREUM_NAME);
+        }
         await NetworkEducationModal.tapGotItButton();
 
         await SendView.inputAddress(RECIPIENT);
