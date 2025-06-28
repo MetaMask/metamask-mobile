@@ -4,6 +4,7 @@ jest.mock('react-native', () => {
   return { ...RN };
 });
 
+import React from 'react';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import Onboarding from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -62,12 +63,30 @@ jest.mock('../../../core', () => ({
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    replace: mockReplace,
-    navigate: mockNavigate,
-    setOptions: jest.fn(),
+const mockNav = {
+  navigate: mockNavigate,
+  replace: mockReplace,
+  reset: jest.fn(),
+  setOptions: jest.fn(),
+};
+jest.mock('@react-navigation/stack', () => ({
+  createStackNavigator: () => ({
+    Navigator: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    Screen: ({
+      component: ScreenComponent,
+      initialParams,
+    }: {
+      component: React.ComponentType<{
+        navigation: Record<string, unknown>;
+        route: { params: Record<string, unknown> };
+      }>;
+      initialParams: Record<string, unknown>;
+    }) => (
+        <ScreenComponent
+          navigation={mockNav}
+          route={{ params: initialParams || {} }}
+        />
+      ),
   }),
 }));
 
@@ -198,17 +217,17 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.MODAL.ROOT_MODAL_FLOW,
-          expect.objectContaining({
-            screen: Routes.SHEET.ONBOARDING_SHEET,
-            params: expect.objectContaining({
-              createWallet: true,
-            }),
-          })
-        );
-      });
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.ONBOARDING_SHEET,
+          params: expect.objectContaining({
+            createWallet: true,
+          }),
+        })
+      );
     });
   });
 
@@ -232,17 +251,17 @@ describe('Onboarding', () => {
         fireEvent.press(importSeedButton);
       });
 
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.MODAL.ROOT_MODAL_FLOW,
-          expect.objectContaining({
-            screen: Routes.SHEET.ONBOARDING_SHEET,
-            params: expect.objectContaining({
-              createWallet: false,
-            }),
-          })
-        );
-      });
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.ONBOARDING_SHEET,
+          params: expect.objectContaining({
+            createWallet: false,
+          }),
+        })
+      );
     });
   });
 
@@ -263,12 +282,15 @@ describe('Onboarding', () => {
       });
 
       const unlockButton = getByText('Unlock');
-      fireEvent.press(unlockButton);
 
-      await waitFor(() => {
-        expect(Authentication.resetVault).toHaveBeenCalled();
-        expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
+      await act(async () => {
+        fireEvent.press(unlockButton);
       });
+
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(Authentication.resetVault).toHaveBeenCalled();
+      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
     });
 
     it('should navigate to LOGIN when unlock is pressed and password is set', async () => {
@@ -287,12 +309,15 @@ describe('Onboarding', () => {
       });
 
       const unlockButton = getByText('Unlock');
-      fireEvent.press(unlockButton);
 
-      await waitFor(() => {
-        expect(Authentication.lockApp).toHaveBeenCalled();
-        expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.LOGIN);
+      await act(async () => {
+        fireEvent.press(unlockButton);
       });
+
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(Authentication.lockApp).toHaveBeenCalled();
+      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.LOGIN);
     });
   });
 
