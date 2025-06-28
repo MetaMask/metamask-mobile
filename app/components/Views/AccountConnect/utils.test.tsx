@@ -10,8 +10,18 @@ import {
   getDefaultAccounts,
 } from './utils';
 import { InternalAccountWithCaipAccountId } from '../../../selectors/accountsController';
+import Engine from '../../../core/Engine';
+import { PermissionDoesNotExistError } from '@metamask/permission-controller';
+
+const mockGetCaveat = Engine.context.PermissionController
+  .getCaveat as jest.Mock;
 
 describe('getRequestedCaip25CaveatValue', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const mockOrigin = 'mock.io';
   const defaultCaveatValue = {
     optionalScopes: {},
     requiredScopes: {},
@@ -20,7 +30,7 @@ describe('getRequestedCaip25CaveatValue', () => {
   };
 
   it('should return default value if no param is passed', () => {
-    const result = getRequestedCaip25CaveatValue(undefined);
+    const result = getRequestedCaip25CaveatValue(undefined, mockOrigin);
     expect(result).toEqual(defaultCaveatValue);
   });
 
@@ -35,11 +45,18 @@ describe('getRequestedCaip25CaveatValue', () => {
         ],
       },
     };
-    const result = getRequestedCaip25CaveatValue(permissions);
+    const result = getRequestedCaip25CaveatValue(permissions, mockOrigin);
     expect(result).toEqual(defaultCaveatValue);
   });
 
   it(`should return the caveat value whose type is ${Caip25CaveatType}`, () => {
+    mockGetCaveat.mockImplementation(() => {
+      throw new PermissionDoesNotExistError(
+        'Permission does not exist',
+        Caip25EndowmentPermissionName,
+      );
+    });
+
     const expectedCaveatValue: Caip25CaveatValue = {
       optionalScopes: { 'eip155:1': { accounts: ['eip155:1:0x123'] } },
       requiredScopes: {},
@@ -61,7 +78,7 @@ describe('getRequestedCaip25CaveatValue', () => {
         ],
       },
     };
-    const result = getRequestedCaip25CaveatValue(permissions);
+    const result = getRequestedCaip25CaveatValue(permissions, mockOrigin);
     expect(result).toEqual(expectedCaveatValue);
   });
 
@@ -76,7 +93,7 @@ describe('getRequestedCaip25CaveatValue', () => {
         ],
       },
     };
-    const result = getRequestedCaip25CaveatValue(permissions);
+    const result = getRequestedCaip25CaveatValue(permissions, mockOrigin);
     expect(result).toEqual(defaultCaveatValue);
   });
 
@@ -92,7 +109,7 @@ describe('getRequestedCaip25CaveatValue', () => {
       },
     };
 
-    const result = getRequestedCaip25CaveatValue(permissions);
+    const result = getRequestedCaip25CaveatValue(permissions, mockOrigin);
     expect(result).toEqual(defaultCaveatValue);
   });
 
@@ -114,7 +131,7 @@ describe('getRequestedCaip25CaveatValue', () => {
         },
       };
 
-      const result = getRequestedCaip25CaveatValue(permissions);
+      const result = getRequestedCaip25CaveatValue(permissions, mockOrigin);
       expect(result).toEqual(defaultCaveatValue);
     });
 
@@ -139,7 +156,7 @@ describe('getRequestedCaip25CaveatValue', () => {
         },
       };
 
-      const result = getRequestedCaip25CaveatValue(permissions);
+      const result = getRequestedCaip25CaveatValue(permissions, mockOrigin);
       expect(result).toEqual(defaultCaveatValue);
     });
 
@@ -164,7 +181,7 @@ describe('getRequestedCaip25CaveatValue', () => {
         },
       };
 
-      const result = getRequestedCaip25CaveatValue(permissions);
+      const result = getRequestedCaip25CaveatValue(permissions, mockOrigin);
       expect(result).toEqual(defaultCaveatValue);
     });
     it(`should return default value if ${Caip25CaveatType} type caveat does not have "isMultichainOrigin" property`, () => {
@@ -188,7 +205,7 @@ describe('getRequestedCaip25CaveatValue', () => {
         },
       };
 
-      const result = getRequestedCaip25CaveatValue(permissions);
+      const result = getRequestedCaip25CaveatValue(permissions, mockOrigin);
       expect(result).toEqual(defaultCaveatValue);
     });
     it(`should return default value if ${Caip25CaveatType} type caveat does not have "sessionProperties" property`, () => {
@@ -212,8 +229,78 @@ describe('getRequestedCaip25CaveatValue', () => {
         },
       };
 
-      const result = getRequestedCaip25CaveatValue(permissions);
+      const result = getRequestedCaip25CaveatValue(permissions, mockOrigin);
       expect(result).toEqual(defaultCaveatValue);
+    });
+  });
+
+  describe('existing permission', () => {
+    it('should return originally requested value if no permission existed previously', () => {
+      mockGetCaveat.mockImplementation(() => {
+        throw new PermissionDoesNotExistError(
+          'Permission does not exist',
+          Caip25EndowmentPermissionName,
+        );
+      });
+
+      const expectedCaveatValue: Caip25CaveatValue = {
+        optionalScopes: { 'eip155:1': { accounts: ['eip155:1:0x123'] } },
+        requiredScopes: {},
+        isMultichainOrigin: true,
+        sessionProperties: { foo: 'bar' },
+      };
+
+      const permissions = {
+        [Caip25EndowmentPermissionName]: {
+          caveats: [
+            {
+              type: Caip25CaveatType,
+              value: expectedCaveatValue,
+            },
+          ],
+        },
+      };
+      const result = getRequestedCaip25CaveatValue(permissions, mockOrigin);
+      expect(result).toEqual(expectedCaveatValue);
+    });
+
+    it('should return merged caip25 value if permission existed previously', () => {
+      mockGetCaveat.mockReturnValue({
+        value: {
+          optionalScopes: { 'eip155:10': { accounts: ['eip155:10:0x123'] } },
+          requiredScopes: {},
+          isMultichainOrigin: true,
+          sessionProperties: { bar: 'foo' },
+        },
+      });
+
+      const expectedCaveatValue: Caip25CaveatValue = {
+        optionalScopes: { 'eip155:1': { accounts: ['eip155:1:0x123'] } },
+        requiredScopes: {},
+        isMultichainOrigin: true,
+        sessionProperties: { foo: 'bar' },
+      };
+
+      const permissions = {
+        [Caip25EndowmentPermissionName]: {
+          caveats: [
+            {
+              type: Caip25CaveatType,
+              value: expectedCaveatValue,
+            },
+          ],
+        },
+      };
+      const result = getRequestedCaip25CaveatValue(permissions, mockOrigin);
+      expect(result).toEqual({
+        optionalScopes: {
+          'eip155:1': { accounts: ['eip155:1:0x123'] },
+          'eip155:10': { accounts: ['eip155:10:0x123'] },
+        },
+        requiredScopes: {},
+        isMultichainOrigin: true,
+        sessionProperties: { foo: 'bar', bar: 'foo' },
+      });
     });
   });
 });
@@ -344,66 +431,63 @@ describe('getCaip25PermissionsResponse', () => {
 });
 
 describe('getDefaultAccounts', () => {
-
   const allAccounts: InternalAccountWithCaipAccountId[] = [
     {
-    caipAccountId: 'eip155:0:0x123',
-    // @ts-expect-error incomplete metadata object
-    metadata: {
-      lastSelected: 1
-    }
-  },
+      caipAccountId: 'eip155:0:0x123',
+      // @ts-expect-error incomplete metadata object
+      metadata: {
+        lastSelected: 1,
+      },
+    },
     {
-    caipAccountId: 'eip155:0:0x456',
-    // @ts-expect-error incomplete metadata object
-    metadata: {
-      lastSelected: 2
-    }
-  },
-  {
-    caipAccountId: 'eip155:0:0x789',
-    // @ts-expect-error incomplete metadata object
-    metadata: {
-      lastSelected: 3
-    }
-  },
+      caipAccountId: 'eip155:0:0x456',
+      // @ts-expect-error incomplete metadata object
+      metadata: {
+        lastSelected: 2,
+      },
+    },
     {
-    caipAccountId: 'other:0:0xdead',
-    // @ts-expect-error incomplete metadata object
-    metadata: {
-      lastSelected: 1
-    }
-  },
-  {
-    caipAccountId: 'other:0:0xbeef',
-    // @ts-expect-error incomplete metadata object
-    metadata: {
-      lastSelected: 2
-    }
-  },
-];
+      caipAccountId: 'eip155:0:0x789',
+      // @ts-expect-error incomplete metadata object
+      metadata: {
+        lastSelected: 3,
+      },
+    },
+    {
+      caipAccountId: 'other:0:0xdead',
+      // @ts-expect-error incomplete metadata object
+      metadata: {
+        lastSelected: 1,
+      },
+    },
+    {
+      caipAccountId: 'other:0:0xbeef',
+      // @ts-expect-error incomplete metadata object
+      metadata: {
+        lastSelected: 2,
+      },
+    },
+  ];
 
   it('returns all supported accounts that were requested that match the requested namespace', () => {
-    expect(getDefaultAccounts(
-      ['eip155'],
-      [allAccounts[1], allAccounts[2]],
-      allAccounts
-    )).toStrictEqual([allAccounts[1], allAccounts[2]]);
+    expect(
+      getDefaultAccounts(
+        ['eip155'],
+        [allAccounts[1], allAccounts[2]],
+        allAccounts,
+      ),
+    ).toStrictEqual([allAccounts[1], allAccounts[2]]);
   });
 
   it('returns most recent account matching requested namespace if no accounts matching that namespace were requested', () => {
-    expect(getDefaultAccounts(
-      ['eip155'],
-      [],
-      allAccounts
-    )).toStrictEqual([allAccounts[2]]);
+    expect(getDefaultAccounts(['eip155'], [], allAccounts)).toStrictEqual([
+      allAccounts[2],
+    ]);
   });
 
   it('handles multiple requested namespaces', () => {
-    expect(getDefaultAccounts(
-      ['eip155', 'other'],
-      [],
-      allAccounts
-    )).toStrictEqual([allAccounts[2], allAccounts[4]]);
+    expect(
+      getDefaultAccounts(['eip155', 'other'], [], allAccounts),
+    ).toStrictEqual([allAccounts[2], allAccounts[4]]);
   });
 });
