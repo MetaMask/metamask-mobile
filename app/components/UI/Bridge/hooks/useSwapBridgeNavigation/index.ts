@@ -97,11 +97,7 @@ export const useSwapBridgeNavigation = ({
       dispatch(setBridgeViewMode(bridgeViewMode));
 
       trackEvent(
-        createEventBuilder(
-          bridgeViewMode === BridgeViewMode.Bridge
-            ? MetaMetricsEvents.BRIDGE_BUTTON_CLICKED
-            : MetaMetricsEvents.SWAP_BUTTON_CLICKED,
-        )
+        createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
           .addProperties({
             location,
             chain_id_source: getDecimalChainId(bridgeToken.chainId),

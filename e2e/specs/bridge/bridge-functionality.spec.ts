@@ -36,8 +36,6 @@ import SoftAssert from '../../utils/SoftAssert';
 const fixtureServer = new FixtureServer();
 
 enum eventsToCheck {
-  BRIDGE_BUTTON_CLICKED = 'Bridge Button Clicked',
-  BRIDGE_PAGE_VIEWED = 'Bridge Page Viewed',
   UNIFIED_SWAPBRIDGE_INPUT_CHANGED = 'Unified SwapBridge Input Changed',
   UNIFIED_SWAPBRIDGE_QUOTES_REQUESTED = 'Unified SwapBridge Quotes Requested',
   UNIFIED_SWAPBRIDGE_SUBMITTED = 'Unified SwapBridge Submitted',
@@ -134,8 +132,6 @@ describe(SmokeTrade('Bridge functionality'), () => {
 
     // Gather the events from this test to assert later in another test
     eventsToAssert = await getEventsPayloads(mockServer as MockttpServer, [
-      eventsToCheck.BRIDGE_BUTTON_CLICKED,
-      eventsToCheck.BRIDGE_PAGE_VIEWED,
       eventsToCheck.UNIFIED_SWAPBRIDGE_INPUT_CHANGED,
       eventsToCheck.UNIFIED_SWAPBRIDGE_QUOTES_REQUESTED,
       eventsToCheck.UNIFIED_SWAPBRIDGE_SUBMITTED,
@@ -148,39 +144,6 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await softAssert.checkAndCollect(
       () => Assertions.checkIfArrayHasLength(eventsToAssert, 9),
       'Should have 9 events',
-    );
-
-    // Bridge Button Clicked
-    const bridgeButtonClicked = eventsToAssert.find((event) => event.event === eventsToCheck.BRIDGE_BUTTON_CLICKED);
-    await softAssert.checkAndCollect(
-      async () => {
-        await Assertions.checkIfValueIsDefined(bridgeButtonClicked);
-      }, 'Bridge Button Clicked: Should be defined',
-    );
-    await softAssert.checkAndCollect(
-      async () => Assertions.checkIfObjectContains(bridgeButtonClicked?.properties as Record<string, unknown>, {
-        chain_id_source: '1',
-        token_address_source: '0x0000000000000000000000000000000000000000',
-        token_symbol_source: 'ETH',
-      }),
-      'Bridge Button Clicked: Should have the correct properties',
-    );
-
-    // Bridge Page Viewed
-    const bridgePageViewed = eventsToAssert.find((event) => event.event === eventsToCheck.BRIDGE_PAGE_VIEWED);
-    await softAssert.checkAndCollect(
-      async () => {
-        await Assertions.checkIfValueIsDefined(bridgePageViewed);
-      }, 'Bridge Page Viewed: Should be defined',
-    );
-    await softAssert.checkAndCollect(
-      async () => {
-        await Assertions.checkIfObjectContains(bridgePageViewed?.properties as Record<string, unknown>, {
-          chain_id_source: '1',
-          token_address_source: '0x0000000000000000000000000000000000000000',
-          token_symbol_source: 'ETH',
-        });
-      }, 'Bridge Page Viewed: Should have the correct properties',
     );
 
     // Unified Swap Bridge Input Changed

@@ -221,11 +221,7 @@ const BridgeView = () => {
     if (shouldTrackPageView) {
       hasTrackedPageView.current = true;
       trackEvent(
-        createEventBuilder(
-          bridgeViewMode === BridgeViewMode.Bridge
-            ? MetaMetricsEvents.BRIDGE_PAGE_VIEWED
-            : MetaMetricsEvents.SWAP_PAGE_VIEWED,
-        )
+        createEventBuilder(MetaMetricsEvents.SWAP_PAGE_VIEWED)
           .addProperties({
             chain_id_source: getDecimalChainId(sourceToken.chainId),
             chain_id_destination: getDecimalChainId(destToken?.chainId),
