@@ -84,4 +84,22 @@ describe(Regression('Import Tokens'), () => {
     await Assertions.checkIfVisible(WalletView.container);
     await Assertions.checkIfVisible(WalletView.tokenInWallet('0 SNX'));
   });
+
+  it('allows importing multiple tokens from search', async () => {
+    await WalletView.tapImportTokensButton();
+    await ImportTokensView.searchToken('CHAIN');
+    await ImportTokensView.tapOnToken();
+    await ImportTokensView.searchToken('CHANGE');
+    await ImportTokensView.tapOnToken();
+    await ImportTokensView.tapOnNextButton();
+
+    await TestHelpers.delay(500);
+    await Assertions.checkIfVisible(ConfirmAddAssetView.container);
+
+    await ConfirmAddAssetView.tapOnConfirmButton();
+
+    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.checkIfVisible(WalletView.tokenInWallet('0 LINK'));
+    await Assertions.checkIfVisible(WalletView.tokenInWallet('0 CNG'));
+  });
 });
