@@ -111,6 +111,7 @@ export class BackgroundBridge extends EventEmitter {
   }) {
     super();
     this.url = url;
+    this.realOrigin = new URL(url).origin;
     // TODO - When WalletConnect and MMSDK uses the Permission System, URL does not apply in all conditions anymore since hosts may not originate from web. This will need to change!
     this.hostname = new URL(url).hostname;
     this.remoteConnHost = remoteConnHost;
@@ -140,7 +141,7 @@ export class BackgroundBridge extends EventEmitter {
 
     const networkClientId = Engine.controllerMessenger.call(
       'SelectedNetworkController:getNetworkClientIdForDomain',
-      this.hostname,
+      this.realOrigin,
     );
 
     const networkClient = Engine.controllerMessenger.call(
@@ -522,7 +523,7 @@ export class BackgroundBridge extends EventEmitter {
    * A method for creating a provider that is safely restricted for the requesting domain.
    **/
   setupProviderEngineEip1193() {
-    const origin = this.origin;
+    const origin = this.realOrigin;
     // setup json rpc engine stack
     const engine = new JsonRpcEngine();
 
@@ -594,7 +595,7 @@ export class BackgroundBridge extends EventEmitter {
     // user-facing RPC methods
     engine.push(
       this.createMiddleware({
-        hostname: this.hostname,
+        hostname: this.realOrigin,
         getProviderState: this.getProviderState.bind(this),
       }),
     );
@@ -613,7 +614,7 @@ export class BackgroundBridge extends EventEmitter {
    * A method for creating a CAIP Multichain provider that is safely restricted for the requesting subject.
    */
   setupProviderEngineCaip() {
-    const origin = this.origin;
+    const origin = this.realOrigin;
 
     const { NetworkController, AccountsController, PermissionController } =
       Engine.context;
@@ -748,7 +749,7 @@ export class BackgroundBridge extends EventEmitter {
     // user-facing RPC methods
     engine.push(
       this.createMiddleware({
-        hostname: this.hostname,
+        hostname: this.realOrigin,
         getProviderState: this.getProviderState.bind(this),
       }),
     );
