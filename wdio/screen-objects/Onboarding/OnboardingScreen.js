@@ -19,7 +19,7 @@ class OnBoardingScreen {
     );
   }
 
-  get importWalletButton() {
+  get existingWalletButton() {
     return Selectors.getXpathElementByResourceId(
       OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
     );
