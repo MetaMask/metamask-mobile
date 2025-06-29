@@ -23,6 +23,15 @@ import {
   AUTHENTICATION_RESET_PASSWORD_FAILED,
   AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE,
 } from '../../constants/error';
+import { SeedlessOnboardingController } from '@metamask/seedless-onboarding-controller';
+import { KeyringController, KeyringTypes } from '@metamask/keyring-controller';
+import { EncryptionKey } from '@metamask/browser-passworder';
+
+jest.useFakeTimers();
+
+jest.mock('../../util/exponential-retry', () => ({
+  retryWithExponentialDelay: jest.fn((fn) => fn()),
+}));
 
 const storage: Record<string, unknown> = {};
 
@@ -97,10 +106,20 @@ jest.mock('../BackupVault/backupVault', () => ({
   clearAllVaultBackups: jest.fn(),
 }));
 
+jest.mock('../../util/mnemonic', () => ({
+  uint8ArrayToMnemonic: jest.fn(),
+}));
+
+jest.mock('../../util/Logger', () => ({
+  error: jest.fn(),
+  log: jest.fn(),
+}));
+
 describe('Authentication', () => {
   afterEach(() => {
     StorageWrapper.clearAll();
     jest.restoreAllMocks();
+    jest.runAllTimers();
   });
 
   it('should return a type password', async () => {
@@ -432,7 +451,7 @@ describe('Authentication', () => {
         await Authentication.newWalletAndKeychain('1234', {
           currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
         });
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await Promise.resolve();
 
         expect(setItemSpy).toHaveBeenCalledWith(
           SOLANA_DISCOVERY_PENDING,
@@ -457,7 +476,7 @@ describe('Authentication', () => {
           'test seed phrase',
           true,
         );
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await Promise.resolve();
 
         expect(setItemSpy).toHaveBeenCalledWith(SOLANA_DISCOVERY_PENDING, TRUE);
       });
@@ -824,6 +843,175 @@ describe('Authentication', () => {
         Engine.context.KeyringController.submitPassword,
       ).toHaveBeenCalledWith('');
       expect(resetGenericPasswordSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('rehydrateSeedPhrase', () => {
+    const mockPassword = 'password123';
+    const mockAuthData = { currentAuthType: AUTHENTICATION_TYPE.PASSWORD };
+    const mockSeedPhrase1 = new Uint8Array([1]);
+    const mockSeedPhrase2 = new Uint8Array([2]);
+    const mockMnemonic1 = 'mnemonic-1';
+
+    let Engine: typeof import('../Engine').default;
+    let OAuthService: typeof import('../OAuthService/OAuthService').default;
+    let uint8ArrayToMnemonic: jest.Mock;
+    let Logger: jest.Mocked<typeof import('../../util/Logger').default>;
+
+    beforeEach(() => {
+      Engine = jest.requireMock('../Engine');
+      uint8ArrayToMnemonic = jest.requireMock(
+        '../../util/mnemonic',
+      ).uint8ArrayToMnemonic;
+      OAuthService = jest.requireMock('../OAuthService/OAuthService');
+      Logger = jest.requireMock('../../util/Logger');
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+      } as unknown as ReduxStore);
+
+      Engine.context.SeedlessOnboardingController = {
+        fetchAllSeedPhrases: jest.fn(),
+        updateBackupMetadataState: jest.fn(),
+      } as unknown as SeedlessOnboardingController<EncryptionKey>;
+      Engine.context.KeyringController = {
+        addNewKeyring: jest.fn(),
+        createNewVaultAndRestore: jest.fn(),
+        state: {
+          keyrings: [
+            { name: 'HD Key Tree', metadata: { id: 'test-keyring-id' } },
+          ],
+        },
+      } as unknown as KeyringController;
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should rehydrate with a single seed phrase', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSeedPhrases as jest.Mock
+      ).mockResolvedValueOnce([mockSeedPhrase1]);
+      uint8ArrayToMnemonic.mockReturnValueOnce(mockMnemonic1);
+      const newWalletAndRestoreSpy = jest
+        .spyOn(Authentication, 'newWalletAndRestore')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.rehydrateSeedPhrase(mockPassword, mockAuthData);
+
+      expect(
+        Engine.context.SeedlessOnboardingController.fetchAllSeedPhrases,
+      ).toHaveBeenCalledWith(mockPassword);
+      expect(uint8ArrayToMnemonic).toHaveBeenCalledWith(
+        mockSeedPhrase1,
+        expect.any(Object),
+      );
+      expect(newWalletAndRestoreSpy).toHaveBeenCalledWith(
+        mockPassword,
+        mockAuthData,
+        mockMnemonic1,
+        false,
+      );
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
+      expect(OAuthService.resetOauthState).toHaveBeenCalled();
+    });
+
+    it('should rehydrate with multiple seed phrases', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSeedPhrases as jest.Mock
+      ).mockResolvedValueOnce([mockSeedPhrase1, mockSeedPhrase2]);
+      uint8ArrayToMnemonic.mockReturnValueOnce(mockMnemonic1);
+      const newWalletAndRestoreSpy = jest
+        .spyOn(Authentication, 'newWalletAndRestore')
+        .mockResolvedValueOnce(undefined);
+      (
+        Engine.context.KeyringController.addNewKeyring as jest.Mock
+      ).mockResolvedValueOnce({
+        id: 'new-keyring-id',
+      });
+
+      await Authentication.rehydrateSeedPhrase(mockPassword, mockAuthData);
+
+      expect(
+        Engine.context.SeedlessOnboardingController.fetchAllSeedPhrases,
+      ).toHaveBeenCalledWith(mockPassword);
+      expect(uint8ArrayToMnemonic).toHaveBeenCalledWith(
+        mockSeedPhrase1,
+        expect.any(Object),
+      );
+      expect(newWalletAndRestoreSpy).toHaveBeenCalledWith(
+        mockPassword,
+        mockAuthData,
+        mockMnemonic1,
+        false,
+      );
+      expect(
+        Engine.context.KeyringController.addNewKeyring,
+      ).toHaveBeenCalledWith(KeyringTypes.hd, {
+        mnemonic: mockSeedPhrase2,
+        numberOfAccounts: 1,
+      });
+      expect(
+        Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
+      ).toHaveBeenCalledWith({
+        keyringId: 'new-keyring-id',
+        seedPhrase: mockSeedPhrase2,
+      });
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
+      expect(OAuthService.resetOauthState).toHaveBeenCalled();
+    });
+
+    it('should throw an error if no seed phrases are found', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSeedPhrases as jest.Mock
+      ).mockResolvedValueOnce([]);
+      await expect(
+        Authentication.rehydrateSeedPhrase(mockPassword, mockAuthData),
+      ).rejects.toThrow('No account data found');
+    });
+
+    it('should re-throw errors from fetchAllSeedPhrases', async () => {
+      const error = new Error('Fetch failed');
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSeedPhrases as jest.Mock
+      ).mockRejectedValueOnce(error);
+      await expect(
+        Authentication.rehydrateSeedPhrase(mockPassword, mockAuthData),
+      ).rejects.toThrow('Fetch failed');
+    });
+
+    it('should handle errors when adding new keyrings and continue', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSeedPhrases as jest.Mock
+      ).mockResolvedValueOnce([mockSeedPhrase1, mockSeedPhrase2]);
+      uint8ArrayToMnemonic.mockReturnValueOnce(mockMnemonic1);
+      const newWalletAndRestoreSpy = jest
+        .spyOn(Authentication, 'newWalletAndRestore')
+        .mockResolvedValueOnce(undefined);
+      const error = new Error('Keyring add failed');
+      (
+        Engine.context.KeyringController.addNewKeyring as jest.Mock
+      ).mockRejectedValueOnce(error);
+
+      await Authentication.rehydrateSeedPhrase(mockPassword, mockAuthData);
+
+      expect(
+        Engine.context.KeyringController.addNewKeyring,
+      ).toHaveBeenCalledTimes(1);
+      expect(newWalletAndRestoreSpy).toHaveBeenCalled();
+      expect(
+        Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
+      ).not.toHaveBeenCalled();
+      expect(Logger.error).toHaveBeenCalledWith(error);
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
+      expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
   });
 });
