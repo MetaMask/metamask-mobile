@@ -28,6 +28,7 @@ import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
 import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
+import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
@@ -134,6 +135,9 @@ export const importWalletWithRecoveryPhrase = async ({
 
   await OnboardingView.tapHaveAnExistingWallet();
 
+  await Assertions.checkIfVisible(OnboardingSheet.container);
+  await OnboardingSheet.tapImportSeedButton();
+
   await TestHelpers.delay(3500);
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
@@ -200,6 +204,9 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await OnboardingCarouselView.tapOnGetStartedButton();
   await acceptTermOfUse();
   await OnboardingView.tapCreateWallet();
+
+  await Assertions.checkIfVisible(OnboardingSheet.container);
+  await OnboardingSheet.tapImportSeedButton();
 
   await Assertions.checkIfVisible(CreatePasswordView.container);
   await CreatePasswordView.enterPassword(validAccount.password);

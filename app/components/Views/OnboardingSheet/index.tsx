@@ -115,7 +115,7 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <View style={styles.bottomSheetContainer}>
+      <View style={styles.bottomSheetContainer} testID={OnboardingSheetSelectorIDs.CONTAINER_ID}>
         <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
           {strings('onboarding.bottom_sheet_title')}
         </Text>

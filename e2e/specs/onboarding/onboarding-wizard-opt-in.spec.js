@@ -33,6 +33,8 @@ describe(
       await OnboardingCarouselView.tapOnGetStartedButton();
       await acceptTermOfUse();
       await OnboardingView.tapCreateWallet();
+      await Assertions.checkIfVisible(OnboardingSheet.container);
+      await OnboardingSheet.tapImportSeedButton();
     });
 
     it('should be able to create a new wallet', async () => {
