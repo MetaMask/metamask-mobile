@@ -257,7 +257,7 @@ const Login: React.FC = () => {
     }
   };
 
-  const checkMetricsUISeen = async () => {
+  const checkMetricsUISeen = async (): Promise<void> => {
     if (!isMetaMetricsUISeen) {
       navigation.navigate(Routes.ONBOARDING.ROOT_NAV, {
         screen: Routes.ONBOARDING.NAV,
@@ -357,6 +357,9 @@ const Login: React.FC = () => {
   const tryBiometric = async () => {
     fieldRef.current?.blur();
     try {
+      // eslint-disable-next-line no-console
+      console.log('tryBiometric1');
+      setLoading(true);
       await trace(
         {
           name: TraceName.LoginBiometricAuthentication,
@@ -366,16 +369,20 @@ const Login: React.FC = () => {
           await Authentication.appTriggeredAuth();
         },
       );
-
+      // eslint-disable-next-line no-console
+      console.log('tryBiometric2');
       await checkMetricsUISeen();
 
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
-      setLoading(true);
       setPassword('');
       setHasBiometricCredentials(false);
+      setLoading(false);
       fieldRef.current?.clear();
+      // eslint-disable-next-line no-console
+      console.log('tryBiometric3');
     } catch (tryBiometricError) {
       setHasBiometricCredentials(true);
+      setLoading(false);
       Logger.log(tryBiometricError);
     }
     fieldRef.current?.blur();
