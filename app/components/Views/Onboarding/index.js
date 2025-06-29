@@ -564,7 +564,7 @@ class Onboarding extends PureComponent {
           <Button
             variant={ButtonVariants.Secondary}
             onPress={() => this.handleCtaActions('existing')}
-            testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
+            testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
             style={styles.existingWalletButton}

@@ -132,7 +132,7 @@ export const importWalletWithRecoveryPhrase = async ({
   await OnboardingCarouselView.tapOnGetStartedButton();
   await acceptTermOfUse();
 
-  await OnboardingView.tapImportWalletFromSeedPhrase();
+  await OnboardingView.tapHaveAnExistingWallet();
 
   await TestHelpers.delay(3500);
   // should import wallet with secret recovery phrase

@@ -53,7 +53,7 @@ Given(/^I have imported my wallet$/, async () => {
   await TermOfUseScreen.tapScrollEndButton();
   await TermOfUseScreen.tapAgreeCheckBox();
     await TermOfUseScreen.tapAcceptButton();
-  await OnboardingScreen.clickImportWalletButton();
+  await OnboardingScreen.tapHaveAnExistingWallet();
   await driver.pause(500);
   await ImportFromSeedScreen.isScreenTitleVisible();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(validAccount.seedPhrase);

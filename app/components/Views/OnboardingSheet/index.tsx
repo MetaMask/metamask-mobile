@@ -19,6 +19,7 @@ import { AppThemeKey } from '../../../util/theme/models';
 import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
+import { OnboardingSheetSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSheet.selectors';
 
 export interface OnboardingSheetParams {
   onPressCreate?: () => void;
@@ -122,7 +123,7 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
           <Button
             variant={ButtonVariants.Secondary}
             onPress={onPressContinueWithGoogleAction}
-            testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
+            testID={OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON}
             label={
               <View style={styles.buttonLabel}>
                 <GoogleIcon 
@@ -148,7 +149,7 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
           <Button
             variant={ButtonVariants.Secondary}
             onPress={onPressContinueWithAppleAction}
-            testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
+            testID={OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON}
             label={
               <View style={styles.buttonLabel}>
                 {isDark ? (
@@ -192,7 +193,7 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
           <Button
             variant={ButtonVariants.Secondary}
             onPress={createWallet ? onPressCreateAction : onPressImportAction}
-            testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
+            testID={OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON}
             label={
               createWallet
                 ? strings('onboarding.continue_with_srp')

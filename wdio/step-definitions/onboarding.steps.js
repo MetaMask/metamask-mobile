@@ -37,7 +37,7 @@ When(/^I tap "([^"]*)"/, async (text) => {
       await WelcomeScreen.clickGetStartedButton();
       break;
     case 'Import using Secret Recovery Phrase':
-      await OnboardingScreen.clickImportWalletButton();
+      await OnboardingScreen.tapHaveAnExistingWallet();
       break;
     case 'I agree':
       await MetaMetricsScreen.tapIAgreeButton();
