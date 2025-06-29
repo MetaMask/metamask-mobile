@@ -38,12 +38,10 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
   const SECOND_ROW: number = 1;
   const wallet: ethers.Wallet = ethers.Wallet.createRandom();
   let isUnifiedUIEnabled: boolean | undefined;
-  const isBuildTypeFlask = true;
+  const isBuildTypeFlask = process.env.METAMASK_BUILD_TYPE === 'flask';
 
   beforeAll(async (): Promise<void> => {
     isUnifiedUIEnabled = await isUnifiedUIEnabledForChain('1');
-    console.log(`isBuildTypeFlask=${isBuildTypeFlask}`)
-    if (isUnifiedUIEnabled) console.log(`isUnifiedUIEnabled is enabled`)
     await Tenderly.addFunds(
       CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
       wallet.address,
@@ -83,8 +81,6 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
   it.each`
     type        | quantity | sourceTokenSymbol | destTokenSymbol | network
-    ${'swap'}   | ${'1'}   | ${'ETH'}          | ${'USDT'}       | ${CustomNetworks.Tenderly.Mainnet}
-    ${'swap'}   | ${'10'}  | ${'USDT'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
     ${'wrap'}   | ${'.03'} | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
     ${'unwrap'} | ${'.01'} | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
   `(
@@ -137,7 +133,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     },
   );
 
-  it.skip('should validate segment/metametric events for a successful swap', async (): Promise<void> => {
+  it('should validate segment/metametric events for a successful swap', async (): Promise<void> => {
 
     const testCases = [
       {

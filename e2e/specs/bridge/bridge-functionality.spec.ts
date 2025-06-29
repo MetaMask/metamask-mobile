@@ -34,7 +34,7 @@ import { getEventsPayloads } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
 
 const fixtureServer = new FixtureServer();
-const isBuildTypeFlask = true;
+const isBuildTypeFlask = process.env.METAMASK_BUILD_TYPE === 'flask';
 
 enum eventsToCheck {
   BRIDGE_BUTTON_CLICKED = 'Bridge Button Clicked',
