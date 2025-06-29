@@ -36,11 +36,10 @@ describe(Regression('Swap from Token view'), (): void => {
   const swapOnboarded: boolean = true; // TODO: Set it to false once we show the onboarding page again.
   const wallet: ethers.Wallet = ethers.Wallet.createRandom();
   let isUnifiedUIEnabled: boolean | undefined;
-  const isBuildTypeFlask = process.env.METAMASK_BUILD_TYPE === "flask";
 
   beforeAll(async (): Promise<void> => {
 
-    isUnifiedUIEnabled = await isUnifiedUIEnabledForChain('1');
+    isUnifiedUIEnabled = await isUnifiedUIEnabledForChain('1') && process.env.MM_UNIFIED_SWAPS_ENABLED === 'true';
 
     await Tenderly.addFunds(
       CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
@@ -103,7 +102,7 @@ describe(Regression('Swap from Token view'), (): void => {
     if (!swapOnboarded) await Onboarding.tapStartSwapping();
 
     // Submit the Swap
-      if (isUnifiedUIEnabled && isBuildTypeFlask) {
+      if (isUnifiedUIEnabled) {
         await submitSwapUnifiedUI(
           type,
           quantity,

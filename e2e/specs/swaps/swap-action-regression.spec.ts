@@ -36,12 +36,11 @@ describe(Regression('Multiple Swaps from Actions'), () => {
   const SECOND_ROW: number = 1;
   const wallet: ethers.Wallet = ethers.Wallet.createRandom();
   let isUnifiedUIEnabled: boolean | undefined;
-  const isBuildTypeFlask = process.env.METAMASK_BUILD_TYPE === "flask";
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
 
-    isUnifiedUIEnabled = await isUnifiedUIEnabledForChain('1');
+    isUnifiedUIEnabled = await isUnifiedUIEnabledForChain('1') && process.env.MM_UNIFIED_SWAPS_ENABLED === 'true';
 
     await Tenderly.addFunds(
       CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
@@ -98,7 +97,7 @@ describe(Regression('Multiple Swaps from Actions'), () => {
        await WalletActionsBottomSheet.tapSwapButton();
 
       // Submit the Swap
-      if (isUnifiedUIEnabled && isBuildTypeFlask) {
+      if (isUnifiedUIEnabled) {
         await submitSwapUnifiedUI(
           type,
           quantity,
