@@ -29,6 +29,7 @@ import {
 import { areAddressesEqual, toFormattedAddress } from '../../../util/address';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { debounce } from 'lodash';
 
 import {
   getFeatureFlagChainId,
@@ -332,34 +333,48 @@ function SwapsAmountView({
     })();
   }, [selectedNetworkClientId]);
 
-  useEffect(() => {
-    (async () => {
-      const { SwapsController } = Engine.context;
-      try {
-        if (
-          !swapsControllerTokens ||
-          !swapsTokens ||
-          swapsTokens?.length === 0
-        ) {
-          setInitialLoadingTokens(true);
+  // Debounced token fetch function to prevent excessive API calls
+  const debouncedFetchTokens = useMemo(
+    () =>
+      debounce(async (networkClientId) => {
+        if (!networkClientId) return;
+
+        try {
+          const { SwapsController } = Engine.context;
+          await SwapsController.fetchTokenWithCache({
+            networkClientId,
+          });
+        } catch (error) {
+          Logger.error(
+            error,
+            'Swaps: Error while fetching tokens in amount view',
+          );
         }
-        setLoadingTokens(true);
-        await SwapsController.fetchTokenWithCache({
-          networkClientId: selectedNetworkClientId,
-        });
-        setLoadingTokens(false);
-        setInitialLoadingTokens(false);
-      } catch (error) {
-        Logger.error(
-          error,
-          'Swaps: Error while fetching tokens in amount view',
-        );
-      } finally {
-        setLoadingTokens(false);
-        setInitialLoadingTokens(false);
-      }
-    })();
-  }, [swapsControllerTokens, swapsTokens, selectedNetworkClientId]);
+      }, 300), // 300ms debounce
+    [],
+  );
+
+  // Effect for fetching tokens
+  useEffect(() => {
+    const shouldFetch =
+      !swapsControllerTokens || !swapsTokens || swapsTokens?.length === 0;
+
+    if (shouldFetch) {
+      setInitialLoadingTokens(true);
+    }
+
+    setLoadingTokens(true);
+
+    debouncedFetchTokens(selectedNetworkClientId).finally(() => {
+      setLoadingTokens(false);
+      setInitialLoadingTokens(false);
+    });
+  }, [
+    selectedNetworkClientId,
+    debouncedFetchTokens,
+    swapsControllerTokens,
+    swapsTokens,
+  ]);
 
   const canSetAnInitialSourceToken =
     !isSourceSet &&

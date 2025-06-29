@@ -75,6 +75,7 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { debounce } from 'lodash';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -164,28 +165,38 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
 
+  // Debounced fetch function to prevent excessive API calls
+  const debouncedFetchTokenWithCache = useMemo(
+    () =>
+      debounce(async (networkClientId: string) => {
+        try {
+          const { SwapsController } = Engine.context;
+          await SwapsController.fetchTokenWithCache({
+            networkClientId,
+          });
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            'AssetOverview: Error fetching tokens with cache',
+          );
+        }
+      }, 300), // 300ms debounce
+    [],
+  );
+
+  const fetchTokenWithCache = useCallback(async () => {
+    if (!selectedNetworkClientId) return;
+
+    await debouncedFetchTokenWithCache(selectedNetworkClientId);
+  }, [selectedNetworkClientId, debouncedFetchTokenWithCache]);
+
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });
   }, []);
 
   useEffect(() => {
-    const { SwapsController } = Engine.context;
-    const fetchTokenWithCache = async () => {
-      try {
-        await SwapsController.fetchTokenWithCache({
-          networkClientId: selectedNetworkClientId,
-        });
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        Logger.error(
-          error,
-          'Swaps: error while fetching tokens with cache in AssetOverview',
-        );
-      }
-    };
     fetchTokenWithCache();
-  }, [selectedNetworkClientId]);
+  }, [fetchTokenWithCache]);
 
   const onReceive = () => {
     navigation.navigate(Routes.QR_TAB_SWITCHER, {

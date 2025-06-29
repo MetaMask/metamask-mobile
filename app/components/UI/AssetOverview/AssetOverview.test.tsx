@@ -27,6 +27,12 @@ import {
 import { SolScope, SolAccountType } from '@metamask/keyring-api';
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 
+// Mock lodash debounce to execute immediately in tests
+jest.mock('lodash', () => ({
+  ...jest.requireActual('lodash'),
+  debounce: jest.fn((fn) => fn),
+}));
+
 const MOCK_CHAIN_ID = '0x1';
 
 const mockInitialState = {
