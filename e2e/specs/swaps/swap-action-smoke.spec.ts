@@ -1,4 +1,5 @@
 'use strict';
+/* eslint-disable no-console */
 import { ethers } from 'ethers';
 import { MockttpServer } from 'mockttp';
 import { loginToApp } from '../../viewHelper.js';
@@ -93,7 +94,6 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
        // Submit the Swap
        if (isUnifiedUIEnabled) {
          await submitSwapUnifiedUI(
-           type,
            quantity,
            sourceTokenSymbol,
            destTokenSymbol,

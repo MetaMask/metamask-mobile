@@ -104,7 +104,6 @@ describe(Regression('Swap from Token view'), (): void => {
     // Submit the Swap
       if (isUnifiedUIEnabled) {
         await submitSwapUnifiedUI(
-          type,
           quantity,
           sourceTokenSymbol,
           destTokenSymbol,

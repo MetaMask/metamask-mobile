@@ -3,7 +3,6 @@ import QuoteView from '../../../pages/Bridge/QuoteView';
 import Assertions from '../../../utils/Assertions';
 
 export async function submitSwapUnifiedUI(
-  type: string,
   quantity: string,
   sourceTokenSymbol: string,
   destTokenSymbol: string,
