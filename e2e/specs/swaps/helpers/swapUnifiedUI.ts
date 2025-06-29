@@ -12,11 +12,11 @@ export async function submitSwapUnifiedUI(
     await QuoteView.enterAmount(quantity);
 
     await QuoteView.tapSourceToken();
-    await QuoteView.selectSourceToken(chainId, sourceTokenSymbol);
+    await QuoteView.tapToken(chainId, sourceTokenSymbol);
 
     await QuoteView.tapSwapTo();
     await QuoteView.selectNetwork('Tenderly - Mainnet');
-    await QuoteView.selectDestToken(chainId, destTokenSymbol);
+    await QuoteView.tapToken(chainId, destTokenSymbol);
 
     await device.disableSynchronization();
     await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
