@@ -2823,7 +2823,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          Delete wallet
+          Reset wallet
         </Text>
         <Text
           accessibilityRole="text"
@@ -2886,7 +2886,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 }
               }
             >
-              Delete wallet
+              Reset wallet
             </Text>
           </TouchableOpacity>
         </View>

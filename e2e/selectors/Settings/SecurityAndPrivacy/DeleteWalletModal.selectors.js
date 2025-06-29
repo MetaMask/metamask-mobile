@@ -8,6 +8,7 @@ export const DeleteWalletModalSelectorsIDs = {
   DELETE_CANCEL_BUTTON: 'delete-my-wallet-button-on-cancel-delete-modal',
   DELETE_PERMANENTLY_BUTTON:
     'delete-my-wallet-button-on-permanetly-delete-modal',
+  BACK_BUTTON: 'delete-wallet-modal-back-button',
 };
 
 export const DeleteWalletModalSelectorsText = {

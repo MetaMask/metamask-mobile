@@ -47,6 +47,7 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { getConfiguredCaipChainIds } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
+import { setMetaMetricsUISeen } from '../../../actions/user';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -141,6 +142,10 @@ class OptinMetrics extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Action to set meta metrics UI seen
+     */
+    setMetaMetricsUISeen: PropTypes.func,
   };
 
   state = {
@@ -230,6 +235,7 @@ class OptinMetrics extends PureComponent {
    * Action to be triggered when pressing any button
    */
   continue = async () => {
+    this.props.setMetaMetricsUISeen(true);
     const onContinue = this.props.route?.params?.onContinue;
     if (onContinue) {
       return onContinue();
@@ -672,6 +678,8 @@ const mapDispatchToProps = (dispatch) => ({
   clearOnboardingEvents: () => dispatch(clearOnboardingEvents()),
   setDataCollectionForMarketing: (value) =>
     dispatch(setDataCollectionForMarketing(value)),
+  setMetaMetricsUISeen: (isMetaMetricsUISeen) =>
+    dispatch(setMetaMetricsUISeen(isMetaMetricsUISeen)),
 });
 
 export default connect(
