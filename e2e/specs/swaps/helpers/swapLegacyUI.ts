@@ -23,6 +23,7 @@ export async function submitSwapLegacyUI(
   if (destTokenSymbol !== 'ETH') {
     await LegacyUIQuoteView.tapSearchToken();
     await LegacyUIQuoteView.typeSearchToken(destTokenSymbol);
+    await TestHelpers.delay(3000);
     await LegacyUIQuoteView.selectToken(destTokenSymbol);
   } else {
     await LegacyUIQuoteView.selectToken(destTokenSymbol, firstElement);
