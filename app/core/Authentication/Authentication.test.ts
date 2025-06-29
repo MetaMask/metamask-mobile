@@ -418,6 +418,50 @@ describe('Authentication', () => {
         await expect(Authentication.appTriggeredAuth()).resolves.not.toThrow();
       });
 
+      it('sets SOLANA_DISCOVERY_PENDING when discovery fails in createWalletVaultAndKeychain', async () => {
+        const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
+        jest
+          .spyOn(
+            Authentication as unknown as {
+              attemptSolanaAccountDiscovery: () => Promise<void>;
+            },
+            'attemptSolanaAccountDiscovery',
+          )
+          .mockRejectedValue(new Error('Solana RPC error'));
+
+        await Authentication.newWalletAndKeychain('1234', {
+          currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        });
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(setItemSpy).toHaveBeenCalledWith(
+          SOLANA_DISCOVERY_PENDING,
+          'true',
+        );
+      });
+
+      it('sets SOLANA_DISCOVERY_PENDING when discovery fails in newWalletVaultAndRestore', async () => {
+        const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
+        jest
+          .spyOn(
+            Authentication as unknown as {
+              attemptSolanaAccountDiscovery: () => Promise<void>;
+            },
+            'attemptSolanaAccountDiscovery',
+          )
+          .mockRejectedValue(new Error('Solana RPC error'));
+
+        await Authentication.newWalletAndRestore(
+          '1234',
+          { currentAuthType: AUTHENTICATION_TYPE.PASSWORD },
+          'test seed phrase',
+          true,
+        );
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(setItemSpy).toHaveBeenCalledWith(SOLANA_DISCOVERY_PENDING, TRUE);
+      });
+
       describe('retrySolanaDiscoveryIfPending behavior', () => {
         let mockAttemptSolanaAccountDiscovery: jest.SpyInstance;
 
