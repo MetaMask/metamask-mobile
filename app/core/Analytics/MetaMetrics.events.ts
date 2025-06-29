@@ -92,6 +92,7 @@ enum EVENT_NAME {
   NETWORK_REQUESTED = 'Network Requested',
   NETWORK_REQUEST_REJECTED = 'Network Request Rejected',
   NETWORK_SELECTOR = 'Network Menu Opened',
+  NETWORK_UNRECOGNIZED = 'Unrecognized Network',
 
   // Send transaction
   SEND_TRANSACTION_STARTED = 'Send Transaction Started',
@@ -576,6 +577,7 @@ const events = {
   ),
   CURRENCY_CHANGED: generateOpt(EVENT_NAME.CURRENCY_CHANGED),
   NETWORK_SWITCHED: generateOpt(EVENT_NAME.NETWORK_SWITCHED),
+  NETWORK_UNRECOGNIZED: generateOpt(EVENT_NAME.NETWORK_UNRECOGNIZED),
   NETWORK_SWITCH_REQUESTED_AND_MODAL_SHOWN: generateOpt(
     EVENT_NAME.NETWORK_SWITCH_REQUESTED_AND_MODAL_SHOWN,
   ),
