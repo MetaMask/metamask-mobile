@@ -543,7 +543,7 @@ const RevealPrivateCredential = ({
       })}
       body={
         <>
-          <Text style={[styles.normalText, styles.revealModalText]}>
+          <Text variant={TextVariant.BodyMD} style={styles.revealModalText}>
             {
               strings('reveal_credential.reveal_credential_modal', {
                 credentialName: isPrivateKeyReveal
@@ -551,7 +551,7 @@ const RevealPrivateCredential = ({
                   : strings('reveal_credential.srp_text'),
               })[0]
             }
-            <Text style={styles.boldText}>
+            <Text variant={TextVariant.BodyMDBold}>
               {isPrivateKeyReveal
                 ? strings('reveal_credential.reveal_credential_modal')[1]
                 : strings('reveal_credential.reveal_credential_modal')[2]}
@@ -560,7 +560,10 @@ const RevealPrivateCredential = ({
             <TouchableOpacity
               onPress={() => Linking.openURL(KEEP_SRP_SAFE_URL)}
             >
-              <Text style={[styles.blueText, styles.link]}>
+              <Text
+                color={colors.primary.default}
+                variant={TextVariant.BodyMDBold}
+              >
                 {strings('reveal_credential.reveal_credential_modal')[4]}
               </Text>
             </TouchableOpacity>
