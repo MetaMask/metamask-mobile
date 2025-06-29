@@ -34,6 +34,7 @@ import { getEventsPayloads } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
 
 const fixtureServer = new FixtureServer();
+const isBuildTypeFlask = process.env.METAMASK_BUILD_TYPE === "flask";
 
 enum eventsToCheck {
   BRIDGE_BUTTON_CLICKED = 'Bridge Button Clicked',
@@ -106,22 +107,25 @@ describe(SmokeTrade('Bridge functionality'), () => {
     );
     await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapActions();
-  //  await TestHelpers.delay(500);
-    await WalletActionsBottomSheet.tapSwapButton();
+    if (isBuildTypeFlask) {
+      await WalletActionsBottomSheet.tapSwapButton();
+      await QuoteView.tapSwapTo();
+    }
+    else
+    {
+      await WalletActionsBottomSheet.tapBridgeButton();
+      await QuoteView.tapBridgeTo();
+    }
     await device.disableSynchronization();
-    await QuoteView.enterAmount('1');
-    await QuoteView.tapSwapTo();
-    await TestHelpers.delay(1000);
     await QuoteView.selectNetwork('Solana');
-    await Assertions.checkIfVisible(QuoteView.destToken(destChainId, 'SOL'));
-    await TestHelpers.delay(1000);
-    await QuoteView.selectDestToken(destChainId, 'SOL');
+    await Assertions.checkIfVisible(QuoteView.token(destChainId, 'SOL'));
+    await QuoteView.tapToken(destChainId, 'SOL');
+    await QuoteView.enterAmount('1');
     await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
     await Assertions.checkIfVisible(QuoteView.confirmBridge);
     await QuoteView.tapConfirmBridge();
-    await TestHelpers.delay(1000);
+
     // Check the bridge activity completed
-    await TabBarComponent.tapActivity();
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(
       ActivitiesView.bridgeActivityTitle('Solana'),
@@ -290,20 +294,25 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapActions();
-    await WalletActionsBottomSheet.tapSwapButton();
+    if (isBuildTypeFlask) {
+      await WalletActionsBottomSheet.tapSwapButton();
+      await QuoteView.tapSwapTo();
+    }
+    else
+    {
+      await WalletActionsBottomSheet.tapBridgeButton();
+      await QuoteView.tapBridgeTo();
+    }
     await device.disableSynchronization();
-    await QuoteView.enterAmount('1');
-    await QuoteView.tapSwapTo();
     await QuoteView.selectNetwork('Base');
-    await Assertions.checkIfVisible(QuoteView.destToken(destChainId, 'ETH'));
-    await QuoteView.selectDestToken(destChainId, 'ETH');
+    await Assertions.checkIfVisible(QuoteView.token(destChainId, 'ETH'));
+    await QuoteView.tapToken(destChainId, 'ETH');
+    await QuoteView.enterAmount('1');
     await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
     await Assertions.checkIfVisible(QuoteView.confirmBridge);
     await QuoteView.tapConfirmBridge();
-    await TestHelpers.delay(1000);
 
     // Check the bridge activity completed
-    await TabBarComponent.tapActivity();
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.bridgeActivityTitle('Base'));
     await Assertions.checkIfElementToHaveText(
@@ -327,23 +336,26 @@ describe(SmokeTrade('Bridge functionality'), () => {
 
     await AdvancedSettingsView.tapSmartTransactionSwitch();
     await TabBarComponent.tapWallet();
-
     await TabBarComponent.tapActions();
-    await WalletActionsBottomSheet.tapSwapButton();
+    if (isBuildTypeFlask) {
+      await WalletActionsBottomSheet.tapSwapButton();
+      await QuoteView.tapSwapTo();
+    }
+    else
+    {
+      await WalletActionsBottomSheet.tapBridgeButton();
+      await QuoteView.tapBridgeTo();
+    }
     await device.disableSynchronization();
-    await QuoteView.enterAmount('1');
-    await QuoteView.tapSwapTo();
-    await TestHelpers.delay(1000);
     await QuoteView.selectNetwork('OP Mainnet');
-    await Assertions.checkIfVisible(QuoteView.destToken(destChainId, 'ETH'));
-    await QuoteView.selectDestToken(destChainId, 'ETH');
+    await Assertions.checkIfVisible(QuoteView.token(destChainId, 'ETH'));
+    await QuoteView.tapToken(destChainId, 'ETH');
+    await QuoteView.enterAmount('1');
     await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
     await Assertions.checkIfVisible(QuoteView.confirmBridge);
     await QuoteView.tapConfirmBridge();
-    await TestHelpers.delay(1000);
 
     // Check the bridge activity completed
-    await TabBarComponent.tapActivity();
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(
       ActivitiesView.bridgeActivityTitle('Optimism'),

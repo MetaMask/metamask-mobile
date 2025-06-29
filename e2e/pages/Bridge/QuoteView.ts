@@ -30,11 +30,7 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.NETWORK_FEE);
   }
 
-  sourceToken(chainId: string, symbol: string): DetoxElement {
-    return Matchers.getElementByID(`asset-${chainId}-${symbol}`);
-  }
-
-  destToken(chainId: string, symbol: string): DetoxElement {
+  token(chainId: string, symbol: string): DetoxElement {
     return Matchers.getElementByID(`asset-${chainId}-${symbol}`);
   }
 
@@ -50,11 +46,11 @@ class QuoteView {
   }
 
   async tapBridgeTo(): Promise<void> {
-    await Gestures.waitAndTap(this.bridgeTo);
+    await Gestures.waitAndTap(this.bridgeTo, { delayBeforeTap: 1000 });
   }
 
   async tapToken(chainId: string, symbol: string): Promise<void> {
-    await Gestures.waitAndTap(this.sourceToken(chainId, symbol), { delayBeforeTap: 1000 });
+    await Gestures.waitAndTap(this.token(chainId, symbol), { delayBeforeTap: 1000 });
   }
 
   async tapSourceToken(): Promise<void> {
@@ -63,7 +59,7 @@ class QuoteView {
   }
 
   async tapSwapTo(): Promise<void> {
-    await Gestures.waitAndTap(this.swapTo);
+    await Gestures.waitAndTap(this.swapTo, { delayBeforeTap: 1000 });
   }
 
   async selectNetwork(network: string): Promise<void> {
@@ -73,16 +69,6 @@ class QuoteView {
 
   async typeSearchToken(symbol: string): Promise<void> {
     await Gestures.typeTextAndHideKeyboard(this.searchToken, symbol);
-  }
-
-  async selectSourceToken(chainId: string, symbol: string): Promise<void> {
-    const token = this.sourceToken(chainId, symbol);
-    await Gestures.waitAndTap(token, { delayBeforeTap: 1000 });
-  }
-
-  async selectDestToken(chainId: string, symbol: string): Promise<void> {
-    const token = this.destToken(chainId, symbol);
-    await Gestures.waitAndTap(token, { delayBeforeTap: 1000});
   }
 
   async tapConfirmBridge(): Promise<void> {
