@@ -34,7 +34,7 @@ import { getEventsPayloads } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
 
 const fixtureServer = new FixtureServer();
-const isBuildTypeFlask = process.env.METAMASK_BUILD_TYPE === 'flask';
+const isUnifiedUIEnabled = process.env.MM_UNIFIED_SWAPS_ENABLED === 'true';
 
 enum eventsToCheck {
   BRIDGE_BUTTON_CLICKED = 'Bridge Button Clicked',
@@ -107,7 +107,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     );
     await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapActions();
-    if (isBuildTypeFlask) {
+    if (isUnifiedUIEnabled) {
       await WalletActionsBottomSheet.tapSwapButton();
       await QuoteView.tapSwapTo();
     }
@@ -149,7 +149,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     ]);
   });
 
-  it.skip('should check the Segment events from one bridge', async () => {
+  it('should check the Segment events from one bridge', async () => {
     const softAssert = new SoftAssert();
     await softAssert.checkAndCollect(
       () => Assertions.checkIfArrayHasLength(eventsToAssert, 9),
@@ -294,7 +294,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapActions();
-    if (isBuildTypeFlask) {
+    if (isUnifiedUIEnabled) {
       await WalletActionsBottomSheet.tapSwapButton();
       await QuoteView.tapSwapTo();
     }
@@ -337,7 +337,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await AdvancedSettingsView.tapSmartTransactionSwitch();
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
-    if (isBuildTypeFlask) {
+    if (isUnifiedUIEnabled) {
       await WalletActionsBottomSheet.tapSwapButton();
       await QuoteView.tapSwapTo();
     }
