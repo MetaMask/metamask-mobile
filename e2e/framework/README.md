@@ -1,17 +1,22 @@
-# 🚧 Migration Notice
+# 🚧 Migration Notice (Still In Progress)
 
-**UPDATE: TypeScript Framework Available**: The updated TypeScript framework is now available in `/e2e/framework/`. 
+**UPDATE: TypeScript Framework Available**: The updated TypeScript framework is still in progress.
 
-- **Legacy Framework**: `/e2e/utils/` (JavaScript - existing tests)
-- **New Framework**: `/e2e/framework/` (TypeScript - new tests and migrations)
+- **Current Framework Utils**: `/e2e/utils/` (JavaScript - existing tests)
+- **New Framework Utils**: `/e2e/framework/` (TypeScript - new tests and migrations)
 
 **Migration Status**: 
-- ✅ Phase 0: ESLint foundation
-- ✅ Phase 1: TypeScript framework foundation  
+- ⏳ Phase 0: TypeScript framework foundation
+- ⏳ Phase 1: ESLint for E2E tests
 - ⏳ Phase 2: Legacy framework replacement
 - ⏳ Phase 3: Gradual test migration
 
-**Usage**: New tests should use the TypeScript framework. Existing tests will be migrated gradually.
+---
+
+# 🚨 **USAGE NOTICE** 🚨
+
+## **Continue using the current JS framework utilities for new tests. We'll transition to this new approach once it's fully validated.**
+> ⏰ **IMPORTANT:** Stick with existing testing tools until this implementation is proven stable
 
 ```typescript
 // New framework usage
@@ -94,28 +99,32 @@ e2e/
 
 ### TypeScript Framework (Recommended)
 
-The new TypeScript framework provides enhanced reliability, better error messages, and type safety:
+The new TypeScript framework utilities provides enhanced reliability, better error messages, and type safety:
 
 #### Core Classes:
 - **`Assertions.ts`** - Enhanced assertions with auto-retry and detailed error messages
   - Modern methods: `expectVisible()`, `expectText()`, `expectLabel()`, `expectTextDisplayed()`
   - Legacy methods marked `@deprecated` - use modern equivalents
-- **`Gestures.ts`** - Robust user interactions with element stability checking
+- **`Gestures.ts`** - Robust user interactions with configurable element state checking
   - Modern methods: `tap()`, `typeText()`, `longPress()`, `swipe()`, `scrollToElement()`
+  - **Element state flags**: `checkVisibility` (default: true), `checkEnabled` (default: true), `checkStability` (default: false)
+  - **Performance optimization**: Stability checking disabled by default for better performance
   - Legacy methods marked `@deprecated` - use modern equivalents
 - **`Matchers.ts`** - Type-safe element selectors with flexible options
   - Methods: `getElementByID()`, `getElementByText()`, `getElementByLabel()`, `getWebViewByID()`
-- **`Utilities.ts`** - Core utilities, configuration management, and helper functions
-  - Key methods: `executeWithRetry()`, `waitForReadyState()`, `checkElementReadyState()`, `waitForElementToBeEnabled()`, `waitForElementToStopMoving()`
-  - Helper methods: `checkElementEnabled()`, `checkElementStable()` (non-retry versions for internal use)
-- **`types.ts`** - TypeScript type definitions for all framework options
+- **`Utilities.ts`** - Core utilities with specialised element state checking
+  - **State checking methods**: `checkElementReadyState()`, `checkElementEnabled()`, `checkElementStable()`
+  - **Retry mechanisms**: `executeWithRetry()`, `waitForElementToBeEnabled()`, `waitForElementToStopMoving()`
+  - **Configuration**: Flexible timeout and retry configuration
+- **`types.ts`** - TypeScript type definitions including `GestureOptions` with element state flags
 
 #### Key Features:
 - ✅ **Auto-retry** - Handles flaky network/UI conditions
-- ✅ **Element stability checking** - Waits for animations to complete before interactions
+- ✅ **Configurable element state checking** - Control visibility, enabled, and stability checks per interaction
+- ✅ **Performance optimization** - Stability checking disabled by default for better performance
 - ✅ **Better error messages** - Descriptive errors with retry context and timing
 - ✅ **Type safety** - Full TypeScript support with IntelliSense
-- ✅ **Configurable behavior** - Adjustable timeouts, retry intervals, and stability thresholds
+- ✅ **Flexible configuration** - Adjustable timeouts, retry intervals, and element state validation
 - ✅ **Backwards compatibility** - Works alongside existing JavaScript framework
 
 #### Basic Usage:
@@ -124,10 +133,25 @@ import Assertions from '../utils/Assertions';
 import Gestures from '../utils/Gestures';
 import Matchers from '../utils/Matchers';
 
-// Modern framework with auto-retry and stability checking
+// Configurable element state checking
 const button = Matchers.getElementByID('my-button');
 await Assertions.expectVisible(button, { description: 'button should be visible' });
+
+// Default behavior: checkVisibility=true, checkEnabled=true, checkStability=false
 await Gestures.tap(button, { description: 'tap button' });
+
+// Enable stability checking for animated elements
+await Gestures.tap(animatedButton, { 
+  checkStability: true,
+  description: 'tap animated button' 
+});
+
+// Skip visibility/enabled checks for special cases
+await Gestures.tap(loadingButton, { 
+  checkVisibility: false,
+  checkEnabled: false,
+  description: 'tap loading button' 
+});
 ```
 
 ### Legacy JavaScript Framework (Backwards Compatible)
@@ -368,15 +392,27 @@ The framework is designed to be self-documenting through TypeScript types and co
 
 ### Performance Issues
 
-#### **Enable Stability Checking for Complex UI**
-- **Default**: `checkStability: false` (disabled for better performance)
-- **When to enable**: Complex animations, moving screens, carousel components
-- **Example**:
+#### **Element State Checking Configuration**
+- **Default behavior**: `checkVisibility: true`, `checkEnabled: true`, `checkStability: false`
+- **Performance optimization**: Stability checking disabled by default for better performance
+- **When to enable stability**: Complex animations, moving screens, carousel components
+- **When to disable checks**: Loading states, temporarily disabled elements
+- **Examples**:
   ```typescript
-  // For elements with heavy animations or movement
+  // Default: checks visibility + enabled, skips stability
+  await Gestures.tap(button, { description: 'tap button' });
+  
+  // Enable stability for animated elements
   await Gestures.tap(carouselItem, { 
-    checkStability: true,  // Enable stability checking
+    checkStability: true,
     description: 'tap carousel item'
+  });
+  
+  // Skip checks for loading/processing elements
+  await Gestures.tap(processingButton, { 
+    checkVisibility: false,
+    checkEnabled: false,
+    description: 'tap processing button'
   });
   ```
 
@@ -420,18 +456,25 @@ The framework is designed to be self-documenting through TypeScript types and co
 
 #### **"Element not enabled" Errors**
 - **Cause**: Element exists but is not interactive (disabled/loading state)
-- **Root cause**: Framework checks element is both visible AND enabled before interaction
-- **Solution**: Use `skipVisibilityCheck: true` to bypass enabled state validation
-- **When to use**: Elements that are temporarily disabled during processing, loading states, or elements that appear disabled but should still be interactabl (i.e Account List item which is not yet selected)
+- **Root cause**: Framework checks element is both visible AND enabled before interaction by default
+- **Solution**: Use `checkEnabled: false` to bypass enabled state validation
+- **When to use**: Elements that are temporarily disabled during processing, loading states, or elements that appear disabled but should still be interactable (i.e Account List item which is not yet selected)
 - **Example**:
   ```typescript
-  // Default: checks visible + enabled + stable (if needed)
+  // Default: checks visibility + enabled + stability (if enabled)
   await Gestures.tap(element, { description: 'tap interactive element' });
   
-  // Skip all checks for elements that are being processed/loading
+  // Skip enabled check for temporarily disabled elements
   await Gestures.tap(loadingButton, { 
-    skipVisibilityCheck: true,  // Skips both visibility AND enabled checks
+    checkEnabled: false,
     description: 'tap button during loading' 
+  });
+  
+  // Skip all checks for special cases
+  await Gestures.tap(processingButton, { 
+    checkVisibility: false,
+    checkEnabled: false,
+    description: 'tap button during processing' 
   });
   ```
   

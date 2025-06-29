@@ -4,12 +4,13 @@
 export interface GestureOptions {
   timeout?: number;
   checkStability?: boolean;
-  skipVisibilityCheck?: boolean;
-  description?: string;
+  checkVisibility?: boolean;
+  checkEnabled?: boolean;
+  description?: string; // Description for the gesture, e.g. "Tap on the Get Started button"
+  elemDescription?: string; // For better error messages - i.e "Get Started button"
 }
 
 export interface TapOptions extends GestureOptions {
-  elemDescription?: string; // For better error messages - i.e "Get Started button"
 }
 
 export interface TypeTextOptions extends GestureOptions {

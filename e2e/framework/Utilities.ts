@@ -145,13 +145,15 @@ export default class Utilities {
     options: {
       timeout?: number;
       checkStability?: boolean;
-      skipVisibilityCheck?: boolean;
+      checkVisibility?: boolean;
+      checkEnabled?: boolean;
     } = {},
   ): DetoxElement{
     const {
       timeout,
       checkStability = false,
-      skipVisibilityCheck = false,
+      checkVisibility = true,
+      checkEnabled = true,
     } = options;
 
     const el = (await elementPromise) as Detox.IndexableNativeElement;
@@ -166,10 +168,11 @@ export default class Utilities {
      *
      * Default fallbacks:
      * - Visibility check: 100ms (minimal check)
+     * - Enabled check: No timeout (immediate check)
      * - Stability check: 2000ms (allows time for UI to settle)
      */
 
-    if (!skipVisibilityCheck) {
+    if (checkVisibility) {
       const visibilityTimeout = timeout || 100; // If no timeout is provided, default to 100ms
       if (device.getPlatform() === 'ios') {
         await waitFor(el).toExist().withTimeout(visibilityTimeout);
@@ -177,6 +180,9 @@ export default class Utilities {
         await waitFor(el).toBeVisible().withTimeout(visibilityTimeout);
       }
 
+    }
+
+    if (checkEnabled) {
       await this.checkElementEnabled(Promise.resolve(el));
     }
 
