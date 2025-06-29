@@ -6,7 +6,6 @@ export interface GestureOptions {
   checkStability?: boolean;
   checkVisibility?: boolean;
   checkEnabled?: boolean;
-  description?: string; // Description for the gesture, e.g. "Tap on the Get Started button"
   elemDescription?: string; // For better error messages - i.e "Get Started button"
 }
 
@@ -48,7 +47,7 @@ export interface ElementSelectorOptions {
 export interface RetryOptions {
   timeout?: number;
   interval?: number;
-  description?: string;
+  description?: string; // Description for the retry operation, e.g. "tap() or "waitForReadyState()"
   elemDescription?: string;
   maxRetries?: number;
 }

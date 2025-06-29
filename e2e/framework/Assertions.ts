@@ -153,7 +153,11 @@ export default class Assertions {
           ('value' in attributes && attributes.value === 'true');
         if (isToggled !== expectedState) {
           throw new Error(
-            `Toggle state expected: ${expectedState}, actual: ${isToggled}`,
+            [
+              '🔄 Toggle state mismatch detected',
+              `   Expected: ${expectedState}`,
+              `   Actual:   ${isToggled}`,
+            ].join('\n'),
           );
         }
       },
@@ -343,10 +347,6 @@ export default class Assertions {
     }
   }
 
-  /**
-   * Legacy method: Check if two objects match exactly
-   * @deprecated Use Jest expect() directly or custom assertion instead
-   */
   static async checkIfObjectsMatch(
     actualObject: object,
     expectedObject: object,

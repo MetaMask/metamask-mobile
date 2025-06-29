@@ -27,7 +27,6 @@ export default class Gestures {
       checkStability?: boolean;
       checkVisibility?: boolean;
       checkEnabled?: boolean;
-      description?: string;
       elemDescription?: string;
     },
     point?: { x: number; y: number },
@@ -36,7 +35,6 @@ export default class Gestures {
       checkStability = false,
       checkVisibility = true,
       checkEnabled = true,
-      description = 'tapped element',
       elemDescription,
     } = options;
 
@@ -49,7 +47,7 @@ export default class Gestures {
     await el.tap(point);
     const successMessage = elemDescription
       ? `✅ Successfully tapped element: ${elemDescription}`
-      : `✅ Successfully ${description}`;
+      : `✅ Successfully tapped element`;
     console.log(successMessage);
   };
 
@@ -65,19 +63,17 @@ export default class Gestures {
       checkStability: false,
       checkVisibility: true,
       checkEnabled: true,
-      description: 'tapped element',
     },
   ): Promise<void> {
     const {
       timeout,
-      description,
       elemDescription,
     } = options;
 
     const fn = () => this.tapWithChecks(detoxElement, options);
     return Utilities.executeWithRetry(fn, {
       timeout,
-      description,
+      description: 'tap()',
       elemDescription,
     });
   }
@@ -93,19 +89,17 @@ export default class Gestures {
       checkStability: false,
       checkVisibility: true,
       checkEnabled: true,
-      description: 'tapped element',
     }
   ): Promise<void> {
     const {
       timeout,
-      description,
       elemDescription,
     } = options;
 
     const fn = () => this.tapWithChecks(detoxElement, options);
     return Utilities.executeWithRetry(fn, {
       timeout,
-      description,
+      description: 'waitAndTap()',
       elemDescription,
     });
   }
@@ -121,18 +115,18 @@ export default class Gestures {
       checkStability: false,
       checkVisibility: true,
       checkEnabled: true,
-      description: 'tapped element at point',
     },
   ): Promise<void> {
     const {
       timeout,
-      description,
+      elemDescription
     } = options;
     const fn = () => this.tapWithChecks(detoxElement, options, point);
     return Utilities.executeWithRetry(fn,
       {
         timeout,
-        description: `Tap at point: ${description}`,
+        description: 'tapAtPoint()',
+        elemDescription
       },
     );
   }
@@ -144,7 +138,6 @@ export default class Gestures {
     detoxElement: DetoxElement,
     options: LongPressOptions = {
       timeout: BASE_DEFAULTS.timeout,
-      description: 'long pressed element',
       checkStability: false,
       checkEnabled: true,
       checkVisibility: true,
@@ -153,7 +146,7 @@ export default class Gestures {
     const {
       timeout,
       duration = 2000,
-      description,
+      elemDescription
     } = options;
 
     return Utilities.executeWithRetry(
@@ -168,7 +161,8 @@ export default class Gestures {
       },
       {
         timeout,
-        description,
+        description: `longPress() for ${duration}ms`,
+        elemDescription
       },
     );
   }
@@ -183,7 +177,6 @@ export default class Gestures {
       timeout: BASE_DEFAULTS.timeout,
       clearFirst: true,
       hideKeyboard: false,
-      description: `typed "${text}"`,
       checkStability: false,
       checkEnabled: true,
       checkVisibility: true,
@@ -193,7 +186,7 @@ export default class Gestures {
       timeout,
       clearFirst,
       hideKeyboard,
-      description,
+      elemDescription
     } = options;
 
     return Utilities.executeWithRetry(
@@ -215,7 +208,8 @@ export default class Gestures {
       },
       {
         timeout,
-        description,
+        description: `typeText("${text}")`,
+        elemDescription
       },
     );
   }
@@ -228,7 +222,6 @@ export default class Gestures {
     text: string,
     options: GestureOptions = {
       timeout: BASE_DEFAULTS.timeout,
-      description: `replaced with "${text}"`,
       checkStability: false,
       checkEnabled: true,
       checkVisibility: true,
@@ -236,7 +229,7 @@ export default class Gestures {
   ): Promise<void> {
     const {
       timeout,
-      description,
+      elemDescription
     } = options;
 
     return Utilities.executeWithRetry(
@@ -250,7 +243,8 @@ export default class Gestures {
       },
       {
         timeout,
-        description,
+        description: `replaceText("${text}")`,
+        elemDescription
       },
     );
   }
@@ -265,7 +259,6 @@ export default class Gestures {
       timeout: BASE_DEFAULTS.timeout,
       speed: 'fast',
       percentage: 0.75,
-      description: `swiped ${direction}`,
       checkStability: false,
       checkEnabled: true,
       checkVisibility: true,
@@ -275,7 +268,7 @@ export default class Gestures {
       timeout,
       speed,
       percentage,
-      description,
+      elemDescription
     } = options;
 
     return Utilities.executeWithRetry(
@@ -289,7 +282,8 @@ export default class Gestures {
       },
       {
         timeout,
-        description,
+        description: `swipe(${direction})`,
+        elemDescription
       },
     );
   }
@@ -306,7 +300,7 @@ export default class Gestures {
       timeout = BASE_DEFAULTS.timeout,
       direction = 'down',
       scrollAmount = 350,
-      description = 'scrolled to element',
+      elemDescription
     } = options;
 
     return Utilities.executeWithRetry(
@@ -319,7 +313,8 @@ export default class Gestures {
       },
       {
         timeout,
-        description: `Scroll: ${description}`,
+        description: `scrollToElement(${direction})`,
+        elemDescription,
       },
     );
   }

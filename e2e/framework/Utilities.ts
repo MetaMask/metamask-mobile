@@ -37,7 +37,17 @@ export default class Utilities {
     const el = (await elementPromise) as Detox.IndexableNativeElement;
     const attributes = await el.getAttributes();
     if (!('enabled' in attributes) || !attributes.enabled) {
-      throw new Error('Element is not enabled');
+      throw new Error(
+        [
+          '🚫 Element is not enabled.',
+          '',
+          '💡 If this element might be disabled in some situations,',
+          '   consider using the {checkEnabled: false} option.',
+          '',
+          '📝 Example:',
+          '   await Gestures.waitAndTap(element, {checkEnabled: false})',
+        ].join('\n'),
+      );
     }
   }
 
@@ -117,7 +127,7 @@ export default class Utilities {
       await new Promise((resolve) => setTimeout(resolve, interval));
     }
 
-    throw new Error('Element did not become stable in time');
+    throw new Error('⏱️ Element did not become stable in time');
   }
 
   /**
@@ -148,7 +158,7 @@ export default class Utilities {
       checkVisibility?: boolean;
       checkEnabled?: boolean;
     } = {},
-  ): DetoxElement{
+  ): DetoxElement {
     const {
       timeout,
       checkStability = false,
@@ -179,7 +189,6 @@ export default class Utilities {
       } else {
         await waitFor(el).toBeVisible().withTimeout(visibilityTimeout);
       }
-
     }
 
     if (checkEnabled) {
@@ -238,17 +247,21 @@ export default class Utilities {
     let attempt = 0;
     const startTime = Date.now();
 
+    const action = description || operation.name;
+
     while (true) {
       try {
         const result = await operation();
 
-        const actionMessage = `✅ ${description} succeeded after ${attempt} ${
-          attempt === 1 ? 'retry' : 'retries'
-        }`;
-        const elemMessage = elemDescription ? ` for ${elemDescription}` : '';
-
         if (attempt > 0) {
-          console.log(`${actionMessage}${elemMessage}.`);
+          const successMessage = [
+            `✅ ${action} succeeded after ${attempt}`,
+            ` ${attempt === 1 ? 'retry' : 'retries'}`,
+            elemDescription ? ` for ${elemDescription}` : '',
+            '.',
+          ].join('');
+
+          console.log(successMessage);
         }
 
         return result;
@@ -265,12 +278,15 @@ export default class Utilities {
         }
 
         if (attempt === 1) {
-          const actionMessage = `⚠️  ${description} failed (attempt ${attempt})`;
-          const elemMessage = elemDescription ? ` for ${elemDescription}` : '';
-          console.log(
-            `${actionMessage}${elemMessage}. Retrying... (timeout: ${timeout}ms)`,
-          );
-          console.log(`Error: ${lastError.message}`);
+          const retryMessage = [
+            `⚠️  ${action} failed (attempt ${attempt})`,
+            ` on element`,
+            elemDescription ? `: ${elemDescription}` : '',
+            `. Retrying... (timeout: ${timeout}ms)`,
+          ].join('');
+
+          console.log(retryMessage);
+          console.log(`🔍 Error: ${lastError.message}`);
         }
 
         // eslint-disable-next-line no-restricted-syntax
@@ -281,9 +297,11 @@ export default class Utilities {
     const elapsedTime = Date.now() - startTime;
 
     const errorMessage = [
-      `❌ ${description} failed after ${attempt} attempt(s) over ${elapsedTime}ms`,
-      `${elemDescription ? ` for ${elemDescription}` : ''}`,
-      `Last error: ${lastError?.message || 'Unknown error'}`,
+      `❌ ${action} failed after ${attempt} attempt(s) over ${elapsedTime}ms`,
+      `📍 Element Description: ${
+        elemDescription || 'Description not provided'
+      }`,
+      `🔍 Last error: ${lastError?.message || 'Unknown error'}`,
     ].join('\n');
 
     throw new Error(errorMessage);
