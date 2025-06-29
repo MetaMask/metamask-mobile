@@ -99,7 +99,6 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       // Submit the Swap
       if (isUnifiedUIEnabled) {
         await submitSwapUnifiedUI(
-          type,
           quantity,
           sourceTokenSymbol,
           destTokenSymbol,
