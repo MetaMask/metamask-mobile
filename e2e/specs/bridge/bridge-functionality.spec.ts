@@ -34,7 +34,7 @@ import { getEventsPayloads } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
 
 const fixtureServer = new FixtureServer();
-const isBuildTypeFlask = process.env.METAMASK_BUILD_TYPE === "flask";
+const isBuildTypeFlask = process.env.METAMASK_BUILD_TYPE === 'flask';
 
 enum eventsToCheck {
   BRIDGE_BUTTON_CLICKED = 'Bridge Button Clicked',
@@ -50,6 +50,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
   let mockServer: Mockttp;
   let localNode: Ganache;
   let eventsToAssert: { event: string, properties: Record<string, unknown> }[] = [];
+  console.log(`isBuildTypeFlask=${isBuildTypeFlask}`)
 
   beforeAll(async () => {
     jest.setTimeout(120000);

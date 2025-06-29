@@ -38,11 +38,12 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
   const SECOND_ROW: number = 1;
   const wallet: ethers.Wallet = ethers.Wallet.createRandom();
   let isUnifiedUIEnabled: boolean | undefined;
-  const isBuildTypeFlask = process.env.METAMASK_BUILD_TYPE === "flask";
+  const isBuildTypeFlask = process.env.METAMASK_BUILD_TYPE === 'flask';
 
   beforeAll(async (): Promise<void> => {
     isUnifiedUIEnabled = await isUnifiedUIEnabledForChain('1');
-
+    console.log(`isBuildTypeFlask=${isBuildTypeFlask}`)
+    console.log(`isUnifiedUIEnabled=${isUnifiedUIEnabled}`)
     await Tenderly.addFunds(
       CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
       wallet.address,
