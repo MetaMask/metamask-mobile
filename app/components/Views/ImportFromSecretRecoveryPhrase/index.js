@@ -801,40 +801,36 @@ const ImportFromSecretRecoveryPhrase = ({
                   <View style={styles.seedPhraseContainer}>
                     <View style={styles.seedPhraseInnerContainer}>
                       {!hasStartedTyping ? (
-                        <>
-                          <TextInput
-                            ref={(ref) => {
-                              seedPhraseInputRefs.current[0] = ref;
-                            }}
-                            textAlignVertical="top"
-                            placeholder={strings(
-                              'import_from_seed.srp_placeholder',
-                            )}
-                            value={seedPhrase.join(' ')}
-                            onChangeText={(text) =>
-                              handleSeedPhraseChange(text)
-                            }
-                            style={styles.seedPhraseDefaultInput}
-                            placeholderTextColor={colors.text.alternative}
-                            placeholderStyle={
-                              styles.seedPhraseDefaultInputPlaceholder
-                            }
-                            multiline
-                            onKeyPress={(e) => handleKeyPress(e, 0)}
-                            autoComplete="off"
-                            submitBehavior={'submit'}
-                            autoCapitalize="none"
-                            testID={
-                              ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
-                            }
-                            editable
-                            keyboardType="default"
-                            autoCorrect={false}
-                            textContentType="none"
-                            spellCheck={false}
-                            autoFocus
-                          />
-                        </>
+                        <TextInput
+                          ref={(ref) => {
+                            seedPhraseInputRefs.current[0] = ref;
+                          }}
+                          textAlignVertical="top"
+                          placeholder={strings(
+                            'import_from_seed.srp_placeholder',
+                          )}
+                          value={seedPhrase.join(' ')}
+                          onChangeText={(text) => handleSeedPhraseChange(text)}
+                          style={styles.seedPhraseDefaultInput}
+                          placeholderTextColor={colors.text.alternative}
+                          placeholderStyle={
+                            styles.seedPhraseDefaultInputPlaceholder
+                          }
+                          multiline
+                          onKeyPress={(e) => handleKeyPress(e, 0)}
+                          autoComplete="off"
+                          submitBehavior={'submit'}
+                          autoCapitalize="none"
+                          testID={
+                            ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
+                          }
+                          editable
+                          keyboardType="default"
+                          autoCorrect={false}
+                          textContentType="none"
+                          spellCheck={false}
+                          autoFocus
+                        />
                       ) : (
                         <View
                           style={[styles.seedPhraseInputContainer]}
