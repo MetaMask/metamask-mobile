@@ -1,3 +1,4 @@
+import TestHelpers from '../../../helpers';
 import QuoteView from '../../../pages/Bridge/QuoteView';
 import Assertions from '../../../utils/Assertions';
 
@@ -15,6 +16,7 @@ export async function submitSwapUnifiedUI(
     await QuoteView.tapToken(chainId, sourceTokenSymbol);
 
     await QuoteView.tapSwapTo();
+    await TestHelpers.delay(2000);
     await QuoteView.selectNetwork('Tenderly - Mainnet');
     await QuoteView.tapToken(chainId, destTokenSymbol);
 
