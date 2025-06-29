@@ -1,12 +1,9 @@
 'use strict';
+/* eslint-disable no-console */
 import { ethers } from 'ethers';
 import { MockttpServer } from 'mockttp';
-import type { IndexableNativeElement } from 'detox/detox';
 import { loginToApp } from '../../viewHelper.js';
-import QuoteView from '../../pages/swaps/QuoteView';
-import SwapView from '../../pages/swaps/SwapView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
-import WalletView from '../../pages/wallet/WalletView.js';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import Tenderly from '../../tenderly.js';
@@ -16,8 +13,6 @@ import {
   stopFixtureServer,
 } from '../../fixtures/fixture-helper.js';
 import { CustomNetworks } from '../../resources/networks.e2e.js';
-import NetworkListModal from '../../pages/Network/NetworkListModal.js';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal.js';
 import TestHelpers from '../../helpers.js';
 import FixtureServer from '../../fixtures/fixture-server.js';
 import { getFixturesServerPort } from '../../fixtures/utils.js';
@@ -32,20 +27,22 @@ import {
   stopMockServer,
 } from '../../api-mocking/mock-server.js';
 import SoftAssert from '../../utils/SoftAssert.ts';
-import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment.ts';
-
+import { prepareSwapsTestEnvironment, isUnifiedUIEnabledForChain } from './helpers/prepareSwapsTestEnvironment.ts';
+import { submitSwapLegacyUI } from './helpers/swapLegacyUI';
+import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
 const fixtureServer: FixtureServer = new FixtureServer();
-const firstElement: number = 0;
 
 let mockServer: MockttpServer;
 
 describe(SmokeTrade('Swap from Actions'), (): void => {
   const FIRST_ROW: number = 0;
   const SECOND_ROW: number = 1;
-  let currentNetwork: string = CustomNetworks.Tenderly.Mainnet.providerConfig.nickname;
   const wallet: ethers.Wallet = ethers.Wallet.createRandom();
+  let isUnifiedUIEnabled: boolean | undefined;
 
   beforeAll(async (): Promise<void> => {
+    isUnifiedUIEnabled = await isUnifiedUIEnabledForChain('1') && process.env.MM_UNIFIED_SWAPS_ENABLED === 'true';
+    console.log(`MM_UNIFIED_SWAPS_ENABLED=${process.env.MM_UNIFIED_SWAPS_ENABLED} ${process.env.MM_UNIFIED_SWAPS_ENABLED === 'true'}`)
     await Tenderly.addFunds(
       CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
       wallet.address,
@@ -88,81 +85,30 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     ${'wrap'}   | ${'.03'} | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
     ${'unwrap'} | ${'.01'} | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
   `(
-    "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
+    "should $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }): Promise<void> => {
-      await TabBarComponent.tapWallet();
+       await TabBarComponent.tapActions();
+       await Assertions.checkIfVisible(WalletActionsBottomSheet.swapButton);
+       await WalletActionsBottomSheet.tapSwapButton();
 
-      if (network.providerConfig.nickname !== currentNetwork) {
-        await WalletView.tapNetworksButtonOnNavBar();
-        await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle as Promise<IndexableNativeElement>);
-        await NetworkListModal.changeNetworkTo(
-          network.providerConfig.nickname,
-          false,
-        );
-        await NetworkEducationModal.tapGotItButton();
-        await TestHelpers.delay(3000);
-        currentNetwork = network.providerConfig.nickname;
-      }
-
-      await Assertions.checkIfVisible(WalletView.container);
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapSwapButton();
-      await Assertions.checkIfVisible(QuoteView.getQuotes);
-
-      //Select source token, if native tiken can skip because already selected
-      if (type !== 'native' && type !== 'wrap') {
-        await QuoteView.tapOnSelectSourceToken();
-        await QuoteView.tapSearchToken();
-        await QuoteView.typeSearchToken(sourceTokenSymbol);
-        await TestHelpers.delay(2000);
-        await QuoteView.selectToken(sourceTokenSymbol, 1);
-      }
-      await QuoteView.enterSwapAmount(quantity);
-
-      //Select destination token
-      await QuoteView.tapOnSelectDestToken();
-      if (destTokenSymbol !== 'ETH') {
-        await QuoteView.tapSearchToken();
-        await QuoteView.typeSearchToken(destTokenSymbol);
-        await TestHelpers.delay(2000);
-        await QuoteView.selectToken(destTokenSymbol, 1);
-      } else await QuoteView.selectToken(destTokenSymbol, firstElement);
-
-      //Make sure slippage is zero for wrapped tokens
-      if (sourceTokenSymbol === 'WETH' || destTokenSymbol === 'WETH') {
-        await Assertions.checkIfElementToHaveText(
-          QuoteView.maxSlippage,
-          'Max slippage 0%',
-        );
-      }
-      // This call is needed because otherwise the device never becomes idle
-      await device.disableSynchronization();
-      
-      await QuoteView.tapOnGetQuotes();
-      await Assertions.checkIfVisible(SwapView.quoteSummary);
-      await Assertions.checkIfVisible(SwapView.gasFee);
-      await SwapView.tapIUnderstandPriceWarning();
-      await Assertions.checkIfVisible(SwapView.swapButton);
-      await TestHelpers.delay(2000);
-      await SwapView.tapSwapButton();
-      //Wait for Swap to complete
-      try {
-        await Assertions.checkIfTextIsDisplayed(
-          SwapView.generateSwapCompleteLabel(
-            sourceTokenSymbol,
-            destTokenSymbol,
-          ),
-          30000,
-        );
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.log(`Swap complete didn't pop up: ${e}`);
-      }
-      await device.enableSynchronization();
-      await TestHelpers.delay(10000);
+       // Submit the Swap
+       if (isUnifiedUIEnabled) {
+         await submitSwapUnifiedUI(
+           quantity,
+           sourceTokenSymbol,
+           destTokenSymbol,
+           network.providerConfig.chainId,
+         );
+       } else {
+         await submitSwapLegacyUI(
+           quantity,
+           sourceTokenSymbol,
+           destTokenSymbol,
+         );
+        await TabBarComponent.tapActivity();
+       }
 
       // Check the swap activity completed
-      await TabBarComponent.tapActivity();
       await Assertions.checkIfVisible(ActivitiesView.title);
       await Assertions.checkIfVisible(
         ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),

@@ -1,12 +1,10 @@
 import { useSelector } from 'react-redux';
-import {
-  selectBridgeControllerState,
-  selectMinSolBalance,
-} from '../../../../../selectors/bridgeController';
+import { selectBridgeControllerState } from '../../../../../selectors/bridgeController';
 import { useLatestBalance } from '../useLatestBalance';
+import { BigNumber } from 'ethers';
 import { parseUnits } from 'ethers/lib/utils';
 import { BridgeToken } from '../../types';
-import { isNativeAddress, isSolanaChainId } from '@metamask/bridge-controller';
+import { selectProviderConfig } from '../../../../../selectors/networkController';
 
 interface UseIsInsufficientBalanceParams {
   amount: string | undefined;
@@ -33,7 +31,8 @@ const useIsInsufficientBalance = ({
   token,
 }: UseIsInsufficientBalanceParams): boolean => {
   const { quoteRequest } = useSelector(selectBridgeControllerState);
-  const minSolBalance = useSelector(selectMinSolBalance);
+  const providerConfig = useSelector(selectProviderConfig);
+
   const latestBalance = useLatestBalance({
     address: token?.address,
     decimals: token?.decimals,
@@ -56,38 +55,17 @@ const useIsInsufficientBalance = ({
       return decimalPlaces <= token.decimals;
     })();
 
-  // Only perform calculations if we have valid inputs
-  if (
-    !isValidAmount ||
-    !hasValidDecimals ||
-    !token ||
-    !latestBalance?.atomicBalance
-  ) {
-    return Boolean(quoteRequest?.insufficientBal);
-  }
+  // Mainnet will have type: "mainnet"
+  const isTenderly = providerConfig.type === 'networkClientId6';
 
-  const inputAmount = parseUnits(
-    normalizeAmount(amount, token.decimals),
-    token.decimals,
-  );
-  const isSOL =
-    token.chainId &&
-    isSolanaChainId(token.chainId) &&
-    isNativeAddress(token.address);
-
-  let isInsufficientBalance = quoteRequest?.insufficientBal || false;
-
-  if (isSOL) {
-    // For SOL: check if balance - inputAmount >= minSolBalance (rent exemption)
-    const minSolBalanceLamports = parseUnits(minSolBalance, token.decimals);
-    const remainingBalance = latestBalance.atomicBalance.sub(inputAmount);
-    isInsufficientBalance =
-      isInsufficientBalance || remainingBalance.lt(minSolBalanceLamports);
-  } else {
-    // For non-SOL: just check if inputAmount > balance
-    isInsufficientBalance =
-      isInsufficientBalance || inputAmount.gt(latestBalance.atomicBalance);
-  }
+  // quoteRequest.insufficientBal is undefined for Solana quotes, so we need to manually check if the source amount is greater than the balance
+  const isInsufficientBalance =
+    (!isTenderly && quoteRequest?.insufficientBal) ||
+    (isValidAmount &&
+      hasValidDecimals &&
+      parseUnits(normalizeAmount(amount, token.decimals), token.decimals).gt(
+        latestBalance?.atomicBalance ?? BigNumber.from(0),
+      ));
 
   return Boolean(isInsufficientBalance);
 };
