@@ -418,17 +418,23 @@ The framework is designed to be self-documenting through TypeScript types and co
   await Gestures.tap(slowLoadingButton, { timeout: 30000 });
   ```
 
-### Element Interaction Issues
-
-#### **"Element not ready" Errors**
-- **Cause**: Element exists but not interactive
-- **Solution**: Framework handles this automatically, check element selectors
+#### **"Element not enabled" Errors**
+- **Cause**: Element exists but is not interactive (disabled/loading state)
+- **Root cause**: Framework checks element is both visible AND enabled before interaction
+- **Solution**: Use `skipVisibilityCheck: true` to bypass enabled state validation
+- **When to use**: Elements that are temporarily disabled during processing, loading states, or elements that appear disabled but should still be interactabl (i.e Account List item which is not yet selected)
 - **Example**:
   ```typescript
-  // Framework automatically checks: visible + enabled + stable (if needed)
+  // Default: checks visible + enabled + stable (if needed)
   await Gestures.tap(element, { description: 'tap interactive element' });
+  
+  // Skip all checks for elements that are being processed/loading
+  await Gestures.tap(loadingButton, { 
+    skipVisibilityCheck: true,  // Skips both visibility AND enabled checks
+    description: 'tap button during loading' 
+  });
   ```
-
+  
 #### **"Element moving/animating" Errors**
 - **Cause**: UI animations interfering with interactions
 - **Solution**: Enable stability checking for that specific interaction
