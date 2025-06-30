@@ -38,12 +38,6 @@ export interface AssertionOptions extends RetryOptions {
   description?: string; // Description for the assertion, e.g. "The Wallet View should be visible"
 }
 
-export interface ElementSelectorOptions {
-  index?: number;
-  exact?: boolean;
-}
-
-
 export interface RetryOptions {
   timeout?: number;
   interval?: number;
