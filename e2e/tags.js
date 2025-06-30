@@ -17,6 +17,7 @@ const tags = {
   smokeNotifications: 'SmokeNotifications:',
   smokeAnalytics: 'SmokeAnalytics:',
   smokeMultiChainAPI: 'SmokeMultiChainAPI:',
+  smokeMultiStandardDappConnection: 'SmokeMultiStandardDappConnection:',
   FlaskBuildTests: 'FlaskBuildTests:',
 };
 
@@ -39,6 +40,7 @@ const SmokeMultiChainAPI = (testName) =>
 const SmokeNotifications = (testName) =>
   `${tags.smokeNotifications} ${testName}`;
 const SmokeAnalytics = (testName) => `${tags.smokeAnalytics} ${testName}`;
+const SmokeMultiStandardDappConnection = testName => `${tags.smokeMultiStandardDappConnection} ${testName}`;
 
 
 const SmokeTrade = (testName) => `${tags.SmokeTrade} ${testName}`;
@@ -48,7 +50,7 @@ const SmokeNetworkAbstractions = (testName) =>
   `${tags.SmokeNetworkAbstractions} ${testName}`;
 const SmokeNetworkExpansion = (testName) =>
   `${tags.SmokeNetworkExpansion} ${testName}`;
-const FlaskBuildTests = (testName) => 
+const FlaskBuildTests = (testName) =>
   `${tags.FlaskBuildTests} ${testName}`;
 
 export {
@@ -71,4 +73,5 @@ export {
   SmokeNotifications,
   SmokeAnalytics,
   SmokeMultiChainAPI,
+  SmokeMultiStandardDappConnection,
 };
