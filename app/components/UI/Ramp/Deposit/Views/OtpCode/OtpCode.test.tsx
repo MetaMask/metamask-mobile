@@ -144,7 +144,7 @@ describe('OtpCode Component', () => {
       setGetStarted: jest.fn(),
       setSelectedRegion: jest.fn(),
       selectedRegion: {
-        code: 'US',
+        isoCode: 'US',
       } as DepositRegion,
     });
 

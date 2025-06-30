@@ -54,7 +54,7 @@ describe('useUserDetailsPolling', () => {
       getStarted: true,
       setGetStarted: jest.fn(),
       selectedRegion: {
-        code: 'US',
+        isoCode: 'US',
       } as DepositRegion,
       setSelectedRegion: jest.fn(),
     });
