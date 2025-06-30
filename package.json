@@ -531,6 +531,7 @@
     "fbjs-scripts": "^3.0.1",
     "fs-extra": "^10.1.0",
     "ganache": "^7.9.2",
+    "husky": "^4.3.8",
     "improved-yarn-audit": "^3.0.0",
     "jest": "^29.7.0",
     "jest-junit": "^15.0.0",
