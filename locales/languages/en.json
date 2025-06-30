@@ -4171,6 +4171,8 @@
       "part3": "."
     },
     "label": {
+      "amount": "Amount",
+      "value": "Value",
       "account": "Account",
       "balance": "Balance",
       "interacting_with": "Interacting with",
