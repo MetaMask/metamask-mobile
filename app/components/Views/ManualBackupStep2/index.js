@@ -15,6 +15,7 @@ import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { seedphraseBackedUp } from '../../../actions/user';
+import { saveOnboardingEvent as SaveEvent } from '../../../actions/onboarding';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { compareMnemonics } from '../../../util/mnemonic';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -35,7 +36,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { TraceName, bufferedEndTrace } from '../../../util/trace';
 import { useMetrics } from '../../hooks/useMetrics';
 
-const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
+const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route, saveOnboardingEvent }) => {
   const words = route?.params?.words;
   const backupFlow = route?.params?.backupFlow;
   const settingsBackup = route?.params?.settingsBackup;
@@ -122,6 +123,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
           MetricsEventBuilder.createEventBuilder(
             MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
           ).build(),
+          saveOnboardingEvent,
         );
       });
     } else {
@@ -389,22 +391,27 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
 
 ManualBackupStep2.propTypes = {
   /**
-  /* navigation object required to push and pop other views
-  */
+   * navigation object required to push and pop other views
+   */
   navigation: PropTypes.object,
   /**
-   * The action to update the seedphrase backed up flag
-   * in the redux store
+   * Action to mark seed phrase as backed up
    */
   seedphraseBackedUp: PropTypes.func,
   /**
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
+  /**
+   * Action to save onboarding event
+   */
+  saveOnboardingEvent: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({
   seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
+  saveOnboardingEvent: (...eventArgs) =>
+    dispatch(SaveEvent(eventArgs)),
 });
 
 export default connect(null, mapDispatchToProps)(ManualBackupStep2);

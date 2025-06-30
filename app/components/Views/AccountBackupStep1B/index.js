@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { connect } from 'react-redux';
 import {
   ScrollView,
   TouchableOpacity,
@@ -22,6 +23,7 @@ import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { saveOnboardingEvent as SaveEvent } from '../../../actions/onboarding';
 
 import { useTheme } from '../../../util/theme';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
@@ -207,6 +209,12 @@ const AccountBackupStep1B = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  const track = (event, properties) => {
+    const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
+    eventBuilder.addProperties(properties);
+    trackOnboarding(eventBuilder.build(), props.saveOnboardingEvent);
+  };
+
   useEffect(() => {
     navigation.setOptions(
       getOnboardingNavbarOptions(
@@ -224,11 +232,7 @@ const AccountBackupStep1B = (props) => {
       ...props.route.params,
       settingsBackup: true,
     });
-    trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED,
-      ).build(),
-    );
+    track(MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED, {});
   };
 
   const learnMore = () => {
@@ -248,6 +252,10 @@ const AccountBackupStep1B = (props) => {
   const hideWhySecureWallet = () => setWhySecureWalletModal(false);
 
   const showWhatIsSeedphrase = () => {
+    track(
+      MetaMetricsEvents.SRP_DEFINITION_CLICKED,
+      { location: 'account_backup_step_1b' },
+    );
     props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SEEDPHRASE_MODAL,
     });
@@ -404,6 +412,15 @@ AccountBackupStep1B.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
+  /**
+   * Action to save onboarding event
+   */
+  saveOnboardingEvent: PropTypes.func,
 };
 
-export default AccountBackupStep1B;
+const mapDispatchToProps = (dispatch) => ({
+  saveOnboardingEvent: (...eventArgs) =>
+    dispatch(SaveEvent(eventArgs)),
+});
+
+export default connect(null, mapDispatchToProps)(AccountBackupStep1B);

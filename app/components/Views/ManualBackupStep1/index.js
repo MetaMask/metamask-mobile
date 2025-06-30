@@ -51,12 +51,13 @@ import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import Routes from '../../../constants/navigation/Routes';
+import { saveOnboardingEvent as SaveEvent } from '../../../actions/onboarding';
 
 /**
  * View that's shown during the second step of
  * the backup seed phrase flow
  */
-const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
+const ManualBackupStep1 = ({ route, navigation, appTheme, saveOnboardingEvent }) => {
   const [seedPhraseHidden, setSeedPhraseHidden] = useState(true);
   const [password, setPassword] = useState(undefined);
   const [warningIncorrectPassword, setWarningIncorrectPassword] =
@@ -71,6 +72,12 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
   const settingsBackup = route?.params?.settingsBackup || false;
 
   const steps = MANUAL_BACKUP_STEPS;
+
+  const track = (event, properties) => {
+    const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
+    eventBuilder.addProperties(properties);
+    trackOnboarding(eventBuilder.build(), saveOnboardingEvent);
+  };
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
@@ -103,6 +110,10 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
   };
 
   const showWhatIsSeedphrase = () => {
+    track(
+      MetaMetricsEvents.SRP_DEFINITION_CLICKED,
+      { location: 'manual_backup_step_1' },
+    );
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SEEDPHRASE_MODAL,
     });
@@ -153,11 +164,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
   const revealSeedPhrase = () => {
     setSeedPhraseHidden(false);
-    trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED,
-      ).build(),
-    );
+    track(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED, {});
   };
 
   const tryUnlockWithPassword = async (password) => {
@@ -390,10 +397,19 @@ ManualBackupStep1.propTypes = {
    * Theme that app is set to
    */
   appTheme: PropTypes.string,
+  /**
+   * Action to save onboarding event
+   */
+  saveOnboardingEvent: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
   appTheme: state.user.appTheme,
 });
 
-export default connect(mapStateToProps)(ManualBackupStep1);
+const mapDispatchToProps = (dispatch) => ({
+  saveOnboardingEvent: (...eventArgs) =>
+    dispatch(SaveEvent(eventArgs)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(ManualBackupStep1);
