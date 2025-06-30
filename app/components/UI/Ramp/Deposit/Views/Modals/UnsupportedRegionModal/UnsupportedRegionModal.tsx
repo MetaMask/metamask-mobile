@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { View } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 
 import Text, {
   TextVariant,
@@ -14,10 +14,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../../component-library/components/Buttons/Button';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../../../component-library/components/Icons/Icon';
 
 import styleSheet from './UnsupportedRegionModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
@@ -31,6 +27,8 @@ import { strings } from '../../../../../../../../locales/i18n';
 interface UnsupportedRegionModalNavigationDetails {
   onExitToWalletHome?: () => void;
   onSelectDifferentRegion?: () => void;
+  countryName?: string;
+  countryFlag?: React.ReactNode;
 }
 
 export const createUnsupportedRegionModalNavigationDetails =
@@ -41,8 +39,12 @@ export const createUnsupportedRegionModalNavigationDetails =
 
 function UnsupportedRegionModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { onExitToWalletHome, onSelectDifferentRegion } =
-    useParams<UnsupportedRegionModalNavigationDetails>();
+  const {
+    onExitToWalletHome,
+    onSelectDifferentRegion,
+    countryName,
+    countryFlag,
+  } = useParams<UnsupportedRegionModalNavigationDetails>();
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -58,6 +60,10 @@ function UnsupportedRegionModal() {
     }
   }, [onSelectDifferentRegion]);
 
+  const handleLearnMore = useCallback(() => {
+    // TODO: Implement Learn More action
+  }, []);
+
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack isInteractable={false}>
       <BottomSheetHeader onClose={handleExitToWalletHome}>
@@ -67,40 +73,50 @@ function UnsupportedRegionModal() {
       </BottomSheetHeader>
 
       <View style={styles.content}>
-        <View style={styles.iconContainer}>
-          <Icon
-            name={IconName.Warning}
-            size={IconSize.Xl}
-            color={styles.warningIcon.color}
-          />
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Default}
+          style={styles.message}
+        >
+          {strings('deposit.unsupported_region_modal.location_prefix')}
+        </Text>
+        <View style={styles.countryContainer}>
+          {countryFlag}
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Default}
+            style={styles.countryName}
+          >
+            {countryName || ''}
+          </Text>
         </View>
-
         <Text
           variant={TextVariant.BodyMD}
           color={TextColor.Alternative}
           style={styles.description}
         >
-          {strings('deposit.unsupported_region_modal.description')}
+          {strings('deposit.unsupported_region_modal.description')}{' '}
+          <TouchableOpacity onPress={handleLearnMore} accessibilityRole="link">
+            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+              {strings('learn_more')}
+            </Text>
+          </TouchableOpacity>
         </Text>
       </View>
 
       <View style={styles.footer}>
         <Button
           size={ButtonSize.Lg}
-          onPress={handleExitToWalletHome}
-          label={strings(
-            'deposit.unsupported_region_modal.exit_to_wallet_home',
-          )}
-          variant={ButtonVariants.Primary}
+          onPress={handleSelectDifferentRegion}
+          label={strings('deposit.unsupported_region_modal.change_region')}
+          variant={ButtonVariants.Link}
           width={ButtonWidthTypes.Full}
         />
         <Button
           size={ButtonSize.Lg}
-          onPress={handleSelectDifferentRegion}
-          label={strings(
-            'deposit.unsupported_region_modal.select_different_region',
-          )}
-          variant={ButtonVariants.Link}
+          onPress={handleExitToWalletHome}
+          label={strings('deposit.unsupported_region_modal.buy_crypto')}
+          variant={ButtonVariants.Primary}
           width={ButtonWidthTypes.Full}
         />
       </View>

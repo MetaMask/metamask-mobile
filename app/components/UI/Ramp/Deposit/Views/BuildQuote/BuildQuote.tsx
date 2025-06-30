@@ -184,7 +184,8 @@ const BuildQuote = () => {
         InteractionManager.runAfterInteractions(() => {
           navigation.navigate(
             ...createUnsupportedRegionModalNavigationDetails({
-              regionName: selectedRegion?.name || '',
+              countryName: selectedRegion?.name || '',
+              countryFlag: selectedRegion?.flag || '',
               onExitToWalletHome: handleExitToWalletHome,
               onSelectDifferentRegion: handleSelectDifferentRegion,
             }),

@@ -23,6 +23,14 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 12,
       color: colors.text.default,
     },
+    countryContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    countryName: {
+      marginLeft: 8,
+    },
     description: {
       textAlign: 'center',
       lineHeight: 20,
@@ -30,6 +38,9 @@ const styleSheet = (params: { theme: Theme }) => {
     footer: {
       padding: 24,
       paddingTop: 0,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: 8,
     },
   });
 };

@@ -40,11 +40,28 @@ describe('UnsupportedRegionModal', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('calls onExitToWalletHome when exit to wallet home button is pressed', () => {
+  it('renders correctly with countryName and countryFlag', () => {
+    mockUseParams.mockReturnValue({
+      onExitToWalletHome: jest.fn(),
+      onSelectDifferentRegion: jest.fn(),
+      countryName: 'Brazil',
+      countryFlag: '🇧🇷',
+    });
+
+    const { toJSON } = renderDepositTestComponent(
+      UnsupportedRegionModal,
+      Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('calls onExitToWalletHome when Buy Crypto button is pressed', () => {
     const mockOnExitToWalletHome = jest.fn();
     mockUseParams.mockReturnValue({
       onExitToWalletHome: mockOnExitToWalletHome,
       onSelectDifferentRegion: jest.fn(),
+      countryName: 'Brazil',
+      countryFlag: '🇧🇷',
     });
 
     const { getByText } = renderDepositTestComponent(
@@ -52,17 +69,19 @@ describe('UnsupportedRegionModal', () => {
       Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
     );
 
-    const exitButton = getByText('Exit to wallet home');
-    fireEvent.press(exitButton);
+    const buyCryptoButton = getByText('Buy Crypto');
+    fireEvent.press(buyCryptoButton);
 
     expect(mockOnExitToWalletHome).toHaveBeenCalled();
   });
 
-  it('calls onSelectDifferentRegion when select different region button is pressed', () => {
+  it('calls onSelectDifferentRegion when Change region button is pressed', () => {
     const mockOnSelectDifferentRegion = jest.fn();
     mockUseParams.mockReturnValue({
       onExitToWalletHome: jest.fn(),
       onSelectDifferentRegion: mockOnSelectDifferentRegion,
+      countryName: 'Brazil',
+      countryFlag: '🇧🇷',
     });
 
     const { getByText } = renderDepositTestComponent(
@@ -70,8 +89,8 @@ describe('UnsupportedRegionModal', () => {
       Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
     );
 
-    const selectRegionButton = getByText('Select a different region');
-    fireEvent.press(selectRegionButton);
+    const changeRegionButton = getByText('Change region');
+    fireEvent.press(changeRegionButton);
 
     expect(mockOnSelectDifferentRegion).toHaveBeenCalled();
   });
@@ -84,7 +103,7 @@ describe('UnsupportedRegionModal', () => {
       Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
     );
 
-    expect(toJSON()).toBeTruthy();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('handles missing regionName gracefully', () => {
@@ -98,6 +117,6 @@ describe('UnsupportedRegionModal', () => {
       Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
     );
 
-    expect(toJSON()).toBeTruthy();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

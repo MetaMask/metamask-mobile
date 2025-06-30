@@ -138,7 +138,8 @@ describe('BuildQuote Component', () => {
       'DepositModals',
       'DepositUnsupportedRegionModal',
       {
-        regionName: 'Brazil',
+        countryName: 'Brazil',
+        countryFlag: '🇧🇷',
         onExitToWalletHome: expect.any(Function),
         onSelectDifferentRegion: expect.any(Function),
       },
