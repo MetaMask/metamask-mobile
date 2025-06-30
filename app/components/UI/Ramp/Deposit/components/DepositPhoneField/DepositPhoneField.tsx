@@ -10,6 +10,7 @@ import { DepositRegion } from '../../constants';
 import { useDepositSDK } from '../../sdk';
 import { createRegionSelectorModalNavigationDetails } from '../../Views/Modals/RegionSelectorModal';
 import DepositTextField from '../DepositTextField/DepositTextField';
+import { strings } from '../../../../../../../locales/i18n';
 
 interface PhoneFieldProps {
   label: string;
@@ -43,7 +44,7 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
     const { styles } = useStyles(styleSheet, {});
     const { selectedRegion, setSelectedRegion } = useDepositSDK();
     const navigation = useNavigation();
-    const template = selectedRegion?.phone?.template || '(XXX) XXX-XXXX';
+    const template = selectedRegion?.phone?.template ?? '(XXX) XXX-XXXX';
 
     const rawDigits = selectedRegion?.phone?.prefix
       ? value
@@ -58,7 +59,7 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
     const handleChangeText = useCallback(
       (text: string) => {
         const digits = text.replace(/\D/g, '');
-        
+
         if (selectedRegion?.phone?.prefix) {
           const fullNumber = selectedRegion.phone.prefix + digits;
           onChangeText(fullNumber);
@@ -93,9 +94,10 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
         accessible
         style={styles.countryPrefix}
       >
-        <Text style={styles.countryFlag}>{selectedRegion?.flag || '🌍'}</Text>
+        <Text style={styles.countryFlag}>{selectedRegion?.flag ?? '🌍'}</Text>
         <Text style={styles.countryCallingCode}>
-          {selectedRegion?.phone?.prefix || 'Select region'}
+          {selectedRegion?.phone?.prefix ??
+            strings('deposit.basic_info.select_region')}
         </Text>
       </TouchableOpacity>
     );
@@ -106,7 +108,10 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
         error={error}
         value={formattedValue}
         onChangeText={handleChangeText}
-        placeholder={selectedRegion?.phone?.placeholder || 'Enter phone number'}
+        placeholder={
+          selectedRegion?.phone?.placeholder ??
+          strings('deposit.basic_info.enter_phone_number')
+        }
         keyboardType="phone-pad"
         startAccessory={countryPrefixAccessory}
         onSubmitEditing={onSubmitEditing}
