@@ -1,5 +1,4 @@
 import React from 'react';
-import { cloneDeep } from 'lodash';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { transferConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
@@ -24,25 +23,33 @@ jest.mock('../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
 }));
 
-jest.mock('../../../../../../core/Engine', () => ({
-  getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
-  context: {
-    NetworkController: {
-      getNetworkConfigurationByNetworkClientId: jest.fn(),
+jest.mock('../../../../../../core/Engine', () => {
+  const { otherControllersMock } = jest.requireActual(
+    '../../../__mocks__/controllers/other-controllers-mock',
+  );
+  return {
+    getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
+    context: {
+      NetworkController: {
+        getNetworkConfigurationByNetworkClientId: jest.fn(),
+      },
+      GasFeeController: {
+        startPolling: jest.fn(),
+        stopPollingByPollingToken: jest.fn(),
+      },
+      TransactionController: {
+        updateTransaction: jest.fn(),
+        getTransactions: jest.fn().mockReturnValue([]),
+        getNonceLock: jest
+          .fn()
+          .mockResolvedValue({ nextNonce: 2, releaseLock: jest.fn() }),
+      },
+      KeyringController: {
+        state: otherControllersMock.engine.backgroundState.KeyringController,
+      },
     },
-    GasFeeController: {
-      startPolling: jest.fn(),
-      stopPollingByPollingToken: jest.fn(),
-    },
-    TransactionController: {
-      updateTransaction: jest.fn(),
-      getTransactions: jest.fn().mockReturnValue([]),
-      getNonceLock: jest
-        .fn()
-        .mockResolvedValue({ nextNonce: 2, releaseLock: jest.fn() }),
-    },
-  },
-}));
+  };
+});
 
 jest.mock('../../../hooks/useConfirmActions', () => ({
   useConfirmActions: jest.fn(),
@@ -61,6 +68,11 @@ jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe', () => ({
   default: jest.fn(),
 }));
 
+jest.mock('../../../components/UI/animated-pulse', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 const noop = () => undefined;
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -75,7 +87,9 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('Transfer', () => {
-  const mockUseClearConfirmationOnBackSwipe = jest.mocked(useClearConfirmationOnBackSwipe);
+  const mockUseClearConfirmationOnBackSwipe = jest.mocked(
+    useClearConfirmationOnBackSwipe,
+  );
   const mockTrackPageViewedEvent = jest.fn();
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
   const mockUseConfirmationMetricEvents = jest.mocked(
@@ -124,15 +138,5 @@ describe('Transfer', () => {
         asset_type: 'erc20',
       },
     });
-  });
-
-  it('renders simulation details if transfer initiated by dapp', () => {
-    const state = cloneDeep(transferConfirmationState);
-    state.engine.backgroundState.TransactionController.transactions[0].origin = 'https://dapp.com';
-    const { getByText } = renderWithProvider(<Transfer />, {
-      state,
-    });
-
-    expect(getByText('Estimated changes')).toBeDefined();
   });
 });

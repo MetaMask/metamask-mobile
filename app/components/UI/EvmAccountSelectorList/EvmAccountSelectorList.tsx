@@ -1,21 +1,18 @@
-// Third party dependencies.
 import React, { useCallback, useRef, useMemo, useEffect } from 'react';
 import {
   Alert,
   InteractionManager,
-  SectionListRenderItem,
   View,
   ViewStyle,
-  SectionList,
   TouchableOpacity,
 } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { CaipChainId } from '@metamask/utils';
 import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 
-// External dependencies.
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
@@ -30,7 +27,7 @@ import SensitiveText, {
 import {
   areAddressesEqual,
   formatAddress,
-  getLabelTextByAddress,
+  getLabelTextByInternalAccount,
   toFormattedAddress,
 } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
@@ -43,10 +40,10 @@ import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccountSections } from '../../../multichain-accounts/selectors/accountTreeController';
 
-// Internal dependencies.
 import {
   AccountSection,
   EvmAccountSelectorListProps,
+  FlattenedAccountListItem,
 } from './EvmAccountSelectorList.types';
 import styleSheet from './EvmAccountSelectorList.styles';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
@@ -56,8 +53,7 @@ import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants
 import { toHex } from '@metamask/controller-utils';
 import AccountNetworkIndicator from '../AccountNetworkIndicator';
 import { Skeleton } from '../../../component-library/components/Skeleton';
-import { selectInternalAccounts } from '../../../selectors/accountsController';
-import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
+import { selectInternalAccounts, selectInternalAccountsById } from '../../../selectors/accountsController';
 import { AccountWallet } from '@metamask/account-tree-controller';
 
 /**
@@ -85,7 +81,14 @@ const EvmAccountSelectorList = ({
   ...props
 }: EvmAccountSelectorListProps) => {
   const { navigate } = useNavigation();
-  const accountListRef = useRef<SectionList<Account, AccountSection>>(null);
+  /**
+   * Ref for the FlatList component.
+   * The type of the ref is not explicitly defined.
+   */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const accountListRef = useRef<any>(null);
+  const accountsLengthRef = useRef<number>(0);
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -99,16 +102,13 @@ const EvmAccountSelectorList = ({
 
   const accountTreeSections = useSelector(selectAccountSections);
   const internalAccounts = useSelector(selectInternalAccounts);
+  const internalAccountsById = useSelector(selectInternalAccountsById);
 
   const accountSections = useMemo((): AccountSection[] => {
     if (accountTreeSections) {
       const accountsById = new Map<string, Account>();
       internalAccounts.forEach((account) => {
-        const formattedAddress =
-          getFormattedAddressFromInternalAccount(account);
-        const accountObj = accounts.find((a) =>
-          areAddressesEqual(a.address, formattedAddress),
-        );
+        const accountObj = accounts.find((a) => a.id === account.id);
         if (accountObj) {
           accountsById.set(account.id, accountObj);
         }
@@ -127,7 +127,52 @@ const EvmAccountSelectorList = ({
     return accounts.length > 0 ? [{ title: 'Accounts', data: accounts }] : [];
   }, [accounts, accountTreeSections, internalAccounts]);
 
-  const getKeyExtractor = ({ address }: Account) => address;
+  // Flatten sections into a single array for FlatList
+  const flattenedData = useMemo((): FlattenedAccountListItem[] => {
+    const items: FlattenedAccountListItem[] = [];
+    let accountIndex = 0;
+
+    accountSections.forEach((section, sectionIndex) => {
+      if (accountTreeSections) {
+        items.push({
+          type: 'header',
+          data: section,
+          sectionIndex,
+        });
+      }
+
+      section.data.forEach((account) => {
+        items.push({
+          type: 'account',
+          data: account,
+          sectionIndex,
+          accountIndex,
+        });
+        accountIndex++;
+      });
+
+      if (accountTreeSections && sectionIndex < accountSections.length - 1) {
+        items.push({
+          type: 'footer',
+          data: section,
+          sectionIndex,
+        });
+      }
+    });
+
+    return items;
+  }, [accountSections, accountTreeSections]);
+
+  const getKeyExtractor = (item: FlattenedAccountListItem) => {
+    if (item.type === 'header') {
+      return `header-${item.sectionIndex}`;
+    }
+    if (item.type === 'footer') {
+      return `footer-${item.sectionIndex}`;
+    }
+    return item.data.address;
+  };
+
   const useMultichainAccountDesign = Boolean(accountTreeSections);
 
   const selectedAddressesLookup = useMemo(() => {
@@ -259,14 +304,14 @@ const EvmAccountSelectorList = ({
   const onNavigateToWalletDetails = useCallback(
     (wallet: AccountWallet) => {
       navigate(Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS, {
-        wallet,
+        walletId: wallet.id,
       });
     },
     [navigate],
   );
 
   const renderSectionHeader = useCallback(
-    ({ section: { title, wallet } }: { section: AccountSection }) => (
+    ({ title, wallet }: { title: string; wallet?: AccountWallet }) => (
       <View style={styles.sectionHeader}>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
           {title}
@@ -288,16 +333,8 @@ const EvmAccountSelectorList = ({
   );
 
   const renderSectionFooter = useCallback(
-    ({ section }: { section: AccountSection }) => {
-      // Find the index of this section
-      const sectionIndex = accountSections.findIndex(
-        (s) => s.title === section.title,
-      );
-      // Only render separator if it's not the last section
-      const isLastSection = sectionIndex === accountSections.length - 1;
-      return isLastSection ? null : <View style={styles.sectionSeparator} />;
-    },
-    [styles.sectionSeparator, accountSections],
+    () => <View style={styles.sectionSeparator} />,
+    [styles.sectionSeparator],
   );
 
   const scrollToSelectedAccount = useCallback(() => {
@@ -314,64 +351,61 @@ const EvmAccountSelectorList = ({
     }
 
     if (selectedAccount) {
-      // Find the section and item index for the selected account
-      let sectionIndex = -1;
-      let itemIndex = -1;
+      // Find the item index for the selected account in flattened data
+      const selectedItemIndex = flattenedData.findIndex(
+        (item) =>
+          item.type === 'account' &&
+          areAddressesEqual(item.data.address, selectedAccount.address),
+      );
 
-      for (let i = 0; i < accountSections.length; i++) {
-        const section = accountSections[i];
-        const accountIndex = section.data.findIndex(
-          (acc) =>
-            toFormattedAddress(acc.address) ===
-            toFormattedAddress(selectedAccount.address),
-        );
-        if (accountIndex !== -1) {
-          sectionIndex = i;
-          itemIndex = accountIndex;
-          break;
-        }
-      }
-
-      if (sectionIndex !== -1 && itemIndex !== -1) {
-        accountListRef?.current?.scrollToLocation({
-          sectionIndex,
-          itemIndex,
+      if (selectedItemIndex !== -1) {
+        accountListRef.current?.scrollToIndex({
+          index: selectedItemIndex,
           animated: true,
           viewPosition: 0.5, // Center the item in the view
         });
       }
     }
-  }, [accounts, selectedAddresses, isAutoScrollEnabled, accountSections]);
+  }, [
+    accounts,
+    accountListRef,
+    selectedAddresses,
+    isAutoScrollEnabled,
+    flattenedData,
+  ]);
 
   // Scroll to selected account when selection changes or on mount
   useEffect(() => {
     scrollToSelectedAccount();
   }, [scrollToSelectedAccount]);
 
-  const renderAccountItem = useCallback<
-    SectionListRenderItem<Account, AccountSection>
-  >(
-    ({
-      item: {
+  const renderItem = useCallback(
+    ({ item }: { item: FlattenedAccountListItem }) => {
+      if (item.type === 'header') {
+        return renderSectionHeader(item.data);
+      }
+
+      if (item.type === 'footer') {
+        return renderSectionFooter();
+      }
+
+      // Render account item
+      const {
+        id,
         name,
         address,
         assets,
         type,
         isSelected,
         balanceError,
-        scopes,
         isLoadingAccount,
-      },
-      index,
-    }) => {
-      const partialAccount = {
-        address,
-        scopes,
-      };
+      } = item.data;
+
+      const internalAccount = internalAccountsById[id];
       const shortAddress = formatAddress(address, 'short');
       const tagLabel = accountTreeSections
         ? undefined
-        : getLabelTextByAddress(address);
+        : getLabelTextByInternalAccount(internalAccount);
       const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
@@ -405,7 +439,7 @@ const EvmAccountSelectorList = ({
             type === KeyringTypes.simple ||
             (type === KeyringTypes.snap && !isSolanaAddress(address)),
           isSelected: isSelectedAccount,
-          index,
+          index: item.accountIndex,
         });
       };
 
@@ -415,8 +449,7 @@ const EvmAccountSelectorList = ({
 
       const handleButtonClick = () => {
         if (useMultichainAccountDesign) {
-          const account =
-            Engine.context.AccountsController.getAccountByAddress(address);
+          const account = internalAccount;
 
           if (!account) return;
 
@@ -431,7 +464,7 @@ const EvmAccountSelectorList = ({
 
       const buttonProps = {
         onButtonClick: handleButtonClick,
-        buttonTestId: `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${index}`,
+        buttonTestId: WalletViewSelectorsIDs.ACCOUNT_ACTIONS,
       };
 
       const avatarProps = {
@@ -462,7 +495,7 @@ const EvmAccountSelectorList = ({
         >
           {renderRightAccessory?.(address, accountName) ||
             (assets &&
-              renderAccountBalances(assets, partialAccount, isLoadingAccount))}
+              renderAccountBalances(assets, item.data, isLoadingAccount))}
         </Cell>
       );
     },
@@ -483,24 +516,49 @@ const EvmAccountSelectorList = ({
       navigate,
       styles.titleText,
       accountTreeSections,
+      renderSectionHeader,
+      renderSectionFooter,
+      internalAccountsById,
     ],
   );
 
+  const onContentSizeChanged = useCallback(() => {
+    // Handle auto scroll to account
+    if (!accounts.length || !isAutoScrollEnabled) return;
+
+    if (accountsLengthRef.current !== accounts.length) {
+      let selectedAccount: Account | undefined;
+
+      if (selectedAddresses?.length) {
+        const selectedAddress = selectedAddresses[0];
+        selectedAccount = accounts.find((acc) =>
+          areAddressesEqual(acc.address, selectedAddress),
+        );
+      }
+
+      // Fall back to the account with isSelected flag if no override or match found
+      if (!selectedAccount) {
+        selectedAccount = accounts.find((acc) => acc.isSelected);
+      }
+
+      accountListRef.current?.scrollToOffset({
+        offset: selectedAccount?.yOffset || 0,
+        animated: false,
+      });
+
+      accountsLengthRef.current = accounts.length;
+    }
+  }, [accounts, accountListRef, selectedAddresses, isAutoScrollEnabled]);
+
   return (
-    <SectionList
+    <FlatList
       ref={accountListRef}
-      sections={accountSections}
+      onContentSizeChange={onContentSizeChanged}
+      data={flattenedData}
       keyExtractor={getKeyExtractor}
-      // @ts-expect-error - This will work, for some reason typescript sees null as an option here, but it's not.
-      renderItem={renderAccountItem}
-      renderSectionHeader={
-        accountTreeSections ? renderSectionHeader : undefined
-      }
-      renderSectionFooter={
-        accountTreeSections ? renderSectionFooter : undefined
-      }
+      renderItem={renderItem}
       // Increasing number of items at initial render fixes scroll issue.
-      initialNumToRender={999}
+      initialNumToRender={flattenedData.length} // Using the optimal number of items.
       testID={ACCOUNT_SELECTOR_LIST_TESTID}
       {...props}
     />
