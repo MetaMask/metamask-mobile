@@ -4,7 +4,6 @@ import { Hex, isValidChecksumAddress } from '@metamask/utils';
 import {
   BtcAccountType,
   EthAccountType,
-  EthScope,
   BtcMethod,
   EthMethod,
   SolMethod,
@@ -27,8 +26,6 @@ import {
 } from './accountsController';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
-  expectedUuid,
-  expectedUuid2,
   internalAccount1,
   MOCK_ADDRESS_2,
   createMockInternalAccount,
@@ -104,7 +101,7 @@ describe('Accounts Controller Selectors', () => {
       const invalidState: AccountsControllerState = {
         internalAccounts: {
           accounts: {
-            [expectedUuid]: internalAccount1,
+            [internalAccount1.id]: internalAccount1,
           },
           selectedAccount: 'non-existent-id',
         },
