@@ -191,7 +191,7 @@ const BasicInfo = (): JSX.Element => {
               onChangeText={handleFormDataChange('dob')}
               error={errors.dob}
               onSubmitEditing={() => {
-                if (selectedRegion?.code === 'US') {
+                if (selectedRegion?.isoCode === 'US') {
                   handleSubmitEditing(ssnInputRef)();
                 } else {
                   Keyboard.dismiss();
@@ -202,7 +202,7 @@ const BasicInfo = (): JSX.Element => {
                 testID: 'date-of-birth-input',
               }}
             />
-            {selectedRegion?.code === 'US' && (
+            {selectedRegion?.isoCode === 'US' && (
               <DepositTextField
                 label={strings('deposit.basic_info.social_security_number')}
                 placeholder="XXX-XX-XXXX"

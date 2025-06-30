@@ -9,13 +9,15 @@ const mockNavigation = {
 
 const mockUseDepositSDK = jest.fn(() => ({
   selectedRegion: {
-    code: 'US',
+    isoCode: 'US',
     flag: '🇺🇸',
     name: 'United States',
-    phonePrefix: '+1',
+    phone: {
+      prefix: '+1',
+      placeholder: '(555) 555-1234',
+      template: '(XXX) XXX-XXXX',
+    },
     currency: 'USD',
-    template: '(XXX) XXX-XXXX',
-    placeholder: '(555) 123-4567',
     supported: true,
   },
   setSelectedRegion: mockSetSelectedRegion,
@@ -85,13 +87,15 @@ describe('DepositPhoneField', () => {
 
   it('renders correctly with different region', () => {
     const contextRegion = {
-      code: 'DE',
+      isoCode: 'DE',
       flag: '🇩🇪',
       name: 'Germany',
-      phonePrefix: '+49',
+      phone: {
+        prefix: '+49',
+        placeholder: '123 456 7890',
+        template: 'XXX XXX XXXX',
+      },
       currency: 'EUR',
-      template: 'XXX XXXXXXX',
-      placeholder: '151 12345678',
       supported: true,
     };
 
@@ -147,13 +151,15 @@ describe('DepositPhoneField', () => {
 
   it('renders correctly with unsupported region', () => {
     const unsupportedRegion = {
-      code: 'XX',
+      isoCode: 'XX',
       flag: '🏳️',
       name: 'Unsupported Region',
-      phonePrefix: '+999',
+      phone: {
+        prefix: '+999',
+        placeholder: '123 456 789',
+        template: 'XXX XXX XXX',
+      },
       currency: 'XXX',
-      template: 'XXX XXX XXX',
-      placeholder: '123 456 789',
       supported: false,
     };
 

@@ -43,12 +43,12 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
     const { styles } = useStyles(styleSheet, {});
     const { selectedRegion, setSelectedRegion } = useDepositSDK();
     const navigation = useNavigation();
-    const template = selectedRegion?.template || '(XXX) XXX-XXXX';
+    const template = selectedRegion?.phone?.template || '(XXX) XXX-XXXX';
 
     const rawDigits = value
       .replace(/\D/g, '')
       .replace(
-        new RegExp(`^${selectedRegion?.phonePrefix?.replace(/\D/g, '')}`),
+        new RegExp(`^${selectedRegion?.phone?.prefix?.replace(/\D/g, '')}`),
         '',
       );
     const formattedValue = formatNumberToTemplate(rawDigits, template);
@@ -59,7 +59,7 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
           return;
         }
         const digits = text.replace(/\D/g, '');
-        const fullNumber = selectedRegion.phonePrefix + digits;
+        const fullNumber = selectedRegion.phone.prefix + digits;
         onChangeText(fullNumber);
       },
       [onChangeText, selectedRegion],
@@ -76,7 +76,7 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
     const handleFlagPress = useCallback(() => {
       navigation.navigate(
         ...createRegionSelectorModalNavigationDetails({
-          selectedRegionCode: selectedRegion?.code,
+          selectedRegionCode: selectedRegion?.isoCode,
           handleSelectRegion: handleRegionSelect,
         }),
       );
@@ -91,7 +91,7 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
       >
         <Text style={styles.countryFlag}>{selectedRegion?.flag}</Text>
         <Text style={styles.countryCallingCode}>
-          {selectedRegion?.phonePrefix}
+          {selectedRegion?.phone?.prefix}
         </Text>
       </TouchableOpacity>
     );
@@ -102,7 +102,7 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
         error={error}
         value={formattedValue}
         onChangeText={handleChangeText}
-        placeholder={selectedRegion?.placeholder || 'Enter phone number'}
+        placeholder={selectedRegion?.phone?.placeholder || 'Enter phone number'}
         keyboardType="phone-pad"
         startAccessory={countryPrefixAccessory}
         onSubmitEditing={onSubmitEditing}

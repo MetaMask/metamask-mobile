@@ -78,7 +78,7 @@ export const DepositSDKProvider = ({
 
   // Initialize with US region as default
   const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
-    DEPOSIT_REGIONS.find((region) => region.code === 'US') || null,
+    DEPOSIT_REGIONS.find((region) => region.isoCode === 'US') || null,
   );
 
   const setGetStartedCallback = useCallback(

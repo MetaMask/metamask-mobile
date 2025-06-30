@@ -13,7 +13,7 @@ const mockQuote = {
 } as BuyQuote;
 
 const mockSelectedRegion = DEPOSIT_REGIONS.find(
-  (region) => region.code === 'US',
+  (region) => region.isoCode === 'US',
 ) as DepositRegion;
 
 const mockNavigate = jest.fn();

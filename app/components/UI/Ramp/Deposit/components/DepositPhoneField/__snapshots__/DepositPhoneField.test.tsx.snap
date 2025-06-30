@@ -112,7 +112,7 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
-        placeholder="151 12345678"
+        placeholder="123 456 7890"
         placeholderTextColor="#9ca1af"
         style={
           {
@@ -249,7 +249,7 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
-        placeholder="151 12345678"
+        placeholder="123 456 7890"
         placeholderTextColor="#9ca1af"
         style={
           {
@@ -386,7 +386,7 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
-        placeholder="(555) 123-4567"
+        placeholder="(555) 555-1234"
         placeholderTextColor="#9ca1af"
         style={
           {
@@ -523,7 +523,7 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
-        placeholder="151 12345678"
+        placeholder="123 456 7890"
         placeholderTextColor="#9ca1af"
         style={
           {
@@ -660,7 +660,7 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
-        placeholder="(555) 123-4567"
+        placeholder="(555) 555-1234"
         placeholderTextColor="#9ca1af"
         style={
           {
@@ -951,7 +951,7 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
         onChangeText={[Function]}
         onFocus={[Function]}
         onSubmitEditing={[MockFunction]}
-        placeholder="151 12345678"
+        placeholder="123 456 7890"
         placeholderTextColor="#9ca1af"
         style={
           {
@@ -1362,7 +1362,7 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
-        placeholder="(555) 123-4567"
+        placeholder="(555) 555-1234"
         placeholderTextColor="#9ca1af"
         style={
           {
