@@ -164,6 +164,7 @@ export const otherControllersMock = merge(
   networkControllerMock,
   multichainNetworkControllerMock,
   nftControllerMock,
+  preferencesControllerMock,
   tokenBalancesControllerMock,
   swapsState,
   smartTransactionsControllerMock,

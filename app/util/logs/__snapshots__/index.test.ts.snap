@@ -350,6 +350,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "0x504": true,
           "0x505": true,
           "0x507": true,
+          "0x531": true,
           "0x61": true,
           "0x64": true,
           "0x89": true,
@@ -398,6 +399,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
         "remoteFeatureFlags": {},
+      },
+      "SeedlessOnboardingController": {
+        "socialBackupsMetadata": [],
       },
       "SelectedNetworkController": {
         "domains": {},
