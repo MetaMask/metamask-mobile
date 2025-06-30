@@ -21,7 +21,7 @@ export default class Assertions {
     return Utilities.executeWithRetry(
       async () => {
         const el = await elementPromise;
-        const isWebElement = !!el?.webViewElement?.matcher?.predicate?.value;
+        const isWebElement = Utilities.isWebElement(el);
         if (isWebElement) {
           // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
           await (expect(el) as any).toExist();
@@ -53,7 +53,7 @@ export default class Assertions {
     return Utilities.executeWithRetry(
       async () => {
         const el = await elementPromise;
-        const isWebElement = !!el?.webViewElement?.matcher?.predicate?.value;
+        const isWebElement = Utilities.isWebElement(el);
         if (isWebElement) {
           // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
           await (expect(el) as any).not.toExist();

@@ -70,6 +70,42 @@ export default class Utilities {
   }
 
   /**
+   * Check if element is actually tappable (not obscured by other elements)
+   * Android-specific check for element obscuration
+   */
+  static async checkElementNotObscured(
+    elementPromise: DetoxElement,
+  ): Promise<void> {
+    if (device.getPlatform() === 'ios') {
+      // Not finding this issue on iOS, so skipping the check
+      return;
+    }
+
+    const el = (await elementPromise) as Detox.IndexableNativeElement;
+    const attributes = await el.getAttributes();
+
+    // Check if element has proper frame/bounds
+    if (!('frame' in attributes) || !attributes.frame) {
+      throw new Error('🚫 Element does not have valid frame bounds - may be obscured');
+    }
+
+    // Additional Android-specific checks could be added here
+    // For now, we rely on the basic frame check and visibility
+    try {
+      // Try to get element center point to ensure it's accessible
+      const centerX = attributes.frame.x + attributes.frame.width / 2;
+      const centerY = attributes.frame.y + attributes.frame.height / 2;
+
+      if (centerX <= 0 || centerY <= 0) {
+        throw new Error('🚫 Element center point is not accessible - may be obscured');
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(`🚫 Element appears to be obscured or not tappable: ${errorMessage}`);
+    }
+  }
+
+  /**
    * Check if element is stable (non-retry version)
    */
   static async checkElementStable(
@@ -188,12 +224,14 @@ export default class Utilities {
         await waitFor(el).toExist().withTimeout(visibilityTimeout);
       } else {
         await waitFor(el).toBeVisible().withTimeout(visibilityTimeout);
+        await this.checkElementNotObscured(Promise.resolve(el)); // Ensure element is not obscured
       }
     }
 
     if (checkEnabled) {
       await this.checkElementEnabled(Promise.resolve(el));
     }
+
 
     if (checkStability) {
       const stabilityTimeout = timeout || 2000; // If no timeout is provided, default to 2000ms
@@ -228,6 +266,27 @@ export default class Utilities {
         description: 'Element ready state check',
         elemDescription,
       },
+    );
+  }
+
+  /**
+   * Check if an element is a WebElement
+   */
+  static isWebElement(el: unknown): boolean {
+    if (!el || typeof el !== 'object') {
+      return false;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const webEl = el as any;
+    return !!(
+      webEl?.webViewElement ||
+      (typeof webEl?.runScript === 'function') ||
+      (webEl?.constructor?.name && (
+        webEl.constructor.name.includes('IndexableWebElement') ||
+        webEl.constructor.name.includes('SecuredWebElementFacade') ||
+        webEl.constructor.name.includes('WebElement')
+      ))
     );
   }
 
