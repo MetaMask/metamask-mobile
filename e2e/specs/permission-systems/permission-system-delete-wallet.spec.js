@@ -77,8 +77,10 @@ describe(Regression('Permission System'), () => {
           await TestHelpers.delay(3000);
         }
         await OnboardingView.tapCreateWallet();
-        await Assertions.checkIfVisible(OnboardingSheet.container);
-        await OnboardingSheet.tapImportSeedButton();
+        if (SEEDLESS_ONBOARDING_ENABLED) {
+          await Assertions.checkIfVisible(OnboardingSheet.container);
+          await OnboardingSheet.tapImportSeedButton();
+        }
 
         // Create new wallet
         await Assertions.checkIfVisible(MetaMetricsOptIn.container);

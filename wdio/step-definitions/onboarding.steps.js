@@ -47,7 +47,9 @@ When(/^I tap "([^"]*)"/, async (text) => {
       await OnboardingSheet.tapAppleLoginButton();
       break;
     case 'Import using Secret Recovery Phrase':
-      await OnboardingSheet.tapImportSeedButton();
+      if (SEEDLESS_ONBOARDING_ENABLED) {
+        await OnboardingSheet.tapImportSeedButton();
+      }
       break;
     case 'I agree':
       await MetaMetricsScreen.tapIAgreeButton();

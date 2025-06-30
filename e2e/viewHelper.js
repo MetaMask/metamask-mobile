@@ -29,6 +29,7 @@ import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
 import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
 import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
+import { SEEDLESS_ONBOARDING_ENABLED } from '../app/core/OAuthService/OAuthLoginHandlers/constants';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
@@ -135,8 +136,10 @@ export const importWalletWithRecoveryPhrase = async ({
 
   await OnboardingView.tapHaveAnExistingWallet();
 
-  await Assertions.checkIfVisible(OnboardingSheet.container);
-  await OnboardingSheet.tapImportSeedButton();
+  if (SEEDLESS_ONBOARDING_ENABLED) {
+    await Assertions.checkIfVisible(OnboardingSheet.container);
+    await OnboardingSheet.tapImportSeedButton();
+  }
 
   await TestHelpers.delay(3500);
   // should import wallet with secret recovery phrase
@@ -205,8 +208,10 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await acceptTermOfUse();
   await OnboardingView.tapCreateWallet();
 
-  await Assertions.checkIfVisible(OnboardingSheet.container);
-  await OnboardingSheet.tapImportSeedButton();
+  if (SEEDLESS_ONBOARDING_ENABLED) {
+    await Assertions.checkIfVisible(OnboardingSheet.container);
+    await OnboardingSheet.tapImportSeedButton();
+  }
 
   await Assertions.checkIfVisible(CreatePasswordView.container);
   await CreatePasswordView.enterPassword(validAccount.password);
