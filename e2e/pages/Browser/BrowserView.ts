@@ -165,18 +165,24 @@ class Browser {
   }
 
   async tapCloseTabsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.closeAllTabsButton);
+    await Gestures.waitAndTap(this.closeAllTabsButton, {
+      elemDescription: 'Close All Tabs Button',
+    });
   }
 
   async tapCloseSecondTabButton(): Promise<void> {
     // the interger value is the tabID.
     // This value comes from the `browser` object in fixture builder
     const secondTab = Matchers.getElementByID('tab-close-button-1749234797566');
-    await Gestures.waitAndTap(secondTab);
+    await Gestures.waitAndTap(secondTab, {
+      elemDescription: 'Close Second Tab Button',
+    });
   }
 
   async tapOpenNewTabButton(): Promise<void> {
-    await Gestures.waitAndTap(this.multiTabButton);
+    await Gestures.waitAndTap(this.multiTabButton, {
+      elemDescription: 'Open New Tab Button',
+    });
   }
 
   async tapNetworkAvatarOrAccountButtonOnBrowser(): Promise<void> {

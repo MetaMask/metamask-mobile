@@ -97,6 +97,8 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
         await Browser.tapOpenAllTabsButton();
         await Browser.tapCloseTabsButton();
         await Browser.tapOpenNewTabButton();
+        await device.disableSynchronization();
+
 
         // In 2nd Dapp, Should verify that we are connected to Eth mainnet
 
