@@ -105,7 +105,7 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
         await NetworkListModal.scrollToBottomOfNetworkList();
         await NetworkListModal.changeNetworkTo(MONAD_TESTNET.nickname);
         await Assertions.checkIfVisible(NetworkEducationModal.container);
-        
+
         await NetworkEducationModal.tapGotItButton();
 
         await TabBarComponent.tapActions();
@@ -127,18 +127,18 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
   });
 
   it(`should send native ${MEGAETH_TESTNET.nickname} from inside the wallet`, async () => {
-    const testSpecificMock = {
+     const thisTestSpecificMock = {
           POST: getMegaTestnetRpcMocks({
             accounts: [DEFAULT_FIXTURE_ACCOUNT],
             balance: '0xde0b6b3a7640000', // 1 ETH in wei
           }),
         };
-        
+
         await withFixtures(
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
-        testSpecificMock
+        testSpecificMock: thisTestSpecificMock,
       },
       async () => {
         await loginToApp();
@@ -148,7 +148,7 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
         //Change network to MegaETH Testnet
         await NetworkListModal.changeNetworkTo(MEGAETH_TESTNET.nickname);
         await Assertions.checkIfVisible(NetworkEducationModal.container);
-      
+
         await NetworkEducationModal.tapGotItButton();
 
         await TabBarComponent.tapActions();

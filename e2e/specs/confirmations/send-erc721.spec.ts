@@ -21,41 +21,6 @@ import { CustomNetworks } from '../../resources/networks.e2e';
 const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
 
-/**
- * Creates a local Ganache configuration that mimics a specific network's characteristics
- * @param {Object} networkConfig - The network configuration to mimic
- * @returns {Object} Ganache options with network-specific characteristics
- */
-const createLocalNetworkConfig = (networkConfig) => {
-  const baseConfig = { ...defaultGanacheOptions };
-
-  // Apply network-specific characteristics
-  if (networkConfig.chainId === MEGAETH_TESTNET.chainId) {
-    return {
-      ...baseConfig,
-      chainId: parseInt(networkConfig.chainId, 16),
-      networkId: parseInt(networkConfig.chainId, 16),
-      gasPrice: '0x3b9aca00',
-      gasLimit: '0x1c9c380',
-    };
-  } else if (networkConfig.chainId === MONAD_TESTNET.chainId) {
-    return {
-      ...baseConfig,
-      chainId: parseInt(networkConfig.chainId, 16),
-      networkId: parseInt(networkConfig.chainId, 16),
-      gasPrice: '0x1',
-      gasLimit: '0x5f5e100',
-    };
-  }
-
-  // Default configuration
-  return {
-    ...baseConfig,
-    chainId: parseInt(networkConfig.chainId, 16),
-    networkId: parseInt(networkConfig.chainId, 16),
-  };
-};
-
 describe(SmokeConfirmations('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
 
@@ -135,7 +100,7 @@ it(`send an ERC721 token from a dapp using ${MEGAETH_TESTNET.nickname} (local)`,
       {
         dapp: true,
         fixture: new FixtureBuilder()
-          .withGanacheNetwork() 
+          .withGanacheNetwork()
           .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
           .build(),
         restartDevice: true,
