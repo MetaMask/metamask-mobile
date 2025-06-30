@@ -262,13 +262,6 @@ const ImportFromSecretRecoveryPhrase = ({
         }
       }
 
-      // Switch back to TextArea if user clears all content
-      if (text.length === 0 && hasStartedTyping) {
-        setHasStartedTyping(false);
-        setSeedPhrase([]);
-        return;
-      }
-
       if (SRP_LENGTHS.includes(updatedTrimmedText.length)) {
         setSeedPhrase(updatedTrimmedText);
       } else {
