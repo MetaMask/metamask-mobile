@@ -1334,33 +1334,38 @@ class FixtureBuilder {
 
     // we need to test this ...
 
-    /**
- // Create token balances for TokenBalancesController
+    // Create token balances for TokenBalancesController
     // Structure: { [accountAddress]: { [chainId]: { [tokenAddress]: balance } } }
     const tokenBalances = {};
-    
+
     allAccountAddresses.forEach((accountAddress, accountIndex) => {
-      tokenBalances[accountAddress] = {
-        [chainId]: {}
-      };
-      
-      tokens.forEach((token, tokenIndex) => {
-        // Generate realistic but varied balances for testing
-        // Using different multipliers to create variety across accounts and tokens
-        const baseBalance = (accountIndex + 1) * (tokenIndex + 1) * 1000;
-        const randomVariation = Math.floor(Math.random() * 5000);
-        const finalBalance = baseBalance + randomVariation;
-        
-        // Convert to hex with proper padding for token decimals
-        const balanceInWei = (finalBalance * Math.pow(10, token.decimals)).toString(16);
-        tokenBalances[accountAddress][chainId][token.address] = `0x${balanceInWei}`;
+      tokenBalances[accountAddress] = {};
+
+      // Add balances for each popular network
+      popularChainIds.forEach((chainId) => {
+        tokenBalances[accountAddress][chainId] = {};
+
+        tokens.forEach((token, tokenIndex) => {
+          // Generate realistic but varied balances for testing
+          // Using different multipliers to create variety across accounts and tokens
+          const baseBalance = (accountIndex + 1) * (tokenIndex + 1) * 1000;
+          const randomVariation = Math.floor(Math.random() * 5000);
+          const finalBalance = baseBalance + randomVariation;
+
+          // Convert to hex with proper padding for token decimals
+          const balanceInWei = (
+            finalBalance * Math.pow(10, token.decimals)
+          ).toString(16);
+          tokenBalances[accountAddress][chainId][
+            token.address
+          ] = `0x${balanceInWei}`;
+        });
       });
-    }); 
-   
+    });
+
     merge(this.fixture.state.engine.backgroundState.TokenBalancesController, {
       tokenBalances,
     });
- */
 
     return this;
   }

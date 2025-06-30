@@ -9,6 +9,7 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 describe(SmokePerformance('Account List Load Testing'), () => {
   beforeAll(async () => {
@@ -391,7 +392,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
     for (let i = 1; i <= 50; i++) {
       // 50 tokens for stress testing
       heavyTokenLoad.push({
-        address: `0xabcd${i.toString().padStart(36, '0')}`,
+        address: toChecksumAddress(`0xabcd${i.toString().padStart(36, '0')}`),
         symbol: `HEAVY${i}`,
         decimals: 18,
         name: `Heavy Load Token ${i}`,
