@@ -144,5 +144,22 @@ describe('RegionSelectorModal Component', () => {
 
       expect(mockHandleSelectRegion).not.toHaveBeenCalled();
     });
+
+    it('sorts recommended regions to the top when no search is active', () => {
+      const { getByText, getAllByText } = renderWithProvider(RegionSelectorModal);
+      
+      const unitedStatesElement = getByText('United States');
+      const germanyElement = getByText('Germany');
+      const franceElement = getByText('France');
+      
+      expect(unitedStatesElement).toBeTruthy();
+      expect(germanyElement).toBeTruthy();
+      expect(franceElement).toBeTruthy();
+      
+      const allRegionElements = getAllByText(/United States|Germany|France|Canada/);
+      const firstRegion = allRegionElements[0];
+      
+      expect(firstRegion).toHaveTextContent('United States');
+    });
   });
 });

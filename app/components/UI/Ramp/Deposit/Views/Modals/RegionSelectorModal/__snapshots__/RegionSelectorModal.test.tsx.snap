@@ -375,7 +375,7 @@ exports[`RegionSelectorModal Component region selector modal renders empty state
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={5}
+                          handlerTag={8}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -646,37 +646,29 @@ exports[`RegionSelectorModal Component region selector modal renders empty state
                             </View>
                           </View>
                           <RCTScrollView
-                            ListEmptyComponent={
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "padding": 16,
-                                  }
-                                }
-                              >
-                                <Text
-                                  variant="sBodyLGMedium"
-                                >
-                                  No region matches
-                                </Text>
-                              </View>
-                            }
+                            ListEmptyComponent={[Function]}
+                            collapsable={false}
                             data={[]}
+                            extraData="US"
                             getItem={[Function]}
                             getItemCount={[Function]}
+                            handlerTag={7}
+                            handlerType="NativeViewGestureHandler"
                             keyExtractor={[Function]}
                             keyboardDismissMode="none"
                             keyboardShouldPersistTaps="always"
-                            nestedScrollEnabled={true}
                             onContentSizeChange={[Function]}
+                            onGestureHandlerEvent={[Function]}
+                            onGestureHandlerStateChange={[Function]}
                             onLayout={[Function]}
                             onMomentumScrollBegin={[Function]}
                             onMomentumScrollEnd={[Function]}
                             onScroll={[Function]}
                             onScrollBeginDrag={[Function]}
                             onScrollEndDrag={[Function]}
+                            removeClippedSubviews={false}
                             renderItem={[Function]}
+                            renderScrollComponent={[Function]}
                             scrollEventThrottle={0.0001}
                             stickyHeaderIndices={[]}
                             style={
@@ -684,10 +676,10 @@ exports[`RegionSelectorModal Component region selector modal renders empty state
                                 "maxHeight": 533.6,
                               }
                             }
+                            viewabilityConfigCallbackPairs={[]}
                           >
                             <View>
                               <View
-                                onLayout={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -1333,87 +1325,69 @@ exports[`RegionSelectorModal Component region selector modal renders the default
                             </View>
                           </View>
                           <RCTScrollView
-                            ListEmptyComponent={
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "padding": 16,
-                                  }
-                                }
-                              >
-                                <Text
-                                  variant="sBodyLGMedium"
-                                >
-                                  No region matches
-                                </Text>
-                              </View>
-                            }
+                            ListEmptyComponent={[Function]}
+                            collapsable={false}
                             data={
                               [
                                 {
-                                  "data": [
-                                    {
-                                      "code": "US",
-                                      "currency": "USD",
-                                      "flag": "🇺🇸",
-                                      "name": "United States",
-                                      "phoneDigitCount": 10,
-                                      "phonePrefix": "+1",
-                                      "recommended": true,
-                                      "supported": true,
-                                    },
-                                  ],
-                                  "title": "Popular Regions",
+                                  "code": "US",
+                                  "currency": "USD",
+                                  "flag": "🇺🇸",
+                                  "name": "United States",
+                                  "phoneDigitCount": 10,
+                                  "phonePrefix": "+1",
+                                  "recommended": true,
+                                  "supported": true,
                                 },
                                 {
-                                  "data": [
-                                    {
-                                      "code": "DE",
-                                      "currency": "EUR",
-                                      "flag": "🇩🇪",
-                                      "name": "Germany",
-                                      "phoneDigitCount": 10,
-                                      "phonePrefix": "+49",
-                                      "supported": true,
-                                    },
-                                    {
-                                      "code": "CA",
-                                      "currency": "CAD",
-                                      "flag": "🇨🇦",
-                                      "name": "Canada",
-                                      "phoneDigitCount": 10,
-                                      "phonePrefix": "+1",
-                                      "supported": false,
-                                    },
-                                    {
-                                      "code": "FR",
-                                      "currency": "EUR",
-                                      "flag": "🇫🇷",
-                                      "name": "France",
-                                      "phoneDigitCount": 9,
-                                      "phonePrefix": "+33",
-                                      "supported": true,
-                                    },
-                                  ],
-                                  "title": "Regions",
+                                  "code": "DE",
+                                  "currency": "EUR",
+                                  "flag": "🇩🇪",
+                                  "name": "Germany",
+                                  "phoneDigitCount": 10,
+                                  "phonePrefix": "+49",
+                                  "supported": true,
+                                },
+                                {
+                                  "code": "CA",
+                                  "currency": "CAD",
+                                  "flag": "🇨🇦",
+                                  "name": "Canada",
+                                  "phoneDigitCount": 10,
+                                  "phonePrefix": "+1",
+                                  "supported": false,
+                                },
+                                {
+                                  "code": "FR",
+                                  "currency": "EUR",
+                                  "flag": "🇫🇷",
+                                  "name": "France",
+                                  "phoneDigitCount": 9,
+                                  "phonePrefix": "+33",
+                                  "supported": true,
                                 },
                               ]
                             }
+                            extraData="US"
                             getItem={[Function]}
                             getItemCount={[Function]}
+                            handlerTag={-1}
+                            handlerType="NativeViewGestureHandler"
                             keyExtractor={[Function]}
                             keyboardDismissMode="none"
                             keyboardShouldPersistTaps="always"
-                            nestedScrollEnabled={true}
                             onContentSizeChange={[Function]}
+                            onGestureHandlerEvent={[Function]}
+                            onGestureHandlerStateChange={[Function]}
                             onLayout={[Function]}
                             onMomentumScrollBegin={[Function]}
                             onMomentumScrollEnd={[Function]}
                             onScroll={[Function]}
                             onScrollBeginDrag={[Function]}
                             onScrollEndDrag={[Function]}
+                            removeClippedSubviews={false}
                             renderItem={[Function]}
+                            renderScrollComponent={[Function]}
                             scrollEventThrottle={0.0001}
                             stickyHeaderIndices={[]}
                             style={
@@ -1421,43 +1395,9 @@ exports[`RegionSelectorModal Component region selector modal renders the default
                                 "maxHeight": 533.6,
                               }
                             }
+                            viewabilityConfigCallbackPairs={[]}
                           >
                             <View>
-                              <View
-                                onFocusCapture={[Function]}
-                                onLayout={[Function]}
-                                style={null}
-                              >
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "padding": 15,
-                                      },
-                                      {
-                                        "paddingHorizontal": 16,
-                                        "paddingVertical": 8,
-                                      },
-                                    ]
-                                  }
-                                >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#121314",
-                                        "fontFamily": "CentraNo1-Medium",
-                                        "fontSize": 18,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Popular Regions
-                                  </Text>
-                                </View>
-                              </View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
@@ -1582,46 +1522,6 @@ exports[`RegionSelectorModal Component region selector modal renders the default
                                     />
                                   </View>
                                 </TouchableOpacity>
-                              </View>
-                              <View
-                                onFocusCapture={[Function]}
-                                onLayout={[Function]}
-                                style={null}
-                              />
-                              <View
-                                onFocusCapture={[Function]}
-                                onLayout={[Function]}
-                                style={null}
-                              >
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "padding": 15,
-                                      },
-                                      {
-                                        "paddingHorizontal": 16,
-                                        "paddingVertical": 8,
-                                      },
-                                    ]
-                                  }
-                                >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#121314",
-                                        "fontFamily": "CentraNo1-Medium",
-                                        "fontSize": 18,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Regions
-                                  </Text>
-                                </View>
                               </View>
                               <View
                                 onFocusCapture={[Function]}
@@ -1917,11 +1817,6 @@ exports[`RegionSelectorModal Component region selector modal renders the default
                                   </View>
                                 </TouchableOpacity>
                               </View>
-                              <View
-                                onFocusCapture={[Function]}
-                                onLayout={[Function]}
-                                style={null}
-                              />
                             </View>
                           </RCTScrollView>
                         </View>
@@ -2314,7 +2209,7 @@ exports[`RegionSelectorModal Component region selector modal renders with search
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={3}
+                          handlerTag={5}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -2585,54 +2480,41 @@ exports[`RegionSelectorModal Component region selector modal renders with search
                             </View>
                           </View>
                           <RCTScrollView
-                            ListEmptyComponent={
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "padding": 16,
-                                  }
-                                }
-                              >
-                                <Text
-                                  variant="sBodyLGMedium"
-                                >
-                                  No region matches
-                                </Text>
-                              </View>
-                            }
+                            ListEmptyComponent={[Function]}
+                            collapsable={false}
                             data={
                               [
                                 {
-                                  "data": [
-                                    {
-                                      "code": "DE",
-                                      "currency": "EUR",
-                                      "flag": "🇩🇪",
-                                      "name": "Germany",
-                                      "phoneDigitCount": 10,
-                                      "phonePrefix": "+49",
-                                      "supported": true,
-                                    },
-                                  ],
-                                  "title": null,
+                                  "code": "DE",
+                                  "currency": "EUR",
+                                  "flag": "🇩🇪",
+                                  "name": "Germany",
+                                  "phoneDigitCount": 10,
+                                  "phonePrefix": "+49",
+                                  "supported": true,
                                 },
                               ]
                             }
+                            extraData="US"
                             getItem={[Function]}
                             getItemCount={[Function]}
+                            handlerTag={4}
+                            handlerType="NativeViewGestureHandler"
                             keyExtractor={[Function]}
                             keyboardDismissMode="none"
                             keyboardShouldPersistTaps="always"
-                            nestedScrollEnabled={true}
                             onContentSizeChange={[Function]}
+                            onGestureHandlerEvent={[Function]}
+                            onGestureHandlerStateChange={[Function]}
                             onLayout={[Function]}
                             onMomentumScrollBegin={[Function]}
                             onMomentumScrollEnd={[Function]}
                             onScroll={[Function]}
                             onScrollBeginDrag={[Function]}
                             onScrollEndDrag={[Function]}
+                            removeClippedSubviews={false}
                             renderItem={[Function]}
+                            renderScrollComponent={[Function]}
                             scrollEventThrottle={0.0001}
                             stickyHeaderIndices={[]}
                             style={
@@ -2640,13 +2522,9 @@ exports[`RegionSelectorModal Component region selector modal renders with search
                                 "maxHeight": 533.6,
                               }
                             }
+                            viewabilityConfigCallbackPairs={[]}
                           >
                             <View>
-                              <View
-                                onFocusCapture={[Function]}
-                                onLayout={[Function]}
-                                style={null}
-                              />
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
@@ -2745,11 +2623,6 @@ exports[`RegionSelectorModal Component region selector modal renders with search
                                   </View>
                                 </TouchableOpacity>
                               </View>
-                              <View
-                                onFocusCapture={[Function]}
-                                onLayout={[Function]}
-                                style={null}
-                              />
                             </View>
                           </RCTScrollView>
                         </View>
