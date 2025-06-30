@@ -531,7 +531,6 @@
     "fbjs-scripts": "^3.0.1",
     "fs-extra": "^10.1.0",
     "ganache": "^7.9.2",
-    "husky": "^9.1.7",
     "improved-yarn-audit": "^3.0.0",
     "jest": "^29.7.0",
     "jest-junit": "^15.0.0",
@@ -614,7 +613,7 @@
       "ganache>leveldown": false,
       "ganache>secp256k1": true,
       "ganache>utf-8-validate": false,
-      "husky": false,
+      "husky": true,
       "react-native-inappbrowser-reborn": false,
       "react-native-svg-asset-plugin>sharp": true,
       "@storybook/builder-webpack5>@swc/core": false,
@@ -655,5 +654,10 @@
       }
     },
     "version": "v0.3.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   }
 }
