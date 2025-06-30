@@ -116,7 +116,8 @@ class SolanaTestDApp {
         await this.tapButton(this.disconnectButtonSelector);
       },
       selectMetaMask: async () => {
-        await this.tapButton(this.walletButtonSelector, false);
+        const isIOS = await device.getPlatform() === 'ios';
+        await this.tapButton(this.walletButtonSelector, isIOS); // This is faling on the scroll on Android, so we scroll to the button only on iOS
       },
       getConnectionStatus: async () => {
         const connectionStatusDiv = await getTestElement(
