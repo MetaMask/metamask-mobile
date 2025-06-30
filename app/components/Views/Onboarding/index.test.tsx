@@ -61,6 +61,16 @@ jest.mock('../../../core', () => ({
   },
 }));
 
+jest.mock('../../../core/OAuthService/OAuthLoginHandlers/constants', () => {
+  const originalConstants = jest.requireActual(
+    '../../../core/OAuthService/OAuthLoginHandlers/constants',
+  );
+  return {
+    ...originalConstants,
+    SEEDLESS_ONBOARDING_ENABLED: true,
+  };
+});
+
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
 const mockNav = {
@@ -82,11 +92,11 @@ jest.mock('@react-navigation/stack', () => ({
       }>;
       initialParams: Record<string, unknown>;
     }) => (
-        <ScreenComponent
-          navigation={mockNav}
-          route={{ params: initialParams || {} }}
-        />
-      ),
+      <ScreenComponent
+        navigation={mockNav}
+        route={{ params: initialParams || {} }}
+      />
+    ),
   }),
 }));
 
@@ -198,6 +208,16 @@ describe('Onboarding', () => {
   });
 
   describe('Create wallet flow', () => {
+    const originalEnv = { ...process.env };
+
+    beforeEach(() => {
+      process.env = { ...originalEnv, SEEDLESS_ONBOARDING_ENABLED: 'true' };
+    });
+
+    afterEach(() => {
+      process.env = originalEnv;
+    });
+
     it('should navigate to onboarding sheet when create wallet is pressed for new user', async () => {
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
@@ -217,7 +237,7 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
@@ -226,7 +246,7 @@ describe('Onboarding', () => {
           params: expect.objectContaining({
             createWallet: true,
           }),
-        })
+        }),
       );
     });
   });
@@ -251,7 +271,7 @@ describe('Onboarding', () => {
         fireEvent.press(importSeedButton);
       });
 
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
@@ -260,7 +280,7 @@ describe('Onboarding', () => {
           params: expect.objectContaining({
             createWallet: false,
           }),
-        })
+        }),
       );
     });
   });
@@ -287,7 +307,7 @@ describe('Onboarding', () => {
         fireEvent.press(unlockButton);
       });
 
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(Authentication.resetVault).toHaveBeenCalled();
       expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
@@ -314,7 +334,7 @@ describe('Onboarding', () => {
         fireEvent.press(unlockButton);
       });
 
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(Authentication.lockApp).toHaveBeenCalled();
       expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.LOGIN);

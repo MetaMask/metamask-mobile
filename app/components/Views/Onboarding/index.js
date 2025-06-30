@@ -53,6 +53,7 @@ import { endTrace, trace, TraceName } from '../../../util/trace';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
+import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -348,7 +349,7 @@ class Onboarding extends PureComponent {
   };
 
   onPressCreate = () => {
-    if (process.env.OAUTH_ENABLED) {
+    if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
     trace({ name: TraceName.OnboardingCreateWallet });
@@ -366,7 +367,7 @@ class Onboarding extends PureComponent {
   };
 
   onPressImport = () => {
-    if (process.env.OAUTH_ENABLED) {
+    if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
     const action = async () => {
@@ -491,25 +492,22 @@ class Onboarding extends PureComponent {
   };
 
   handleCtaActions = (actionType) => {
-    let seedlessOnboarding;
-    seedlessOnboarding = false;
-    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.ONBOARDING_SHEET,
-      params: {
-        onPressCreate: this.onPressCreate,
-        onPressImport: this.onPressImport,
-        onPressContinueWithGoogle: this.onPressContinueWithGoogle,
-        onPressContinueWithApple: this.onPressContinueWithApple,
-        createWallet: actionType === 'create',
-      },
-    });
-    seedlessOnboarding = true;
-    if (!seedlessOnboarding) {
-      if (actionType === 'create') {
-        this.onPressCreate();
-      } else {
-        this.onPressImport();
-      }
+    if (SEEDLESS_ONBOARDING_ENABLED) {
+      this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.ONBOARDING_SHEET,
+        params: {
+          onPressCreate: this.onPressCreate,
+          onPressImport: this.onPressImport,
+          onPressContinueWithGoogle: this.onPressContinueWithGoogle,
+          onPressContinueWithApple: this.onPressContinueWithApple,
+          createWallet: actionType === 'create',
+        },
+      });
+      // else
+    } else if (actionType === 'create') {
+      this.onPressCreate();
+    } else {
+      this.onPressImport();
     }
   };
 
