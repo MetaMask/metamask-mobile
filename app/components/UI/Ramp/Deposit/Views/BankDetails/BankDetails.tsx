@@ -187,12 +187,15 @@ const BankDetails = () => {
         return;
       }
 
-      await confirmPayment(order.id, order.data.paymentOptions[0].id);
-
-      if (confirmPaymentError) {
-        console.error(confirmPaymentError);
+      if (
+        !order.data.paymentOptions ||
+        order.data.paymentOptions.length === 0
+      ) {
+        console.error('Payment options not found or empty');
         return;
       }
+
+      await confirmPayment(order.id, order.data.paymentOptions[0].id);
 
       await handleOnRefresh();
 
@@ -204,22 +207,17 @@ const BankDetails = () => {
     } catch (fetchError) {
       console.error(fetchError);
     }
-  }, [navigation, confirmPayment, confirmPaymentError, handleOnRefresh, order]);
+  }, [navigation, confirmPayment, handleOnRefresh, order]);
 
   const handleCancelOrder = useCallback(async () => {
     try {
       await cancelOrder();
 
-      if (cancelOrderError) {
-        console.error(cancelOrderError);
-        return;
-      }
-
       await handleOnRefresh();
     } catch (fetchError) {
       console.error(fetchError);
     }
-  }, [cancelOrder, cancelOrderError, handleOnRefresh]);
+  }, [cancelOrder, handleOnRefresh]);
 
   const toggleBankInfo = useCallback(() => {
     setShowBankInfo(!showBankInfo);
@@ -349,6 +347,11 @@ const BankDetails = () => {
             {confirmPaymentError && (
               <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                 {strings('deposit.bank_details.error_message')}
+              </Text>
+            )}
+            {cancelOrderError && (
+              <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                {strings('deposit.bank_details.cancel_order_error')}
               </Text>
             )}
             <View style={styles.infoBanner}>

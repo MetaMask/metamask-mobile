@@ -628,7 +628,8 @@
       "bank_name": "Bank name",
       "bank_address": "Bank address",
       "info_banner_text": "You should see '{{accountHolderName}}' as the account holder. This helps your bank process the transfer.",
-      "error_message": "We were unable to confirm your bank transfer. Please try again."
+      "error_message": "We were unable to confirm your bank transfer. Please try again.",
+      "cancel_order_error": "We were unable to cancel your order. Please try again."
     },
     "notifications": {
       "deposit_failed_title": "Deposit of {{currency}} has failed! Please try again, sorry for the inconvenience!",
