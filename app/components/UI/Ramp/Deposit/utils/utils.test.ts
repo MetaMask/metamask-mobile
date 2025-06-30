@@ -345,7 +345,7 @@ describe('isDepositOrder', () => {
         walletAddress: '0x1234',
       };
 
-      delete (objectMissingProperty as any)[property];
+      delete (objectMissingProperty as Record<string, unknown>)[property];
 
       expect(isDepositOrder(objectMissingProperty)).toBe(false);
     });
