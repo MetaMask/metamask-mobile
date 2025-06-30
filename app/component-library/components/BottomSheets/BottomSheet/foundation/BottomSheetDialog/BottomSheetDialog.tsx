@@ -64,7 +64,7 @@ const BottomSheetDialog = forwardRef<
     },
     ref,
   ) => {
-    const { top: screenTopPadding, bottom: screenBottomPadding } =
+            const { top: screenTopPadding, bottom: screenBottomPadding } =
       useSafeAreaInsets();
     const { y: frameY } = useSafeAreaFrame();
     const { height: screenHeight } = useWindowDimensions();

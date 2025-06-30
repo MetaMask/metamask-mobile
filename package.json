@@ -102,6 +102,11 @@
     "circular:deps": "dpdm ./app/* --circular --exit-code circular:1 --warning=false",
     "generate-icons": "npx ts-node app/component-library/components/Icons/Icon/scripts/generate-assets.ts"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "prettier --write",
@@ -655,10 +660,5 @@
       }
     },
     "version": "v0.3.0"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
   }
 }
