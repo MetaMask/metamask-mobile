@@ -209,10 +209,6 @@ class AddCustomToken extends PureComponent {
      * The network client ID
      */
     networkClientId: PropTypes.string,
-    /**
-     * The token list
-     */
-    tokenList: PropTypes.object,
   };
 
   getTokenAddedAnalyticsParams = () => {
@@ -304,19 +300,6 @@ class AddCustomToken extends PureComponent {
   onAddressChange = async (address) => {
     this.setState({ address });
     if (address.length === 42) {
-      const token =
-        this.props.tokenList?.[this.props.chainId]?.data?.[
-          address.toLowerCase()
-        ];
-
-      if (token) {
-        this.setState({
-          symbol: token.symbol,
-          decimals: String(token.decimals),
-          name: token.name,
-        });
-        return;
-      }
       try {
         this.setState({ isSymbolEditable: false });
         this.setState({ isDecimalEditable: false });
