@@ -102,8 +102,8 @@ class SolanaTestDApp {
   /**
    * Tap a button in the WebView
    */
-  async tapButton(webElement: WebElement): Promise<void> {
-    await Gestures.scrollToWebViewPort(webElement);
+  async tapButton(webElement: WebElement, scroll = true): Promise<void> {
+   if (scroll) await Gestures.scrollToWebViewPort(webElement);
     await Gestures.tap(webElement);
   }
 
@@ -116,7 +116,7 @@ class SolanaTestDApp {
         await this.tapButton(this.disconnectButtonSelector);
       },
       selectMetaMask: async () => {
-        await this.tapButton(this.walletButtonSelector);
+        await this.tapButton(this.walletButtonSelector, false);
       },
       getConnectionStatus: async () => {
         const connectionStatusDiv = await getTestElement(

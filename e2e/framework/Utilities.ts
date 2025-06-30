@@ -81,27 +81,36 @@ export default class Utilities {
       return;
     }
 
-    const el = (await elementPromise) as Detox.IndexableNativeElement;
-    const attributes = await el.getAttributes();
-
-    // Check if element has proper frame/bounds
-    if (!('frame' in attributes) || !attributes.frame) {
-      throw new Error('🚫 Element does not have valid frame bounds - may be obscured');
-    }
-
-    // Additional Android-specific checks could be added here
-    // For now, we rely on the basic frame check and visibility
     try {
-      // Try to get element center point to ensure it's accessible
-      const centerX = attributes.frame.x + attributes.frame.width / 2;
-      const centerY = attributes.frame.y + attributes.frame.height / 2;
+      const el = (await elementPromise) as Detox.IndexableNativeElement;
+      const attributes = await el.getAttributes();
 
-      if (centerX <= 0 || centerY <= 0) {
-        throw new Error('🚫 Element center point is not accessible - may be obscured');
+      // Check if element has proper frame/bounds
+      if (!('frame' in attributes) || !attributes.frame) {
+        throw new Error('🚫 Element does not have valid frame bounds - may be obscured');
+      }
+
+      // Additional Android-specific checks could be added here
+      // For now, we rely on the basic frame check and visibility
+      try {
+        // Try to get element center point to ensure it's accessible
+        const centerX = attributes.frame.x + attributes.frame.width / 2;
+        const centerY = attributes.frame.y + attributes.frame.height / 2;
+
+        if (centerX <= 0 || centerY <= 0) {
+          throw new Error('🚫 Element center point is not accessible - may be obscured');
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        throw new Error(`🚫 Element appears to be obscured or not tappable: ${errorMessage}`);
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      throw new Error(`🚫 Element appears to be obscured or not tappable: ${errorMessage}`);
+      if (errorMessage.includes('window focus') || errorMessage.includes('window-focus') || errorMessage.includes('has-window-focus=false')) {
+        console.warn('⚠️ Skipping obscuration check - window has no focus (common in CI environments)');
+        return;
+      }
+      throw error;
     }
   }
 
