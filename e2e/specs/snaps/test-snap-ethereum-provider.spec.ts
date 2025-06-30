@@ -47,6 +47,9 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
         );
 
         await TestSnaps.tapButton('getAccountsButton');
+        await Assertions.checkIfVisible(
+          ConnectBottomSheet.connectButton,
+        );
         await ConnectBottomSheet.tapConnectButton();
         await TestHelpers.delay(500);
         await TestSnaps.checkResultSpanIncludes(
