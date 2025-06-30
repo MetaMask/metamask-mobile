@@ -147,6 +147,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
       }
       finalRenderAheadOffset={250}
       forceNonDeterministicRendering={true}
+      getItemType={[Function]}
       handlerTag={2}
       handlerType="NativeViewGestureHandler"
       horizontal={false}
@@ -171,14 +172,14 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
             "_layouts": [
               {
                 "height": 80,
-                "type": 0,
+                "type": "account",
                 "width": 400,
                 "x": 0,
                 "y": 0,
               },
               {
                 "height": 80,
-                "type": 0,
+                "type": "account",
                 "width": 400,
                 "x": 0,
                 "y": 80,
@@ -293,6 +294,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
               "height": 100,
               "width": 750,
             },
+            "getItemType": [Function],
             "keyExtractor": [Function],
             "numColumns": 1,
             "onContentSizeChange": [Function],
@@ -1401,6 +1403,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
       }
       finalRenderAheadOffset={250}
       forceNonDeterministicRendering={true}
+      getItemType={[Function]}
       handlerTag={3}
       handlerType="NativeViewGestureHandler"
       horizontal={false}
@@ -1425,14 +1428,14 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
             "_layouts": [
               {
                 "height": 80,
-                "type": 0,
+                "type": "account",
                 "width": 400,
                 "x": 0,
                 "y": 0,
               },
               {
                 "height": 80,
-                "type": 0,
+                "type": "account",
                 "width": 400,
                 "x": 0,
                 "y": 80,
@@ -1547,6 +1550,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
               "height": 100,
               "width": 750,
             },
+            "getItemType": [Function],
             "keyExtractor": [Function],
             "numColumns": 1,
             "onContentSizeChange": [Function],
@@ -2579,6 +2583,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
       }
       finalRenderAheadOffset={250}
       forceNonDeterministicRendering={true}
+      getItemType={[Function]}
       handlerTag={1}
       handlerType="NativeViewGestureHandler"
       horizontal={false}
@@ -2603,14 +2608,14 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
             "_layouts": [
               {
                 "height": 80,
-                "type": 0,
+                "type": "account",
                 "width": 400,
                 "x": 0,
                 "y": 0,
               },
               {
                 "height": 80,
-                "type": 0,
+                "type": "account",
                 "width": 400,
                 "x": 0,
                 "y": 80,
@@ -2725,6 +2730,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
               "height": 100,
               "width": 750,
             },
+            "getItemType": [Function],
             "keyExtractor": [Function],
             "numColumns": 1,
             "onContentSizeChange": [Function],
@@ -3833,6 +3839,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
       }
       finalRenderAheadOffset={250}
       forceNonDeterministicRendering={true}
+      getItemType={[Function]}
       handlerTag={24}
       handlerType="NativeViewGestureHandler"
       horizontal={false}
@@ -3857,14 +3864,14 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
             "_layouts": [
               {
                 "height": 80,
-                "type": 0,
+                "type": "account",
                 "width": 400,
                 "x": 0,
                 "y": 0,
               },
               {
                 "height": 80,
-                "type": 0,
+                "type": "account",
                 "width": 400,
                 "x": 0,
                 "y": 80,
@@ -3979,6 +3986,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
               "height": 100,
               "width": 750,
             },
+            "getItemType": [Function],
             "keyExtractor": [Function],
             "numColumns": 1,
             "onContentSizeChange": [Function],
