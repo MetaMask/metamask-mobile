@@ -56,7 +56,8 @@ export async function processSendCalls(
     origin?: string;
   };
   const transactions = calls.map((call) => ({ params: call }));
-  const from = paramFrom ?? AccountsController.getSelectedAccount()?.address;
+  const from =
+    paramFrom ?? (AccountsController.getSelectedAccount()?.address as Hex);
 
   const securityAlertId = uuidv4();
   const validateSecurity =
@@ -325,12 +326,12 @@ function validateCapabilities(sendCalls: SendCalls) {
   const { calls, capabilities } = sendCalls;
 
   const requiredTopLevelCapabilities = Object.keys(capabilities ?? {}).filter(
-    (name) => capabilities?.[name].optional !== true,
+    (name) => capabilities?.[name]?.optional !== true,
   );
 
   const requiredCallCapabilities = calls.flatMap((call) =>
     Object.keys(call.capabilities ?? {}).filter(
-      (name) => call.capabilities?.[name].optional !== true,
+      (name) => call.capabilities?.[name]?.optional !== true,
     ),
   );
 
