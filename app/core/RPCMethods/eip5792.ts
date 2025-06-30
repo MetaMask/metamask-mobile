@@ -56,8 +56,7 @@ export async function processSendCalls(
     origin?: string;
   };
   const transactions = calls.map((call) => ({ params: call }));
-  const from =
-    paramFrom ?? (AccountsController.getSelectedAccount()?.address as Hex);
+  const from = paramFrom ?? AccountsController.getSelectedAccount()?.address;
 
   const securityAlertId = uuidv4();
   const validateSecurity =
