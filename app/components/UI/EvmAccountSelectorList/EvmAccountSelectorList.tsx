@@ -107,7 +107,6 @@ const EvmAccountSelectorList = ({
    */
   const accountListRef = useRef<FlashList<FlattenedAccountListItem>>(null);
   const accountsLengthRef = useRef<number>(0);
-
   const { styles } = useStyles(styleSheet, {});
 
   const accountAvatarType = useSelector(
@@ -578,17 +577,34 @@ const EvmAccountSelectorList = ({
   }, [accounts, accountListRef, selectedAddresses, isAutoScrollEnabled]);
 
   const { maxSheetHeight, screenWidth } = useSheetStyleStyleVars();
+  // Exact measurements from developer tools inspection
   const listItemHeight = 80;
-  const addAccountBuffer = 200;
-  // Clamp between 300 to maxSheetSize, and subtract the add account button area
-  const listHeight =
-    Math.max(300, Math.min(maxSheetHeight, listItemHeight * accounts.length)) -
-    addAccountBuffer;
+  const sheetHeaderSpace = 64; // SheetHeader: 32px height + 16px margin top + 16px margin bottom
+  const addAccountButtonSpace = 80; // Button: 48px height + margins/padding around it
+  const bottomSheetPadding = 34; // BottomSheet paddingBottom from inspector
 
-  const estimatedListSize = { height: listHeight, width: screenWidth };
+  // Calculate available space for the account list (no buffers needed - exact measurements)
+  const availableHeight =
+    maxSheetHeight -
+    sheetHeaderSpace -
+    addAccountButtonSpace -
+    bottomSheetPadding;
+
+  // Calculate how many items can fit in the available space
+  const maxVisibleItems = Math.max(
+    3,
+    Math.floor(availableHeight / listItemHeight),
+  ); // Minimum 3 items
+
+  const visibleItems = Math.min(flattenedData.length, maxVisibleItems);
+  const estimatedListHeight = visibleItems * listItemHeight;
+
+  // Ensure minimum height to show content properly
+  const containerHeight = Math.max(estimatedListHeight, listItemHeight);
+  const estimatedListSize = { height: containerHeight, width: screenWidth };
 
   return (
-    <View style={{ height: listHeight }}>
+    <View style={{ height: containerHeight }}>
       <FlashList
         ref={accountListRef}
         onContentSizeChange={onContentSizeChanged}
