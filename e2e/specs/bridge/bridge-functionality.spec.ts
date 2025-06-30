@@ -34,7 +34,6 @@ import { getEventsPayloads } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
 
 const fixtureServer = new FixtureServer();
-const isUnifiedUIEnabled = process.env.MM_UNIFIED_SWAPS_ENABLED === 'true';
 
 enum eventsToCheck {
   BRIDGE_BUTTON_CLICKED = 'Bridge Button Clicked',
@@ -107,15 +106,8 @@ describe(SmokeTrade('Bridge functionality'), () => {
     );
     await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapActions();
-    if (isUnifiedUIEnabled) {
-      await WalletActionsBottomSheet.tapSwapButton();
-      await QuoteView.tapSwapTo();
-    }
-    else
-    {
-      await WalletActionsBottomSheet.tapBridgeButton();
-      await QuoteView.tapBridgeTo();
-    }
+    await WalletActionsBottomSheet.tapSwapButton();
+    await QuoteView.tapSwapTo();
     await device.disableSynchronization();
     await QuoteView.selectNetwork('Solana');
     await Assertions.checkIfVisible(QuoteView.token(destChainId, 'SOL'));
@@ -294,15 +286,8 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapActions();
-    if (isUnifiedUIEnabled) {
-      await WalletActionsBottomSheet.tapSwapButton();
-      await QuoteView.tapSwapTo();
-    }
-    else
-    {
-      await WalletActionsBottomSheet.tapBridgeButton();
-      await QuoteView.tapBridgeTo();
-    }
+    await WalletActionsBottomSheet.tapSwapButton();
+    await QuoteView.tapSwapTo();
     await device.disableSynchronization();
     await QuoteView.selectNetwork('Base');
     await Assertions.checkIfVisible(QuoteView.token(destChainId, 'ETH'));
@@ -337,15 +322,8 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await AdvancedSettingsView.tapSmartTransactionSwitch();
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
-    if (isUnifiedUIEnabled) {
-      await WalletActionsBottomSheet.tapSwapButton();
-      await QuoteView.tapSwapTo();
-    }
-    else
-    {
-      await WalletActionsBottomSheet.tapBridgeButton();
-      await QuoteView.tapBridgeTo();
-    }
+    await WalletActionsBottomSheet.tapSwapButton();
+    await QuoteView.tapSwapTo();
     await device.disableSynchronization();
     await QuoteView.selectNetwork('OP Mainnet');
     await Assertions.checkIfVisible(QuoteView.token(destChainId, 'ETH'));

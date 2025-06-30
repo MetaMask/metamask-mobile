@@ -19,29 +19,6 @@ interface FlagItem {
   bridgeConfigV2?: BridgeConfigV2;
 }
 
-// Function to find `isUnifiedUIEnabled`
-export async function isUnifiedUIEnabledForChain(chainId: string): Promise<boolean | undefined> {
-
-  // Check if Unified UI is enabled
-  const flagsUrl: string = `https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=flask&environment=dev`;
-  const response: AxiosResponse<FlagItem[]> = await axios.get(flagsUrl);
-
-  if (response.status !== 200) {
-    throw new Error('Error calling UI flags API');
-  }
-
-  // Find the object that contains `bridgeConfigV2`
-  const bridgeConfigV2 = response.data.find((item: FlagItem) => item.bridgeConfigV2)?.bridgeConfigV2;
-
-  // Check if `bridgeConfigV2` exists and contains the chainId
-  if (bridgeConfigV2?.chains?.[chainId]) {
-    return bridgeConfigV2.chains[chainId].isUnifiedUIEnabled;
-  }
-
-  throw new Error('isUnifiedUIEnabled flag not found');
-}
-
-
 /**
  * Prepares the swaps test environment by disabling Smart Transactions (stx)
  * and importing a funded account for swaps.

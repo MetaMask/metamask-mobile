@@ -11,8 +11,10 @@ export async function submitSwapUnifiedUI(
     await device.disableSynchronization();
     await QuoteView.enterAmount(quantity);
 
-    await QuoteView.tapSourceToken();
-    await QuoteView.tapToken(chainId, sourceTokenSymbol);
+    if (sourceTokenSymbol!=='ETH') {
+      await QuoteView.tapSourceToken();
+      await QuoteView.tapToken(chainId, sourceTokenSymbol);
+    }
 
     await QuoteView.tapSwapTo();
     await TestHelpers.delay(2000);

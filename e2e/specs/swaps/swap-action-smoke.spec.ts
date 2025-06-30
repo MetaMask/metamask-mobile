@@ -27,8 +27,7 @@ import {
   stopMockServer,
 } from '../../api-mocking/mock-server.js';
 import SoftAssert from '../../utils/SoftAssert.ts';
-import { prepareSwapsTestEnvironment, isUnifiedUIEnabledForChain } from './helpers/prepareSwapsTestEnvironment.ts';
-import { submitSwapLegacyUI } from './helpers/swapLegacyUI';
+import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment.ts';
 import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
 const fixtureServer: FixtureServer = new FixtureServer();
 
@@ -38,16 +37,8 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
   const FIRST_ROW: number = 0;
   const SECOND_ROW: number = 1;
   const wallet: ethers.Wallet = ethers.Wallet.createRandom();
-  let isUnifiedUIEnabled: boolean | undefined;
 
   beforeAll(async (): Promise<void> => {
-    isUnifiedUIEnabled = await isUnifiedUIEnabledForChain('1') && process.env.MM_UNIFIED_SWAPS_ENABLED === 'true';
-    console.log(`MM_UNIFIED_SWAPS_ENABLED=${process.env.MM_UNIFIED_SWAPS_ENABLED} ${process.env.MM_UNIFIED_SWAPS_ENABLED === 'true'}`)
-    await Tenderly.addFunds(
-      CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
-      wallet.address,
-    );
-
     // Start the mock server to get the segment events
     const segmentMock = {
       POST: [mockEvents.POST.segmentTrack],
@@ -82,31 +73,24 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
   it.each`
     type        | quantity | sourceTokenSymbol | destTokenSymbol | network
+    ${'swap'}   | ${'1'}   | ${'ETH'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet}
+    ${'swap'}   | ${'1'}   | ${'USDC'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
     ${'wrap'}   | ${'.03'} | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
     ${'unwrap'} | ${'.01'} | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
   `(
     "should $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }): Promise<void> => {
-       await TabBarComponent.tapActions();
-       await Assertions.checkIfVisible(WalletActionsBottomSheet.swapButton);
-       await WalletActionsBottomSheet.tapSwapButton();
+      await TabBarComponent.tapActions();
+      await Assertions.checkIfVisible(WalletActionsBottomSheet.swapButton);
+      await WalletActionsBottomSheet.tapSwapButton();
 
-       // Submit the Swap
-       if (isUnifiedUIEnabled) {
-         await submitSwapUnifiedUI(
-           quantity,
-           sourceTokenSymbol,
-           destTokenSymbol,
-           network.providerConfig.chainId,
-         );
-       } else {
-         await submitSwapLegacyUI(
-           quantity,
-           sourceTokenSymbol,
-           destTokenSymbol,
-         );
-        await TabBarComponent.tapActivity();
-       }
+      // Submit the Swap
+      await submitSwapUnifiedUI(
+        quantity,
+        sourceTokenSymbol,
+        destTokenSymbol,
+        network.providerConfig.chainId,
+      );
 
       // Check the swap activity completed
       await Assertions.checkIfVisible(ActivitiesView.title);
@@ -116,7 +100,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
       await Assertions.checkIfElementToHaveText(
         ActivitiesView.transactionStatus(FIRST_ROW),
         ActivitiesViewSelectorsText.CONFIRM_TEXT,
-        120000,
+        60000,
       );
 
       // Check the token approval completed
@@ -127,7 +111,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
         await Assertions.checkIfElementToHaveText(
           ActivitiesView.transactionStatus(SECOND_ROW),
           ActivitiesViewSelectorsText.CONFIRM_TEXT,
-          120000,
+          60000,
         );
       }
     },
@@ -136,6 +120,18 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
   it('should validate segment/metametric events for a successful swap', async (): Promise<void> => {
 
     const testCases = [
+      {
+        type: 'swap',
+        sourceTokenSymbol: 'ETH',
+        destTokenSymbol: 'USDC',
+        quantity: '1',
+      },
+      {
+        type: 'swap',
+        sourceTokenSymbol: 'USDC',
+        destTokenSymbol: 'ETH',
+        quantity: '1',
+      },
       {
         type: 'wrap',
         sourceTokenSymbol: 'ETH',

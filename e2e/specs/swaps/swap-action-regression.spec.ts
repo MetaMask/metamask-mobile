@@ -1,7 +1,6 @@
 'use strict';
 import { ethers } from 'ethers';
 import { loginToApp } from '../../viewHelper';
-import { isUnifiedUIEnabledForChain } from './helpers/prepareSwapsTestEnvironment';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
@@ -25,7 +24,6 @@ import Assertions from '../../utils/Assertions';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
-import { submitSwapLegacyUI } from './helpers/swapLegacyUI';
 import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
 import Tenderly from '../../tenderly';
 
@@ -35,12 +33,9 @@ describe(Regression('Multiple Swaps from Actions'), () => {
   const FIRST_ROW: number = 0;
   const SECOND_ROW: number = 1;
   const wallet: ethers.Wallet = ethers.Wallet.createRandom();
-  let isUnifiedUIEnabled: boolean | undefined;
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
-
-    isUnifiedUIEnabled = await isUnifiedUIEnabledForChain('1') && process.env.MM_UNIFIED_SWAPS_ENABLED === 'true';
 
     await Tenderly.addFunds(
       CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
@@ -92,26 +87,17 @@ describe(Regression('Multiple Swaps from Actions'), () => {
   `(
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }) => {
-       await TabBarComponent.tapActions();
-       await Assertions.checkIfVisible(WalletActionsBottomSheet.swapButton);
-       await WalletActionsBottomSheet.tapSwapButton();
+      await TabBarComponent.tapActions();
+      await Assertions.checkIfVisible(WalletActionsBottomSheet.swapButton);
+      await WalletActionsBottomSheet.tapSwapButton();
 
       // Submit the Swap
-      if (isUnifiedUIEnabled) {
-        await submitSwapUnifiedUI(
-          quantity,
-          sourceTokenSymbol,
-          destTokenSymbol,
-          network.providerConfig.chainId,
-        );
-      } else {
-        await submitSwapLegacyUI(
-          quantity,
-          sourceTokenSymbol,
-          destTokenSymbol,
-        );
-        await TabBarComponent.tapActivity();
-      }
+      await submitSwapUnifiedUI(
+        quantity,
+        sourceTokenSymbol,
+        destTokenSymbol,
+        network.providerConfig.chainId,
+      );
 
       // Check the swap activity completed
       await Assertions.checkIfVisible(ActivitiesView.title);
@@ -121,7 +107,7 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       await Assertions.checkIfElementToHaveText(
         ActivitiesView.transactionStatus(FIRST_ROW),
         ActivitiesViewSelectorsText.CONFIRM_TEXT,
-        120000,
+        60000,
       );
 
       // Check the token approval completed
@@ -132,7 +118,7 @@ describe(Regression('Multiple Swaps from Actions'), () => {
         await Assertions.checkIfElementToHaveText(
           ActivitiesView.transactionStatus(SECOND_ROW),
           ActivitiesViewSelectorsText.CONFIRM_TEXT,
-          120000,
+          60000,
         );
       }
     },

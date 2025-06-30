@@ -1,7 +1,6 @@
 'use strict';
 import { ethers } from 'ethers';
 import { loginToApp } from '../../viewHelper';
-import { isUnifiedUIEnabledForChain } from './helpers/prepareSwapsTestEnvironment';
 import Onboarding from '../../pages/swaps/OnBoarding';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
@@ -27,7 +26,6 @@ import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Tenderly from '../../tenderly';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
-import { submitSwapLegacyUI } from './helpers/swapLegacyUI';
 import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
 
 const fixtureServer: FixtureServer = new FixtureServer();
@@ -38,8 +36,6 @@ describe(Regression('Swap from Token view'), (): void => {
   let isUnifiedUIEnabled: boolean | undefined;
 
   beforeAll(async (): Promise<void> => {
-
-    isUnifiedUIEnabled = await isUnifiedUIEnabledForChain('1') && process.env.MM_UNIFIED_SWAPS_ENABLED === 'true';
 
     await Tenderly.addFunds(
       CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
@@ -88,7 +84,6 @@ describe(Regression('Swap from Token view'), (): void => {
 
   it('should complete a USDC to DAI swap from the token chart', async (): Promise<void> => {
     const FIRST_ROW: number = 0;
-    const type: string = 'native';
     const quantity: string = '1';
     const sourceTokenSymbol: string = 'ETH';
     const destTokenSymbol: string = 'DAI';
@@ -102,21 +97,12 @@ describe(Regression('Swap from Token view'), (): void => {
     if (!swapOnboarded) await Onboarding.tapStartSwapping();
 
     // Submit the Swap
-      if (isUnifiedUIEnabled) {
-        await submitSwapUnifiedUI(
-          quantity,
-          sourceTokenSymbol,
-          destTokenSymbol,
-          CustomNetworks.Tenderly.Mainnet.providerConfig.chainId,
-        );
-      } else {
-        await submitSwapLegacyUI(
-          quantity,
-          sourceTokenSymbol,
-          destTokenSymbol,
-        );
-        await TabBarComponent.tapActivity();
-      }
+    await submitSwapUnifiedUI(
+      quantity,
+      sourceTokenSymbol,
+      destTokenSymbol,
+      CustomNetworks.Tenderly.Mainnet.providerConfig.chainId,
+    );
 
     // After the swap is complete, the DAI balance shouldn't be 0
     await Assertions.checkIfTextIsNotDisplayed('0 DAI', 60000);
@@ -129,7 +115,7 @@ describe(Regression('Swap from Token view'), (): void => {
     await Assertions.checkIfElementToHaveText(
       ActivitiesView.transactionStatus(FIRST_ROW),
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
-      120000,
+      60000,
     );
   });
 });
