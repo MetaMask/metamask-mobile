@@ -35,7 +35,10 @@ const BankDetailRow: React.FC<BankDetailRowProps> = ({ label, value }) => {
         >
           {value}
         </Text>
-        <TouchableOpacity onPress={() => handleCopyToClipboard(value)}>
+        <TouchableOpacity
+          onPress={() => handleCopyToClipboard(value)}
+          testID="copy-button"
+        >
           <Icon
             name={IconName.Copy}
             size={IconSize.Sm}
