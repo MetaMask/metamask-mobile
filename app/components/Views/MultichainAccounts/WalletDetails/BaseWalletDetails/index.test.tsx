@@ -18,6 +18,20 @@ jest.mock('../utils/getInternalAccountsFromWallet');
 jest.mock('../hooks/useWalletBalances');
 jest.mock('../hooks/useWalletInfo');
 
+// Mock the dependencies of WalletAddAccountActions instead of the component itself
+jest.mock('../../../../../actions/multiSrp', () => ({
+  addNewHdAccount: jest.fn(),
+}));
+
+jest.mock('../../../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
+  MultichainWalletSnapFactory: {
+    createClient: jest.fn(),
+  },
+  WalletClientType: {
+    Solana: 'solana',
+  },
+}));
+
 const mockGetInternalAccountsFromWallet =
   getInternalAccountsFromWallet as jest.Mock;
 const mockUseWalletBalances = useWalletBalances as jest.Mock;
@@ -150,6 +164,97 @@ describe('BaseWalletDetails', () => {
     );
 
     expect(getByText(childText)).toBeTruthy();
+  });
+
+  it('does not render add account button when keyringId is not present', () => {
+    mockUseWalletInfo.mockReturnValue({
+      accounts: [mockAccount1, mockAccount2],
+      keyringId: null,
+      srpIndex: 1,
+      isSRPBackedUp: true,
+    });
+
+    const { queryByTestId } = renderWithProvider(
+      <BaseWalletDetails wallet={mockWallet} />,
+      { state: mockInitialState },
+    );
+
+    expect(queryByTestId(WalletDetailsIds.ADD_ACCOUNT_BUTTON)).toBeNull();
+  });
+
+  describe('Add Account Feature', () => {
+    it('renders add account button when keyringId is available', () => {
+      const { getByTestId } = renderWithProvider(
+        <BaseWalletDetails wallet={mockWallet} />,
+        { state: mockInitialState },
+      );
+
+      expect(getByTestId(WalletDetailsIds.ADD_ACCOUNT_BUTTON)).toBeTruthy();
+    });
+
+    it('does not render add account button when keyringId is null', () => {
+      mockUseWalletInfo.mockReturnValue({
+        accounts: [mockAccount1, mockAccount2],
+        keyringId: null,
+        srpIndex: 1,
+        isSRPBackedUp: true,
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        <BaseWalletDetails wallet={mockWallet} />,
+        { state: mockInitialState },
+      );
+
+      expect(queryByTestId(WalletDetailsIds.ADD_ACCOUNT_BUTTON)).toBeNull();
+    });
+
+    it('opens add account modal when add account button is pressed', () => {
+      const { getByTestId, queryByText, getByText } = renderWithProvider(
+        <BaseWalletDetails wallet={mockWallet} />,
+        { state: mockInitialState },
+      );
+
+      // Modal should not be visible initially
+      expect(queryByText('Create a new account')).toBeNull();
+
+      const addAccountButton = getByTestId(WalletDetailsIds.ADD_ACCOUNT_BUTTON);
+      fireEvent.press(addAccountButton);
+
+      // Modal should be visible after pressing add account button
+      expect(getByText('Create a new account')).toBeTruthy();
+    });
+
+    it('shows Ethereum and Solana account options in modal', () => {
+      const { getByTestId, getByText } = renderWithProvider(
+        <BaseWalletDetails wallet={mockWallet} />,
+        { state: mockInitialState },
+      );
+
+      const addAccountButton = getByTestId(WalletDetailsIds.ADD_ACCOUNT_BUTTON);
+      fireEvent.press(addAccountButton);
+
+      // Check that both account options are rendered
+      expect(getByText('Ethereum account')).toBeTruthy();
+      expect(getByText('Solana account')).toBeTruthy();
+    });
+
+    it('does not open modal when keyringId is null and button is pressed', () => {
+      mockUseWalletInfo.mockReturnValue({
+        accounts: [mockAccount1, mockAccount2],
+        keyringId: null,
+        srpIndex: 1,
+        isSRPBackedUp: true,
+      });
+
+      const { queryByTestId, queryByText } = renderWithProvider(
+        <BaseWalletDetails wallet={mockWallet} />,
+        { state: mockInitialState },
+      );
+
+      // Button should not be rendered when keyringId is null
+      expect(queryByTestId(WalletDetailsIds.ADD_ACCOUNT_BUTTON)).toBeNull();
+      expect(queryByText('Create a new account')).toBeNull();
+    });
   });
 
   describe('SRP Reveal Section', () => {
