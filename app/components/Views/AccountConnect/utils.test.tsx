@@ -10,11 +10,14 @@ import {
   getDefaultAccounts,
 } from './utils';
 import { InternalAccountWithCaipAccountId } from '../../../selectors/accountsController';
-import Engine from '../../../core/Engine';
-import { PermissionDoesNotExistError } from '@metamask/permission-controller';
+import { getCaip25Caveat } from '../../../core/Permissions';
 
-const mockGetCaveat = Engine.context.PermissionController
-  .getCaveat as jest.Mock;
+jest.mock('../../../core/Permissions', () => ({
+  ...jest.requireActual('../../../core/Permissions'),
+  getCaip25Caveat: jest.fn(),
+}));
+
+const mockGetCaip25Caveat = getCaip25Caveat as jest.Mock;
 
 describe('getRequestedCaip25CaveatValue', () => {
   beforeEach(() => {
@@ -50,13 +53,6 @@ describe('getRequestedCaip25CaveatValue', () => {
   });
 
   it(`should return the caveat value whose type is ${Caip25CaveatType}`, () => {
-    mockGetCaveat.mockImplementation(() => {
-      throw new PermissionDoesNotExistError(
-        'Permission does not exist',
-        Caip25EndowmentPermissionName,
-      );
-    });
-
     const expectedCaveatValue: Caip25CaveatValue = {
       optionalScopes: { 'eip155:1': { accounts: ['eip155:1:0x123'] } },
       requiredScopes: {},
@@ -236,13 +232,6 @@ describe('getRequestedCaip25CaveatValue', () => {
 
   describe('existing permission', () => {
     it('should return originally requested value if no permission existed previously', () => {
-      mockGetCaveat.mockImplementation(() => {
-        throw new PermissionDoesNotExistError(
-          'Permission does not exist',
-          Caip25EndowmentPermissionName,
-        );
-      });
-
       const expectedCaveatValue: Caip25CaveatValue = {
         optionalScopes: { 'eip155:1': { accounts: ['eip155:1:0x123'] } },
         requiredScopes: {},
@@ -265,7 +254,7 @@ describe('getRequestedCaip25CaveatValue', () => {
     });
 
     it('should return merged caip25 value if permission existed previously', () => {
-      mockGetCaveat.mockReturnValue({
+      mockGetCaip25Caveat.mockReturnValue({
         value: {
           optionalScopes: { 'eip155:10': { accounts: ['eip155:10:0x123'] } },
           requiredScopes: {},

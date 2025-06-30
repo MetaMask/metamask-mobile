@@ -9,8 +9,7 @@ import {
   setNonSCACaipAccountIdsInCaip25CaveatValue,
 } from '@metamask/chain-agnostic-permission';
 import { InternalAccountWithCaipAccountId } from '../../../selectors/accountsController';
-import Engine from '../../../core/Engine';
-import { PermissionDoesNotExistError } from '@metamask/permission-controller';
+import { getCaip25Caveat } from '../../../core/Permissions';
 
 /**
  * Takes in an incoming value and attempts to return the {@link Caip25CaveatValue}.
@@ -81,24 +80,13 @@ export function getRequestedCaip25CaveatValue(
     return defaultValue;
   }
 
-  try {
-    const existingCaveat = Engine.context.PermissionController.getCaveat(
-      origin,
-      Caip25EndowmentPermissionName,
-      Caip25CaveatType,
-    );
-    // TODO: [ffmcgee] type this properly
-    const mergedCaveatValue = mergeCaip25Values(existingCaveat?.value as unknown as Caip25CaveatValue, caveatValue);
-
-    return mergedCaveatValue;
-  } catch (e) {
-    if (e instanceof PermissionDoesNotExistError) {
-      // if no current permission exists
-      // we suppress the error and return the original requested value
+    const existingCaveat = getCaip25Caveat(origin);
+    if (!existingCaveat) {
       return caveatValue as Caip25CaveatValue;
     }
-    return defaultValue;
-  }
+
+    const mergedCaveatValue = mergeCaip25Values(existingCaveat.value, caveatValue);
+    return mergedCaveatValue;
 }
 
 /**
