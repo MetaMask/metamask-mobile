@@ -37,7 +37,6 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
   const [popularNetwork, setPopularNetwork] = useState<ExtendedNetwork>();
   const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>([]);
   const [showWarningModal, setShowWarningModal] = useState(false);
-  const [isLoading] = useState(false);
 
   const onSelectNetwork = useCallback(
     (currentChainId: CaipChainId) => {
@@ -107,7 +106,6 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
       areAnyNetworksSelected && !areAllNetworksSelected;
 
     const selectAll = () => {
-      if (isLoading) return;
       const allSelectedChainIds = networks.map(
         ({ caipChainId }) => caipChainId,
       );
@@ -115,7 +113,6 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
     };
 
     const unselectAll = () => {
-      if (isLoading) return;
       setSelectedChainIds([]);
     };
 
@@ -140,7 +137,6 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
     areAllNetworksSelected,
     areAnyNetworksSelected,
     networks,
-    isLoading,
     setSelectedChainIds,
     styles.selectAllText,
   ]);

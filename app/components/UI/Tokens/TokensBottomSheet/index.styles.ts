@@ -73,6 +73,14 @@ const createStyles = (params: { theme: Theme }) => {
     iconContainer: {
       marginRight: 14,
     },
+    containerDeleteText: {
+      paddingLeft: 16,
+      paddingRight: 8,
+      alignItems: 'center',
+    },
+    textCentred: {
+      textAlign: 'center',
+    },
     // token filter bottom sheet
     bottomSheetTitle: {
       alignSelf: 'center',

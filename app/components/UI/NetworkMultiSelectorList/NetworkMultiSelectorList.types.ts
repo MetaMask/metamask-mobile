@@ -1,6 +1,6 @@
 import { CaipChainId } from '@metamask/utils';
 import { ImageSourcePropType } from 'react-native';
-import { NetworkMenuModal } from '../Tokens/TokensBottomSheet/TokenFilterBottomSheet.types';
+import { NetworkMenuModalState } from '../Tokens/TokensBottomSheet/TokenFilterBottomSheet.types';
 
 export enum NetworkListItemType {
   Network = 'network',
@@ -38,5 +38,5 @@ export interface NetworkMultiSelectorListProps {
   isSelectionDisabled?: boolean;
   isAutoScrollEnabled?: boolean;
   additionalNetworksComponent?: React.ReactNode;
-  openModal: (networkMenuModal: NetworkMenuModal) => void;
+  openModal: (networkMenuModal: NetworkMenuModalState) => void;
 }

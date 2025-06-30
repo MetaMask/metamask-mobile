@@ -1,10 +1,17 @@
 // Third party dependencies.
 import React, { useCallback, useMemo, useRef } from 'react';
 import { ImageSourcePropType, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+
+// Constants for main chains that should not show edit option
+const MAIN_CHAIN_IDS = new Set([
+  CHAIN_IDS.MAINNET,
+  CHAIN_IDS.LINEA_MAINNET,
+] as string[]);
 
 // External dependencies.
 import { useStyles } from '../../../component-library/hooks/index.ts';
@@ -128,10 +135,13 @@ const NetworkMultiSelectList = ({
             showButtonIcon={!!networkTypeOrRpcUrl}
             buttonProps={{
               onButtonClick: () => {
+                const rawChainId = parseCaipChainId(caipChainId).reference;
+                const currentChainId = toHex(rawChainId);
+                const isMainChain = MAIN_CHAIN_IDS.has(currentChainId);
                 openModal({
                   isVisible: true,
                   caipChainId,
-                  displayEdit: false,
+                  displayEdit: !isMainChain,
                   networkTypeOrRpcUrl: networkTypeOrRpcUrl || '',
                   isReadOnly: false,
                 });

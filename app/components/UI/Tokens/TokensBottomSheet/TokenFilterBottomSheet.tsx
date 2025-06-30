@@ -7,11 +7,23 @@ import ScrollableTabView, {
   ChangeTabProperties,
 } from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
+import { CaipChainId, parseCaipChainId } from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
+import { removeItemFromChainIdList } from '../../../../util/metrics/MultichainAPI/networkMetricUtils';
+import { MetaMetrics } from '../../../../core/Analytics';
 
 // external dependencies
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader';
+import BottomSheetFooter from '../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
+import { ButtonsAlignment } from '../../../../component-library/components/BottomSheets/BottomSheetFooter';
+import { ButtonProps } from '../../../../component-library/components/Buttons/Button/Button.types';
+import {
+  ButtonVariants,
+  ButtonSize,
+} from '../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../component-library/hooks/useStyles';
 import BottomSheet, {
   BottomSheetRef,
@@ -29,9 +41,17 @@ import Routes from '../../../../constants/navigation/Routes';
 
 // internal dependencies
 import createStyles from './index.styles';
-import { NetworkMenuModal } from './TokenFilterBottomSheet.types';
+import {
+  NetworkMenuModalState,
+  ShowConfirmDeleteModalState,
+  ShowMultiRpcSelectModalState,
+} from './TokenFilterBottomSheet.types';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../selectors/networkController';
+import { useSelector } from 'react-redux';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import Engine from '../../../../core/Engine';
 
-const initialNetworkMenuModal: NetworkMenuModal = {
+const initialNetworkMenuModal: NetworkMenuModalState = {
   isVisible: false,
   caipChainId: 'eip155:1',
   displayEdit: false,
@@ -39,9 +59,23 @@ const initialNetworkMenuModal: NetworkMenuModal = {
   isReadOnly: false,
 };
 
+const initialShowConfirmDeleteModal: ShowConfirmDeleteModalState = {
+  isVisible: false,
+  networkName: '',
+  caipChainId: 'eip155:1',
+};
+
+const initialShowMultiRpcSelectModal: ShowMultiRpcSelectModalState = {
+  isVisible: false,
+  chainId: CHAIN_IDS.MAINNET,
+  networkName: '',
+};
+
 const TokenFilterBottomSheet = () => {
   const networkMenuSheetRef = useRef<BottomSheetRef>(null);
+  const rpcMenuSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = useRef<ReusableModalRef>(null);
+  const deleteModalSheetRef = useRef<BottomSheetRef>(null);
 
   const navigation = useNavigation();
   const { colors } = useTheme();
@@ -50,7 +84,16 @@ const TokenFilterBottomSheet = () => {
   const safeAreaInsets = useSafeAreaInsets();
 
   const [showNetworkMenuModal, setNetworkMenuModal] =
-    useState<NetworkMenuModal>(initialNetworkMenuModal);
+    useState<NetworkMenuModalState>(initialNetworkMenuModal);
+  const [showConfirmDeleteModal, setShowConfirmDeleteModal] =
+    useState<ShowConfirmDeleteModalState>(initialShowConfirmDeleteModal);
+
+  const [showMultiRpcSelectModal, setShowMultiRpcSelectModal] =
+    useState<ShowMultiRpcSelectModalState>(initialShowMultiRpcSelectModal);
+
+  const networkConfigurations = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
 
   const onChangeTab = useCallback(
     async (obj: ChangeTabProperties) => {
@@ -104,7 +147,7 @@ const TokenFilterBottomSheet = () => {
     [navigation],
   );
 
-  const openModal = useCallback((networkMenuModal: NetworkMenuModal) => {
+  const openModal = useCallback((networkMenuModal: NetworkMenuModalState) => {
     setNetworkMenuModal({
       ...networkMenuModal,
       isVisible: true,
@@ -116,6 +159,94 @@ const TokenFilterBottomSheet = () => {
     setNetworkMenuModal(initialNetworkMenuModal);
     networkMenuSheetRef.current?.onCloseBottomSheet();
   }, []);
+
+  const closeRpcModal = useCallback(() => {
+    setShowMultiRpcSelectModal({
+      isVisible: false,
+      chainId: CHAIN_IDS.MAINNET,
+      networkName: '',
+    });
+    rpcMenuSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const removeRpcUrl = (chainId: CaipChainId) => {
+    const networkConfiguration = networkConfigurations[chainId];
+
+    if (!networkConfiguration) {
+      throw new Error(`Unable to find network with chain id ${chainId}`);
+    }
+
+    closeModal();
+    closeRpcModal();
+
+    setShowConfirmDeleteModal({
+      isVisible: true,
+      networkName: networkConfiguration.name ?? '',
+      caipChainId: networkConfiguration.caipChainId,
+    });
+  };
+
+  const confirmRemoveRpc = () => {
+    if (showConfirmDeleteModal.caipChainId) {
+      const { caipChainId } = showConfirmDeleteModal;
+      const { NetworkController } = Engine.context;
+      const rawChainId = parseCaipChainId(caipChainId).reference;
+      const chainId = toHex(rawChainId);
+
+      NetworkController.removeNetwork(chainId);
+
+      MetaMetrics.getInstance().addTraitsToUser(
+        removeItemFromChainIdList(chainId),
+      );
+
+      // // set tokenNetworkFilter
+      // if (isPortfolioViewEnabled()) {
+      //   const { PreferencesController } = Engine.context;
+      //   if (!isAllNetwork) {
+      //     PreferencesController.setTokenNetworkFilter({
+      //       [chainId]: true,
+      //     });
+      //   } else {
+      //     // Remove the chainId from the tokenNetworkFilter
+      //     const { [chainId]: _, ...newTokenNetworkFilter } = tokenNetworkFilter;
+      //     PreferencesController.setTokenNetworkFilter({
+      //       // TODO fix type of preferences controller level
+      //       // setTokenNetworkFilter in preferences controller accepts Record<string, boolean> while tokenNetworkFilter is Record<string, string>
+      //       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      //       ...(newTokenNetworkFilter as any),
+      //     });
+      //   }
+      // }
+
+      setShowConfirmDeleteModal({
+        isVisible: false,
+        networkName: '',
+      });
+    }
+  };
+
+  const closeDeleteModal = useCallback(() => {
+    setShowConfirmDeleteModal(() => ({
+      networkName: '',
+      isVisible: false,
+      entry: undefined,
+    }));
+    networkMenuSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const cancelButtonProps: ButtonProps = {
+    variant: ButtonVariants.Secondary,
+    label: strings('accountApproval.cancel'),
+    size: ButtonSize.Lg,
+    onPress: () => closeDeleteModal(),
+  };
+
+  const deleteButtonProps: ButtonProps = {
+    variant: ButtonVariants.Primary,
+    label: strings('app_settings.delete'),
+    size: ButtonSize.Lg,
+    onPress: () => confirmRemoveRpc(),
+  };
 
   return (
     <ReusableModal
@@ -166,9 +297,42 @@ const TokenFilterBottomSheet = () => {
                 });
               }}
             />
+            {showNetworkMenuModal.displayEdit ? (
+              <AccountAction
+                actionTitle={strings('app_settings.delete')}
+                iconName={IconName.Trash}
+                onPress={() => removeRpcUrl(showNetworkMenuModal.caipChainId)}
+                // testID={NetworkListModalSelectorsIDs.DELETE_NETWORK}
+              />
+            ) : null}
           </View>
         </BottomSheet>
       )}
+
+      {showConfirmDeleteModal.isVisible ? (
+        <BottomSheet
+          ref={deleteModalSheetRef}
+          onClose={closeDeleteModal}
+          shouldNavigateBack={false}
+        >
+          <BottomSheetHeader>
+            <Text variant={TextVariant.HeadingMD}>
+              {strings('app_settings.delete')}{' '}
+              {showConfirmDeleteModal.networkName}{' '}
+              {strings('asset_details.network')}
+            </Text>
+          </BottomSheetHeader>
+          <View style={styles.containerDeleteText}>
+            <Text style={styles.textCentred}>
+              {strings('app_settings.network_delete')}
+            </Text>
+            <BottomSheetFooter
+              buttonsAlignment={ButtonsAlignment.Horizontal}
+              buttonPropsArray={[cancelButtonProps, deleteButtonProps]}
+            />
+          </View>
+        </BottomSheet>
+      ) : null}
     </ReusableModal>
   );
 };

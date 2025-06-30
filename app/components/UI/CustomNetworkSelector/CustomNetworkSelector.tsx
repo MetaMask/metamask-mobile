@@ -5,6 +5,8 @@ import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { parseCaipChainId } from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
 
 // external dependencies
 import { strings } from '../../../../locales/i18n';
@@ -24,7 +26,7 @@ import Icon, {
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { getNetworkImageSource } from '../../../util/networks';
+import { getNetworkImageSource, isTestNet } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
 import Device from '../../../util/device';
 import { selectCustomNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
@@ -79,6 +81,9 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
   const renderNetworkItem: ListRenderItem<CustomNetworkItem> = useCallback(
     ({ item }) => {
       const { name, caipChainId, networkTypeOrRpcUrl } = item;
+      const rawChainId = parseCaipChainId(caipChainId).reference;
+      const chainId = toHex(rawChainId);
+
       return (
         <View
           testID={`${name}-${selectedNetwork ? 'selected' : 'not-selected'}`}
@@ -100,7 +105,7 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
                 openModal({
                   isVisible: true,
                   caipChainId,
-                  displayEdit: false,
+                  displayEdit: !isTestNet(chainId),
                   networkTypeOrRpcUrl: networkTypeOrRpcUrl || '',
                   isReadOnly: false,
                 });
