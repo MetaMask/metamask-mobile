@@ -21,6 +21,7 @@ import ProtectYourWalletModal from '../../pages/Onboarding/ProtectYourWalletModa
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import Assertions from '../../utils/Assertions';
 import ToastModal from '../../pages/wallet/ToastModal';
+import OnboardingSheet from '../../pages/Onboarding/OnboardingSheet';
 
 const PASSWORD = '12345678';
 

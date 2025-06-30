@@ -18,6 +18,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import CommonView from '../../pages/CommonView';
 import Assertions from '../../utils/Assertions';
 import ExperienceEnhancerBottomSheet from '../../pages/Onboarding/ExperienceEnhancerBottomSheet';
+import OnboardingSheet from '../../pages/Onboarding/OnboardingSheet';
 
 const PASSWORD = '12345678';
 

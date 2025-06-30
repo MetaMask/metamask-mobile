@@ -14,7 +14,6 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
-import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
 import { AppThemeKey } from '../../../util/theme/models';
 import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
