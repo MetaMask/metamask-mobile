@@ -22,6 +22,7 @@ import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView'
 import Assertions from '../../utils/Assertions';
 import ToastModal from '../../pages/wallet/ToastModal';
 import OnboardingSheet from '../../pages/Onboarding/OnboardingSheet';
+import { SEEDLESS_ONBOARDING_ENABLED } from '../../../app/core/OAuthService/OAuthLoginHandlers/constants';
 
 const PASSWORD = '12345678';
 
