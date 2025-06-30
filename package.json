@@ -82,6 +82,7 @@
     "test:e2e:sample:ios:debug:run": "INCLUDE_SAMPLE_FEATURE=true IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' detox reset-lock-file && NODE_OPTIONS='--experimental-vm-modules' detox test -c ios.sim.debug -- --testMatch='**/app/features/SampleFeature/e2e/specs/**/*.spec.ts'",
     "test:e2e:sample:ios:build": "INCLUDE_SAMPLE_FEATURE=true yarn test:e2e:ios:debug:build",
     "test:e2e:sample:android:build": "INCLUDE_SAMPLE_FEATURE=true yarn test:e2e:android:debug:build",
+    "test:e2e:performance:compare": "npx ts-node scripts/compare-e2e-performance.ts",
     "test:wdio:ios": "yarn wdio ./wdio/config/ios.config.debug.js",
     "test:wdio:ios:browserstack": "yarn wdio ./wdio/config/ios.config.browserstack.js",
     "test:wdio:ios:browserstack:local": "yarn wdio ./wdio/config/ios.config.browserstack.local.js",

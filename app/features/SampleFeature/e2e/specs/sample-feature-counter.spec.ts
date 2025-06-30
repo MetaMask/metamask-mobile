@@ -13,64 +13,48 @@ import FixtureServer from '../../../../../e2e/fixtures/fixture-server';
 import { navigateToSampleFeature } from '../utils';
 import Assertions from '../../../../../e2e/utils/Assertions';
 import { 
-  saveTestSuiteMetrics, 
-  clearTestMetrics, 
-  measureAction,
-} from '../performance-utils';
+  initializePerformance,
+  saveTestSuitePerformanceMetrics,
+} from '../../../../../e2e/utils/redux-performance-utils';
 
 const fixtureServer = new FixtureServer();
 
 describe(Regression('Sample Feature'), () => {
   beforeAll(async () => {
-    await measureAction('app-launch', async () => {
-      await TestHelpers.reverseServerPort();
-      const fixture = new FixtureBuilder().build();
-      await startFixtureServer(fixtureServer);
-      await loadFixture(fixtureServer, { fixture });
-      await TestHelpers.launchApp({
-        launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
-      });
-    });
+    // Initialize performance tracking
+    initializePerformance('SampleFeature', 'sample-feature-counter');
 
-    await measureAction('navigate-to-sample-feature', async () => {
-      await navigateToSampleFeature();
+    await TestHelpers.reverseServerPort();
+    const fixture = new FixtureBuilder().build();
+    await startFixtureServer(fixtureServer);
+    await loadFixture(fixtureServer, { fixture });
+    await TestHelpers.launchApp({
+      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
+    await navigateToSampleFeature();
   });
 
   afterAll(async () => {
     // Save performance metrics for the test suite
-    await saveTestSuiteMetrics('SampleFeature', 'sample-feature-counter');
+    await saveTestSuitePerformanceMetrics('SampleFeature', 'sample-feature-counter');
     await stopFixtureServer(fixtureServer);
   });
 
-  beforeEach(async () => {
-    // Clear metrics before each test to start fresh
-    clearTestMetrics();
-  });
-
   it('displays counter feature', async () => {
-    await measureAction('check-counter-display', async () => {
-      await Assertions.checkIfVisible(SampleFeatureView.counterTitle);
-      await Assertions.checkIfVisible(SampleFeatureView.counterValue);
-      await Assertions.checkIfVisible(SampleFeatureView.incrementButton);
-    });
+    await Assertions.checkIfVisible(SampleFeatureView.counterTitle);
+    await Assertions.checkIfVisible(SampleFeatureView.counterValue);
+    await Assertions.checkIfVisible(SampleFeatureView.incrementButton);
   });
 
   it('increments counter', async () => {
-    await measureAction('initial-counter-check', async () => {
-      await Assertions.checkIfVisible(SampleFeatureView.counterTitle);
-      await Assertions.checkIfVisible(SampleFeatureView.counterValue);
-      await Assertions.checkIfVisible(SampleFeatureView.incrementButton);
-    });
+    await Assertions.checkIfVisible(SampleFeatureView.counterTitle);
+    await Assertions.checkIfVisible(SampleFeatureView.counterValue);
+    await Assertions.checkIfVisible(SampleFeatureView.incrementButton);
 
-    await measureAction('first-increment', async () => {
-      await SampleFeatureView.tapIncrementButton();
-      await Assertions.checkIfElementToHaveText(SampleFeatureView.counterValue, 'Value: 1');
-    });
+    await SampleFeatureView.tapIncrementButton();
+    await Assertions.checkIfElementToHaveText(SampleFeatureView.counterValue, 'Value: 1');
 
-    await measureAction('second-increment', async () => {
-      await SampleFeatureView.tapIncrementButton();
-      await Assertions.checkIfElementToHaveText(SampleFeatureView.counterValue, 'Value: 2');
-    });
+    await SampleFeatureView.tapIncrementButton();
+    await Assertions.checkIfElementToHaveText(SampleFeatureView.counterValue, 'Value: 2');
   });
 });
