@@ -155,6 +155,18 @@ export const preferencesControllerMock = {
   },
 };
 
+export const tokenListControllerMock = {
+  engine: {
+    backgroundState: {
+      TokenListController: {
+        tokensChainsCache: {
+          '0x1': {},
+        },
+      },
+    },
+  },
+};
+
 export const otherControllersMock = merge(
   {},
   accountsControllerMock,
@@ -169,4 +181,5 @@ export const otherControllersMock = merge(
   swapsState,
   smartTransactionsControllerMock,
   preferencesControllerMock,
+  tokenListControllerMock,
 );
