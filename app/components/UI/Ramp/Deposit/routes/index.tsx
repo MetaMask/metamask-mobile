@@ -4,9 +4,10 @@ import {
   StackNavigationOptions,
 } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { DepositSDKProvider } from '../sdk';
+
 import Root from '../Views/Root';
-import Routes from '../../../../../constants/navigation/Routes';
 import BuildQuote from '../Views/BuildQuote';
 import EnterEmail from '../Views/EnterEmail';
 import OtpCode from '../Views/OtpCode';
@@ -16,8 +17,13 @@ import EnterAddress from '../Views/EnterAddress';
 import KycProcessing from '../Views/KycProcessing';
 import ProviderWebview from '../Views/ProviderWebview';
 import KycWebview from '../Views/KycWebview';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
 import OrderProcessing from '../Views/OrderProcessing';
+
+import TokenSelectorModal from '../Views/Modals/TokenSelectorModal';
+import RegionSelectorModal from '../Views/Modals/RegionSelectorModal';
+import PaymentMethodSelectorModal from '../Views/Modals/PaymentMethodSelectorModal';
+
+import Routes from '../../../../../constants/navigation/Routes';
 
 interface DepositParamList {
   [key: string]:
@@ -29,6 +35,7 @@ interface DepositParamList {
 }
 
 const Stack = createStackNavigator<DepositParamList>();
+const ModalsStack = createStackNavigator();
 
 const getAnimationOptions = ({
   route,
@@ -98,6 +105,34 @@ const DepositRoutes = () => (
       />
     </Stack.Navigator>
   </DepositSDKProvider>
+);
+
+const clearStackNavigatorOptions = {
+  headerShown: false,
+  cardStyle: {
+    backgroundColor: 'transparent',
+  },
+  animationEnabled: false,
+};
+
+export const DepositModalsRoutes = () => (
+  <ModalsStack.Navigator
+    mode="modal"
+    screenOptions={clearStackNavigatorOptions}
+  >
+    <ModalsStack.Screen
+      name={Routes.DEPOSIT.MODALS.TOKEN_SELECTOR}
+      component={TokenSelectorModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.DEPOSIT.MODALS.PAYMENT_METHOD_SELECTOR}
+      component={PaymentMethodSelectorModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.DEPOSIT.MODALS.REGION_SELECTOR}
+      component={RegionSelectorModal}
+    />
+  </ModalsStack.Navigator>
 );
 
 export default DepositRoutes;
