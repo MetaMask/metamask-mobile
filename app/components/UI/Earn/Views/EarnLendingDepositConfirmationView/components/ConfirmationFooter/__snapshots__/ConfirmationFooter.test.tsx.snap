@@ -151,10 +151,25 @@ exports[`ConfirmationFooter renders correctly 1`] = `
                 "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 22,
+                "textAlign": "center",
               }
             }
           >
-            Approve
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Approve
+            </Text>
           </Text>
         </View>
         <View
@@ -207,10 +222,25 @@ exports[`ConfirmationFooter renders correctly 1`] = `
                 "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 22,
+                "textAlign": "center",
               }
             }
           >
-            Deposit
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Deposit
+            </Text>
           </Text>
         </View>
       </View>
