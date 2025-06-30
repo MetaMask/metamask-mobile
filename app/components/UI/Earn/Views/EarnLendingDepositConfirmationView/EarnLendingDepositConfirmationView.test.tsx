@@ -40,6 +40,7 @@ import { PROGRESS_STEPPER_TEST_IDS } from './components/ProgressStepper';
 type TxCallback = (event: {
   transactionMeta: Partial<TransactionMeta>;
 }) => void;
+import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../../../selectors/accountsController'),
@@ -817,6 +818,8 @@ describe('EarnLendingDepositConfirmationView', () => {
           })
           .build(),
       );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
 
       // Clear and test confirmed status
       mockTrackEvent.mockClear();

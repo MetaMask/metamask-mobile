@@ -29,6 +29,7 @@ import {
   CONFIRMATION_FOOTER_BUTTON_TEST_IDS,
   CONFIRMATION_FOOTER_LINK_TEST_IDS,
 } from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
+import Routes from '../../../../../constants/navigation/Routes';
 
 expect.addSnapshotSerializer({
   // any is the expected type for the val parameter
@@ -40,6 +41,7 @@ expect.addSnapshotSerializer({
 const getStakingNavbarSpy = jest.spyOn(NavbarUtils, 'getStakingNavbar');
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -47,7 +49,7 @@ jest.mock('@react-navigation/native', () => {
     ...actual,
     useRoute: jest.fn(),
     useNavigation: () => ({
-      navigate: jest.fn(),
+      navigate: mockNavigate,
       goBack: mockGoBack,
       setOptions: jest.fn(),
     }),
@@ -842,6 +844,8 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
           },
         }),
       );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
 
       mockTrackEvent.mockClear();
 
