@@ -11,9 +11,10 @@ import {
   setEthAccounts,
   setPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
+import { MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER } from './constants';
 
 export const DEFAULT_FIXTURE_ACCOUNT =
-  '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
+  '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
 
 export const DEFAULT_FIXTURE_ACCOUNT_2 =
   '0xcdd74c6eb517f687aa2c786bc7484eb2f9bae1da';
@@ -1084,6 +1085,59 @@ class FixtureBuilder {
     return this;
   }
 
+  // We need to rename this
+  withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringControllerWithMultipleAccounts() {
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      isUnlocked: true,
+      keyrings: [
+        {
+          type: 'HD Key Tree',
+          accounts: [
+            '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+            '0xcdd74c6eb517f687aa2c786bc7484eb2f9bae1da',
+            '0x08c215b461932f44fab0d15e5d1ff4c5af591af0',
+            '0xd529ff10b17889ac5ab067b4427f1c94b339d2d3',
+            '0x07afef834b41d8022c8c113341ced29fcc7f7264',
+            '0xea68022360336621aa976c03b008e8e045ad2061',
+            '0x2434cf38772e1fb22840dedfbaecc630b5db9b4b',
+            '0x62fa937a9f25a53656ec70292b7a13a2bce48bc9',
+            '0x2b1c9d2b963fa53f72454b9bb47537accfbbfcf1',
+            '0xf49dc341f31ceab883301bd0d82df3d2223d681d',
+          ],
+          metadata: {
+            id: '01JX9NJ15HPNS6RRRYBCKDK33R',
+            name: '',
+          },
+        },
+        {
+          type: 'QR Hardware Wallet Device',
+          accounts: [],
+          metadata: {
+            id: '01JX9NJ2DXWTBTE5H8JC2D91VH',
+            name: '',
+          },
+        },
+        {
+          type: 'HD Key Tree',
+          accounts: [
+            '0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b',
+            // Unknown why this 3 addresses are not loading, we should fix it
+            '0xf04d744cf1d81bb702a6e7b8faf0fd7914e230f4',
+            '0x7cc004a80e3a0e2aa88b1a2de5cacc615474008c',
+            '0x7c0f9b6dff9ebdcaf4f517e4e097ffdbdc692329',
+          ],
+          metadata: {
+            id: '01JX9NZWRAVQKES02TWSN8GD91',
+            name: '',
+          },
+        },
+      ],
+      vault:
+        '{"cipher":"60wBNhSYopamhXuFuk34HxJPwLUZ+m3Pudw5/GEmJ0RzXspPO1hCx3IWq7+HA/2DFtp97+FVx1/cIAJY9EaV6gZkDpjJkhtDSKHjfgkOyVKtmWam+fCE0US2yRGBgq/5SQ+dKMe7HVaiQok8A6VOEAUOUGo5FNoSp5uRIEFhzCa1SWS++IIHjExe16hvO5xYe9fgBMtIi13bHdf62/Kup9KimK5URcynMqr7Vtm67hcaWFzzCMj/mLnPtSxInHtMthspiqjfZjKC/jOLsEk21m/TPa5Mt0WpO/YuaZLhAAGRTEje+n9J7Dsklwf++zQrSO1inG9B3tQh8w2vmi9JiL3A35Zs5cPiev7kdi7WPT8JAKE+eO5ZNK+6rDPBAxR4edfb5c9DvoAiKteOeyIWu0IPZaY6P0xhySrpyFUW172k2rn+Cb1yQwDb/BqY+KmaOHHnHOUbSFWK6SOvy2HnoNf+0bXoxmePPheQfYdw25hbvvDRcuunmpVGAIWPPjvCYAKUx4KprXDzx8sKgIWrx8/0ROxfQD/YWpXvxHLp/Px5r/GRtEhN/FFbfP3xE/glUg+Ye4tMk3CpByQ9sChKvgiXNGTbHpBTZ2rJhHZOwWVhYERW7SQ1QaCIL7l3Bd5aVVtXLEG7b/vzmy7sntAMSafgQx7Wm4N0vJiZJ4ke53VFzxu3VMuowQYb6V48go5c0sEojy4Hur70ovV2UD3aoTR6FOA0t3bObuFvBa7UruOLtSVVnf1MkWNfa3GbcAdae8FqnbIH88rguKpld2bYkk3qCC5brSuWyNZqxIr5ZpvgWXtvaY6V1bI9xnvD9B7ALX2aRW7eie8gYk1IRVoj+7Zhx6Lai7a+7zAXwogfOigq47af65NQnI6FSLzLhhCoMhXwjHCWgtKEdux/Qj9PdIzNWeZjscki9cm7uKEIjOe4K6/bl/MrrXOYN8socUMtLFTbfgNuVjICy4pwSmfumYLuhba9b1d5F7KRuo//5GpXL4CJz0znMSx+h0VvYE8p5EImyi5THyITZqrEuqxm1JLmGHAcf0ZZB9nMzygUYp7Hv3a83CCDs/Z2mNtPdETNny2IjX29ucHH90+e1oCqss+J7Gtl2vjID+M8fZG50fHYHtg9tbOmlANLfizOrM22KXZ8H98UDZ863zGVVaIMUw34tzOPTnM0KWKehtU76W6z62Kb8Bnn6qyaopi+rExwuMTgSxIDKz0JXkFNuHZVDYs8RrAP2DcHww8vewPoQDdEX5SUT/pyYpJoPx0/fPx7QJ7wT2MzArUEjS9sunVRi/YGYIu0jyqfb38gwXRoSwPJNkqUai6sgrDqYO04KJ03YOpwqaCBDtQp7QV6LPoXro+INj9qquXwJF0cpTAYEJcaXj2x/W8gKYPj6wQXggroC0jHEov5rQlgl4ga0tqsBu7THJ8r1symqAgluO6Z5x+BiG3QFxMjSx7wzFxjDUp2W6itX0XBaki+D+XJh6VTOWKTgCCXZ0wbSIuE5UQEVWM56Vh5H9MHaTMXcnSoSHDhvTcqe4TNEEcruOYkuW4d/TdmsDCMTvOFLHFcFiCkCrV5EcYs/B6ErwvwJcA+vtNt","iv":"d5f918e6d20f111769b0419253ec478b","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"5Dedq0Jg6wCFJ9whKIeUzP6yePVlUFO1aY2ZlmR+q3A="}',
+    });
+    return this;
+  }
+
   withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountOneQrAccountOneSimpleKeyPairAccount() {
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
       keyrings: [
@@ -1255,18 +1309,59 @@ class FixtureBuilder {
       CHAIN_IDS.SEI, // Sei Network
     ];
 
+    const accountsData =
+      MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER.internalAccounts.accounts;
+    const allAccountAddresses = Object.values(accountsData).map(
+      (account) => account.address,
+    );
+
+    // Create tokens object for all accounts
+    const accountTokens = {};
+    allAccountAddresses.forEach((address) => {
+      accountTokens[address] = tokens;
+    });
+
     const allTokens = {};
 
     // Add tokens to each popular network
     popularChainIds.forEach((chainId) => {
-      allTokens[chainId] = {
-        [DEFAULT_FIXTURE_ACCOUNT]: tokens,
-      };
+      allTokens[chainId] = accountTokens;
     });
 
     merge(this.fixture.state.engine.backgroundState.TokensController, {
       allTokens,
     });
+
+    // we need to test this ...
+
+    /**
+ // Create token balances for TokenBalancesController
+    // Structure: { [accountAddress]: { [chainId]: { [tokenAddress]: balance } } }
+    const tokenBalances = {};
+    
+    allAccountAddresses.forEach((accountAddress, accountIndex) => {
+      tokenBalances[accountAddress] = {
+        [chainId]: {}
+      };
+      
+      tokens.forEach((token, tokenIndex) => {
+        // Generate realistic but varied balances for testing
+        // Using different multipliers to create variety across accounts and tokens
+        const baseBalance = (accountIndex + 1) * (tokenIndex + 1) * 1000;
+        const randomVariation = Math.floor(Math.random() * 5000);
+        const finalBalance = baseBalance + randomVariation;
+        
+        // Convert to hex with proper padding for token decimals
+        const balanceInWei = (finalBalance * Math.pow(10, token.decimals)).toString(16);
+        tokenBalances[accountAddress][chainId][token.address] = `0x${balanceInWei}`;
+      });
+    }); 
+   
+    merge(this.fixture.state.engine.backgroundState.TokenBalancesController, {
+      tokenBalances,
+    });
+ */
+
     return this;
   }
 

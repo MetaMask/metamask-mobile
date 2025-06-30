@@ -1,0 +1,417 @@
+export const MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER = {
+  internalAccounts: {
+    accounts: {
+      '4d7a5e0b-b261-4aed-8126-43972b0fa0a1': {
+        id: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
+        address: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+        options: {
+          entropySource: '01JXA9KQBWD60ZB6STX279GQMF',
+          derivationPath: "m/44'/60'/0'/0/0",
+        },
+        methods: [
+          'personal_sign',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData_v1',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+        ],
+        scopes: ['eip155:0'],
+        type: 'eip155:eoa',
+        metadata: {
+          name: 'Account 1',
+          importTime: 1684232000456,
+          lastSelected: 0,
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+      },
+      'ba5f627c-8ca6-42a7-86ea-505ac0eafd02': {
+        id: 'ba5f627c-8ca6-42a7-86ea-505ac0eafd02',
+        address: '0xcdd74c6eb517f687aa2c786bc7484eb2f9bae1da',
+        options: {
+          entropySource: '01JXA9KQBWD60ZB6STX279GQMF',
+          derivationPath: "m/44'/60'/0'/0/1",
+        },
+        methods: [
+          'personal_sign',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData_v1',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+        ],
+        scopes: ['eip155:0'],
+        type: 'eip155:eoa',
+        metadata: {
+          name: 'Account 2',
+          importTime: 1751045516138,
+          lastSelected: 0,
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+      },
+      '919ae1fa-fb01-42b3-9b9c-07ba9d886995': {
+        id: '919ae1fa-fb01-42b3-9b9c-07ba9d886995',
+        address: '0x08c215b461932f44fab0d15e5d1ff4c5af591af0',
+        options: {
+          entropySource: '01JXA9KQBWD60ZB6STX279GQMF',
+          derivationPath: "m/44'/60'/0'/0/2",
+        },
+        methods: [
+          'personal_sign',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData_v1',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+        ],
+        scopes: ['eip155:0'],
+        type: 'eip155:eoa',
+        metadata: {
+          name: 'Account 5',
+          importTime: 1751045526110,
+          lastSelected: 0,
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+      },
+      '387af6ce-badb-4279-afc3-cde43f190a77': {
+        id: '387af6ce-badb-4279-afc3-cde43f190a77',
+        address: '0xd529ff10b17889ac5ab067b4427f1c94b339d2d3',
+        options: {
+          entropySource: '01JXA9KQBWD60ZB6STX279GQMF',
+          derivationPath: "m/44'/60'/0'/0/3",
+        },
+        methods: [
+          'personal_sign',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData_v1',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+        ],
+        scopes: ['eip155:0'],
+        type: 'eip155:eoa',
+        metadata: {
+          name: 'Account 6',
+          importTime: 1751045526111,
+          lastSelected: 0,
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+      },
+      '22977b01-45c1-46ff-89bc-8abd2ecc5934': {
+        id: '22977b01-45c1-46ff-89bc-8abd2ecc5934',
+        address: '0x07afef834b41d8022c8c113341ced29fcc7f7264',
+        options: {
+          entropySource: '01JXA9KQBWD60ZB6STX279GQMF',
+          derivationPath: "m/44'/60'/0'/0/4",
+        },
+        methods: [
+          'personal_sign',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData_v1',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+        ],
+        scopes: ['eip155:0'],
+        type: 'eip155:eoa',
+        metadata: {
+          name: 'Account 7',
+          importTime: 1751045526111,
+          lastSelected: 0,
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+      },
+      'b66993fc-bee8-4e65-a6b0-49b7db23b5b9': {
+        id: 'b66993fc-bee8-4e65-a6b0-49b7db23b5b9',
+        address: '0xea68022360336621aa976c03b008e8e045ad2061',
+        options: {
+          entropySource: '01JXA9KQBWD60ZB6STX279GQMF',
+          derivationPath: "m/44'/60'/0'/0/5",
+        },
+        methods: [
+          'personal_sign',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData_v1',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+        ],
+        scopes: ['eip155:0'],
+        type: 'eip155:eoa',
+        metadata: {
+          name: 'Account 8',
+          importTime: 1751045526111,
+          lastSelected: 0,
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+      },
+      'd095326d-fa16-4dc4-810e-f802468e5e44': {
+        id: 'd095326d-fa16-4dc4-810e-f802468e5e44',
+        address: '0x2434cf38772e1fb22840dedfbaecc630b5db9b4b',
+        options: {
+          entropySource: '01JXA9KQBWD60ZB6STX279GQMF',
+          derivationPath: "m/44'/60'/0'/0/6",
+        },
+        methods: [
+          'personal_sign',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData_v1',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+        ],
+        scopes: ['eip155:0'],
+        type: 'eip155:eoa',
+        metadata: {
+          name: 'Account 9',
+          importTime: 1751045526112,
+          lastSelected: 0,
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+      },
+      'ff5e09ff-4077-43b4-9142-fd44dd5c3b98': {
+        id: 'ff5e09ff-4077-43b4-9142-fd44dd5c3b98',
+        address: '0x62fa937a9f25a53656ec70292b7a13a2bce48bc9',
+        options: {
+          entropySource: '01JXA9KQBWD60ZB6STX279GQMF',
+          derivationPath: "m/44'/60'/0'/0/7",
+        },
+        methods: [
+          'personal_sign',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData_v1',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+        ],
+        scopes: ['eip155:0'],
+        type: 'eip155:eoa',
+        metadata: {
+          name: 'Account 10',
+          importTime: 1751045526112,
+          lastSelected: 0,
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+      },
+      '9cb12289-b8e2-4791-a1e2-6e829b9820c6': {
+        id: '9cb12289-b8e2-4791-a1e2-6e829b9820c6',
+        address: '0x2b1c9d2b963fa53f72454b9bb47537accfbbfcf1',
+        options: {
+          entropySource: '01JXA9KQBWD60ZB6STX279GQMF',
+          derivationPath: "m/44'/60'/0'/0/8",
+        },
+        methods: [
+          'personal_sign',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData_v1',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+        ],
+        scopes: ['eip155:0'],
+        type: 'eip155:eoa',
+        metadata: {
+          name: 'Account 11',
+          importTime: 1751045526113,
+          lastSelected: 0,
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+      },
+      'bb7145b2-9c39-4c06-8624-b78d8d60cc08': {
+        id: 'bb7145b2-9c39-4c06-8624-b78d8d60cc08',
+        address: '0xf49dc341f31ceab883301bd0d82df3d2223d681d',
+        options: {
+          entropySource: '01JXA9KQBWD60ZB6STX279GQMF',
+          derivationPath: "m/44'/60'/0'/0/9",
+        },
+        methods: [
+          'personal_sign',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData_v1',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+        ],
+        scopes: ['eip155:0'],
+        type: 'eip155:eoa',
+        metadata: {
+          name: 'Account 12',
+          importTime: 1751045526113,
+          lastSelected: 0,
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+      },
+      '59684ec0-1ffe-4f59-9121-05545aeed3b7': {
+        id: '59684ec0-1ffe-4f59-9121-05545aeed3b7',
+        address: '0x428f04e9ea21b31090d377f24501065cbb48512f',
+        options: {},
+        methods: [
+          'personal_sign',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData_v1',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+        ],
+        scopes: ['eip155:0'],
+        type: 'eip155:eoa',
+        metadata: {
+          name: 'QR 1',
+          importTime: 1751045516139,
+          lastSelected: 0,
+          keyring: {
+            type: 'QR Hardware Wallet Device',
+          },
+        },
+      },
+      '432425df-4a96-4fd6-bf41-264ea48b17a6': {
+        id: '432425df-4a96-4fd6-bf41-264ea48b17a6',
+        address: '0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b',
+        options: {
+          entropySource: '01JXA9MYRXNW16JZSZJXD6F9SD',
+          derivationPath: "m/44'/60'/0'/0/0",
+        },
+        methods: [
+          'personal_sign',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData_v1',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+        ],
+        scopes: ['eip155:0'],
+        type: 'eip155:eoa',
+        metadata: {
+          name: 'Account 3',
+          importTime: 1751045516139,
+          lastSelected: 0,
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+      },
+      '48db331b-f5dc-41e2-90a2-fcbc1dfc8e0f': {
+        id: '48db331b-f5dc-41e2-90a2-fcbc1dfc8e0f',
+        address: '0xf04d744cf1d81bb702a6e7b8faf0fd7914e230f4',
+        options: {
+          entropySource: '01JXA9MYRXNW16JZSZJXD6F9SD',
+          derivationPath: "m/44'/60'/0'/0/1",
+        },
+        methods: [
+          'personal_sign',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData_v1',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+        ],
+        scopes: ['eip155:0'],
+        type: 'eip155:eoa',
+        metadata: {
+          name: 'Account 13',
+          importTime: 1751045530503,
+          lastSelected: 0,
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+      },
+      'bb982de5-5b49-477e-b0d3-60ba8897843f': {
+        id: 'bb982de5-5b49-477e-b0d3-60ba8897843f',
+        address: '0x7cc004a80e3a0e2aa88b1a2de5cacc615474008c',
+        options: {
+          entropySource: '01JXA9MYRXNW16JZSZJXD6F9SD',
+          derivationPath: "m/44'/60'/0'/0/2",
+        },
+        methods: [
+          'personal_sign',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData_v1',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+        ],
+        scopes: ['eip155:0'],
+        type: 'eip155:eoa',
+        metadata: {
+          name: 'Account 14',
+          importTime: 1751045530504,
+          lastSelected: 0,
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+      },
+      '60f9ccc2-2c17-4cc1-a527-faa68ad5da36': {
+        id: '60f9ccc2-2c17-4cc1-a527-faa68ad5da36',
+        address: '0x7c0f9b6dff9ebdcaf4f517e4e097ffdbdc692329',
+        options: {
+          entropySource: '01JXA9MYRXNW16JZSZJXD6F9SD',
+          derivationPath: "m/44'/60'/0'/0/3",
+        },
+        methods: [
+          'personal_sign',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData_v1',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+        ],
+        scopes: ['eip155:0'],
+        type: 'eip155:eoa',
+        metadata: {
+          name: 'Account 15',
+          importTime: 1751045530504,
+          lastSelected: 0,
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+      },
+      '74c5b88e-aedb-4dd0-95ee-1e626f87c6c2': {
+        id: '74c5b88e-aedb-4dd0-95ee-1e626f87c6c2',
+        address: '0x84b4ebb7492e6deb8892b16b0ee425e39d3116a4',
+        options: {},
+        methods: [
+          'personal_sign',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData_v1',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+        ],
+        scopes: ['eip155:0'],
+        type: 'eip155:eoa',
+        metadata: {
+          name: 'Account 4',
+          importTime: 1751045516139,
+          lastSelected: 0,
+          keyring: {
+            type: 'Simple Key Pair',
+          },
+        },
+      },
+    },
+    selectedAccount: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
+  },
+};
