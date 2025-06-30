@@ -367,6 +367,7 @@ const Login: React.FC = () => {
           await Authentication.appTriggeredAuth();
         },
       );
+
       await checkMetricsUISeen();
 
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
