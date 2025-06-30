@@ -22,6 +22,7 @@ import OrderProcessing from '../Views/OrderProcessing';
 import TokenSelectorModal from '../Views/Modals/TokenSelectorModal';
 import RegionSelectorModal from '../Views/Modals/RegionSelectorModal';
 import PaymentMethodSelectorModal from '../Views/Modals/PaymentMethodSelectorModal';
+import UnsupportedRegionModal from '../Views/Modals/UnsupportedRegionModal';
 
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -131,6 +132,10 @@ export const DepositModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.DEPOSIT.MODALS.REGION_SELECTOR}
       component={RegionSelectorModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION}
+      component={UnsupportedRegionModal}
     />
   </ModalsStack.Navigator>
 );
