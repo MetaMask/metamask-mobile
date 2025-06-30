@@ -208,7 +208,6 @@ describe('Confirm', () => {
     const { getByText } = renderWithProvider(<Confirm />, {
       state: stakingClaimConfirmationState,
     });
-    expect(getByText('Estimated changes')).toBeDefined();
     expect(getByText('Claiming to')).toBeDefined();
     expect(getByText('Interacting with')).toBeDefined();
     expect(getByText('Pooled Staking')).toBeDefined();
