@@ -37,7 +37,7 @@ export interface TagBaseProps extends ListItemProps {
   /**
    * Optional prop to configure the prop of children if a string is given.
    */
-  textProps?: TextProps;
+  textProps?: Partial<TextProps>;
   /**
    * Optional content to be displayed after the children.
    */
