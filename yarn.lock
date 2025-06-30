@@ -5309,22 +5309,6 @@
     bn.js "^5.2.1"
     uuid "^8.3.2"
 
-"@metamask/gas-fee-controller@^24.0.0":
-  version "24.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/gas-fee-controller/-/gas-fee-controller-24.0.0.tgz#4377ddcfebf56a90850b5f11cf28e1840725b89a"
-  integrity sha512-N21nZtYBNfiGlhR3n6OxxvcNJ7vvSfsl9RzHUZ/K6L3yZrHxkTk11MdVUOtnskGTPMjf1/2r193zJJORQth7vQ==
-  dependencies:
-    "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.10.0"
-    "@metamask/eth-query" "^4.0.0"
-    "@metamask/ethjs-unit" "^0.3.0"
-    "@metamask/polling-controller" "^14.0.0"
-    "@metamask/utils" "^11.2.0"
-    "@types/bn.js" "^5.1.5"
-    "@types/uuid" "^8.3.0"
-    bn.js "^5.2.1"
-    uuid "^8.3.2"
-
 "@metamask/json-rpc-engine@^10.0.0", "@metamask/json-rpc-engine@^10.0.2", "@metamask/json-rpc-engine@^10.0.3":
   version "10.0.3"
   resolved "https://registry.yarnpkg.com/@metamask/json-rpc-engine/-/json-rpc-engine-10.0.3.tgz#9258c4718abe305121872414a5c828e43cfcc0f9"
@@ -5680,18 +5664,6 @@
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.6.0"
-    "@metamask/utils" "^11.2.0"
-    "@types/uuid" "^8.3.0"
-    fast-json-stable-stringify "^2.1.0"
-    uuid "^8.3.2"
-
-"@metamask/polling-controller@^14.0.0":
-  version "14.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/polling-controller/-/polling-controller-14.0.0.tgz#7df52999078c9636ca189075242fab600cdec67a"
-  integrity sha512-vurrLkSCPCjdMT9t+lnfTPKYzAoCCjhiG1HJS5RV0KIxBDbtebUfkXc45cfqlplIcdGZPkf7Ordb95vuXTSDxA==
-  dependencies:
-    "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.10.0"
     "@metamask/utils" "^11.2.0"
     "@types/uuid" "^8.3.0"
     fast-json-stable-stringify "^2.1.0"
