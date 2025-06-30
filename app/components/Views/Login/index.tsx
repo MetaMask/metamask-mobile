@@ -335,6 +335,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const onLogin = async () => {
     endTrace({ name: TraceName.LoginUserInteraction });
 
+
     // Track wallet rehydration attempted only for social login flows
     if (oauthLoginSuccess) {
       track(
