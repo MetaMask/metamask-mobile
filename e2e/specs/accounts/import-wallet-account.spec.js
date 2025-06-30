@@ -43,7 +43,7 @@ describe(SmokeNetworkExpansion('Import account via private to wallet'), () => {
     await SuccessImportAccountView.tapCloseButton();
     await AccountListBottomSheet.swipeToDismissAccountsModal();
     await Assertions.expectVisible(WalletView.container);
-    await Assertions.checkIfElementNotToHaveText(
+    await Assertions.expectNotToHaveText(
       WalletView.accountName,
       'Account 1',
     );

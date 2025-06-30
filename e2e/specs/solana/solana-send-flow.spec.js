@@ -29,7 +29,7 @@ describe(
 
     it('should import wallet with a Solana account', async () => {
       await importWalletWithRecoveryPhrase({
-        seedPhrase: 'ability dash high cupboard age analyst mail very spawn sentence caught glad',
+        seedPhrase: process.env.MM_SOLANA_E2E_TEST_SRP,
         solanaSheetAction: 'viewAccount',
       });
       await NetworkEducationModal.tapGotItButton();
