@@ -294,7 +294,7 @@ export default class Gestures {
     return Utilities.executeWithRetry(
       async () => {
         const target = (await targetElement) as Detox.IndexableNativeElement;
-        const scrollable = (await scrollableContainer) as Detox.NativeMatcher; // Ensure scrollable is a Detox matcher
+        const scrollable = (await scrollableContainer); // This is only working when it's awaited
         await waitFor(target)
           .toBeVisible()
           .whileElement(scrollable)
@@ -448,8 +448,16 @@ export default class Gestures {
    * @deprecated Use scrollToElement() instead for better error handling and retry mechanisms
    */
   static async scrollToWebViewPort(
-    detoxElement: Promise<Detox.IndexableWebElement>,
+    detoxElement: WebElement,
   ): Promise<void> {
-    await (await detoxElement).scrollToView();
+    await Utilities.executeWithRetry(
+      async () => {
+        await (await detoxElement).scrollToView();
+      },
+      {
+        timeout: BASE_DEFAULTS.timeout,
+        description: 'scrollToWebViewPort()',
+      }
+    );
   }
 }
