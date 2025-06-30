@@ -212,8 +212,8 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'France',
     phone: {
       prefix: '+33',
-      placeholder: '123 456 789',
-      template: 'XXX XXX XXX',
+      placeholder: '6 12 34 56 78',
+      template: 'X XX XX XX XX',
     },
     currency: 'EUR',
     supported: true,
@@ -488,8 +488,8 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     name: 'United Kingdom',
     phone: {
       prefix: '+44',
-      placeholder: '1234 567890',
-      template: 'XXXX XXXXXX',
+      placeholder: '12345 67890',
+      template: 'XXXXX XXXXX',
     },
     currency: 'GBP',
     supported: true,
