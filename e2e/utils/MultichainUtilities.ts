@@ -1,5 +1,6 @@
 import { SolScope } from '@metamask/keyring-api';
 import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
+import { isCaipChainId } from '@metamask/utils';
 
 /**
  * Session result structure from multichain test dapp
@@ -74,12 +75,10 @@ export default class MultichainUtilities {
    * @returns CAIP-25 chain ID (e.g., 'solana:mainnet')
    */
   static getScope(chainId: string): string {
-    switch (chainId) {
-      case 'solana':
-        return this.SCOPES().SOLANA_MAINNET;
-      default:
-        return this.getEIP155Scope(chainId);
+    if (isCaipChainId(chainId)) {
+      return chainId;
     }
+    return this.getEIP155Scope(chainId);
   }
 
   /**

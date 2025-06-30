@@ -17,9 +17,13 @@ import Assertions from '../../../utils/Assertions';
 import MultichainTestDApp from '../../../pages/Browser/MultichainTestDApp';
 import SolanaNewFeatureSheet from '../../../pages/wallet/SolanaNewFeatureSheet';
 import AddNewHdAccountComponent from '../../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
+import Gestures from '../../../utils/Gestures';
+import Matchers from '../../../utils/Matchers';
+
+const SOLANA_MAINNET_CHAIN_ID = SolScope.Mainnet;
 
 describe(SmokeNetworkExpansion('Solana - wallet_invokeMethod'), () => {
-  it('should be able to call signIn method', async () => {
+  it('should be able to call method: signIn', async () => {
     await withFixtures(
       {
         ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
@@ -41,22 +45,28 @@ describe(SmokeNetworkExpansion('Solana - wallet_invokeMethod'), () => {
 
         await MultichainTestDApp.navigateToMultichainTestDApp();
 
-        const networksToTest = [SolScope.Mainnet];
-
-        await MultichainTestDApp.createSessionWithNetworks(networksToTest);
+        await MultichainTestDApp.createSessionWithNetworks([
+          SOLANA_MAINNET_CHAIN_ID,
+        ]);
 
         const method = 'signIn';
 
-        await MultichainTestDApp.invokeMethodOnChain('solana', method);
-
-        const confirmButton = element(by.text('Confirm'));
-        await waitFor(confirmButton).toBeVisible().withTimeout(5000);
-        await confirmButton.tap();
-
-        const resultText = await MultichainTestDApp.getInvokeMethodResult(
-          'solana',
+        await MultichainTestDApp.invokeMethodOnChain(
+          SOLANA_MAINNET_CHAIN_ID,
           method,
         );
+
+        const buttonElement = await Matchers.getElementByText('Confirm');
+        await Gestures.waitAndTap(buttonElement);
+
+        const resultText = await MultichainTestDApp.getInvokeMethodResult(
+          SOLANA_MAINNET_CHAIN_ID,
+          method,
+        );
+
+        if (!resultText) {
+          throw new Error(`No result found for ${method} on chain: Solana`);
+        }
 
         const expectedProperties = [
           'account',
@@ -64,10 +74,6 @@ describe(SmokeNetworkExpansion('Solana - wallet_invokeMethod'), () => {
           'signatureType',
           'signedMessage',
         ];
-
-        if (!resultText) {
-          throw new Error(`No result found for ${method} on chain: Solana`);
-        }
 
         for (const property of expectedProperties) {
           if (!resultText.includes(property)) {
