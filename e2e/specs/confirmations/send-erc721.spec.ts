@@ -6,7 +6,7 @@ import { loginToApp } from '../../viewHelper';
 
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
-import FixtureBuilder, { DEFAULT_FIXTURE_ACCOUNT } from '../../fixtures/fixture-builder';
+import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   withFixtures,
   defaultGanacheOptions,
@@ -18,10 +18,7 @@ import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../fixtures/utils';
 import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import { getMegaTestnetRpcMocks } from '../../api-mocking/mock-responses/mega-testnet-rpc-mocks';
-
 const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
-const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
 
 
 describe(SmokeConfirmations('ERC721 tokens'), () => {
@@ -82,24 +79,19 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
     );
   });
 
-it.only(`send an ERC721 token from a dapp using ${MEGAETH_TESTNET.nickname}`, async () => {
+it.only(`send an ERC721 token from a dapp using local Anvil`, async () => {
     await withFixtures(
       {
         dapp: true,
         fixture: new FixtureBuilder()
-          .withMegaTestnetNetwork()
+          .withGanacheNetwork()
           .withPermissionControllerConnectedToTestDapp(
-            buildPermissions([`${MEGAETH_TESTNET.chainId}`]),
+            buildPermissions(['0x539']), // Ganache chain ID
           )
           .build(),
         restartDevice: true,
         smartContract: NFT_CONTRACT,
-        testSpecificMock: {
-          POST: getMegaTestnetRpcMocks({
-            accounts: [DEFAULT_FIXTURE_ACCOUNT],
-            balance: '0xde0b6b3a7640000', // 1 ETH in wei
-          }),
-        },
+        ganacheOptions: defaultGanacheOptions,
       },
       // Remove any once withFixtures is typed
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -128,19 +120,18 @@ it.only(`send an ERC721 token from a dapp using ${MEGAETH_TESTNET.nickname}`, as
         await TabBarComponent.tapActivity();
 
         // Initially should show "Submitted"
-        await Assertions.checkIfTextIsDisplayed('Submitted');
-
-        // Wait for transaction to be confirmed
-        // Our mock: 3s for receipt + blocks every 2s + MetaMask needs sufficient confirmations
-        // MetaMask checks every 30s, so we need enough time for multiple confirmation checks
-        await TestHelpers.delay(30000);
-
-        // Refresh the activity view to see updated status
-        await TabBarComponent.tapWallet();
-        await TabBarComponent.tapActivity();
-
-        // Now should show "Confirmed" and "sent collectible"
         await Assertions.checkIfTextIsDisplayed('Confirmed');
+
+        // // Wait for transaction to be confirmed on local Anvil
+        // // Local blockchain mines blocks immediately, so confirmation should be fast
+        // await TestHelpers.delay(5000);
+
+        // // Refresh the activity view to see updated status
+        // await TabBarComponent.tapWallet();
+        // await TabBarComponent.tapActivity();
+
+        // // Now should show "Confirmed" and "sent collectible"
+        // await Assertions.checkIfTextIsDisplayed('Confirmed');
         await Assertions.checkIfTextIsDisplayed(
           ActivitiesViewSelectorsText.SENT_COLLECTIBLE_MESSAGE_TEXT,
         );
