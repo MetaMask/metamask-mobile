@@ -69,7 +69,7 @@ async function parseDeeplink({
           isPrivateLink = false;
           break;
         default:
-                isPrivateLink = false;
+          isPrivateLink = false;
           break;
       }
       return isPrivateLink;

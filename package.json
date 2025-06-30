@@ -619,7 +619,7 @@
       "ganache>leveldown": false,
       "ganache>secp256k1": true,
       "ganache>utf-8-validate": false,
-      "husky": true,
+      "husky": false,
       "react-native-inappbrowser-reborn": false,
       "react-native-svg-asset-plugin>sharp": true,
       "@storybook/builder-webpack5>@swc/core": false,

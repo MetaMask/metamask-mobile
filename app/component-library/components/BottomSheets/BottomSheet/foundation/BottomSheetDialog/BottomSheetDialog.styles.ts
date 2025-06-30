@@ -20,7 +20,7 @@ const styleSheet = (params: {
   theme: Theme;
   vars: BottomSheetDialogStyleSheetVars;
 }) => {
-        const { vars, theme } = params;
+  const { vars, theme } = params;
   const { colors, shadows } = theme;
   const { isFullscreen, maxSheetHeight, screenBottomPadding, style } = vars;
 

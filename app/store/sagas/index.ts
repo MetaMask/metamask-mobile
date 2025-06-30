@@ -105,7 +105,7 @@ export function* biometricsStateMachine(originalBioStateMachineId: string) {
 
   if (action?.type === UserActionType.INTERRUPT_BIOMETRICS) {
     // Biometrics was most likely interrupted during authentication with a non-zero lock timer.
-          yield fork(lockKeyringAndApp);
+    yield fork(lockKeyringAndApp);
   } else if (action?.type === UserActionType.AUTH_ERROR) {
     // Authentication service will automatically log out.
   } else if (action?.type === UserActionType.AUTH_SUCCESS) {
