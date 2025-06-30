@@ -11,6 +11,8 @@ import { regex } from '../../../util/regex';
 import {
   createMockAccountsControllerState,
   createMockAccountsControllerStateWithSnap,
+  internalAccount1,
+  internalAccount2,
   MOCK_ADDRESS_1,
   MOCK_ADDRESS_2,
 } from '../../../util/test/accountsControllerTestUtils';
@@ -22,9 +24,10 @@ import { CellComponentSelectorsIDs } from '../../../../e2e/selectors/wallet/Cell
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 import { AVATARGROUP_CONTAINER_TESTID } from '../../../component-library/components/Avatars/AvatarGroup/AvatarGroup.constants';
-import { KnownCaipNamespace } from '@metamask/utils';
+import { CaipAccountId, KnownCaipNamespace } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { EthScope } from '@metamask/keyring-api';
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -220,7 +223,7 @@ const onRemoveImportedAccount = jest.fn();
 
 // Helper function to set mock implementation for useAccounts
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const setAccountsMock = (mockAccounts: any[], mockEnsByAccountAddress = {}) => {
+const setAccountsMock = (mockAccounts: Account[], mockEnsByAccountAddress = {}) => {
   const mockAccountData = {
     accounts: mockAccounts,
     evmAccounts: [],
@@ -239,13 +242,13 @@ const defaultAccountsMock = [
       fiatBalance: '$3200.00\n1 ETH',
       tokens: [],
     },
-    type: 'HD Key Tree',
+    type: KeyringTypes.hd,
     yOffset: 0,
     isSelected: true,
     balanceError: undefined,
-    caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+    caipAccountId: `${EthScope.Eoa}:${BUSINESS_ACCOUNT}` as CaipAccountId,
+    scopes: [EthScope.Eoa],
     isLoadingAccount: false,
-    scopes: [],
   },
   {
     id: PERSONAL_ACCOUNT_ID,
@@ -255,13 +258,13 @@ const defaultAccountsMock = [
       fiatBalance: '$6400.00\n2 ETH',
       tokens: [],
     },
-    type: 'HD Key Tree',
+    type: KeyringTypes.hd,
     yOffset: 78,
     isSelected: false,
     balanceError: undefined,
-    caipAccountId: `eip155:0:${PERSONAL_ACCOUNT}`,
+    caipAccountId: `${EthScope.Eoa}:${BUSINESS_ACCOUNT}` as CaipAccountId,
+    scopes: [EthScope.Eoa],
     isLoadingAccount: false,
-    scopes: [],
   },
 ];
 
@@ -396,8 +399,9 @@ describe('EvmAccountSelectorList', () => {
     // Setup mock with snap accounts
     const mockSnapAccounts = [
       {
+        id: internalAccount1.id,
         name: 'Snap Account 1',
-        address: MOCK_ADDRESS_1,
+        address: internalAccount1.address,
         assets: {
           fiatBalance: '$3200.00\n1 ETH',
           tokens: [],
@@ -406,7 +410,9 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`,
+        caipAccountId: `${EthScope.Eoa}:${MOCK_ADDRESS_1}` as CaipAccountId,
+        scopes: [EthScope.Eoa],
+        isLoadingAccount: false,
       },
     ];
 
@@ -474,6 +480,7 @@ describe('EvmAccountSelectorList', () => {
     // Setup mock with removable account
     const mockSimpleAccount = [
       {
+        id: BUSINESS_ACCOUNT_ID,
         name: 'Account 1',
         address: BUSINESS_ACCOUNT,
         assets: {
@@ -484,7 +491,9 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+        caipAccountId: `${EthScope.Eoa}:${BUSINESS_ACCOUNT}` as CaipAccountId,
+        scopes: [EthScope.Eoa],
+        isLoadingAccount: false,
       },
     ];
 
@@ -558,8 +567,9 @@ describe('EvmAccountSelectorList', () => {
     // Setup mock with removable snap accounts
     const mockSnapAccounts = [
       {
+        id: internalAccount1.id,
         name: 'Snap Account 1',
-        address: MOCK_ADDRESS_1,
+        address: internalAccount1.address,
         assets: {
           fiatBalance: '$3200.00\n1 ETH',
           tokens: [],
@@ -568,11 +578,14 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`,
+        caipAccountId: `${EthScope.Eoa}:${internalAccount1.address}` as CaipAccountId,
+        scopes: [EthScope.Eoa],
+        isLoadingAccount: false,
       },
       {
+        id: internalAccount2.id,
         name: 'Snap Account 2',
-        address: MOCK_ADDRESS_2,
+        address: internalAccount2.address,
         assets: {
           fiatBalance: '$6400.00\n2 ETH',
           tokens: [],
@@ -581,7 +594,9 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 78,
         isSelected: false,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_2}`,
+        caipAccountId: `${EthScope.Eoa}:${internalAccount2.address}` as CaipAccountId,
+        scopes: [EthScope.Eoa],
+        isLoadingAccount: false,
       },
     ];
 
@@ -623,13 +638,13 @@ describe('EvmAccountSelectorList', () => {
 
     // Verify onRemoveImportedAccount was called with correct parameters
     expect(onRemoveImportedAccount).toHaveBeenCalledWith({
-      removedAddress: MOCK_ADDRESS_1,
-      nextActiveAddress: MOCK_ADDRESS_2,
+      removedAddress: internalAccount1.address,
+      nextActiveAddress: internalAccount2.address,
     });
 
     // Verify KeyringController.removeAccount was called
     expect(Engine.context.KeyringController.removeAccount).toHaveBeenCalledWith(
-      MOCK_ADDRESS_1,
+      internalAccount1.address,
     );
 
     mockAlert.mockRestore();
@@ -647,7 +662,7 @@ describe('EvmAccountSelectorList', () => {
       yOffset: 0,
       isSelected: true,
       balanceError: 'Balance error message',
-      caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+      caipAccountId: `${EthScope.Eoa}:${BUSINESS_ACCOUNT}` as CaipAccountId,
     };
 
     setAccountsMock([mockAccount]);
@@ -673,16 +688,19 @@ describe('EvmAccountSelectorList', () => {
   it('renders in multi-select mode', () => {
     setAccountsMock([
       {
+        id: BUSINESS_ACCOUNT_ID,
         name: 'Account 1',
         address: BUSINESS_ACCOUNT,
         assets: {
           fiatBalance: '$3200.00\n1 ETH',
         },
-        type: 'HD Key Tree',
+        type: KeyringTypes.hd,
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+        caipAccountId: `${EthScope.Eoa}:${BUSINESS_ACCOUNT}` as CaipAccountId,
+        scopes: [EthScope.Eoa],
+        isLoadingAccount: false,
       },
     ]);
 
@@ -815,7 +833,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+        caipAccountId: `${EthScope.Eoa}:${BUSINESS_ACCOUNT}` as CaipAccountId,
       },
     ]);
 
@@ -847,6 +865,7 @@ describe('EvmAccountSelectorList', () => {
     // Mock account data for a simple keyring account (normally removable)
     setAccountsMock([
       {
+        id: BUSINESS_ACCOUNT_ID,
         name: 'Account 1',
         address: BUSINESS_ACCOUNT,
         assets: {
@@ -856,7 +875,9 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+        caipAccountId: `${EthScope.Eoa}:${BUSINESS_ACCOUNT}` as CaipAccountId,
+        scopes: [EthScope.Eoa],
+        isLoadingAccount: false,
       },
     ]);
 
@@ -926,15 +947,17 @@ describe('EvmAccountSelectorList', () => {
     (useAccounts as jest.Mock).mockReturnValue({
       accounts: [
         {
-          id: 'mock-account-id-1',
+          id: BUSINESS_ACCOUNT_ID,
           name: 'Account 1',
           address: BUSINESS_ACCOUNT,
           assets: { fiatBalance: '$3200.00\n1 ETH' },
-          type: 'HD Key Tree',
+          type: KeyringTypes.hd,
           yOffset: 150,
           isSelected: true,
           balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+          caipAccountId: `${EthScope.Eoa}:${BUSINESS_ACCOUNT}` as CaipAccountId,
+          scopes: [EthScope.Eoa],
+          isLoadingAccount: false,
         },
       ],
       evmAccounts: [],
@@ -987,16 +1010,19 @@ describe('EvmAccountSelectorList', () => {
     setAccountsMock(
       [
         {
+          id: BUSINESS_ACCOUNT_ID,
           name: 'Account 1', // Default account name
           address: BUSINESS_ACCOUNT,
           assets: {
             fiatBalance: '$3200.00\n1 ETH',
           },
-          type: 'HD Key Tree',
+          type: KeyringTypes.hd,
           yOffset: 0,
           isSelected: true,
           balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+          caipAccountId: `${EthScope.Eoa}:${BUSINESS_ACCOUNT}` as CaipAccountId,
+          scopes: [EthScope.Eoa],
+          isLoadingAccount: false,
         },
       ],
       {
@@ -1026,16 +1052,19 @@ describe('EvmAccountSelectorList', () => {
     setAccountsMock(
       [
         {
+          id: BUSINESS_ACCOUNT_ID,
           name: 'My Custom Account Name',
           address: BUSINESS_ACCOUNT,
           assets: {
             fiatBalance: '$3200.00\n1 ETH',
           },
-          type: 'HD Key Tree',
+          type: KeyringTypes.hd,
           yOffset: 0,
           isSelected: true,
           balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+          caipAccountId: `${EthScope.Eoa}:${BUSINESS_ACCOUNT}` as CaipAccountId,
+          scopes: [EthScope.Eoa],
+          isLoadingAccount: false,
         },
       ],
       {
@@ -1060,6 +1089,7 @@ describe('EvmAccountSelectorList', () => {
     // Setup with multiple accounts using the same addresses as in initialState
     const mockMultipleAccounts = [
       {
+        id: BUSINESS_ACCOUNT_ID,
         name: 'Account 1',
         address: BUSINESS_ACCOUNT,
         assets: {
@@ -1070,9 +1100,12 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+        caipAccountId: `${EthScope.Eoa}:${BUSINESS_ACCOUNT}` as CaipAccountId,
+        scopes: [EthScope.Eoa],
+        isLoadingAccount: false,
       },
       {
+        id: PERSONAL_ACCOUNT_ID,
         name: 'Account 2',
         address: PERSONAL_ACCOUNT, // Use PERSONAL_ACCOUNT instead of MOCK_ADDRESS_1
         assets: {
@@ -1083,7 +1116,9 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 78,
         isSelected: false,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${PERSONAL_ACCOUNT}`,
+        caipAccountId: `${EthScope.Eoa}:${PERSONAL_ACCOUNT}` as CaipAccountId,
+        scopes: [EthScope.Eoa],
+        isLoadingAccount: false,
       },
     ];
 
@@ -1112,6 +1147,7 @@ describe('EvmAccountSelectorList', () => {
     // Setup account with balance error
     const mockAccountWithError = [
       {
+        id: BUSINESS_ACCOUNT_ID,
         name: 'Error Account',
         address: BUSINESS_ACCOUNT,
         assets: {
@@ -1121,8 +1157,10 @@ describe('EvmAccountSelectorList', () => {
         type: KeyringTypes.simple,
         yOffset: 0,
         isSelected: true,
-        balanceError: true, // Account has balance error
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+        balanceError: 'Balance error', // Account has balance error
+        caipAccountId: `${EthScope.Eoa}:${BUSINESS_ACCOUNT}` as CaipAccountId,
+        scopes: [EthScope.Eoa],
+        isLoadingAccount: false,
       },
     ];
 
@@ -1139,6 +1177,7 @@ describe('EvmAccountSelectorList', () => {
     // Setup accounts with one marked for auto-scroll
     const mockAccountsForScroll = [
       {
+        id: BUSINESS_ACCOUNT_ID,
         name: 'Account 1',
         address: BUSINESS_ACCOUNT,
         assets: {
@@ -1149,11 +1188,14 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 0,
         isSelected: false,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+        caipAccountId: `${EthScope.Eoa}:${BUSINESS_ACCOUNT}` as CaipAccountId,
+        scopes: [EthScope.Eoa],
+        isLoadingAccount: false,
       },
       {
+        id: internalAccount2.id,
         name: 'Account 2',
-        address: MOCK_ADDRESS_1,
+        address: internalAccount2.address,
         assets: {
           fiatBalance: '$6400.00\n2 ETH',
           tokens: [],
@@ -1163,7 +1205,9 @@ describe('EvmAccountSelectorList', () => {
         isSelected: true,
         balanceError: undefined,
         autoScroll: true, // This account should be auto-scrolled to
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`,
+        caipAccountId: `${EthScope.Eoa}:${MOCK_ADDRESS_1}` as CaipAccountId,
+        scopes: [EthScope.Eoa],
+        isLoadingAccount: false,
       },
     ];
 
@@ -1438,14 +1482,17 @@ describe('EvmAccountSelectorList', () => {
     // Mock accounts with selected account
     setAccountsMock([
       {
+        id: BUSINESS_ACCOUNT_ID,
         name: 'Account 1',
         address: BUSINESS_ACCOUNT,
         assets: { fiatBalance: '$3200.00\n1 ETH' },
-        type: 'HD Key Tree',
+        type: KeyringTypes.hd,
         yOffset: 150,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+        caipAccountId: `${EthScope.Eoa}:${BUSINESS_ACCOUNT}` as CaipAccountId,
+        scopes: [EthScope.Eoa],
+        isLoadingAccount: false,
       },
     ]);
 
@@ -1594,6 +1641,7 @@ describe('EvmAccountSelectorList', () => {
           name: 'with selectedAddresses provided',
           accounts: [
             {
+              id: BUSINESS_ACCOUNT_ID,
               name: 'Account 1',
               address: BUSINESS_ACCOUNT,
               assets: { fiatBalance: '$3200.00\n1 ETH' },
@@ -1601,9 +1649,9 @@ describe('EvmAccountSelectorList', () => {
               yOffset: 150,
               isSelected: false,
               balanceError: undefined,
-              caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+              caipAccountId: `${EthScope.Eoa}:${BUSINESS_ACCOUNT}` as CaipAccountId,
+              scopes: [EthScope.Eoa],
               isLoadingAccount: false,
-              scopes: ['eip155:1'],
             },
           ],
           selectedAddresses: [BUSINESS_ACCOUNT],
@@ -1613,6 +1661,7 @@ describe('EvmAccountSelectorList', () => {
           name: 'with isSelected fallback',
           accounts: [
             {
+              id: BUSINESS_ACCOUNT_ID,
               name: 'Account 1',
               address: BUSINESS_ACCOUNT,
               assets: { fiatBalance: '$3200.00\n1 ETH' },
@@ -1620,11 +1669,12 @@ describe('EvmAccountSelectorList', () => {
               yOffset: 150,
               isSelected: false,
               balanceError: undefined,
-              caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+              caipAccountId: `${EthScope.Eoa}:${BUSINESS_ACCOUNT}` as CaipAccountId,
+              scopes: [EthScope.Eoa],
               isLoadingAccount: false,
-              scopes: ['eip155:1'],
             },
             {
+              id: PERSONAL_ACCOUNT_ID,
               name: 'Account 2',
               address: PERSONAL_ACCOUNT,
               assets: { fiatBalance: '$6400.00\n2 ETH' },
@@ -1632,9 +1682,9 @@ describe('EvmAccountSelectorList', () => {
               yOffset: 300,
               isSelected: true,
               balanceError: undefined,
-              caipAccountId: `eip155:0:${PERSONAL_ACCOUNT}`,
+              caipAccountId: `${EthScope.Eoa}:${PERSONAL_ACCOUNT}` as CaipAccountId,
+              scopes: [EthScope.Eoa],
               isLoadingAccount: false,
-              scopes: ['eip155:1'],
             },
           ],
           selectedAddresses: [],
@@ -1644,6 +1694,7 @@ describe('EvmAccountSelectorList', () => {
           name: 'with no selected account',
           accounts: [
             {
+              id: BUSINESS_ACCOUNT_ID,
               name: 'Account 1',
               address: BUSINESS_ACCOUNT,
               assets: { fiatBalance: '$3200.00\n1 ETH' },
@@ -1651,9 +1702,9 @@ describe('EvmAccountSelectorList', () => {
               yOffset: 150,
               isSelected: false,
               balanceError: undefined,
-              caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+              caipAccountId: `${EthScope.Eoa}:${BUSINESS_ACCOUNT}` as CaipAccountId,
+              scopes: [EthScope.Eoa],
               isLoadingAccount: false,
-              scopes: ['eip155:1'],
             },
           ],
           selectedAddresses: [],
@@ -1663,6 +1714,7 @@ describe('EvmAccountSelectorList', () => {
           name: 'with invalid address',
           accounts: [
             {
+              id: BUSINESS_ACCOUNT_ID,
               name: 'Account 1',
               address: BUSINESS_ACCOUNT,
               assets: { fiatBalance: '$3200.00\n1 ETH' },
@@ -1670,9 +1722,9 @@ describe('EvmAccountSelectorList', () => {
               yOffset: 150,
               isSelected: false,
               balanceError: undefined,
-              caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+              caipAccountId: `${EthScope.Eoa}:${BUSINESS_ACCOUNT}` as CaipAccountId,
+              scopes: [EthScope.Eoa],
               isLoadingAccount: false,
-              scopes: ['eip155:1'],
             },
           ],
           selectedAddresses: ['0xInvalidAddress'],
@@ -1682,6 +1734,7 @@ describe('EvmAccountSelectorList', () => {
           name: 'with auto-scroll disabled',
           accounts: [
             {
+              id: BUSINESS_ACCOUNT_ID,
               name: 'Account 1',
               address: BUSINESS_ACCOUNT,
               assets: { fiatBalance: '$3200.00\n1 ETH' },
@@ -1689,9 +1742,9 @@ describe('EvmAccountSelectorList', () => {
               yOffset: 150,
               isSelected: true,
               balanceError: undefined,
-              caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+              caipAccountId: `${EthScope.Eoa}:${BUSINESS_ACCOUNT}` as CaipAccountId,
+              scopes: [EthScope.Eoa],
               isLoadingAccount: false,
-              scopes: ['eip155:1'],
             },
           ],
           selectedAddresses: [BUSINESS_ACCOUNT],
@@ -1771,7 +1824,7 @@ describe('EvmAccountSelectorList', () => {
 
       const mockAccounts: Account[] = [
         {
-          id: 'mock-account-id-1',
+          id: BUSINESS_ACCOUNT_ID,
           name: 'Account 1',
           address: BUSINESS_ACCOUNT,
           assets: { fiatBalance: '$3200.00\n1 ETH' },
@@ -1779,9 +1832,9 @@ describe('EvmAccountSelectorList', () => {
           yOffset: 150,
           isSelected: false,
           balanceError: undefined,
-          caipAccountId: `eip155:1:${BUSINESS_ACCOUNT}` as const,
+          caipAccountId: `${EthScope.Mainnet}:${BUSINESS_ACCOUNT}` as CaipAccountId,
+          scopes: [EthScope.Eoa],
           isLoadingAccount: false,
-          scopes: ['eip155:1'],
         },
       ];
 
