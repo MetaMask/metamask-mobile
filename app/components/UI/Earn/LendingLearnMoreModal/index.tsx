@@ -61,7 +61,7 @@ const BodyText = ({ assetSymbol, protocol }: BodyTextProps) => {
       <View style={styles.row}>
         <Icon name={IconName.Plant} />
         {/* Text Container */}
-        <View>
+        <View style={styles.textContainer}>
           <Text variant={TextVariant.HeadingSM}>
             {strings(
               'earn.market_historic_apr_modal.earn_rewards_on_your_token',

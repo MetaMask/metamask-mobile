@@ -270,6 +270,8 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
       }
       getItem={[Function]}
       getItemCount={[Function]}
+      handlerTag={1}
+      handlerType="NativeViewGestureHandler"
       initialNumToRender={999}
       keyExtractor={[Function]}
       onContentSizeChange={[Function]}
@@ -298,7 +300,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           <TouchableOpacity
             buttonProps={
               {
-                "buttonTestId": "main-wallet-account-actions-0",
+                "buttonTestId": "main-wallet-account-actions",
                 "onButtonClick": [Function],
               }
             }
@@ -490,7 +492,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           <TouchableOpacity
             buttonProps={
               {
-                "buttonTestId": "main-wallet-account-actions-1",
+                "buttonTestId": "main-wallet-account-actions",
                 "onButtonClick": [Function],
               }
             }
