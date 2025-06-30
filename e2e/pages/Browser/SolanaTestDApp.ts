@@ -104,7 +104,7 @@ class SolanaTestDApp {
    */
   async tapButton(webElement: WebElement): Promise<void> {
     await Gestures.scrollToWebViewPort(webElement);
-    await Gestures.tapWebElement(webElement);
+    await Gestures.tap(webElement);
   }
 
   getHeader() {

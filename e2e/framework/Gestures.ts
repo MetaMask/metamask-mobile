@@ -37,6 +37,13 @@ export default class Gestures {
       elemDescription,
     } = options;
 
+    if (Utilities.isWebElement(await detoxElement)) {
+        // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
+        await (expect(await detoxElement) as any).toExist();
+        await (await detoxElement).tap();
+        return;
+    }
+
     const el = await Utilities.checkElementReadyState(detoxElement, {
       checkStability,
       checkVisibility,
@@ -164,9 +171,10 @@ export default class Gestures {
       checkStability: false,
       checkEnabled: true,
       checkVisibility: true,
+      sensitive: false,
     },
   ): Promise<void> {
-    const { timeout, clearFirst, hideKeyboard, elemDescription } = options;
+    const { timeout, clearFirst, hideKeyboard, elemDescription, sensitive } = options;
 
     return Utilities.executeWithRetry(
       async () => {
@@ -186,7 +194,7 @@ export default class Gestures {
         const textToType = hideKeyboard ? text + '\n' : text;
         await el.typeText(textToType);
 
-        console.log(`✅ Successfully typed: "${text}"`);
+        console.log(`✅ Successfully typed: "${sensitive ? '***' : text}" into element: ${elemDescription || 'unknown'}`);
       },
       {
         timeout,

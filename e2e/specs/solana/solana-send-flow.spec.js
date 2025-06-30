@@ -64,7 +64,9 @@ describe(
       await SnapSendActionSheet.tapCloseButton();
       await TabBarComponent.tapActivity();
       await ActivitiesView.tapOnTransactionItem(RECENT_TRANSACTION_INDEX);
-      await Assertions.checkIfTextIsDisplayed(RECIPIENT_SHORT_ADDRESS);
+      await Assertions.expectTextDisplayed(RECIPIENT_SHORT_ADDRESS, {
+        allowDuplicates: true,
+      });
     });
   },
 );

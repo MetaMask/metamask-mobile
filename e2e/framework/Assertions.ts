@@ -148,13 +148,15 @@ export default class Assertions {
    */
   static async expectTextDisplayed(
     text: string,
-    options: AssertionOptions = {},
+    options: AssertionOptions & { allowDuplicates?: boolean } = {},
   ): Promise<void> {
-    const { timeout = BASE_DEFAULTS.timeout } = options;
+    const { timeout = BASE_DEFAULTS.timeout, allowDuplicates = false } = options;
 
     return Utilities.executeWithRetry(
       async () => {
-        const textElement = element(by.text(text));
+        const textElement = allowDuplicates
+          ? element(by.text(text)).atIndex(0)
+          : element(by.text(text));
         if (device.getPlatform() === 'ios') {
           await waitFor(textElement).toExist().withTimeout(100);
         } else {
@@ -163,7 +165,7 @@ export default class Assertions {
       },
       {
         timeout,
-        description: `Assert text "${text}" is displayed`,
+        description: `Assert text "${text}" is displayed${allowDuplicates ? ' (allowing duplicates)' : ''}`,
       },
     );
   }
@@ -359,10 +361,6 @@ export default class Assertions {
     await (expect(el) as any).toHaveToggleValue(false);
   }
 
-  /**
-   * Legacy method: Check if two text values match exactly
-   * @deprecated Use Jest expect() directly or custom assertion instead
-   */
   static async checkIfTextMatches(
     actualText: string,
     expectedText: string,

@@ -64,14 +64,14 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
     await AddNewHdAccountComponent.tapConfirm();
     await WalletView.tapIdenticon();
     // Check if the Solana account is created
-    await Assertions.checkIfTextIsDisplayed(ACCOUNT_ONE_TEXT);
+    await Assertions.expectText(WalletView.accountName, ACCOUNT_ONE_TEXT);
   });
 
   it('should create another Solana account from the bottom sheet', async () => {
     await AccountListBottomSheet.tapAddAccountButton();
     await AddAccountBottomSheet.tapAddSolanaAccount();
     await AddNewHdAccountComponent.tapConfirm();
-    await Assertions.checkIfTextIsDisplayed(ACCOUNT_TWO_TEXT);
+    await Assertions.expectText(WalletView.accountName, ACCOUNT_TWO_TEXT);
   });
 
   it('should be able to switch between solana accounts', async () => {
@@ -86,8 +86,8 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
     await WalletView.tapIdenticon();
     await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
     //Assert solana account 2 on main wallet view
-    await Assertions.checkIfTextIsDisplayed(ACCOUNT_TWO_TEXT);
-  });
+    await Assertions.expectText(WalletView.accountName, ACCOUNT_TWO_TEXT);
+ });
 
   it('should be able to rename Solana account', async () => {
     await WalletView.tapIdenticon();
@@ -96,8 +96,7 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
     await EditAccountNameView.updateAccountName(NEW_ACCOUNT_NAME);
     await EditAccountNameView.tapSave();
     await WalletView.tapIdenticon();
-
-    await Assertions.checkIfTextIsDisplayed(NEW_ACCOUNT_NAME);
+    await Assertions.expectText(WalletView.accountName, NEW_ACCOUNT_NAME);
   });
 
   it.skip('should be able to reveal private key of created solana account', async () => {
