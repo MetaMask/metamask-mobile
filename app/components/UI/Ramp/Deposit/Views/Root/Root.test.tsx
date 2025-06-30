@@ -3,6 +3,7 @@ import Root from './Root';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 import { getOrders } from '../../../../../../reducers/fiatOrders';
+import type { FiatOrder } from '../../../../../../reducers/fiatOrders/types';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
@@ -41,16 +42,16 @@ jest.mock('../../sdk', () => {
 
 jest.mock('../../../../../../reducers/fiatOrders', () => ({
   getOrders: jest.fn(),
-  fiatOrdersGetStartedDeposit: jest.fn((state: any) => true),
+  fiatOrdersGetStartedDeposit: jest.fn((_state: unknown) => true),
   setFiatOrdersGetStartedDeposit: jest.fn(),
-  getActivationKeys: jest.fn((state: any) => []),
-  fiatOrdersRegionSelectorAgg: jest.fn((state: any) => null),
-  fiatOrdersGetStartedAgg: jest.fn((state: any) => false),
-  fiatOrdersGetStartedSell: jest.fn((state: any) => false),
-  fiatOrdersPaymentMethodSelectorAgg: jest.fn((state: any) => null),
-  networkShortNameSelector: jest.fn((state: any) => 'ethereum'),
-  selectedAddressSelector: jest.fn((state: any) => '0x123'),
-  chainIdSelector: jest.fn((state: any) => '1'),
+  getActivationKeys: jest.fn((_state: unknown) => []),
+  fiatOrdersRegionSelectorAgg: jest.fn((_state: unknown) => null),
+  fiatOrdersGetStartedAgg: jest.fn((_state: unknown) => false),
+  fiatOrdersGetStartedSell: jest.fn((_state: unknown) => false),
+  fiatOrdersPaymentMethodSelectorAgg: jest.fn((_state: unknown) => null),
+  networkShortNameSelector: jest.fn((_state: unknown) => 'ethereum'),
+  selectedAddressSelector: jest.fn((_state: unknown) => '0x123'),
+  chainIdSelector: jest.fn((_state: unknown) => '1'),
   setFiatOrdersGetStartedAGG: jest.fn(),
   setFiatOrdersRegionAGG: jest.fn(),
   setFiatOrdersPaymentMethodAGG: jest.fn(),
@@ -129,7 +130,7 @@ describe('Root Component', () => {
         provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
         state: FIAT_ORDER_STATES.CREATED,
       },
-    ] as any[];
+    ] as FiatOrder[];
 
     (getOrders as jest.MockedFunction<typeof getOrders>).mockReturnValue(
       mockOrders,
