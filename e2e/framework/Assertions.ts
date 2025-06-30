@@ -21,10 +21,10 @@ export default class Assertions {
     return Utilities.executeWithRetry(
       async () => {
         const el = await elementPromise;
-        const isWebElement = !!(el?.webViewElement?.matcher?.predicate?.value);
+        const isWebElement = !!el?.webViewElement?.matcher?.predicate?.value;
         if (isWebElement) {
-              // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-              await (expect(el) as any).toExist();
+          // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
+          await (expect(el) as any).toExist();
         } else if (device.getPlatform() === 'ios') {
           await waitFor(el).toExist().withTimeout(100);
         } else {
@@ -53,7 +53,13 @@ export default class Assertions {
     return Utilities.executeWithRetry(
       async () => {
         const el = await elementPromise;
-        await waitFor(el).not.toBeVisible().withTimeout(100);
+        const isWebElement = !!el?.webViewElement?.matcher?.predicate?.value;
+        if (isWebElement) {
+          // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
+          await (expect(el) as any).not.toExist();
+        } else {
+          await waitFor(el).not.toBeVisible().withTimeout(100);
+        }
       },
       {
         timeout,
@@ -79,6 +85,31 @@ export default class Assertions {
       async () => {
         const el = (await elementPromise) as Detox.IndexableNativeElement;
         await waitFor(el).toHaveText(text).withTimeout(100);
+      },
+      {
+        timeout,
+        description: `Assert ${description}`,
+      },
+    );
+  }
+
+  /**
+   * Assert element does not have specific text with auto-retry
+   */
+  static async expectNotToHaveText(
+    elementPromise: DetoxElement,
+    text: string,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const {
+      timeout = BASE_DEFAULTS.timeout,
+      description = `element has text "${text}"`,
+    } = options;
+
+    return Utilities.executeWithRetry(
+      async () => {
+        const el = (await elementPromise) as Detox.IndexableNativeElement;
+        await waitFor(el).not.toHaveText(text).withTimeout(100);
       },
       {
         timeout,
@@ -266,7 +297,7 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if an element does not have specific text
-   * @deprecated Use expectNotVisible() or custom assertion instead for better error handling and retry mechanisms
+   * @deprecated Use expectNotToHaveText() or custom assertion instead for better error handling and retry mechanisms
    */
   static async checkIfElementNotToHaveText(
     elementPromise: DetoxElement,
