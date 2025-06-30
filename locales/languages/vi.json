@@ -163,7 +163,7 @@
     "default_settings_footer": "Cài đặt được tối ưu hóa để đảm bảo an toàn và dễ sử dụng.\nThay đổi các cài đặt này bất cứ lúc nào.",
     "no_srp_title": "Đã thiết lập lời nhắc!",
     "no_srp_description": "Nếu bạn bị khóa ứng dụng hoặc sử dụng thiết bị mới, bạn sẽ mất tiền. Nhớ sao lưu Cụm từ khôi phục bí mật của bạn trong",
-    "import_title": "Your Wallet is ready!",
+    "import_title": "Your wallet is ready!",
     "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
     "import_description2": "you can keep this phrase safe so you never lose access to your money.",
     "done": "Hoàn tất",
@@ -479,6 +479,23 @@
       "quoteFetchError": "Failed to fetch quote.",
       "kycFormsFetchError": "Failed to fetch KYC forms."
     },
+    "token_modal": {
+      "select_a_token": "Select a Token",
+      "search_by_name_or_address": "Search token by name or address",
+      "no_tokens_found": "No tokens match \"{{searchString}}\""
+    },
+    "region_modal": {
+      "select_a_region": "Select a region",
+      "search_by_country": "Search by country",
+      "no_regions_found": "No regions match \"{{searchString}}\""
+    },
+    "payment_modal": {
+      "select_a_payment_method": "Select a Payment Method"
+    },
+    "payment_duration": {
+      "instant": "Instant",
+      "1_to_2_days": "1 to 2 days"
+    },
     "get_started": {
       "title": "Top up your wallet with USDC",
       "bullet_1_title": "Value-backed by the US dollar",
@@ -504,7 +521,13 @@
       "submit_button": "Gửi",
       "loading": "Đang xác minh mã...",
       "invalid_code_error": "Mã không hợp lệ",
-      "validation_error": "Vui lòng nhập mã hợp lệ"
+      "validation_error": "Vui lòng nhập mã hợp lệ",
+      "need_help": "Need help?",
+      "resend_code_description": "Didn't receive the code?",
+      "resend_code_error": "Error resending code.",
+      "resend_code_button": "Resend it",
+      "resend_cooldown": "Resend code in {{seconds}} seconds",
+      "contact_support": "Contact support"
     },
     "verify_identity": {
       "title": "Xác minh danh tính của bạn",
@@ -515,7 +538,12 @@
     "basic_info": {
       "title": "Nhập thông tin cơ bản của bạn",
       "continue": "Tiếp tục",
-      "subtitle": "Để bắt đầu xác minh danh tính, chúng tôi cần một số thông tin cơ bản."
+      "subtitle": "Để bắt đầu xác minh danh tính, chúng tôi cần một số thông tin cơ bản.",
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "phone_number": "Phone Number",
+      "date_of_birth": "Date of Birth",
+      "social_security_number": "Social Security Number"
     },
     "enter_address": {
       "title": "Nhập địa chỉ của bạn",
@@ -540,9 +568,46 @@
       "success_description": "You can now enter your payment info and complete your deposit.",
       "success_button": "Complete your order"
     },
+    "provider_webview": {
+      "title": "Deposit",
+      "webview_received_error": "Webview received error: %{code}"
+    },
     "kyc_webview": {
       "title": "Verifying your identity",
       "webview_received_error": "WebView received error status code: {{code}}"
+    },
+    "order_processing": {
+      "title": "Processing deposit",
+      "button": "Close",
+      "description": "Card purchases typically take a few minutes",
+      "success_title": "Deposit complete",
+      "success_description": "Your deposit of {{amount}} {{currency}} was successful!",
+      "error_title": "Deposit failed",
+      "error_description": "We were unable to complete your deposit",
+      "error_button": "Try again",
+      "contact_support_button": "Contact support",
+      "account": "Account",
+      "network": "Network",
+      "order_id": "Order ID",
+      "fees": "Fees",
+      "total": "Total",
+      "view_order_details_in_transak": "View order details in Transak",
+      "no_order_found": "No order found",
+      "back_to_wallet": "Back to Wallet",
+      "cancel_order_button": "Cancel"
+    },
+    "order_details": {
+      "title": "Deposit Order"
+    },
+    "notifications": {
+      "deposit_failed_title": "Deposit of {{currency}} has failed! Please try again, sorry for the inconvenience!",
+      "deposit_failed_description": "Verify your payment method and card support",
+      "deposit_cancelled_title": "Your deposit was cancelled",
+      "deposit_cancelled_description": "Verify your payment method and card support",
+      "deposit_completed_title": "Your deposit of {{amount}} {{currency}} was successful!",
+      "deposit_completed_description": "Your {{currency}} is now available in your wallet",
+      "deposit_pending_title": "Processing your deposit of {{currency}}",
+      "deposit_pending_description": "This should only take a few minutes..."
     }
   },
   "receive": {
@@ -1473,14 +1538,14 @@
     "done": "Xong",
     "confirm": "Tiếp",
     "seed_phrase_explanation": [
-      "Cụm từ",
-      "khôi phục bí mật (SRP)",
+      "Your",
+      "Secret Recovery Phrase",
       " cấp ",
       "toàn quyền truy cập vào ví, tiền và tài khoản của bạn.\n\n",
       "MetaMask là một",
       "ví không lưu ký.",
       "Nghĩa là,",
-      "bạn là chủ sở hữu SRP của bạn."
+      "you are the owner of your Secret Recovery Phrase."
     ],
     "private_key_explanation": "Hãy cất giữ nó ở một nơi an toàn và bí mật.",
     "private_key_warning": "Đây là khoá riêng tư cho tài khoản đang được chọn: {{accountName}}. Đừng bao giờ tiết lộ khóa này. Bất kỳ ai có khoá riêng tư của bạn đều có toàn quyền kiểm soát tài khoản của bạn, bao gồm cả quyền chuyển bất kỳ khoản tiền nào của bạn đi.",
@@ -3888,7 +3953,8 @@
     "earnings_history_list_title": {
       "lending": "Position history",
       "staking": "Payout history"
-    }
+    },
+    "allowance_reset": "Allowance Reset"
   },
   "stake": {
     "stake": "Ký gửi",
@@ -4123,6 +4189,7 @@
       "permit_NFTs": "Yêu cầu rút tiền",
       "signature_siwe": "Yêu cầu đăng nhập",
       "contract_interaction": "Yêu cầu giao dịch",
+      "contract_deployment": "Deploy a contract",
       "transfer": "Yêu cầu chuyển tiền",
       "switch_account_type": "Cập nhật tài khoản",
       "approve": "Approve request"
@@ -4134,7 +4201,8 @@
       "signature_siwe": "Trang web muốn bạn đăng nhập để chứng minh bạn sở hữu tài khoản này.",
       "contract_interaction": "Xem lại thông tin yêu cầu trước khi bạn xác nhận.",
       "switch_to_smart_account": "Bạn đang chuyển sang tài khoản thông minh.",
-      "switch_to_standard_account": "Bạn đang chuyển về tài khoản tiêu chuẩn (EOA)."
+      "switch_to_standard_account": "Bạn đang chuyển về tài khoản tiêu chuẩn (EOA).",
+      "contract_deployment": "This site wants you to deploy a contract"
     },
     "request_from": "Yêu cầu từ",
     "staking_from": "Ký gửi từ",
@@ -4188,6 +4256,7 @@
       "smartAccountLabel": "Tài khoản Thông minh",
       "standardAccountLabel": "Tài khoản Tiêu chuẩn",
       "switch": "Chuyển",
+      "switchBack": "Switch back",
       "splashpage": {
         "accept": "Có",
         "betterTransaction": "Giao dịch nhanh hơn, phí thấp hơn",
@@ -4274,6 +4343,11 @@
     "description": "Tỷ giá được cập nhật mỗi {{refreshRate}} giây, hãy nhấn Nhận báo giá mới khi bạn sẵn sàng.",
     "get_new_quote": "Nhận báo giá mới"
   },
+  "blockaid_modal": {
+    "simulation_title": "Transaction failed in simulation",
+    "validation_title": "Transaction failed validation",
+    "go_back": "Go back"
+  },
   "bridge_transaction_details": {
     "status": "Trạng thái",
     "date": "Ngày",
@@ -4337,6 +4411,13 @@
     },
     "accounts_list": {
       "details": "Details"
+    },
+    "wallet_details": {
+      "wallet_name": "Wallet Name",
+      "balance": "Balance",
+      "add_account": "Add account",
+      "back_up": "Back up",
+      "reveal_recovery_phrase_with_index": "Reveal Recovery Phrase {{index}}"
     },
     "smart_account": {
       "title": "Bật Tài khoản Thông minh",

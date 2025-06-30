@@ -163,7 +163,7 @@
     "default_settings_footer": "设置经过优化，便于使用，安全性更佳。\n可随时更改设置。",
     "no_srp_title": "提醒设置完毕！",
     "no_srp_description": "如果应用程序锁定导致无法登录或使用新设备，则会失去资金。请务必在此处备份您的私钥助记词：",
-    "import_title": "Your Wallet is ready!",
+    "import_title": "Your wallet is ready!",
     "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
     "import_description2": "you can keep this phrase safe so you never lose access to your money.",
     "done": "已完成",
@@ -479,6 +479,23 @@
       "quoteFetchError": "Failed to fetch quote.",
       "kycFormsFetchError": "Failed to fetch KYC forms."
     },
+    "token_modal": {
+      "select_a_token": "Select a Token",
+      "search_by_name_or_address": "Search token by name or address",
+      "no_tokens_found": "No tokens match \"{{searchString}}\""
+    },
+    "region_modal": {
+      "select_a_region": "Select a region",
+      "search_by_country": "Search by country",
+      "no_regions_found": "No regions match \"{{searchString}}\""
+    },
+    "payment_modal": {
+      "select_a_payment_method": "Select a Payment Method"
+    },
+    "payment_duration": {
+      "instant": "Instant",
+      "1_to_2_days": "1 to 2 days"
+    },
     "get_started": {
       "title": "Top up your wallet with USDC",
       "bullet_1_title": "Value-backed by the US dollar",
@@ -504,7 +521,13 @@
       "submit_button": "提交",
       "loading": "正在验证代码......",
       "invalid_code_error": "无效代码",
-      "validation_error": "请输入有效代码"
+      "validation_error": "请输入有效代码",
+      "need_help": "Need help?",
+      "resend_code_description": "Didn't receive the code?",
+      "resend_code_error": "Error resending code.",
+      "resend_code_button": "Resend it",
+      "resend_cooldown": "Resend code in {{seconds}} seconds",
+      "contact_support": "Contact support"
     },
     "verify_identity": {
       "title": "验证您的身份",
@@ -515,7 +538,12 @@
     "basic_info": {
       "title": "输入您的基本信息",
       "continue": "继续",
-      "subtitle": "为了开始验证您的身份，我们需要一些基本信息。"
+      "subtitle": "为了开始验证您的身份，我们需要一些基本信息。",
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "phone_number": "Phone Number",
+      "date_of_birth": "Date of Birth",
+      "social_security_number": "Social Security Number"
     },
     "enter_address": {
       "title": "输入您的地址",
@@ -540,9 +568,46 @@
       "success_description": "You can now enter your payment info and complete your deposit.",
       "success_button": "Complete your order"
     },
+    "provider_webview": {
+      "title": "Deposit",
+      "webview_received_error": "Webview received error: %{code}"
+    },
     "kyc_webview": {
       "title": "Verifying your identity",
       "webview_received_error": "WebView received error status code: {{code}}"
+    },
+    "order_processing": {
+      "title": "Processing deposit",
+      "button": "Close",
+      "description": "Card purchases typically take a few minutes",
+      "success_title": "Deposit complete",
+      "success_description": "Your deposit of {{amount}} {{currency}} was successful!",
+      "error_title": "Deposit failed",
+      "error_description": "We were unable to complete your deposit",
+      "error_button": "Try again",
+      "contact_support_button": "Contact support",
+      "account": "Account",
+      "network": "Network",
+      "order_id": "Order ID",
+      "fees": "Fees",
+      "total": "Total",
+      "view_order_details_in_transak": "View order details in Transak",
+      "no_order_found": "No order found",
+      "back_to_wallet": "Back to Wallet",
+      "cancel_order_button": "Cancel"
+    },
+    "order_details": {
+      "title": "Deposit Order"
+    },
+    "notifications": {
+      "deposit_failed_title": "Deposit of {{currency}} has failed! Please try again, sorry for the inconvenience!",
+      "deposit_failed_description": "Verify your payment method and card support",
+      "deposit_cancelled_title": "Your deposit was cancelled",
+      "deposit_cancelled_description": "Verify your payment method and card support",
+      "deposit_completed_title": "Your deposit of {{amount}} {{currency}} was successful!",
+      "deposit_completed_description": "Your {{currency}} is now available in your wallet",
+      "deposit_pending_title": "Processing your deposit of {{currency}}",
+      "deposit_pending_description": "This should only take a few minutes..."
     }
   },
   "receive": {
@@ -1473,14 +1538,14 @@
     "done": "完成",
     "confirm": "下一步",
     "seed_phrase_explanation": [
-      "助记词",
-      "（SRP）",
+      "Your",
+      "Secret Recovery Phrase",
       "授予",
       "对您的钱包、资金和账户的完全访问权限。\n\n",
       "MetaMask 是一个",
       "非保管钱包。",
       "这意味着，",
-      "您是您的 SRP 所有人。"
+      "you are the owner of your Secret Recovery Phrase."
     ],
     "private_key_explanation": "将它保存在安全、秘密的地方。",
     "private_key_warning": "这是当前选定账户的私钥：{{accountName}}。请勿泄露此密钥。任何得到您的私钥的人都可以完全控制您的账户，包括转走所有资金。",
@@ -3888,7 +3953,8 @@
     "earnings_history_list_title": {
       "lending": "Position history",
       "staking": "Payout history"
-    }
+    },
+    "allowance_reset": "Allowance Reset"
   },
   "stake": {
     "stake": "质押",
@@ -4123,6 +4189,7 @@
       "permit_NFTs": "提取请求",
       "signature_siwe": "登录请求",
       "contract_interaction": "交易请求",
+      "contract_deployment": "Deploy a contract",
       "transfer": "转账请求",
       "switch_account_type": "账户更新",
       "approve": "Approve request"
@@ -4134,7 +4201,8 @@
       "signature_siwe": "一个网站需要您登录来证明您拥有此账户。",
       "contract_interaction": "在确认之前检查请求详情。",
       "switch_to_smart_account": "您正在切换到智能账户。",
-      "switch_to_standard_account": "您正在切换回标准账户（EOA）。"
+      "switch_to_standard_account": "您正在切换回标准账户（EOA）。",
+      "contract_deployment": "This site wants you to deploy a contract"
     },
     "request_from": "请求来自",
     "staking_from": "质押提供商",
@@ -4188,6 +4256,7 @@
       "smartAccountLabel": "智能账户",
       "standardAccountLabel": "标准账户",
       "switch": "切换",
+      "switchBack": "Switch back",
       "splashpage": {
         "accept": "是",
         "betterTransaction": "更迅捷的交易体验，更低的费用",
@@ -4274,6 +4343,11 @@
     "description": "价格每 {{refreshRate}} 秒更新一次，请在准备就绪后点击“获取新报价”。",
     "get_new_quote": "获取新报价"
   },
+  "blockaid_modal": {
+    "simulation_title": "Transaction failed in simulation",
+    "validation_title": "Transaction failed validation",
+    "go_back": "Go back"
+  },
   "bridge_transaction_details": {
     "status": "状态",
     "date": "日期",
@@ -4337,6 +4411,13 @@
     },
     "accounts_list": {
       "details": "Details"
+    },
+    "wallet_details": {
+      "wallet_name": "Wallet Name",
+      "balance": "Balance",
+      "add_account": "Add account",
+      "back_up": "Back up",
+      "reveal_recovery_phrase_with_index": "Reveal Recovery Phrase {{index}}"
     },
     "smart_account": {
       "title": "启用智能账户",

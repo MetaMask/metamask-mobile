@@ -163,7 +163,7 @@
     "default_settings_footer": "Ang mga setting ay nakaayos para sa dali ng paggamit at seguridad.\nBaguhin ang mga ito anumang oras.",
     "no_srp_title": "Naitakda ang Paalala!",
     "no_srp_description": "Kung ikaw ay na-lock out sa app o kumuha ng bagong device, mawawala ang iyong mga pondo. Siguraduhing i-back up ang iyong Lihim na Parirala sa Pagbawi sa",
-    "import_title": "Your Wallet is ready!",
+    "import_title": "Your wallet is ready!",
     "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
     "import_description2": "you can keep this phrase safe so you never lose access to your money.",
     "done": "Tapos na",
@@ -479,6 +479,23 @@
       "quoteFetchError": "Failed to fetch quote.",
       "kycFormsFetchError": "Failed to fetch KYC forms."
     },
+    "token_modal": {
+      "select_a_token": "Select a Token",
+      "search_by_name_or_address": "Search token by name or address",
+      "no_tokens_found": "No tokens match \"{{searchString}}\""
+    },
+    "region_modal": {
+      "select_a_region": "Select a region",
+      "search_by_country": "Search by country",
+      "no_regions_found": "No regions match \"{{searchString}}\""
+    },
+    "payment_modal": {
+      "select_a_payment_method": "Select a Payment Method"
+    },
+    "payment_duration": {
+      "instant": "Instant",
+      "1_to_2_days": "1 to 2 days"
+    },
     "get_started": {
       "title": "Top up your wallet with USDC",
       "bullet_1_title": "Value-backed by the US dollar",
@@ -504,7 +521,13 @@
       "submit_button": "Isumite",
       "loading": "Vine-verify ang code...",
       "invalid_code_error": "Di-wastong code",
-      "validation_error": "Ilagay ang wastong code"
+      "validation_error": "Ilagay ang wastong code",
+      "need_help": "Need help?",
+      "resend_code_description": "Didn't receive the code?",
+      "resend_code_error": "Error resending code.",
+      "resend_code_button": "Resend it",
+      "resend_cooldown": "Resend code in {{seconds}} seconds",
+      "contact_support": "Contact support"
     },
     "verify_identity": {
       "title": "I-verify ang pagkakakilanlan mo",
@@ -515,7 +538,12 @@
     "basic_info": {
       "title": "Ilagay ang iyong pangunahing impormasyon",
       "continue": "Magpatuloy",
-      "subtitle": "Upang magsimula sa pag-verify ng iyong pagkakakilanlan, kailangan namin ng ilan sa pangunahing impormasyon."
+      "subtitle": "Upang magsimula sa pag-verify ng iyong pagkakakilanlan, kailangan namin ng ilan sa pangunahing impormasyon.",
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "phone_number": "Phone Number",
+      "date_of_birth": "Date of Birth",
+      "social_security_number": "Social Security Number"
     },
     "enter_address": {
       "title": "Ilagay ang iyong adres",
@@ -540,9 +568,46 @@
       "success_description": "You can now enter your payment info and complete your deposit.",
       "success_button": "Complete your order"
     },
+    "provider_webview": {
+      "title": "Deposit",
+      "webview_received_error": "Webview received error: %{code}"
+    },
     "kyc_webview": {
       "title": "Verifying your identity",
       "webview_received_error": "WebView received error status code: {{code}}"
+    },
+    "order_processing": {
+      "title": "Processing deposit",
+      "button": "Close",
+      "description": "Card purchases typically take a few minutes",
+      "success_title": "Deposit complete",
+      "success_description": "Your deposit of {{amount}} {{currency}} was successful!",
+      "error_title": "Deposit failed",
+      "error_description": "We were unable to complete your deposit",
+      "error_button": "Try again",
+      "contact_support_button": "Contact support",
+      "account": "Account",
+      "network": "Network",
+      "order_id": "Order ID",
+      "fees": "Fees",
+      "total": "Total",
+      "view_order_details_in_transak": "View order details in Transak",
+      "no_order_found": "No order found",
+      "back_to_wallet": "Back to Wallet",
+      "cancel_order_button": "Cancel"
+    },
+    "order_details": {
+      "title": "Deposit Order"
+    },
+    "notifications": {
+      "deposit_failed_title": "Deposit of {{currency}} has failed! Please try again, sorry for the inconvenience!",
+      "deposit_failed_description": "Verify your payment method and card support",
+      "deposit_cancelled_title": "Your deposit was cancelled",
+      "deposit_cancelled_description": "Verify your payment method and card support",
+      "deposit_completed_title": "Your deposit of {{amount}} {{currency}} was successful!",
+      "deposit_completed_description": "Your {{currency}} is now available in your wallet",
+      "deposit_pending_title": "Processing your deposit of {{currency}}",
+      "deposit_pending_description": "This should only take a few minutes..."
     }
   },
   "receive": {
@@ -1473,14 +1538,14 @@
     "done": "Tapos na",
     "confirm": "Susunod",
     "seed_phrase_explanation": [
-      "Ang ",
-      "Lihim na Parirala sa Pagbawi (Secret Recovery Phrase o SRP)",
+      "Your",
+      "Secret Recovery Phrase",
       " ay nagbibigay ng ",
       "ganap na access sa iyong wallet, mga pondo at mga account.\n\n",
       "Ang MetaMask ay isang",
       "non-custodial na wallet.",
       "Ibig sabihin,",
-      "ikaw ang may ari ng SRP mo."
+      "you are the owner of your Secret Recovery Phrase."
     ],
     "private_key_explanation": "I-save ito sa isang ligtas at sikretong lugar.",
     "private_key_warning": "Ito ang pribadong key para sa kasalukuyang napiling account: {{accountName}}. Huwag ipaalam ang key na ito. Ang sinumang nakakaalam ng iyong pribadong key ay ganap na makokontrol ang iyong account, pati na ang paglilipat ng alinman sa iyong mga pondo.",
@@ -3888,7 +3953,8 @@
     "earnings_history_list_title": {
       "lending": "Position history",
       "staking": "Payout history"
-    }
+    },
+    "allowance_reset": "Allowance Reset"
   },
   "stake": {
     "stake": "Mag-stake",
@@ -4123,6 +4189,7 @@
       "permit_NFTs": "Kahilingang mag-withdraw",
       "signature_siwe": "Kahilingan sa pag-sign in",
       "contract_interaction": "Kahilingan sa transaksyon",
+      "contract_deployment": "Deploy a contract",
       "transfer": "Kahilingan sa paglilipat",
       "switch_account_type": "Pag-update ng account",
       "approve": "Approve request"
@@ -4134,7 +4201,8 @@
       "signature_siwe": "Hinihiling ng site na mag-sign in ka para patunayan na ikaw ang may-ari ng account na ito.",
       "contract_interaction": "Suriin ang mga detalye ng kahilingan bago mo kumpirmahin.",
       "switch_to_smart_account": "Lilipat ka sa isang smart account.",
-      "switch_to_standard_account": "Babalik ka sa isang standard account (EOA)."
+      "switch_to_standard_account": "Babalik ka sa isang standard account (EOA).",
+      "contract_deployment": "This site wants you to deploy a contract"
     },
     "request_from": "Kahilingan mula sa/kay",
     "staking_from": "Pag-stake mula sa/kay",
@@ -4188,6 +4256,7 @@
       "smartAccountLabel": "Smart Account",
       "standardAccountLabel": "Standard Account",
       "switch": "Lumipat",
+      "switchBack": "Switch back",
       "splashpage": {
         "accept": "Oo",
         "betterTransaction": "Mas mabibilis na transaksyon, mas mabababang bayarin",
@@ -4274,6 +4343,11 @@
     "description": "Nag-a-update ang mga rate tuwing {{refreshRate}} (na) segundo, kaya mag-tap para Kumuha ng bagong quote kapag handa ka na.",
     "get_new_quote": "Kumuha ng bagong quote"
   },
+  "blockaid_modal": {
+    "simulation_title": "Transaction failed in simulation",
+    "validation_title": "Transaction failed validation",
+    "go_back": "Go back"
+  },
   "bridge_transaction_details": {
     "status": "Katayuan",
     "date": "Petsa",
@@ -4337,6 +4411,13 @@
     },
     "accounts_list": {
       "details": "Details"
+    },
+    "wallet_details": {
+      "wallet_name": "Wallet Name",
+      "balance": "Balance",
+      "add_account": "Add account",
+      "back_up": "Back up",
+      "reveal_recovery_phrase_with_index": "Reveal Recovery Phrase {{index}}"
     },
     "smart_account": {
       "title": "Paganahin ang Smart Account",
