@@ -2,6 +2,7 @@ import { CaipChainId, SolScope } from '@metamask/keyring-api';
 import { BridgeToken } from '../types';
 import { Hex } from '@metamask/utils';
 
+
 export const DefaultSwapDestTokens: Record<Hex | CaipChainId, BridgeToken> = {
   '0x1': {
     symbol: 'USDC',
@@ -11,6 +12,15 @@ export const DefaultSwapDestTokens: Record<Hex | CaipChainId, BridgeToken> = {
     image:
       'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
     chainId: '0x1',
+  },
+  '0xa': {
+    symbol: 'USDC',
+    name: 'USD Coin',
+    address: '0x0b2c639c533813f4aa9d7837caf62653d097ff85',
+    decimals: 6,
+    image:
+      'https://static.cx.metamask.io/api/v1/tokenIcons/10/0x0b2c639c533813f4aa9d7837caf62653d097ff85.png',
+    chainId: '0xa',
   },
   '0x56': {
     symbol: 'USDT',
