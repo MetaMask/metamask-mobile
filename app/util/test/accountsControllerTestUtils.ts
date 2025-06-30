@@ -25,6 +25,8 @@ import {
   mockSnapAddress1,
   mockSnapAddress2,
   mockSolanaAddress,
+  MOCK_ENTROPY_SOURCE,
+  MOCK_ENTROPY_SOURCE_2,
 } from './keyringControllerTestUtils';
 
 export function createMockUuidFromAddress(address: string): AccountId {
@@ -236,8 +238,6 @@ export const MOCK_SOLANA_ACCOUNT: InternalAccount = {
   scopes: [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet],
 };
 
-export const MOCK_ENTROPY_SOURCE = '01JNG7170V9X27V5NFDTY04PJ4';
-
 export const MOCK_MULTICHAIN_NON_EVM_ACCOUNTS = {
   [MOCK_ACCOUNT_BIP122_P2WPKH.id]: MOCK_ACCOUNT_BIP122_P2WPKH,
   [MOCK_ACCOUNT_BIP122_P2WPKH_TESTNET.id]: MOCK_ACCOUNT_BIP122_P2WPKH_TESTNET,
@@ -258,21 +258,21 @@ export const expectedUuid2 = createMockUuidFromAddress(
 
 export const internalAccount1: InternalAccount = {
   ...createMockInternalAccount(
-  MOCK_ADDRESS_1.toLowerCase(),
-  'Account 1',
-),
-options: {
+    MOCK_ADDRESS_1.toLowerCase(),
+    'Account 1',
+  ),
+  options: {
     entropySource: MOCK_ENTROPY_SOURCE,
-}
+  }
 };
 export const internalAccount2: InternalAccount = {
   ...createMockInternalAccount(
-  MOCK_ADDRESS_2.toLowerCase(),
-  'Account 2',
-),
-options: {
+    MOCK_ADDRESS_2.toLowerCase(),
+    'Account 2',
+  ),
+  options: {
     entropySource: MOCK_ENTROPY_SOURCE,
-}
+  }
 };
 
 export const internalSolanaAccount1: InternalAccount = {
@@ -291,11 +291,15 @@ export const expectedSecondHDKeyringUuid = createMockUuidFromAddress(
   mockSecondHDKeyringAddress,
 );
 
-export const mockSecondHDKeyringInternalAccount = createMockInternalAccount(
-  mockSecondHDKeyringAddress,
-  'Second HD Keyring Account',
-  KeyringTypes.hd,
-);
+export const mockSecondHDKeyringInternalAccount = {
+  ...createMockInternalAccount(
+    mockSecondHDKeyringAddress,
+    'Second HD Keyring Account',
+    KeyringTypes.hd,
+  ), options: {
+    entropySource: MOCK_ENTROPY_SOURCE_2,
+  }
+};
 
 // used as a default mock for other tests
 export const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
