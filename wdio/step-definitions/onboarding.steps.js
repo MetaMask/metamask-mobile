@@ -11,6 +11,7 @@ import AddressBarScreen from '../screen-objects/BrowserObject/AddressBarScreen';
 import CreatePasswordScreen from '../screen-objects/Onboarding/CreatePasswordScreen.js';
 import OnboardingSucessScreen from '../screen-objects/OnboardingSucessScreen.js';
 import OnboardingSheet from '../screen-objects/Onboarding/OnboardingSheet.js';
+const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED;
 
 Then(/^"([^"]*)?" carousel item is displayed/, async (text) => {
   switch (text) {

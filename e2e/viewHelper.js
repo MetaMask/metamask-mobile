@@ -29,10 +29,10 @@ import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
 import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
 import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
-import { SEEDLESS_ONBOARDING_ENABLED } from '../app/core/OAuthService/OAuthLoginHandlers/constants';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
+const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED;
 
 export const acceptTermOfUse = async () => {
   // tap on accept term of use screen
