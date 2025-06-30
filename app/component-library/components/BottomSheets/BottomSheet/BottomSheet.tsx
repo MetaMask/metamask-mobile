@@ -88,7 +88,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     }));
 
     return (
-          <KeyboardAvoidingView
+              <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={
           Platform.OS === 'ios' ? -screenBottomPadding : frameY
