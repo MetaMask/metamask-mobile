@@ -475,7 +475,7 @@ exports[`AccountSelector should render correctly 1`] = `
                           <View
                             style={
                               {
-                                "height": 100,
+                                "height": 160,
                               }
                             }
                           >
@@ -696,7 +696,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                       "disableAutoLayout": true,
                                       "estimatedItemSize": 80,
                                       "estimatedListSize": {
-                                        "height": 100,
+                                        "height": 160,
                                         "width": 750,
                                       },
                                       "getItemType": [Function],
@@ -719,7 +719,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                 }
                                 layoutSize={
                                   {
-                                    "height": 100,
+                                    "height": 160,
                                     "width": 750,
                                   }
                                 }
