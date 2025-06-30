@@ -163,7 +163,7 @@
     "default_settings_footer": "Settings are optimized for ease of use and security.\nChange these at any time.",
     "no_srp_title": "Reminder set!",
     "no_srp_description": "If you get locked out of the app or get a new device, you will lose your funds. Be sure to back up your Secret Recovery Phrase in",
-    "import_title": "Your Wallet is ready!",
+    "import_title": "Your wallet is ready!",
     "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
     "import_description2": "you can keep this phrase safe so you never lose access to your money.",
     "done": "Done",
@@ -484,6 +484,18 @@
       "search_by_name_or_address": "Search token by name or address",
       "no_tokens_found": "No tokens match \"{{searchString}}\""
     },
+    "region_modal": {
+      "select_a_region": "Select a region",
+      "search_by_country": "Search by country",
+      "no_regions_found": "No regions match \"{{searchString}}\""
+    },
+    "payment_modal": {
+      "select_a_payment_method": "Select a Payment Method"
+    },
+    "payment_duration": {
+      "instant":"Instant",
+      "1_to_2_days": "1 to 2 days"
+    },
     "get_started": {
       "title": "Top up your wallet with USDC",
       "bullet_1_title": "Value-backed by the US dollar",
@@ -581,7 +593,11 @@
       "total": "Total",
       "view_order_details_in_transak": "View order details in Transak",
       "no_order_found": "No order found",
-      "back_to_wallet": "Back to Wallet"
+      "back_to_wallet": "Back to Wallet",
+      "cancel_order_button": "Cancel"
+    },
+    "order_details": {
+      "title": "Deposit Order"
     },
     "notifications": {
       "deposit_failed_title": "Deposit of {{currency}} has failed! Please try again, sorry for the inconvenience!",
@@ -1519,14 +1535,14 @@
     "done": "Done",
     "confirm": "Next",
     "seed_phrase_explanation": [
-      "The",
-      "Secret Recovery Phrase (SRP)",
+      "Your",
+      "Secret Recovery Phrase",
       "gives",
       "full access to your wallet, funds and accounts.\n\n",
       "MetaMask is a",
       "non-custodial wallet.",
       "That means,",
-      "you are the owner of your SRP."
+      "you are the owner of your Secret Recovery Phrase."
     ],
     "private_key_explanation": "Save it somewhere safe and secret.",
     "private_key_warning": "This is the private key for the current selected account: {{accountName}}. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
@@ -3934,7 +3950,8 @@
     "earnings_history_list_title": {
       "lending": "Position history",
       "staking": "Payout history"
-    }
+    },
+    "allowance_reset": "Allowance Reset"
   },
   "stake": {
     "stake": "Stake",
@@ -4151,6 +4168,8 @@
       "part3": "."
     },
     "label": {
+      "amount": "Amount",
+      "value": "Value",
       "account": "Account",
       "balance": "Balance",
       "interacting_with": "Interacting with",
@@ -4236,6 +4255,7 @@
       "smartAccountLabel": "Smart Account",
       "standardAccountLabel": "Standard Account",
       "switch": "Switch",
+      "switchBack": "Switch back",
       "splashpage": {
         "accept": "Yes",
         "betterTransaction": "Faster transactions, lower fees",
@@ -4321,6 +4341,11 @@
     "title": "New quotes are available",
     "description": "Rates update every {{refreshRate}} seconds, so tap Get new quote when you're ready.",
     "get_new_quote": "Get new quote"
+  },
+  "blockaid_modal": {
+    "simulation_title": "Transaction failed in simulation",
+    "validation_title": "Transaction failed validation",
+    "go_back": "Go back"
   },
   "bridge_transaction_details": {
     "status": "Status",

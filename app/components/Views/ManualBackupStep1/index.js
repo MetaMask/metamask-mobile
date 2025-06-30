@@ -286,6 +286,7 @@ const ManualBackupStep1 = ({
       showCancelButton={false}
       confirmButtonMode={'confirm'}
       contentContainerStyle={styles.actionView}
+      buttonContainerStyle={styles.buttonContainer}
     >
       <View
         style={styles.wrapper}
