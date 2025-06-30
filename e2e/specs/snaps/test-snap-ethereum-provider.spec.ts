@@ -36,8 +36,10 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
         await TestHelpers.delay(3500); // Wait for page to load
         await Assertions.checkIfVisible(BrowserView.browserScreenID);
 
+        console.log("Installing Snap");
         await TestSnaps.installSnap('connectEthereumProviderButton');
 
+        console.log("Getting chain ID");
         await TestSnaps.tapButton('getChainIdButton');
         await TestHelpers.delay(500);
         await TestSnaps.checkResultSpan(
@@ -45,6 +47,7 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
           '"0x1"',
         );
 
+        console.log("Getting accounts");
         await TestSnaps.tapButton('getAccountsButton');
         await ConnectBottomSheet.tapConnectButton();
         await TestHelpers.delay(500);
@@ -53,6 +56,7 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
           '"0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3"',
         );
 
+        console.log("personal_sign");
         // Test `personal_sign`.
         await TestSnaps.fillMessage('personalSignMessageInput', 'foo');
         await TestSnaps.tapButton('personalSignButton');
@@ -62,6 +66,7 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
           '"0xc87c81cc8592936ec9dedfb6040080a0ac100c713231fd3b2ee93942a175efb639ccda7918bd14cbe8ef2f5ec917bba1a35744c06d2d4ff3a8a6b077c3e2a1381c"',
         );
 
+        console.log("signTypedData");
         // Test `eth_signTypedData_v4`.
         await TestSnaps.fillMessage('signTypedDataMessageInput', 'bar');
         await TestSnaps.tapButton('signTypedDataButton');
@@ -71,6 +76,7 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
           '"0x85094c93975d31ceddddf2894fc7bb96ce6cfdac2559a72417bc214e6e9f24195fa708010da7a52b5df6c75595d0e03f90749b2b5bfbd5605ca799ceb91a36681b"',
         );
 
+        console.log("Ethereum");
         // Check other networks.
         await TestSnaps.selectInDropdown('networkDropDown', 'Ethereum');
         await TestSnaps.tapButton('getChainIdButton');
@@ -80,6 +86,7 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
           '"0x1"',
         );
 
+        console.log("Linea");
         await TestSnaps.selectInDropdown('networkDropDown', 'Linea');
         await TestSnaps.tapButton('getChainIdButton');
         await TestHelpers.delay(500);
@@ -88,6 +95,7 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
           '"0xe708"',
         );
 
+        console.log("Sepolia");
         await TestSnaps.selectInDropdown('networkDropDown', 'Sepolia');
         await TestSnaps.tapButton('getChainIdButton');
         await TestHelpers.delay(500);
