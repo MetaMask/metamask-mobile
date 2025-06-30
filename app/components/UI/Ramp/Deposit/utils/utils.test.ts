@@ -6,6 +6,7 @@ import {
   getTransakPaymentMethodId,
   getNotificationDetails,
   formatCurrency,
+  isDepositOrder,
 } from '.';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import {
@@ -280,6 +281,73 @@ describe('getNotificationDetails', () => {
       title: 'ETH deposit pending',
       description: 'Your ETH deposit is being processed.',
       status: 'pending',
+    });
+  });
+});
+
+describe('isDepositOrder', () => {
+  it('should return true for valid DepositOrder objects', () => {
+    const validDepositOrder: DepositOrder = {
+      id: 'test-id',
+      provider: 'test-provider',
+      createdAt: 1673886669608,
+      fiatAmount: 123,
+      fiatCurrency: 'USD',
+      cryptoCurrency: 'ETH',
+      network: 'ethereum',
+      status: 'COMPLETED',
+      orderType: 'DEPOSIT',
+      walletAddress: '0x1234',
+      txHash: '0x987654321',
+    } as DepositOrder;
+
+    const result = isDepositOrder(validDepositOrder);
+
+    expect(result).toBe(true);
+  });
+
+  it('should return false for objects missing required properties', () => {
+    const incompleteObject = {
+      id: 'test-id',
+      provider: 'test-provider',
+    };
+
+    const result = isDepositOrder(incompleteObject);
+
+    expect(result).toBe(false);
+  });
+
+  it('should return false when any required property is missing', () => {
+    const requiredProperties = [
+      'id',
+      'provider',
+      'createdAt',
+      'fiatAmount',
+      'fiatCurrency',
+      'cryptoCurrency',
+      'network',
+      'status',
+      'orderType',
+      'walletAddress',
+    ];
+
+    requiredProperties.forEach((property) => {
+      const objectMissingProperty = {
+        id: 'test-id',
+        provider: 'test-provider',
+        createdAt: 1673886669608,
+        fiatAmount: 123,
+        fiatCurrency: 'USD',
+        cryptoCurrency: 'ETH',
+        network: 'ethereum',
+        status: 'COMPLETED',
+        orderType: 'DEPOSIT',
+        walletAddress: '0x1234',
+      };
+
+      delete (objectMissingProperty as any)[property];
+
+      expect(isDepositOrder(objectMissingProperty)).toBe(false);
     });
   });
 });

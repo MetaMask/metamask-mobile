@@ -25,7 +25,16 @@ describe('DepositOrderContent Component', () => {
     excludeFromPurchases: false,
     orderType: DepositOrderType.Deposit,
     data: {
+      id: 'test-order-id-123456',
+      provider: 'test-provider',
+      createdAt: Date.now(),
+      fiatAmount: 100,
+      fiatCurrency: 'USD',
       cryptoCurrency: 'eth',
+      network: 'ethereum',
+      status: 'COMPLETED',
+      orderType: 'DEPOSIT',
+      walletAddress: '0x1234567890123456789012345678901234567890',
       providerOrderLink: 'https://transak.com/order/123',
     } as DepositOrder,
   };
