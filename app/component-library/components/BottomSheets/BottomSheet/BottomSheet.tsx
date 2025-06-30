@@ -44,7 +44,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     },
     ref,
   ) => {
-          const postCallback = useRef<BottomSheetPostCallback>();
+              const postCallback = useRef<BottomSheetPostCallback>();
     const bottomSheetDialogRef = useRef<BottomSheetDialogRef>(null);
     const { bottom: screenBottomPadding } = useSafeAreaInsets();
     const { styles } = useStyles(styleSheet, {
@@ -88,7 +88,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     }));
 
     return (
-      <KeyboardAvoidingView
+          <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={
           Platform.OS === 'ios' ? -screenBottomPadding : frameY
