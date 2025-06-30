@@ -5562,6 +5562,9 @@
     uri-js "^4.4.1"
     uuid "^8.3.2"
 
+"@metamask/network-enablement-controller@file:../core/packages/network-enablement-controller/dist":
+  version "0.0.0"
+
 "@metamask/nonce-tracker@^6.0.0":
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/nonce-tracker/-/nonce-tracker-6.0.0.tgz#ada64bdfd469acac5f5f83b914b470025c065ae3"

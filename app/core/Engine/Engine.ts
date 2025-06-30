@@ -229,6 +229,7 @@ import {
 import { ErrorReportingService } from '@metamask/error-reporting-service';
 import { captureException } from '@sentry/react-native';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
+import { networkEnablementControllerInit } from './controllers/network-enablement-controller/network-enablement-controller-init';
 
 ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
@@ -1269,6 +1270,7 @@ export class Engine {
         ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
         ///: END:ONLY_INCLUDE_IF
+        NetworkEnablementController: networkEnablementControllerInit,
       },
       persistedState: initialState as EngineState,
       existingControllersByName,
@@ -1331,6 +1333,9 @@ export class Engine {
       messenger: multichainRatesControllerMessenger,
       initialState: initialState.RatesController,
     });
+
+    const networkEnablementController =
+      controllersByName.NetworkEnablementController;
 
     // Set up currency rate sync
     setupCurrencyRateSync(
@@ -1643,6 +1648,7 @@ export class Engine {
       ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       SeedlessOnboardingController: seedlessOnboardingController,
       ///: END:ONLY_INCLUDE_IF
+      NetworkEnablementController: networkEnablementController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -2367,6 +2373,7 @@ export default {
       ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       SeedlessOnboardingController,
       ///: END:ONLY_INCLUDE_IF
+      NetworkEnablementController,
     } = instance.datamodel.state;
 
     return {
@@ -2423,6 +2430,7 @@ export default {
       ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       SeedlessOnboardingController,
       ///: END:ONLY_INCLUDE_IF
+      NetworkEnablementController,
     };
   },
 

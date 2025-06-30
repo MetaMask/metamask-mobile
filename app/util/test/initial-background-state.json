@@ -166,6 +166,18 @@
       }
     }
   },
+  "NetworkEnablementController": {
+    "enabledNetworkMap": {
+      "eip155": {
+        "0x1": true,
+        "0x2105": true,
+        "0xe708": true
+      },
+      "solana": {
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": true
+      }
+    }
+  },
   "PhishingController": {
     "c2DomainBlocklistLastFetched": 0,
     "phishingLists": [],
