@@ -252,6 +252,94 @@ describe('ButtonPrimary', () => {
       expect(mockOnPressOut).toHaveBeenCalledTimes(1);
       expect(mockOnPress).toHaveBeenCalledTimes(1);
     });
+
+    it('handles pressed state with inverse danger combination', () => {
+      // Arrange
+      const { getByTestId } = render(
+        <ButtonPrimary
+          {...SAMPLE_BUTTONPRIMARY_PROPS}
+          label="Pressed Button"
+          isInverse
+          isDanger
+          onPress={mockOnPress}
+          onPressIn={mockOnPressIn}
+          testID={BUTTONPRIMARY_TESTID}
+        />,
+      );
+
+      // Act
+      fireEvent(getByTestId(BUTTONPRIMARY_TESTID), 'onPressIn', {});
+
+      // Assert
+      expect(mockOnPressIn).toHaveBeenCalledTimes(1);
+      expect(getByTestId(BUTTONPRIMARY_TESTID)).toBeOnTheScreen();
+    });
+
+    it('renders loading state with inverse danger pressed combination', () => {
+      // Arrange
+      const { getByTestId } = render(
+        <ButtonPrimary
+          {...SAMPLE_BUTTONPRIMARY_PROPS}
+          label="Loading Button"
+          isInverse
+          isDanger
+          loading
+          onPress={mockOnPress}
+          onPressIn={mockOnPressIn}
+          testID={BUTTONPRIMARY_TESTID}
+        />,
+      );
+
+      // Act - trigger press while loading
+      fireEvent(getByTestId(BUTTONPRIMARY_TESTID), 'onPressIn', {});
+
+      // Assert
+      expect(getByTestId(BUTTONPRIMARY_TESTID)).toBeOnTheScreen();
+      expect(mockOnPressIn).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders loading state with inverse pressed combination', () => {
+      // Arrange
+      const { getByTestId } = render(
+        <ButtonPrimary
+          {...SAMPLE_BUTTONPRIMARY_PROPS}
+          label="Loading Button"
+          isInverse
+          loading
+          onPress={mockOnPress}
+          onPressIn={mockOnPressIn}
+          testID={BUTTONPRIMARY_TESTID}
+        />,
+      );
+
+      // Act
+      fireEvent(getByTestId(BUTTONPRIMARY_TESTID), 'onPressIn', {});
+
+      // Assert
+      expect(getByTestId(BUTTONPRIMARY_TESTID)).toBeOnTheScreen();
+      expect(mockOnPressIn).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders loading state with default pressed combination', () => {
+      // Arrange
+      const { getByTestId } = render(
+        <ButtonPrimary
+          {...SAMPLE_BUTTONPRIMARY_PROPS}
+          label="Loading Button"
+          loading
+          onPress={mockOnPress}
+          onPressIn={mockOnPressIn}
+          testID={BUTTONPRIMARY_TESTID}
+        />,
+      );
+
+      // Act
+      fireEvent(getByTestId(BUTTONPRIMARY_TESTID), 'onPressIn', {});
+
+      // Assert
+      expect(getByTestId(BUTTONPRIMARY_TESTID)).toBeOnTheScreen();
+      expect(mockOnPressIn).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('Color Variants - Default State', () => {
@@ -475,6 +563,64 @@ describe('ButtonPrimary', () => {
 
       // Assert - Now loading
       expect(queryByText('Toggle Loading')).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Style Combinations', () => {
+    it('applies pressed styles for inverse combination', () => {
+      // Arrange
+      const { getByTestId } = render(
+        <ButtonPrimary
+          {...SAMPLE_BUTTONPRIMARY_PROPS}
+          label="Inverse Button"
+          isInverse
+          onPress={mockOnPress}
+          testID={BUTTONPRIMARY_TESTID}
+        />,
+      );
+
+      // Act - trigger pressed state
+      fireEvent(getByTestId(BUTTONPRIMARY_TESTID), 'onPressIn', {});
+
+      // Assert
+      expect(getByTestId(BUTTONPRIMARY_TESTID)).toBeOnTheScreen();
+    });
+
+    it('applies pressed styles for danger combination', () => {
+      // Arrange
+      const { getByTestId } = render(
+        <ButtonPrimary
+          {...SAMPLE_BUTTONPRIMARY_PROPS}
+          label="Danger Button"
+          isDanger
+          onPress={mockOnPress}
+          testID={BUTTONPRIMARY_TESTID}
+        />,
+      );
+
+      // Act - trigger pressed state
+      fireEvent(getByTestId(BUTTONPRIMARY_TESTID), 'onPressIn', {});
+
+      // Assert
+      expect(getByTestId(BUTTONPRIMARY_TESTID)).toBeOnTheScreen();
+    });
+
+    it('applies pressed styles for default combination', () => {
+      // Arrange
+      const { getByTestId } = render(
+        <ButtonPrimary
+          {...SAMPLE_BUTTONPRIMARY_PROPS}
+          label="Default Button"
+          onPress={mockOnPress}
+          testID={BUTTONPRIMARY_TESTID}
+        />,
+      );
+
+      // Act - trigger pressed state
+      fireEvent(getByTestId(BUTTONPRIMARY_TESTID), 'onPressIn', {});
+
+      // Assert
+      expect(getByTestId(BUTTONPRIMARY_TESTID)).toBeOnTheScreen();
     });
   });
 });

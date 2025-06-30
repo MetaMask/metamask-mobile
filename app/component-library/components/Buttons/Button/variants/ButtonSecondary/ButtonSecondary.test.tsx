@@ -250,6 +250,137 @@ describe('ButtonSecondary', () => {
       expect(mockOnPressOut).toHaveBeenCalledTimes(1);
       expect(mockOnPress).toHaveBeenCalledTimes(1);
     });
+
+    it('handles pressed state with inverse danger combination', () => {
+      // Arrange
+      const { getByTestId } = render(
+        <ButtonSecondary
+          {...SAMPLE_BUTTONSECONDARY_PROPS}
+          label="Pressed Button"
+          isInverse
+          isDanger
+          onPress={mockOnPress}
+          onPressIn={mockOnPressIn}
+          testID={BUTTON_SECONDARY_TESTID}
+        />,
+      );
+
+      // Act
+      fireEvent(getByTestId(BUTTON_SECONDARY_TESTID), 'onPressIn', {});
+
+      // Assert
+      expect(mockOnPressIn).toHaveBeenCalledTimes(1);
+      expect(getByTestId(BUTTON_SECONDARY_TESTID)).toBeOnTheScreen();
+    });
+
+    it('handles pressed state with danger only combination', () => {
+      // Arrange
+      const { getByTestId } = render(
+        <ButtonSecondary
+          {...SAMPLE_BUTTONSECONDARY_PROPS}
+          label="Pressed Button"
+          isDanger
+          onPress={mockOnPress}
+          onPressIn={mockOnPressIn}
+          testID={BUTTON_SECONDARY_TESTID}
+        />,
+      );
+
+      // Act
+      fireEvent(getByTestId(BUTTON_SECONDARY_TESTID), 'onPressIn', {});
+
+      // Assert
+      expect(mockOnPressIn).toHaveBeenCalledTimes(1);
+      expect(getByTestId(BUTTON_SECONDARY_TESTID)).toBeOnTheScreen();
+    });
+
+    it('renders loading state with inverse danger pressed combination', () => {
+      // Arrange
+      const { getByTestId } = render(
+        <ButtonSecondary
+          {...SAMPLE_BUTTONSECONDARY_PROPS}
+          label="Loading Button"
+          isInverse
+          isDanger
+          loading
+          onPress={mockOnPress}
+          onPressIn={mockOnPressIn}
+          testID={BUTTON_SECONDARY_TESTID}
+        />,
+      );
+
+      // Act
+      fireEvent(getByTestId(BUTTON_SECONDARY_TESTID), 'onPressIn', {});
+
+      // Assert
+      expect(getByTestId(BUTTON_SECONDARY_TESTID)).toBeOnTheScreen();
+      expect(mockOnPressIn).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders loading state with inverse pressed combination', () => {
+      // Arrange
+      const { getByTestId } = render(
+        <ButtonSecondary
+          {...SAMPLE_BUTTONSECONDARY_PROPS}
+          label="Loading Button"
+          isInverse
+          loading
+          onPress={mockOnPress}
+          onPressIn={mockOnPressIn}
+          testID={BUTTON_SECONDARY_TESTID}
+        />,
+      );
+
+      // Act
+      fireEvent(getByTestId(BUTTON_SECONDARY_TESTID), 'onPressIn', {});
+
+      // Assert
+      expect(getByTestId(BUTTON_SECONDARY_TESTID)).toBeOnTheScreen();
+      expect(mockOnPressIn).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders loading state with danger pressed combination', () => {
+      // Arrange
+      const { getByTestId } = render(
+        <ButtonSecondary
+          {...SAMPLE_BUTTONSECONDARY_PROPS}
+          label="Loading Button"
+          isDanger
+          loading
+          onPress={mockOnPress}
+          onPressIn={mockOnPressIn}
+          testID={BUTTON_SECONDARY_TESTID}
+        />,
+      );
+
+      // Act
+      fireEvent(getByTestId(BUTTON_SECONDARY_TESTID), 'onPressIn', {});
+
+      // Assert
+      expect(getByTestId(BUTTON_SECONDARY_TESTID)).toBeOnTheScreen();
+      expect(mockOnPressIn).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders loading state with default pressed combination', () => {
+      // Arrange
+      const { getByTestId } = render(
+        <ButtonSecondary
+          {...SAMPLE_BUTTONSECONDARY_PROPS}
+          label="Loading Button"
+          loading
+          onPress={mockOnPress}
+          onPressIn={mockOnPressIn}
+          testID={BUTTON_SECONDARY_TESTID}
+        />,
+      );
+
+      // Act
+      fireEvent(getByTestId(BUTTON_SECONDARY_TESTID), 'onPressIn', {});
+
+      // Assert
+      expect(getByTestId(BUTTON_SECONDARY_TESTID)).toBeOnTheScreen();
+      expect(mockOnPressIn).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('Color Variants - ButtonSecondary Specific Logic', () => {
@@ -593,6 +724,65 @@ describe('ButtonSecondary', () => {
       );
 
       // Assert - Still renders with new combination
+      expect(getByTestId(BUTTON_SECONDARY_TESTID)).toBeOnTheScreen();
+    });
+  });
+
+  describe('Style Combinations', () => {
+    it('applies pressed styles for inverse danger combination', () => {
+      // Arrange
+      const { getByTestId } = render(
+        <ButtonSecondary
+          {...SAMPLE_BUTTONSECONDARY_PROPS}
+          label="Inverse Danger Button"
+          isInverse
+          isDanger
+          onPress={mockOnPress}
+          testID={BUTTON_SECONDARY_TESTID}
+        />,
+      );
+
+      // Act - trigger pressed state
+      fireEvent(getByTestId(BUTTON_SECONDARY_TESTID), 'onPressIn', {});
+
+      // Assert
+      expect(getByTestId(BUTTON_SECONDARY_TESTID)).toBeOnTheScreen();
+    });
+
+    it('applies pressed styles for inverse combination', () => {
+      // Arrange
+      const { getByTestId } = render(
+        <ButtonSecondary
+          {...SAMPLE_BUTTONSECONDARY_PROPS}
+          label="Inverse Button"
+          isInverse
+          onPress={mockOnPress}
+          testID={BUTTON_SECONDARY_TESTID}
+        />,
+      );
+
+      // Act - trigger pressed state
+      fireEvent(getByTestId(BUTTON_SECONDARY_TESTID), 'onPressIn', {});
+
+      // Assert
+      expect(getByTestId(BUTTON_SECONDARY_TESTID)).toBeOnTheScreen();
+    });
+
+    it('applies pressed styles for default and danger combination', () => {
+      // Arrange
+      const { getByTestId } = render(
+        <ButtonSecondary
+          {...SAMPLE_BUTTONSECONDARY_PROPS}
+          label="Default Button"
+          onPress={mockOnPress}
+          testID={BUTTON_SECONDARY_TESTID}
+        />,
+      );
+
+      // Act - trigger pressed state
+      fireEvent(getByTestId(BUTTON_SECONDARY_TESTID), 'onPressIn', {});
+
+      // Assert
       expect(getByTestId(BUTTON_SECONDARY_TESTID)).toBeOnTheScreen();
     });
   });
