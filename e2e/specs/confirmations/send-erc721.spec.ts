@@ -19,7 +19,42 @@ import { buildPermissions } from '../../fixtures/utils';
 import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
 import { CustomNetworks } from '../../resources/networks.e2e';
 const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
+const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
 
+/**
+ * Creates a local Ganache configuration that mimics a specific network's characteristics
+ * @param {Object} networkConfig - The network configuration to mimic
+ * @returns {Object} Ganache options with network-specific characteristics
+ */
+const createLocalNetworkConfig = (networkConfig) => {
+  const baseConfig = { ...defaultGanacheOptions };
+
+  // Apply network-specific characteristics
+  if (networkConfig.chainId === MEGAETH_TESTNET.chainId) {
+    return {
+      ...baseConfig,
+      chainId: parseInt(networkConfig.chainId, 16),
+      networkId: parseInt(networkConfig.chainId, 16),
+      gasPrice: '0x3b9aca00',
+      gasLimit: '0x1c9c380',
+    };
+  } else if (networkConfig.chainId === MONAD_TESTNET.chainId) {
+    return {
+      ...baseConfig,
+      chainId: parseInt(networkConfig.chainId, 16),
+      networkId: parseInt(networkConfig.chainId, 16),
+      gasPrice: '0x1',
+      gasLimit: '0x5f5e100',
+    };
+  }
+
+  // Default configuration
+  return {
+    ...baseConfig,
+    chainId: parseInt(networkConfig.chainId, 16),
+    networkId: parseInt(networkConfig.chainId, 16),
+  };
+};
 
 describe(SmokeConfirmations('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -79,19 +114,34 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
     );
   });
 
-it.only(`send an ERC721 token from a dapp using local Anvil`, async () => {
+it(`send an ERC721 token from a dapp using ${MEGAETH_TESTNET.nickname} (local)`, async () => {
+    const testSpecificMock = {
+      GET: [
+        mockEvents.GET.suggestedGasFeesApiGanache
+      ],
+    };
+
+    // Create MegaETH-like Ganache configuration
+    const megaEthLocalConfig = {
+      ...defaultGanacheOptions,
+      chainId: parseInt(MEGAETH_TESTNET.chainId, 16), // Use Mega ETH chain ID
+      networkId: parseInt(MEGAETH_TESTNET.chainId, 16),
+      // Keep other Mega ETH characteristics
+      gasPrice: '0x3b9aca00',
+      gasLimit: '0x1c9c380',
+    };
+
     await withFixtures(
       {
         dapp: true,
         fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x539']), // Ganache chain ID
-          )
+          .withGanacheNetwork() 
+          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
           .build(),
         restartDevice: true,
         smartContract: NFT_CONTRACT,
-        ganacheOptions: defaultGanacheOptions,
+        ganacheOptions: megaEthLocalConfig,
+        testSpecificMock,
       },
       // Remove any once withFixtures is typed
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -139,18 +189,33 @@ it.only(`send an ERC721 token from a dapp using local Anvil`, async () => {
     );
   });
 
-it(`send an ERC721 token from a dapp using ${MONAD_TESTNET.nickname}`, async () => {
+it(`send an ERC721 token from a dapp using ${MONAD_TESTNET.nickname} (local)`, async () => {
+    const testSpecificMock = {
+      GET: [
+        mockEvents.GET.suggestedGasFeesApiGanache
+      ],
+    };
+
+    // Create Monad-like Ganache configuration
+    const monadLocalConfig = {
+      ...defaultGanacheOptions,
+      chainId: parseInt(MONAD_TESTNET.chainId, 16),
+      networkId: parseInt(MONAD_TESTNET.chainId, 16),
+      gasPrice: '0x1',
+      gasLimit: '0x5f5e100',
+    };
+
     await withFixtures(
       {
         dapp: true,
         fixture: new FixtureBuilder()
-          .withMonadTestnetNetwork()
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions([`${MONAD_TESTNET.chainId}`]),
-          )
+          .withGanacheNetwork() // Use standard Ganache network setup
+          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
           .build(),
         restartDevice: true,
         smartContract: NFT_CONTRACT,
+        ganacheOptions: monadLocalConfig, // Apply Monad characteristics
+        testSpecificMock,
       },
       // Remove any once withFixtures is typed
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
