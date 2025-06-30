@@ -602,6 +602,7 @@ const EvmAccountSelectorList = ({
         }
         estimatedListSize={estimatedListSize}
         testID={ACCOUNT_SELECTOR_LIST_TESTID}
+        disableAutoLayout
         {...props}
       />
     </View>
