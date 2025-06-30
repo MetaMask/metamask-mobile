@@ -307,11 +307,7 @@ const renderComponent = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: any = {},
   EvmAccountSelectorListTest = EvmAccountSelectorListUseAccounts,
-) => {
-  const elt = renderWithProvider(<EvmAccountSelectorListTest {...state} />, { state });
-  elt.debug();
-  return elt;
-};
+) => renderWithProvider(<EvmAccountSelectorListTest {...state} />, { state });
 
 describe('EvmAccountSelectorList', () => {
   beforeEach(() => {
