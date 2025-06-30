@@ -91,8 +91,8 @@ export const SmartAccountUpdateSplash = () => {
 
   if (
     !transactionMetadata ||
-    acknowledged
-    // upgradeSplashPageAcknowledgedForAccounts.includes(from as string)
+    acknowledged ||
+    upgradeSplashPageAcknowledgedForAccounts.includes(from as string)
   ) {
     return null;
   }
