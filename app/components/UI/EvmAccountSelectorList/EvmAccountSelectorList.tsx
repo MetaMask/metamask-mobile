@@ -592,9 +592,9 @@ const EvmAccountSelectorList = ({
 
   // Calculate how many items can fit in the available space
   const maxVisibleItems = Math.max(
-    3,
+    1, // Minimum 1 item
     Math.floor(availableHeight / listItemHeight),
-  ); // Minimum 3 items
+  );
 
   const visibleItems = Math.min(flattenedData.length, maxVisibleItems);
   const estimatedListHeight = visibleItems * listItemHeight;
