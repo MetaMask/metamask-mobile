@@ -44,7 +44,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     },
     ref,
   ) => {
-    const postCallback = useRef<BottomSheetPostCallback>();
+          const postCallback = useRef<BottomSheetPostCallback>();
     const bottomSheetDialogRef = useRef<BottomSheetDialogRef>(null);
     const { bottom: screenBottomPadding } = useSafeAreaInsets();
     const { styles } = useStyles(styleSheet, {
