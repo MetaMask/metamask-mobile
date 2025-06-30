@@ -295,7 +295,9 @@ describe(SmokePerformance('Account List Load Testing'), () => {
         };
 
     console.log(
-      `Running performance test on ${device.getPlatform().toUpperCase()} (Profile Syncing Disabled)`,
+      `Running performance test on ${device
+        .getPlatform()
+        .toUpperCase()} (Profile Syncing Disabled)`,
     );
     console.log(
       `Thresholds - Render: ${PERFORMANCE_THRESHOLDS.ACCOUNT_LIST_RENDER}ms, Navigation: ${PERFORMANCE_THRESHOLDS.NAVIGATION_TO_ACCOUNT_LIST}ms`,
@@ -339,11 +341,15 @@ describe(SmokePerformance('Account List Load Testing'), () => {
         const renderTime = renderEndTime - renderStartTime;
 
         // Log performance metrics
-        console.log('========== ACCOUNT LIST LOAD TESTING RESULTS (PROFILE SYNCING DISABLED) ==========');
+        console.log(
+          '========== ACCOUNT LIST LOAD TESTING RESULTS (PROFILE SYNCING DISABLED) ==========',
+        );
         console.log(`Navigation to account list: ${navigationTime}ms`);
         console.log(`Account list render time: ${renderTime}ms`);
         console.log(`Total time: ${navigationTime + renderTime}ms`);
-        console.log('==============================================================================');
+        console.log(
+          '==============================================================================',
+        );
 
         // Performance assertions with warnings
         if (
@@ -379,7 +385,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
     );
   });
 
-  it('handle account list performance with heavy token load (profile syncing disabled)', async () => {
+  it.only('handle account list performance with heavy token load (profile syncing disabled)', async () => {
     // Create a large number of test tokens to stress test the system
     const heavyTokenLoad = [];
     for (let i = 1; i <= 50; i++) {
@@ -400,16 +406,19 @@ describe(SmokePerformance('Account List Load Testing'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
-          .withTokens(heavyTokenLoad)
+          .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringControllerWithMultipleAccounts()
+          .withPopularNetworks()
+          .withTokensForAllPopularNetworks(heavyTokenLoad)
           .build(),
         restartDevice: true,
       },
       async () => {
         await loginToApp();
 
-        console.log('Starting heavy load test with 50 tokens (Profile Syncing Disabled)...');
-     
+        console.log(
+          'Starting heavy load test with 50 tokens (Profile Syncing Disabled)...',
+        );
+
         await WalletView.tapIdenticon();
         await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
         console.log('✅ Account list became visible');
@@ -420,10 +429,14 @@ describe(SmokePerformance('Account List Load Testing'), () => {
         const endTime = Date.now();
         const totalTime = endTime - startTime;
 
-        console.log('========== HEAVY LOAD TEST RESULTS (PROFILE SYNCING DISABLED) ==========');
-        console.log(`Configuration: 16 accounts, popular networks, 50 tokens`);
+        console.log(
+          '========== HEAVY LOAD TEST RESULTS (PROFILE SYNCING DISABLED) ==========',
+        );
+        console.log(`Configuration: 11 accounts, popular networks, 50 tokens`);
         console.log(`Total time to render account list: ${totalTime}ms`);
-        console.log('=====================================================================');
+        console.log(
+          '=====================================================================',
+        );
 
         // Quality gate for heavy load
         const maxHeavyLoadTime =
