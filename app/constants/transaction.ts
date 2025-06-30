@@ -34,3 +34,5 @@ export enum EIP5792ErrorCode {
   UnknownBundleId = 5730,
   RejectedUpgrade = 5750,
 }
+
+export const UPGRADE_REJECTION_ERROR_MESSAGE = 'User rejected account upgrade';

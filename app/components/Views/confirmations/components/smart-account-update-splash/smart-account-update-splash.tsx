@@ -1,10 +1,10 @@
 import React, { ReactElement, useCallback, useState } from 'react';
 import { Image, Linking, View } from 'react-native';
-import { JsonRpcError, serializeError } from '@metamask/rpc-errors';
+import { providerErrors } from '@metamask/rpc-errors';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../locales/i18n';
-import { EIP5792ErrorCode } from '../../../../../constants/transaction';
+import { UPGRADE_REJECTION_ERROR_MESSAGE } from '../../../../../constants/transaction';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -74,14 +74,11 @@ export const SmartAccountUpdateSplash = () => {
   const { onReject } = useConfirmActions();
 
   const onUpgradeReject = useCallback(() => {
-    const serializedError = serializeError(
-      new JsonRpcError(
-        EIP5792ErrorCode.RejectedUpgrade,
-        'User rejected account upgrade',
-      ),
+    onReject(
+      providerErrors.userRejectedRequest({
+        message: UPGRADE_REJECTION_ERROR_MESSAGE,
+      }),
     );
-
-    onReject(serializedError as unknown as Error);
   }, [onReject]);
 
   const onConfirm = useCallback(() => {
@@ -94,8 +91,8 @@ export const SmartAccountUpdateSplash = () => {
 
   if (
     !transactionMetadata ||
-    acknowledged ||
-    upgradeSplashPageAcknowledgedForAccounts.includes(from as string)
+    acknowledged
+    // upgradeSplashPageAcknowledgedForAccounts.includes(from as string)
   ) {
     return null;
   }

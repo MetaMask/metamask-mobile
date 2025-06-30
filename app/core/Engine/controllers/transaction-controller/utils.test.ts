@@ -8,7 +8,7 @@ import {
   GasFeeEstimateLevel,
 } from '@metamask/transaction-controller';
 
-import { EIP5792ErrorCode } from '../../../../constants/transaction';
+import { UPGRADE_REJECTION_ERROR_MESSAGE } from '../../../../constants/transaction';
 import { MetaMetricsEvents } from '../../../Analytics';
 import { RootState } from '../../../../reducers';
 import {
@@ -576,7 +576,7 @@ describe('generateDefaultTransactionMetrics', () => {
           ...upgradeOnlyAccountConfirmation,
           status: TransactionStatus.rejected,
           error: {
-            code: EIP5792ErrorCode.RejectedUpgrade as unknown as string,
+            message: UPGRADE_REJECTION_ERROR_MESSAGE,
           } as TransactionError,
         },
         {

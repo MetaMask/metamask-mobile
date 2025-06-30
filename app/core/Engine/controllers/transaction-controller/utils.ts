@@ -10,7 +10,7 @@ import {
 import { merge } from 'lodash';
 
 import type { RootState } from '../../../../reducers';
-import { EIP5792ErrorCode } from '../../../../constants/transaction';
+import { UPGRADE_REJECTION_ERROR_MESSAGE } from '../../../../constants/transaction';
 import { getMethodData } from '../../../../util/transactions';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 import {
@@ -148,10 +148,9 @@ async function getBatchProperties(transactionMeta: TransactionMeta) {
 
   if (transactionMeta.status === TransactionStatus.rejected) {
     const { error } = transactionMeta;
-
     properties.eip7702_upgrade_rejection =
       // @ts-expect-error Code has string type in controller
-      isUpgrade && error.code === EIP5792ErrorCode.RejectedUpgrade;
+      isUpgrade && error.message === UPGRADE_REJECTION_ERROR_MESSAGE;
   }
   properties.eip7702_upgrade_transaction = isUpgrade;
   properties.account_eip7702_upgraded = delegationAddress;
