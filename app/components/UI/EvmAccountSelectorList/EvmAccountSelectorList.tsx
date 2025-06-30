@@ -103,12 +103,9 @@ const EvmAccountSelectorList = ({
 }: EvmAccountSelectorListProps) => {
   const { navigate } = useNavigation();
   /**
-   * Ref for the FlatList component.
-   * The type of the ref is not explicitly defined.
+   * Ref for the FlashList component.
    */
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const accountListRef = useRef<any>(null);
+  const accountListRef = useRef<FlashList<FlattenedAccountListItem>>(null);
   const accountsLengthRef = useRef<number>(0);
 
   const { styles } = useStyles(styleSheet, {});
@@ -194,6 +191,12 @@ const EvmAccountSelectorList = ({
     }
     return item.data.address;
   };
+
+  // FlashList optimization: Define item types for better recycling
+  const getItemType = useCallback(
+    (item: FlattenedAccountListItem) => item.type,
+    [],
+  );
 
   const useMultichainAccountDesign = Boolean(accountTreeSections);
 
@@ -381,10 +384,13 @@ const EvmAccountSelectorList = ({
       );
 
       if (selectedItemIndex !== -1) {
-        accountListRef.current?.scrollToIndex({
-          index: selectedItemIndex,
-          animated: true,
-          viewPosition: 0.5, // Center the item in the view
+        // Use requestAnimationFrame to ensure smooth scrolling
+        requestAnimationFrame(() => {
+          accountListRef.current?.scrollToIndex({
+            index: selectedItemIndex,
+            animated: true,
+            viewPosition: 0.5, // Center the item in the view
+          });
         });
       }
     }
@@ -572,7 +578,7 @@ const EvmAccountSelectorList = ({
   }, [accounts, accountListRef, selectedAddresses, isAutoScrollEnabled]);
 
   const { maxSheetHeight, screenWidth } = useSheetStyleStyleVars();
-  const listItemHeight = 80; // Height of the cell
+  const listItemHeight = 80;
   const addAccountBuffer = 200;
   // Clamp between 300 to maxSheetSize, and subtract the add account button area
   const listHeight =
@@ -590,12 +596,12 @@ const EvmAccountSelectorList = ({
         keyExtractor={getKeyExtractor}
         renderItem={renderItem}
         estimatedItemSize={listItemHeight}
+        getItemType={getItemType}
         renderScrollComponent={
           ScrollView as React.ComponentType<ScrollViewProps>
         }
         estimatedListSize={estimatedListSize}
         testID={ACCOUNT_SELECTOR_LIST_TESTID}
-        disableAutoLayout
         {...props}
       />
     </View>
