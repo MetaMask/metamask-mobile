@@ -15,10 +15,11 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import { selectSmartAccountOptIn } from '../../../../../selectors/preferencesController';
 import { upgradeSplashPageAcknowledgedForAccount } from '../../../../../actions/confirmations';
+import { useTheme } from '../../../../../util/theme';
 import Name from '../../../../UI/Name';
 import { NameType } from '../../../../UI/Name/Name.types';
-import { useTheme } from '../../../../../util/theme';
 import { useStyles } from '../../../../hooks/useStyles';
 import { selectUpgradeSplashPageAcknowledgedForAccounts } from '../../selectors/confirmation';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
@@ -67,6 +68,7 @@ export const SmartAccountUpdateSplash = () => {
   const upgradeSplashPageAcknowledgedForAccounts = useSelector(
     selectUpgradeSplashPageAcknowledgedForAccounts,
   );
+  const startAccountOptIn = useSelector(selectSmartAccountOptIn);
   const {
     txParams: { from },
   } = transactionMetadata ?? { txParams: {} };
@@ -95,6 +97,7 @@ export const SmartAccountUpdateSplash = () => {
   if (
     !transactionMetadata ||
     acknowledged ||
+    startAccountOptIn ||
     upgradeSplashPageAcknowledgedForAccounts.includes(from as string)
   ) {
     return null;
