@@ -1249,6 +1249,16 @@ class FixtureBuilder {
   }
 
   /**
+   * Sets ETH as the primary currency for both currency rate controller and settings.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withETHAsPrimaryCurrency() {
+    this.fixture.state.engine.backgroundState.CurrencyRateController.currentCurrency = 'ETH';
+    this.fixture.state.settings.primaryCurrency = 'ETH';
+    return this;
+  }
+
+  /**
    * Build and return the fixture object.
    * @returns {Object} - The built fixture object.
    */
