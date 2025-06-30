@@ -256,7 +256,7 @@ export const expectedUuid2 = createMockUuidFromAddress(
   MOCK_ADDRESS_2.toLowerCase(),
 );
 
-export const internalAccount1 = {
+export const internalAccount1: InternalAccount = {
   ...createMockInternalAccount(
   MOCK_ADDRESS_1.toLowerCase(),
   'Account 1',
@@ -265,7 +265,7 @@ options: {
     entropySource: MOCK_ENTROPY_SOURCE,
 }
 };
-export const internalAccount2 = {
+export const internalAccount2: InternalAccount = {
   ...createMockInternalAccount(
   MOCK_ADDRESS_2.toLowerCase(),
   'Account 2',
