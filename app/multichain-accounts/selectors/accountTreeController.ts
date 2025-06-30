@@ -1,7 +1,10 @@
 import { createDeepEqualSelector } from '../../selectors/util';
 import { RootState } from '../../reducers';
 import { selectMultichainAccountsState1Enabled } from '../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
-import { AccountWallet } from '@metamask/account-tree-controller';
+import {
+  AccountWallet,
+  AccountWalletId,
+} from '@metamask/account-tree-controller';
 
 /**
  * Get the AccountTreeController state
@@ -33,4 +36,29 @@ export const selectAccountSections = createDeepEqualSelector(
       }),
     );
   },
+);
+
+/**
+ * Get a wallet by its ID from AccountTreeController
+ * @param state - Root redux state
+ * @param walletId - The ID of the wallet to find
+ * @returns The wallet if found, null otherwise
+ */
+export const selectWalletById = createDeepEqualSelector(
+  [selectAccountTreeControllerState, selectMultichainAccountsState1Enabled],
+  (accountTreeState, multichainAccountsState1Enabled) =>
+    (walletId: AccountWalletId): AccountWallet | null => {
+      if (
+        !multichainAccountsState1Enabled ||
+        !accountTreeState?.accountTree?.wallets
+      ) {
+        return null;
+      }
+
+      return (
+        accountTreeState.accountTree.wallets[
+          walletId as keyof typeof accountTreeState.accountTree.wallets
+        ] || null
+      );
+    },
 );

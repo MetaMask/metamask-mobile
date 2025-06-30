@@ -50,6 +50,7 @@ const TRANSAK_CHAIN_IDS: Record<string, string> = {
 
 const TRANSAK_PAYMENT_METHOD_IDS: Record<string, string> = {
   credit_debit_card: 'credit_debit_card',
+  apple_pay: 'apple_pay',
 };
 
 /**
