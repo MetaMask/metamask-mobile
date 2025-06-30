@@ -79,10 +79,10 @@ class ImportTokensView {
 
   async tapOnNextButtonWithFallback() {
     try {
-      await element(by.text('Next')).atIndex(0).tap();
+      await Gestures.tapAtIndex(this.nextButtonByText);
     } catch (error) {
       try {
-        await element(by.text('Next')).atIndex(1).tap();
+        await Gestures.tapAtIndex(this.nextButtonByText, 1);
       } catch (secondError) {
         await Gestures.waitAndTap(this.nextButtonByText);
       }
