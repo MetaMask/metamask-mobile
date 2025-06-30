@@ -357,8 +357,6 @@ const Login: React.FC = () => {
   const tryBiometric = async () => {
     fieldRef.current?.blur();
     try {
-      // eslint-disable-next-line no-console
-      console.log('tryBiometric1');
       setLoading(true);
       await trace(
         {
@@ -369,8 +367,6 @@ const Login: React.FC = () => {
           await Authentication.appTriggeredAuth();
         },
       );
-      // eslint-disable-next-line no-console
-      console.log('tryBiometric2');
       await checkMetricsUISeen();
 
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
@@ -378,8 +374,6 @@ const Login: React.FC = () => {
       setHasBiometricCredentials(false);
       setLoading(false);
       fieldRef.current?.clear();
-      // eslint-disable-next-line no-console
-      console.log('tryBiometric3');
     } catch (tryBiometricError) {
       setHasBiometricCredentials(true);
       setLoading(false);
