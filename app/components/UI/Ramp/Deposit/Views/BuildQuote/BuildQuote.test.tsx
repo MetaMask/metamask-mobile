@@ -134,16 +134,14 @@ describe('BuildQuote Component', () => {
       render(BuildQuote);
       const regionButton = screen.getByText('US');
       fireEvent.press(regionButton);
-      expect(screen.toJSON()).toMatchSnapshot();
-    });
 
-    it('updates fiat currency when selecting a supported region', () => {
-      render(BuildQuote);
-      const regionButton = screen.getByText('US');
-      fireEvent.press(regionButton);
-      const germanyElement = screen.getByText('Belgium');
-      fireEvent.press(germanyElement);
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositRegionSelectorModal',
+        params: {
+          selectedRegionCode: 'US',
+          handleSelectRegion: expect.any(Function),
+        },
+      });
     });
   });
 

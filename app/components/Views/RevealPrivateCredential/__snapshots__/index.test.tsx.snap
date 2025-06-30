@@ -1286,7 +1286,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
                       }
                     }
                   >
-                    Anyone with your private key can stead any assets held in your account.
+                    Anyone with your private key can steal any assets held in your account.
                   </Text>
                 </View>
               </View>
@@ -1884,7 +1884,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
                       }
                     }
                   >
-                    Anyone with your private key can stead any assets held in your account.
+                    Anyone with your private key can steal any assets held in your account.
                   </Text>
                 </View>
               </View>

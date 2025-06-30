@@ -75,7 +75,7 @@ const MultichainTransactionListItem = ({
   const style = styles(colors, typography);
 
   const handlePress = () => {
-    if (isBridgeTx) {
+    if (isBridgeTx || type === TransactionType.Swap) {
       navigation.navigate(Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS, {
         multiChainTx: transaction,
       });
