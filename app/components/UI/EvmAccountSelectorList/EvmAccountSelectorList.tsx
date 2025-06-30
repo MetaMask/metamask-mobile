@@ -577,18 +577,21 @@ const EvmAccountSelectorList = ({
   }, [accounts, accountListRef, selectedAddresses, isAutoScrollEnabled]);
 
   const { maxSheetHeight, screenWidth } = useSheetStyleStyleVars();
+
   // Exact measurements from developer tools inspection
   const listItemHeight = 80;
-  const sheetHeaderSpace = 64; // SheetHeader: 32px height + 16px margin top + 16px margin bottom
-  const addAccountButtonSpace = 80; // Button: 48px height + margins/padding around it
-  const bottomSheetPadding = 34; // BottomSheet paddingBottom from inspector
+  const sheetHeaderHeight = 32; // SheetHeader exact height
+  const sheetHeaderMarginTop = 16; // SheetHeader top margin
+  const bottomSheetPaddingBottom = 34; // BottomSheet paddingBottom from inspector
 
-  // Calculate available space for the account list (no buffers needed - exact measurements)
+  // Calculate total space used by each component
+  const sheetHeaderSpace = sheetHeaderHeight + sheetHeaderMarginTop;
+
+  const bottomSheetPadding = bottomSheetPaddingBottom;
+
+  // Calculate available space for the account list
   const availableHeight =
-    maxSheetHeight -
-    sheetHeaderSpace -
-    addAccountButtonSpace -
-    bottomSheetPadding;
+    maxSheetHeight - sheetHeaderSpace - bottomSheetPadding;
 
   // Calculate how many items can fit in the available space
   const maxVisibleItems = Math.max(
