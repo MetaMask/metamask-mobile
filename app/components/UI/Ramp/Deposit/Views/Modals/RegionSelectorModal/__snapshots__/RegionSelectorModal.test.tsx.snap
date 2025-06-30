@@ -334,7 +334,7 @@ exports[`RegionSelectorModal Component region selector modal renders empty state
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -1062,7 +1062,7 @@ exports[`RegionSelectorModal Component region selector modal renders the default
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -2273,7 +2273,7 @@ exports[`RegionSelectorModal Component region selector modal renders with search
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",

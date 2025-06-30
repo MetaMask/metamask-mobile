@@ -1090,14 +1090,15 @@ exports[`PermissionsSummary should render correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "transparent",
-              "borderColor": "#ca3542",
+              "backgroundColor": "#3c4d9d1a",
+              "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
               "flex": 1,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
+              "overflow": "hidden",
               "paddingHorizontal": 16,
             }
           }
@@ -1820,14 +1821,15 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "transparent",
-              "borderColor": "#ca3542",
+              "backgroundColor": "#3c4d9d1a",
+              "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
               "flex": 1,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
+              "overflow": "hidden",
               "paddingHorizontal": 16,
             }
           }
@@ -2611,14 +2613,15 @@ exports[`PermissionsSummary should render only the account permissions card when
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "transparent",
-              "borderColor": "#ca3542",
+              "backgroundColor": "#3c4d9d1a",
+              "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
               "flex": 1,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
+              "overflow": "hidden",
               "paddingHorizontal": 16,
             }
           }
@@ -3195,14 +3198,15 @@ exports[`PermissionsSummary should render only the network permissions card when
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "transparent",
-              "borderColor": "#ca3542",
+              "backgroundColor": "#3c4d9d1a",
+              "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
               "flex": 1,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
+              "overflow": "hidden",
               "paddingHorizontal": 16,
             }
           }
@@ -4468,14 +4472,15 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "transparent",
-              "borderColor": "#ca3542",
+              "backgroundColor": "#3c4d9d1a",
+              "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
               "flex": 1,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
+              "overflow": "hidden",
               "paddingHorizontal": 16,
             }
           }
@@ -5741,14 +5746,15 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "transparent",
-              "borderColor": "#ca3542",
+              "backgroundColor": "#3c4d9d1a",
+              "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
               "flex": 1,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
+              "overflow": "hidden",
               "paddingHorizontal": 16,
             }
           }

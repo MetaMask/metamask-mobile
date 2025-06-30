@@ -1085,8 +1085,8 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "stretch",
-              "backgroundColor": "transparent",
-              "borderColor": "#4459ff",
+              "backgroundColor": "#3c4d9d1a",
+              "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
               "flexBasis": 0,
@@ -1095,6 +1095,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
               "flexShrink": 0,
               "height": 48,
               "justifyContent": "center",
+              "overflow": "hidden",
               "paddingHorizontal": 16,
             }
           }
@@ -1129,7 +1130,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "stretch",
-              "backgroundColor": "#4459ff",
+              "backgroundColor": "#121314",
               "borderRadius": 12,
               "flexBasis": 0,
               "flexDirection": "row",
@@ -1137,6 +1138,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
               "flexShrink": 0,
               "height": 48,
               "justifyContent": "center",
+              "overflow": "hidden",
               "paddingHorizontal": 16,
             }
           }

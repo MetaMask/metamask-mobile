@@ -189,7 +189,7 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#f3f5f9",
+                      "backgroundColor": "#3c4d9d1a",
                       "borderRadius": 36,
                       "flexDirection": "row",
                       "gap": 4,
@@ -668,7 +668,7 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#f3f5f9",
+                      "backgroundColor": "#3c4d9d1a",
                       "borderRadius": 36,
                       "flexDirection": "row",
                       "gap": 4,
@@ -1220,7 +1220,7 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#f3f5f9",
+                      "backgroundColor": "#3c4d9d1a",
                       "borderRadius": 36,
                       "flexDirection": "row",
                       "gap": 4,
@@ -1699,7 +1699,7 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#f3f5f9",
+                      "backgroundColor": "#3c4d9d1a",
                       "borderRadius": 36,
                       "flexDirection": "row",
                       "gap": 4,

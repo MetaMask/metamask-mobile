@@ -334,7 +334,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
