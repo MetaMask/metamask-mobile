@@ -3,7 +3,6 @@
 import { SmokeConfirmations } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
-
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -101,7 +100,7 @@ it(`send an ERC721 token from a dapp using ${MEGAETH_TESTNET.nickname} (local)`,
         dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
+          .withPermissionControllerConnectedToTestDapp(buildPermissions([`${megaEthLocalConfig.chainId}`]))
           .build(),
         restartDevice: true,
         smartContract: NFT_CONTRACT,
@@ -129,24 +128,11 @@ it(`send an ERC721 token from a dapp using ${MEGAETH_TESTNET.nickname} (local)`,
 
         // Accept confirmation
         await FooterActions.tapConfirmButton();
+        await TestHelpers.delay(3000);
 
-        // Check activity tab immediately to see "Submitted" status
-        await TestHelpers.delay(2000);
+        // Check activity tab
         await TabBarComponent.tapActivity();
-
-        // Initially should show "Submitted"
         await Assertions.checkIfTextIsDisplayed('Confirmed');
-
-        // // Wait for transaction to be confirmed on local Anvil
-        // // Local blockchain mines blocks immediately, so confirmation should be fast
-        // await TestHelpers.delay(5000);
-
-        // // Refresh the activity view to see updated status
-        // await TabBarComponent.tapWallet();
-        // await TabBarComponent.tapActivity();
-
-        // // Now should show "Confirmed" and "sent collectible"
-        // await Assertions.checkIfTextIsDisplayed('Confirmed');
         await Assertions.checkIfTextIsDisplayed(
           ActivitiesViewSelectorsText.SENT_COLLECTIBLE_MESSAGE_TEXT,
         );
@@ -175,7 +161,7 @@ it(`send an ERC721 token from a dapp using ${MONAD_TESTNET.nickname} (local)`, a
         dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork() // Use standard Ganache network setup
-          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
+          .withPermissionControllerConnectedToTestDapp(buildPermissions([`${monadLocalConfig.chainId}`]))
           .build(),
         restartDevice: true,
         smartContract: NFT_CONTRACT,
