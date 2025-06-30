@@ -9,9 +9,6 @@ import { IconName } from '../../components/Icons/Icon';
 import MainActionButton from './MainActionButton';
 import { MAINACTIONBUTTON_TEST_ID } from './MainActionButton.constants';
 
-// Mock Animated to avoid issues in tests
-jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
-
 describe('MainActionButton', () => {
   it('should render correctly', () => {
     const { toJSON } = render(
