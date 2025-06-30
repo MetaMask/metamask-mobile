@@ -14,6 +14,7 @@ import {
 } from '@metamask/keyring-api';
 import ReduxService from './redux';
 import { areAddressesEqual } from '../util/address';
+import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
 
 /**
  * Restore the given serialized QR keyring.
@@ -127,6 +128,7 @@ export const recreateVaultWithNewPassword = async (
   password,
   newPassword,
   selectedAddress,
+  skipSeedlessOnboardingPWChange = false,
 ) => {
   const { KeyringController, AccountsController } = Engine.context;
   const hdKeyringsWithMetadata = KeyringController.state.keyrings.filter(
@@ -215,13 +217,17 @@ export const recreateVaultWithNewPassword = async (
   const { SeedlessOnboardingController } = Engine.context;
   // TODO: Fix with latest controller isCompleted
   if (
-    ReduxService.store.getState().engine.backgroundState
-      .SeedlessOnboardingController.vault
+    !skipSeedlessOnboardingPWChange &&
+    selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())
   ) {
     try {
       await SeedlessOnboardingController.changePassword(newPassword, password);
     } catch (error) {
-      Logger.error(error);
+      Logger.error(
+        error,
+        '[recreateVaultWithNewPassword] seedless onboarding pw change error',
+      );
+      // restore keyring with old password if seedless onboarding pw change fails
       await KeyringController.createNewVaultAndRestore(
         password,
         primaryKeyringSeedPhrase,
