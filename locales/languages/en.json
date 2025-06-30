@@ -496,6 +496,13 @@
       "instant":"Instant",
       "1_to_2_days": "1 to 2 days"
     },
+    "unsupported_region_modal": {
+      "title": "Region not supported",
+      "message": "We're sorry, but we don't support deposits in %{regionName} yet. Please try a different region or contact support for assistance.",
+      "description": "We're sorry, but we don't support deposits in your region yet. Please try a different region or contact support for assistance.",
+      "select_different_region": "Select a different region",
+      "exit_to_wallet_home": "Exit to wallet home"
+    },
     "get_started": {
       "title": "Top up your wallet with USDC",
       "bullet_1_title": "Value-backed by the US dollar",
@@ -4449,7 +4456,7 @@
     "export_credentials": {
       "export_private_key": "Private key",
       "private_key_warning_title": "Never disclose this key.",
-      "private_key_warning_description": "Anyone with your private key can stead any assets held in your account.",
+      "private_key_warning_description": "Anyone with your private key can steal any assets held in your account.",
       "credential_as_text": "Text",
       "credential_as_qr": "QR code",
       "export_mnemonic": "Export mnemonic",
@@ -4458,7 +4465,7 @@
     "reveal_private_key": {
       "title": "Show private key",
       "banner_title": "Never disclose this key.",
-      "banner_description": "Anyone with your private key can stead any assets held in your account.",
+      "banner_description": "Anyone with your private key can steal any assets held in your account.",
       "enter_password": "Enter your password",
       "password_placeholder": "Password",
       "next": "Next",

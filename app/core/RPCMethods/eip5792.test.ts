@@ -51,12 +51,24 @@ jest.mock('../Engine', () => ({
     },
     TransactionController: {
       addTransactionBatch: jest.fn().mockResolvedValue({ batchId: 123 }),
+      addTransaction: jest.fn().mockResolvedValue({ batchId: 123 }),
       isAtomicBatchSupported: jest.fn().mockResolvedValue([true]),
     },
     PreferencesController: {
       state: {
         dismissSmartAccountSuggestionEnabled: false,
       },
+    },
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+      findNetworkClientIdByChainId: () => 'mainnet',
     },
   },
   controllerMessenger: {
@@ -147,6 +159,11 @@ describe('processSendCalls', () => {
         data: '0x654365436543',
         value: '0x3B9ACA00',
       },
+      {
+        to: '0xbc2114a988e9CEf5bA63548D432024f34B487048',
+        data: '0x789078907890',
+        value: '0x1DCD6500',
+      },
     ],
   } as SendCalls;
   const MOCK_REQUEST = {
@@ -160,17 +177,41 @@ describe('processSendCalls', () => {
   } as JsonRpcRequest;
 
   it('creates transaction instance for batch request', async () => {
+    const { TransactionController } = Engine.context;
     const result = await processSendCalls(MOCK_PARAMS, MOCK_REQUEST);
     expect(
       Engine.context.TransactionController.addTransactionBatch,
     ).toHaveBeenCalledTimes(1);
     expect(result.id).toStrictEqual(123);
+    expect(TransactionController.addTransactionBatch).toHaveBeenCalled();
+  });
+
+  it('creates transaction instance for batch request with single nested transaction', async () => {
+    const { TransactionController } = Engine.context;
+    const result = await processSendCalls(
+      { ...MOCK_PARAMS, calls: [MOCK_PARAMS.calls[0]] },
+      MOCK_REQUEST,
+    );
+    expect(
+      Engine.context.TransactionController.addTransactionBatch,
+    ).toHaveBeenCalledTimes(1);
+    expect(result.id).toBeDefined();
+    expect(TransactionController.addTransaction).toHaveBeenCalled();
   });
 
   it('throw error if wrong version of request is used', async () => {
     expect(async () => {
       await processSendCalls(
         { ...MOCK_PARAMS, version: '3.0.0' },
+        MOCK_REQUEST,
+      );
+    }).rejects.toThrow('Version not supported: Got 3.0.0, expected 2.0.0');
+  });
+
+  it('throw error if wrong version of request is used and there is single nested transaction', async () => {
+    expect(async () => {
+      await processSendCalls(
+        { ...MOCK_PARAMS, calls: [MOCK_PARAMS.calls[0]], version: '3.0.0' },
         MOCK_REQUEST,
       );
     }).rejects.toThrow('Version not supported: Got 3.0.0, expected 2.0.0');
@@ -183,6 +224,21 @@ describe('processSendCalls', () => {
     expect(async () => {
       await processSendCalls(MOCK_PARAMS, MOCK_REQUEST);
     }).rejects.toThrow('EIP-7702 not supported on chain: 0xaa36a7');
+    Engine.context.TransactionController.isAtomicBatchSupported = jest
+      .fn()
+      .mockResolvedValue([true]);
+  });
+
+  it('does not throw error if TransactionController.isAtomicBatchSupported returns false if there is single nested transactions', async () => {
+    const { TransactionController } = Engine.context;
+    Engine.context.TransactionController.isAtomicBatchSupported = jest
+      .fn()
+      .mockResolvedValue([false]);
+    await processSendCalls(
+      { ...MOCK_PARAMS, calls: [MOCK_PARAMS.calls[0]] },
+      MOCK_REQUEST,
+    );
+    expect(TransactionController.addTransaction).toHaveBeenCalled();
     Engine.context.TransactionController.isAtomicBatchSupported = jest
       .fn()
       .mockResolvedValue([true]);
@@ -285,6 +341,17 @@ describe('processSendCalls', () => {
         networkClientId: 'linea',
       } as JsonRpcRequest);
     }).rejects.toThrow('EIP-7702 upgrade disabled by the user');
+  });
+
+  it('does not throw error if user has enabled preference dismissSmartAccountSuggestionEnabled if there is single nested transaction', async () => {
+    const { TransactionController } = Engine.context;
+    Engine.context.PreferencesController.state.dismissSmartAccountSuggestionEnabled =
+      true;
+    await processSendCalls({ ...MOCK_PARAMS, calls: [MOCK_PARAMS.calls[0]] }, {
+      ...MOCK_REQUEST,
+      networkClientId: 'linea',
+    } as JsonRpcRequest);
+    expect(TransactionController.addTransaction).toHaveBeenCalled();
   });
 
   describe('getCallsStatus', () => {
