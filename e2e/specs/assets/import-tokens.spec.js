@@ -93,7 +93,7 @@ describe(Regression('Import Tokens'), () => {
     await ImportTokensView.tapOnToken();
     await ImportTokensView.tapOnNextButton();
 
-    await TestHelpers.delay(500);
+    await Assertions.waitForVisible(ConfirmAddAssetView.container);
     await Assertions.checkIfVisible(ConfirmAddAssetView.container);
 
     await ConfirmAddAssetView.tapOnConfirmButton();
