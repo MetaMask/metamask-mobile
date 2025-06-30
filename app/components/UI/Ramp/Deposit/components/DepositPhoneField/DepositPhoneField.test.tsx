@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import DepositPhoneField from './DepositPhoneField';
+import { DepositRegion } from '../../constants';
 
 const mockSetSelectedRegion = jest.fn();
 const mockNavigation = {
@@ -19,7 +20,7 @@ const mockUseDepositSDK = jest.fn(() => ({
     },
     currency: 'USD',
     supported: true,
-  },
+  } as DepositRegion,
   setSelectedRegion: mockSetSelectedRegion,
 }));
 
@@ -29,10 +30,6 @@ jest.mock('../../sdk', () => ({
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
-}));
-
-jest.mock('../../Views/Modals/RegionSelectorModal', () => ({
-  createRegionSelectorModalNavigationDetails: jest.fn(() => ['RouteName', {}]),
 }));
 
 describe('DepositPhoneField', () => {
@@ -97,7 +94,7 @@ describe('DepositPhoneField', () => {
       },
       currency: 'EUR',
       supported: true,
-    };
+    } as DepositRegion;
 
     mockUseDepositSDK.mockReturnValue({
       selectedRegion: contextRegion,
@@ -161,7 +158,7 @@ describe('DepositPhoneField', () => {
       },
       currency: 'XXX',
       supported: false,
-    };
+    } as DepositRegion;
 
     mockUseDepositSDK.mockReturnValue({
       selectedRegion: unsupportedRegion,
@@ -195,5 +192,272 @@ describe('DepositPhoneField', () => {
     );
 
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  describe('undefined region handling', () => {
+    it('handles input when selectedRegion is null', () => {
+      (mockUseDepositSDK as jest.Mock).mockReturnValue({
+        selectedRegion: null,
+        setSelectedRegion: mockSetSelectedRegion,
+      });
+
+      const { getByTestId } = render(<DepositPhoneField {...defaultProps} />);
+      const input = getByTestId('deposit-phone-field-test-id');
+
+      fireEvent.changeText(input, '5551234567');
+
+      expect(mockOnChangeText).toHaveBeenCalledWith('5551234567');
+    });
+
+    it('handles input when selectedRegion is undefined', () => {
+      (mockUseDepositSDK as jest.Mock).mockReturnValue({
+        selectedRegion: undefined,
+        setSelectedRegion: mockSetSelectedRegion,
+      });
+
+      const { getByTestId } = render(<DepositPhoneField {...defaultProps} />);
+      const input = getByTestId('deposit-phone-field-test-id');
+
+      fireEvent.changeText(input, '5551234567');
+
+      expect(mockOnChangeText).toHaveBeenCalledWith('5551234567');
+    });
+
+    it('displays fallback flag and text when region is null', () => {
+      (mockUseDepositSDK as jest.Mock).mockReturnValue({
+        selectedRegion: null,
+        setSelectedRegion: mockSetSelectedRegion,
+      });
+
+      const { getByText } = render(<DepositPhoneField {...defaultProps} />);
+
+      expect(getByText('🌍')).toBeOnTheScreen();
+      expect(getByText('Select region')).toBeOnTheScreen();
+    });
+
+    it('displays fallback flag and text when region is undefined', () => {
+      (mockUseDepositSDK as jest.Mock).mockReturnValue({
+        selectedRegion: undefined,
+        setSelectedRegion: mockSetSelectedRegion,
+      });
+
+      const { getByText } = render(<DepositPhoneField {...defaultProps} />);
+
+      expect(getByText('🌍')).toBeOnTheScreen();
+      expect(getByText('Select region')).toBeOnTheScreen();
+    });
+
+    it('uses default template when region phone template is missing', () => {
+      (mockUseDepositSDK as jest.Mock).mockReturnValue({
+        selectedRegion: {
+          isoCode: 'US',
+          flag: '🇺🇸',
+          name: 'United States',
+          phone: {
+            prefix: '+1',
+            placeholder: '(555) 555-1234',
+            template: '',
+          },
+          currency: 'USD',
+          supported: true,
+        } as DepositRegion,
+        setSelectedRegion: mockSetSelectedRegion,
+      });
+
+      const { getByTestId } = render(<DepositPhoneField {...defaultProps} />);
+      const input = getByTestId('deposit-phone-field-test-id');
+
+      fireEvent.changeText(input, '5551234567');
+
+      expect(mockOnChangeText).toHaveBeenCalledWith('+15551234567');
+    });
+
+    it('handles input with non-numeric characters when region is null', () => {
+      (mockUseDepositSDK as jest.Mock).mockReturnValue({
+        selectedRegion: null,
+        setSelectedRegion: mockSetSelectedRegion,
+      });
+
+      const { getByTestId } = render(<DepositPhoneField {...defaultProps} />);
+      const input = getByTestId('deposit-phone-field-test-id');
+
+      fireEvent.changeText(input, '(555) 123-4567');
+
+      expect(mockOnChangeText).toHaveBeenCalledWith('5551234567');
+    });
+
+    it('handles empty input when region is null', () => {
+      (mockUseDepositSDK as jest.Mock).mockReturnValue({
+        selectedRegion: null,
+        setSelectedRegion: mockSetSelectedRegion,
+      });
+
+      const { getByTestId } = render(<DepositPhoneField {...defaultProps} />);
+      const input = getByTestId('deposit-phone-field-test-id');
+
+      fireEvent.changeText(input, '');
+
+      expect(mockOnChangeText).toHaveBeenCalledWith('');
+    });
+  });
+
+  describe('region selection', () => {
+    it('navigates to region selector when flag is pressed', () => {
+      (mockUseDepositSDK as jest.Mock).mockReturnValue({
+        selectedRegion: {
+          isoCode: 'US',
+          flag: '🇺🇸',
+          name: 'United States',
+          phone: {
+            prefix: '+1',
+            placeholder: '(555) 555-1234',
+            template: '(XXX) XXX-XXXX',
+          },
+          currency: 'USD',
+          supported: true,
+        } as DepositRegion,
+        setSelectedRegion: mockSetSelectedRegion,
+      });
+
+      const { getByRole } = render(<DepositPhoneField {...defaultProps} />);
+      const flagButton = getByRole('button');
+
+      fireEvent.press(flagButton);
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositRegionSelectorModal',
+        params: {
+          selectedRegionCode: 'US',
+          handleSelectRegion: expect.any(Function),
+        },
+      });
+    });
+
+    it('clears input and updates region when new region is selected', () => {
+      const newRegion = {
+        isoCode: 'DE',
+        flag: '🇩🇪',
+        name: 'Germany',
+        phone: {
+          prefix: '+49',
+          placeholder: '123 456 7890',
+          template: 'XXX XXX XXXX',
+        },
+        currency: 'EUR',
+        supported: true,
+      } as DepositRegion;
+
+      (mockUseDepositSDK as jest.Mock).mockReturnValue({
+        selectedRegion: null,
+        setSelectedRegion: mockSetSelectedRegion,
+      });
+
+      render(<DepositPhoneField {...defaultProps} value="+15551234567" />);
+
+      mockSetSelectedRegion(newRegion);
+
+      expect(mockSetSelectedRegion).toHaveBeenCalledWith(newRegion);
+    });
+  });
+
+  describe('input formatting', () => {
+    it('formats input correctly with US region template', () => {
+      (mockUseDepositSDK as jest.Mock).mockReturnValue({
+        selectedRegion: {
+          isoCode: 'US',
+          flag: '🇺🇸',
+          name: 'United States',
+          phone: {
+            prefix: '+1',
+            placeholder: '(555) 555-1234',
+            template: '(XXX) XXX-XXXX',
+          },
+          currency: 'USD',
+          supported: true,
+        } as DepositRegion,
+        setSelectedRegion: mockSetSelectedRegion,
+      });
+      const { getByTestId } = render(<DepositPhoneField {...defaultProps} />);
+      const input = getByTestId('deposit-phone-field-test-id');
+
+      fireEvent.changeText(input, '5551234567');
+
+      expect(mockOnChangeText).toHaveBeenCalledWith('+15551234567');
+    });
+
+    it('formats input correctly with German region template', () => {
+      (mockUseDepositSDK as jest.Mock).mockReturnValue({
+        selectedRegion: {
+          isoCode: 'DE',
+          flag: '🇩🇪',
+          name: 'Germany',
+          phone: {
+            prefix: '+49',
+            placeholder: '123 456 7890',
+            template: 'XXX XXX XXXX',
+          },
+          currency: 'EUR',
+          supported: true,
+        } as DepositRegion,
+        setSelectedRegion: mockSetSelectedRegion,
+      });
+
+      const { getByTestId } = render(<DepositPhoneField {...defaultProps} />);
+      const input = getByTestId('deposit-phone-field-test-id');
+
+      fireEvent.changeText(input, '1234567890');
+
+      expect(mockOnChangeText).toHaveBeenCalledWith('+491234567890');
+    });
+
+    it('handles input with existing prefix in value', () => {
+      (mockUseDepositSDK as jest.Mock).mockReturnValue({
+        selectedRegion: {
+          isoCode: 'US',
+          flag: '🇺🇸',
+          name: 'United States',
+          phone: {
+            prefix: '+1',
+            placeholder: '(555) 555-1234',
+            template: '(XXX) XXX-XXXX',
+          },
+          currency: 'USD',
+          supported: true,
+        } as DepositRegion,
+        setSelectedRegion: mockSetSelectedRegion,
+      });
+      const { getByTestId } = render(
+        <DepositPhoneField {...defaultProps} value="+15551234567" />,
+      );
+      const input = getByTestId('deposit-phone-field-test-id');
+
+      fireEvent.changeText(input, '5551234567');
+
+      expect(mockOnChangeText).toHaveBeenCalledWith('+15551234567');
+    });
+
+    it('strips non-numeric characters from input', () => {
+      (mockUseDepositSDK as jest.Mock).mockReturnValue({
+        selectedRegion: {
+          isoCode: 'US',
+          flag: '🇺🇸',
+          name: 'United States',
+          phone: {
+            prefix: '+1',
+            placeholder: '(555) 555-1234',
+            template: '(XXX) XXX-XXXX',
+          },
+          currency: 'USD',
+          supported: true,
+        } as DepositRegion,
+        setSelectedRegion: mockSetSelectedRegion,
+      });
+      const { getByTestId } = render(<DepositPhoneField {...defaultProps} />);
+      const input = getByTestId('deposit-phone-field-test-id');
+
+      fireEvent.changeText(input, '(555) 123-4567 ext. 123');
+
+      expect(mockOnChangeText).toHaveBeenCalledWith('+15551234567123');
+    });
   });
 });

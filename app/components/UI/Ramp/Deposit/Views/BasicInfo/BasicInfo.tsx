@@ -80,7 +80,7 @@ const BasicInfo = (): JSX.Element => {
       errors.dob = 'Date of birth is required';
     }
 
-    if (!formData.ssn.trim()) {
+    if (selectedRegion?.isoCode === 'US' && !formData.ssn.trim()) {
       errors.ssn = 'Social security number is required';
     }
 

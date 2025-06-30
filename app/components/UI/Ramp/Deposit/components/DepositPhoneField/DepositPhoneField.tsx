@@ -45,22 +45,26 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
     const navigation = useNavigation();
     const template = selectedRegion?.phone?.template || '(XXX) XXX-XXXX';
 
-    const rawDigits = value
-      .replace(/\D/g, '')
-      .replace(
-        new RegExp(`^${selectedRegion?.phone?.prefix?.replace(/\D/g, '')}`),
-        '',
-      );
+    const rawDigits = selectedRegion?.phone?.prefix
+      ? value
+          .replace(/\D/g, '')
+          .replace(
+            new RegExp(`^${selectedRegion.phone.prefix.replace(/\D/g, '')}`),
+            '',
+          )
+      : value.replace(/\D/g, '');
     const formattedValue = formatNumberToTemplate(rawDigits, template);
 
     const handleChangeText = useCallback(
       (text: string) => {
-        if (!selectedRegion) {
-          return;
-        }
         const digits = text.replace(/\D/g, '');
-        const fullNumber = selectedRegion.phone.prefix + digits;
-        onChangeText(fullNumber);
+        
+        if (selectedRegion?.phone?.prefix) {
+          const fullNumber = selectedRegion.phone.prefix + digits;
+          onChangeText(fullNumber);
+        } else {
+          onChangeText(digits);
+        }
       },
       [onChangeText, selectedRegion],
     );
@@ -89,9 +93,9 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
         accessible
         style={styles.countryPrefix}
       >
-        <Text style={styles.countryFlag}>{selectedRegion?.flag}</Text>
+        <Text style={styles.countryFlag}>{selectedRegion?.flag || '🌍'}</Text>
         <Text style={styles.countryCallingCode}>
-          {selectedRegion?.phone?.prefix}
+          {selectedRegion?.phone?.prefix || 'Select region'}
         </Text>
       </TouchableOpacity>
     );
