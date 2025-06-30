@@ -552,7 +552,9 @@ const EarnLendingDepositConfirmationView = () => {
           amount: '0',
           underlyingTokenAddress:
             earnToken?.experience?.market?.underlying?.address,
-          gasOptions: {},
+          gasOptions: {
+            gasLimit: 'none',
+          },
           txOptions: {
             deviceConfirmedOn: WalletDevice.MM_MOBILE,
             networkClientId,
@@ -585,7 +587,9 @@ const EarnLendingDepositConfirmationView = () => {
         amount: amountTokenMinimalUnit,
         underlyingTokenAddress:
           earnToken?.experience?.market?.underlying?.address,
-        gasOptions: {},
+        gasOptions: {
+          gasLimit: 'none',
+        },
         txOptions: {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
           networkClientId,
@@ -614,7 +618,9 @@ const EarnLendingDepositConfirmationView = () => {
         protocol: earnToken?.experience?.market?.protocol,
         underlyingTokenAddress:
           earnToken?.experience?.market?.underlying?.address,
-        gasOptions: {},
+        gasOptions: {
+          gasLimit: 'none',
+        },
         txOptions: {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
           networkClientId,

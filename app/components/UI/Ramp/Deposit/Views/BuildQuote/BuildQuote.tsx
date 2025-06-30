@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import styleSheet from './BuildQuote.styles';
 
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
@@ -49,6 +49,7 @@ import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 import { createTokenSelectorModalNavigationDetails } from '../Modals/TokenSelectorModal/TokenSelectorModal';
 import { createPaymentMethodSelectorModalNavigationDetails } from '../Modals/PaymentMethodSelectorModal/PaymentMethodSelectorModal';
 import { createRegionSelectorModalNavigationDetails } from '../Modals/RegionSelectorModal';
+import { createUnsupportedRegionModalNavigationDetails } from '../Modals/UnsupportedRegionModal';
 
 import {
   getTransakCryptoCurrencyId,
@@ -73,6 +74,7 @@ import {
   DEPOSIT_REGIONS,
   DepositRegion,
 } from '../../constants';
+import Routes from '../../../../../../constants/navigation/Routes';
 
 const BuildQuote = () => {
   const navigation = useNavigation();
@@ -140,6 +142,62 @@ const BuildQuote = () => {
       getDepositNavbarOptions(navigation, { title: 'Build Quote' }, theme),
     );
   }, [navigation, theme]);
+
+  const handleSelectRegion = useCallback(
+    (region: DepositRegion) => {
+      setSelectedRegion(region);
+
+      if (region.currency === 'USD') {
+        setFiatCurrency(USD_CURRENCY);
+      } else if (region.currency === 'EUR') {
+        setFiatCurrency(EUR_CURRENCY);
+      }
+    },
+    [setFiatCurrency, setSelectedRegion],
+  );
+
+  const handleRegionPress = useCallback(() => {
+    navigation.navigate(
+      ...createRegionSelectorModalNavigationDetails({
+        selectedRegionCode: selectedRegion?.code,
+        handleSelectRegion,
+      }),
+    );
+  }, [navigation, selectedRegion, handleSelectRegion]);
+
+  const handleExitToWalletHome = useCallback(() => {
+    navigation.navigate(Routes.WALLET.HOME, {
+      screen: Routes.WALLET.TAB_STACK_FLOW,
+      params: {
+        screen: Routes.WALLET_VIEW,
+      },
+    });
+  }, [navigation]);
+
+  const handleSelectDifferentRegion = useCallback(() => {
+    handleRegionPress();
+  }, [handleRegionPress]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!selectedRegion?.supported) {
+        InteractionManager.runAfterInteractions(() => {
+          navigation.navigate(
+            ...createUnsupportedRegionModalNavigationDetails({
+              regionName: selectedRegion?.name || '',
+              onExitToWalletHome: handleExitToWalletHome,
+              onSelectDifferentRegion: handleSelectDifferentRegion,
+            }),
+          );
+        });
+      }
+    }, [
+      selectedRegion,
+      navigation,
+      handleExitToWalletHome,
+      handleSelectDifferentRegion,
+    ]),
+  );
 
   const handleOnPressContinue = useCallback(async () => {
     try {
@@ -260,32 +318,6 @@ const BuildQuote = () => {
     },
     [],
   );
-
-  const handleSelectRegion = useCallback(
-    (region: DepositRegion) => {
-      if (!region.supported) {
-        return;
-      }
-
-      setSelectedRegion(region);
-
-      if (region.currency === 'USD') {
-        setFiatCurrency(USD_CURRENCY);
-      } else if (region.currency === 'EUR') {
-        setFiatCurrency(EUR_CURRENCY);
-      }
-    },
-    [setFiatCurrency, setSelectedRegion],
-  );
-
-  const handleRegionPress = useCallback(() => {
-    navigation.navigate(
-      ...createRegionSelectorModalNavigationDetails({
-        selectedRegionCode: selectedRegion?.code,
-        handleSelectRegion,
-      }),
-    );
-  }, [navigation, selectedRegion, handleSelectRegion]);
 
   const handleSelectAssetId = useCallback(
     (assetId: string) => {
