@@ -169,7 +169,7 @@ describe('Login', () => {
       fireEvent.press(loginButton);
 
       // Assert
-      expect(loginButton).toBeTruthy();
+      expect(loginButton).toBeOnTheScreen();
     });
 
     it('password input accepts text', () => {

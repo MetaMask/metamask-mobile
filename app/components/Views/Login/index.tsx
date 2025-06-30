@@ -510,10 +510,7 @@ const Login: React.FC = () => {
               )}
             </View>
 
-            <View
-              style={styles.ctaWrapper}
-              testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-            >
+            <View style={styles.ctaWrapper}>
               {renderSwitch()}
 
               <Button
@@ -532,6 +529,7 @@ const Login: React.FC = () => {
                   )
                 }
                 isDisabled={password.length === 0}
+                testID={LoginViewSelectors.LOGIN_BUTTON_ID}
               />
 
               <Button
