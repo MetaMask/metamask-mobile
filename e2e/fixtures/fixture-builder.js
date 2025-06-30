@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 import { device } from 'detox';
-import { getGanachePort, getSecondTestDappLocalUrl } from './utils';
+import { getGanachePort, getSecondTestDappLocalUrl, TEST_DAPP_LOCAL_URL } from './utils';
 import { merge } from 'lodash';
 import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -20,8 +20,6 @@ export const DEFAULT_FIXTURE_ACCOUNT_2 =
 
 export const DEFAULT_IMPORTED_FIXTURE_ACCOUNT =
   '0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b';
-
-const DAPP_URL = 'http://localhost:8085';
 
 /**
  * FixtureBuilder class provides a fluent interface for building fixture data.
@@ -759,7 +757,7 @@ class FixtureBuilder {
    */
   createPermissionControllerConfig(
     additionalPermissions = {},
-    dappUrl = DAPP_URL,
+    dappUrl = TEST_DAPP_LOCAL_URL,
   ) {
     const caip25CaveatValue = additionalPermissions?.[
       Caip25EndowmentPermissionName
