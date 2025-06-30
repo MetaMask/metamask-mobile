@@ -1,7 +1,7 @@
 import { ChoosePasswordSelectorsIDs } from '../../selectors/Onboarding/ChoosePassword.selectors';
 import { ImportFromSeedSelectorsIDs } from '../../selectors/Onboarding/ImportFromSeed.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 
 class ImportWalletView {
   get container() {
@@ -37,11 +37,17 @@ class ImportWalletView {
   }
 
   async enterPassword(password) {
-    await Gestures.typeTextAndHideKeyboard(this.newPasswordInput, password);
+    await Gestures.typeText(this.newPasswordInput, password, {
+      elemDescription: 'New Password Input',
+      hideKeyboard: true,
+    });
   }
 
   async reEnterPassword(password) {
-    await Gestures.typeTextAndHideKeyboard(this.confirmPasswordInput, password);
+    await Gestures.typeText(this.confirmPasswordInput, password, {
+      hideKeyboard: true,
+      elemDescription: 'Confirm Password Input',
+    });
   }
 
   async enterSecretRecoveryPhrase(secretRecoveryPhrase) {
@@ -58,10 +64,17 @@ class ImportWalletView {
       }
 
       await Gestures.clearField(wordInput);
+      const elemDescription = `Seed Phrase Input ${i + 1}`;
       if (i !== 11) {
-        await Gestures.typeTextWithoutKeyboard(wordInput, words[i] + ' ');
+        await Gestures.typeText(wordInput, words[i] + ' ', {
+          hideKeyboard: true,
+          elemDescription,
+        });
       } else {
-        await Gestures.typeTextWithoutKeyboard(wordInput, words[i]);
+        await Gestures.typeText(wordInput, words[i], {
+          hideKeyboard: true,
+          elemDescription,
+        });
       }
     }
   }

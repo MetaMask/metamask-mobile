@@ -1,6 +1,6 @@
 import { ChoosePasswordSelectorsIDs } from '../../selectors/Onboarding/ChoosePassword.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 import enContent from '../../../locales/languages/en.json';
 
 class CreatePasswordView {
@@ -50,11 +50,17 @@ class CreatePasswordView {
   }
 
   async enterPassword(password) {
-    await Gestures.typeTextAndHideKeyboard(this.newPasswordInput, password);
+    await Gestures.typeText(this.newPasswordInput, password, {
+      elemDescription: 'New Password Input',
+      hideKeyboard: true,
+    });
   }
 
   async reEnterPassword(password) {
-    await Gestures.typeTextAndHideKeyboard(this.confirmPasswordInput, password);
+    await Gestures.typeText(this.confirmPasswordInput, password, {
+      hideKeyboard: true,
+      elemDescription: 'Confirm Password Input',
+    });
   }
 
   async tapIUnderstandCheckBox() {
@@ -62,7 +68,9 @@ class CreatePasswordView {
   }
 
   async tapCreatePasswordButton() {
-    await Gestures.waitAndTap(this.submitButton);
+    await Gestures.waitAndTap(this.submitButton, {
+      elemDescription: 'Create Password Button',
+    });
   }
 }
 

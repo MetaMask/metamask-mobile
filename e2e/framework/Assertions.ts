@@ -10,7 +10,7 @@ export default class Assertions {
    * Assert element is visible with auto-retry
    */
   static async expectVisible(
-    elementPromise: DetoxElement,
+    elementPromise: DetoxElement | WebElement,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
@@ -20,8 +20,12 @@ export default class Assertions {
 
     return Utilities.executeWithRetry(
       async () => {
-        const el = (await elementPromise) as Detox.IndexableNativeElement;
-        if (device.getPlatform() === 'ios') {
+        const el = await elementPromise;
+        const isWebElement = !!(el?.webViewElement?.matcher?.predicate?.value);
+        if (isWebElement) {
+              // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
+              await (expect(el) as any).toExist();
+        } else if (device.getPlatform() === 'ios') {
           await waitFor(el).toExist().withTimeout(100);
         } else {
           await waitFor(el).toBeVisible().withTimeout(100);
@@ -38,7 +42,7 @@ export default class Assertions {
    * Assert element is not visible with auto-retry
    */
   static async expectNotVisible(
-    elementPromise: DetoxElement,
+    elementPromise: DetoxElement | WebElement,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
@@ -48,7 +52,7 @@ export default class Assertions {
 
     return Utilities.executeWithRetry(
       async () => {
-        const el = (await elementPromise) as Detox.IndexableNativeElement;
+        const el = await elementPromise;
         await waitFor(el).not.toBeVisible().withTimeout(100);
       },
       {

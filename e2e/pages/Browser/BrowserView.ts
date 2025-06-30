@@ -7,8 +7,8 @@ import {
 import { AccountOverviewSelectorsIDs } from '../../selectors/Browser/AccountOverview.selectors';
 import { BrowserURLBarSelectorsIDs } from '../../selectors/Browser/BrowserURLBar.selectors';
 import { AddBookmarkViewSelectorsIDs } from '../../selectors/Browser/AddBookmarkView.selectors';
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
+import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers.ts';
 import { waitForTestDappToLoad } from '../../viewHelper';
 import {
   TEST_DAPP_LOCAL_URL,
@@ -127,7 +127,9 @@ class Browser {
   }
 
   async tapUrlInputBox(): Promise<void> {
-    await Gestures.waitAndTap(this.urlInputBoxID);
+    await Gestures.waitAndTap(this.urlInputBoxID, {
+      elemDescription: 'URL Input Box',
+    });
   }
 
   async tapLocalHostDefaultAvatar(): Promise<void> {
@@ -143,7 +145,9 @@ class Browser {
   }
 
   async tapOpenAllTabsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.tabsButton, { delayBeforeTap: 4000 });
+    await Gestures.waitAndTap(this.tabsButton, {
+      elemDescription: 'Open All Tabs Button',
+    });
   }
 
   async tapSecondTabButton(): Promise<void> {
@@ -176,7 +180,6 @@ class Browser {
   }
 
   async tapNetworkAvatarOrAccountButtonOnBrowser(): Promise<void> {
-    await TestHelpers.delay(4000);
     await Gestures.waitAndTap(this.networkAvatarOrAccountButton);
   }
 

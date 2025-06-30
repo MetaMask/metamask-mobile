@@ -2,10 +2,10 @@ import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
 } from '../../selectors/wallet/WalletView.selectors';
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
+import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers.ts';
 import TestHelpers from '../../helpers';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions.ts';
 
 class WalletView {
   get container() {

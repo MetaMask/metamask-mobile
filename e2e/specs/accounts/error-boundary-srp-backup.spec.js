@@ -10,7 +10,7 @@ import {
 } from '../../fixtures/fixture-helper';
 import { SmokeNetworkExpansion } from '../../tags';
 import TestHelpers from '../../helpers';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions.ts';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 import ErrorBoundaryView from '../../pages/ErrorBoundaryView/ErrorBoundaryView';
 import { buildPermissions } from '../../fixtures/utils';
@@ -40,7 +40,9 @@ describe(SmokeNetworkExpansion('Error Boundary Screen'), () => {
         await Browser.navigateToTestDApp();
 
         await TestDApp.tapInvalidSigButton();
-        await Assertions.checkIfVisible(ErrorBoundaryView.title);
+        await Assertions.expectVisible(ErrorBoundaryView.title, {
+          description: 'Error Boundary title should be visible',
+        });
         await ErrorBoundaryView.tapSRPLinkText();
 
         await RevealSecretRecoveryPhrase.enterPasswordToRevealSecretCredential(
@@ -48,9 +50,11 @@ describe(SmokeNetworkExpansion('Error Boundary Screen'), () => {
         );
         // If the following step fails, ensure you are using a test build with tap and hold to reveal animation disabled
         await RevealSecretRecoveryPhrase.tapToReveal();
-        await Assertions.checkIfVisible(RevealSecretRecoveryPhrase.container);
+        await Assertions.expectVisible(RevealSecretRecoveryPhrase.container, {
+          description: 'Reveal SRP screen should be visible',
+        });
 
-        await Assertions.checkIfTextIsDisplayed(defaultGanacheOptions.mnemonic);
+        await Assertions.expectTextDisplayed(defaultGanacheOptions.mnemonic);
       },
     );
   });

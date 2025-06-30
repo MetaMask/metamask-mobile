@@ -1,5 +1,5 @@
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 import { TabBarSelectorIDs } from '../../selectors/wallet/TabBar.selectors';
 
 class TabBarComponent {
@@ -24,23 +24,33 @@ class TabBarComponent {
   }
 
   async tapBrowser() {
-    await Gestures.waitAndTap(this.tabBarBrowserButton);
+    await Gestures.waitAndTap(this.tabBarBrowserButton, {
+      elemDescription: 'Browser Button'
+    });
   }
 
   async tapWallet() {
-    await Gestures.waitAndTap(this.tabBarWalletButton, {experimentalWaitForStability: true});
+    await Gestures.waitAndTap(this.tabBarWalletButton, {
+      elemDescription: 'Tab Bar Wallet Button'
+    });
   }
 
   async tapActions() {
-    await Gestures.waitAndTap(this.tabBarActionButton);
+    await Gestures.waitAndTap(this.tabBarActionButton, {
+      elemDescription: 'Tab Bar Actions Button'
+    });
   }
 
   async tapSettings() {
-    await Gestures.waitAndTap(this.tabBarSettingButton);
+    await Gestures.waitAndTap(this.tabBarSettingButton, {
+      elemDescription: 'Tab Bar Settings Button'
+    });
   }
 
   async tapActivity() {
-    await Gestures.waitAndTap(this.tabBarActivityButton);
+    await Gestures.waitAndTap(this.tabBarActivityButton, {
+      elemDescription: 'Tab Bar Activity Button'
+    });
   }
 }
 

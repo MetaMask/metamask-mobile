@@ -1,5 +1,5 @@
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
+import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers.ts';
 
 import {
   EnableDeviceNotificationsAlertSelectorText
@@ -17,7 +17,9 @@ class EnableDeviceNotificationsAlert {
   }
 
   async tapOnEnableDeviceNotificationsButton() {
-    await Gestures.waitAndTap(this.getEnableDeviceNotificationsButton);
+    await Gestures.waitAndTap(this.getEnableDeviceNotificationsButton, {
+      elemDescription: 'Enable Device Notifications Button',
+    });
   }
 }
 

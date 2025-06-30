@@ -23,7 +23,7 @@ import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
 import TabBarComponent from './pages/wallet/TabBarComponent';
 import LoginView from './pages/wallet/LoginView';
 import { getGanachePort } from './fixtures/utils';
-import Assertions from './utils/Assertions';
+import Assertions from './framework/Assertions.ts';
 import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
@@ -34,11 +34,17 @@ const validAccount = Accounts.getValidAccount();
 
 export const acceptTermOfUse = async () => {
   // tap on accept term of use screen
-  await Assertions.checkIfVisible(TermsOfUseModal.container);
+  await Assertions.expectVisible(TermsOfUseModal.container, {
+    description: 'Terms of Use modal should be visible',
+  });
+
   await TermsOfUseModal.tapScrollEndButton();
   await TermsOfUseModal.tapAgreeCheckBox();
   await TermsOfUseModal.tapAcceptButton();
-  await Assertions.checkIfNotVisible(TermsOfUseModal.container);
+
+  await Assertions.expectNotVisible(TermsOfUseModal.container, {
+    description: 'Terms of Use modal should not be visible',
+  });
 };
 
 /**
@@ -55,12 +61,11 @@ export const closeOnboardingModals = async (solanaSheetAction = 'dismiss') => {
 These onboarding modals are becoming a bit wild. We need less of these so we don't
 have to have all these workarounds in the tests
   */
-  await TestHelpers.delay(1000);
 
   try {
-    await Assertions.checkIfVisible(ToastModal.container);
+    await Assertions.expectVisible(ToastModal.container);
     await ToastModal.tapToastCloseButton();
-    await Assertions.checkIfNotVisible(ToastModal.container);
+    await Assertions.expectNotVisible(ToastModal.container);
   } catch {
     // eslint-disable-next-line no-console
     console.log('The marketing toast is not visible');
@@ -77,14 +82,13 @@ have to have all these workarounds in the tests
 };
 
 export const skipNotificationsDeviceSettings = async () => {
-  await TestHelpers.delay(1000);
 
   try {
-    await Assertions.checkIfVisible(
+    await Assertions.expectVisible(
       EnableDeviceNotificationsAlert.stepOneContainer,
     );
     await EnableDeviceNotificationsAlert.tapOnEnableDeviceNotificationsButton();
-    await Assertions.checkIfNotVisible(
+    await Assertions.expectNotVisible(
       EnableDeviceNotificationsAlert.stepOneContainer,
     );
   } catch {
@@ -128,13 +132,14 @@ export const importWalletWithRecoveryPhrase = async ({
   solanaSheetAction = 'dismiss',
 } = {}) => {
   // tap on import seed phrase button
-  await Assertions.checkIfVisible(OnboardingCarouselView.container);
+  await Assertions.expectVisible(OnboardingCarouselView.container, {
+    description: 'Onboarding carousel should be visible',
+  });
   await OnboardingCarouselView.tapOnGetStartedButton();
   await acceptTermOfUse();
 
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
-  await TestHelpers.delay(3500);
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
   await ImportWalletView.enterSecretRecoveryPhrase(
@@ -142,17 +147,15 @@ export const importWalletWithRecoveryPhrase = async ({
   );
   await ImportWalletView.tapTitle();
   await ImportWalletView.tapContinueButton();
-  await TestHelpers.delay(3500);
 
   await CreatePasswordView.enterPassword(password ?? validAccount.password);
   await CreatePasswordView.reEnterPassword(password ?? validAccount.password);
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
 
-  // Add delay for 1 second to avoid flakiness on ios
-  if (device.getPlatform() === 'ios') TestHelpers.delay(1000);
-
-  await Assertions.checkIfVisible(MetaMetricsOptIn.container);
+  await Assertions.expectVisible(MetaMetricsOptIn.container, {
+    description: 'MetaMetrics Opt-In modal should be visible',
+  });
   if (optInToMetrics) {
     await MetaMetricsOptIn.tapAgreeButton();
   } else {
@@ -160,8 +163,9 @@ export const importWalletWithRecoveryPhrase = async ({
   }
 
   //'Should dismiss Enable device Notifications checks alert'
-  await TestHelpers.delay(3500);
-  await Assertions.checkIfVisible(OnboardingSuccessView.container);
+  await Assertions.expectVisible(OnboardingSuccessView.container, {
+    description: 'Onboarding Success view should be visible',
+  });
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
   await skipNotificationsDeviceSettings();
@@ -214,7 +218,6 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
   await SkipAccountSecurityModal.tapSkipButton();
   await device.enableSynchronization();
-  await TestHelpers.delay(3500);
 
   await Assertions.checkIfVisible(MetaMetricsOptIn.container);
   optInToMetrics
@@ -239,7 +242,6 @@ export const addLocalhostNetwork = async () => {
   await SettingsView.tapNetworks();
   await Assertions.checkIfVisible(NetworkView.networkContainer);
 
-  await TestHelpers.delay(3000);
   await NetworkView.tapAddNetworkButton();
   await NetworkView.switchToCustomNetworks();
 
@@ -252,7 +254,6 @@ export const addLocalhostNetwork = async () => {
     // await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
     await NetworkView.tapRpcNetworkAddButton();
   }
-  await TestHelpers.delay(3000);
 
   await Assertions.checkIfVisible(NetworkEducationModal.container);
   await Assertions.checkIfElementToHaveText(
@@ -290,31 +291,19 @@ export const switchToSepoliaNetwork = async () => {
 
 export const loginToApp = async () => {
   const PASSWORD = '123123123';
-  await Assertions.checkIfVisible(LoginView.container);
-  await Assertions.checkIfVisible(LoginView.passwordInput);
+  await Assertions.expectVisible(LoginView.container, {
+    description: 'Login view should be visible',
+  });
+
+  await Assertions.expectVisible(LoginView.passwordInput,{
+    description: 'Password input should be visible',
+  });
+
   await LoginView.enterPassword(PASSWORD);
 };
 
 export const waitForTestDappToLoad = async () => {
-  const MAX_RETRIES = 3;
-  const RETRY_DELAY = 5000;
-
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      await Assertions.webViewElementExists(TestDApp.testDappFoxLogo);
-      await Assertions.webViewElementExists(TestDApp.testDappPageTitle);
-
-      await Assertions.webViewElementExists(TestDApp.DappConnectButton);
-      return; // Success - page is fully loaded and interactive
-    } catch (error) {
-      if (attempt === MAX_RETRIES) {
-        throw new Error(
-          `Test dapp failed to load after ${MAX_RETRIES} attempts: ${error.message}`,
-        );
-      }
-      await TestHelpers.delay(RETRY_DELAY);
-    }
-  }
-
-  throw new Error('Test dapp failed to become fully interactive');
+  await Assertions.expectVisible(TestDApp.testDappFoxLogo);
+  await Assertions.expectVisible(TestDApp.testDappPageTitle);
+  await Assertions.expectVisible(TestDApp.DappConnectButton);
 };

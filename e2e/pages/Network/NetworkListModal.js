@@ -2,8 +2,8 @@ import {
   NetworkListModalSelectorsIDs,
   NetworkListModalSelectorsText,
 } from '../../selectors/Network/NetworkListModal.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 import TestHelpers from '../../helpers';
 import { NetworksViewSelectorsIDs } from '../../selectors/Settings/NetworksView.selectors';
 
@@ -83,7 +83,7 @@ class NetworkListModal {
   }
 
   async tapTestNetworkSwitch() {
-    await Gestures.waitAndTap(this.testNetToggle, { delayBeforeTap: 2500 });
+    await Gestures.waitAndTap(this.testNetToggle);
 
   }
 

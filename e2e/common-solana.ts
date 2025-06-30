@@ -10,7 +10,7 @@ import AddNewHdAccountComponent from './pages/wallet/MultiSrp/AddAccountToSrp/Ad
 import WalletView from './pages/wallet/WalletView';
 import AccountListBottomSheet from './pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from './pages/wallet/AddAccountBottomSheet';
-import Assertions from './utils/Assertions';
+import Assertions from './framework/Assertions.ts';
 
 export async function withSolanaAccountEnabled(
   {

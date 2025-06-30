@@ -9,7 +9,7 @@ import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsM
 import FixtureBuilder from '../../../../fixtures/fixture-builder';
 import { withFixtures } from '../../../../fixtures/fixture-helper';
 import { loginToApp } from '../../../../viewHelper';
-import Assertions from '../../../../utils/Assertions';
+import Assertions from '../../../../framework/Assertions.ts';
 import WalletView from '../../../../pages/wallet/WalletView';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';

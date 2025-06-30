@@ -1,15 +1,16 @@
 import { dataTestIds } from '@metamask/test-dapp-solana';
 import { getLocalTestDappPort } from '../../fixtures/utils';
-import Matchers from '../../utils/Matchers';
+import Matchers from '../../framework/Matchers.ts';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import Browser from './BrowserView';
-import Gestures from '../../utils/Gestures';
+import Gestures from '../../framework/Gestures.ts';
 import { waitFor } from 'detox';
 import {
   SOLANA_TEST_TIMEOUTS,
   SolanaTestDappSelectorsWebIDs,
 } from '../../selectors/Browser/SolanaTestDapp.selectors';
 import TestHelpers from '../../helpers';
+import Assertions from '../../framework/Assertions.ts';
 
 // Use the same port as the regular test dapp - the solanaDapp flag controls which dapp is served
 export const SOLANA_TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
@@ -24,7 +25,7 @@ export const SOLANA_TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPo
 function getTestElement(
   dataTestId: string,
   options: { extraXPath?: string; tag?: string } = {},
-): Promise<Detox.IndexableWebElement & Detox.SecuredWebElementFacade> {
+): WebElement {
   const { tag = 'div', extraXPath = '' } = options;
   const xpath = `//${tag}[@data-testid="${dataTestId}"]${extraXPath}`;
 
@@ -75,22 +76,27 @@ class SolanaTestDApp {
     );
   }
 
+  async waitForWebViewToLoad(): Promise<void> {
+    const browserWebView = Matchers.getElementByID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+    );
+
+    await Assertions.expectVisible(browserWebView, {
+      description: 'Solana Test DApp WebView',
+      timeout: SOLANA_TEST_TIMEOUTS.ELEMENT_VISIBILITY,
+    });
+  }
+
   async navigateToSolanaTestDApp(): Promise<void> {
     await Browser.tapUrlInputBox();
-
     await Browser.navigateToURL(SOLANA_TEST_DAPP_LOCAL_URL);
+    await this.waitForWebViewToLoad();
 
-    await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)))
-      .toBeVisible()
-      .withTimeout(10000);
   }
 
   async reloadSolanaTestDApp(): Promise<void> {
     await Browser.reloadTab();
-
-    await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)))
-      .toBeVisible()
-      .withTimeout(10000);
+    await this.waitForWebViewToLoad();
   }
 
   /**
@@ -131,7 +137,6 @@ class SolanaTestDApp {
   getSignMessageTest() {
     return {
       signMessage: async () => {
-        await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.METHOD_INVOCATION);
         await this.tapButton(
           getTestElement(dataTestIds.testPage.signMessage.signMessage, {
             tag: 'button',
@@ -150,7 +155,6 @@ class SolanaTestDApp {
   getSendSolTest() {
     return {
       signTransaction: async () => {
-        await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.METHOD_INVOCATION);
         await this.tapButton(
           getTestElement(dataTestIds.testPage.sendSol.signTransaction, {
             tag: 'button',
@@ -158,7 +162,6 @@ class SolanaTestDApp {
         );
       },
       sendTransaction: async () => {
-        await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.METHOD_INVOCATION);
         await this.tapButton(
           getTestElement(dataTestIds.testPage.sendSol.sendTransaction, {
             tag: 'button',
@@ -181,12 +184,10 @@ class SolanaTestDApp {
   }
 
   async confirmTransaction(): Promise<void> {
-    await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.DEFAULT_DELAY);
     await Gestures.waitAndTap(this.confirmTransactionButtonSelector);
   }
 
   async confirmSignMessage(): Promise<void> {
-    await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.DEFAULT_DELAY);
     await Gestures.waitAndTap(this.confirmSignMessageButtonSelector);
   }
 

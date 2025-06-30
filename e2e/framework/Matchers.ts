@@ -97,7 +97,7 @@ export default class Matchers {
   static async getElementByWebID(
     webviewID: string,
     innerID: string,
-  ): Promise<Detox.IndexableWebElement | Detox.SecuredWebElementFacade> {
+  ): WebElement {
     const myWebView = this.getWebViewByID(webviewID);
     return myWebView.element(by.web.id(innerID));
   }

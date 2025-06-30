@@ -9,8 +9,8 @@ import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.select
 import enContent from '../../../locales/languages/en.json';
 
 import Browser from '../Browser/BrowserView';
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
+import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers.ts';
 
 const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
 const APPROVE_BUTTON_TEXT = enContent.transactions.tx_review_approve;

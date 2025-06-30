@@ -1,6 +1,6 @@
 import { SmokeNetworkExpansion } from '../../../tags';
 import TestHelpers from '../../../helpers';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../framework/Assertions.ts';
 
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import SettingsView from '../../../pages/Settings/SettingsView';

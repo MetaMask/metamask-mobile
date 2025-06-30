@@ -4,7 +4,7 @@ import WalletView from '../../pages/wallet/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import ImportAccountView from '../../pages/importAccount/ImportAccountView';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions.ts';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import CommonView from '../../pages/CommonView';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
@@ -31,18 +31,18 @@ describe(SmokeNetworkExpansion('Import account via private to wallet'), () => {
 
   it('should be able to import account', async () => {
     await WalletView.tapIdenticon();
-    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+    await Assertions.expectVisible(AccountListBottomSheet.accountList);
     await AccountListBottomSheet.tapAddAccountButton();
     await AddAccountBottomSheet.tapImportAccount();
-    await Assertions.checkIfVisible(ImportAccountView.container);
+    await Assertions.expectVisible(ImportAccountView.container);
     // Tap on import button to make sure alert pops up
     await ImportAccountView.tapImportButton();
     await CommonView.tapOKAlertButton();
     await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
-    await Assertions.checkIfVisible(SuccessImportAccountView.container);
+    await Assertions.expectVisible(SuccessImportAccountView.container);
     await SuccessImportAccountView.tapCloseButton();
     await AccountListBottomSheet.swipeToDismissAccountsModal();
-    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.expectVisible(WalletView.container);
     await Assertions.checkIfElementNotToHaveText(
       WalletView.accountName,
       'Account 1',

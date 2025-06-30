@@ -10,7 +10,7 @@ import AddAccountBottomSheet from '../../../../pages/wallet/AddAccountBottomShee
 import { loginToApp } from '../../../../viewHelper';
 import FixtureBuilder from '../../../../fixtures/fixture-builder';
 import { withFixtures } from '../../../../fixtures/fixture-helper';
-import Assertions from '../../../../utils/Assertions';
+import Assertions from '../../../../framework/Assertions.ts';
 import { SmokeNetworkExpansion } from '../../../../tags';
 import AddNewAccountSheet from '../../../../pages/wallet/AddNewAccountSheet';
 
@@ -41,7 +41,6 @@ describe(SmokeNetworkExpansion('Account Permission Management'), () => {
         await Browser.navigateToTestDApp();
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.checkIfVisible(ConnectedAccountsModal.title);
-        await TestHelpers.delay(2000);
 
         await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();

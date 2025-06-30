@@ -2,8 +2,8 @@ import {
   PermissionSummaryBottomSheetSelectorsIDs,
   PermissionSummaryBottomSheetSelectorsText,
 } from '../../selectors/Browser/PermissionSummaryBottomSheet.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 
 class PermissionSummaryBottomSheet {
   get container() {

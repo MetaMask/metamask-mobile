@@ -15,7 +15,6 @@ import {
  * Gestures class with element stability and auto-retry
  */
 export default class Gestures {
-
   /**
    * Tap an element with stability checking (internal method)
    * @param detoxElement - The Detox element to tap
@@ -51,8 +50,6 @@ export default class Gestures {
     console.log(successMessage);
   };
 
-
-
   /**
    * Tap an element with stability checking and auto-retry
    */
@@ -65,10 +62,7 @@ export default class Gestures {
       checkEnabled: true,
     },
   ): Promise<void> {
-    const {
-      timeout,
-      elemDescription,
-    } = options;
+    const { timeout, elemDescription } = options;
 
     const fn = () => this.tapWithChecks(detoxElement, options);
     return Utilities.executeWithRetry(fn, {
@@ -84,17 +78,14 @@ export default class Gestures {
    */
   static async waitAndTap(
     detoxElement: DetoxElement,
-        options: TapOptions = {
+    options: TapOptions = {
       timeout: BASE_DEFAULTS.timeout,
       checkStability: false,
       checkVisibility: true,
       checkEnabled: true,
-    }
+    },
   ): Promise<void> {
-    const {
-      timeout,
-      elemDescription,
-    } = options;
+    const { timeout, elemDescription } = options;
 
     const fn = () => this.tapWithChecks(detoxElement, options);
     return Utilities.executeWithRetry(fn, {
@@ -117,18 +108,13 @@ export default class Gestures {
       checkEnabled: true,
     },
   ): Promise<void> {
-    const {
-      timeout,
-      elemDescription
-    } = options;
+    const { timeout, elemDescription } = options;
     const fn = () => this.tapWithChecks(detoxElement, options, point);
-    return Utilities.executeWithRetry(fn,
-      {
-        timeout,
-        description: 'tapAtPoint()',
-        elemDescription
-      },
-    );
+    return Utilities.executeWithRetry(fn, {
+      timeout,
+      description: 'tapAtPoint()',
+      elemDescription,
+    });
   }
 
   /**
@@ -143,16 +129,14 @@ export default class Gestures {
       checkVisibility: true,
     },
   ): Promise<void> {
-    const {
-      timeout,
-      duration = 2000,
-      elemDescription
-    } = options;
+    const { timeout, duration = 2000, elemDescription } = options;
 
     return Utilities.executeWithRetry(
       async () => {
-        const el = await Utilities.checkElementReadyState(detoxElement, {
-        }) as Detox.IndexableNativeElement;
+        const el = (await Utilities.checkElementReadyState(
+          detoxElement,
+          {},
+        )) as Detox.IndexableNativeElement;
 
         await new Promise((resolve) =>
           setTimeout(resolve, BASE_DEFAULTS.actionDelay),
@@ -162,7 +146,7 @@ export default class Gestures {
       {
         timeout,
         description: `longPress() for ${duration}ms`,
-        elemDescription
+        elemDescription,
       },
     );
   }
@@ -182,16 +166,14 @@ export default class Gestures {
       checkVisibility: true,
     },
   ): Promise<void> {
-    const {
-      timeout,
-      clearFirst,
-      hideKeyboard,
-      elemDescription
-    } = options;
+    const { timeout, clearFirst, hideKeyboard, elemDescription } = options;
 
     return Utilities.executeWithRetry(
       async () => {
-        const el = await Utilities.checkElementReadyState(detoxElement, options) as Detox.IndexableNativeElement;
+        const el = (await Utilities.checkElementReadyState(
+          detoxElement,
+          options,
+        )) as Detox.IndexableNativeElement;
 
         await new Promise((resolve) =>
           setTimeout(resolve, BASE_DEFAULTS.actionDelay),
@@ -209,7 +191,7 @@ export default class Gestures {
       {
         timeout,
         description: `typeText("${text}")`,
-        elemDescription
+        elemDescription,
       },
     );
   }
@@ -227,14 +209,14 @@ export default class Gestures {
       checkVisibility: true,
     },
   ): Promise<void> {
-    const {
-      timeout,
-      elemDescription
-    } = options;
+    const { timeout, elemDescription } = options;
 
     return Utilities.executeWithRetry(
       async () => {
-        const el = await Utilities.checkElementReadyState(detoxElement, options) as Detox.IndexableNativeElement;
+        const el = (await Utilities.checkElementReadyState(
+          detoxElement,
+          options,
+        )) as Detox.IndexableNativeElement;
 
         await new Promise((resolve) =>
           setTimeout(resolve, BASE_DEFAULTS.actionDelay),
@@ -244,7 +226,7 @@ export default class Gestures {
       {
         timeout,
         description: `replaceText("${text}")`,
-        elemDescription
+        elemDescription,
       },
     );
   }
@@ -264,16 +246,14 @@ export default class Gestures {
       checkVisibility: true,
     },
   ): Promise<void> {
-    const {
-      timeout,
-      speed,
-      percentage,
-      elemDescription
-    } = options;
+    const { timeout, speed, percentage, elemDescription } = options;
 
     return Utilities.executeWithRetry(
       async () => {
-        const el = await Utilities.checkElementReadyState(detoxElement, options) as Detox.IndexableNativeElement;
+        const el = (await Utilities.checkElementReadyState(
+          detoxElement,
+          options,
+        )) as Detox.IndexableNativeElement;
 
         await new Promise((resolve) =>
           setTimeout(resolve, BASE_DEFAULTS.actionDelay),
@@ -283,7 +263,7 @@ export default class Gestures {
       {
         timeout,
         description: `swipe(${direction})`,
-        elemDescription
+        elemDescription,
       },
     );
   }
@@ -300,15 +280,16 @@ export default class Gestures {
       timeout = BASE_DEFAULTS.timeout,
       direction = 'down',
       scrollAmount = 350,
-      elemDescription
+      elemDescription,
     } = options;
 
     return Utilities.executeWithRetry(
       async () => {
         const target = (await targetElement) as Detox.IndexableNativeElement;
+        const scrollable = (await scrollableContainer) as Detox.NativeMatcher; // Ensure scrollable is a Detox matcher
         await waitFor(target)
           .toBeVisible()
-          .whileElement(scrollableContainer)
+          .whileElement(scrollable)
           .scroll(scrollAmount, direction);
       },
       {
@@ -453,7 +434,6 @@ export default class Gestures {
   ): Promise<void> {
     return this.replaceText(detoxElement, text, { timeout });
   }
-
 
   /**
    * Legacy method: Scroll to web view port
