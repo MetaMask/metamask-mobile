@@ -49,10 +49,7 @@ const DeFiProtocolPositionDetails: React.FC = () => {
       testID={WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER}
       style={styles.protocolPositionDetailsWrapper}
     >
-      <View
-        testID={WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER}
-        style={styles.detailsWrapper}
-      >
+      <View style={styles.detailsWrapper}>
         <View>
           <Text variant={TextVariant.DisplayMD}>
             {protocolAggregate.protocolDetails.name}
