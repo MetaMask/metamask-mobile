@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { InteractionManager, useWindowDimensions, View } from 'react-native';
+import { InteractionManager, useWindowDimensions } from 'react-native';
 
 // External dependencies.
 import EvmAccountSelectorList from '../../UI/EvmAccountSelectorList';
@@ -20,7 +20,7 @@ import { store } from '../../../store';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import { useAccounts } from '../../hooks/useAccounts';
-import Button, {
+import {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
@@ -47,6 +47,8 @@ import {
   trace,
 } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
+import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
+import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const { height: screenHeight } = useWindowDimensions();
@@ -157,6 +159,20 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     }
   }, [isAccountSelector]);
 
+  const addAccountButtonProps: ButtonProps[] = useMemo(
+    () => [
+      {
+        variant: ButtonVariants.Secondary,
+        label: strings('account_actions.add_account_or_hardware_wallet'),
+        size: ButtonSize.Lg,
+        width: ButtonWidthTypes.Full,
+        onPress: handleAddAccount,
+        testID: AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      },
+    ],
+    [handleAddAccount],
+  );
+
   const renderAccountSelector = useCallback(
     () => (
       <Fragment>
@@ -170,19 +186,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           privacyMode={privacyMode && !disablePrivacyMode}
           testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
         />
-        <View style={styles.stickyButton}>
-          <Button
-            style={styles.sheet}
-            variant={ButtonVariants.Secondary}
-            label={strings('account_actions.add_account_or_hardware_wallet')}
-            width={ButtonWidthTypes.Full}
-            size={ButtonSize.Lg}
-            onPress={handleAddAccount}
-            testID={
-              AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
-            }
-          />
-        </View>
+        <BottomSheetFooter
+          buttonPropsArray={addAccountButtonProps}
+          style={styles.sheet}
+        />
       </Fragment>
     ),
     [
@@ -192,9 +199,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       onRemoveImportedAccount,
       privacyMode,
       disablePrivacyMode,
-      handleAddAccount,
       styles.sheet,
-      styles.stickyButton,
+      addAccountButtonProps,
     ],
   );
 

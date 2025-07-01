@@ -36,6 +36,8 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
       marginVertical: 8,
     },
     listContainer: {
+      flexGrow: 1,
+      flexShrink: 1,
       flexDirection: 'row',
     },
   });

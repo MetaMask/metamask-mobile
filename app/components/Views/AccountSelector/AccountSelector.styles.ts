@@ -18,12 +18,6 @@ const styleSheet = (params: {
       marginVertical: 32,
       marginHorizontal: 16,
     },
-    stickyButton: {
-      position: 'absolute',
-      bottom: 0,
-      width: '100%',
-      backgroundColor: colors.background.default,
-    },
     bottomSheetContent: {
       backgroundColor: colors.background.default,
       display: 'flex',
