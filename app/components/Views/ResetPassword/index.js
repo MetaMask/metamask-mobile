@@ -67,7 +67,6 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
-import { SecurityOptionToggle } from '../../UI/SecurityOptionToggle';
 import NavigationService from '../../../core/NavigationService';
 
 import { MetaMetricsEvents, MetaMetrics } from '../../../core/Analytics';
@@ -654,10 +653,11 @@ class ResetPassword extends PureComponent {
   }
 
   toggleShowPassword = (index) => {
-    const newShowPasswordIndex = this.state.showPasswordIndex.includes(index)
-      ? this.state.showPasswordIndex.filter((i) => i !== index)
-      : [...this.state.showPasswordIndex, index];
-    this.setState({ showPasswordIndex: newShowPasswordIndex });
+    this.setState((prevState) => ({
+      showPasswordIndex: prevState.showPasswordIndex.includes(index)
+        ? prevState.showPasswordIndex.filter((i) => i !== index)
+        : [...prevState.showPasswordIndex, index],
+    }));
   };
 
   handleConfirmAction = (styles) => {
