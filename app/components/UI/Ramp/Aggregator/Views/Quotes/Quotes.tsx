@@ -1068,7 +1068,7 @@ function Quotes() {
             onScroll={scrollHandler}
             scrollEventThrottle={16}
           >
-            <ScreenLayout.Content style={styles.withoutTopPadding}>
+            <ScreenLayout.Content style={styles.withoutTopPadding} testID={QuoteSelectors.EXPANDED_QUOTES_SECTION}>
               {isFetchingQuotes && isInPolling ? (
                 <LoadingQuotes />
               ) : (

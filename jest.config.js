@@ -21,6 +21,8 @@ process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID = 'androidGoogleWebClientId';
 process.env.IOS_GOOGLE_CLIENT_ID = 'iosGoogleClientId';
 process.env.IOS_GOOGLE_REDIRECT_URI = 'iosGoogleRedirectUri';
 
+process.env.MM_SMART_ACCOUNT_UI_ENABLED = 'true';
+
 const config = {
   preset: 'react-native',
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
