@@ -4,6 +4,7 @@ import { isTest } from '../../../../util/test/utils';
 import { createSelector } from 'reselect';
 import { Platform } from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
+import { performanceBridge } from '../../../../../e2e/bridge';
 
 export interface PerformanceMetric {
   eventName: string;
@@ -74,6 +75,15 @@ const slice = createSlice({
           appVersion: environment?.appVersion || '',
         };
         state.isInitialized = true;
+        
+        // Send session data to fixture server
+        if (isTest) {
+          performanceBridge.sendSession({
+            sessionId: state.sessionId,
+            startTime: state.startTime,
+            environment: state.environment,
+          });
+        }
       }
 
       const { eventName, metadata } = action.payload;
@@ -109,6 +119,19 @@ const slice = createSlice({
           },
         });
         delete state.activeTraceBySessionId[eventName];
+        
+        // Send metric to fixture server
+        if (isTest) {
+          performanceBridge.sendMetric({
+            eventName,
+            timestamp: activeTrace.startTime,
+            duration,
+            metadata: {
+              ...activeTrace.metadata,
+              ...additionalMetadata,
+            },
+          });
+        }
       }
     },
     clearPerformanceMetrics: (state) => {
@@ -117,6 +140,11 @@ const slice = createSlice({
       }
       state.metrics = [];
       state.activeTraceBySessionId = {};
+      
+      // Clear performance data on fixture server
+      if (isTest) {
+        performanceBridge.clearPerformanceData();
+      }
     },
   },
 });
