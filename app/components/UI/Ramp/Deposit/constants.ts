@@ -87,6 +87,13 @@ export const DEBIT_CREDIT_PAYMENT_METHOD: DepositPaymentMethod = {
   icon: IconName.Card,
 };
 
+export const SEPA_PAYMENT_METHOD: DepositPaymentMethod = {
+  id: 'sepa_bank_transfer',
+  name: 'SEPA Bank Transfer',
+  duration: '1_to_2_days',
+  icon: IconName.Bank,
+};
+
 export const APPLE_PAY_PAYMENT_METHOD: DepositPaymentMethod = {
   id: 'apple_pay',
   name: 'Apple Pay',
@@ -101,6 +108,7 @@ export const APPLE_PAY_PAYMENT_METHOD: DepositPaymentMethod = {
 export const SUPPORTED_PAYMENT_METHODS: DepositPaymentMethod[] = [
   DEBIT_CREDIT_PAYMENT_METHOD,
   APPLE_PAY_PAYMENT_METHOD,
+  SEPA_PAYMENT_METHOD,
 ];
 
 export const USD_CURRENCY: DepositFiatCurrency = {

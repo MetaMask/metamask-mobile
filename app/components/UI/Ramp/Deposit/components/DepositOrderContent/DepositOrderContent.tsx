@@ -14,10 +14,13 @@ import Icon, {
   IconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../../locales/i18n';
-import { formatCurrency, getCryptoCurrencyFromTransakId } from '../../utils';
+import {
+  formatCurrency,
+  getCryptoCurrencyFromTransakId,
+  hasDepositOrderField,
+} from '../../utils';
 import { selectChainId } from '../../../../../../selectors/networkController';
 import { selectEvmNetworkName } from '../../../../../../selectors/networkInfos';
-import { DepositOrder } from '@consensys/native-ramps-sdk';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { useAccountName } from '../../../../../hooks/useAccountName';
 import Avatar, {
@@ -30,6 +33,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../..
 import { FiatOrder } from '../../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import styleSheet from './DepositOrderContent.styles';
+import { SEPA_PAYMENT_METHOD } from '../../constants';
 
 interface DepositOrderContentProps {
   order: FiatOrder;
@@ -50,14 +54,8 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
       : AvatarAccountType.JazzIcon,
   );
 
-  const isDepositOrder = useCallback(
-    (data: unknown): data is DepositOrder =>
-      data !== null && typeof data === 'object',
-    [],
-  );
-
   const getCryptoToken = () => {
-    if (!isDepositOrder(order?.data)) {
+    if (!hasDepositOrderField(order?.data, 'cryptoCurrency')) {
       return null;
     }
     return getCryptoCurrencyFromTransakId(order.data.cryptoCurrency);
@@ -85,10 +83,13 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
   }, [order?.id]);
 
   const handleViewInTransak = useCallback(() => {
-    if (isDepositOrder(order?.data) && order.data.providerOrderLink) {
+    if (
+      hasDepositOrderField(order?.data, 'providerOrderLink') &&
+      order.data.providerOrderLink
+    ) {
       Linking.openURL(order.data.providerOrderLink);
     }
-  }, [order?.data, isDepositOrder]);
+  }, [order?.data]);
 
   const shortOrderId = order.id.slice(-6);
   const totalAmount =
@@ -102,6 +103,25 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
     order.fee || order.cryptoFee || 0,
     order.currency,
   );
+
+  let subtitle = strings('deposit.order_processing.description');
+
+  if (order.state === FIAT_ORDER_STATES.COMPLETED) {
+    subtitle = strings('deposit.order_processing.success_description', {
+      amount: order.amount,
+      currency: order.currency,
+    });
+  } else if (order.state === FIAT_ORDER_STATES.FAILED) {
+    subtitle = strings('deposit.order_processing.error_description');
+  } else if (order.state === FIAT_ORDER_STATES.CANCELLED) {
+    subtitle = strings('deposit.order_processing.cancel_order_description');
+  } else if (
+    order.state === FIAT_ORDER_STATES.PENDING &&
+    hasDepositOrderField(order.data, 'paymentMethod') &&
+    order.data.paymentMethod === SEPA_PAYMENT_METHOD.id
+  ) {
+    subtitle = strings('deposit.order_processing.bank_transfer_description');
+  }
 
   return (
     <>
@@ -125,12 +145,12 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
               />
             )}
           </View>
-          {cryptoToken && (
+          {cryptoToken ? (
             <Image
               source={{ uri: cryptoToken.logo }}
               style={styles.cryptoIcon}
             />
-          )}
+          ) : null}
         </View>
 
         <Text variant={TextVariant.DisplayMD} style={styles.mainAmount}>
@@ -142,15 +162,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           color={TextColor.Alternative}
           style={styles.subtitle}
         >
-          {order.state === FIAT_ORDER_STATES.COMPLETED
-            ? strings('deposit.order_processing.success_description', {
-                amount: order.amount,
-                currency: order.currency,
-              })
-            : order.state === FIAT_ORDER_STATES.CANCELLED ||
-              order.state === FIAT_ORDER_STATES.FAILED
-            ? strings('deposit.order_processing.error_description')
-            : strings('deposit.order_processing.description')}
+          {subtitle}
         </Text>
       </View>
 
@@ -160,14 +172,14 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
             {strings('deposit.order_processing.account')}
           </Text>
           <View style={styles.accountInfo}>
-            {selectedAddress && (
+            {selectedAddress ? (
               <Avatar
                 variant={AvatarVariant.Account}
                 type={accountAvatarType}
                 accountAddress={selectedAddress}
                 size={AvatarSize.Xs}
               />
-            )}
+            ) : null}
             <Text variant={TextVariant.BodyMD}>{accountName}</Text>
           </View>
         </View>
@@ -223,7 +235,8 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
         </View>
       </View>
 
-      {isDepositOrder(order.data) && order.data.providerOrderLink && (
+      {hasDepositOrderField(order.data, 'providerOrderLink') &&
+      order.data.providerOrderLink ? (
         <TouchableOpacity
           style={styles.transakLink}
           onPress={handleViewInTransak}
@@ -237,7 +250,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
             color={theme.colors.primary.default}
           />
         </TouchableOpacity>
-      )}
+      ) : null}
     </>
   );
 };

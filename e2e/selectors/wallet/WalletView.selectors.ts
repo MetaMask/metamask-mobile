@@ -63,19 +63,16 @@ export const WalletViewSelectorsIDs = {
     'profile-button-avatar-network-subtitle-icon',
   PROFILE_BUTTON_AVATAR_NETWORK_SUBTITLE_CONTAINER:
     'profile-button-avatar-network-subtitle-container',
-  // Carousel selectors
   CAROUSEL_CONTAINER: 'carousel-container',
-
   CAROUSEL_PROGRESS_DOTS: 'progress-dots',
-  CAROUSEL_SLIDE: (id) => `carousel-slide-${id}`,
-  CAROUSEL_SLIDE_TITLE: (id) => `carousel-slide-${id}-title`,
-  CAROUSEL_SLIDE_CLOSE_BUTTON: (id) => `carousel-slide-${id}-close-button`,
-
+  CAROUSEL_SLIDE: (id: string | number): string => `carousel-slide-${id}`,
+  CAROUSEL_SLIDE_TITLE: (id: string | number): string => `carousel-slide-${id}-title`,
+  CAROUSEL_SLIDE_CLOSE_BUTTON: (id: string | number): string => `carousel-slide-${id}-close-button`,
   DEFI_POSITIONS_CONTAINER: 'defi-positions-container',
   DEFI_POSITIONS_NETWORK_FILTER: 'defi-positions-network-filter',
   DEFI_POSITIONS_LIST: 'defi-positions-list',
   DEFI_POSITIONS_DETAILS_CONTAINER: 'defi-positions-details-container',
-};
+} as const;
 
 export const WalletViewSelectorsText = {
   IMPORT_TOKENS: `${enContent.wallet.no_available_tokens} ${enContent.wallet.add_tokens}`,
@@ -91,4 +88,8 @@ export const WalletViewSelectorsText = {
   DEFI_NO_POSITIONS: enContent.defi_positions.no_positions,
   DEFI_ERROR_CANNOT_LOAD_PAGE: enContent.defi_positions.error_cannot_load_page,
   DEFI_ERROR_VISIT_AGAIN: enContent.defi_positions.error_visit_again,
-};
+} as const;
+
+// Type definitions for the selectors
+export type WalletViewSelectorsIDsType = typeof WalletViewSelectorsIDs;
+export type WalletViewSelectorsTextType = typeof WalletViewSelectorsText; 
