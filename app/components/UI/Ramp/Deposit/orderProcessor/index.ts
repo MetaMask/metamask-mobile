@@ -1,14 +1,7 @@
-import {
-  DepositOrder,
-  OrderStatusEnum,
-  NativeRampsSdk,
-} from '@consensys/native-ramps-sdk';
+import { DepositOrder, OrderStatusEnum } from '@consensys/native-ramps-sdk';
 import { ProcessorOptions } from '../..';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 
-interface DepositProcessorOptions extends ProcessorOptions {
-  sdk?: NativeRampsSdk;
-}
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
@@ -65,7 +58,7 @@ export const depositOrderToFiatOrder = (depositOrder: DepositOrder) => ({
 
 export async function processDepositOrder(
   order: FiatOrder,
-  options?: DepositProcessorOptions,
+  options?: ProcessorOptions,
 ): Promise<FiatOrder> {
   try {
     const sdk = options?.sdk || DepositSDKOrders;
