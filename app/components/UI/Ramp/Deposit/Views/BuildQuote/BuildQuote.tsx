@@ -76,7 +76,6 @@ import {
   DEBIT_CREDIT_PAYMENT_METHOD,
 } from '../../constants';
 import { createBankDetailsNavDetails } from '../BankDetails/BankDetails';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import { depositOrderToFiatOrder } from '../../orderProcessor';
 import useHandleNewOrder from '../../hooks/useHandleNewOrder';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -97,7 +96,7 @@ const BuildQuote = () => {
     useState<DepositFiatCurrency>(USD_CURRENCY);
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
-  const { isAuthenticated } = useDepositSDK();
+  const { isAuthenticated, selectedWalletAddress } = useDepositSDK();
   const [error, setError] = useState<string | null>();
 
   const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
@@ -105,10 +104,6 @@ const BuildQuote = () => {
   );
 
   const handleNewOrder = useHandleNewOrder();
-
-  const selectedWalletAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
 
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
 
@@ -277,6 +272,7 @@ const BuildQuote = () => {
             const processedOrder = {
               ...depositOrderToFiatOrder(order),
               account: selectedWalletAddress || order.walletAddress,
+              network: cryptoCurrency.chainId,
             };
 
             await handleNewOrder(processedOrder);

@@ -200,15 +200,13 @@ const BankDetails = () => {
         return;
       }
 
-      if (
-        !order.data.paymentOptions ||
-        order.data.paymentOptions.length === 0
-      ) {
+      const paymentOptionId = order.data.paymentOptions?.[0]?.id;
+      if (!paymentOptionId) {
         console.error('Payment options not found or empty');
         return;
       }
 
-      await confirmPayment(order.id, order.data.paymentOptions[0].id);
+      await confirmPayment(order.id, paymentOptionId);
 
       await handleOnRefresh();
 
@@ -264,72 +262,72 @@ const BankDetails = () => {
 
             {order ? (
               <View style={styles.detailsContainer}>
-                {amount && (
+                {amount ? (
                   <BankDetailRow
                     label={strings('deposit.bank_details.transfer_amount')}
                     value={amount}
                   />
-                )}
+                ) : null}
 
-                {accountName && (
+                {accountName ? (
                   <BankDetailRow
                     label={strings('deposit.bank_details.account_holder_name')}
                     value={accountName}
                   />
-                )}
+                ) : null}
 
-                {routingNumber && (
+                {routingNumber ? (
                   <BankDetailRow
                     label={strings('deposit.bank_details.routing_number')}
                     value={routingNumber}
                   />
-                )}
+                ) : null}
 
-                {accountNumber && (
+                {accountNumber ? (
                   <BankDetailRow
                     label={strings('deposit.bank_details.account_number')}
                     value={accountNumber}
                   />
-                )}
+                ) : null}
 
-                {iban && (
+                {iban ? (
                   <BankDetailRow
                     label={strings('deposit.bank_details.iban')}
                     value={iban}
                   />
-                )}
+                ) : null}
 
-                {bic && (
+                {bic ? (
                   <BankDetailRow
                     label={strings('deposit.bank_details.bic')}
                     value={bic}
                   />
-                )}
+                ) : null}
 
-                {accountType && (
+                {accountType ? (
                   <BankDetailRow
                     label={strings('deposit.bank_details.account_type')}
                     value={accountType}
                   />
-                )}
+                ) : null}
 
-                {showBankInfo && (
+                {showBankInfo ? (
                   <>
-                    {bankName && (
+                    {bankName ? (
                       <BankDetailRow
                         label={strings('deposit.bank_details.bank_name')}
                         value={bankName}
                       />
-                    )}
+                    ) : null}
 
-                    {bankAddress && (
+                    {bankAddress ? (
                       <BankDetailRow
                         label={strings('deposit.bank_details.bank_address')}
                         value={bankAddress}
                       />
-                    )}
+                    ) : null}
                   </>
-                )}
+                ) : null}
 
                 <TouchableOpacity
                   style={styles.showBankInfoButton}
@@ -357,16 +355,16 @@ const BankDetails = () => {
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
           <View style={styles.bottomContainer}>
-            {confirmPaymentError && (
+            {confirmPaymentError ? (
               <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                 {strings('deposit.bank_details.error_message')}
               </Text>
-            )}
-            {cancelOrderError && (
+            ) : null}
+            {cancelOrderError ? (
               <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                 {strings('deposit.bank_details.cancel_order_error')}
               </Text>
-            )}
+            ) : null}
             <View style={styles.infoBanner}>
               <Icon
                 name={IconName.SecurityKey}

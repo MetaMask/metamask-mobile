@@ -21,6 +21,7 @@ import ErrorView from '../../../Aggregator/components/ErrorView';
 import { depositOrderToFiatOrder } from '../../orderProcessor';
 import Loader from '../../../../../../component-library/components-temp/Loader/Loader';
 import useHandleNewOrder from '../../hooks/useHandleNewOrder';
+import { getCryptoCurrencyFromTransakId } from '../../utils';
 
 export interface ProviderWebviewParams {
   quote: BuyQuote;
@@ -100,9 +101,13 @@ const ProviderWebview = () => {
               return;
             }
 
+            const cryptoCurrency = getCryptoCurrencyFromTransakId(
+              order.cryptoCurrency,
+            );
             const processedOrder = {
               ...depositOrderToFiatOrder(order),
               account: selectedAddress || order.walletAddress,
+              network: cryptoCurrency?.chainId || order.network,
             };
 
             await handleNewOrder(processedOrder);

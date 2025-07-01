@@ -12,6 +12,7 @@ import {
   selectDepositProviderFrontendAuth,
   selectDepositProviderApiKey,
 } from '../../../../../selectors/featureFlagController/deposit';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import {
   NativeRampsSdk,
   NativeTransakAccessToken,
@@ -39,6 +40,7 @@ export interface DepositSDK {
   checkExistingToken: () => Promise<boolean>;
   getStarted: boolean;
   setGetStarted: (seen: boolean) => void;
+  selectedWalletAddress?: string;
 }
 
 const isDevelopment =
@@ -65,6 +67,9 @@ export const DepositSDKProvider = ({
   const dispatch = useDispatch();
   const providerApiKey = useSelector(selectDepositProviderApiKey);
   const providerFrontendAuth = useSelector(selectDepositProviderFrontendAuth);
+  const selectedWalletAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
   const [sdk, setSdk] = useState<NativeRampsSdk>();
   const [sdkError, setSdkError] = useState<Error>();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -165,6 +170,7 @@ export const DepositSDKProvider = ({
       checkExistingToken,
       getStarted,
       setGetStarted: setGetStartedCallback,
+      selectedWalletAddress,
     }),
     [
       sdk,
@@ -178,6 +184,7 @@ export const DepositSDKProvider = ({
       checkExistingToken,
       getStarted,
       setGetStartedCallback,
+      selectedWalletAddress,
     ],
   );
 

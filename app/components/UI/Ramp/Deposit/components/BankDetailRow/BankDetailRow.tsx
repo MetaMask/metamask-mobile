@@ -20,9 +20,12 @@ interface BankDetailRowProps {
 const BankDetailRow: React.FC<BankDetailRowProps> = ({ label, value }) => {
   const { styles, theme } = useStyles(styleSheet, {});
 
-  const handleCopyToClipboard = useCallback((_text: string) => {
-    Clipboard.setString(_text);
-  }, []);
+  const handleCopyToClipboard = useCallback(
+    (_text: string) => () => {
+      Clipboard.setString(_text);
+    },
+    [],
+  );
 
   return (
     <View style={styles.detailRow}>
@@ -36,7 +39,7 @@ const BankDetailRow: React.FC<BankDetailRowProps> = ({ label, value }) => {
           {value}
         </Text>
         <TouchableOpacity
-          onPress={() => handleCopyToClipboard(value)}
+          onPress={handleCopyToClipboard(value)}
           testID="copy-button"
         >
           <Icon
