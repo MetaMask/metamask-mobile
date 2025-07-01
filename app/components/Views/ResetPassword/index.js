@@ -72,6 +72,8 @@ import NavigationService from '../../../core/NavigationService';
 import { MetaMetricsEvents, MetaMetrics } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Checkbox from '../../../component-library/components/Checkbox';
+import fox from '../../../animations/Searching_Fox.json';
+import LottieView from 'lottie-react-native';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -103,6 +105,7 @@ const createStyles = (colors) =>
     },
     wrapper: {
       flex: 1,
+      flexDirection: 'column',
     },
     scrollableWrapper: {
       flex: 1,
@@ -154,12 +157,12 @@ const createStyles = (colors) =>
       ...fontStyles.normal,
     },
     checkboxContainer: {
-      marginTop: 10,
-      marginHorizontal: 10,
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
       flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'flex-start',
+      gap: 8,
+      marginTop: 8,
+      marginBottom: 16,
     },
     checkbox: {
       width: 18,
@@ -194,8 +197,15 @@ const createStyles = (colors) =>
       color: colors.text.default,
     },
     ctaWrapper: {
-      flex: 1,
-      marginTop: 24,
+      width: '100%',
+      flexDirection: 'column',
+      rowGap: 18,
+      marginTop: 'auto',
+      marginBottom: Platform.select({
+        ios: 16,
+        android: 24,
+        default: 16,
+      }),
     },
     biometrics: {
       position: 'relative',
@@ -265,10 +275,9 @@ const createStyles = (colors) =>
       height: '100%',
     },
     changePasswordContainer: {
-      width: '100%',
       flexDirection: 'column',
-      gap: 16,
-      marginBottom: 16,
+      rowGap: 16,
+      flexGrow: 1,
     },
     passwordLabel: {
       marginBottom: -4,
@@ -660,7 +669,7 @@ class ResetPassword extends PureComponent {
     }));
   };
 
-  handleConfirmAction = (styles) => {
+  handleConfirmAction = () => {
     NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
       params: {
@@ -690,39 +699,29 @@ class ResetPassword extends PureComponent {
   };
 
   renderResetPassword() {
-    const {
-      isSelected,
-      inputWidth,
-      password,
-      passwordStrength,
-      confirmPassword,
-      secureTextEntry,
-      error,
-      loading,
-    } = this.state;
+    const { isSelected, password, passwordStrength, confirmPassword, loading } =
+      this.state;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
     const passwordsMatch = password !== '' && password === confirmPassword;
-    const canSubmit = passwordsMatch && isSelected;
     const previousScreen = this.props.route.params?.[PREVIOUS_SCREEN];
     const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
-    const isBtnDisabled =
-      password === '' ||
-      confirmPassword === '' ||
-      password !== confirmPassword ||
-      password.length < 8;
+    const canSubmit =
+      passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
 
     return (
       <SafeAreaView style={styles.mainWrapper}>
         {loading ? (
           <View style={styles.loadingWrapper}>
             <View style={styles.foxWrapper}>
-              <Image
-                source={require('../../../images/branding/fox.png')}
+              <LottieView
                 style={styles.image}
-                resizeMethod={'auto'}
+                autoPlay
+                loop
+                source={fox}
+                resizeMode="contain"
               />
             </View>
             <ActivityIndicator size="large" color={colors.icon.default} />
@@ -738,12 +737,12 @@ class ResetPassword extends PureComponent {
             </Text>
           </View>
         ) : (
-          <View style={styles.wrapper}>
-            <KeyboardAwareScrollView
-              style={styles.scrollableWrapper}
-              contentContainerStyle={styles.keyboardScrollableWrapper}
-              resetScrollToCoords={{ x: 0, y: 0 }}
-            >
+          <KeyboardAwareScrollView
+            style={styles.scrollableWrapper}
+            contentContainerStyle={styles.keyboardScrollableWrapper}
+            resetScrollToCoords={{ x: 0, y: 0 }}
+          >
+            <View style={styles.wrapper}>
               <View
                 testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}
                 style={styles.changePasswordContainer}
@@ -783,30 +782,39 @@ class ResetPassword extends PureComponent {
                       />
                     }
                   />
-                  {!password ? (
-                    <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Alternative}
-                    >
-                      {strings('reset_password.must_be_at_least', {
-                        number: MIN_PASSWORD_LENGTH,
-                      })}
-                    </Text>
-                  ) : (
-                    <Text variant={TextVariant.BodySM}>
-                      {strings('reset_password.password_strength')}
+                  {Boolean(password) &&
+                    password.length < MIN_PASSWORD_LENGTH && (
                       <Text
                         variant={TextVariant.BodySM}
-                        style={styles[`strength_${passwordStrengthWord}`]}
+                        color={TextColor.Alternative}
                       >
-                        {' '}
-                        {strings(
-                          `reset_password.strength_${passwordStrengthWord}`,
-                        )}
+                        {strings('reset_password.must_be_at_least', {
+                          number: MIN_PASSWORD_LENGTH,
+                        })}
                       </Text>
-                    </Text>
-                  )}
+                    )}
+                  {Boolean(password) &&
+                    password.length >= MIN_PASSWORD_LENGTH && (
+                      <Text
+                        variant={TextVariant.BodySM}
+                        color={TextColor.Alternative}
+                        testID={ChoosePasswordSelectorsIDs.PASSWORD_STRENGTH_ID}
+                      >
+                        {strings('reset_password.password_strength')}
+                        <Text
+                          variant={TextVariant.BodySM}
+                          color={TextColor.Alternative}
+                          style={styles[`strength_${passwordStrengthWord}`]}
+                        >
+                          {' '}
+                          {strings(
+                            `reset_password.strength_${passwordStrengthWord}`,
+                          )}
+                        </Text>
+                      </Text>
+                    )}
                 </View>
+
                 <View style={styles.field}>
                   <Label
                     variant={TextVariant.BodyMDMedium}
@@ -846,47 +854,63 @@ class ResetPassword extends PureComponent {
                     }
                     isDisabled={!password}
                   />
-                  <Text variant={TextVariant.BodySM} style={styles.hintLabel}>
-                    {strings('reset_password.must_be_at_least', { number: 8 })}
-                  </Text>
-                </View>
-                <View>{this.renderSwitch()}</View>
-                <View style={styles.checkboxContainer}>
-                  <Checkbox
-                    value={isSelected}
-                    onValueChange={this.setSelection}
-                    style={styles.checkbox}
-                    tintColors={{
-                      true: colors.primary.default,
-                      false: colors.border.default,
-                    }}
-                    boxType="square"
-                    testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
-                  />
                   {this.isError() && (
                     <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                       {strings('choose_password.password_error')}
                     </Text>
                   )}
                 </View>
-              </View>
 
-              {this.renderSwitch()}
+                <View style={styles.checkboxContainer}>
+                  <Checkbox
+                    onPress={this.setSelection}
+                    isChecked={isSelected}
+                    testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
+                    accessibilityLabel={
+                      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
+                    }
+                    style={styles.checkbox}
+                  />
+                  <Button
+                    variant={ButtonVariants.Link}
+                    onPress={this.setSelection}
+                    style={styles.learnMoreTextContainer}
+                    testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
+                    label={
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Default}
+                      >
+                        {strings('import_from_seed.learn_more')}
+                        <Text
+                          variant={TextVariant.BodyMD}
+                          color={TextColor.Primary}
+                          onPress={this.learnMore}
+                          testID={ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID}
+                        >
+                          {' ' + strings('reset_password.learn_more')}
+                        </Text>
+                      </Text>
+                    }
+                  />
+                </View>
 
-              <View style={styles.ctaWrapper}>
-                <Button
-                  label={strings('reset_password.confirm_btn')}
-                  variant={ButtonVariants.Primary}
-                  size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
-                  onPress={() => this.handleConfirmAction(styles)}
-                  testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
-                  disabled={isBtnDisabled}
-                  isDisabled={isBtnDisabled}
-                />
+                <View style={styles.ctaWrapper}>
+                  {this.renderSwitch()}
+                  <Button
+                    label={strings('reset_password.confirm_btn')}
+                    variant={ButtonVariants.Primary}
+                    size={ButtonSize.Lg}
+                    width={ButtonWidthTypes.Full}
+                    onPress={() => this.handleConfirmAction()}
+                    testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
+                    disabled={!canSubmit}
+                    isDisabled={!canSubmit}
+                  />
+                </View>
               </View>
-            </KeyboardAwareScrollView>
-          </View>
+            </View>
+          </KeyboardAwareScrollView>
         )}
       </SafeAreaView>
     );
