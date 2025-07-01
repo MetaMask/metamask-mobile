@@ -250,10 +250,10 @@ export const getLendingPoolLiquidity = async (
   tokenAddress: string, // e.g. DAI
   receiptTokenAddress: string, // e.g. ADAI
   chainId: string,
-): Promise<string> => {
+): Promise<string | undefined> => {
   const infuraUrl = CHAIN_ID_TO_INFURA_URL_MAPPING[chainId];
 
-  if (!infuraUrl) return '0';
+  if (!infuraUrl) return undefined;
 
   const provider = new ethers.providers.JsonRpcProvider(infuraUrl);
 
@@ -261,9 +261,9 @@ export const getLendingPoolLiquidity = async (
 
   const liquidityLowestDenomination = await tokenContract
     .balanceOf(receiptTokenAddress)
-    .catch(() => '0');
+    .catch(() => undefined);
 
-  return liquidityLowestDenomination.toString() ?? '0';
+  return liquidityLowestDenomination?.toString() ?? undefined;
 };
 interface AaveV3UserAccountData {
   raw: {
@@ -377,14 +377,6 @@ export const getAaveV3MaxSafeWithdrawal = async (
     // If no debt, can withdraw everything
     if (totalDebtBase.isZero()) {
       return;
-      // totalCollateralBase is in USD with 8 decimals
-      // assetPrice is in USD with 8 decimals
-      // We want result in token decimals
-      // const maxTokenAmount = totalCollateralBase
-      //   .mul(parseUnits('1', tokenDecimals)) // Scale up to token decimals
-      //   .div(assetPrice); // Divide by price (removes the 8 decimals from price)
-
-      // return maxTokenAmount.toString();
     }
 
     // Calculate current health factor
@@ -663,13 +655,15 @@ export const getAaveV3MaxRiskAwareWithdrawalAmount = async (
         getAaveV3MaxSafeWithdrawal(userData, receiptToken as EarnTokenDetails),
       ]);
 
-    if (!maxHealthFactorWithdrawalInTokens) return undefined;
-
-    return BigNumber.min(
+    const valuesToCompare = [
       poolLiquidityInTokens,
       maxHealthFactorWithdrawalInTokens,
       receiptToken.balanceMinimalUnit,
-    ).toString();
+    ].filter(Boolean) as string[];
+
+    if (valuesToCompare.length === 0) return undefined;
+
+    return BigNumber.min(...valuesToCompare).toString();
   } catch (e) {
     console.error('error getting max risk aware withdrawal amount', e);
     return undefined;

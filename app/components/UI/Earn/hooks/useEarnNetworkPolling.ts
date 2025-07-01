@@ -15,16 +15,41 @@ import useTokenListPolling from '../../../hooks/AssetPolling/useTokenListPolling
 import useTokenRatesPolling from '../../../hooks/AssetPolling/useTokenRatesPolling';
 import { RootState } from '../../BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 
+/**
+ * Chain IDs that support lending functionality through Aave pools.
+ */
 const LENDING_CHAIN_IDS: Hex[] = Object.keys(
   CHAIN_ID_TO_AAVE_POOL_CONTRACT,
 ).map((chainId) => toHex(chainId as Hex));
 
 /**
- * Hook that triggers multi-network polling for Earn/lending functionality.
- * Only starts polling when the component using this hook mounts (lazy loading).
- * Automatically stops when the component unmounts.
+ * Hook that provides multi-network polling for Earn/lending functionality.
  *
- * This ensures that lending tokens from all supported networks are available
+ * This hook ensures that all lending tokens across networks can be detected and added to the state.
+ * When the app first initializes we currently start with the single network mainnet selected
+ * This view does not load tokens for other networks, but the lending token list is available for the
+ * single network view. To get the tokens for other networks we need to detect them and add them to the state.
+ *
+ * The hook implements a lazy loading approach where polling only starts when the component using this hook mounts, and
+ * automatically stops when the component unmounts.
+ *
+ * ## Key Features:
+ *
+ * ### Automatic Token Import
+ * - Scans for detected tokens across all lending networks and adds them when found
+ * - Automatically imports detected lending tokens into the user's wallet if autodeetection is enabled
+ *
+ * ### Performance Optimization
+ * - Lazy loading: Only activates when Earn component is mounted
+ * - Automatic cleanup: Stops polling on component unmount
+ * - Conditional detection: Only runs token detection if enabled in preferences
+ *
+ * ## Error Handling:
+ * - Gracefully handles missing network clients with warning logs
+ * - Continues operation even if some chains are unavailable
+ * - Catches and logs token detection failures
+ *
+ * @returns {void} This hook doesn't return any values, it only manages side effects
  */
 export const useEarnNetworkPolling = () => {
   const selectedAccount = useSelector(selectSelectedInternalAccount);
