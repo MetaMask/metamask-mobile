@@ -9,7 +9,6 @@ import {
   SafeAreaView,
   StyleSheet,
   ScrollView,
-  Image,
   InteractionManager,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -68,7 +67,6 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
 import NavigationService from '../../../core/NavigationService';
-
 import { MetaMetricsEvents, MetaMetrics } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Checkbox from '../../../component-library/components/Checkbox';
@@ -433,9 +431,7 @@ class ResetPassword extends PureComponent {
   };
 
   onPressCreate = async () => {
-    const { loading, isSelected, password, confirmPassword } = this.state;
-    const passwordsMatch = password !== '' && password === confirmPassword;
-    const canSubmit = passwordsMatch && isSelected;
+    const { loading, password, confirmPassword } = this.state;
 
     if (loading) return;
     if (!passwordRequirementsMet(password)) {

@@ -11,7 +11,12 @@ import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding
 import { InteractionManager } from 'react-native';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { strings } from '../../../../locales/i18n';
-// import Engine from '../../../core/Engine';
+import Routes from '../../../constants/navigation/Routes';
+import NavigationService from '../../../core/NavigationService';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import { Authentication } from '../../../core';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { BIOMETRY_TYPE } from 'react-native-keychain';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 
@@ -60,6 +65,13 @@ jest.mock('../../../core/Authentication', () => ({
     .mockImplementation(
       () => new Promise((resolve) => setTimeout(resolve, 100)),
     ),
+}));
+
+jest.mock('../../../core/NavigationService', () => ({
+  navigation: {
+    navigate: jest.fn(),
+    reset: jest.fn(),
+  },
 }));
 
 jest.mock('../../../util/device', () => ({
@@ -154,6 +166,35 @@ describe('ResetPassword', () => {
     mockExportSeedPhrase.mockClear();
   });
 
+  const renderConfirmPasswordView = async () => {
+    // Test the mock directly to ensure it's working
+    mockExportSeedPhrase.mockResolvedValue('test result');
+
+    const component = renderWithProviders(<ResetPassword {...defaultProps} />);
+
+    const currentPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(currentPasswordInput, 'CurrentPassword123');
+    });
+
+    const submitButton = component.getByTestId(
+      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+    );
+
+    fireEvent.press(submitButton);
+
+    await waitFor(() => {
+      expect(
+        component.getByText(strings('reset_password.password')),
+      ).toBeOnTheScreen();
+    });
+
+    return component;
+  };
+
   it('render matches snapshot', async () => {
     const component = renderWithProviders(<ResetPassword {...defaultProps} />);
     await act(async () => {
@@ -163,64 +204,243 @@ describe('ResetPassword', () => {
     expect(component.toJSON()).toMatchSnapshot();
   });
 
-  describe('Confirm Password UI', () => {
-    it('should render the confirm password view initially', async () => {
-      const component = renderWithProviders(
-        <ResetPassword {...defaultProps} />,
-      );
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-
-      // Verify we're in the confirm password view
-      const passwordInput = component.getByTestId(
-        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-      );
-      const submitButton = component.getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-
-      expect(passwordInput).toBeOnTheScreen();
-      expect(submitButton).toBeOnTheScreen();
+  it('renders the current password view initially', async () => {
+    const component = renderWithProviders(<ResetPassword {...defaultProps} />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
-    it('should test mock directly', async () => {
-      // Test the mock directly to ensure it's working
-      mockExportSeedPhrase.mockResolvedValue('test result');
+    // Verify we're in the confirm password view
+    const currentPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+    const submitButton = component.getByTestId(
+      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+    );
 
-      // Test the mock function directly
-      const result = await mockExportSeedPhrase('test');
-      expect(result).toBe('test result');
-      expect(mockExportSeedPhrase).toHaveBeenCalledWith('test');
+    expect(currentPasswordInput).toBeOnTheScreen();
+    expect(submitButton).toBeOnTheScreen();
+  });
+
+  it('renders the new password view after entering the current password', async () => {
+    // Test the mock directly to ensure it's working
+    mockExportSeedPhrase.mockResolvedValue('test result');
+
+    const component = renderWithProviders(<ResetPassword {...defaultProps} />);
+
+    const currentPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(currentPasswordInput, 'CurrentPassword123');
     });
 
-    it('should test the mock directly', async () => {
-      // Test the mock directly to ensure it's working
-      mockExportSeedPhrase.mockResolvedValue('test result');
+    const submitButton = component.getByTestId(
+      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+    );
 
-      const component = renderWithProviders(
-        <ResetPassword {...defaultProps} />,
-      );
+    fireEvent.press(submitButton);
 
-      const currentPasswordInput = component.getByTestId(
-        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-      );
-
-      await act(async () => {
-        fireEvent.changeText(currentPasswordInput, 'CurrentPassword123');
-      });
-
-      const submitButton = component.getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-
-      fireEvent.press(submitButton);
-
-      await waitFor(() => {
-        expect(
-          component.getByText(strings('reset_password.password')),
-        ).toBeOnTheScreen();
-      });
+    await waitFor(() => {
+      expect(
+        component.getByText(strings('reset_password.password')),
+      ).toBeOnTheScreen();
     });
+  });
+
+  it('correctly navigates to the success error sheet when the new password is confirmed', async () => {
+    const component = await renderConfirmPasswordView();
+
+    const newPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(newPasswordInput, 'NewPassword123');
+    });
+
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(confirmPasswordInput, 'NewPassword123');
+    });
+
+    const submitButton = component.getByTestId(
+      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+    );
+
+    fireEvent.press(submitButton);
+
+    await waitFor(() => {
+      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            title: strings('reset_password.warning_password_change_title'),
+            description: strings(
+              'reset_password.warning_password_change_description',
+            ),
+            type: 'error',
+            icon: undefined,
+            secondaryButtonLabel: strings(
+              'reset_password.warning_password_cancel_button',
+            ),
+            primaryButtonLabel: strings(
+              'reset_password.warning_password_change_button',
+            ),
+            closeOnPrimaryButtonPress: true,
+            onPrimaryButtonPress: expect.any(Function),
+          }),
+        }),
+      );
+    });
+
+    // Get the onPrimaryButtonPress function from the navigation call
+    const navigationCall = (NavigationService.navigation.navigate as jest.Mock)
+      .mock.calls[0];
+    const onPrimaryButtonPress = navigationCall[1].params.onPrimaryButtonPress;
+
+    // Call the onPrimaryButtonPress function
+    await act(async () => {
+      onPrimaryButtonPress();
+    });
+  });
+
+  it('password length is less than 8 characters, it shows an error', async () => {
+    const component = await renderConfirmPasswordView();
+
+    const newPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(newPasswordInput, '1234567');
+    });
+
+    expect(
+      component.getByText(
+        strings('reset_password.must_be_at_least', {
+          number: 8,
+        }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('password does not match, it shows an error', async () => {
+    const component = await renderConfirmPasswordView();
+
+    const newPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(newPasswordInput, 'NewPassword123');
+    });
+
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(confirmPasswordInput, 'NewPassword1');
+    });
+
+    expect(
+      component.getByText(strings('choose_password.password_error')),
+    ).toBeOnTheScreen();
+  });
+
+  it('set biometryType and biometryChoice when currentAuthType is PASSCODE', async () => {
+    // Mock Authentication.getType to return PASSCODE
+    const mockGetType = jest.spyOn(Authentication, 'getType');
+    mockGetType.mockResolvedValueOnce({
+      currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+      availableBiometryType: undefined,
+    });
+
+    // Mock StorageWrapper.getItem for all keys called during componentDidMount
+    const mockStorageWrapper = jest.mocked(StorageWrapper);
+    mockStorageWrapper.getItem.mockImplementation((key) => {
+      if (key === '@MetaMask:passcodeDisabled') {
+        return Promise.resolve('TRUE');
+      }
+      if (key === '@MetaMask:biometryChoiceDisabled') {
+        return Promise.resolve(null);
+      }
+      if (key === '@MetaMask:UserTermsAcceptedv1.0') {
+        return Promise.resolve('true');
+      }
+      return Promise.resolve(null);
+    });
+
+    const component = await renderConfirmPasswordView();
+
+    // Wait for componentDidMount to complete
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    // Verify that getType was called
+    expect(mockGetType).toHaveBeenCalled();
+
+    // Verify that StorageWrapper.getItem was called with correct parameters
+    expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+      '@MetaMask:biometryChoiceDisabled',
+    );
+    expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+      '@MetaMask:passcodeDisabled',
+    );
+
+    // Component should render without errors
+    expect(component).toBeTruthy();
+  });
+
+  it('set biometryType and biometryChoice when availableBiometryType exists', async () => {
+    // Mock Authentication.getType to return availableBiometryType
+    const mockGetType = jest.spyOn(Authentication, 'getType');
+    mockGetType.mockResolvedValueOnce({
+      currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+      availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+    });
+
+    // Mock StorageWrapper.getItem for all keys called during componentDidMount
+    const mockStorageWrapper = jest.mocked(StorageWrapper);
+    mockStorageWrapper.getItem.mockImplementation((key) => {
+      if (key === '@MetaMask:biometryChoiceDisabled') {
+        return Promise.resolve('TRUE');
+      }
+      if (key === '@MetaMask:passcodeDisabled') {
+        return Promise.resolve(null);
+      }
+      if (key === '@MetaMask:UserTermsAcceptedv1.0') {
+        return Promise.resolve('true');
+      }
+      return Promise.resolve(null);
+    });
+
+    const component = await renderConfirmPasswordView();
+
+    // Wait for componentDidMount to complete
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    // Verify that getType was called
+    expect(mockGetType).toHaveBeenCalled();
+
+    // Component should render without errors
+    expect(component).toBeTruthy();
+
+    // Verify that StorageWrapper.getItem was called with all expected keys
+    expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+      '@MetaMask:biometryChoiceDisabled',
+    );
+    expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+      '@MetaMask:passcodeDisabled',
+    );
   });
 });
