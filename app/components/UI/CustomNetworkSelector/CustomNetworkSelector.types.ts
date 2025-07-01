@@ -1,6 +1,6 @@
 import { ImageSourcePropType } from 'react-native';
 import { CaipChainId } from '@metamask/utils';
-import { NetworkMenuModalState } from '../Tokens/TokensBottomSheet/TokenFilterBottomSheet.types';
+import { NetworkMenuModalState } from '../NetworkManager/index.types';
 
 export interface CustomNetworkItem {
   id: string;

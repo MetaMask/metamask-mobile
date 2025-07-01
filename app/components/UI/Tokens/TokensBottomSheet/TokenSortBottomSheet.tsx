@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import Engine from '../../../../core/Engine';
-import createStyles from './index.styles';
+import createStyles from '../styles';
 import { strings } from '../../../../../locales/i18n';
 import { selectTokenSortConfig } from '../../../../selectors/preferencesController';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
@@ -17,7 +17,6 @@ import currencySymbols from '../../../../util/currency-symbols.json';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 import ListItemSelect from '../../../../component-library/components/List/ListItemSelect';
 import { VerticalAlignment } from '../../../../component-library/components/List/ListItem';
-import { useStyles } from '../../../../component-library/hooks/useStyles';
 
 enum SortOption {
   FiatAmount = 0,
@@ -27,7 +26,7 @@ enum SortOption {
 const TokenSortBottomSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { colors } = useTheme();
-  const { styles } = useStyles(createStyles, { colors });
+  const styles = createStyles(colors);
 
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const currentCurrency = useSelector(selectCurrentCurrency);

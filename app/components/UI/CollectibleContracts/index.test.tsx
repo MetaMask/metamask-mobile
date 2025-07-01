@@ -27,6 +27,12 @@ import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder
 
 // eslint-disable-next-line import/no-namespace
 import * as assetUtils from '../../../util/assets';
+// eslint-disable-next-line import/no-namespace
+import * as networkUtils from '../../../util/networks';
+// eslint-disable-next-line import/no-namespace
+import * as networkManagerUtils from '../NetworkManager';
+// eslint-disable-next-line import/no-namespace
+import * as tokenBottomSheetUtils from '../Tokens/TokensBottomSheet';
 
 const MOCK_ADDRESS = '0xd018538C87232FF95acbCe4870629b75640a78E7';
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
@@ -1045,10 +1051,12 @@ describe('CollectibleContracts', () => {
       navigate: jest.fn(),
       push: jest.fn(),
     };
-    const { getByTestId } = renderWithProvider(<CollectibleContracts
-    navigation={mockNavigation}/>, {
-      state: mockState,
-    });
+    const { getByTestId } = renderWithProvider(
+      <CollectibleContracts navigation={mockNavigation} />,
+      {
+        state: mockState,
+      },
+    );
 
     const addCollectibleButton = getByTestId('import-collectible-button');
     fireEvent.press(addCollectibleButton);
@@ -1056,11 +1064,11 @@ describe('CollectibleContracts', () => {
     expect(mockNavigation.push).toHaveBeenCalledTimes(1);
 
     expect(mockNavigation.push).toHaveBeenCalledWith('AddAsset', {
-        assetType: 'collectible',
+      assetType: 'collectible',
     });
   });
 
-  it('shows filter controls when evm is selected', () => {
+  describe('filter controls', () => {
     const mockState: DeepPartial<RootState> = {
       collectibles: {
         favorites: {},
@@ -1106,20 +1114,85 @@ describe('CollectibleContracts', () => {
         },
       },
     };
-    const mockNavigation = {
-      navigate: jest.fn(),
-      push: jest.fn(),
-    };
-    const { getByTestId } = renderWithProvider(<CollectibleContracts
-    navigation={mockNavigation}/>, {
-      state: mockState,
+
+    it('navigates to network manager when global network selector is enabled', () => {
+      const mockNavigation = {
+        navigate: jest.fn(),
+        push: jest.fn(),
+      };
+      const mockNetworkManagerNavDetails = [
+        'NetworkManager',
+        { screen: 'NetworkSelector' },
+      ] as const;
+
+      const spyOnIsRemoveGlobalNetworkSelectorEnabled = jest
+        .spyOn(networkUtils, 'isRemoveGlobalNetworkSelectorEnabled')
+        .mockReturnValue(true);
+      const spyOnCreateNetworkManagerNavDetails = jest
+        .spyOn(networkManagerUtils, 'createNetworkManagerNavDetails')
+        .mockReturnValue(mockNetworkManagerNavDetails);
+
+      const { getByTestId } = renderWithProvider(
+        <CollectibleContracts navigation={mockNavigation} />,
+        {
+          state: mockState,
+        },
+      );
+
+      const filterControlsButton = getByTestId('token-network-filter');
+      fireEvent.press(filterControlsButton);
+
+      expect(spyOnIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(spyOnCreateNetworkManagerNavDetails).toHaveBeenCalledWith({});
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        ...mockNetworkManagerNavDetails,
+      );
+
+      spyOnIsRemoveGlobalNetworkSelectorEnabled.mockRestore();
+      spyOnCreateNetworkManagerNavDetails.mockRestore();
     });
 
-    const filterControlersButton = getByTestId('token-network-filter');
-    fireEvent.press(filterControlersButton);
+    it('navigates to token bottom sheet filter when global network selector is disabled', () => {
+      const mockNavigation = {
+        navigate: jest.fn(),
+        push: jest.fn(),
+      };
+      const mockTokenBottomSheetNavDetails = [
+        'TokenBottomSheet',
+        { screen: 'TokenFilter' },
+      ] as const;
 
-    expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
+      const spyOnIsRemoveGlobalNetworkSelectorEnabled = jest
+        .spyOn(networkUtils, 'isRemoveGlobalNetworkSelectorEnabled')
+        .mockReturnValue(false);
+      const spyOnCreateTokenBottomSheetFilterNavDetails = jest
+        .spyOn(tokenBottomSheetUtils, 'createTokenBottomSheetFilterNavDetails')
+        .mockReturnValue(mockTokenBottomSheetNavDetails);
 
+      const { getByTestId } = renderWithProvider(
+        <CollectibleContracts navigation={mockNavigation} />,
+        {
+          state: mockState,
+        },
+      );
 
+      const filterControlsButton = getByTestId('token-network-filter');
+      fireEvent.press(filterControlsButton);
+
+      expect(spyOnIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(spyOnCreateTokenBottomSheetFilterNavDetails).toHaveBeenCalledWith(
+        {},
+      );
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        ...mockTokenBottomSheetNavDetails,
+      );
+
+      spyOnIsRemoveGlobalNetworkSelectorEnabled.mockRestore();
+      spyOnCreateTokenBottomSheetFilterNavDetails.mockRestore();
+    });
   });
 });

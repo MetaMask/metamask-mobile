@@ -3,7 +3,10 @@ import { View, Text } from 'react-native';
 import ButtonBase from '../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { useTheme } from '../../../../util/theme';
 import createStyles from '../styles';
-import { isTestNet } from '../../../../util/networks';
+import {
+  isTestNet,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../../util/networks';
 import { useSelector } from 'react-redux';
 import {
   selectChainId,
@@ -20,6 +23,7 @@ import {
   createTokenBottomSheetFilterNavDetails,
   createTokensBottomSheetNavDetails,
 } from '../TokensBottomSheet';
+import { createNetworkManagerNavDetails } from '../../NetworkManager';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 
@@ -52,7 +56,11 @@ export const TokenListControlBar = ({
   const isDisabled = isTestNet(currentChainId) || !isPopularNetwork;
 
   const showFilterControls = useCallback(() => {
-    navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      navigation.navigate(...createNetworkManagerNavDetails({}));
+    } else {
+      navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+    }
   }, [navigation]);
 
   const showSortControls = useCallback(() => {

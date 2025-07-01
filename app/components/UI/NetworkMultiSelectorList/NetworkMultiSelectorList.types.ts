@@ -1,6 +1,6 @@
 import { CaipChainId } from '@metamask/utils';
 import { ImageSourcePropType } from 'react-native';
-import { NetworkMenuModalState } from '../Tokens/TokensBottomSheet/TokenFilterBottomSheet.types';
+import { NetworkMenuModalState } from '../NetworkManager/index.types';
 
 export enum NetworkListItemType {
   Network = 'network',

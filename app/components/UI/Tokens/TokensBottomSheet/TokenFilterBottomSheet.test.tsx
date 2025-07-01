@@ -1,121 +1,168 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { TokenFilterBottomSheet } from './TokenFilterBottomSheet';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import Engine from '../../../../core/Engine';
+import {
+  selectAllPopularNetworkConfigurations,
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../../../selectors/networkController';
+import { selectTokenNetworkFilter } from '../../../../selectors/preferencesController';
+import { NETWORK_CHAIN_ID } from '../../../../util/networks/customNetworks';
+import { Hex } from '@metamask/utils';
+import { enableAllNetworksFilter } from '../util/enableAllNetworksFilter';
 
-// Mock modules
+import {
+  NetworkConfiguration,
+  RpcEndpointType,
+} from '@metamask/network-controller';
+
+const mockNetworks: Record<Hex, NetworkConfiguration> = {
+  [NETWORK_CHAIN_ID.MAINNET]: {
+    blockExplorerUrls: ['https://etherscan.io'],
+    chainId: NETWORK_CHAIN_ID.MAINNET,
+    defaultBlockExplorerUrlIndex: 0,
+    defaultRpcEndpointIndex: 0,
+    name: 'Ethereum Mainnet',
+    nativeCurrency: 'ETH',
+    rpcEndpoints: [
+      {
+        url: 'https://mainnet.infura.io/v3',
+        networkClientId: NETWORK_CHAIN_ID.MAINNET,
+        type: RpcEndpointType.Custom,
+        name: 'Ethereum',
+      },
+    ],
+  },
+  [NETWORK_CHAIN_ID.POLYGON]: {
+    blockExplorerUrls: ['https://polygonscan.com'],
+    chainId: NETWORK_CHAIN_ID.POLYGON,
+    defaultBlockExplorerUrlIndex: 0,
+    defaultRpcEndpointIndex: 0,
+    name: 'Polygon Mainnet',
+    nativeCurrency: 'MATIC',
+    rpcEndpoints: [
+      {
+        url: 'https://polygon-rpc.com',
+        name: 'Polygon',
+        networkClientId: NETWORK_CHAIN_ID.POLYGON,
+        type: RpcEndpointType.Custom,
+      },
+    ],
+  },
+};
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: jest.fn(),
-}));
-
 jest.mock('../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      text: { default: '#000', alternative: '#666' },
-      background: { default: '#fff' },
-      border: { muted: '#ccc' },
-      icon: { alternative: '#666' },
-    },
-  })),
+  useTheme: jest.fn(() => ({ colors: {} })),
 }));
 
-jest.mock('../../../../component-library/hooks/useStyles', () => ({
-  useStyles: jest.fn(() => ({
-    styles: {
-      sheet: {},
-      notch: {},
-      networkTabsSelectorTitle: {},
-      networkTabsSelectorWrapper: {},
-      tabUnderlineStyle: {},
-      inactiveUnderlineStyle: {},
-      tabStyle: {},
-      textStyle: {},
-      tabBar: {},
-      editNetworkMenu: {},
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PreferencesController: {
+      setTokenNetworkFilter: jest.fn(),
     },
-  })),
-}));
-
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(() => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      build: jest.fn(),
-    })),
-  })),
-  MetaMetricsEvents: {
-    ASSET_FILTER_SELECTED: 'asset_filter_selected',
-    ASSET_FILTER_CUSTOM_SELECTED: 'asset_filter_custom_selected',
   },
 }));
 
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: jest.fn(() => ({
-    top: 20,
-    bottom: 20,
-    left: 0,
-    right: 0,
-  })),
-}));
+jest.mock('@react-navigation/native', () => {
+  const reactNavigationModule = jest.requireActual('@react-navigation/native');
+  return {
+    ...reactNavigationModule,
+    useNavigation: () => ({
+      navigate: jest.fn(),
+      goBack: jest.fn(),
+    }),
+  };
+});
 
-jest.mock('../../../../util/device', () => ({
-  getDeviceHeight: jest.fn(() => 800),
-  isIos: jest.fn(),
-  isAndroid: jest.fn(),
-}));
-
-// Mock tab view
-jest.mock('react-native-scrollable-tab-view', () => ({
-  __esModule: true,
-  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  DefaultTabBar: ({ children }: { children: React.ReactNode }) => (
-    <>{children}</>
-  ),
-}));
-
-// // Mock child components
-// jest.mock('../../NetworkMultiSelector/NetworkMultiSelector', () => () => (
-//   <div data-testid="network-multi-selector">NetworkMultiSelector</div>
-// ));
-
-// jest.mock('../../CustomNetworkSelector/CustomNetworkSelector', () => () => (
-//   <div data-testid="custom-network-selector">CustomNetworkSelector</div>
-// ));
-
-// jest.mock(
-//   '../../ReusableModal',
-//   () =>
-//     ({ children }: { children: React.ReactNode }) =>
-//       <div data-testid="reusable-modal">{children}</div>,
-// );
+jest.mock('react-native-safe-area-context', () => {
+  // copied from BottomSheetDialog.test.tsx
+  const inset = { top: 1, right: 2, bottom: 3, left: 4 };
+  const frame = { width: 5, height: 6, x: 7, y: 8 };
+  return {
+    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
+    SafeAreaConsumer: jest
+      .fn()
+      .mockImplementation(({ children }) => children(inset)),
+    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
+    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
+  };
+});
 
 describe('TokenFilterBottomSheet', () => {
-  const mockNavigate = jest.fn();
-  const mockGoBack = jest.fn();
-
   beforeEach(() => {
-    jest.clearAllMocks();
-
-    (useNavigation as jest.Mock).mockReturnValue({
-      navigate: mockNavigate,
-      goBack: mockGoBack,
-    });
-
-    (useSelector as jest.Mock).mockReturnValue({
-      // Add basic mock state that the component might need
-      settings: {},
-      user: {},
-      networkConfiguration: {},
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectChainId) {
+        return '0x1'; // default chain ID
+      } else if (selector === selectTokenNetworkFilter) {
+        return {}; // default to show all networks
+      } else if (selector === selectNetworkConfigurations) {
+        return mockNetworks; // default to show all networks
+      } else if (selector === selectAllPopularNetworkConfigurations) {
+        return mockNetworks; // default to show all networks
+      }
+      return null;
     });
   });
 
-  it('renders correctly', () => {
-    const { toJSON } = render(<TokenFilterBottomSheet />);
-    expect(toJSON()).toMatchSnapshot();
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders correctly with the default option (All Networks) selected', () => {
+    const { queryByText } = render(<TokenFilterBottomSheet />);
+
+    expect(queryByText('Popular networks')).toBeTruthy();
+    expect(queryByText('Current network')).toBeTruthy();
+  });
+
+  it('sets filter to All Networks and closes bottom sheet when first option is pressed', async () => {
+    const { getByText } = render(<TokenFilterBottomSheet />);
+
+    fireEvent.press(getByText('Popular networks'));
+
+    await waitFor(() => {
+      expect(
+        Engine.context.PreferencesController.setTokenNetworkFilter,
+      ).toHaveBeenCalledWith(enableAllNetworksFilter(mockNetworks));
+    });
+  });
+
+  it('sets filter to Current Network and closes bottom sheet when second option is pressed', async () => {
+    const { getByText } = render(<TokenFilterBottomSheet />);
+
+    fireEvent.press(getByText('Current network'));
+
+    await waitFor(() => {
+      expect(
+        Engine.context.PreferencesController.setTokenNetworkFilter,
+      ).toHaveBeenCalledWith({
+        '0x1': true,
+      });
+    });
+  });
+
+  it('displays the correct selection based on tokenNetworkFilter', () => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectChainId) {
+        return '0x1';
+      } else if (selector === selectTokenNetworkFilter) {
+        return { '0x1': true }; // filter by current network
+      } else if (selector === selectNetworkConfigurations) {
+        return mockNetworks;
+      } else if (selector === selectAllPopularNetworkConfigurations) {
+        return mockNetworks;
+      }
+      return null;
+    });
+
+    const { queryByText } = render(<TokenFilterBottomSheet />);
+
+    expect(queryByText('Current network')).toBeTruthy();
   });
 });

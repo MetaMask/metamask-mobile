@@ -57,8 +57,13 @@ import ButtonBase from '../../../component-library/components/Buttons/Button/fou
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
-import { isTestNet, getDecimalChainId } from '../../../util/networks';
+import {
+  isTestNet,
+  getDecimalChainId,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
 import { createTokenBottomSheetFilterNavDetails } from '../Tokens/TokensBottomSheet';
+import { createNetworkManagerNavDetails } from '../NetworkManager';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { prepareNftDetectionEvents } from '../../../util/assets';
@@ -235,7 +240,11 @@ const CollectibleContracts = ({
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const networkName = useSelector(selectNetworkName);
   const showFilterControls = () => {
-    navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      navigation.navigate(...createNetworkManagerNavDetails({}));
+    } else {
+      navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+    }
   };
   const chainIdsToDetectNftsFor = useNftDetectionChainIds();
 

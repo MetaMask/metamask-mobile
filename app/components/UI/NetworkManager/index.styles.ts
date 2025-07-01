@@ -2,8 +2,8 @@ import { StyleSheet, TextStyle } from 'react-native';
 import {
   getFontFamily,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { Theme } from '../../../../util/theme/models';
+} from '../../../component-library/components/Texts/Text';
+import { Theme } from '../../../util/theme/models';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -69,7 +69,6 @@ const createStyles = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
     },
-    addNetworkButton: {},
     iconContainer: {
       marginRight: 14,
     },
@@ -80,18 +79,6 @@ const createStyles = (params: { theme: Theme }) => {
     },
     textCentred: {
       textAlign: 'center',
-    },
-    // token filter bottom sheet
-    bottomSheetTitle: {
-      alignSelf: 'center',
-      paddingTop: 16,
-      paddingBottom: 16,
-    },
-    bottomSheetWrapper: {
-      alignItems: 'flex-start',
-    },
-    bottomSheetText: {
-      width: '100%',
     },
   });
 };

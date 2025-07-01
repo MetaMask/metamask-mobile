@@ -11,13 +11,17 @@ import {
   selectChainId,
 } from '../../../selectors/networkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
-import { isTestNet } from '../../../util/networks';
+import {
+  isTestNet,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
 import styleSheet from './DeFiPositionsControlBar.styles';
 import { useNavigation } from '@react-navigation/native';
 import {
   createTokenBottomSheetFilterNavDetails,
   createTokensBottomSheetNavDetails,
 } from '../Tokens/TokensBottomSheet';
+import { createNetworkManagerNavDetails } from '../NetworkManager';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
@@ -32,7 +36,11 @@ const DeFiPositionsControlBar: React.FC = () => {
   const currentChainId = useSelector(selectChainId) as Hex;
 
   const showFilterControls = useCallback(() => {
-    navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      navigation.navigate(...createNetworkManagerNavDetails({}));
+    } else {
+      navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+    }
   }, [navigation]);
 
   const showSortControls = useCallback(() => {
