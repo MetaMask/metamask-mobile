@@ -560,8 +560,9 @@ const EvmAccountSelectorList = ({
     }
   }, [accounts, accountListRef, selectedAddresses, isAutoScrollEnabled]);
 
-  // Exact measurements from developer tools inspection
-  const listItemHeight = 80; // Height of the Cell component
+  // Needed for the FlashList estimated item size prop: https://shopify.github.io/flash-list/docs/1.x/estimated-item-size
+  // This is a require prop that makes the list rendering more performant
+  const listItemHeight = 80; // Exact height of the Cell component
 
   return (
     <View style={styles.listContainer}>
