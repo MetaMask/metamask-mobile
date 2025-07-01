@@ -20,6 +20,23 @@ import { connectSolanaTestDapp, navigateToSolanaTestDApp } from '../solana-walle
 import { loginToApp } from '../../../viewHelper';
 import { Caip25CaveatType, Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 
+async function callRequestPermissionsScript(accounts?: string[]) {
+  const webView = web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID));
+  const bodyElement = webView.element(by.web.tag('body'));
+
+  // Execute the injection
+  const requestPermissionsRequest = JSON.stringify({
+    jsonrpc: '2.0',
+    method: 'wallet_requestPermissions',
+    params: [{ eth_accounts: accounts ? { caveats: [{ type: 'restrictReturnedAccounts', value: accounts }] } : {} }],
+  });
+
+  await bodyElement.runScript(`(el) => { window.ethereum.request(${requestPermissionsRequest}); }`);
+
+  // Wait a moment for the async operation to complete
+  await TestHelpers.delay(1000);
+}
+
 describe(SmokeMultiStandardDappConnection('Multiple Standard Dapp Connections'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
@@ -55,20 +72,7 @@ describe(SmokeMultiStandardDappConnection('Multiple Standard Dapp Connections'),
       await Browser.navigateToTestDApp();
 
       await TestHelpers.delay(3000);
-      const webView = web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID));
-      const bodyElement = webView.element(by.web.tag('body'));
-
-      // Execute the injection
-      const requestPermissionsRequest = JSON.stringify({
-        jsonrpc: '2.0',
-        method: 'wallet_requestPermissions',
-        params: [{ eth_accounts: { caveats: [{ type: 'restrictReturnedAccounts', value: [DEFAULT_FIXTURE_ACCOUNT_2] }] } }],
-      });
-
-      await bodyElement.runScript(`(el) => { window.ethereum.request(${requestPermissionsRequest}); }`);
-
-      // Wait a moment for the async operation to complete
-      await TestHelpers.delay(1000);
+      await callRequestPermissionsScript();
 
       await ConnectBottomSheet.tapConnectButton();
 
@@ -97,20 +101,7 @@ describe(SmokeMultiStandardDappConnection('Multiple Standard Dapp Connections'),
       await Browser.navigateToTestDApp();
 
       await TestHelpers.delay(3000);
-      const webView = web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID));
-      const bodyElement = webView.element(by.web.tag('body'));
-
-      // Execute the injection
-      const requestPermissionsRequest = JSON.stringify({
-        jsonrpc: '2.0',
-        method: 'wallet_requestPermissions',
-        params: [{ eth_accounts: { caveats: [{ type: 'restrictReturnedAccounts', value: [DEFAULT_FIXTURE_ACCOUNT_2] }] } }],
-      });
-
-      await bodyElement.runScript(`(el) => { window.ethereum.request(${requestPermissionsRequest}); }`);
-
-      // Wait a moment for the async operation to complete
-      await TestHelpers.delay(1000);
+      await callRequestPermissionsScript([DEFAULT_FIXTURE_ACCOUNT_2]);
 
       await ConnectBottomSheet.tapConnectButton();
 
@@ -178,23 +169,8 @@ describe(SmokeMultiStandardDappConnection('Multiple Standard Dapp Connections'),
       await TabBarComponent.tapBrowser();
       await Browser.navigateToTestDApp();
 
-      // TODO: [ffmcgee] abstract this away ?
-      const myWebView = web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID));
-      const webElement = await myWebView.element(by.web.tag('body'));
-      const requestPermissionsRequest = JSON.stringify({
-        jsonrpc: '2.0',
-        method: 'wallet_requestPermissions',
-        params: [{ eth_accounts: { caveats: [{ type: 'restrictReturnedAccounts', value: [DEFAULT_FIXTURE_ACCOUNT] }] } }],
-      });
-
-      await webElement.runScript(`(el) => {
-        window.ethereum.request(${requestPermissionsRequest})
-      }`);
-
-      await TestHelpers.delay(1000);
+      await callRequestPermissionsScript([DEFAULT_FIXTURE_ACCOUNT]);
       await ConnectBottomSheet.tapConnectButton();
-
-      // END [ffmcgee] abstract this away ?
 
       // Validate both EVM and Solana accounts are connected
       await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
