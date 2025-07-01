@@ -34,12 +34,16 @@ class MockLoginHandler extends BaseLoginHandler {
     };
   }
 }
-
+const mockBaseHandlerParams = {
+  authServerUrl: 'https://auth.example.com',
+  clientId: 'mock-client-id',
+  web3AuthNetwork: Web3AuthNetwork.Mainnet,
+};
 describe('BaseLoginHandler', () => {
   let mockHandler: MockLoginHandler;
 
   beforeEach(() => {
-    mockHandler = new MockLoginHandler();
+    mockHandler = new MockLoginHandler(mockBaseHandlerParams);
     jest.clearAllMocks();
     (global.fetch as jest.Mock).mockClear();
   });
@@ -50,8 +54,8 @@ describe('BaseLoginHandler', () => {
 
   describe('constructor', () => {
     it('generates a nonce when instantiated', () => {
-      const handler1 = new MockLoginHandler();
-      const handler2 = new MockLoginHandler();
+      const handler1 = new MockLoginHandler(mockBaseHandlerParams);
+      const handler2 = new MockLoginHandler(mockBaseHandlerParams);
 
       expect(handler1.nonce).toBeDefined();
       expect(handler2.nonce).toBeDefined();
@@ -187,6 +191,34 @@ describe('BaseLoginHandler', () => {
       );
 
       expect(result).toEqual(mockResponse);
+
+      jest
+        .spyOn(global, 'fetch')
+        .mockResolvedValueOnce(new Response(JSON.stringify(mockResponse)));
+
+      const refreshResult = await mockHandler.refreshAuthToken('refresh-token');
+
+      expect(refreshResult).toEqual(mockResponse);
+
+      const mockRevokeResponse = {
+        new_refresh_token: 'refresh-token',
+        new_revoke_token: 'revoke-token',
+      };
+
+      jest
+        .spyOn(global, 'fetch')
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(mockRevokeResponse)),
+        );
+
+      const revokeResult = await mockHandler.revokeRefreshToken(
+        'refresh-token',
+      );
+
+      expect(revokeResult).toEqual({
+        refresh_token: 'refresh-token',
+        revoke_token: 'revoke-token',
+      });
     });
 
     it('successfully gets auth tokens with idToken', async () => {

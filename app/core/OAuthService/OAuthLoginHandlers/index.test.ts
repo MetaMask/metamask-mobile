@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 import { AuthConnection } from '../OAuthInterface';
 import { createLoginHandler } from './index';
 import { OAuthError, OAuthErrorType } from '../error';
+import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 
 const mockExpoAuthSessionPromptAsync = jest.fn().mockResolvedValue({
   type: 'success',
@@ -97,7 +98,7 @@ describe('OAuth login handlers', () => {
         }
       });
 
-      it(`should have correct scope and authServerPath for ${os} ${provider} handler`, () => {
+      it(`should have correct scope and authServerPath for ${os} ${provider} handler`, async () => {
         const handler = createLoginHandler(os as Platform['OS'], provider);
 
         switch (os) {
@@ -108,7 +109,7 @@ describe('OAuth login handlers', () => {
                 expect(handler.authServerPath).toBe('api/v1/oauth/id_token');
                 break;
               case AuthConnection.Google:
-                expect(handler.scope).toEqual(['email', 'profile']);
+                expect(handler.scope).toEqual(['email', 'profile', 'openid']);
                 expect(handler.authServerPath).toBe('api/v1/oauth/token');
                 break;
             }
@@ -121,13 +122,38 @@ describe('OAuth login handlers', () => {
                 expect(handler.authServerPath).toBe('api/v1/oauth/token');
                 break;
               case AuthConnection.Google:
-                expect(handler.scope).toEqual(['email', 'profile']);
+                expect(handler.scope).toEqual(['email', 'profile', 'openid']);
                 expect(handler.authServerPath).toBe('api/v1/oauth/id_token');
                 break;
             }
             break;
           }
         }
+
+        jest.spyOn(global, 'fetch').mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              success: true,
+              access_token: 'access-token',
+              refresh_token: 'refresh-token',
+              id_token: 'id-token',
+            }),
+            {
+              status: 200,
+            },
+          ),
+        );
+        const authTokens = await handler.getAuthTokens(
+          {
+            code: 'googleCode',
+            authConnection: provider,
+            clientId: 'mock-client-id',
+            web3AuthNetwork: Web3AuthNetwork.Mainnet,
+          },
+          'https://auth.example.com',
+        );
+
+        expect(authTokens).toBeDefined();
       });
     }
   }
