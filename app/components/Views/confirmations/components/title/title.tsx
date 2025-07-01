@@ -118,37 +118,7 @@ const getTitleAndSubTitle = (
         };
       }
       if (REDESIGNED_APPROVE_TYPES.includes(transactionType)) {
-        const { isRevoke, tokenStandard } = approveTransactionData ?? {};
-        let title = strings('confirm.title.permit');
-        let subTitle = strings('confirm.sub_title.permit');
-
-        if (tokenStandard === TokenStandard.ERC20) {
-          if (isRevoke) {
-            title = strings('confirm.title.permit_revoke');
-            subTitle = strings('confirm.sub_title.permit_revoke');
-          }
-        }
-        if (
-          tokenStandard === TokenStandard.ERC721 ||
-          tokenStandard === TokenStandard.ERC1155
-        ) {
-          title = strings('confirm.title.permit_NFTs');
-          subTitle = strings('confirm.sub_title.permit_NFTs');
-
-          if (isRevoke) {
-            title = strings('confirm.title.permit_revoke');
-            subTitle = strings('confirm.sub_title.permit_revoke_NFTs');
-          }
-        }
-
-        if (
-          approveTransactionData?.approveMethod ===
-          ApproveMethod.DECREASE_ALLOWANCE
-        ) {
-          title = strings('confirm.title.permit');
-          subTitle = strings('confirm.sub_title.decrease_allowance');
-        }
-
+        const { title, subTitle } = getApproveTitle(approveTransactionData);
         return {
           title,
           subTitle,
@@ -184,6 +154,43 @@ const getTitleAndSubTitle = (
     default:
       return {};
   }
+};
+
+const getApproveTitle = (approveTransactionData?: ApproveTransactionData) => {
+  const { isRevoke, tokenStandard } = approveTransactionData ?? {};
+  let title = strings('confirm.title.permit');
+  let subTitle = strings('confirm.sub_title.permit');
+
+  if (tokenStandard === TokenStandard.ERC20) {
+    if (isRevoke) {
+      title = strings('confirm.title.permit_revoke');
+      subTitle = strings('confirm.sub_title.permit_revoke');
+    }
+  }
+  if (
+    tokenStandard === TokenStandard.ERC721 ||
+    tokenStandard === TokenStandard.ERC1155
+  ) {
+    title = strings('confirm.title.permit_NFTs');
+    subTitle = strings('confirm.sub_title.permit_NFTs');
+
+    if (isRevoke) {
+      title = strings('confirm.title.permit_revoke');
+      subTitle = strings('confirm.sub_title.permit_revoke_NFTs');
+    }
+  }
+
+  if (
+    approveTransactionData?.approveMethod === ApproveMethod.DECREASE_ALLOWANCE
+  ) {
+    title = strings('confirm.title.permit');
+    subTitle = strings('confirm.sub_title.decrease_allowance');
+  }
+
+  return {
+    title,
+    subTitle,
+  };
 };
 
 const Title = () => {

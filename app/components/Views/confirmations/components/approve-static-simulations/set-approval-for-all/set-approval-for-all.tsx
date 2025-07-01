@@ -23,30 +23,8 @@ export const SetApprovalForAll = () => {
     return null;
   }
 
-  if (isRevoke) {
+  const renderNFTInfoRow = () => {
     return (
-      <>
-        <InfoRow label={strings('confirm.nfts')}>
-          <View style={styles.amountAndAddressContainer}>
-            <Pill text={strings('confirm.all')} />
-            <Address
-              address={transactionMetadata?.txParams?.to ?? ''}
-              chainId={transactionMetadata?.chainId ?? ''}
-            />
-          </View>
-        </InfoRow>
-        <InfoRow label={strings('confirm.permission_from')}>
-          <Address
-            address={spender ?? ''}
-            chainId={transactionMetadata?.chainId ?? ''}
-          />
-        </InfoRow>
-      </>
-    );
-  }
-
-  return (
-    <>
       <InfoRow label={strings('confirm.nfts')}>
         <View style={styles.amountAndAddressContainer}>
           <Pill text={strings('confirm.all')} />
@@ -56,12 +34,44 @@ export const SetApprovalForAll = () => {
           />
         </View>
       </InfoRow>
+    );
+  };
+
+  const renderPermissionFromInfoRow = () => {
+    return (
+      <InfoRow label={strings('confirm.permission_from')}>
+        <Address
+          address={spender ?? ''}
+          chainId={transactionMetadata?.chainId ?? ''}
+        />
+      </InfoRow>
+    );
+  };
+
+  const renderSpenderInfoRow = () => {
+    return (
       <InfoRow label={strings('confirm.spender')}>
         <Address
           address={spender ?? ''}
           chainId={transactionMetadata?.chainId ?? ''}
         />
       </InfoRow>
+    );
+  };
+
+  if (isRevoke) {
+    return (
+      <>
+        {renderNFTInfoRow()}
+        {renderPermissionFromInfoRow()}
+      </>
+    );
+  }
+
+  return (
+    <>
+      {renderNFTInfoRow()}
+      {renderSpenderInfoRow()}
     </>
   );
 };
