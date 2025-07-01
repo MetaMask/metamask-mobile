@@ -11,6 +11,66 @@ import Address from '../../UI/info-row/info-value/address';
 import { Pill } from '../../UI/pill';
 import styleSheet from '../shared-styles';
 
+interface NFTInfoRowProps {
+  transactionMetadata: any;
+  styles: any;
+}
+
+const NFTInfoRow: React.FC<NFTInfoRowProps> = ({
+  transactionMetadata,
+  styles,
+}) => {
+  return (
+    <InfoRow label={strings('confirm.nfts')}>
+      <View style={styles.amountAndAddressContainer}>
+        <Pill text={strings('confirm.all')} />
+        <Address
+          address={transactionMetadata?.txParams?.to ?? ''}
+          chainId={transactionMetadata?.chainId ?? ''}
+        />
+      </View>
+    </InfoRow>
+  );
+};
+
+interface PermissionFromInfoRowProps {
+  spender?: string;
+  transactionMetadata: any;
+}
+
+const PermissionFromInfoRow: React.FC<PermissionFromInfoRowProps> = ({
+  spender,
+  transactionMetadata,
+}) => {
+  return (
+    <InfoRow label={strings('confirm.permission_from')}>
+      <Address
+        address={spender ?? ''}
+        chainId={transactionMetadata?.chainId ?? ''}
+      />
+    </InfoRow>
+  );
+};
+
+interface SpenderInfoRowProps {
+  spender?: string;
+  transactionMetadata: any;
+}
+
+const SpenderInfoRow: React.FC<SpenderInfoRowProps> = ({
+  spender,
+  transactionMetadata,
+}) => {
+  return (
+    <InfoRow label={strings('confirm.spender')}>
+      <Address
+        address={spender ?? ''}
+        chainId={transactionMetadata?.chainId ?? ''}
+      />
+    </InfoRow>
+  );
+};
+
 export const SetApprovalForAll = () => {
   const { styles } = useStyles(styleSheet, {});
   const { tokenStandard, isRevoke, spender } = useApproveTransactionData();
@@ -23,55 +83,25 @@ export const SetApprovalForAll = () => {
     return null;
   }
 
-  const renderNFTInfoRow = () => {
-    return (
-      <InfoRow label={strings('confirm.nfts')}>
-        <View style={styles.amountAndAddressContainer}>
-          <Pill text={strings('confirm.all')} />
-          <Address
-            address={transactionMetadata?.txParams?.to ?? ''}
-            chainId={transactionMetadata?.chainId ?? ''}
-          />
-        </View>
-      </InfoRow>
-    );
-  };
-
-  const renderPermissionFromInfoRow = () => {
-    return (
-      <InfoRow label={strings('confirm.permission_from')}>
-        <Address
-          address={spender ?? ''}
-          chainId={transactionMetadata?.chainId ?? ''}
-        />
-      </InfoRow>
-    );
-  };
-
-  const renderSpenderInfoRow = () => {
-    return (
-      <InfoRow label={strings('confirm.spender')}>
-        <Address
-          address={spender ?? ''}
-          chainId={transactionMetadata?.chainId ?? ''}
-        />
-      </InfoRow>
-    );
-  };
-
   if (isRevoke) {
     return (
       <>
-        {renderNFTInfoRow()}
-        {renderPermissionFromInfoRow()}
+        <NFTInfoRow transactionMetadata={transactionMetadata} styles={styles} />
+        <PermissionFromInfoRow
+          spender={spender}
+          transactionMetadata={transactionMetadata}
+        />
       </>
     );
   }
 
   return (
     <>
-      {renderNFTInfoRow()}
-      {renderSpenderInfoRow()}
+      <NFTInfoRow transactionMetadata={transactionMetadata} styles={styles} />
+      <SpenderInfoRow
+        spender={spender}
+        transactionMetadata={transactionMetadata}
+      />
     </>
   );
 };
