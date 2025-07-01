@@ -12,7 +12,7 @@ import { fromBase64UrlSafe, toBase64UrlSafe } from './utils';
 import {
   base64ToBytes,
   bytesToBase64,
-  bytesToNumber,
+  bytesToBigInt,
   bytesToString,
 } from '@metamask/utils';
 
@@ -255,15 +255,15 @@ export abstract class BaseLoginHandler {
    *
    * @returns The code verifier and challenge value.
    */
-  protected async generateCodeVerifierChallenge(): Promise<{
+  protected generateCodeVerifierChallenge(): {
     codeVerifier: string;
     challenge: string;
-  }> {
+  } {
     const codeVerifier = randomBytes(32);
     const challenge = sha256(codeVerifier);
     return {
       challenge: toBase64UrlSafe(bytesToBase64(challenge)),
-      codeVerifier: bytesToNumber(codeVerifier).toString(),
+      codeVerifier: bytesToBigInt(codeVerifier).toString(10),
     };
   }
 }
