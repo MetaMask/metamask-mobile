@@ -653,16 +653,19 @@ describe('EvmAccountSelectorList', () => {
   it('renders accounts with balance error', async () => {
     // Create a mock account with balance error
     const mockAccount = {
+      id: BUSINESS_ACCOUNT_ID,
       name: 'Account 1',
       address: BUSINESS_ACCOUNT,
       assets: {
         fiatBalance: '$3200.00\n1 ETH',
       },
-      type: 'HD Key Tree',
+      type: KeyringTypes.hd,
       yOffset: 0,
       isSelected: true,
       balanceError: 'Balance error message',
       caipAccountId: `${EthScope.Eoa}:${BUSINESS_ACCOUNT}` as CaipAccountId,
+      scopes: [EthScope.Eoa],
+      isLoadingAccount: false,
     };
 
     setAccountsMock([mockAccount]);
@@ -824,16 +827,19 @@ describe('EvmAccountSelectorList', () => {
     // Mock account data that is not removable (HD Key Tree)
     setAccountsMock([
       {
+        id: BUSINESS_ACCOUNT_ID,
         name: 'Account 1',
         address: BUSINESS_ACCOUNT,
         assets: {
           fiatBalance: '$3200.00\n1 ETH',
         },
-        type: 'HD Key Tree', // Not a simple or snap keyring type
+        type: KeyringTypes.hd, // Not a simple or snap keyring type
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
         caipAccountId: `${EthScope.Eoa}:${BUSINESS_ACCOUNT}` as CaipAccountId,
+        scopes: [EthScope.Eoa],
+        isLoadingAccount: false,
       },
     ]);
 
