@@ -20,7 +20,9 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
           "isLoadingAccount": false,
           "isSelected": true,
           "name": "Account 1",
-          "scopes": [],
+          "scopes": [
+            "eip155:0",
+          ],
           "type": "HD Key Tree",
           "yOffset": 0,
         },
@@ -42,7 +44,9 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
           "isLoadingAccount": false,
           "isSelected": false,
           "name": "Account 2",
-          "scopes": [],
+          "scopes": [
+            "eip155:0",
+          ],
           "type": "HD Key Tree",
           "yOffset": 78,
         },
@@ -398,7 +402,86 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                           }
                         }
                         testID="avatar-group-container"
-                      />
+                      >
+                        <View
+                          style={
+                            {
+                              "marginLeft": 0,
+                            }
+                          }
+                          testID="avatargroup-avatar-container-0"
+                        >
+                          <View
+                            caipChainId="0x1"
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 4,
+                                "borderWidth": 1.5,
+                                "height": 16,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                            testID="avatargroup-avatar"
+                          >
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              testID="network-avatar-image"
+                            />
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "marginLeft": -6,
+                            }
+                          }
+                          testID="avatargroup-avatar-container-1"
+                        >
+                          <View
+                            caipChainId="0x38"
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 4,
+                                "borderWidth": 1.5,
+                                "height": 16,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                            testID="avatargroup-avatar"
+                          >
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              testID="network-avatar-image"
+                            />
+                          </View>
+                        </View>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -801,7 +884,86 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                           }
                         }
                         testID="avatar-group-container"
-                      />
+                      >
+                        <View
+                          style={
+                            {
+                              "marginLeft": 0,
+                            }
+                          }
+                          testID="avatargroup-avatar-container-0"
+                        >
+                          <View
+                            caipChainId="0x1"
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 4,
+                                "borderWidth": 1.5,
+                                "height": 16,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                            testID="avatargroup-avatar"
+                          >
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              testID="network-avatar-image"
+                            />
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "marginLeft": -6,
+                            }
+                          }
+                          testID="avatargroup-avatar-container-1"
+                        >
+                          <View
+                            caipChainId="0x89"
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 4,
+                                "borderWidth": 1.5,
+                                "height": 16,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                            testID="avatargroup-avatar"
+                          >
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              testID="network-avatar-image"
+                            />
+                          </View>
+                        </View>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -877,7 +1039,9 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
           "isLoadingAccount": false,
           "isSelected": true,
           "name": "Account 1",
-          "scopes": [],
+          "scopes": [
+            "eip155:0",
+          ],
           "type": "HD Key Tree",
           "yOffset": 0,
         },
@@ -899,7 +1063,9 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
           "isLoadingAccount": false,
           "isSelected": false,
           "name": "Account 2",
-          "scopes": [],
+          "scopes": [
+            "eip155:0",
+          ],
           "type": "HD Key Tree",
           "yOffset": 78,
         },
@@ -1658,7 +1824,9 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
           "isLoadingAccount": false,
           "isSelected": true,
           "name": "Account 1",
-          "scopes": [],
+          "scopes": [
+            "eip155:0",
+          ],
           "type": "HD Key Tree",
           "yOffset": 0,
         },
@@ -1680,7 +1848,9 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
           "isLoadingAccount": false,
           "isSelected": false,
           "name": "Account 2",
-          "scopes": [],
+          "scopes": [
+            "eip155:0",
+          ],
           "type": "HD Key Tree",
           "yOffset": 78,
         },
@@ -2036,7 +2206,86 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                           }
                         }
                         testID="avatar-group-container"
-                      />
+                      >
+                        <View
+                          style={
+                            {
+                              "marginLeft": 0,
+                            }
+                          }
+                          testID="avatargroup-avatar-container-0"
+                        >
+                          <View
+                            caipChainId="0x1"
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 4,
+                                "borderWidth": 1.5,
+                                "height": 16,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                            testID="avatargroup-avatar"
+                          >
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              testID="network-avatar-image"
+                            />
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "marginLeft": -6,
+                            }
+                          }
+                          testID="avatargroup-avatar-container-1"
+                        >
+                          <View
+                            caipChainId="0x38"
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 4,
+                                "borderWidth": 1.5,
+                                "height": 16,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                            testID="avatargroup-avatar"
+                          >
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              testID="network-avatar-image"
+                            />
+                          </View>
+                        </View>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -2439,7 +2688,86 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                           }
                         }
                         testID="avatar-group-container"
-                      />
+                      >
+                        <View
+                          style={
+                            {
+                              "marginLeft": 0,
+                            }
+                          }
+                          testID="avatargroup-avatar-container-0"
+                        >
+                          <View
+                            caipChainId="0x1"
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 4,
+                                "borderWidth": 1.5,
+                                "height": 16,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                            testID="avatargroup-avatar"
+                          >
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              testID="network-avatar-image"
+                            />
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "marginLeft": -6,
+                            }
+                          }
+                          testID="avatargroup-avatar-container-1"
+                        >
+                          <View
+                            caipChainId="0x89"
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 4,
+                                "borderWidth": 1.5,
+                                "height": 16,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                            testID="avatargroup-avatar"
+                          >
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              testID="network-avatar-image"
+                            />
+                          </View>
+                        </View>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -2515,7 +2843,9 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
           "isLoadingAccount": false,
           "isSelected": true,
           "name": "Account 1",
-          "scopes": [],
+          "scopes": [
+            "eip155:0",
+          ],
           "type": "HD Key Tree",
           "yOffset": 0,
         },
@@ -2537,7 +2867,9 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
           "isLoadingAccount": false,
           "isSelected": false,
           "name": "Account 2",
-          "scopes": [],
+          "scopes": [
+            "eip155:0",
+          ],
           "type": "HD Key Tree",
           "yOffset": 78,
         },
@@ -2893,7 +3225,86 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                           }
                         }
                         testID="avatar-group-container"
-                      />
+                      >
+                        <View
+                          style={
+                            {
+                              "marginLeft": 0,
+                            }
+                          }
+                          testID="avatargroup-avatar-container-0"
+                        >
+                          <View
+                            caipChainId="0x1"
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 4,
+                                "borderWidth": 1.5,
+                                "height": 16,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                            testID="avatargroup-avatar"
+                          >
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              testID="network-avatar-image"
+                            />
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "marginLeft": -6,
+                            }
+                          }
+                          testID="avatargroup-avatar-container-1"
+                        >
+                          <View
+                            caipChainId="0x38"
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 4,
+                                "borderWidth": 1.5,
+                                "height": 16,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                            testID="avatargroup-avatar"
+                          >
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              testID="network-avatar-image"
+                            />
+                          </View>
+                        </View>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -3296,7 +3707,86 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                           }
                         }
                         testID="avatar-group-container"
-                      />
+                      >
+                        <View
+                          style={
+                            {
+                              "marginLeft": 0,
+                            }
+                          }
+                          testID="avatargroup-avatar-container-0"
+                        >
+                          <View
+                            caipChainId="0x1"
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 4,
+                                "borderWidth": 1.5,
+                                "height": 16,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                            testID="avatargroup-avatar"
+                          >
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              testID="network-avatar-image"
+                            />
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "marginLeft": -6,
+                            }
+                          }
+                          testID="avatargroup-avatar-container-1"
+                        >
+                          <View
+                            caipChainId="0x89"
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 4,
+                                "borderWidth": 1.5,
+                                "height": 16,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                            testID="avatargroup-avatar"
+                          >
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              testID="network-avatar-image"
+                            />
+                          </View>
+                        </View>
+                      </View>
                     </View>
                   </View>
                 </View>
