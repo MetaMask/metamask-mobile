@@ -1,8 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  View,
-  useWindowDimensions,
-} from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 
@@ -77,7 +74,7 @@ function RegionSelectorModal() {
       return results || [];
     }
 
-    return DEPOSIT_REGIONS.sort((a, b) => {
+    return [...DEPOSIT_REGIONS].sort((a, b) => {
       if (a.recommended && !b.recommended) return -1;
       if (!a.recommended && b.recommended) return 1;
       return 0;
