@@ -156,9 +156,8 @@ export const checkActiveAccountAndChainId = async ({
       permissionsController.state,
     );
 
-    const origin = isWalletConnect ? hostname : channelId ?? hostname;
+    const origin = channelId ?? hostname;
     const accounts = getPermittedAccounts(origin);
-
     const normalizedAccounts = accounts.map(safeToChecksumAddress);
 
     if (!normalizedAccounts.includes(formattedAddress)) {

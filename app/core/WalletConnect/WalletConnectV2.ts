@@ -392,6 +392,7 @@ export class WC2Manager {
     //  Open session proposal modal for confirmation / rejection
     const { id, params } = proposal;
 
+    const channelId = `${id}`
     const pairingTopic = proposal.params.pairingTopic;
     DevLogger.log(
       `WC2::session_proposal id=${id} pairingTopic=${pairingTopic}`,
@@ -436,14 +437,15 @@ export class WC2Manager {
       const caveatValue = getDefaultCaip25CaveatValue();
 
       // Important: Use hostname as the origin for permission request to ensure consistency
-      DevLogger.log(`WC2::session_proposal requestPermissions for hostname`, {
+      DevLogger.log(`WC2::session_proposal requestPermissions for hostname and channelId`, {
         hostname,
         caveatValue,
+        channelId,
       });
 
       // Request permissions via the permissions controller
       await permissionsController.requestPermissions(
-        { origin: hostname },
+        { origin: channelId },
         {
           [Caip25EndowmentPermissionName]: {
             caveats: [
@@ -464,7 +466,7 @@ export class WC2Manager {
         const hexChainId = `0x${walletChainIdDecimal.toString(16)}` as `0x${string}`;
         DevLogger.log(`WC2::session_proposal ensuring chain ${hexChainId} is permitted for ${hostname}`);
 
-        updatePermittedChains(hostname, [`eip155:${walletChainIdDecimal}`]);
+        updatePermittedChains(channelId, [`eip155:${walletChainIdDecimal}`]);
         DevLogger.log(`WC2::session_proposal chain permission added successfully`);
       } catch (err) {
         DevLogger.log(`WC2::session_proposal error adding chain permission`, err);
@@ -482,7 +484,7 @@ export class WC2Manager {
 
     try {
       // Use the hostname for consistent permissions
-      const approvedAccounts = getPermittedAccounts(hostname);
+      const approvedAccounts = getPermittedAccounts(channelId);
 
       DevLogger.log(`WC2::session_proposal getScopedPermissions`, {
         hostname,
@@ -492,7 +494,7 @@ export class WC2Manager {
       });
 
       // Use getScopedPermissions to get properly formatted namespaces
-      const namespaces = await getScopedPermissions({ origin });
+      const namespaces = await getScopedPermissions({ channelId });
 
       DevLogger.log(`WC2::session_proposal namespaces`, namespaces);
 
@@ -504,7 +506,7 @@ export class WC2Manager {
       const deeplink = !!this.deeplinkSessions[activeSession.pairingTopic];
       const session = new WalletConnect2Session({
         session: activeSession,
-        channelId: `${proposal.id}`,
+        channelId,
         deeplink,
         web3Wallet: this.web3Wallet,
         navigation: this.navigation,
