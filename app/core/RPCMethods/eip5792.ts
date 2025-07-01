@@ -195,7 +195,7 @@ async function getAlternateGasFeesCapability(
 }
 
 export async function getCapabilities(address: Hex, chainIds?: Hex[]) {
-  if (!process.env.MM_SMART_ACCOUNT_UI_ENABLED) {
+  if (process.env.MM_SMART_ACCOUNT_UI_ENABLED !== 'true') {
     return {};
   }
   const {
@@ -285,7 +285,7 @@ function getChainIdForNetworkClientId(networkClientId: string): Hex {
 }
 
 function validateSendCallsVersion(sendCalls: SendCalls) {
-  if (!process.env.MM_SMART_ACCOUNT_UI_ENABLED) {
+  if (process.env.MM_SMART_ACCOUNT_UI_ENABLED !== 'true') {
     throw rpcErrors.invalidParams('Functionality not available');
   }
 

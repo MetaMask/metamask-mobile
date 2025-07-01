@@ -429,7 +429,7 @@ const AccountActions = () => {
           )
           ///: END:ONLY_INCLUDE_IF
         }
-        {process.env.MM_SMART_ACCOUNT_UI_ENABLED &&
+        {process.env.MM_SMART_ACCOUNT_UI_ENABLED === 'true' &&
           networkSupporting7702Present &&
           !isHardwareAccount(selectedAddress) && (
             <AccountAction

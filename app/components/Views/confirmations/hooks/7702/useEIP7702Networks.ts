@@ -38,7 +38,7 @@ export const useEIP7702Networks = (address: string) => {
   );
 
   const { pending, value } = useAsyncResultOrThrow(async () => {
-    if (!process.env.MM_SMART_ACCOUNT_UI_ENABLED) {
+    if (process.env.MM_SMART_ACCOUNT_UI_ENABLED !== 'true') {
       return [];
     }
 
