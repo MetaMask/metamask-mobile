@@ -99,8 +99,18 @@ it(`send an ERC721 token from a dapp using ${MEGAETH_TESTNET.nickname} (local)`,
       {
         dapp: true,
         fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp(buildPermissions([`${megaEthLocalConfig.chainId}`]))
+          .withNetworkController({
+            providerConfig: {
+              chainId: '0x539',                     // Ganache chain ID (for compatibility)
+              rpcUrl: 'http://localhost:8545',      // Local Ganache
+              ticker: MEGAETH_TESTNET.ticker,       // "MegaETH" ticker (for display)
+              nickname: `${MEGAETH_TESTNET.nickname} (Local)`, // "Mega Testnet (Local)"
+              type: 'custom',
+            },
+          })
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0x539']) // Ganache chain ID for permissions
+          )
           .build(),
         restartDevice: true,
         smartContract: NFT_CONTRACT,
@@ -160,8 +170,18 @@ it(`send an ERC721 token from a dapp using ${MONAD_TESTNET.nickname} (local)`, a
       {
         dapp: true,
         fixture: new FixtureBuilder()
-          .withGanacheNetwork() // Use standard Ganache network setup
-          .withPermissionControllerConnectedToTestDapp(buildPermissions([`${monadLocalConfig.chainId}`]))
+          .withNetworkController({
+            providerConfig: {
+              chainId: '0x539',                     // Ganache chain ID (for compatibility)
+              rpcUrl: 'http://localhost:8545',      // Local Ganache
+              ticker: MONAD_TESTNET.ticker,         // "Monad" ticker (for display)
+              nickname: `${MONAD_TESTNET.nickname} (Local)`, // "Monad Testnet (Local)"
+              type: 'custom',
+            },
+          })
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0x539']) // Ganache chain ID for permissions
+          )
           .build(),
         restartDevice: true,
         smartContract: NFT_CONTRACT,
