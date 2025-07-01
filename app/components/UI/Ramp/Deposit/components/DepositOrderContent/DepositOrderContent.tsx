@@ -33,7 +33,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../..
 import { FiatOrder } from '../../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import styleSheet from './DepositOrderContent.styles';
-import { SEPA_PAYMENT_METHOD } from '../../constants';
+import { MANUAL_BANK_TRANSFER_PAYMENT_METHODS } from '../../constants';
 
 interface DepositOrderContentProps {
   order: FiatOrder;
@@ -117,10 +117,16 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
     subtitle = strings('deposit.order_processing.cancel_order_description');
   } else if (
     order.state === FIAT_ORDER_STATES.PENDING &&
-    hasDepositOrderField(order.data, 'paymentMethod') &&
-    order.data.paymentMethod === SEPA_PAYMENT_METHOD.id
+    hasDepositOrderField(order.data, 'paymentMethod')
   ) {
-    subtitle = strings('deposit.order_processing.bank_transfer_description');
+    const paymentMethodId = order.data.paymentMethod;
+    const isManualBankTransfer = MANUAL_BANK_TRANSFER_PAYMENT_METHODS.some(
+      (method) => method.id === paymentMethodId,
+    );
+
+    if (isManualBankTransfer) {
+      subtitle = strings('deposit.order_processing.bank_transfer_description');
+    }
   }
 
   return (

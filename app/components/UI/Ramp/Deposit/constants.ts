@@ -91,6 +91,13 @@ export const SEPA_PAYMENT_METHOD: DepositPaymentMethod = {
   icon: IconName.Bank,
 };
 
+export const WIRE_TRANSFER_PAYMENT_METHOD: DepositPaymentMethod = {
+  id: 'pm_wire',
+  name: 'Wire Transfer',
+  duration: '1_to_2_days',
+  icon: IconName.Bank,
+};
+
 export const APPLE_PAY_PAYMENT_METHOD: DepositPaymentMethod = {
   id: 'apple_pay',
   name: 'Apple Pay',
@@ -102,10 +109,16 @@ export const APPLE_PAY_PAYMENT_METHOD: DepositPaymentMethod = {
   },
 };
 
+export const MANUAL_BANK_TRANSFER_PAYMENT_METHODS: DepositPaymentMethod[] = [
+  SEPA_PAYMENT_METHOD,
+  WIRE_TRANSFER_PAYMENT_METHOD,
+];
+
 export const SUPPORTED_PAYMENT_METHODS: DepositPaymentMethod[] = [
   DEBIT_CREDIT_PAYMENT_METHOD,
   APPLE_PAY_PAYMENT_METHOD,
   SEPA_PAYMENT_METHOD,
+  WIRE_TRANSFER_PAYMENT_METHOD,
 ];
 
 export const USD_CURRENCY: DepositFiatCurrency = {

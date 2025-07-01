@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { Linking, View } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import styleSheet from './OrderProcessing.styles';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -37,7 +37,7 @@ const OrderProcessing = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { orderId } = useParams<OrderProcessingParams>();
-
+  const dispatch = useDispatch();
   const order = useSelector((state: RootState) => getOrderById(state, orderId));
 
   const handleMainAction = useCallback(() => {
@@ -74,7 +74,7 @@ const OrderProcessing = () => {
     if (order?.state === FIAT_ORDER_STATES.CANCELLED) {
       navigation.navigate(Routes.WALLET.HOME);
     }
-  }, [order?.state, navigation, orderId]);
+  }, [order?.state, navigation, orderId, dispatch]);
 
   if (!order) {
     return (

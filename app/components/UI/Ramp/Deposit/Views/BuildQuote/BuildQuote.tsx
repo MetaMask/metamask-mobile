@@ -72,8 +72,8 @@ import {
   EUR_CURRENCY,
   DEPOSIT_REGIONS,
   DepositRegion,
-  SEPA_PAYMENT_METHOD,
   DEBIT_CREDIT_PAYMENT_METHOD,
+  MANUAL_BANK_TRANSFER_PAYMENT_METHODS,
 } from '../../constants';
 import { createBankDetailsNavDetails } from '../BankDetails/BankDetails';
 import { depositOrderToFiatOrder } from '../../orderProcessor';
@@ -251,7 +251,7 @@ const BuildQuote = () => {
         }
 
         if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
-          if (paymentMethod.id === SEPA_PAYMENT_METHOD.id) {
+          if (MANUAL_BANK_TRANSFER_PAYMENT_METHODS.includes(paymentMethod)) {
             const reservation = await createReservation(
               quote,
               selectedWalletAddress,
