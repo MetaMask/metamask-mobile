@@ -650,6 +650,7 @@ class FixtureBuilder {
             },
           ],
           selectedRegionAgg: null,
+          selectedRegionDeposit: null,
           selectedPaymentMethodAgg: null,
           getStartedAgg: false,
           getStartedSell: false,

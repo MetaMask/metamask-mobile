@@ -14,6 +14,11 @@ const mockNavigate = jest.fn();
 const mockReset = jest.fn();
 const mockCheckExistingToken = jest.fn();
 let mockGetStarted = true;
+const mockSelectedRegion = {
+  isoCode: 'US',
+  flag: '🇺🇸',
+  name: 'United States',
+};
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -36,6 +41,7 @@ jest.mock('../../sdk', () => {
     useDepositSDK: () => ({
       checkExistingToken: mockCheckExistingToken,
       getStarted: mockGetStarted,
+      selectedRegion: mockSelectedRegion,
     }),
   };
 });
@@ -44,6 +50,10 @@ jest.mock('../../../../../../reducers/fiatOrders', () => ({
   getOrders: jest.fn(),
   fiatOrdersGetStartedDeposit: jest.fn((_state: unknown) => true),
   setFiatOrdersGetStartedDeposit: jest.fn(),
+  fiatOrdersRegionSelectorDeposit: jest.fn(
+    (_state: unknown) => mockSelectedRegion,
+  ),
+  setFiatOrdersRegionDeposit: jest.fn(),
   getActivationKeys: jest.fn((_state: unknown) => []),
   fiatOrdersRegionSelectorAgg: jest.fn((_state: unknown) => null),
   fiatOrdersGetStartedAgg: jest.fn((_state: unknown) => false),

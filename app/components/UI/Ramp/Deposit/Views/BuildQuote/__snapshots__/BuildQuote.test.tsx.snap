@@ -15737,7 +15737,7 @@ exports[`BuildQuote Component Region Selection updates selected region and fiat 
                                       }
                                     }
                                   >
-                                    🇩🇪
+                                    🇺🇸
                                   </Text>
                                   <Text
                                     accessibilityRole="text"
@@ -15751,7 +15751,9 @@ exports[`BuildQuote Component Region Selection updates selected region and fiat 
                                         "lineHeight": 24,
                                       }
                                     }
-                                  />
+                                  >
+                                    US
+                                  </Text>
                                   <SvgMock
                                     color="#686e7d"
                                     fill="currentColor"
@@ -17425,7 +17427,7 @@ exports[`BuildQuote Component Region Selection updates selected region but keeps
                                       }
                                     }
                                   >
-                                    🇬🇧
+                                    🇺🇸
                                   </Text>
                                   <Text
                                     accessibilityRole="text"
@@ -17439,7 +17441,9 @@ exports[`BuildQuote Component Region Selection updates selected region but keeps
                                         "lineHeight": 24,
                                       }
                                     }
-                                  />
+                                  >
+                                    US
+                                  </Text>
                                   <SvgMock
                                     color="#686e7d"
                                     fill="currentColor"
@@ -19113,7 +19117,7 @@ exports[`BuildQuote Component Region Selection updates selected region when hand
                                       }
                                     }
                                   >
-                                    🇨🇦
+                                    🇺🇸
                                   </Text>
                                   <Text
                                     accessibilityRole="text"
@@ -19127,7 +19131,9 @@ exports[`BuildQuote Component Region Selection updates selected region when hand
                                         "lineHeight": 24,
                                       }
                                     }
-                                  />
+                                  >
+                                    US
+                                  </Text>
                                   <SvgMock
                                     color="#686e7d"
                                     fill="currentColor"

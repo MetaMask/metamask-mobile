@@ -70,7 +70,6 @@ import {
   USD_CURRENCY,
   DepositFiatCurrency,
   EUR_CURRENCY,
-  DEPOSIT_REGIONS,
   DepositRegion,
   SEPA_PAYMENT_METHOD,
   DEBIT_CREDIT_PAYMENT_METHOD,
@@ -96,12 +95,15 @@ const BuildQuote = () => {
     useState<DepositFiatCurrency>(USD_CURRENCY);
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
-  const { isAuthenticated, selectedWalletAddress } = useDepositSDK();
-  const [error, setError] = useState<string | null>();
 
-  const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
-    DEPOSIT_REGIONS.find((region) => region.isoCode === 'US') || null,
-  );
+  const {
+    isAuthenticated,
+    selectedWalletAddress,
+    selectedRegion,
+    setSelectedRegion,
+  } = useDepositSDK();
+
+  const [error, setError] = useState<string | null>();
 
   const handleNewOrder = useHandleNewOrder();
 
@@ -440,7 +442,9 @@ const BuildQuote = () => {
             >
               <View style={styles.regionContent}>
                 <Text variant={TextVariant.BodyMD}>{selectedRegion?.flag}</Text>
-                <Text variant={TextVariant.BodyMD}>{selectedRegion?.isoCode}</Text>
+                <Text variant={TextVariant.BodyMD}>
+                  {selectedRegion?.isoCode}
+                </Text>
                 <Icon
                   name={IconName.ArrowDown}
                   size={IconSize.Sm}

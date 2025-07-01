@@ -23,6 +23,27 @@ const mockInteractionManager = {
   runAfterInteractions: jest.fn((callback) => callback()),
 };
 
+const MOCK_US_REGION = {
+  isoCode: 'US',
+  flag: '🇺🇸',
+  name: 'United States',
+  phone: {
+    prefix: '+1',
+    placeholder: '(555) 555-1234',
+    template: '(XXX) XXX-XXXX',
+  },
+  currency: 'USD',
+  recommended: true,
+  supported: true,
+};
+
+const createMockSDKReturn = (isAuthenticated = false, overrides = {}) => ({
+  isAuthenticated,
+  selectedRegion: MOCK_US_REGION,
+  setSelectedRegion: jest.fn(),
+  ...overrides,
+});
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -142,9 +163,7 @@ function render(Component: React.ComponentType) {
 describe('BuildQuote Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseDepositSDK.mockReturnValue({
-      isAuthenticated: false,
-    });
+    mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
     mockUseDepositTokenExchange.mockReturnValue({
       tokenAmount: '0.00',
     });
@@ -538,7 +557,7 @@ describe('BuildQuote Component', () => {
       const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
       const mockForms = { forms: [] };
 
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: false });
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
 
@@ -562,7 +581,7 @@ describe('BuildQuote Component', () => {
       const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
       const mockForms = { forms: [] };
 
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: false });
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
 
@@ -581,7 +600,7 @@ describe('BuildQuote Component', () => {
       const mockForms = { forms: [] };
       const mockUserDetails = { kyc: { l1: { status: 'APPROVED' } } };
 
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: true });
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn(true));
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
       mockFetchUserDetails.mockResolvedValue(mockUserDetails);
@@ -604,7 +623,7 @@ describe('BuildQuote Component', () => {
       const mockForms = { forms: [] };
       const mockUserDetails = { kyc: { l1: { status: 'PENDING' } } };
 
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: true });
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn(true));
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
       mockFetchUserDetails.mockResolvedValue(mockUserDetails);
@@ -627,7 +646,7 @@ describe('BuildQuote Component', () => {
       };
       const mockIdProofData = { data: { kycUrl: 'test-kyc-url' } };
 
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: true });
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn(true));
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
       mockFetchKycFormData.mockResolvedValue(mockIdProofData);
@@ -655,7 +674,7 @@ describe('BuildQuote Component', () => {
       };
       const mockIdProofData = { data: { kycUrl: 'test-kyc-url' } };
 
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: true });
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn(true));
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
       mockFetchKycFormData.mockResolvedValue(mockIdProofData);
@@ -683,7 +702,7 @@ describe('BuildQuote Component', () => {
       };
       const mockIdProofData = { data: { kycUrl: 'test-kyc-url' } };
 
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: true });
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn(true));
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
       mockFetchKycFormData.mockResolvedValue(mockIdProofData);
@@ -710,7 +729,7 @@ describe('BuildQuote Component', () => {
         forms: [{ id: 'idProof' }],
       };
 
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: true });
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn(true));
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
       mockFetchKycFormData.mockResolvedValue(null);
@@ -791,10 +810,9 @@ describe('BuildQuote Component', () => {
       const mockReservation = { id: 'reservation-123' };
       const mockOrder = { id: 'order-123', walletAddress: 'wallet-address' };
 
-      mockUseDepositSDK.mockReturnValue({
-        isAuthenticated: true,
-        selectedWalletAddress: 'selected-wallet',
-      });
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn(true, { selectedWalletAddress: 'selected-wallet' }),
+      );
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
       mockFetchUserDetails.mockResolvedValue(mockUserDetails);
@@ -828,10 +846,9 @@ describe('BuildQuote Component', () => {
       const mockForms = { forms: [] };
       const mockUserDetails = { kyc: { l1: { status: 'APPROVED' } } };
 
-      mockUseDepositSDK.mockReturnValue({
-        isAuthenticated: true,
-        selectedWalletAddress: 'selected-wallet',
-      });
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn(true, { selectedWalletAddress: 'selected-wallet' }),
+      );
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
       mockFetchUserDetails.mockResolvedValue(mockUserDetails);
@@ -862,10 +879,9 @@ describe('BuildQuote Component', () => {
       const mockUserDetails = { kyc: { l1: { status: 'APPROVED' } } };
       const mockReservation = { id: 'reservation-123' };
 
-      mockUseDepositSDK.mockReturnValue({
-        isAuthenticated: true,
-        selectedWalletAddress: 'selected-wallet',
-      });
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn(true, { selectedWalletAddress: 'selected-wallet' }),
+      );
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
       mockFetchUserDetails.mockResolvedValue(mockUserDetails);
