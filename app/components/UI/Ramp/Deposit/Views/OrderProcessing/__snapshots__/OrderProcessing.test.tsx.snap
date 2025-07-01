@@ -500,9 +500,8 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "CentraNo1-Medium",
+                    "fontFamily": "Geist Medium",
                     "fontSize": 16,
-                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1008,9 +1007,8 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1054,9 +1052,8 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "CentraNo1-Medium",
+                    "fontFamily": "Geist Medium",
                     "fontSize": 16,
-                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1179,9 +1176,8 @@ exports[`OrderProcessing Component renders no order found state 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -1696,9 +1692,8 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "CentraNo1-Medium",
+                    "fontFamily": "Geist Medium",
                     "fontSize": 16,
-                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -2211,9 +2206,8 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "CentraNo1-Medium",
+                    "fontFamily": "Geist Medium",
                     "fontSize": 16,
-                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
