@@ -597,6 +597,10 @@
     "solana": {
       "title": "Solana artık destekleniyor",
       "subtitle": "Başlamak için bir Solana hesabı oluşturun"
+    },
+    "backupAndSync": {
+      "title": "Yedekleme ve senkronizasyon hizmetinizde",
+      "subtitle": "Hesaplarınızı yedekleyin ve ayarları senkronize edin."
     }
   },
   "wallet": {
