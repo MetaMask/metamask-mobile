@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { act } from 'react';
 import Earnings from '.';
 import { strings } from '../../../../../../locales/i18n';
 import { mockNetworkState } from '../../../../../util/test/network';
@@ -8,6 +8,10 @@ import {
   selectPooledStakingServiceInterruptionBannerEnabledFlag,
   selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
 } from '../../selectors/featureFlags';
+import { earnSelectors } from '../../../../../selectors/earnController';
+import { EarnTokenDetails } from '../../types/lending.types';
+import Routes from '../../../../../constants/navigation/Routes';
+import { fireEvent } from '@testing-library/react-native';
 
 const mockNavigate = jest.fn();
 
@@ -126,6 +130,10 @@ const render = (state = STATE_MOCK) =>
   );
 
 describe('Earnings', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should render correctly', () => {
     const { toJSON, getByText, queryByText } = render();
 
@@ -176,5 +184,114 @@ describe('Earnings', () => {
         strings('earn.service_interruption_banner.maintenance_message'),
       ),
     ).toBeDefined();
+  });
+
+  it('should not display earnings history button when earn experience is STABLECOIN_LENDING', () => {
+    (
+      earnSelectors.selectEarnTokenPair as jest.MockedFunction<
+        typeof earnSelectors.selectEarnTokenPair
+      >
+    ).mockReturnValue({
+      earnToken: undefined,
+      outputToken: {
+        experience: {
+          type: 'STABLECOIN_LENDING' as EARN_EXPERIENCES,
+        },
+      } as unknown as EarnTokenDetails,
+    });
+
+    const { getByText, queryByText } = render();
+
+    expect(getByText(strings('stake.your_earnings'))).toBeDefined();
+    expect(
+      queryByText(strings('earn.view_earnings_history.lending')),
+    ).toBeNull();
+    expect(
+      queryByText(strings('earn.view_earnings_history.staking')),
+    ).toBeNull();
+  });
+
+  it('should navigate to lending learn more modal when earn experience is STABLECOIN_LENDING', async () => {
+    const mockOutputToken = {
+      chainId: '0x1',
+      symbol: 'aWETH',
+      address: '0x0',
+      decimals: 18,
+      image: '',
+      name: '',
+      aggregators: [],
+      balance: '0',
+      balanceFiat: '0',
+      logo: '',
+      isETH: false,
+      experience: {
+        type: 'STABLECOIN_LENDING' as EARN_EXPERIENCES,
+      },
+    };
+
+    (
+      earnSelectors.selectEarnTokenPair as jest.MockedFunction<
+        typeof earnSelectors.selectEarnTokenPair
+      >
+    ).mockReturnValue({
+      earnToken: undefined,
+      outputToken: mockOutputToken as unknown as EarnTokenDetails,
+    });
+
+    const { getByText, getByTestId } = render();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('annual-rate-tooltip'));
+    });
+
+    expect(getByText(strings('stake.your_earnings'))).toBeDefined();
+    expect(mockNavigate).toHaveBeenCalledWith('EarnModals', {
+      screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
+      params: {
+        asset: mockOutputToken,
+      },
+    });
+  });
+
+  it('should navigate to pooled staking learn more modal when earn experience is POOLED_STAKING', async () => {
+    const mockOutputToken = {
+      chainId: '0x1',
+      symbol: 'aETH',
+      address: '0x0',
+      decimals: 18,
+      image: '',
+      name: '',
+      aggregators: [],
+      balance: '0',
+      balanceFiat: '0',
+      logo: '',
+      isETH: true,
+      experience: {
+        type: 'POOLED_STAKING' as EARN_EXPERIENCES,
+      },
+    };
+
+    (
+      earnSelectors.selectEarnTokenPair as jest.MockedFunction<
+        typeof earnSelectors.selectEarnTokenPair
+      >
+    ).mockReturnValue({
+      earnToken: undefined,
+      outputToken: mockOutputToken as unknown as EarnTokenDetails,
+    });
+
+    const { getByText, getByTestId } = render();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('annual-rate-tooltip'));
+    });
+
+    expect(getByText(strings('stake.your_earnings'))).toBeDefined();
+    expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
+      screen: Routes.STAKING.MODALS.LEARN_MORE,
+      params: {
+        chainId: mockOutputToken.chainId,
+      },
+    });
   });
 });
