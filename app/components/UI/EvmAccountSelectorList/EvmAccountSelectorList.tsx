@@ -578,36 +578,36 @@ const EvmAccountSelectorList = ({
 
   const { maxSheetHeight, screenWidth } = useSheetStyleStyleVars();
 
-  // Exact measurements from developer tools inspection
+  // // Exact measurements from developer tools inspection
   const listItemHeight = 80;
-  const sheetHeaderHeight = 32; // SheetHeader exact height
-  const sheetHeaderMarginTop = 16; // SheetHeader top margin
-  const bottomSheetPaddingBottom = 34; // BottomSheet paddingBottom from inspector
+  // const sheetHeaderHeight = 32; // SheetHeader exact height
+  // const sheetHeaderMarginTop = 16; // SheetHeader top margin
+  // const bottomSheetPaddingBottom = 34; // BottomSheet paddingBottom from inspector
 
-  // Calculate total space used by each component
-  const sheetHeaderSpace = sheetHeaderHeight + sheetHeaderMarginTop;
+  // // Calculate total space used by each component
+  // const sheetHeaderSpace = sheetHeaderHeight + sheetHeaderMarginTop;
 
-  const bottomSheetPadding = bottomSheetPaddingBottom;
+  // const bottomSheetPadding = bottomSheetPaddingBottom;
 
-  // Calculate available space for the account list
-  const availableHeight =
-    maxSheetHeight - sheetHeaderSpace - bottomSheetPadding;
+  // // Calculate available space for the account list
+  // const availableHeight =
+  //   maxSheetHeight - sheetHeaderSpace - bottomSheetPadding;
 
-  // Calculate how many items can fit in the available space
-  const maxVisibleItems = Math.max(
-    1, // Minimum 1 item
-    Math.floor(availableHeight / listItemHeight),
-  );
+  // // Calculate how many items can fit in the available space
+  // const maxVisibleItems = Math.max(
+  //   1, // Minimum 1 item
+  //   Math.floor(availableHeight / listItemHeight),
+  // );
 
-  const visibleItems = Math.min(flattenedData.length, maxVisibleItems);
-  const estimatedListHeight = visibleItems * listItemHeight;
+  // const visibleItems = Math.min(flattenedData.length, maxVisibleItems);
+  // const estimatedListHeight = visibleItems * listItemHeight;
 
-  // Ensure minimum height to show content properly
-  const containerHeight = Math.max(estimatedListHeight, listItemHeight);
-  const estimatedListSize = { height: containerHeight, width: screenWidth };
+  // // Ensure minimum height to show content properly
+  // const containerHeight = Math.max(estimatedListHeight, listItemHeight);
+  // const estimatedListSize = { height: containerHeight, width: screenWidth };
 
   return (
-    <View style={{ height: containerHeight }}>
+    <View style={{ flexDirection: 'row' }}>
       <FlashList
         ref={accountListRef}
         onContentSizeChange={onContentSizeChanged}
@@ -619,7 +619,6 @@ const EvmAccountSelectorList = ({
         renderScrollComponent={
           ScrollView as React.ComponentType<ScrollViewProps>
         }
-        estimatedListSize={estimatedListSize}
         testID={ACCOUNT_SELECTOR_LIST_TESTID}
         disableAutoLayout
         {...props}
