@@ -19,7 +19,6 @@ const {
   MM_IO_UNIVERSAL_LINK_HOST,
   MM_IO_UNIVERSAL_LINK_TEST_HOST,
 } = AppConstants;
-const DEEP_LINK_BASE = `${PROTOCOLS.HTTPS}://${MM_UNIVERSAL_LINK_HOST}`;
 
 enum SUPPORTED_ACTIONS {
   DAPP = ACTIONS.DAPP,
@@ -134,23 +133,23 @@ async function handleUniversalLink({
     action === SUPPORTED_ACTIONS.BUY
   ) {
     const rampPath = urlObj.href
-      .replace(`${DEEP_LINK_BASE}/${ACTIONS.BUY_CRYPTO}`, '')
-      .replace(`${DEEP_LINK_BASE}/${ACTIONS.BUY}`, '');
+      .replace(`${urlObj.hostname}/${SUPPORTED_ACTIONS.BUY_CRYPTO}`, '')
+      .replace(`${urlObj.hostname}/${SUPPORTED_ACTIONS.BUY}`, '');
     instance._handleBuyCrypto(rampPath);
   } else if (
     action === SUPPORTED_ACTIONS.SELL_CRYPTO ||
     action === SUPPORTED_ACTIONS.SELL
   ) {
     const rampPath = urlObj.href
-      .replace(`${DEEP_LINK_BASE}/${ACTIONS.SELL_CRYPTO}`, '')
-      .replace(`${DEEP_LINK_BASE}/${ACTIONS.SELL}`, '');
+      .replace(`${urlObj.hostname}/${SUPPORTED_ACTIONS.SELL_CRYPTO}`, '')
+      .replace(`${urlObj.hostname}/${SUPPORTED_ACTIONS.SELL}`, '');
     instance._handleSellCrypto(rampPath);
   } else if (action === SUPPORTED_ACTIONS.HOME) {
     instance._handleOpenHome();
     return;
   } else if (action === SUPPORTED_ACTIONS.SWAP) {
     const swapPath = urlObj.href.replace(
-      `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.SWAP}`,
+      `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${SUPPORTED_ACTIONS.SWAP}`,
       '',
     );
     instance._handleSwap(swapPath);
