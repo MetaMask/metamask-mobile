@@ -1,7 +1,22 @@
 import { merge } from 'lodash';
 import { TransactionType } from '@metamask/transaction-controller';
 
+import {
+  buildApproveTransactionData,
+  buildDecreaseAllowanceTransactionData,
+  buildIncreaseAllowanceTransactionData,
+  buildSetApproveForAllTransactionData,
+  buildPermit2ApproveTransactionData,
+} from '../helpers/approve';
+import { ZERO_ADDRESS } from '../../constants/address';
+
 const transactionIdMock = '699ca2f0-e459-11ef-b6f6-d182277cf5e1';
+const permit2TokenMock = '0x1234567890123456789012345678901234567890';
+
+export const approvalSpenderMock = '0x9876543210987654321098765432109876543210';
+export const shortenedSpenderMock = '0x98765...43210';
+export const tokenAddressMock = '0x97cb1fdd071da9960d38306c07f146bc98b2d317';
+export const shortenedTokenAddressMock = '0x97cb1...2D317';
 
 const baseTransactionMock = {
   actionId: undefined,
@@ -48,7 +63,7 @@ const baseTransactionMock = {
     gas: '0x664e',
     maxFeePerGas: '0xcdfe60',
     maxPriorityFeePerGas: '0x012345',
-    to: '0x97cb1fdd071da9960d38306c07f146bc98b2d317',
+    to: tokenAddressMock,
     type: '0x2',
   },
   type: 'simpleSend',
@@ -78,11 +93,11 @@ export const simpleSendTransaction = merge({}, baseTransactionMock, {
   },
 });
 
-export const approveERC20Transaction = merge({}, baseTransactionMock, {
+const baseApproveTransaction = merge({}, baseTransactionMock, {
   id: transactionIdMock,
   type: TransactionType.tokenMethodApprove,
   txParams: {
-    data: '0x095ea7b30000000000000000000000009bc5baf874d2da8d216ae9f137804184ee5afef40000000000000000000000000000000000000000000000000000000000011170',
+    data: '',
   },
 });
 
@@ -98,44 +113,112 @@ export const contractDeploymentTransaction = merge({}, baseTransactionMock, {
 });
 
 /* Controller Mocks */
-export const approveERC20TransactionControllerMock = merge(
-  {},
-  baseTransactionControllerMock,
-  {
-    engine: {
-      backgroundState: {
-        TransactionController: {
-          transactions: [approveERC20Transaction],
-        },
-      },
-    },
+const approveERC20Transaction = merge({}, baseApproveTransaction, {
+  txParams: {
+    data: buildApproveTransactionData(approvalSpenderMock, 100),
   },
-);
+});
 
-export const simpleSendTransactionControllerMock = merge(
-  {},
-  baseTransactionControllerMock,
-  {
-    engine: {
-      backgroundState: {
-        TransactionController: {
-          transactions: [simpleSendTransaction],
-        },
-      },
-    },
+const revokeERC20Transaction = merge({}, baseApproveTransaction, {
+  txParams: {
+    data: buildApproveTransactionData(approvalSpenderMock, 0),
   },
-);
+});
 
-export const erc20ContractDeploymentTransactionControllerMock = merge(
-  {},
-  baseTransactionControllerMock,
-  {
+const approveERC721Transaction = merge({}, baseApproveTransaction, {
+  txParams: {
+    data: buildApproveTransactionData(approvalSpenderMock, 1),
+  },
+});
+
+const revokeERC721Transaction = merge({}, baseApproveTransaction, {
+  txParams: {
+    data: buildApproveTransactionData(ZERO_ADDRESS, 1),
+  },
+});
+
+const decreaseAllowanceERC20Transaction = merge({}, baseApproveTransaction, {
+  txParams: {
+    data: buildDecreaseAllowanceTransactionData(approvalSpenderMock, 100),
+  },
+});
+
+const increaseAllowanceERC20Transaction = merge({}, baseApproveTransaction, {
+  txParams: {
+    data: buildIncreaseAllowanceTransactionData(approvalSpenderMock, 100),
+  },
+  type: TransactionType.tokenMethodIncreaseAllowance,
+});
+
+const approveAllERC721Transaction = merge({}, baseApproveTransaction, {
+  txParams: {
+    data: buildSetApproveForAllTransactionData(approvalSpenderMock, true),
+  },
+  type: TransactionType.tokenMethodSetApprovalForAll,
+});
+
+const revokeAllERC721Transaction = merge({}, baseApproveTransaction, {
+  txParams: {
+    data: buildSetApproveForAllTransactionData(approvalSpenderMock, false),
+  },
+  type: TransactionType.tokenMethodSetApprovalForAll,
+});
+
+const approveERC20Permit2Transaction = merge({}, baseApproveTransaction, {
+  txParams: {
+    data: buildPermit2ApproveTransactionData(
+      permit2TokenMock,
+      approvalSpenderMock,
+      100,
+      1746696740463,
+    ),
+  },
+});
+
+const revokeERC20Permit2Transaction = merge({}, baseApproveTransaction, {
+  txParams: {
+    data: buildPermit2ApproveTransactionData(
+      permit2TokenMock,
+      approvalSpenderMock,
+      0,
+      1746696740463,
+    ),
+  },
+});
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const createTransactionControllerMock = (transaction: any) =>
+  merge({}, baseTransactionControllerMock, {
     engine: {
       backgroundState: {
         TransactionController: {
-          transactions: [contractDeploymentTransaction],
+          transactions: [transaction],
         },
       },
     },
-  },
-);
+  });
+
+export const approveERC20TransactionControllerMock =
+  createTransactionControllerMock(approveERC20Transaction);
+export const revokeERC20TransactionControllerMock =
+  createTransactionControllerMock(revokeERC20Transaction);
+export const approveERC721TransactionControllerMock =
+  createTransactionControllerMock(approveERC721Transaction);
+export const revokeERC721TransactionControllerMock =
+  createTransactionControllerMock(revokeERC721Transaction);
+export const decreaseAllowanceERC20TransactionControllerMock =
+  createTransactionControllerMock(decreaseAllowanceERC20Transaction);
+export const increaseAllowanceERC20TransactionControllerMock =
+  createTransactionControllerMock(increaseAllowanceERC20Transaction);
+export const approveAllERC721TransactionControllerMock =
+  createTransactionControllerMock(approveAllERC721Transaction);
+export const revokeAllERC721TransactionControllerMock =
+  createTransactionControllerMock(revokeAllERC721Transaction);
+export const approveERC20Permit2TransactionControllerMock =
+  createTransactionControllerMock(approveERC20Permit2Transaction);
+export const revokeERC20Permit2TransactionControllerMock =
+  createTransactionControllerMock(revokeERC20Permit2Transaction);
+export const simpleSendTransactionControllerMock =
+  createTransactionControllerMock(simpleSendTransaction);
+export const erc20ContractDeploymentTransactionControllerMock =
+  createTransactionControllerMock(contractDeploymentTransaction);

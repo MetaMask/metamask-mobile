@@ -2,73 +2,79 @@
 
 exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
 <RCTScrollView
+  collapsable={false}
   data={
     [
       {
-        "data": [
-          {
-            "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
-            "assets": {
-              "fiatBalance": "$3200.00
+        "accountIndex": 0,
+        "data": {
+          "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+          "assets": {
+            "fiatBalance": "$3200.00
 1 ETH",
-              "tokens": [],
-            },
-            "balanceError": undefined,
-            "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
-            "isLoadingAccount": false,
-            "isSelected": true,
-            "name": "Account 1",
-            "scopes": [],
-            "type": "HD Key Tree",
-            "yOffset": 0,
+            "tokens": [],
           },
-          {
-            "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
-            "assets": {
-              "fiatBalance": "$6400.00
+          "balanceError": undefined,
+          "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+          "id": "30786334-3935-4563-b064-363339643939",
+          "isLoadingAccount": false,
+          "isSelected": true,
+          "name": "Account 1",
+          "scopes": [],
+          "type": "HD Key Tree",
+          "yOffset": 0,
+        },
+        "sectionIndex": 0,
+        "type": "account",
+      },
+      {
+        "accountIndex": 1,
+        "data": {
+          "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
+          "assets": {
+            "fiatBalance": "$6400.00
 2 ETH",
-              "tokens": [],
-            },
-            "balanceError": undefined,
-            "caipAccountId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
-            "isLoadingAccount": false,
-            "isSelected": false,
-            "name": "Account 2",
-            "scopes": [],
-            "type": "HD Key Tree",
-            "yOffset": 78,
+            "tokens": [],
           },
-        ],
-        "title": "Accounts",
+          "balanceError": undefined,
+          "caipAccountId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
+          "id": "30786430-3138-4533-b863-383732333266",
+          "isLoadingAccount": false,
+          "isSelected": false,
+          "name": "Account 2",
+          "scopes": [],
+          "type": "HD Key Tree",
+          "yOffset": 78,
+        },
+        "sectionIndex": 0,
+        "type": "account",
       },
     ]
   }
   getItem={[Function]}
   getItemCount={[Function]}
-  initialNumToRender={999}
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
+  initialNumToRender={2}
   keyExtractor={[Function]}
   onContentSizeChange={[Function]}
+  onGestureHandlerEvent={[Function]}
+  onGestureHandlerStateChange={[Function]}
   onLayout={[Function]}
   onMomentumScrollBegin={[Function]}
   onMomentumScrollEnd={[Function]}
   onScroll={[Function]}
   onScrollBeginDrag={[Function]}
   onScrollEndDrag={[Function]}
+  removeClippedSubviews={false}
   renderItem={[Function]}
+  renderScrollComponent={[Function]}
   scrollEventThrottle={0.0001}
-  stickyHeaderIndices={
-    [
-      0,
-    ]
-  }
+  stickyHeaderIndices={[]}
   testID="account-selector-list"
+  viewabilityConfigCallbackPairs={[]}
 >
   <View>
-    <View
-      onFocusCapture={[Function]}
-      onLayout={[Function]}
-      style={null}
-    />
     <View
       onFocusCapture={[Function]}
       onLayout={[Function]}
@@ -453,7 +459,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-0"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"
@@ -828,7 +834,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-1"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"
@@ -847,84 +853,85 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
         </View>
       </View>
     </View>
-    <View
-      onFocusCapture={[Function]}
-      onLayout={[Function]}
-      style={null}
-    />
   </View>
 </RCTScrollView>
 `;
 
 exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = `
 <RCTScrollView
+  collapsable={false}
   data={
     [
       {
-        "data": [
-          {
-            "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
-            "assets": {
-              "fiatBalance": "$3200.00
+        "accountIndex": 0,
+        "data": {
+          "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+          "assets": {
+            "fiatBalance": "$3200.00
 1 ETH",
-              "tokens": [],
-            },
-            "balanceError": undefined,
-            "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
-            "isLoadingAccount": false,
-            "isSelected": true,
-            "name": "Account 1",
-            "scopes": [],
-            "type": "HD Key Tree",
-            "yOffset": 0,
+            "tokens": [],
           },
-          {
-            "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
-            "assets": {
-              "fiatBalance": "$6400.00
+          "balanceError": undefined,
+          "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+          "id": "30786334-3935-4563-b064-363339643939",
+          "isLoadingAccount": false,
+          "isSelected": true,
+          "name": "Account 1",
+          "scopes": [],
+          "type": "HD Key Tree",
+          "yOffset": 0,
+        },
+        "sectionIndex": 0,
+        "type": "account",
+      },
+      {
+        "accountIndex": 1,
+        "data": {
+          "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
+          "assets": {
+            "fiatBalance": "$6400.00
 2 ETH",
-              "tokens": [],
-            },
-            "balanceError": undefined,
-            "caipAccountId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
-            "isLoadingAccount": false,
-            "isSelected": false,
-            "name": "Account 2",
-            "scopes": [],
-            "type": "HD Key Tree",
-            "yOffset": 78,
+            "tokens": [],
           },
-        ],
-        "title": "Accounts",
+          "balanceError": undefined,
+          "caipAccountId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
+          "id": "30786430-3138-4533-b863-383732333266",
+          "isLoadingAccount": false,
+          "isSelected": false,
+          "name": "Account 2",
+          "scopes": [],
+          "type": "HD Key Tree",
+          "yOffset": 78,
+        },
+        "sectionIndex": 0,
+        "type": "account",
       },
     ]
   }
   getItem={[Function]}
   getItemCount={[Function]}
-  initialNumToRender={999}
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
+  initialNumToRender={2}
   keyExtractor={[Function]}
   onContentSizeChange={[Function]}
+  onGestureHandlerEvent={[Function]}
+  onGestureHandlerStateChange={[Function]}
   onLayout={[Function]}
   onMomentumScrollBegin={[Function]}
   onMomentumScrollEnd={[Function]}
   onScroll={[Function]}
   onScrollBeginDrag={[Function]}
   onScrollEndDrag={[Function]}
+  removeClippedSubviews={false}
   renderItem={[Function]}
+  renderScrollComponent={[Function]}
   scrollEventThrottle={0.0001}
-  stickyHeaderIndices={
-    [
-      0,
-    ]
-  }
+  stickyHeaderIndices={[]}
   testID="account-selector-list"
+  viewabilityConfigCallbackPairs={[]}
 >
   <View>
-    <View
-      onFocusCapture={[Function]}
-      onLayout={[Function]}
-      style={null}
-    />
     <View
       onFocusCapture={[Function]}
       onLayout={[Function]}
@@ -1271,7 +1278,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-0"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"
@@ -1608,7 +1615,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-1"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"
@@ -1627,84 +1634,85 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
         </View>
       </View>
     </View>
-    <View
-      onFocusCapture={[Function]}
-      onLayout={[Function]}
-      style={null}
-    />
   </View>
 </RCTScrollView>
 `;
 
 exports[`EvmAccountSelectorList renders correctly 1`] = `
 <RCTScrollView
+  collapsable={false}
   data={
     [
       {
-        "data": [
-          {
-            "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
-            "assets": {
-              "fiatBalance": "$3200.00
+        "accountIndex": 0,
+        "data": {
+          "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+          "assets": {
+            "fiatBalance": "$3200.00
 1 ETH",
-              "tokens": [],
-            },
-            "balanceError": undefined,
-            "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
-            "isLoadingAccount": false,
-            "isSelected": true,
-            "name": "Account 1",
-            "scopes": [],
-            "type": "HD Key Tree",
-            "yOffset": 0,
+            "tokens": [],
           },
-          {
-            "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
-            "assets": {
-              "fiatBalance": "$6400.00
+          "balanceError": undefined,
+          "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+          "id": "30786334-3935-4563-b064-363339643939",
+          "isLoadingAccount": false,
+          "isSelected": true,
+          "name": "Account 1",
+          "scopes": [],
+          "type": "HD Key Tree",
+          "yOffset": 0,
+        },
+        "sectionIndex": 0,
+        "type": "account",
+      },
+      {
+        "accountIndex": 1,
+        "data": {
+          "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
+          "assets": {
+            "fiatBalance": "$6400.00
 2 ETH",
-              "tokens": [],
-            },
-            "balanceError": undefined,
-            "caipAccountId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
-            "isLoadingAccount": false,
-            "isSelected": false,
-            "name": "Account 2",
-            "scopes": [],
-            "type": "HD Key Tree",
-            "yOffset": 78,
+            "tokens": [],
           },
-        ],
-        "title": "Accounts",
+          "balanceError": undefined,
+          "caipAccountId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
+          "id": "30786430-3138-4533-b863-383732333266",
+          "isLoadingAccount": false,
+          "isSelected": false,
+          "name": "Account 2",
+          "scopes": [],
+          "type": "HD Key Tree",
+          "yOffset": 78,
+        },
+        "sectionIndex": 0,
+        "type": "account",
       },
     ]
   }
   getItem={[Function]}
   getItemCount={[Function]}
-  initialNumToRender={999}
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
+  initialNumToRender={2}
   keyExtractor={[Function]}
   onContentSizeChange={[Function]}
+  onGestureHandlerEvent={[Function]}
+  onGestureHandlerStateChange={[Function]}
   onLayout={[Function]}
   onMomentumScrollBegin={[Function]}
   onMomentumScrollEnd={[Function]}
   onScroll={[Function]}
   onScrollBeginDrag={[Function]}
   onScrollEndDrag={[Function]}
+  removeClippedSubviews={false}
   renderItem={[Function]}
+  renderScrollComponent={[Function]}
   scrollEventThrottle={0.0001}
-  stickyHeaderIndices={
-    [
-      0,
-    ]
-  }
+  stickyHeaderIndices={[]}
   testID="account-selector-list"
+  viewabilityConfigCallbackPairs={[]}
 >
   <View>
-    <View
-      onFocusCapture={[Function]}
-      onLayout={[Function]}
-      style={null}
-    />
     <View
       onFocusCapture={[Function]}
       onLayout={[Function]}
@@ -2089,7 +2097,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-0"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"
@@ -2464,7 +2472,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-1"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"
@@ -2483,84 +2491,85 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
         </View>
       </View>
     </View>
-    <View
-      onFocusCapture={[Function]}
-      onLayout={[Function]}
-      style={null}
-    />
   </View>
 </RCTScrollView>
 `;
 
 exports[`EvmAccountSelectorList renders network icons for accounts with transaction activity 1`] = `
 <RCTScrollView
+  collapsable={false}
   data={
     [
       {
-        "data": [
-          {
-            "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
-            "assets": {
-              "fiatBalance": "$3200.00
+        "accountIndex": 0,
+        "data": {
+          "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+          "assets": {
+            "fiatBalance": "$3200.00
 1 ETH",
-              "tokens": [],
-            },
-            "balanceError": undefined,
-            "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
-            "isLoadingAccount": false,
-            "isSelected": true,
-            "name": "Account 1",
-            "scopes": [],
-            "type": "HD Key Tree",
-            "yOffset": 0,
+            "tokens": [],
           },
-          {
-            "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
-            "assets": {
-              "fiatBalance": "$6400.00
+          "balanceError": undefined,
+          "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+          "id": "30786334-3935-4563-b064-363339643939",
+          "isLoadingAccount": false,
+          "isSelected": true,
+          "name": "Account 1",
+          "scopes": [],
+          "type": "HD Key Tree",
+          "yOffset": 0,
+        },
+        "sectionIndex": 0,
+        "type": "account",
+      },
+      {
+        "accountIndex": 1,
+        "data": {
+          "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
+          "assets": {
+            "fiatBalance": "$6400.00
 2 ETH",
-              "tokens": [],
-            },
-            "balanceError": undefined,
-            "caipAccountId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
-            "isLoadingAccount": false,
-            "isSelected": false,
-            "name": "Account 2",
-            "scopes": [],
-            "type": "HD Key Tree",
-            "yOffset": 78,
+            "tokens": [],
           },
-        ],
-        "title": "Accounts",
+          "balanceError": undefined,
+          "caipAccountId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
+          "id": "30786430-3138-4533-b863-383732333266",
+          "isLoadingAccount": false,
+          "isSelected": false,
+          "name": "Account 2",
+          "scopes": [],
+          "type": "HD Key Tree",
+          "yOffset": 78,
+        },
+        "sectionIndex": 0,
+        "type": "account",
       },
     ]
   }
   getItem={[Function]}
   getItemCount={[Function]}
-  initialNumToRender={999}
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
+  initialNumToRender={2}
   keyExtractor={[Function]}
   onContentSizeChange={[Function]}
+  onGestureHandlerEvent={[Function]}
+  onGestureHandlerStateChange={[Function]}
   onLayout={[Function]}
   onMomentumScrollBegin={[Function]}
   onMomentumScrollEnd={[Function]}
   onScroll={[Function]}
   onScrollBeginDrag={[Function]}
   onScrollEndDrag={[Function]}
+  removeClippedSubviews={false}
   renderItem={[Function]}
+  renderScrollComponent={[Function]}
   scrollEventThrottle={0.0001}
-  stickyHeaderIndices={
-    [
-      0,
-    ]
-  }
+  stickyHeaderIndices={[]}
   testID="account-selector-list"
+  viewabilityConfigCallbackPairs={[]}
 >
   <View>
-    <View
-      onFocusCapture={[Function]}
-      onLayout={[Function]}
-      style={null}
-    />
     <View
       onFocusCapture={[Function]}
       onLayout={[Function]}
@@ -2945,7 +2954,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-0"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"
@@ -3320,7 +3329,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-1"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"
@@ -3339,11 +3348,6 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
         </View>
       </View>
     </View>
-    <View
-      onFocusCapture={[Function]}
-      onLayout={[Function]}
-      style={null}
-    />
   </View>
 </RCTScrollView>
 `;
