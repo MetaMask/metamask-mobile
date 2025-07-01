@@ -15,8 +15,8 @@ jest.mock('../../../../reducers/swaps', () => ({
 const createWrapper = () => {
   const mockStore = configureStore([]);
   const store = mockStore({});
-  
-  return ({ children, ...props }: { children: React.ReactNode; [key: string]: any }) => (
+
+  return ({ children }: { children: React.ReactNode }) => (
     <Provider store={store}>{children}</Provider>
   );
 };
@@ -65,15 +65,16 @@ describe('useRemainingTime', () => {
 
   it('does not create multiple intervals (regression test for the bug we fixed)', () => {
     const setIntervalSpy = jest.spyOn(global, 'setInterval');
-    
-    const { result, rerender } = renderHook(
+
+    const { rerender } = renderHook(
       (props: { isStxPending: boolean }) =>
         useRemainingTime({
           creationTime: Date.now() - 5000,
           isStxPending: props.isStxPending,
         }),
       {
-        wrapper: createWrapper() as any,
+        // @ts-expect-error - TypeScript limitation with renderHook wrapper types
+        wrapper: createWrapper(),
         initialProps: { isStxPending: true }
       }
     );
