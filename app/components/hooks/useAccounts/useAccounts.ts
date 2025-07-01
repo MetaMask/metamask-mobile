@@ -44,17 +44,13 @@ const useAccounts = ({
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
-  const { multichainBalancesForAllAccounts } =
-    useMultichainBalancesForAllAccounts();
+  // const { multichainBalancesForAllAccounts } =
+  //   useMultichainBalancesForAllAccounts();
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
   );
-  const checkBalanceError = useCallback(
-    (balance: string) => checkBalanceErrorFn?.(balance),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
+
   const fetchENSNames = useCallback(
     async ({
       flattenedAccounts,
@@ -126,25 +122,17 @@ const useAccounts = ({
     > = {};
 
     internalAccounts.forEach((account) => {
-      const balanceForAccount = multichainBalancesForAllAccounts?.[account.id];
-      const displayBalance = balanceForAccount
-        ? `${balanceForAccount.displayBalance}\n${balanceForAccount.totalNativeTokenBalance} ${balanceForAccount.nativeTokenUnit}`
-        : '';
-
-      const error =
-        balanceForAccount.totalFiatBalance !== undefined
-          ? checkBalanceError?.(balanceForAccount.totalFiatBalance.toString())
-          : undefined;
+      const error = undefined;
 
       balances[account.id] = {
-        displayBalance,
+        displayBalance: '',
         balanceError: typeof error === 'string' ? error : undefined,
-        isLoadingAccount: balanceForAccount.isLoadingAccount,
+        isLoadingAccount: true,
       };
     });
 
     return balances;
-  }, [internalAccounts, multichainBalancesForAllAccounts, checkBalanceError]);
+  }, [internalAccounts]);
 
   const getAccounts = useCallback(() => {
     if (!isMountedRef.current) return;

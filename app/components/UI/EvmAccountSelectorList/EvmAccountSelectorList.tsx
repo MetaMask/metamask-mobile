@@ -1,4 +1,10 @@
-import React, { useCallback, useRef, useMemo, useEffect } from 'react';
+import React, {
+  useCallback,
+  useRef,
+  useMemo,
+  useEffect,
+  useState,
+} from 'react';
 import {
   Alert,
   InteractionManager,
@@ -105,6 +111,34 @@ const EvmAccountSelectorList = ({
 
   const accountTreeSections = useSelector(selectAccountSections);
   const internalAccounts = useSelector(selectInternalAccounts);
+  // eslint-disable-next-line no-console
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [aggregatedBalanceByAccount, setAggregatedBalanceByAccount] = useState<{
+    [address: string]: {
+      aggregatedBalance: string | null;
+    };
+  }>(() => {
+    const initialBalance: {
+      [address: string]: {
+        aggregatedBalance: string | null;
+      };
+    } = {};
+
+    internalAccounts.forEach((account) => {
+      initialBalance[account.address] = {
+        aggregatedBalance: null,
+      };
+    });
+
+    return initialBalance;
+  });
+
+  // eslint-disable-next-line no-console
+  console.log(
+    'aggregatedBalanceByAccount ........',
+    aggregatedBalanceByAccount,
+  );
   const internalAccountsById = useSelector(selectInternalAccountsById);
 
   const accountSections = useMemo((): AccountSection[] => {
@@ -382,8 +416,36 @@ const EvmAccountSelectorList = ({
     scrollToSelectedAccount();
   }, [scrollToSelectedAccount]);
 
+  // Sample async function that returns null
+  const sampleAsyncFunction = useCallback(async (): Promise<null> => {
+    // eslint-disable-next-line no-console
+    console.log('Sample async function called');
+    // Simulate some async work
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    // eslint-disable-next-line no-console
+    console.log('Sample async function completed');
+    return null;
+  }, []);
+
+  // Call the async function through useEffect
+  useEffect(() => {
+    const executeAsyncFunction = async () => {
+      try {
+        const result = await sampleAsyncFunction();
+        // eslint-disable-next-line no-console
+        console.log('Async function result:', result);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Error in async function:', error);
+      }
+    };
+
+    executeAsyncFunction();
+  }, [sampleAsyncFunction]);
+
   const renderItem = useCallback(
     ({ item }: { item: FlattenedAccountListItem }) => {
+      // eslint-disable-next-line no-console
       if (item.type === 'header') {
         return renderSectionHeader(item.data);
       }
@@ -496,6 +558,13 @@ const EvmAccountSelectorList = ({
           style={cellStyle}
           buttonProps={buttonProps}
         >
+          {aggregatedBalanceByAccount[address]?.aggregatedBalance ? (
+            <Text>
+              {aggregatedBalanceByAccount[address]?.aggregatedBalance}
+            </Text>
+          ) : (
+            <Skeleton width={60} height={24} />
+          )}
           {renderRightAccessory?.(address, accountName) ||
             (assets &&
               renderAccountBalances(assets, item.data, isLoadingAccount))}
@@ -522,6 +591,7 @@ const EvmAccountSelectorList = ({
       renderSectionHeader,
       renderSectionFooter,
       internalAccountsById,
+      aggregatedBalanceByAccount,
     ],
   );
 
