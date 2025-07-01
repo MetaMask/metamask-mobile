@@ -16,14 +16,8 @@ const hasMinimumRequiredVersion = (minRequiredVersion: string) => {
 };
 
 const resolveFlag = (localFlag: boolean, remoteFlag: LaunchDarklyFlag) => {
-  if (isProduction()) {
-    return (
-      Boolean(remoteFlag?.enabled) &&
-      hasMinimumRequiredVersion(remoteFlag?.minimumVersion)
-    );
-  }
   return (
-    localFlag ??
+    localFlag ||
     (Boolean(remoteFlag?.enabled) &&
       hasMinimumRequiredVersion(remoteFlag?.minimumVersion))
   );

@@ -2455,7 +2455,6 @@ app:
     - opts:
         is_expand: false
       MM_REMOVE_GLOBAL_NETWORK_SELECTOR: false
-
     - opts:
         is_expand: false
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
@@ -2534,9 +2533,6 @@ app:
     - opts:
         is_expand: false
       COREPACK_VERSION: 0.28.0
-    - opts:
-        is_expand: false
-      MM_CONTENTFUL_CAROUSEL_ENABLED: true
     - opts:
         is_expand: false
       WEB3AUTH_NETWORK: 'sapphire_devnet'
