@@ -145,12 +145,12 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
               />
             )}
           </View>
-          {cryptoToken && (
+          {cryptoToken ? (
             <Image
               source={{ uri: cryptoToken.logo }}
               style={styles.cryptoIcon}
             />
-          )}
+          ) : null}
         </View>
 
         <Text variant={TextVariant.DisplayMD} style={styles.mainAmount}>
@@ -172,14 +172,14 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
             {strings('deposit.order_processing.account')}
           </Text>
           <View style={styles.accountInfo}>
-            {selectedAddress && (
+            {selectedAddress ? (
               <Avatar
                 variant={AvatarVariant.Account}
                 type={accountAvatarType}
                 accountAddress={selectedAddress}
                 size={AvatarSize.Xs}
               />
-            )}
+            ) : null}
             <Text variant={TextVariant.BodyMD}>{accountName}</Text>
           </View>
         </View>
@@ -236,23 +236,21 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
       </View>
 
       {hasDepositOrderField(order.data, 'providerOrderLink') &&
-        order.data.providerOrderLink && (
-          <TouchableOpacity
-            style={styles.transakLink}
-            onPress={handleViewInTransak}
-          >
-            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
-              {strings(
-                'deposit.order_processing.view_order_details_in_transak',
-              )}
-            </Text>
-            <Icon
-              name={IconName.Export}
-              size={IconSize.Sm}
-              color={theme.colors.primary.default}
-            />
-          </TouchableOpacity>
-        )}
+      order.data.providerOrderLink ? (
+        <TouchableOpacity
+          style={styles.transakLink}
+          onPress={handleViewInTransak}
+        >
+          <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+            {strings('deposit.order_processing.view_order_details_in_transak')}
+          </Text>
+          <Icon
+            name={IconName.Export}
+            size={IconSize.Sm}
+            color={theme.colors.primary.default}
+          />
+        </TouchableOpacity>
+      ) : null}
     </>
   );
 };
