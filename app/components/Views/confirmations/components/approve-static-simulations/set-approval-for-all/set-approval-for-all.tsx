@@ -39,17 +39,14 @@ interface PermissionFromInfoRowProps {
 const PermissionFromInfoRow: React.FC<PermissionFromInfoRowProps> = ({
   spender,
   transactionMetadata,
-}) => {
-  return (
-    <InfoRow label={strings('confirm.permission_from')}>
-      <Address
-        address={spender ?? ''}
-        chainId={transactionMetadata?.chainId ?? ''}
-      />
-    </InfoRow>
-  );
-};
-
+}) => (
+  <InfoRow label={strings('confirm.permission_from')}>
+    <Address
+      address={spender ?? ''}
+      chainId={transactionMetadata?.chainId ?? ''}
+    />
+  </InfoRow>
+);
 interface SpenderInfoRowProps {
   spender?: string;
   transactionMetadata: TransactionMeta;
@@ -58,16 +55,14 @@ interface SpenderInfoRowProps {
 const SpenderInfoRow: React.FC<SpenderInfoRowProps> = ({
   spender,
   transactionMetadata,
-}) => {
-  return (
-    <InfoRow label={strings('confirm.spender')}>
-      <Address
-        address={spender ?? ''}
-        chainId={transactionMetadata?.chainId ?? ''}
-      />
-    </InfoRow>
-  );
-};
+}) => (
+  <InfoRow label={strings('confirm.spender')}>
+    <Address
+      address={spender ?? ''}
+      chainId={transactionMetadata?.chainId ?? ''}
+    />
+  </InfoRow>
+);
 
 export const SetApprovalForAll = () => {
   const { tokenStandard, isRevoke, spender } = useApproveTransactionData();
