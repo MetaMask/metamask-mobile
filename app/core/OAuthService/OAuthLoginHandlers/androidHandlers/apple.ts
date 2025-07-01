@@ -6,11 +6,12 @@ import {
   LoginHandler,
   LoginHandlerCodeResult,
 } from '../../OAuthInterface';
-import { BaseLoginHandler } from '../baseHandler';
+import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
 import { OAuthError, OAuthErrorType } from '../../error';
 import { sha256 } from '@noble/hashes/sha256';
 import { bytesToBase64 } from '@metamask/utils';
-export interface AndroidAppleLoginHandlerParams {
+
+export interface AndroidAppleLoginHandlerParams extends BaseHandlerOptions {
   clientId: string;
   redirectUri: string;
   appRedirectUri: string;
@@ -58,7 +59,7 @@ export class AndroidAppleLoginHandler
    * @param params.appRedirectUri - The Android App redirectUri for the customChromeTab to handle auth-session login.
    */
   constructor(params: AndroidAppleLoginHandlerParams) {
-    super();
+    super(params);
     const { appRedirectUri, redirectUri, clientId } = params;
     this.clientId = clientId;
     this.redirectUri = redirectUri;

@@ -3,14 +3,14 @@ import {
   AuthConnection,
 } from '../../OAuthInterface';
 import { signInWithGoogle } from '@metamask/react-native-acm';
-import { BaseLoginHandler } from '../baseHandler';
+import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
 import { OAuthErrorType, OAuthError } from '../../error';
 
 /**
  * AndroidGoogleLoginHandler is the login handler for the Google login on android.
  */
 export class AndroidGoogleLoginHandler extends BaseLoginHandler {
-  readonly #scope = ['email', 'profile'];
+  readonly #scope = ['email', 'profile', 'openid'];
 
   protected clientId: string;
 
@@ -32,8 +32,8 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
    * @param params.clientId - The web clientId for the Google login.
    * Note: The android clientId must be created from the same OAuth clientId in the web.
    */
-  constructor(params: { clientId: string }) {
-    super();
+  constructor(params: BaseHandlerOptions) {
+    super(params);
     this.clientId = params.clientId;
   }
 
