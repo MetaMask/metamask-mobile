@@ -34,12 +34,16 @@ class MockLoginHandler extends BaseLoginHandler {
     };
   }
 }
-
+const mockBaseHandlerParams = {
+  authServerUrl: 'https://auth.example.com',
+  clientId: 'mock-client-id',
+  web3AuthNetwork: Web3AuthNetwork.Mainnet,
+};
 describe('BaseLoginHandler', () => {
   let mockHandler: MockLoginHandler;
 
   beforeEach(() => {
-    mockHandler = new MockLoginHandler();
+    mockHandler = new MockLoginHandler(mockBaseHandlerParams);
     jest.clearAllMocks();
     (global.fetch as jest.Mock).mockClear();
   });
@@ -50,8 +54,8 @@ describe('BaseLoginHandler', () => {
 
   describe('constructor', () => {
     it('generates a nonce when instantiated', () => {
-      const handler1 = new MockLoginHandler();
-      const handler2 = new MockLoginHandler();
+      const handler1 = new MockLoginHandler(mockBaseHandlerParams);
+      const handler2 = new MockLoginHandler(mockBaseHandlerParams);
 
       expect(handler1.nonce).toBeDefined();
       expect(handler2.nonce).toBeDefined();
