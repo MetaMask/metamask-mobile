@@ -96,7 +96,7 @@ const BuildQuote = () => {
   const [error, setError] = useState<string | null>();
 
   const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
-    DEPOSIT_REGIONS.find((region) => region.code === 'US') || null,
+    DEPOSIT_REGIONS.find((region) => region.isoCode === 'US') || null,
   );
 
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
@@ -145,6 +145,10 @@ const BuildQuote = () => {
 
   const handleSelectRegion = useCallback(
     (region: DepositRegion) => {
+      if (!region.supported) {
+        return;
+      }
+
       setSelectedRegion(region);
 
       if (region.currency === 'USD') {
@@ -159,7 +163,7 @@ const BuildQuote = () => {
   const handleRegionPress = useCallback(() => {
     navigation.navigate(
       ...createRegionSelectorModalNavigationDetails({
-        selectedRegionCode: selectedRegion?.code,
+        selectedRegionCode: selectedRegion?.isoCode,
         handleSelectRegion,
       }),
     );
@@ -380,7 +384,12 @@ const BuildQuote = () => {
             >
               <View style={styles.regionContent}>
                 <Text variant={TextVariant.BodyMD}>{selectedRegion?.flag}</Text>
-                <Text variant={TextVariant.BodyMD}>{selectedRegion?.code}</Text>
+                <Text variant={TextVariant.BodyMD}>{selectedRegion?.isoCode}</Text>
+                <Icon
+                  name={IconName.ArrowDown}
+                  size={IconSize.Sm}
+                  color={theme.colors.icon.alternative}
+                />
               </View>
             </TouchableOpacity>
           </View>
