@@ -126,10 +126,10 @@ function RegionSelectorModal() {
 
   const handleOnRegionPressCallback = useCallback(
     (region: DepositRegion) => {
-      if (handleSelectRegion) {
+      if (region.supported && handleSelectRegion) {
         handleSelectRegion(region);
+        sheetRef.current?.onCloseBottomSheet();
       }
-      sheetRef.current?.onCloseBottomSheet();
     },
     [handleSelectRegion],
   );
@@ -137,7 +137,7 @@ function RegionSelectorModal() {
   const renderRegionItem = useCallback(
     ({ item: region }: { item: DepositRegion }) => (
       <ListItemSelect
-        isSelected={selectedRegionCode === region.code}
+        isSelected={selectedRegionCode === region.isoCode}
         onPress={() => {
           if (region.supported) {
             handleOnRegionPressCallback(region);
@@ -152,7 +152,9 @@ function RegionSelectorModal() {
             <View style={styles.emoji}>
               <Text
                 variant={TextVariant.BodyLGMedium}
-                color={region.supported ? TextColor.Default : TextColor.Alternative}
+                color={
+                  region.supported ? TextColor.Default : TextColor.Alternative
+                }
               >
                 {region.flag}
               </Text>
@@ -160,7 +162,9 @@ function RegionSelectorModal() {
             <View>
               <Text
                 variant={TextVariant.BodyLGMedium}
-                color={region.supported ? TextColor.Default : TextColor.Alternative}
+                color={
+                  region.supported ? TextColor.Default : TextColor.Alternative
+                }
               >
                 {region.name}
               </Text>
@@ -169,7 +173,12 @@ function RegionSelectorModal() {
         </ListItemColumn>
       </ListItemSelect>
     ),
-    [handleOnRegionPressCallback, selectedRegionCode, styles.region, styles.emoji],
+    [
+      handleOnRegionPressCallback,
+      selectedRegionCode,
+      styles.region,
+      styles.emoji,
+    ],
   );
 
   const renderEmptyList = useMemo(
@@ -237,7 +246,7 @@ function RegionSelectorModal() {
         sections={dataSearchResults}
         renderItem={renderRegionItem}
         renderSectionHeader={renderSectionHeader}
-        keyExtractor={(item) => item.code}
+        keyExtractor={(item) => item.isoCode}
         ListEmptyComponent={renderEmptyList}
         stickySectionHeadersEnabled={false}
       />

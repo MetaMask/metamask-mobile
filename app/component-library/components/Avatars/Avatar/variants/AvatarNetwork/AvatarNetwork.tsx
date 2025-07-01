@@ -8,7 +8,6 @@ import { Image, ImageSourcePropType } from 'react-native';
 import AvatarBase from '../../foundation/AvatarBase';
 import Text from '../../../../Texts/Text';
 import { useStyles } from '../../../../../hooks';
-import { TEXTVARIANT_BY_AVATARSIZE } from '../../Avatar.constants';
 
 // Internal dependencies.
 import { AvatarNetworkProps } from './AvatarNetwork.types';
@@ -39,9 +38,7 @@ const AvatarNetwork = ({
   return (
     <AvatarBase size={size} style={styles.base} {...props}>
       {showFallback ? (
-        <Text style={styles.label} variant={TEXTVARIANT_BY_AVATARSIZE[size]}>
-          {chainNameFirstLetter}
-        </Text>
+        <Text style={styles.label}>{chainNameFirstLetter}</Text>
       ) : (
         <Image
           source={imageSource as ImageSourcePropType}
