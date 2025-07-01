@@ -54,15 +54,16 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -105,27 +106,135 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={20}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "height": 20,
+                      "width": 20,
+                    }
+                  }
+                  width={20}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   }
                 }
               >
-                Build Quote
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
+                      "fontWeight": "700",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Build Quote
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={24}
+                    name="Close"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
+                    }
+                    width={24}
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -493,9 +602,7 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                   }
                                 }
                               >
-                                0
                                  
-                                USDC
                               </Text>
                               <TouchableOpacity
                                 onPress={[Function]}
@@ -1755,15 +1862,16 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -1806,27 +1914,135 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={20}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "height": 20,
+                      "width": 20,
+                    }
+                  }
+                  width={20}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   }
                 }
               >
-                Build Quote
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
+                      "fontWeight": "700",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Build Quote
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={24}
+                    name="Close"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
+                    }
+                    width={24}
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -2194,9 +2410,7 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                   }
                                 }
                               >
-                                0
                                  
-                                USDC
                               </Text>
                               <TouchableOpacity
                                 onPress={[Function]}
@@ -3456,15 +3670,16 @@ exports[`BuildQuote Component Continue button functionality renders success stat
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -3507,27 +3722,135 @@ exports[`BuildQuote Component Continue button functionality renders success stat
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={20}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "height": 20,
+                      "width": 20,
+                    }
+                  }
+                  width={20}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   }
                 }
               >
-                Build Quote
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
+                      "fontWeight": "700",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Build Quote
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={24}
+                    name="Close"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
+                    }
+                    width={24}
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -3895,9 +4218,7 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                   }
                                 }
                               >
-                                0
                                  
-                                USDC
                               </Text>
                               <TouchableOpacity
                                 onPress={[Function]}
@@ -5133,15 +5454,16 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -5184,27 +5506,135 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={20}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "height": 20,
+                      "width": 20,
+                    }
+                  }
+                  width={20}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   }
                 }
               >
-                Build Quote
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
+                      "fontWeight": "700",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Build Quote
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={24}
+                    name="Close"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
+                    }
+                    width={24}
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -5572,9 +6002,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                   }
                                 }
                               >
-                                1.5
                                  
-                                USDC
                               </Text>
                               <TouchableOpacity
                                 onPress={[Function]}
@@ -6810,15 +7238,16 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -6861,27 +7290,135 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={20}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "height": 20,
+                      "width": 20,
+                    }
+                  }
+                  width={20}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   }
                 }
               >
-                Build Quote
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
+                      "fontWeight": "700",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Build Quote
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={24}
+                    name="Close"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
+                    }
+                    width={24}
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -7249,9 +7786,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                   }
                                 }
                               >
-                                0
                                  
-                                USDC
                               </Text>
                               <TouchableOpacity
                                 onPress={[Function]}
@@ -8487,15 +9022,16 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -8538,27 +9074,135 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={20}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "height": 20,
+                      "width": 20,
+                    }
+                  }
+                  width={20}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   }
                 }
               >
-                Build Quote
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
+                      "fontWeight": "700",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Build Quote
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={24}
+                    name="Close"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
+                    }
+                    width={24}
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -8926,9 +9570,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                   }
                                 }
                               >
-                                0
                                  
-                                USDC
                               </Text>
                               <TouchableOpacity
                                 onPress={[Function]}
@@ -10164,15 +10806,16 @@ exports[`BuildQuote Component Region Selection handles unsupported region select
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -10215,27 +10858,135 @@ exports[`BuildQuote Component Region Selection handles unsupported region select
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={20}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "height": 20,
+                      "width": 20,
+                    }
+                  }
+                  width={20}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   }
                 }
               >
-                Build Quote
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
+                      "fontWeight": "700",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Build Quote
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={24}
+                    name="Close"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
+                    }
+                    width={24}
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -10603,9 +11354,7 @@ exports[`BuildQuote Component Region Selection handles unsupported region select
                                   }
                                 }
                               >
-                                0
                                  
-                                USDC
                               </Text>
                               <TouchableOpacity
                                 onPress={[Function]}
@@ -11841,15 +12590,16 @@ exports[`BuildQuote Component Region Selection updates selected region and fiat 
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -11892,27 +12642,135 @@ exports[`BuildQuote Component Region Selection updates selected region and fiat 
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={20}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "height": 20,
+                      "width": 20,
+                    }
+                  }
+                  width={20}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   }
                 }
               >
-                Build Quote
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
+                      "fontWeight": "700",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Build Quote
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={24}
+                    name="Close"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
+                    }
+                    width={24}
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -12280,9 +13138,7 @@ exports[`BuildQuote Component Region Selection updates selected region and fiat 
                                   }
                                 }
                               >
-                                0
                                  
-                                USDC
                               </Text>
                               <TouchableOpacity
                                 onPress={[Function]}
@@ -13518,15 +14374,16 @@ exports[`BuildQuote Component Region Selection updates selected region but keeps
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -13569,27 +14426,135 @@ exports[`BuildQuote Component Region Selection updates selected region but keeps
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={20}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "height": 20,
+                      "width": 20,
+                    }
+                  }
+                  width={20}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   }
                 }
               >
-                Build Quote
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
+                      "fontWeight": "700",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Build Quote
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={24}
+                    name="Close"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
+                    }
+                    width={24}
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -13957,9 +14922,7 @@ exports[`BuildQuote Component Region Selection updates selected region but keeps
                                   }
                                 }
                               >
-                                0
                                  
-                                USDC
                               </Text>
                               <TouchableOpacity
                                 onPress={[Function]}
@@ -15195,15 +16158,16 @@ exports[`BuildQuote Component Region Selection updates selected region when hand
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -15246,27 +16210,135 @@ exports[`BuildQuote Component Region Selection updates selected region when hand
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={20}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "height": 20,
+                      "width": 20,
+                    }
+                  }
+                  width={20}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   }
                 }
               >
-                Build Quote
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
+                      "fontWeight": "700",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Build Quote
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={24}
+                    name="Close"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
+                    }
+                    width={24}
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -15634,9 +16706,7 @@ exports[`BuildQuote Component Region Selection updates selected region when hand
                                   }
                                 }
                               >
-                                0
                                  
-                                USDC
                               </Text>
                               <TouchableOpacity
                                 onPress={[Function]}
@@ -16872,15 +17942,16 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -16923,27 +17994,135 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={20}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "height": 20,
+                      "width": 20,
+                    }
+                  }
+                  width={20}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   }
                 }
               >
-                Build Quote
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
+                      "fontWeight": "700",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Build Quote
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={24}
+                    name="Close"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
+                    }
+                    width={24}
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -17311,9 +18490,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                   }
                                 }
                               >
-                                0
                                  
-                                USDC
                               </Text>
                               <TouchableOpacity
                                 onPress={[Function]}

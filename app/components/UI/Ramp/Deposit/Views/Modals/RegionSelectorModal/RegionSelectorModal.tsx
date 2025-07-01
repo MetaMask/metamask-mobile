@@ -36,7 +36,7 @@ import { strings } from '../../../../../../../../locales/i18n';
 const MAX_REGION_RESULTS = 20;
 
 interface RegionSelectorModalNavigationDetails {
-  selectedRegionCode?: string;
+  selectedRegion: DepositRegion;
   handleSelectRegion?: (region: DepositRegion) => void;
 }
 
@@ -50,7 +50,7 @@ function RegionSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const list = useRef<SectionList<DepositRegion>>(null);
 
-  const { selectedRegionCode, handleSelectRegion } =
+  const { selectedRegion, handleSelectRegion } =
     useParams<RegionSelectorModalNavigationDetails>();
   const [searchString, setSearchString] = useState('');
   const { height: screenHeight } = useWindowDimensions();
@@ -90,7 +90,7 @@ function RegionSelectorModal() {
     }
 
     const popularRegions = DEPOSIT_REGIONS.filter(
-      (region) => region.recommended,
+      (region) => region?.recommended,
     );
 
     if (popularRegions.length) {
@@ -101,7 +101,7 @@ function RegionSelectorModal() {
         },
         {
           title: strings('fiat_on_ramp_aggregator.region.regions'),
-          data: DEPOSIT_REGIONS.filter((region) => !region.recommended),
+          data: DEPOSIT_REGIONS.filter((region) => !region?.recommended),
         },
       ];
     }
@@ -137,7 +137,7 @@ function RegionSelectorModal() {
   const renderRegionItem = useCallback(
     ({ item: region }: { item: DepositRegion }) => (
       <ListItemSelect
-        isSelected={selectedRegionCode === region.code}
+        isSelected={selectedRegion?.code === region?.code}
         onPress={() => {
           if (region.supported) {
             handleOnRegionPressCallback(region);
@@ -145,7 +145,7 @@ function RegionSelectorModal() {
         }}
         accessibilityRole="button"
         accessible
-        disabled={!region.supported}
+        disabled={!region?.supported}
       >
         <ListItemColumn widthType={WidthType.Fill}>
           <View style={styles.region}>
@@ -153,32 +153,27 @@ function RegionSelectorModal() {
               <Text
                 variant={TextVariant.BodyLGMedium}
                 color={
-                  region.supported ? TextColor.Default : TextColor.Alternative
+                  region?.supported ? TextColor.Default : TextColor.Alternative
                 }
               >
-                {region.flag}
+                {region?.flag}
               </Text>
             </View>
             <View>
               <Text
                 variant={TextVariant.BodyLGMedium}
                 color={
-                  region.supported ? TextColor.Default : TextColor.Alternative
+                  region?.supported ? TextColor.Default : TextColor.Alternative
                 }
               >
-                {region.name}
+                {region?.name}
               </Text>
             </View>
           </View>
         </ListItemColumn>
       </ListItemSelect>
     ),
-    [
-      handleOnRegionPressCallback,
-      selectedRegionCode,
-      styles.region,
-      styles.emoji,
-    ],
+    [handleOnRegionPressCallback, selectedRegion, styles.region, styles.emoji],
   );
 
   const renderEmptyList = useMemo(

@@ -501,8 +501,7 @@
       "location_prefix": "It looks like you're in:",
       "description": "We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to buy crypto.",
       "change_region": "Change region",
-      "buy_crypto": "Buy Crypto",
-      "learn_more": "Learn more"
+      "buy_crypto": "Buy Crypto"
     },
     "get_started": {
       "title": "Top up your wallet with USDC",

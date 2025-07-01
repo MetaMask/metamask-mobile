@@ -506,7 +506,6 @@ exports[`UnsupportedRegionModal handles missing callback functions gracefully 1`
                           <View
                             style={
                               {
-                                "alignItems": "center",
                                 "padding": 24,
                               }
                             }
@@ -521,8 +520,6 @@ exports[`UnsupportedRegionModal handles missing callback functions gracefully 1`
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
-                                  "marginBottom": 12,
-                                  "textAlign": "center",
                                 }
                               }
                             >
@@ -547,10 +544,27 @@ exports[`UnsupportedRegionModal handles missing callback functions gracefully 1`
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                🇺🇸
+                              </Text>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 16,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
                                     "marginLeft": 8,
                                   }
                                 }
-                              />
+                              >
+                                United States
+                              </Text>
                             </View>
                             <Text
                               accessibilityRole="text"
@@ -561,33 +575,12 @@ exports[`UnsupportedRegionModal handles missing callback functions gracefully 1`
                                   "fontSize": 16,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 20,
-                                  "textAlign": "center",
+                                  "lineHeight": 24,
                                 }
                               }
                             >
                               We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to buy crypto.
                                
-                              <TouchableOpacity
-                                accessibilityRole="link"
-                                onPress={[Function]}
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#4459ff",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 16,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  [missing "en.learn_more" translation]
-                                </Text>
-                              </TouchableOpacity>
                             </Text>
                           </View>
                           <View
@@ -595,7 +588,7 @@ exports[`UnsupportedRegionModal handles missing callback functions gracefully 1`
                               {
                                 "flexDirection": "row",
                                 "gap": 8,
-                                "justifyContent": "space-between",
+                                "justifyContent": "center",
                                 "padding": 24,
                                 "paddingTop": 0,
                               }
@@ -1195,7 +1188,6 @@ exports[`UnsupportedRegionModal handles missing regionName gracefully 1`] = `
                           <View
                             style={
                               {
-                                "alignItems": "center",
                                 "padding": 24,
                               }
                             }
@@ -1210,8 +1202,6 @@ exports[`UnsupportedRegionModal handles missing regionName gracefully 1`] = `
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
-                                  "marginBottom": 12,
-                                  "textAlign": "center",
                                 }
                               }
                             >
@@ -1236,10 +1226,27 @@ exports[`UnsupportedRegionModal handles missing regionName gracefully 1`] = `
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                🇺🇸
+                              </Text>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 16,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
                                     "marginLeft": 8,
                                   }
                                 }
-                              />
+                              >
+                                United States
+                              </Text>
                             </View>
                             <Text
                               accessibilityRole="text"
@@ -1250,33 +1257,12 @@ exports[`UnsupportedRegionModal handles missing regionName gracefully 1`] = `
                                   "fontSize": 16,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 20,
-                                  "textAlign": "center",
+                                  "lineHeight": 24,
                                 }
                               }
                             >
                               We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to buy crypto.
                                
-                              <TouchableOpacity
-                                accessibilityRole="link"
-                                onPress={[Function]}
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#4459ff",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 16,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  [missing "en.learn_more" translation]
-                                </Text>
-                              </TouchableOpacity>
                             </Text>
                           </View>
                           <View
@@ -1284,7 +1270,7 @@ exports[`UnsupportedRegionModal handles missing regionName gracefully 1`] = `
                               {
                                 "flexDirection": "row",
                                 "gap": 8,
-                                "justifyContent": "space-between",
+                                "justifyContent": "center",
                                 "padding": 24,
                                 "paddingTop": 0,
                               }
@@ -1884,7 +1870,6 @@ exports[`UnsupportedRegionModal renders correctly 1`] = `
                           <View
                             style={
                               {
-                                "alignItems": "center",
                                 "padding": 24,
                               }
                             }
@@ -1899,8 +1884,6 @@ exports[`UnsupportedRegionModal renders correctly 1`] = `
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
-                                  "marginBottom": 12,
-                                  "textAlign": "center",
                                 }
                               }
                             >
@@ -1925,10 +1908,27 @@ exports[`UnsupportedRegionModal renders correctly 1`] = `
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                🇺🇸
+                              </Text>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 16,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
                                     "marginLeft": 8,
                                   }
                                 }
-                              />
+                              >
+                                United States
+                              </Text>
                             </View>
                             <Text
                               accessibilityRole="text"
@@ -1939,33 +1939,12 @@ exports[`UnsupportedRegionModal renders correctly 1`] = `
                                   "fontSize": 16,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 20,
-                                  "textAlign": "center",
+                                  "lineHeight": 24,
                                 }
                               }
                             >
                               We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to buy crypto.
                                
-                              <TouchableOpacity
-                                accessibilityRole="link"
-                                onPress={[Function]}
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#4459ff",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 16,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  [missing "en.learn_more" translation]
-                                </Text>
-                              </TouchableOpacity>
                             </Text>
                           </View>
                           <View
@@ -1973,7 +1952,7 @@ exports[`UnsupportedRegionModal renders correctly 1`] = `
                               {
                                 "flexDirection": "row",
                                 "gap": 8,
-                                "justifyContent": "space-between",
+                                "justifyContent": "center",
                                 "padding": 24,
                                 "paddingTop": 0,
                               }
@@ -2573,7 +2552,6 @@ exports[`UnsupportedRegionModal renders correctly with countryName and countryFl
                           <View
                             style={
                               {
-                                "alignItems": "center",
                                 "padding": 24,
                               }
                             }
@@ -2588,8 +2566,6 @@ exports[`UnsupportedRegionModal renders correctly with countryName and countryFl
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
-                                  "marginBottom": 12,
-                                  "textAlign": "center",
                                 }
                               }
                             >
@@ -2604,7 +2580,21 @@ exports[`UnsupportedRegionModal renders correctly with countryName and countryFl
                                 }
                               }
                             >
-                              🇧🇷
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 16,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                🇧🇷
+                              </Text>
                               <Text
                                 accessibilityRole="text"
                                 style={
@@ -2631,33 +2621,12 @@ exports[`UnsupportedRegionModal renders correctly with countryName and countryFl
                                   "fontSize": 16,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 20,
-                                  "textAlign": "center",
+                                  "lineHeight": 24,
                                 }
                               }
                             >
                               We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to buy crypto.
                                
-                              <TouchableOpacity
-                                accessibilityRole="link"
-                                onPress={[Function]}
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#4459ff",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 16,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  [missing "en.learn_more" translation]
-                                </Text>
-                              </TouchableOpacity>
                             </Text>
                           </View>
                           <View
@@ -2665,7 +2634,7 @@ exports[`UnsupportedRegionModal renders correctly with countryName and countryFl
                               {
                                 "flexDirection": "row",
                                 "gap": 8,
-                                "justifyContent": "space-between",
+                                "justifyContent": "center",
                                 "padding": 24,
                                 "paddingTop": 0,
                               }

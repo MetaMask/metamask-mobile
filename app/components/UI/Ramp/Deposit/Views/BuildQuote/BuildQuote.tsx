@@ -159,24 +159,11 @@ const BuildQuote = () => {
   const handleRegionPress = useCallback(() => {
     navigation.navigate(
       ...createRegionSelectorModalNavigationDetails({
-        selectedRegionCode: selectedRegion?.code,
+        selectedRegion,
         handleSelectRegion,
       }),
     );
   }, [navigation, selectedRegion, handleSelectRegion]);
-
-  const handleExitToWalletHome = useCallback(() => {
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
-  }, [navigation]);
-
-  const handleSelectDifferentRegion = useCallback(() => {
-    handleRegionPress();
-  }, [handleRegionPress]);
 
   useFocusEffect(
     useCallback(() => {
@@ -184,20 +171,13 @@ const BuildQuote = () => {
         InteractionManager.runAfterInteractions(() => {
           navigation.navigate(
             ...createUnsupportedRegionModalNavigationDetails({
-              countryName: selectedRegion?.name || '',
-              countryFlag: selectedRegion?.flag || '',
-              onExitToWalletHome: handleExitToWalletHome,
-              onSelectDifferentRegion: handleSelectDifferentRegion,
+              onSelectDifferentRegion: handleRegionPress,
+              selectedRegion,
             }),
           );
         });
       }
-    }, [
-      selectedRegion,
-      navigation,
-      handleExitToWalletHome,
-      handleSelectDifferentRegion,
-    ]),
+    }, [selectedRegion, navigation, handleRegionPress]),
   );
 
   const handleOnPressContinue = useCallback(async () => {

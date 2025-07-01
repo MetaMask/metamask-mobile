@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 import Text, {
   TextVariant,
@@ -23,12 +24,12 @@ import {
 } from '../../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
+import { DepositRegion } from '../../../constants';
+import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
 
 interface UnsupportedRegionModalNavigationDetails {
-  onExitToWalletHome?: () => void;
   onSelectDifferentRegion?: () => void;
-  countryName?: string;
-  countryFlag?: React.ReactNode;
+  selectedRegion: DepositRegion;
 }
 
 export const createUnsupportedRegionModalNavigationDetails =
@@ -39,20 +40,15 @@ export const createUnsupportedRegionModalNavigationDetails =
 
 function UnsupportedRegionModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const {
-    onExitToWalletHome,
-    onSelectDifferentRegion,
-    countryName,
-    countryFlag,
-  } = useParams<UnsupportedRegionModalNavigationDetails>();
+  const navigation = useNavigation();
+  const { onSelectDifferentRegion, selectedRegion } =
+    useParams<UnsupportedRegionModalNavigationDetails>();
 
   const { styles } = useStyles(styleSheet, {});
 
-  const handleExitToWalletHome = useCallback(() => {
-    if (onExitToWalletHome) {
-      sheetRef.current?.onCloseBottomSheet(onExitToWalletHome);
-    }
-  }, [onExitToWalletHome]);
+  const navigateToBuy = useCallback(() => {
+    navigation.navigate(...createBuyNavigationDetails());
+  }, [navigation]);
 
   const handleSelectDifferentRegion = useCallback(() => {
     if (onSelectDifferentRegion) {
@@ -60,47 +56,32 @@ function UnsupportedRegionModal() {
     }
   }, [onSelectDifferentRegion]);
 
-  const handleLearnMore = useCallback(() => {
-    // TODO: Implement Learn More action
-  }, []);
-
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack isInteractable={false}>
-      <BottomSheetHeader onClose={handleExitToWalletHome}>
+      <BottomSheetHeader onClose={navigateToBuy}>
         <Text variant={TextVariant.HeadingMD}>
           {strings('deposit.unsupported_region_modal.title')}
         </Text>
       </BottomSheetHeader>
 
       <View style={styles.content}>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Default}
-          style={styles.message}
-        >
+        <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
           {strings('deposit.unsupported_region_modal.location_prefix')}
         </Text>
         <View style={styles.countryContainer}>
-          {countryFlag}
+          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            {selectedRegion?.flag}
+          </Text>
           <Text
             variant={TextVariant.BodyMD}
             color={TextColor.Default}
             style={styles.countryName}
           >
-            {countryName || ''}
+            {selectedRegion?.name}
           </Text>
         </View>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.description}
-        >
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {strings('deposit.unsupported_region_modal.description')}{' '}
-          <TouchableOpacity onPress={handleLearnMore} accessibilityRole="link">
-            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
-              {strings('learn_more')}
-            </Text>
-          </TouchableOpacity>
         </Text>
       </View>
 
@@ -114,7 +95,7 @@ function UnsupportedRegionModal() {
         />
         <Button
           size={ButtonSize.Lg}
-          onPress={handleExitToWalletHome}
+          onPress={navigateToBuy}
           label={strings('deposit.unsupported_region_modal.buy_crypto')}
           variant={ButtonVariants.Primary}
           width={ButtonWidthTypes.Full}

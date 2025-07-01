@@ -1554,33 +1554,6 @@ exports[`RegionSelectorModal Component region selector modal renders the default
                                       </View>
                                     </View>
                                   </View>
-                                  <View
-                                    accessibilityRole="checkbox"
-                                    accessible={true}
-                                    style={
-                                      {
-                                        "backgroundColor": "#4459ff1a",
-                                        "bottom": 0,
-                                        "flexDirection": "row",
-                                        "left": 0,
-                                        "position": "absolute",
-                                        "right": 0,
-                                        "top": 0,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "borderRadius": 2,
-                                          "marginLeft": 4,
-                                          "marginVertical": 4,
-                                          "width": 4,
-                                        }
-                                      }
-                                    />
-                                  </View>
                                 </TouchableOpacity>
                               </View>
                               <View

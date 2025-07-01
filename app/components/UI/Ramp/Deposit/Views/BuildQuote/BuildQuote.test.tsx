@@ -34,12 +34,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn().mockReturnValue({
-    title: 'Build Quote',
-  }),
-}));
-
 jest.mock('../../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
   DepositSDKProvider: ({ children }: { children: React.ReactNode }) => children,
@@ -63,56 +57,6 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useDepositTokenExchange', () => ({
-  __esModule: true,
-  default: () => mockUseDepositTokenExchange(),
-}));
-
-jest.mock('../ProviderWebview/ProviderWebview', () => ({
-  createProviderWebviewNavDetails: jest.fn(({ quote }) => [
-    'PROVIDER_WEBVIEW',
-    { quote },
-  ]),
-}));
-
-jest.mock('../BasicInfo/BasicInfo', () => ({
-  createBasicInfoNavDetails: jest.fn(({ quote, kycUrl }) => [
-    'BASIC_INFO',
-    { quote, kycUrl },
-  ]),
-}));
-
-jest.mock('../EnterEmail/EnterEmail', () => ({
-  createEnterEmailNavDetails: jest.fn(({ quote }) => [
-    'ENTER_EMAIL',
-    { quote },
-  ]),
-}));
-
-jest.mock('../KycWebview/KycWebview', () => ({
-  createKycWebviewNavDetails: jest.fn(({ quote, kycUrl }) => [
-    'KYC_WEBVIEW',
-    { quote, kycUrl },
-  ]),
-}));
-
-jest.mock('../KycProcessing/KycProcessing', () => ({
-  createKycProcessingNavDetails: jest.fn(() => ['KYC_PROCESSING', {}]),
-}));
-
-jest.mock('../../hooks/useUserDetailsPolling', () => ({
-  KycStatus: {
-    APPROVED: 'APPROVED',
-    PENDING: 'PENDING',
-    REJECTED: 'REJECTED',
-  },
-}));
-
-jest.mock('../Modals/UnsupportedRegionModal', () => ({
-  createUnsupportedRegionModalNavigationDetails:
-    mockCreateUnsupportedRegionModalNavigationDetails,
-}));
-
 jest.mock('react-native', () => {
   const actualReactNative = jest.requireActual('react-native');
   return {
@@ -124,6 +68,17 @@ jest.mock('react-native', () => {
 function render(Component: React.ComponentType) {
   return renderDepositTestComponent(Component, Routes.DEPOSIT.BUILD_QUOTE);
 }
+
+const US_REGION = {
+  code: 'US',
+  flag: '🇺🇸',
+  name: 'United States',
+  phonePrefix: '+1',
+  currency: 'USD',
+  phoneDigitCount: 10,
+  recommended: true,
+  supported: true,
+};
 
 describe('BuildQuote Component', () => {
   beforeEach(() => {
@@ -140,7 +95,6 @@ describe('BuildQuote Component', () => {
       {
         countryName: 'Brazil',
         countryFlag: '🇧🇷',
-        onExitToWalletHome: expect.any(Function),
         onSelectDifferentRegion: expect.any(Function),
       },
     ]);
@@ -199,7 +153,7 @@ describe('BuildQuote Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositRegionSelectorModal',
         params: {
-          selectedRegionCode: 'US',
+          selectedRegion: US_REGION,
           handleSelectRegion: expect.any(Function),
         },
       });
@@ -251,7 +205,7 @@ describe('BuildQuote Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositRegionSelectorModal',
         params: {
-          selectedRegionCode: 'US',
+          selectedRegion: US_REGION,
           handleSelectRegion: expect.any(Function),
         },
       });
@@ -281,7 +235,7 @@ describe('BuildQuote Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositRegionSelectorModal',
         params: {
-          selectedRegionCode: 'US',
+          selectedRegion: US_REGION,
           handleSelectRegion: expect.any(Function),
         },
       });
@@ -302,7 +256,7 @@ describe('BuildQuote Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositRegionSelectorModal',
         params: {
-          selectedRegionCode: 'US',
+          selectedRegion: US_REGION,
           handleSelectRegion: expect.any(Function),
         },
       });
@@ -400,7 +354,7 @@ describe('BuildQuote Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositRegionSelectorModal',
         params: {
-          selectedRegionCode: 'US',
+          selectedRegion: US_REGION,
           handleSelectRegion: expect.any(Function),
         },
       });
@@ -476,7 +430,7 @@ describe('BuildQuote Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositRegionSelectorModal',
         params: {
-          selectedRegionCode: 'US',
+          selectedRegion: US_REGION,
           handleSelectRegion: expect.any(Function),
         },
       });
