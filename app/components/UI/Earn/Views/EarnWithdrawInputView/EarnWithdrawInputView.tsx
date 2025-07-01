@@ -56,6 +56,7 @@ import useEarnTokens from '../../hooks/useEarnTokens';
 import { EarnTokenDetails } from '../../types/lending.types';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
@@ -640,32 +641,38 @@ const EarnWithdrawInputView = () => {
 
   return (
     <ScreenLayout style={styles.container}>
-      <InputDisplay
-        isOverMaximum={isOverMaximum}
-        balanceText={stakedBalanceText}
-        balanceValue={earnBalanceValue}
-        amountToken={amountToken}
-        amountFiatNumber={amountFiatNumber}
-        isFiat={isFiat}
-        asset={token}
-        currentCurrency={currentCurrency}
-        handleCurrencySwitch={handleCurrencySwitchWithTracking}
-        currencyToggleValue={currencyToggleValue}
-        maxWithdrawalAmount={maxRiskAwareWithdrawalText}
-        error={
-          isWithdrawingMoreThanAvailableForLendingToken
-            ? strings('earn.amount_exceeds_safe_withdrawal_limit')
-            : undefined
-        }
-      />
-      {isStablecoinLendingEnabled && (
-        <View style={styles.earnTokenSelectorContainer}>
-          <EarnTokenSelector
-            token={receiptToken as TokenI}
-            action={EARN_INPUT_VIEW_ACTIONS.WITHDRAW}
-          />
-        </View>
-      )}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+      >
+        <InputDisplay
+          isOverMaximum={isOverMaximum}
+          balanceText={stakedBalanceText}
+          balanceValue={earnBalanceValue}
+          amountToken={amountToken}
+          amountFiatNumber={amountFiatNumber}
+          isFiat={isFiat}
+          asset={token}
+          currentCurrency={currentCurrency}
+          handleCurrencySwitch={handleCurrencySwitchWithTracking}
+          currencyToggleValue={currencyToggleValue}
+          maxWithdrawalAmount={maxRiskAwareWithdrawalText}
+          error={
+            isWithdrawingMoreThanAvailableForLendingToken
+              ? strings('earn.amount_exceeds_safe_withdrawal_limit')
+              : undefined
+          }
+        />
+        {isStablecoinLendingEnabled && (
+          <View style={styles.earnTokenSelectorContainer}>
+            <View style={styles.spacer} />
+            <EarnTokenSelector
+              token={receiptToken as TokenI}
+              action={EARN_INPUT_VIEW_ACTIONS.WITHDRAW}
+            />
+          </View>
+        )}
+      </ScrollView>
       <QuickAmounts
         amounts={percentageOptions}
         onAmountPress={handleQuickAmountPressWithTracking}
