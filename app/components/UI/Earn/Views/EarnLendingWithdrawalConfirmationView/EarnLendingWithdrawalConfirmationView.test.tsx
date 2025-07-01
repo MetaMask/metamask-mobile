@@ -845,6 +845,10 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
         }),
       );
 
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
 
       mockTrackEvent.mockClear();

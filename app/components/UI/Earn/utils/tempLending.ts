@@ -376,14 +376,15 @@ export const getAaveV3MaxSafeWithdrawal = async (
 
     // If no debt, can withdraw everything
     if (totalDebtBase.isZero()) {
+      return;
       // totalCollateralBase is in USD with 8 decimals
       // assetPrice is in USD with 8 decimals
       // We want result in token decimals
-      const maxTokenAmount = totalCollateralBase
-        .mul(parseUnits('1', tokenDecimals)) // Scale up to token decimals
-        .div(assetPrice); // Divide by price (removes the 8 decimals from price)
+      // const maxTokenAmount = totalCollateralBase
+      //   .mul(parseUnits('1', tokenDecimals)) // Scale up to token decimals
+      //   .div(assetPrice); // Divide by price (removes the 8 decimals from price)
 
-      return maxTokenAmount.toString();
+      // return maxTokenAmount.toString();
     }
 
     // Calculate current health factor
@@ -571,58 +572,63 @@ export const calculateAaveV3HealthFactorAfterWithdrawal = async (
 
   if (!receiptToken?.chainId) return result;
 
-  const userData = await getAaveUserAccountData(
-    activeAccountAddress,
-    receiptToken.chainId,
-  );
+  try {
+    const userData = await getAaveUserAccountData(
+      activeAccountAddress,
+      receiptToken.chainId,
+    );
 
-  result.before = userData.formatted.healthFactor;
+    result.before = userData.formatted.healthFactor;
 
-  const { totalCollateralBase, totalDebtBase, currentLiquidationThreshold } =
-    userData.raw;
+    const { totalCollateralBase, totalDebtBase, currentLiquidationThreshold } =
+      userData.raw;
 
-  // Convert withdrawal amount to BigNumber
-  const withdrawalAmountTokenMinimalUnitBN = ethers.BigNumber.from(
-    withdrawalAmountTokenMinimalUnit,
-  );
+    // Convert withdrawal amount to BigNumber
+    const withdrawalAmountTokenMinimalUnitBN = ethers.BigNumber.from(
+      withdrawalAmountTokenMinimalUnit,
+    );
 
-  const assetPrice = parseUnits(
-    receiptToken.tokenUsdExchangeRate.toFixed(8),
-    8,
-  );
+    const assetPrice = parseUnits(
+      receiptToken.tokenUsdExchangeRate.toFixed(8),
+      8,
+    );
 
-  // Convert withdrawal amount to USD with 8 decimals: (withdrawalAmountTokenMinimalUnit * assetPrice) / 10^lendingTokenDecimals
-  const withdrawalUsdValue = withdrawalAmountTokenMinimalUnitBN
-    .mul(assetPrice)
-    .div(ethers.BigNumber.from(10).pow(receiptToken.decimals));
+    // Convert withdrawal amount to USD with 8 decimals: (withdrawalAmountTokenMinimalUnit * assetPrice) / 10^lendingTokenDecimals
+    const withdrawalUsdValue = withdrawalAmountTokenMinimalUnitBN
+      .mul(assetPrice)
+      .div(ethers.BigNumber.from(10).pow(receiptToken.decimals));
 
-  // New collateral after withdrawal
-  const newTotalCollateralBase = totalCollateralBase.sub(withdrawalUsdValue);
+    // New collateral after withdrawal
+    const newTotalCollateralBase = totalCollateralBase.sub(withdrawalUsdValue);
 
-  // Health factor formula: (collateral * liquidationThreshold) / (debt * 10000)
-  // If debt is zero, health factor is "infinite" (return a very large number)
-  if (totalDebtBase.isZero()) {
-    result.before = AAVE_V3_INFINITE_HEALTH_FACTOR;
-    result.after = AAVE_V3_INFINITE_HEALTH_FACTOR;
-    result.risk = AAVE_WITHDRAWAL_RISKS.LOW;
+    // Health factor formula: (collateral * liquidationThreshold) / (debt * 10000)
+    // If debt is zero, health factor is "infinite" (return a very large number)
+    if (totalDebtBase.isZero()) {
+      result.before = AAVE_V3_INFINITE_HEALTH_FACTOR;
+      result.after = AAVE_V3_INFINITE_HEALTH_FACTOR;
+      result.risk = AAVE_WITHDRAWAL_RISKS.LOW;
+
+      return result;
+    }
+
+    const numerator = newTotalCollateralBase.mul(currentLiquidationThreshold);
+    const denominator = totalDebtBase.mul(10000);
+
+    // Health factor is a fixed-point number with 18 decimals (WAD)
+    const healthFactor = numerator
+      .mul(ethers.BigNumber.from(10).pow(18))
+      .div(denominator);
+
+    const healthFactorParsed = formatUnits(healthFactor, 18);
+
+    result.after = healthFactorParsed;
+    result.risk = getWithdrawalRiskLabel(healthFactor);
 
     return result;
+  } catch (e) {
+    console.error(e);
+    return result;
   }
-
-  const numerator = newTotalCollateralBase.mul(currentLiquidationThreshold);
-  const denominator = totalDebtBase.mul(10000);
-
-  // Health factor is a fixed-point number with 18 decimals (WAD)
-  const healthFactor = numerator
-    .mul(ethers.BigNumber.from(10).pow(18))
-    .div(denominator);
-
-  const healthFactorParsed = formatUnits(healthFactor, 18);
-
-  result.after = healthFactorParsed;
-  result.risk = getWithdrawalRiskLabel(healthFactor);
-
-  return result;
 };
 /**
  * Returns the maximum value a user can withdraw given the following constraints:
@@ -656,6 +662,8 @@ export const getAaveV3MaxRiskAwareWithdrawalAmount = async (
         ),
         getAaveV3MaxSafeWithdrawal(userData, receiptToken as EarnTokenDetails),
       ]);
+
+    if (!maxHealthFactorWithdrawalInTokens) return undefined;
 
     return BigNumber.min(
       poolLiquidityInTokens,
