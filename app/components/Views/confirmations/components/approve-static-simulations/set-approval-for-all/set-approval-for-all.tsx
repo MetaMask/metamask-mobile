@@ -33,7 +33,7 @@ const NFTInfoRow: React.FC<NFTInfoRowProps> = ({ transactionMetadata }) => {
 
 interface PermissionFromInfoRowProps {
   spender?: string;
-  transactionMetadata: any;
+  transactionMetadata: TransactionMeta;
 }
 
 const PermissionFromInfoRow: React.FC<PermissionFromInfoRowProps> = ({
@@ -52,7 +52,7 @@ const PermissionFromInfoRow: React.FC<PermissionFromInfoRowProps> = ({
 
 interface SpenderInfoRowProps {
   spender?: string;
-  transactionMetadata: any;
+  transactionMetadata: TransactionMeta;
 }
 
 const SpenderInfoRow: React.FC<SpenderInfoRowProps> = ({
@@ -88,7 +88,7 @@ export const SetApprovalForAll = () => {
         />
         <PermissionFromInfoRow
           spender={spender}
-          transactionMetadata={transactionMetadata}
+          transactionMetadata={transactionMetadata as TransactionMeta}
         />
       </>
     );
@@ -101,7 +101,7 @@ export const SetApprovalForAll = () => {
       />
       <SpenderInfoRow
         spender={spender}
-        transactionMetadata={transactionMetadata}
+        transactionMetadata={transactionMetadata as TransactionMeta}
       />
     </>
   );
