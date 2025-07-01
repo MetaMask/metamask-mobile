@@ -1,14 +1,7 @@
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import { ACTIONS, PREFIXES, PROTOCOLS } from '../../../constants/deeplinks';
-import Routes from '../../../constants/navigation/Routes';
-import Logger from '../../../util/Logger';
+import { ACTIONS, PROTOCOLS } from '../../../constants/deeplinks';
 import AppConstants from '../../AppConstants';
-import SDKConnect from '../../SDKConnect/SDKConnect';
-import handleDeeplink from '../../SDKConnect/handlers/handleDeeplink';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
-import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
-import parseOriginatorInfo from '../parseOriginatorInfo';
 import extractURLParams from './extractURLParams';
 import {
   hasSignature,
@@ -23,7 +16,6 @@ import { capitalize } from '../../../util/general';
 
 const {
   MM_UNIVERSAL_LINK_HOST,
-  MM_DEEP_ITMS_APP_LINK,
   MM_IO_UNIVERSAL_LINK_HOST,
   MM_IO_UNIVERSAL_LINK_TEST_HOST,
 } = AppConstants;
