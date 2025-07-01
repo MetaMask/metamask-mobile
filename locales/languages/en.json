@@ -1540,6 +1540,12 @@
     "web_site": "Visit our Website",
     "contact_us": "Contact Us"
   },
+  "support_consent": {
+    "title": "Share information with support?",
+    "description": "You're about to be redirected to the support center. Do you consent to sharing your MetaMask Identifier and the version of the app you're using? This is optional but can facilitate debugging on our side.",
+    "consent": "Yes, share",
+    "decline": "No, thanks"
+  },
   "reveal_credential": {
     "seed_phrase_title": "Reveal Secret Recovery Phrase",
     "private_key_title": "Show private key",
