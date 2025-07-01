@@ -1,116 +1,43 @@
 'use strict';
 import { SmokeMultiStandardDappConnection } from '../../../tags';
 import Assertions from '../../../utils/Assertions';
-import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
-import {
-  account1Short,
-  account2Short,
-  connectSolanaTestDapp,
-  navigateToSolanaTestDApp,
-} from '../solana-wallet-standard/testHelpers';
 import TestHelpers from '../../../helpers';
 import { withSolanaAccountEnabled } from '../../../common-solana';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import WalletView from '../../../pages/wallet/WalletView';
-import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
+import MultichainTestDApp, { MULTICHAIN_TEST_DAPP_LOCAL_URL } from '../../../pages/Browser/MultichainTestDApp';
+import MultichainUtilities from '../../../utils/MultichainUtilities';
+import { DEFAULT_FIXTURE_ACCOUNT, DEFAULT_SOLANA_FIXTURE_ACCOUNT } from '../../../fixtures/fixture-builder';
+import { SolScope } from '@metamask/keyring-api';
 
-// TODO: [ffmcgee] repeated e2e tests from solana wallet standard, should be replaced with actual test cases
-describe(SmokeMultiStandardDappConnection('Solana Wallet Standard E2E - Connect'), () => {
+describe(SmokeMultiStandardDappConnection('Multiple Standard Dapp Connections'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
   });
 
-  it('Should connect & disconnect from Solana test dapp', async () => {
-    await withSolanaAccountEnabled({}, async () => {
-      await navigateToSolanaTestDApp();
+  // it('should default account selection to already permitted account(s) plus the selected account (if not already permitted) when `wallet_requestPermissions` is called with no accounts specified', async () => { });
+  // it('should default account selection to both accounts when `wallet_requestPermissions` is called with specific account while another is already connected', async () => { });
+  // it('should retain EVM permissions when connecting through the Solana Wallet Standard', async () => { });
+  // it('should retain Solana permissions when connecting through the EVM provider', async () => { });
+  // it('should default account selection to already permitted Solana account and requested Ethereum account when `wallet_requestPermissions` is called with specific Ethereum account', async () => { });
+  it('should be able to request specific chains when connecting through the EVM provider with existing permissions', async () => {
+    await withSolanaAccountEnabled({
+      dappPath: MULTICHAIN_TEST_DAPP_LOCAL_URL,
+      solanaAccountPermitted: true,
+    }, async () => {
+      await MultichainTestDApp.setupAndNavigateToTestDapp('?autoMode=true');
 
-      await connectSolanaTestDapp();
-
-      const header = SolanaTestDApp.getHeader();
-
-      // Check we're connected
-      const account = await header.getAccount();
-      await Assertions.checkIfTextMatches(account, account1Short);
-      const connectionStatus = await header.getConnectionStatus();
-      await Assertions.checkIfTextMatches(connectionStatus, 'Connected');
-
-      await header.disconnect();
-
-      // Check we're disconnected
-      const connectionStatusAfterDisconnect =
-        await header.getConnectionStatus();
-      await Assertions.checkIfTextMatches(
-        connectionStatusAfterDisconnect,
-        'Not connected',
+      await MultichainTestDApp.createSessionWithNetworks(
+        MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM
       );
-    });
-  });
 
-  it('Should be able to cancel connection and connect again', async () => {
-    await withSolanaAccountEnabled({}, async () => {
-      await navigateToSolanaTestDApp();
-
-      const header = SolanaTestDApp.getHeader();
-      await header.connect();
-      await header.selectMetaMask();
-
-      await SolanaTestDApp.tapCancelButton();
-
+      // Wait for session creation and get the data separately
       await TestHelpers.delay(1000);
-      const connectionStatus = await header.getConnectionStatus();
-      await Assertions.checkIfTextMatches(connectionStatus, 'Not connected');
+      const sessionResult = await MultichainTestDApp.getSessionData();
 
-      await connectSolanaTestDapp();
+      const expectedSolanaSessionScope = sessionResult?.sessionScopes?.[SolScope.Mainnet];
+      await Assertions.checkIfTextMatches(expectedSolanaSessionScope?.accounts[0] ?? '', `${SolScope.Mainnet}:${DEFAULT_SOLANA_FIXTURE_ACCOUNT}`);
 
-      const account = await header.getAccount();
-      await Assertions.checkIfTextMatches(account, account1Short);
-    });
-  });
-
-  it('Switching between 2 accounts should reflect in the dapp', async () => {
-    await withSolanaAccountEnabled(
-      {
-        numberOfAccounts: 2,
-      },
-      async () => {
-        await navigateToSolanaTestDApp();
-        await connectSolanaTestDapp({ selectAllAccounts: true });
-
-        const header = SolanaTestDApp.getHeader();
-        const account = await header.getAccount();
-        await Assertions.checkIfTextMatches(account, account2Short);
-
-        await TabBarComponent.tapWallet();
-        await WalletView.tapCurrentMainWalletAccountActions();
-
-        await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
-        await TabBarComponent.tapBrowser();
-
-        const accountAfterSwitch = await header.getAccount();
-        await Assertions.checkIfTextMatches(accountAfterSwitch, account1Short);
-      },
-    );
-  });
-
-  it('Should stay connected after page refresh', async () => {
-    await withSolanaAccountEnabled({}, async () => {
-      await navigateToSolanaTestDApp();
-
-      await connectSolanaTestDapp();
-
-      // Should be connected
-      const header = SolanaTestDApp.getHeader();
-      const account = await header.getAccount();
-      await Assertions.checkIfTextMatches(account, account1Short);
-
-      // Refresh the page
-      await SolanaTestDApp.reloadSolanaTestDApp();
-      await TestHelpers.delay(4000);
-
-      // Should still be connected after refresh
-      const headerAfterRefresh = SolanaTestDApp.getHeader();
-      const accountAfterRefresh = await headerAfterRefresh.getAccount();
-      await Assertions.checkIfTextMatches(accountAfterRefresh, account1Short);
+      const expectedEthereumSessionScope = sessionResult?.sessionScopes?.['eip155:1'];
+      await Assertions.checkIfTextMatches(expectedEthereumSessionScope?.accounts[0].toLowerCase() ?? '', `eip155:1:${DEFAULT_FIXTURE_ACCOUNT.toLowerCase()}`);
     });
   });
 });
