@@ -17,6 +17,7 @@ import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
 import { IndexableWebElement } from 'detox/detox';
 import Utilities from '../../utils/Utilities';
+import { ConfirmationFooterSelectorIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
 
 export const TEST_SNAPS_URL =
   'https://metamask.github.io/snaps/test-snaps/2.25.0/';
@@ -38,6 +39,10 @@ class TestSnaps {
     return Matchers.getElementByID(
       TestSnapBottomSheetSelectorWebIDS.BOTTOMSHEET_FOOTER_BUTTON_ID,
     );
+  }
+
+  get confirmSignatureButton() {
+    return Matchers.getElementByID(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON);
   }
 
   async checkResultSpan(
@@ -69,6 +74,7 @@ class TestSnaps {
   }
 
   async navigateToTestSnap() {
+    await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_SNAPS_URL);
   }
 
@@ -137,6 +143,10 @@ class TestSnaps {
 
   async approveSignRequest() {
     await Gestures.waitAndTap(this.getApproveSignRequestButton);
+  }
+
+  async approveNativeConfirmation() {
+    await Gestures.waitAndTap(this.confirmSignatureButton);
   }
 
   async waitForWebSocketUpdate(state: {

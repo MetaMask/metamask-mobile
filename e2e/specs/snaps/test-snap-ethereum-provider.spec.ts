@@ -9,8 +9,7 @@ import BrowserView from '../../pages/Browser/BrowserView';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
-import ConfirmationUITypes from '../../pages/Browser/Confirmations/ConfirmationUITypes';
+import RequestTypes from '../../pages/Browser/Confirmations/RequestTypes';
 
 describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
   beforeAll(async () => {
@@ -61,9 +60,9 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
         await TestSnaps.fillMessage('personalSignMessageInput', 'foo');
         await TestSnaps.tapButton('personalSignButton');
         await Assertions.checkIfVisible(
-          ConfirmationUITypes.ModalConfirmationContainer,
+          RequestTypes.PersonalSignRequest,
         );
-        await FooterActions.tapConfirmButton();
+        await TestSnaps.approveNativeConfirmation();
         await TestSnaps.checkResultSpan(
           'personalSignResultSpan',
           '"0xc87c81cc8592936ec9dedfb6040080a0ac100c713231fd3b2ee93942a175efb639ccda7918bd14cbe8ef2f5ec917bba1a35744c06d2d4ff3a8a6b077c3e2a1381c"',
@@ -73,9 +72,9 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
         await TestSnaps.fillMessage('signTypedDataMessageInput', 'bar');
         await TestSnaps.tapButton('signTypedDataButton');
         await Assertions.checkIfVisible(
-          ConfirmationUITypes.ModalConfirmationContainer,
+          RequestTypes.TypedSignRequest,
         );
-        await FooterActions.tapConfirmButton();
+        await TestSnaps.approveNativeConfirmation();
         await TestSnaps.checkResultSpan(
           'signTypedDataResultSpan',
           '"0x85094c93975d31ceddddf2894fc7bb96ce6cfdac2559a72417bc214e6e9f24195fa708010da7a52b5df6c75595d0e03f90749b2b5bfbd5605ca799ceb91a36681b"',
