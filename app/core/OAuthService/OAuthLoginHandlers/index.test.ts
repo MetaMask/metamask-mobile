@@ -44,6 +44,15 @@ jest.mock('expo-apple-authentication', () => ({
   },
 }));
 
+jest.mock('react-native-quick-crypto', () => ({
+  randomBytes: jest.fn().mockReturnValue(new Uint8Array(32)),
+  createHash: jest.fn().mockReturnValue({
+    update: jest.fn().mockReturnValue({
+      digest: jest.fn().mockReturnValue(new Uint8Array(32)),
+    }),
+  }),
+}));
+
 const mockSignInWithGoogle = jest.fn().mockResolvedValue({
   type: 'google-signin',
   idToken: 'googleIdToken',

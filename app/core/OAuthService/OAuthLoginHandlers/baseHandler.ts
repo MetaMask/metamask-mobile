@@ -9,7 +9,7 @@ import { OAuthError, OAuthErrorType } from '../error';
 import { fromBase64UrlSafe, toBase64UrlSafe } from './utils';
 import { bytesToBigInt, bytesToString, hexToBytes } from '@metamask/utils';
 import { toByteArray, fromByteArray } from 'react-native-quick-base64';
-import Crypto from 'react-native-quick-crypto';
+import QuickCrypto from 'react-native-quick-crypto';
 
 /**
  * Get the auth tokens from the auth server
@@ -254,8 +254,10 @@ export abstract class BaseLoginHandler {
     codeVerifier: string;
     challenge: string;
   } {
-    const codeVerifier = Crypto.randomBytes(32);
-    const challenge = Crypto.createHash('sha256').update(codeVerifier).digest();
+    const codeVerifier = QuickCrypto.randomBytes(32);
+    const challenge = QuickCrypto.createHash('sha256')
+      .update(codeVerifier)
+      .digest();
     return {
       challenge: toBase64UrlSafe(fromByteArray(challenge)),
       codeVerifier: bytesToBigInt(codeVerifier).toString(10),
