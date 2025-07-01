@@ -4,7 +4,9 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
 <View
   style={
     {
-      "height": 100,
+      "flexDirection": "row",
+      "flexGrow": 1,
+      "flexShrink": 1,
     }
   }
 >
@@ -290,10 +292,6 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
             ],
             "disableAutoLayout": true,
             "estimatedItemSize": 80,
-            "estimatedListSize": {
-              "height": 100,
-              "width": 750,
-            },
             "getItemType": [Function],
             "keyExtractor": [Function],
             "numColumns": 1,
@@ -310,12 +308,6 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
             "width": 0,
           },
           "shouldRefreshWithAnchoring": true,
-        }
-      }
-      layoutSize={
-        {
-          "height": 100,
-          "width": 750,
         }
       }
       maxRenderAhead={750}
@@ -1260,7 +1252,9 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
 <View
   style={
     {
-      "height": 100,
+      "flexDirection": "row",
+      "flexGrow": 1,
+      "flexShrink": 1,
     }
   }
 >
@@ -1546,10 +1540,6 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
             ],
             "disableAutoLayout": true,
             "estimatedItemSize": 80,
-            "estimatedListSize": {
-              "height": 100,
-              "width": 750,
-            },
             "getItemType": [Function],
             "keyExtractor": [Function],
             "numColumns": 1,
@@ -1566,12 +1556,6 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
             "width": 0,
           },
           "shouldRefreshWithAnchoring": true,
-        }
-      }
-      layoutSize={
-        {
-          "height": 100,
-          "width": 750,
         }
       }
       maxRenderAhead={750}
@@ -2440,7 +2424,9 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
 <View
   style={
     {
-      "height": 100,
+      "flexDirection": "row",
+      "flexGrow": 1,
+      "flexShrink": 1,
     }
   }
 >
@@ -2726,10 +2712,6 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
             ],
             "disableAutoLayout": true,
             "estimatedItemSize": 80,
-            "estimatedListSize": {
-              "height": 100,
-              "width": 750,
-            },
             "getItemType": [Function],
             "keyExtractor": [Function],
             "numColumns": 1,
@@ -2746,12 +2728,6 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
             "width": 0,
           },
           "shouldRefreshWithAnchoring": true,
-        }
-      }
-      layoutSize={
-        {
-          "height": 100,
-          "width": 750,
         }
       }
       maxRenderAhead={750}
@@ -3696,7 +3672,9 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
 <View
   style={
     {
-      "height": 100,
+      "flexDirection": "row",
+      "flexGrow": 1,
+      "flexShrink": 1,
     }
   }
 >
@@ -3982,10 +3960,6 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
             ],
             "disableAutoLayout": true,
             "estimatedItemSize": 80,
-            "estimatedListSize": {
-              "height": 100,
-              "width": 750,
-            },
             "getItemType": [Function],
             "keyExtractor": [Function],
             "numColumns": 1,
@@ -4002,12 +3976,6 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
             "width": 0,
           },
           "shouldRefreshWithAnchoring": true,
-        }
-      }
-      layoutSize={
-        {
-          "height": 100,
-          "width": 750,
         }
       }
       maxRenderAhead={750}

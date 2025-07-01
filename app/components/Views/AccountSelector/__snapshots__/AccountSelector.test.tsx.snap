@@ -388,7 +388,8 @@ exports[`AccountSelector should render correctly 1`] = `
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
-                                "maxHeight": 1334,
+                                "display": "flex",
+                                "maxHeight": 1200.6000000000001,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
                                 "shadowColor": "#0000001a",
@@ -475,7 +476,9 @@ exports[`AccountSelector should render correctly 1`] = `
                           <View
                             style={
                               {
-                                "height": 160,
+                                "flexDirection": "row",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
                               }
                             }
                           >
@@ -695,10 +698,6 @@ exports[`AccountSelector should render correctly 1`] = `
                                       ],
                                       "disableAutoLayout": true,
                                       "estimatedItemSize": 80,
-                                      "estimatedListSize": {
-                                        "height": 160,
-                                        "width": 750,
-                                      },
                                       "getItemType": [Function],
                                       "keyExtractor": [Function],
                                       "numColumns": 1,
@@ -715,12 +714,6 @@ exports[`AccountSelector should render correctly 1`] = `
                                       "width": 0,
                                     },
                                     "shouldRefreshWithAnchoring": true,
-                                  }
-                                }
-                                layoutSize={
-                                  {
-                                    "height": 160,
-                                    "width": 750,
                                   }
                                 }
                                 maxRenderAhead={750}
@@ -1530,10 +1523,15 @@ exports[`AccountSelector should render correctly 1`] = `
                           <View
                             style={
                               {
+                                "backgroundColor": "#ffffff",
+                                "flexDirection": "row",
                                 "marginHorizontal": 16,
                                 "marginVertical": 16,
+                                "paddingHorizontal": 8,
+                                "paddingVertical": 4,
                               }
                             }
+                            testID="bottomsheetfooter"
                           >
                             <TouchableOpacity
                               accessibilityRole="button"
@@ -1550,6 +1548,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                   "borderColor": "#4459ff",
                                   "borderRadius": 12,
                                   "borderWidth": 1,
+                                  "flex": 1,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
