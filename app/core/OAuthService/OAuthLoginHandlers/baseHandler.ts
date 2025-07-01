@@ -7,7 +7,7 @@ import {
 } from '../OAuthInterface';
 import { OAuthError, OAuthErrorType } from '../error';
 import { fromBase64UrlSafe, toBase64UrlSafe } from './utils';
-import { bytesToBigInt, bytesToString, hexToBytes } from '@metamask/utils';
+import { bytesToBigInt, bytesToString } from '@metamask/utils';
 import { toByteArray, fromByteArray } from 'react-native-quick-base64';
 import QuickCrypto from 'react-native-quick-crypto';
 
