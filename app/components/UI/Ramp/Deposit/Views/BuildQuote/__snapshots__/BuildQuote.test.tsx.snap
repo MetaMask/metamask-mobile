@@ -5566,6 +5566,19 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                   >
                                     US
                                   </Text>
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="ArrowDown"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
                                 </View>
                               </TouchableOpacity>
                             </View>
@@ -7267,6 +7280,19 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                   >
                                     US
                                   </Text>
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="ArrowDown"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
                                 </View>
                               </TouchableOpacity>
                             </View>
