@@ -20,7 +20,7 @@ import { TotalFiatBalancesCrossChains } from '../useGetTotalFiatBalanceCrossChai
 import { isPortfolioViewEnabled, isTestNet } from '../../../util/networks';
 
 // Production balance calculation (EVM)
-const getEvmBalance = (
+export const getEvmBalance = (
   account: InternalAccount,
   isOriginalNativeEvmTokenSymbol: boolean,
   totalFiatBalancesCrossEvmChain: TotalFiatBalancesCrossChains,
@@ -93,7 +93,9 @@ const getNonEvmDisplayBalance = (
 };
 ///: END:ONLY_INCLUDE_IF
 
-export const getShouldShowAggregatedPercentage = (chainId: SupportedCaipChainId) => {
+export const getShouldShowAggregatedPercentage = (
+  chainId: SupportedCaipChainId,
+) => {
   return !isTestNet(chainId);
 };
 

@@ -64,6 +64,9 @@ import {
   selectInternalAccountsById,
 } from '../../../selectors/accountsController';
 import { AccountWallet } from '@metamask/account-tree-controller';
+import { getAggregatedBalance } from '../../hooks/useMultichainBalances/utils';
+import { renderFiat } from '../../../util/number';
+import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
@@ -111,34 +114,24 @@ const EvmAccountSelectorList = ({
 
   const accountTreeSections = useSelector(selectAccountSections);
   const internalAccounts = useSelector(selectInternalAccounts);
+  const currentCurrency = useSelector(selectCurrentCurrency);
   // eslint-disable-next-line no-console
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [aggregatedBalanceByAccount, setAggregatedBalanceByAccount] = useState<{
-    [address: string]: {
-      aggregatedBalance: string | null;
-    };
+    [address: string]: number | null;
   }>(() => {
     const initialBalance: {
-      [address: string]: {
-        aggregatedBalance: string | null;
-      };
+      [address: string]: number | null;
     } = {};
 
     internalAccounts.forEach((account) => {
-      initialBalance[account.address] = {
-        aggregatedBalance: null,
-      };
+      initialBalance[account.address] = null;
     });
 
     return initialBalance;
   });
 
-  // eslint-disable-next-line no-console
-  console.log(
-    'aggregatedBalanceByAccount ........',
-    aggregatedBalanceByAccount,
-  );
   const internalAccountsById = useSelector(selectInternalAccountsById);
 
   const accountSections = useMemo((): AccountSection[] => {
@@ -416,32 +409,53 @@ const EvmAccountSelectorList = ({
     scrollToSelectedAccount();
   }, [scrollToSelectedAccount]);
 
-  // Sample async function that returns null
-  const sampleAsyncFunction = useCallback(async (): Promise<null> => {
-    // eslint-disable-next-line no-console
-    console.log('Sample async function called');
-    // Simulate some async work
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    // eslint-disable-next-line no-console
-    console.log('Sample async function completed');
-    return null;
-  }, []);
+  // Async function to fetch and update aggregated balances
+  const fetchAggregatedBalances = useCallback(async (): Promise<void> => {
+    try {
+      const aggregatedBalanceNewState: {
+        [address: string]: number | null;
+      } = {};
+
+      // Process each account and get their balance
+      for (const account of internalAccounts) {
+        try {
+          const balanceData = getAggregatedBalance(account);
+
+          aggregatedBalanceNewState[toFormattedAddress(account.address)] =
+            balanceData?.ethFiat + balanceData?.tokenFiat;
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error(
+            `Error fetching balance for account ${account.address}:`,
+            error,
+          );
+          aggregatedBalanceNewState[account.address] = null;
+        }
+      }
+
+      // Update state with new balance data
+      setAggregatedBalanceByAccount(aggregatedBalanceNewState);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error in fetchAggregatedBalances:', error);
+    }
+  }, [internalAccounts]);
 
   // Call the async function through useEffect
   useEffect(() => {
     const executeAsyncFunction = async () => {
       try {
-        const result = await sampleAsyncFunction();
+        await fetchAggregatedBalances();
         // eslint-disable-next-line no-console
-        console.log('Async function result:', result);
+        console.log('Aggregated balances fetch completed');
       } catch (error) {
         // eslint-disable-next-line no-console
-        console.error('Error in async function:', error);
+        console.error('Error executing fetchAggregatedBalances:', error);
       }
     };
 
     executeAsyncFunction();
-  }, [sampleAsyncFunction]);
+  }, [fetchAggregatedBalances]);
 
   const renderItem = useCallback(
     ({ item }: { item: FlattenedAccountListItem }) => {
@@ -558,10 +572,18 @@ const EvmAccountSelectorList = ({
           style={cellStyle}
           buttonProps={buttonProps}
         >
-          {aggregatedBalanceByAccount[address]?.aggregatedBalance ? (
-            <Text>
-              {aggregatedBalanceByAccount[address]?.aggregatedBalance}
-            </Text>
+          {aggregatedBalanceByAccount?.[address] !== null ? (
+            <SensitiveText
+              length={SensitiveTextLength.Long}
+              style={styles.balanceLabel}
+              isHidden={privacyMode}
+            >
+              {renderFiat(
+                aggregatedBalanceByAccount[address],
+                currentCurrency,
+                2,
+              )}
+            </SensitiveText>
           ) : (
             <Skeleton width={60} height={24} />
           )}
@@ -592,6 +614,9 @@ const EvmAccountSelectorList = ({
       renderSectionFooter,
       internalAccountsById,
       aggregatedBalanceByAccount,
+      currentCurrency,
+      privacyMode,
+      styles.balanceLabel,
     ],
   );
 
