@@ -34,7 +34,8 @@ const BalanceChangeRow: React.FC<BalanceChangeRowProperties> = ({
   showFiat,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { asset, amount, fiatAmount } = balanceChange;
+  const { asset, amount, fiatAmount, isAllApproval, isUnlimitedApproval } =
+    balanceChange;
   return (
     <View style={styles.container}>
       {label && (
@@ -57,6 +58,8 @@ const BalanceChangeRow: React.FC<BalanceChangeRowProperties> = ({
           <AmountPill
             asset={asset}
             amount={amount}
+            isAllApproval={isAllApproval}
+            isUnlimitedApproval={isUnlimitedApproval}
             testID="balance-change-row-amount-pill"
           />
           <AssetPill asset={asset} testID="balance-change-row-asset-pill" />

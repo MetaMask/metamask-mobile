@@ -496,6 +496,13 @@
       "instant":"Instant",
       "1_to_2_days": "1 to 2 days"
     },
+    "unsupported_region_modal": {
+      "title": "Region not supported",
+      "message": "We're sorry, but we don't support deposits in %{regionName} yet. Please try a different region or contact support for assistance.",
+      "description": "We're sorry, but we don't support deposits in your region yet. Please try a different region or contact support for assistance.",
+      "select_different_region": "Select a different region",
+      "exit_to_wallet_home": "Exit to wallet home"
+    },
     "get_started": {
       "title": "Top up your wallet with USDC",
       "bullet_1_title": "Value-backed by the US dollar",
@@ -662,6 +669,10 @@
     "solana": {
       "title": "Solana is now supported",
       "subtitle": "Create a Solana account to get started"
+    },
+    "backupAndSync": {
+      "title": "Introducing backup and sync",
+      "subtitle": "Back up your accounts and sync settings."
     }
   },
   "wallet": {
@@ -4171,6 +4182,8 @@
       "part3": "."
     },
     "label": {
+      "amount": "Amount",
+      "value": "Value",
       "account": "Account",
       "balance": "Balance",
       "interacting_with": "Interacting with",
@@ -4180,7 +4193,8 @@
       "signing_in_with": "Signing in with",
       "spender": "Spender",
       "now": "Now",
-      "switching_to": "Switching To"
+      "switching_to": "Switching To",
+      "value": "Value"
     },
     "title": {
       "signature": "Signature request",
@@ -4196,14 +4210,22 @@
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
+      "permit_revoke": "You're removing someone's permission to spend tokens from your account.",
       "permit_NFTs": "This site wants permission to withdraw your NFTs.",
+      "permit_revoke_NFTs": "This site would like to reset the withdraw limit for your NFTs",
       "signature": "Review request details before you confirm.",
       "signature_siwe": "A site wants you to sign in to prove you own this account.",
       "contract_interaction": "Review request details before you confirm.",
       "switch_to_smart_account": "You're switching to a smart account.",
       "switch_to_standard_account": "You're switching back to a standard account (EOA).",
-      "contract_deployment": "This site wants you to deploy a contract"
+      "contract_deployment": "This site wants you to deploy a contract",
+      "decrease_allowance": "This site wants decrease the spending cap for your tokens."
     },
+    "spending_cap": "Spending cap",
+    "withdraw": "Withdraw",
+    "nfts": "NFTs",
+    "permission_from": "Permission from",
+    "spender": "Spender",
     "request_from": "Request from",
     "staking_from": "Staking from",
     "signing_in_with": "Signing in with",
@@ -4447,7 +4469,7 @@
     "export_credentials": {
       "export_private_key": "Private key",
       "private_key_warning_title": "Never disclose this key.",
-      "private_key_warning_description": "Anyone with your private key can stead any assets held in your account.",
+      "private_key_warning_description": "Anyone with your private key can steal any assets held in your account.",
       "credential_as_text": "Text",
       "credential_as_qr": "QR code",
       "export_mnemonic": "Export mnemonic",
@@ -4456,7 +4478,7 @@
     "reveal_private_key": {
       "title": "Show private key",
       "banner_title": "Never disclose this key.",
-      "banner_description": "Anyone with your private key can stead any assets held in your account.",
+      "banner_description": "Anyone with your private key can steal any assets held in your account.",
       "enter_password": "Enter your password",
       "password_placeholder": "Password",
       "next": "Next",
