@@ -3,7 +3,10 @@ import TestHelpers from '../../helpers';
 import { getLocalTestDappPort } from '../../fixtures/utils';
 import Matchers from '../../utils/Matchers';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
-import { MultichainTestDappViewSelectorsIDs, MULTICHAIN_TEST_TIMEOUTS } from '../../selectors/Browser/MultichainTestDapp.selectors';
+import {
+  MultichainTestDappViewSelectorsIDs,
+  MULTICHAIN_TEST_TIMEOUTS,
+} from '../../selectors/Browser/MultichainTestDapp.selectors';
 import Browser from './BrowserView';
 import Gestures from '../../utils/Gestures';
 import { waitFor } from 'detox';
@@ -15,7 +18,8 @@ import Assertions from '../../utils/Assertions';
 
 // Use the same port as the regular test dapp - the multichainDapp flag controls which dapp is served
 export const MULTICHAIN_TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
-export const DEFAULT_MULTICHAIN_TEST_DAPP_URL = 'https://metamask.github.io/multichain-test-dapp/';
+export const DEFAULT_MULTICHAIN_TEST_DAPP_URL =
+  'https://metamask.github.io/multichain-test-dapp/';
 
 /**
  * Get the multichain test dapp URL based on environment configuration
@@ -28,7 +32,9 @@ export function getMultichainTestDappUrl(): string {
   // Check for local development flag
   const useLocal = process.env.USE_LOCAL_DAPP !== 'false'; // default to true if not set
   if (useLocal) {
-    console.log(`🏠 Using local multichain dapp URL: ${MULTICHAIN_TEST_DAPP_LOCAL_URL}`);
+    console.log(
+      `🏠 Using local multichain dapp URL: ${MULTICHAIN_TEST_DAPP_LOCAL_URL}`,
+    );
     return MULTICHAIN_TEST_DAPP_LOCAL_URL;
   }
 
@@ -39,7 +45,9 @@ export function getMultichainTestDappUrl(): string {
     return customUrl;
   }
 
-  console.log(`📱 Using default multichain dapp URL: ${DEFAULT_MULTICHAIN_TEST_DAPP_URL}`);
+  console.log(
+    `📱 Using default multichain dapp URL: ${DEFAULT_MULTICHAIN_TEST_DAPP_URL}`,
+  );
   return DEFAULT_MULTICHAIN_TEST_DAPP_URL;
 }
 
@@ -134,7 +142,9 @@ class MultichainTestDApp {
 
     // Verify WebView is visible
     await Assertions.checkIfVisible(
-      Promise.resolve(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))),
+      Promise.resolve(
+        element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)),
+      ),
     );
   }
 
@@ -158,7 +168,7 @@ class MultichainTestDApp {
    */
   async initCreateSessionScopes(
     _scopes: string[],
-    _accounts: string[] = []
+    _accounts: string[] = [],
   ): Promise<boolean> {
     // Get element first
     const createSessionBtn = await this.createSessionButton;
@@ -194,7 +204,9 @@ class MultichainTestDApp {
    */
   async connectViaJS(_extensionId = 'window.postMessage'): Promise<boolean> {
     // Make sure the webview exists and is visible
-    await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))).toBeVisible().withTimeout(10000);
+    await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)))
+      .toBeVisible()
+      .withTimeout(10000);
 
     // Tap the webview to ensure it has focus
     await element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)).tap();
@@ -222,7 +234,9 @@ class MultichainTestDApp {
    */
   async scrollToPageTop(): Promise<void> {
     const webview = this.getWebView();
-    await webview.element(by.web.tag('body')).runScript('(el) => { window.scrollTo(0, 0); return true; }')
+    await webview
+      .element(by.web.tag('body'))
+      .runScript('(el) => { window.scrollTo(0, 0); return true; }')
       .catch(() => {
         // Scroll might fail if page structure is different, but that's okay
       });
@@ -233,10 +247,13 @@ class MultichainTestDApp {
    */
   async useAutoConnectButton(): Promise<boolean> {
     const webview = this.getWebView();
-    const autoConnectButton = webview.element(by.web.id('auto-connect-postmessage-button'));
+    const autoConnectButton = webview.element(
+      by.web.id('auto-connect-postmessage-button'),
+    );
 
     // Try to click the button - first with JS, then native tap
-    const clicked = await autoConnectButton.runScript('(el) => { el.click(); }')
+    const clicked = await autoConnectButton
+      .runScript('(el) => { el.click(); }')
       .then(() => true)
       .catch(async () => {
         // JS click failed, try native tap
@@ -254,15 +271,19 @@ class MultichainTestDApp {
     await TestHelpers.delay(3000);
 
     // Verify connection status by checking if checkboxes are enabled
-    const ethereumCheckbox = webview.element(by.web.id('network-checkbox-eip155-1'));
-    const isDisabled = await ethereumCheckbox.runScript('(el) => el ? el.disabled : true')
+    const ethereumCheckbox = webview.element(
+      by.web.id('network-checkbox-eip155-1'),
+    );
+    const isDisabled = await ethereumCheckbox
+      .runScript('(el) => el ? el.disabled : true')
       .catch(() => true); // If we can't check, assume disabled
 
     if (isDisabled) {
       // Try additional wait
       await TestHelpers.delay(2000);
 
-      const isStillDisabled = await ethereumCheckbox.runScript('(el) => el ? el.disabled : true')
+      const isStillDisabled = await ethereumCheckbox
+        .runScript('(el) => el ? el.disabled : true')
         .catch(() => true);
 
       if (isStillDisabled) {
@@ -280,10 +301,14 @@ class MultichainTestDApp {
   async selectNetwork(chainId: string): Promise<boolean> {
     const webview = this.getWebView();
     const escapedChainId = this.escapeChainIdForHtml(chainId);
-    const networkCheckbox = webview.element(by.web.id(`network-checkbox-${escapedChainId}`));
+    const networkCheckbox = webview.element(
+      by.web.id(`network-checkbox-${escapedChainId}`),
+    );
 
     await networkCheckbox.scrollToView();
-    await networkCheckbox.runScript('(el) => { if(!el.checked) { el.click(); } return el.checked; }');
+    await networkCheckbox.runScript(
+      '(el) => { if(!el.checked) { el.click(); } return el.checked; }',
+    );
 
     return true;
   }
@@ -293,7 +318,9 @@ class MultichainTestDApp {
    */
   async tapCreateSessionButton(): Promise<void> {
     const webview = this.getWebView();
-    const createSessionButton = webview.element(by.web.id('create-session-btn'));
+    const createSessionButton = webview.element(
+      by.web.id('create-session-btn'),
+    );
 
     await createSessionButton.scrollToView();
     await createSessionButton.runScript('(el) => { el.click(); }');
@@ -321,7 +348,9 @@ class MultichainTestDApp {
    */
   async tapRevokeSessionButton(): Promise<void> {
     const webview = this.getWebView();
-    const revokeSessionButton = webview.element(by.web.id('revoke-session-btn'));
+    const revokeSessionButton = webview.element(
+      by.web.id('revoke-session-btn'),
+    );
 
     await revokeSessionButton.scrollToView();
     await revokeSessionButton.runScript('(el) => { el.click(); }');
@@ -334,7 +363,9 @@ class MultichainTestDApp {
    * Get revoke session result data
    * @param resultIndex - The index of the result to retrieve (defaults to 0)
    */
-  async getRevokeSessionData(resultIndex: number = 0): Promise<SessionResponse> {
+  async getRevokeSessionData(
+    resultIndex: number = 0,
+  ): Promise<SessionResponse> {
     // Wait for result to be populated
     await TestHelpers.delay(2000);
 
@@ -343,16 +374,19 @@ class MultichainTestDApp {
 
     // Get the revoke result content
     const webview = this.getWebView();
-    const revokeResult = webview.element(by.web.id(`session-method-result-${resultIndex}`));
+    const revokeResult = webview.element(
+      by.web.id(`session-method-result-${resultIndex}`),
+    );
 
-    const resultData = await revokeResult.runScript('(el) => el.textContent')
+    const resultData = await revokeResult
+      .runScript('(el) => el.textContent')
       .catch(() => null);
 
     if (resultData) {
       const parsedResult = JSON.parse(resultData);
       return {
         success: true,
-        sessionScopes: parsedResult.sessionScopes || {}
+        sessionScopes: parsedResult.sessionScopes || {},
       };
     }
 
@@ -362,7 +396,12 @@ class MultichainTestDApp {
   /**
    * Complete multichain connection flow
    */
-  async completeMultichainFlow(chainIds: string[] = [MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET, MultichainUtilities.CHAIN_IDS.LINEA_MAINNET]): Promise<void> {
+  async completeMultichainFlow(
+    chainIds: string[] = [
+      MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET,
+      MultichainUtilities.CHAIN_IDS.LINEA_MAINNET,
+    ],
+  ): Promise<void> {
     // Scroll to top
     await this.scrollToPageTop();
 
@@ -388,7 +427,9 @@ class MultichainTestDApp {
   async tapFirstResultSummary(index: number = 0): Promise<void> {
     try {
       const webview = this.getWebView();
-      const firstResult = webview.element(by.web.id(`session-method-details-${index}`));
+      const firstResult = webview.element(
+        by.web.id(`session-method-details-${index}`),
+      );
 
       await firstResult.scrollToView();
       await firstResult.runScript('(el) => { if(!el.open) { el.click(); } }');
@@ -414,16 +455,19 @@ class MultichainTestDApp {
 
     // Get the session result content
     const webview = this.getWebView();
-    const sessionResult = webview.element(by.web.id(`session-method-result-${resultIndex}`));
+    const sessionResult = webview.element(
+      by.web.id(`session-method-result-${resultIndex}`),
+    );
 
-    const sessionData = await sessionResult.runScript('(el) => el.textContent')
+    const sessionData = await sessionResult
+      .runScript('(el) => el.textContent')
       .catch(() => null);
 
     if (sessionData) {
       const parsedSession = JSON.parse(sessionData);
       return {
         success: true,
-        sessionScopes: parsedSession.sessionScopes || {}
+        sessionScopes: parsedSession.sessionScopes || {},
       };
     }
 
@@ -433,7 +477,9 @@ class MultichainTestDApp {
   /**
    * Verify session contains specific chain IDs
    */
-  async verifySessionContainsChains(expectedChainIds: string[]): Promise<boolean> {
+  async verifySessionContainsChains(
+    expectedChainIds: string[],
+  ): Promise<boolean> {
     const sessionData = await this.getSessionData();
 
     if (!sessionData.success || !sessionData.sessionScopes) {
@@ -441,7 +487,9 @@ class MultichainTestDApp {
     }
 
     for (const chainId of expectedChainIds) {
-      const fullChainId = chainId.startsWith('eip155:') ? chainId : `eip155:${chainId}`;
+      const fullChainId = chainId.startsWith('eip155:')
+        ? chainId
+        : `eip155:${chainId}`;
       if (!sessionData.sessionScopes[fullChainId]) {
         return false;
       }
@@ -468,8 +516,11 @@ class MultichainTestDApp {
    */
   async isConnectedToDapp(): Promise<boolean> {
     const webview = this.getWebView();
-    const ethereumCheckbox = webview.element(by.web.id('network-checkbox-eip155-1'));
-    const isDisabled = await ethereumCheckbox.runScript('(el) => el ? el.disabled : true')
+    const ethereumCheckbox = webview.element(
+      by.web.id('network-checkbox-eip155-1'),
+    );
+    const isDisabled = await ethereumCheckbox
+      .runScript('(el) => el ? el.disabled : true')
       .catch(() => true); // If we can't check, assume not connected
     return !isDisabled;
   }
@@ -496,7 +547,9 @@ class MultichainTestDApp {
    * Verify the current state of network checkboxes using CSS :checked selector
    * This is the only reliable method that works in WebView (proven by testing)
    */
-  async verifyNetworkCheckboxStates(chainIds: string[]): Promise<Record<string, boolean>> {
+  async verifyNetworkCheckboxStates(
+    chainIds: string[],
+  ): Promise<Record<string, boolean>> {
     const webview = this.getWebView();
     const states: Record<string, boolean> = {};
 
@@ -505,7 +558,8 @@ class MultichainTestDApp {
       const checkboxId = `network-checkbox-${escapedChainId}`;
 
       // Use CSS :checked pseudo-selector - the only method that works reliably
-      const isChecked = await webview.element(by.web.cssSelector(`#${checkboxId}:checked`))
+      const isChecked = await webview
+        .element(by.web.cssSelector(`#${checkboxId}:checked`))
         .scrollToView()
         .then(() => true)
         .catch(() => false);
@@ -550,20 +604,23 @@ class MultichainTestDApp {
     const webview = this.getWebView();
     const allNetworks = this.getAllSupportedNetworks();
 
-          for (const chainId of allNetworks) {
+    for (const chainId of allNetworks) {
       const escapedChainId = this.escapeChainIdForHtml(chainId);
       const checkboxId = `network-checkbox-${escapedChainId}`;
 
       const checkbox = webview.element(by.web.id(checkboxId));
 
       // Check if element exists and is checked, then uncheck
-      const isChecked = await checkbox.runScript('(el) => el ? el.checked : false')
+      const isChecked = await checkbox
+        .runScript('(el) => el ? el.checked : false')
         .catch(() => false);
 
       if (isChecked) {
         await checkbox.tap().catch(async () => {
           // If tap fails, try JS click
-          await checkbox.runScript('(el) => { if(el && el.checked) { el.click(); } }');
+          await checkbox.runScript(
+            '(el) => { if(el && el.checked) { el.click(); } }',
+          );
         });
         await TestHelpers.delay(200);
       }
@@ -600,14 +657,16 @@ class MultichainTestDApp {
       await TestHelpers.delay(300);
 
       // Check current state using reliable CSS :checked selector
-      const isCurrentlyChecked = await webview.element(by.web.cssSelector(`#${checkboxId}:checked`))
+      const isCurrentlyChecked = await webview
+        .element(by.web.cssSelector(`#${checkboxId}:checked`))
         .scrollToView()
         .then(() => true)
         .catch(() => false);
 
       // Only click if we need to change the state
       if (!isCurrentlyChecked) {
-        const clicked = await checkbox.tap()
+        const clicked = await checkbox
+          .tap()
           .then(() => true)
           .catch(async () => {
             // If tap fails, try JS click
@@ -672,10 +731,15 @@ class MultichainTestDApp {
 
     try {
       await eventResult.scrollToView();
-      const eventText = await eventResult.runScript((el) => el.textContent || '');
+      const eventText = await eventResult.runScript(
+        (el) => el.textContent || '',
+      );
       return eventText;
     } catch (error) {
-      console.error(`Failed to get session changed event data at index ${index}:`, error);
+      console.error(
+        `Failed to get session changed event data at index ${index}:`,
+        error,
+      );
       return null;
     }
   }
@@ -697,7 +761,10 @@ class MultichainTestDApp {
       await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.DEFAULT_DELAY);
       return true;
     } catch (error) {
-      console.error(`Failed to subscribe to events for chain ${chainId}:`, error);
+      console.error(
+        `Failed to subscribe to events for chain ${chainId}:`,
+        error,
+      );
       return false;
     }
   }
@@ -710,10 +777,14 @@ class MultichainTestDApp {
     const webview = this.getWebView();
 
     try {
-      const notificationContainer = webview.element(by.web.id(MultichainTestDappViewSelectorsIDs.WALLET_NOTIFY_CONTAINER));
+      const notificationContainer = webview.element(
+        by.web.id(MultichainTestDappViewSelectorsIDs.WALLET_NOTIFY_CONTAINER),
+      );
       await notificationContainer.scrollToView();
 
-      const emptyMessage = webview.element(by.web.id(MultichainTestDappViewSelectorsIDs.WALLET_NOTIFY_EMPTY));
+      const emptyMessage = webview.element(
+        by.web.id(MultichainTestDappViewSelectorsIDs.WALLET_NOTIFY_EMPTY),
+      );
       // For WebView elements, try to interact to check existence
       await emptyMessage.scrollToView();
       return true;
@@ -731,7 +802,11 @@ class MultichainTestDApp {
     const webview = this.getWebView();
 
     try {
-      const firstNotification = webview.element(by.web.id(`${MultichainTestDappViewSelectorsIDs.WALLET_NOTIFY_DETAILS}0`));
+      const firstNotification = webview.element(
+        by.web.id(
+          `${MultichainTestDappViewSelectorsIDs.WALLET_NOTIFY_DETAILS}0`,
+        ),
+      );
       await firstNotification.scrollToView();
       return true;
     } catch (error) {
@@ -770,7 +845,11 @@ class MultichainTestDApp {
    * @param {number} index - The result index
    * @returns {Promise<string|null>} The result text or null if not found
    */
-  async getInvokeMethodResult(chainId: string, method: string, index = 0): Promise<string | null> {
+  async getInvokeMethodResult(
+    chainId: string,
+    method: string,
+    index = 0,
+  ): Promise<string | null> {
     const webview = this.getWebView();
     const scope = MultichainUtilities.getEIP155Scope(chainId);
     const escapedScope = scope.replace(/:/g, '-');
@@ -795,11 +874,16 @@ class MultichainTestDApp {
       // Get the actual result content
       const resultElementId = `${MultichainTestDappViewSelectorsIDs.INVOKE_METHOD_RESULT_PREFIX}${escapedScope}-${method}-result-${index}`;
       const resultElement = webview.element(by.web.id(resultElementId));
-      const resultText = await resultElement.runScript((el) => el.textContent || '');
+      const resultText = await resultElement.runScript(
+        (el) => el.textContent || '',
+      );
 
       return resultText;
     } catch (error) {
-      console.error(`Failed to get result for ${method} on chain ${chainId}:`, error);
+      console.error(
+        `Failed to get result for ${method} on chain ${chainId}:`,
+        error,
+      );
       return null;
     }
   }
