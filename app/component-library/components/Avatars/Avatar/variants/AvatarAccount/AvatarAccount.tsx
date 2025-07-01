@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React from 'react';
-import { Image } from 'react-native';
+import { Image } from 'expo-image';
 import JazzIcon from 'react-native-jazzicon';
 
 // External dependencies.
@@ -32,7 +32,7 @@ const AvatarAccount = ({
         ),
         [AvatarAccountType.Blockies]: (
           <Image
-            source={{ uri: toDataUrl(accountAddress) }}
+            source={toDataUrl(accountAddress)}
             style={stylesheet.imageStyle}
           />
         ),
