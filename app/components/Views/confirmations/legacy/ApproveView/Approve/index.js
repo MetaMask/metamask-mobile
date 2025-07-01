@@ -115,10 +115,6 @@ class Approve extends PureComponent {
      */
     setTransactionObject: PropTypes.func.isRequired,
     /**
-     * List of transactions
-     */
-    transactions: PropTypes.array,
-    /**
      * A string representing the network name
      */
     providerType: PropTypes.string,
@@ -990,7 +986,6 @@ const mapStateToProps = (state) => {
     accounts: selectAccountsByChainId(state),
     ticker: selectNativeCurrencyByChainId(state, chainId),
     transaction,
-    transactions: selectTransactions(state),
     tokensLength: selectTokensLength(state),
     accountsLength: selectAccountsLength(state),
     primaryCurrency: selectPrimaryCurrency(state),
