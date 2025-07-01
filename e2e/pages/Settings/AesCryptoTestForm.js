@@ -125,7 +125,9 @@ class AesCryptoTestForm {
     await Gestures.scrollToElement(
       this.generateEncryptionKeyPasswordInput,
       this.scrollViewIdentifier,
-      'up',
+      {
+        direction: 'up',
+      }
     );
   }
 
@@ -133,6 +135,7 @@ class AesCryptoTestForm {
     await Gestures.scrollToElement(
       this.encryptButton,
       this.scrollViewIdentifier,
+      'up'
     );
   }
 
@@ -142,6 +145,7 @@ class AesCryptoTestForm {
       this.scrollViewIdentifier,
       {
         elemDescription: 'AES Form - Decrypt Button',
+        scrollAmount: 1000
       }
     );
   }
