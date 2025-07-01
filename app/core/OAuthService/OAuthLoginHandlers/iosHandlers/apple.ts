@@ -6,7 +6,7 @@ import {
   signInAsync,
   AppleAuthenticationScope,
 } from 'expo-apple-authentication';
-import { BaseLoginHandler } from '../baseHandler';
+import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
 import { OAuthErrorType, OAuthError } from '../../error';
 import Logger from '../../../../util/Logger';
 
@@ -38,8 +38,12 @@ export class IosAppleLoginHandler extends BaseLoginHandler {
    *
    * @param params.clientId - The Bundle ID from the apple developer account for the app.
    */
-  constructor(params: { clientId: string }) {
-    super();
+  constructor(params: BaseHandlerOptions) {
+    super({
+      authServerUrl: params.authServerUrl,
+      clientId: params.clientId,
+      web3AuthNetwork: params.web3AuthNetwork,
+    });
     this.clientId = params.clientId;
   }
 

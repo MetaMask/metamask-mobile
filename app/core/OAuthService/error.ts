@@ -7,6 +7,7 @@ export enum OAuthErrorType {
   UnsupportedPlatform = 10006,
   LoginInProgress = 10007,
   AuthServerError = 10008,
+  InvalidOauthStateError = 10010,
 }
 
 export const OAuthErrorMessages: Record<OAuthErrorType, string> = {
@@ -18,6 +19,7 @@ export const OAuthErrorMessages: Record<OAuthErrorType, string> = {
   [OAuthErrorType.UnsupportedPlatform]: 'Unsupported platform',
   [OAuthErrorType.LoginInProgress]: 'Login in progress',
   [OAuthErrorType.AuthServerError]: 'Auth server error',
+  [OAuthErrorType.InvalidOauthStateError]: 'Invalid OAuth state',
 } as const;
 
 export class OAuthError extends Error {
