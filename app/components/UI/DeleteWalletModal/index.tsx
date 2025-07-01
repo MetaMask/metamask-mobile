@@ -118,6 +118,7 @@ const DeleteWalletModal: React.FC = () => {
     <BottomSheet ref={modalRef}>
       {!isResetWallet ? (
         <View
+          style={styles.forgotPasswordContainer}
           testID={ForgotPasswordModalSelectorsIDs.CONTAINER}
         >
           <Text
