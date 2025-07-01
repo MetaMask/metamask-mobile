@@ -1,5 +1,3 @@
-/// <reference path="../../types/detox.d.ts" />
-
 import {
   ConnectedAccountModalSelectorsText,
   ConnectedAccountsSelectorsIDs,
@@ -8,6 +6,9 @@ import { WalletViewSelectorsText } from '../../selectors/wallet/WalletView.selec
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import TestHelpers from '../../helpers';
+import type { IndexableNativeElement, NativeElement, IndexableSystemElement } from 'detox/detox';
+type DetoxElement = Promise<IndexableNativeElement | NativeElement | IndexableSystemElement>;
+
 
 class ConnectedAccountsModal {
   get container(): DetoxElement {
@@ -170,8 +171,8 @@ class ConnectedAccountsModal {
     const networkNameElement = this.navigateToEditNetworksPermissionsButton;
     const element = await networkNameElement;
     // Type assertion to access label property which exists on Detox elements
-    const attributes = await (element as any).getAttributes();
-    return attributes.label as string;
+    const attributes = await (element as IndexableNativeElement).getAttributes();
+    return (attributes as { label: string }).label;
   }
 }
 
