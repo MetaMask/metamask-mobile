@@ -47,7 +47,7 @@ const createSendActiveAccount = (notifyAllConnections: jest.Mock, resolvedUrlRef
     }
   };
 
-describe('sendActiveAccount function', () => {
+describe('sendActiveAccount', () => {
   let sendActiveAccount: (targetUrl?: string) => Promise<void>;
   let resolvedUrlRef: { current: string };
 
@@ -73,7 +73,7 @@ describe('sendActiveAccount function', () => {
       expect(mockNotifyAllConnections).not.toHaveBeenCalled();
     });
 
-    it('use targetUrl when provided', async () => {
+    it('uses targetUrl when provided', async () => {
       const targetUrl = 'https://example.com';
       mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
 
@@ -82,7 +82,7 @@ describe('sendActiveAccount function', () => {
       expect(mockURLParse).toHaveBeenCalledWith(targetUrl);
     });
 
-    it('use resolvedUrlRef.current when no targetUrl provided', async () => {
+    it('uses resolvedUrlRef.current when no targetUrl provided', async () => {
       const currentUrl = 'https://current-site.com';
       resolvedUrlRef.current = currentUrl;
       mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
@@ -92,7 +92,7 @@ describe('sendActiveAccount function', () => {
       expect(mockURLParse).toHaveBeenCalledWith(currentUrl);
     });
 
-    it('use targetUrl over resolvedUrlRef.current when both exist', async () => {
+    it('uses targetUrl over resolvedUrlRef.current when both exist', async () => {
       const targetUrl = 'https://target-site.com';
       resolvedUrlRef.current = 'https://current-site.com';
       mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
@@ -105,7 +105,7 @@ describe('sendActiveAccount function', () => {
   });
 
   describe('hostname extraction', () => {
-    it('extract hostname correctly from various URL formats', async () => {
+    it('extracts hostname correctly from various URL formats', async () => {
       const testCases = [
         {
           url: 'https://example.com',
@@ -146,7 +146,7 @@ describe('sendActiveAccount function', () => {
   });
 
   describe('permission checking', () => {
-    it('check permissions for the correct hostname', async () => {
+    it('checks permissions for the correct hostname', async () => {
       const targetUrl = 'https://test-dapp.com';
       const expectedHostname = 'test-dapp.com';
       mockURLParse.mockImplementation(() => ({
@@ -162,7 +162,7 @@ describe('sendActiveAccount function', () => {
       );
     });
 
-    it('use the correct PermissionController state', async () => {
+    it('uses the correct PermissionController state', async () => {
       const targetUrl = 'https://test-dapp.com';
       mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
 
@@ -176,7 +176,7 @@ describe('sendActiveAccount function', () => {
   });
 
   describe('notification behavior', () => {
-    it('do not send notification when no accounts are permitted', async () => {
+    it('does not send notification when no accounts are permitted', async () => {
       const targetUrl = 'https://unauthorized-dapp.com';
       mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
 
@@ -185,7 +185,7 @@ describe('sendActiveAccount function', () => {
       expect(mockNotifyAllConnections).not.toHaveBeenCalled();
     });
 
-    it('send notification when accounts are permitted', async () => {
+    it('sends notification when accounts are permitted', async () => {
       const targetUrl = 'https://authorized-dapp.com';
       const permittedAccounts = ['0x1234567890123456789012345678901234567890', '0x0987654321098765432109876543210987654321'] as `0x${string}`[];
       mockGetPermittedEvmAddressesByHostname.mockReturnValue(permittedAccounts);
@@ -198,7 +198,7 @@ describe('sendActiveAccount function', () => {
       });
     });
 
-    it('send notification with correct format', async () => {
+    it('sends notification with correct format', async () => {
       const targetUrl = 'https://dapp.com';
       const permittedAccounts = ['0xabc1234567890123456789012345678901234567', '0xdef4567890123456789012345678901234567890', '0x7890123456789012345678901234567890123456'] as EthereumAddress[];
       mockGetPermittedEvmAddressesByHostname.mockReturnValue(permittedAccounts);
@@ -212,7 +212,7 @@ describe('sendActiveAccount function', () => {
       expect(mockNotifyAllConnections).toHaveBeenCalledTimes(1);
     });
 
-    it('send notification with single account', async () => {
+    it('sends notification with single account', async () => {
       const targetUrl = 'https://single-account-dapp.com';
       const permittedAccounts = ['0x1111111111111111111111111111111111111111'] as EthereumAddress[];
       mockGetPermittedEvmAddressesByHostname.mockReturnValue(permittedAccounts);
@@ -225,7 +225,7 @@ describe('sendActiveAccount function', () => {
       });
     });
 
-    it('send notification with multiple accounts', async () => {
+    it('sends notification with multiple accounts', async () => {
       const targetUrl = 'https://multi-account-dapp.com';
       const permittedAccounts = ['0x1111111111111111111111111111111111111111', '0x2222222222222222222222222222222222222222', '0x3333333333333333333333333333333333333333', '0x4444444444444444444444444444444444444444'] as EthereumAddress[];
       mockGetPermittedEvmAddressesByHostname.mockReturnValue(permittedAccounts);
@@ -240,7 +240,7 @@ describe('sendActiveAccount function', () => {
   });
 
   describe('edge cases', () => {
-    it('handle empty string URL gracefully', async () => {
+    it('handles empty string URL gracefully', async () => {
       await sendActiveAccount('');
 
       expect(mockURLParse).not.toHaveBeenCalled();
@@ -248,7 +248,7 @@ describe('sendActiveAccount function', () => {
       expect(mockNotifyAllConnections).not.toHaveBeenCalled();
     });
 
-    it('handle undefined URL gracefully', async () => {
+    it('handles undefined URL gracefully', async () => {
       await sendActiveAccount(undefined);
 
       // Should only call if resolvedUrlRef.current has a value
@@ -256,7 +256,7 @@ describe('sendActiveAccount function', () => {
       expect(mockNotifyAllConnections).not.toHaveBeenCalled();
     });
 
-    it('handle null URL gracefully', async () => {
+    it('handles null URL gracefully', async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await sendActiveAccount(null as any);
 
@@ -265,7 +265,7 @@ describe('sendActiveAccount function', () => {
       expect(mockNotifyAllConnections).not.toHaveBeenCalled();
     });
 
-    it('handle URL parsing errors gracefully', async () => {
+    it('handles URL parsing errors gracefully', async () => {
       const targetUrl = 'invalid-url';
       mockURLParse.mockImplementation(() => {
         throw new Error('Invalid URL');
@@ -275,7 +275,7 @@ describe('sendActiveAccount function', () => {
       await expect(sendActiveAccount(targetUrl)).rejects.toThrow('Invalid URL');
     });
 
-    it('handle permission checking errors gracefully', async () => {
+    it('handles permission checking errors gracefully', async () => {
       const targetUrl = 'https://test-dapp.com';
       mockGetPermittedEvmAddressesByHostname.mockImplementation(() => {
         throw new Error('Permission check failed');
@@ -286,7 +286,7 @@ describe('sendActiveAccount function', () => {
   });
 
   describe('security considerations', () => {
-    it('only send accounts for the specific hostname requested', async () => {
+    it('only sends accounts for the specific hostname requested', async () => {
       const dapp1Url = 'https://dapp1.com';
       const dapp2Url = 'https://dapp2.com';
 
@@ -322,7 +322,7 @@ describe('sendActiveAccount function', () => {
       });
     });
 
-    it('not send accounts to unauthorized domains', async () => {
+    it('does not send accounts to unauthorized domains', async () => {
       const authorizedUrl = 'https://authorized.com';
       const unauthorizedUrl = 'https://unauthorized.com';
 
@@ -339,7 +339,7 @@ describe('sendActiveAccount function', () => {
       expect(mockNotifyAllConnections).not.toHaveBeenCalled();
     });
 
-    it('prevent cross-origin account leakage', async () => {
+    it('prevents cross-origin account leakage', async () => {
       // Simulate the vulnerability scenario where attacker tries to get victim's accounts
       const victimUrl = 'https://victim-dapp.com';
       const attackerUrl = 'https://attacker-site.com';
