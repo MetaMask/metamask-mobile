@@ -62,6 +62,7 @@ const useRemainingTime = ({ creationTime, isStxPending }: Props) => {
     }
   
     return () => clearInterval(intervalId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isStxPending, creationTime]);
 
   return {
