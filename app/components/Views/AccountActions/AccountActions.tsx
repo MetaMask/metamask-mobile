@@ -429,8 +429,9 @@ const AccountActions = () => {
           )
           ///: END:ONLY_INCLUDE_IF
         }
-        {(networkSupporting7702Present &&
-          !isHardwareAccount(selectedAddress)) && (
+        {process.env.MM_SMART_ACCOUNT_UI_ENABLED &&
+          networkSupporting7702Present &&
+          !isHardwareAccount(selectedAddress) && (
             <AccountAction
               actionTitle={strings('account_actions.switch_to_smart_account')}
               iconName={IconName.SwapHorizontal}
