@@ -18,10 +18,12 @@ import KycProcessing from '../Views/KycProcessing';
 import ProviderWebview from '../Views/ProviderWebview';
 import KycWebview from '../Views/KycWebview';
 import OrderProcessing from '../Views/OrderProcessing';
+import BankDetails from '../Views/BankDetails';
 
 import TokenSelectorModal from '../Views/Modals/TokenSelectorModal';
 import RegionSelectorModal from '../Views/Modals/RegionSelectorModal';
 import PaymentMethodSelectorModal from '../Views/Modals/PaymentMethodSelectorModal';
+import UnsupportedRegionModal from '../Views/Modals/UnsupportedRegionModal';
 
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -103,6 +105,11 @@ const DepositRoutes = () => (
         component={OrderProcessing}
         options={getAnimationOptions}
       />
+      <Stack.Screen
+        name={Routes.DEPOSIT.BANK_DETAILS}
+        component={BankDetails}
+        options={getAnimationOptions}
+      />
     </Stack.Navigator>
   </DepositSDKProvider>
 );
@@ -131,6 +138,10 @@ export const DepositModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.DEPOSIT.MODALS.REGION_SELECTOR}
       component={RegionSelectorModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION}
+      component={UnsupportedRegionModal}
     />
   </ModalsStack.Navigator>
 );
