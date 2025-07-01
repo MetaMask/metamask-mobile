@@ -49,6 +49,9 @@ export async function processSendCalls(
   params: SendCalls,
   req: JsonRpcRequest,
 ): Promise<SendCallsResult> {
+  if (process.env.MM_SMART_ACCOUNT_UI_ENABLED !== 'true') {
+    throw rpcErrors.methodNotFound('Functionality not available');
+  }
   const { AccountsController } = Engine.context;
   const { calls, from: paramFrom } = params;
   const { networkClientId, origin } = req as JsonRpcRequest & {
@@ -195,6 +198,9 @@ async function getAlternateGasFeesCapability(
 }
 
 export async function getCapabilities(address: Hex, chainIds?: Hex[]) {
+  if (process.env.MM_SMART_ACCOUNT_UI_ENABLED !== 'true') {
+    return {};
+  }
   const {
     controllerMessenger,
     context: { TransactionController },
