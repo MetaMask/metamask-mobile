@@ -15,7 +15,7 @@ const styleSheet = (params: {
 
   return StyleSheet.create({
     sheet: {
-      marginVertical: 32,
+      marginVertical: 16,
       marginHorizontal: 16,
     },
     bottomSheetContent: {
