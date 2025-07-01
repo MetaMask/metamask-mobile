@@ -11,7 +11,10 @@ import {
   setEthAccounts,
   setPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
-import { MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER } from './constants';
+import {
+  MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER,
+  SNAPS_CONTROLLER_STATE,
+} from './constants';
 
 export const DEFAULT_FIXTURE_ACCOUNT =
   '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
@@ -427,7 +430,14 @@ class FixtureBuilder {
             },
             MultichainNetworkController: {
               selectedMultichainNetworkChainId: SolScope.Mainnet,
-              multichainNetworkConfigurationsByChainId: {},
+              multichainNetworkConfigurationsByChainId: {
+                [SolScope.Mainnet]: {
+                  chainId: SolScope.Mainnet,
+                  name: 'Solana Mainnet',
+                  nativeCurrency: `${SolScope.Mainnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+                  isEvm: false,
+                },
+              },
               isEvmSelected: true,
               networksWithTransactionActivity: {},
             },
@@ -1131,10 +1141,64 @@ class FixtureBuilder {
             name: '',
           },
         },
+        {
+          accounts: ['CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd'],
+          metadata: {
+            id: '01JZ3J0DB2P62VZRJEYBMG7Z2F',
+            name: '',
+          },
+          type: 'Snap Keyring',
+        },
       ],
       vault:
         '{"cipher":"60wBNhSYopamhXuFuk34HxJPwLUZ+m3Pudw5/GEmJ0RzXspPO1hCx3IWq7+HA/2DFtp97+FVx1/cIAJY9EaV6gZkDpjJkhtDSKHjfgkOyVKtmWam+fCE0US2yRGBgq/5SQ+dKMe7HVaiQok8A6VOEAUOUGo5FNoSp5uRIEFhzCa1SWS++IIHjExe16hvO5xYe9fgBMtIi13bHdf62/Kup9KimK5URcynMqr7Vtm67hcaWFzzCMj/mLnPtSxInHtMthspiqjfZjKC/jOLsEk21m/TPa5Mt0WpO/YuaZLhAAGRTEje+n9J7Dsklwf++zQrSO1inG9B3tQh8w2vmi9JiL3A35Zs5cPiev7kdi7WPT8JAKE+eO5ZNK+6rDPBAxR4edfb5c9DvoAiKteOeyIWu0IPZaY6P0xhySrpyFUW172k2rn+Cb1yQwDb/BqY+KmaOHHnHOUbSFWK6SOvy2HnoNf+0bXoxmePPheQfYdw25hbvvDRcuunmpVGAIWPPjvCYAKUx4KprXDzx8sKgIWrx8/0ROxfQD/YWpXvxHLp/Px5r/GRtEhN/FFbfP3xE/glUg+Ye4tMk3CpByQ9sChKvgiXNGTbHpBTZ2rJhHZOwWVhYERW7SQ1QaCIL7l3Bd5aVVtXLEG7b/vzmy7sntAMSafgQx7Wm4N0vJiZJ4ke53VFzxu3VMuowQYb6V48go5c0sEojy4Hur70ovV2UD3aoTR6FOA0t3bObuFvBa7UruOLtSVVnf1MkWNfa3GbcAdae8FqnbIH88rguKpld2bYkk3qCC5brSuWyNZqxIr5ZpvgWXtvaY6V1bI9xnvD9B7ALX2aRW7eie8gYk1IRVoj+7Zhx6Lai7a+7zAXwogfOigq47af65NQnI6FSLzLhhCoMhXwjHCWgtKEdux/Qj9PdIzNWeZjscki9cm7uKEIjOe4K6/bl/MrrXOYN8socUMtLFTbfgNuVjICy4pwSmfumYLuhba9b1d5F7KRuo//5GpXL4CJz0znMSx+h0VvYE8p5EImyi5THyITZqrEuqxm1JLmGHAcf0ZZB9nMzygUYp7Hv3a83CCDs/Z2mNtPdETNny2IjX29ucHH90+e1oCqss+J7Gtl2vjID+M8fZG50fHYHtg9tbOmlANLfizOrM22KXZ8H98UDZ863zGVVaIMUw34tzOPTnM0KWKehtU76W6z62Kb8Bnn6qyaopi+rExwuMTgSxIDKz0JXkFNuHZVDYs8RrAP2DcHww8vewPoQDdEX5SUT/pyYpJoPx0/fPx7QJ7wT2MzArUEjS9sunVRi/YGYIu0jyqfb38gwXRoSwPJNkqUai6sgrDqYO04KJ03YOpwqaCBDtQp7QV6LPoXro+INj9qquXwJF0cpTAYEJcaXj2x/W8gKYPj6wQXggroC0jHEov5rQlgl4ga0tqsBu7THJ8r1symqAgluO6Z5x+BiG3QFxMjSx7wzFxjDUp2W6itX0XBaki+D+XJh6VTOWKTgCCXZ0wbSIuE5UQEVWM56Vh5H9MHaTMXcnSoSHDhvTcqe4TNEEcruOYkuW4d/TdmsDCMTvOFLHFcFiCkCrV5EcYs/B6ErwvwJcA+vtNt","iv":"d5f918e6d20f111769b0419253ec478b","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"5Dedq0Jg6wCFJ9whKIeUzP6yePVlUFO1aY2ZlmR+q3A="}',
     });
+
+    merge(this.fixture.state.engine.backgroundState.AccountsController, {
+      internalAccounts: {
+        accounts: {
+          'dc225a92-dc8b-4d3a-bcb4-b8222a06f30f': {
+            address: 'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd',
+            id: 'dc225a92-dc8b-4d3a-bcb4-b8222a06f30f',
+            metadata: {
+              importTime: 1751385096240,
+              keyring: { type: 'Snap Keyring' },
+              lastSelected: 1751385126224,
+              name: 'Solana Account 1',
+              nameLastUpdatedAt: 1751385096304,
+              snap: {
+                enabled: true,
+                id: 'npm:@metamask/solana-wallet-snap',
+                name: 'Solana',
+              },
+            },
+            methods: [
+              'signAndSendTransaction',
+              'signTransaction',
+              'signMessage',
+              'signIn',
+            ],
+            options: {
+              derivationPath: "m/44'/501'/0'/0'",
+              entropySource: '01JZ3AZE0XHT7BDKHAYHTRQKHZ',
+              index: 0,
+              scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            },
+            scopes: [
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+              'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z',
+              'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
+            ],
+            type: 'solana:data-account',
+          },
+        },
+      },
+    });
+
+    merge(
+      this.fixture.state.engine.backgroundState.SnapController,
+      SNAPS_CONTROLLER_STATE,
+    );
     return this;
   }
 
