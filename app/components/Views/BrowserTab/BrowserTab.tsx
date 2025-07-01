@@ -981,10 +981,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
     );
 
     // Only send account information if the target URL has explicit permissions
-    notifyAllConnections({
-      method: NOTIFICATION_NAMES.accountsChanged,
-      params: permittedAccountsForTarget,
-    });
+    if (permittedAccountsForTarget.length > 0) {
+      notifyAllConnections({
+        method: NOTIFICATION_NAMES.accountsChanged,
+        params: permittedAccountsForTarget,
+      });
+    }
   }, [notifyAllConnections]);
 
   /**
@@ -1011,13 +1013,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
 
       // Only send active account for the specific URL being navigated to
       // This ensures we only send account info to sites that have explicit permissions
+      sendActiveAccount(nativeEvent.url);
+
       iconRef.current = undefined;
       if (isHomepage(nativeEvent.url)) {
         injectHomePageScripts();
       }
 
       initializeBackgroundBridge(urlOrigin, true);
-      sendActiveAccount(nativeEvent.url);
     },
     [
       isAllowedOrigin,
