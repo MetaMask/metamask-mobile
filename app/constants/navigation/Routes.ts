@@ -35,6 +35,7 @@ const Routes = {
     PROVIDER_WEBVIEW: 'ProviderWebview',
     ORDER_PROCESSING: 'OrderProcessing',
     ORDER_DETAILS: 'DepositOrderDetails',
+    BANK_DETAILS: 'BankDetails',
     MODALS: {
       ID: 'DepositModals',
       TOKEN_SELECTOR: 'DepositTokenSelectorModal',
