@@ -48,7 +48,7 @@ export const getAccounts = async () => {
 export async function processSendCalls(
   params: SendCalls,
   req: JsonRpcRequest,
-): Promise<SendCallsResult | void> {
+): Promise<SendCallsResult> {
   const { AccountsController } = Engine.context;
   const { calls, from: paramFrom } = params;
   const { networkClientId, origin } = req as JsonRpcRequest & {
