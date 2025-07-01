@@ -550,7 +550,9 @@
       "last_name": "Last Name",
       "phone_number": "Phone Number",
       "date_of_birth": "Date of Birth",
-      "social_security_number": "Social Security Number"
+      "social_security_number": "Social Security Number",
+      "enter_phone_number": "Enter phone number",
+      "select_region": "Select region"
     },
     "enter_address": {
       "title": "Enter your address",
