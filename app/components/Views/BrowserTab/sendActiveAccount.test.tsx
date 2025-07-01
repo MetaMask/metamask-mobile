@@ -38,13 +38,12 @@ const createSendActiveAccount = (notifyAllConnections: jest.Mock, resolvedUrlRef
       hostname,
     );
 
-    // Only send account information if the target URL has explicit permissions
-    if (permittedAccountsForTarget.length > 0) {
-      notifyAllConnections({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: permittedAccountsForTarget,
-      });
-    }
+    // Always send account information to comply with EIP-1193
+    // This includes sending accountsChanged([]) when a dapp loses all permissions
+    notifyAllConnections({
+      method: NOTIFICATION_NAMES.accountsChanged,
+      params: permittedAccountsForTarget,
+    });
   };
 
 describe('sendActiveAccount', () => {
@@ -176,13 +175,16 @@ describe('sendActiveAccount', () => {
   });
 
   describe('notification behavior', () => {
-    it('does not send notification when no accounts are permitted', async () => {
+    it('sends empty array notification when no accounts are permitted (EIP-1193 compliance)', async () => {
       const targetUrl = 'https://unauthorized-dapp.com';
       mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
 
       await sendActiveAccount(targetUrl);
 
-      expect(mockNotifyAllConnections).not.toHaveBeenCalled();
+      expect(mockNotifyAllConnections).toHaveBeenCalledWith({
+        method: NOTIFICATION_NAMES.accountsChanged,
+        params: [],
+      });
     });
 
     it('sends notification when accounts are permitted', async () => {
@@ -322,21 +324,28 @@ describe('sendActiveAccount', () => {
       });
     });
 
-    it('does not send accounts to unauthorized domains', async () => {
+    it('sends appropriate accounts to authorized vs unauthorized domains', async () => {
       const authorizedUrl = 'https://authorized.com';
       const unauthorizedUrl = 'https://unauthorized.com';
+      const authorizedAccounts = ['0x1234567890123456789012345678901234567890'] as EthereumAddress[];
 
-      mockGetPermittedEvmAddressesByHostname.mockImplementation((_, hostname) => hostname === 'authorized.com' ? ['0x1234567890123456789012345678901234567890'] as EthereumAddress[] : []);
+      mockGetPermittedEvmAddressesByHostname.mockImplementation((_, hostname) => hostname === 'authorized.com' ? authorizedAccounts : []);
 
       // Authorized domain should receive accounts
       await sendActiveAccount(authorizedUrl);
-      expect(mockNotifyAllConnections).toHaveBeenCalled();
+      expect(mockNotifyAllConnections).toHaveBeenCalledWith({
+        method: NOTIFICATION_NAMES.accountsChanged,
+        params: authorizedAccounts,
+      });
 
       mockNotifyAllConnections.mockClear();
 
-      // Unauthorized domain should not receive accounts
+      // Unauthorized domain should receive empty array
       await sendActiveAccount(unauthorizedUrl);
-      expect(mockNotifyAllConnections).not.toHaveBeenCalled();
+      expect(mockNotifyAllConnections).toHaveBeenCalledWith({
+        method: NOTIFICATION_NAMES.accountsChanged,
+        params: [],
+      });
     });
 
     it('prevents cross-origin account leakage', async () => {
@@ -348,9 +357,14 @@ describe('sendActiveAccount', () => {
 
       mockGetPermittedEvmAddressesByHostname.mockImplementation((_, hostname) => hostname === 'victim-dapp.com' ? victimAccounts : []);
 
-      // Attacker site should not receive victim's accounts
+      // Attacker site should receive empty array (no victim's accounts)
       await sendActiveAccount(attackerUrl);
-      expect(mockNotifyAllConnections).not.toHaveBeenCalled();
+      expect(mockNotifyAllConnections).toHaveBeenCalledWith({
+        method: NOTIFICATION_NAMES.accountsChanged,
+        params: [],
+      });
+
+      mockNotifyAllConnections.mockClear();
 
       // Only victim site should receive its accounts
       await sendActiveAccount(victimUrl);
