@@ -11,21 +11,21 @@ import Logger from '../../../../util/Logger';
 import { RemoteFeatureFlagInitParamTypes } from './types';
 import AppConstants from '../../../AppConstants';
 
-const getFeatureFlagAppEnvironment = () => {
-  const env = process.env.METAMASK_ENVIRONMENT;
-  switch (env) {
-    case 'local':
-      return EnvironmentType.Development;
-    case 'pre-release':
-    case 'rc':
-      return EnvironmentType.ReleaseCandidate;
-    case 'production':
-    case 'beta':
-      return EnvironmentType.Production;
-    default:
-      return EnvironmentType.Development;
-  }
-};
+const getFeatureFlagAppEnvironment = () =>
+  // const env = process.env.METAMASK_ENVIRONMENT;
+  // switch (env) {
+  //   case 'local':
+  //     return EnvironmentType.Development;
+  //   case 'pre-release':
+  //   case 'rc':
+  //     return EnvironmentType.ReleaseCandidate;
+  //   case 'production':
+  //   case 'beta':
+  //     return EnvironmentType.Production;
+  //   default:
+  //     return EnvironmentType.Development;
+  // }
+  EnvironmentType.ReleaseCandidate;
 
 const getFeatureFlagAppDistribution = () => {
   const dist = process.env.METAMASK_BUILD_TYPE;
