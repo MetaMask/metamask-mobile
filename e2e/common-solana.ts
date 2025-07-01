@@ -24,14 +24,14 @@ export async function withSolanaAccountEnabled(
   },
   test: () => Promise<void>,
 ) {
-  const fixtures = new FixtureBuilder()
+  let fixtureBuilder = new FixtureBuilder()
     .withSolanaFixture()
     .withSolanaFeatureSheetDisplayed();
 
   if (solanaAccountPermitted) {
-    fixtures.withSolanaAccountPermission();
+    fixtureBuilder = fixtureBuilder.withSolanaAccountPermission();
   }
-  fixtures.build();
+  const fixtures = fixtureBuilder.build();
 
   await withFixtures(
     {

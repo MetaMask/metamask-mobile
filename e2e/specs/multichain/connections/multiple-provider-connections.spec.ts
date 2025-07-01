@@ -24,7 +24,7 @@ describe(SmokeMultiStandardDappConnection('Multiple Standard Dapp Connections'),
       dappPath: DEFAULT_MULTICHAIN_TEST_DAPP_PATH,
       solanaAccountPermitted: true,
     }, async () => {
-      await MultichainTestDApp.setupAndNavigateToTestDapp('?autoMode=true');
+      await MultichainTestDApp.setupAndNavigateToTestDapp('?autoMode=true', true);
 
       await MultichainTestDApp.createSessionWithNetworks(
         MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM
