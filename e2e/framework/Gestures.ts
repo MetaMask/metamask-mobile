@@ -62,16 +62,22 @@ export default class Gestures {
    */
   static async tap(
     detoxElement: DetoxElement,
-    options: TapOptions = {
-      timeout: BASE_DEFAULTS.timeout,
-      checkStability: false,
-      checkVisibility: true,
-      checkEnabled: true,
-    },
+    options: TapOptions = {},
   ): Promise<void> {
-    const { timeout, elemDescription } = options;
+    const {
+      timeout = BASE_DEFAULTS.timeout,
+      checkStability = false,
+      checkVisibility = true,
+      checkEnabled = true,
+      elemDescription
+    } = options;
 
-    const fn = () => this.tapWithChecks(detoxElement, options);
+    const fn = () => this.tapWithChecks(detoxElement, {
+      checkStability,
+      checkVisibility,
+      checkEnabled,
+      elemDescription
+    });
     return Utilities.executeWithRetry(fn, {
       timeout,
       description: 'tap()',
@@ -85,16 +91,22 @@ export default class Gestures {
    */
   static async waitAndTap(
     detoxElement: DetoxElement,
-    options: TapOptions = {
-      timeout: BASE_DEFAULTS.timeout,
-      checkStability: false,
-      checkVisibility: true,
-      checkEnabled: true,
-    },
+    options: TapOptions = {},
   ): Promise<void> {
-    const { timeout, elemDescription } = options;
+    const {
+      timeout = BASE_DEFAULTS.timeout,
+      checkStability = false,
+      checkVisibility = true,
+      checkEnabled = true,
+      elemDescription
+    } = options;
 
-    const fn = () => this.tapWithChecks(detoxElement, options);
+    const fn = () => this.tapWithChecks(detoxElement, {
+      checkStability,
+      checkVisibility,
+      checkEnabled,
+      elemDescription
+    });
     return Utilities.executeWithRetry(fn, {
       timeout,
       description: 'waitAndTap()',
@@ -108,15 +120,21 @@ export default class Gestures {
   static async tapAtPoint(
     detoxElement: DetoxElement,
     point: { x: number; y: number },
-    options: TapOptions = {
-      timeout: BASE_DEFAULTS.timeout,
-      checkStability: false,
-      checkVisibility: true,
-      checkEnabled: true,
-    },
+    options: TapOptions = {},
   ): Promise<void> {
-    const { timeout, elemDescription } = options;
-    const fn = () => this.tapWithChecks(detoxElement, options, point);
+    const {
+      timeout = BASE_DEFAULTS.timeout,
+      checkStability = false,
+      checkVisibility = true,
+      checkEnabled = true,
+      elemDescription
+    } = options;
+    const fn = () => this.tapWithChecks(detoxElement, {
+      checkStability,
+      checkVisibility,
+      checkEnabled,
+      elemDescription
+    }, point);
     return Utilities.executeWithRetry(fn, {
       timeout,
       description: 'tapAtPoint()',
@@ -129,20 +147,27 @@ export default class Gestures {
    */
   static async longPress(
     detoxElement: DetoxElement,
-    options: LongPressOptions = {
-      timeout: BASE_DEFAULTS.timeout,
-      checkStability: false,
-      checkEnabled: true,
-      checkVisibility: true,
-    },
+    options: LongPressOptions = {},
   ): Promise<void> {
-    const { timeout, duration = 2000, elemDescription } = options;
+    const {
+      timeout = BASE_DEFAULTS.timeout,
+      checkStability = false,
+      checkEnabled = true,
+      checkVisibility = true,
+      duration = 2000,
+      elemDescription
+    } = options;
 
     return Utilities.executeWithRetry(
       async () => {
         const el = (await Utilities.checkElementReadyState(
           detoxElement,
-          {},
+          {
+            timeout,
+            checkStability,
+            checkEnabled,
+            checkVisibility,
+          },
         )) as Detox.IndexableNativeElement;
 
         await new Promise((resolve) =>
@@ -164,23 +189,29 @@ export default class Gestures {
   static async typeText(
     detoxElement: DetoxElement,
     text: string,
-    options: TypeTextOptions = {
-      timeout: BASE_DEFAULTS.timeout,
-      clearFirst: true,
-      hideKeyboard: false,
-      checkStability: false,
-      checkEnabled: true,
-      checkVisibility: true,
-      sensitive: false,
-    },
+    options: TypeTextOptions = {},
   ): Promise<void> {
-    const { timeout, clearFirst, hideKeyboard, elemDescription, sensitive } = options;
+    const { 
+      timeout = BASE_DEFAULTS.timeout,
+      clearFirst = true,
+      hideKeyboard = false,
+      checkStability = false,
+      checkEnabled = true,
+      checkVisibility = true,
+      sensitive = false,
+      elemDescription
+    } = options;
 
     return Utilities.executeWithRetry(
       async () => {
         const el = (await Utilities.checkElementReadyState(
           detoxElement,
-          options,
+          {
+            timeout,
+            checkStability,
+            checkVisibility,
+            checkEnabled,
+          },
         )) as Detox.IndexableNativeElement;
 
         await new Promise((resolve) =>
@@ -210,20 +241,26 @@ export default class Gestures {
   static async replaceText(
     detoxElement: DetoxElement,
     text: string,
-    options: GestureOptions = {
-      timeout: BASE_DEFAULTS.timeout,
-      checkStability: false,
-      checkEnabled: true,
-      checkVisibility: true,
-    },
+    options: GestureOptions = {},
   ): Promise<void> {
-    const { timeout, elemDescription } = options;
+    const {
+      timeout = BASE_DEFAULTS.timeout,
+      checkStability = false,
+      checkEnabled = true,
+      checkVisibility = true,
+      elemDescription
+    } = options;
 
     return Utilities.executeWithRetry(
       async () => {
         const el = (await Utilities.checkElementReadyState(
           detoxElement,
-          options,
+          {
+            timeout,
+            checkStability,
+            checkEnabled,
+            checkVisibility,
+          },
         )) as Detox.IndexableNativeElement;
 
         await new Promise((resolve) =>
@@ -245,22 +282,28 @@ export default class Gestures {
   static async swipe(
     detoxElement: DetoxElement,
     direction: 'up' | 'down' | 'left' | 'right',
-    options: SwipeOptions = {
-      timeout: BASE_DEFAULTS.timeout,
-      speed: 'fast',
-      percentage: 0.75,
-      checkStability: false,
-      checkEnabled: true,
-      checkVisibility: true,
-    },
+    options: SwipeOptions = {},
   ): Promise<void> {
-    const { timeout, speed, percentage, elemDescription } = options;
+    const {
+      timeout = BASE_DEFAULTS.timeout,
+      speed = 'fast',
+      percentage = 0.75,
+      checkStability = false,
+      checkEnabled = true,
+      checkVisibility = true,
+      elemDescription
+    } = options;
 
     return Utilities.executeWithRetry(
       async () => {
         const el = (await Utilities.checkElementReadyState(
           detoxElement,
-          options,
+          {
+            timeout,
+            checkStability,
+            checkEnabled,
+            checkVisibility,
+          },
         )) as Detox.IndexableNativeElement;
 
         await new Promise((resolve) =>

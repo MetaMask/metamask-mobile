@@ -293,6 +293,7 @@ export const loginToApp = async () => {
   const PASSWORD = '123123123';
   await Assertions.expectVisible(LoginView.container, {
     description: 'Login view should be visible',
+    timeout: 30000,
   });
 
   await Assertions.expectVisible(LoginView.passwordInput,{
