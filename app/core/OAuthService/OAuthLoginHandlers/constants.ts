@@ -64,6 +64,8 @@ export enum SupportedPlatforms {
   Android = 'android',
   IOS = 'ios',
 }
+console.log('CURRENT_OAUTH_CONFIG', CURRENT_OAUTH_CONFIG);
+console.log('BuildType', BuildType);
 
 export const AuthConnectionConfig: Record<
   SupportedPlatforms,

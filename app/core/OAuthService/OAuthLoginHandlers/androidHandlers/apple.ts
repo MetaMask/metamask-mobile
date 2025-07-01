@@ -8,20 +8,11 @@ import {
 } from '../../OAuthInterface';
 import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
 import { OAuthError, OAuthErrorType } from '../../error';
-import { sha256 } from '@noble/hashes/sha256';
-import { bytesToBase64 } from '@metamask/utils';
 
 export interface AndroidAppleLoginHandlerParams extends BaseHandlerOptions {
   clientId: string;
   redirectUri: string;
   appRedirectUri: string;
-}
-
-export function toBase64UrlSafe(base64String: string): string {
-  return base64String
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/[=]/g, '');
 }
 
 /**
@@ -78,8 +69,7 @@ export class AndroidAppleLoginHandler
    * @returns LoginHandlerCodeResult
    */
   async login(): Promise<LoginHandlerCodeResult> {
-    const codeChallenge = bytesToBase64(sha256(this.nonce));
-    const codeChallengeBase64SafeUrl = toBase64UrlSafe(codeChallenge);
+    const { codeVerifier, challenge } = this.generateCodeVerifierChallenge();
 
     const state = JSON.stringify({
       provider: this.authConnection,
@@ -87,7 +77,8 @@ export class AndroidAppleLoginHandler
       redirectUri: this.redirectUri,
       clientId: this.clientId,
       random: this.nonce,
-      code_challenge: codeChallengeBase64SafeUrl,
+      code_challenge: challenge,
+      nonce: this.nonce,
     });
 
     const authRequest = new AuthRequest({
@@ -124,10 +115,10 @@ export class AndroidAppleLoginHandler
     if (result.type === 'success') {
       return {
         authConnection: AuthConnection.Apple,
-        code: codeChallengeBase64SafeUrl,
+        code: challenge,
         clientId: this.clientId,
         redirectUri: this.redirectUri,
-        codeVerifier: this.nonce,
+        codeVerifier,
       };
     }
     if (result.type === 'error') {

@@ -370,7 +370,7 @@
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "^2.25.0",
     "react-native-get-random-values": "^1.8.0",
-    "@metamask/react-native-acm": "git+https://github.com/MetaMask/react-native-google-acm.git#97d5133fcc453a902ef7c9d979ca47fc3f06a36d",
+    "@metamask/react-native-acm": "git+https://github.com/MetaMask/react-native-google-acm.git#5ddd553c117f6ec2ba5a573bf4e9caaae72f5851",
     "react-native-gzip": "^1.1.0",
     "react-native-i18n": "2.0.15",
     "react-native-in-app-review": "^4.3.3",
