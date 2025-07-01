@@ -30,6 +30,7 @@ const MOCK_CHAIN_ID: Hex = '0x1';
 const MOCK_ENS_CACHED_NAME = 'fox.eth';
 
 const mockAccount: Account = {
+  id: internalAccount2.id,
   name: internalAccount2.metadata.name,
   address: internalAccount2.address as Hex,
   type: internalAccount2.metadata.keyring.type as KeyringTypes,
