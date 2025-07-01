@@ -42,8 +42,9 @@ describe(SmokeMultiStandardDappConnection('Multiple Standard Dapp Connections'),
     jest.setTimeout(150000);
   });
 
-  // FIXME: Acc_1 is permitted instead of DEFAULT_FIXTURE_ACCOUNT_2 at the start ...
-  it.skip('should default account selection to already permitted account(s) plus the selected account (if not already permitted) when `wallet_requestPermissions` is called with no accounts specified', async () => {
+  // FIXME: [ffmcgee] *AccountConnect.tsx* might need adjustments on defaultAccounts ? if sending `eth_accounts: {}`, request does not increment currently permitted + default account, but sends only the CURRENTLY PERMITTED ACCOUNT :thinking-emoji:
+  // TODO: maybe desired behaviour ? extension test seems to suggest so... comment with wenfix
+  it.only('should default account selection to already permitted account(s) plus the selected account (if not already permitted) when `wallet_requestPermissions` is called with no accounts specified', async () => {
     await withFixtures({
       dapp: true,
       fixture: new FixtureBuilder()
@@ -83,8 +84,7 @@ describe(SmokeMultiStandardDappConnection('Multiple Standard Dapp Connections'),
     });
   });
 
-  // FIXME: legit error, request is showing with Acc_1 instead of both Acc_1 and 2
-  it.skip('should default account selection to both accounts when `wallet_requestPermissions` is called with specific account while another is already connected', async () => {
+  it('should default account selection to both accounts when `wallet_requestPermissions` is called with specific account while another is already connected', async () => {
     await withFixtures({
       dapp: true,
       fixture: new FixtureBuilder()

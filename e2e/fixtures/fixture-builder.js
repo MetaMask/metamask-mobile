@@ -8,6 +8,7 @@ import { SolScope } from '@metamask/keyring-api';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
+  getEthAccounts,
   setEthAccounts,
   setPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
@@ -775,6 +776,17 @@ class FixtureBuilder {
       isMultichainOrigin: false,
     };
 
+    const incomingEthAccounts = getEthAccounts(caip25CaveatValue);
+    const permittedEthAccounts =
+      incomingEthAccounts.length > 0
+        ? incomingEthAccounts
+        : [DEFAULT_FIXTURE_ACCOUNT];
+
+    const basePermissionCaveatValue = setEthAccounts(
+      caip25CaveatValue,
+      permittedEthAccounts,
+    );
+
     const basePermissions = {
       [Caip25EndowmentPermissionName]: {
         id: 'ZaqPEWxyhNCJYACFw93jE',
@@ -783,7 +795,7 @@ class FixtureBuilder {
         caveats: [
           {
             type: Caip25CaveatType,
-            value: setEthAccounts(caip25CaveatValue, [DEFAULT_FIXTURE_ACCOUNT]),
+            value: basePermissionCaveatValue,
           },
         ],
         date: 1664388714636,

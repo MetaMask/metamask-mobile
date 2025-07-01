@@ -80,13 +80,14 @@ export function getRequestedCaip25CaveatValue(
     return defaultValue;
   }
 
-    const existingCaveat = getCaip25Caveat(origin);
-    if (!existingCaveat) {
-      return caveatValue as Caip25CaveatValue;
-    }
+  const existingCaveat = getCaip25Caveat(origin);
+  if (!existingCaveat) {
+    return caveatValue as Caip25CaveatValue;
+  }
 
-    const mergedCaveatValue = mergeCaip25Values(existingCaveat.value, caveatValue);
-    return mergedCaveatValue;
+  const mergedCaveatValue = mergeCaip25Values(existingCaveat.value, caveatValue);
+
+  return mergedCaveatValue;
 }
 
 /**

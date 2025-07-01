@@ -27,10 +27,7 @@ import { USER_INTENT } from '../../../constants/permissions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Engine from '../../../core/Engine';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import {
-  InternalAccountWithCaipAccountId,
-  selectInternalAccountsWithCaipAccountId,
-} from '../../../selectors/accountsController';
+import { selectInternalAccountsWithCaipAccountId } from '../../../selectors/accountsController';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
 import {
@@ -105,7 +102,6 @@ import {
   getCaipAccountIdsFromCaip25CaveatValue,
   isCaipAccountIdInPermittedAccountIds,
 } from '@metamask/chain-agnostic-permission';
-import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 import styleSheet from './AccountConnect.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
@@ -248,26 +244,14 @@ const AccountConnect = (props: AccountConnectProps) => {
     },
   );
 
-  const supportedRequestedAccounts = requestedCaipAccountIds.reduce(
-    (acc, account) => {
-      const supportedRequestedAccount =
-        supportedAccountsForRequestedNamespaces.find(({ caipAccountId }) => {
-          const {
-            chain: { namespace },
-          } = parseCaipAccountId(caipAccountId);
-          // EIP155 (EVM) addresses are not case sensitive
-          if (namespace === KnownCaipNamespace.Eip155) {
-            return isEqualCaseInsensitive(caipAccountId, account);
-          }
-          return caipAccountId === account;
-        });
-      if (supportedRequestedAccount) {
-        acc.push(supportedRequestedAccount);
-      }
-      return acc;
-    },
-    [] as InternalAccountWithCaipAccountId[],
-  );
+  // All requested accounts that are found in the wallet
+  const supportedRequestedAccounts =
+    supportedAccountsForRequestedNamespaces.filter((account) =>
+      isCaipAccountIdInPermittedAccountIds(
+        account.caipAccountId,
+        requestedCaipAccountIds,
+      ),
+    );
 
   const defaultAccounts = getDefaultAccounts(
     requestedNamespaces,
