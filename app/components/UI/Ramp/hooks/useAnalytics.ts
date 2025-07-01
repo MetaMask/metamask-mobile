@@ -7,7 +7,7 @@ import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuil
 
 interface MergedRampEvents extends AggregatorEvents, DepositEvents {}
 
-export function trackEvent<T extends keyof MergedRampEvents>(
+export function trackEvent<T extends keyof MergedRampEvents & keyof typeof MetaMetricsEvents>(
   eventType: T,
   params: MergedRampEvents[T],
 ) {
@@ -21,7 +21,7 @@ export function trackEvent<T extends keyof MergedRampEvents>(
 
 function useAnalytics() {
   return useCallback(
-    <T extends keyof MergedRampEvents>(
+    <T extends keyof MergedRampEvents & keyof typeof MetaMetricsEvents>(
       eventType: T,
       params: MergedRampEvents[T],
     ) => {
