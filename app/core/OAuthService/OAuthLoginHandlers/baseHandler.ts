@@ -6,15 +6,10 @@ import {
   LoginHandlerResult,
 } from '../OAuthInterface';
 import { OAuthError, OAuthErrorType } from '../error';
-import { sha256 } from '@noble/hashes/sha256';
-import { randomBytes } from '@noble/hashes/utils';
 import { fromBase64UrlSafe, toBase64UrlSafe } from './utils';
-import {
-  base64ToBytes,
-  bytesToBase64,
-  bytesToBigInt,
-  bytesToString,
-} from '@metamask/utils';
+import { bytesToBigInt, bytesToString } from '@metamask/utils';
+import { toByteArray, fromByteArray } from 'react-native-quick-base64';
+import QuickCrypto from 'react-native-quick-crypto';
 
 /**
  * Get the auth tokens from the auth server
@@ -143,7 +138,7 @@ export abstract class BaseLoginHandler {
     // Using buffer here instead of atob because userinfo can contain emojis which are not supported by atob
     // the browser replacement for atob is https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array/fromBase64
     // which is not supported in all chrome yet
-    return bytesToString(base64ToBytes(base64String));
+    return bytesToString(toByteArray(base64String));
   }
 
   /**
@@ -259,10 +254,12 @@ export abstract class BaseLoginHandler {
     codeVerifier: string;
     challenge: string;
   } {
-    const codeVerifier = randomBytes(32);
-    const challenge = sha256(codeVerifier);
+    const codeVerifier = QuickCrypto.randomBytes(32);
+    const challenge = QuickCrypto.createHash('sha256')
+      .update(codeVerifier)
+      .digest();
     return {
-      challenge: toBase64UrlSafe(bytesToBase64(challenge)),
+      challenge: toBase64UrlSafe(fromByteArray(challenge)),
       codeVerifier: bytesToBigInt(codeVerifier).toString(10),
     };
   }
