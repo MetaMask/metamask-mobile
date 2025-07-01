@@ -290,9 +290,9 @@ describe('OrdersList', () => {
           },
         ],
         [
-          "DepositOrderDetails",
+          "Deposit",
           {
-            "orderId": "test-deposit-order-2",
+            "screen": "DepositRoot",
           },
         ],
       ]

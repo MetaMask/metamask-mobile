@@ -623,7 +623,7 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                   }
                 }
               >
-                Card purchases typically take a few minutes
+                We were unable to complete your deposit
               </Text>
             </View>
             <View
@@ -1654,7 +1654,7 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                   }
                 }
               >
-                Card purchases typically take a few minutes
+                Your deposit of 100 USD was successful!
               </Text>
             </View>
             <View

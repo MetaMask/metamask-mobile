@@ -145,6 +145,9 @@ const BankDetails = () => {
     (fieldName: string): string | null => {
       if (!hasDepositOrderField(order?.data, 'paymentOptions')) return null;
 
+      if (!order.data.paymentOptions || order.data.paymentOptions.length === 0)
+        return null;
+
       const field = order.data.paymentOptions[0].fields.find(
         (f) => f.name === fieldName,
       );
