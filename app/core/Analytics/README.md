@@ -459,4 +459,4 @@ When adding new events or modifying the analytics system:
 ## Related Documentation
 
 - [Segment Analytics Documentation](https://segment.com/docs/)
-- [MetaMetrics Debugging Guide](../../docs/readme/metametrics-debugging.md) - Comprehensive guide for debugging analytics events
+- [MetaMetrics Debugging Guide](../../../docs/readme/metametrics-debugging.md) - Comprehensive guide for debugging analytics events
