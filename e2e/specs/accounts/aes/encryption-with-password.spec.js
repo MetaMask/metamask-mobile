@@ -23,8 +23,8 @@ describe(
   () => {
     const PASSWORD_ONE = '123123123';
     const PASSWORD_TWO = '456456456';
-    const DATA_TO_ENCRYPT_ONE = 'random data to encrypt';
-    const DATA_TO_ENCRYPT_TWO = 'more random data to encrypt';
+    const DATA_TO_ENCRYPT_ONE = 'Random data to encrypt'; // failing on android becuase the app was capitalizing the first letter of the string
+    const DATA_TO_ENCRYPT_TWO = 'More random data to encrypt';
 
     beforeAll(async () => {
       jest.setTimeout(150000);
