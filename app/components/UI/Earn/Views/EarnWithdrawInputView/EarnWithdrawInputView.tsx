@@ -152,6 +152,7 @@ const EarnWithdrawInputView = () => {
       !receiptToken?.chainId
     )
       return;
+    setMaxRiskAwareWithdrawalAmount(undefined);
 
     setIsLoadingMaxSafeWithdrawalAmount(true);
 
@@ -167,7 +168,12 @@ const EarnWithdrawInputView = () => {
       });
     // Call once on render and only once
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [receiptToken, activeAccount?.address]);
+  }, [
+    receiptToken?.experience?.type,
+    activeAccount?.address,
+    receiptToken?.address,
+    receiptToken?.chainId,
+  ]);
 
   const stakedBalanceText = strings('stake.staked_balance');
 

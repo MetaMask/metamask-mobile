@@ -379,7 +379,10 @@ const EarnLendingDepositConfirmationView = () => {
         'TransactionController:transactionSubmitted',
         () => {
           emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED);
-          navigation.navigate(Routes.TRANSACTIONS_VIEW);
+          // There is variance in when navigation can be called across chains
+          setTimeout(() => {
+            navigation.navigate(Routes.TRANSACTIONS_VIEW);
+          }, 0);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
