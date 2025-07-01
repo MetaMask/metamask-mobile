@@ -49,10 +49,6 @@ export async function processSendCalls(
   params: SendCalls,
   req: JsonRpcRequest,
 ): Promise<SendCallsResult | void> {
-  if (!process.env.MM_SMART_ACCOUNT_UI_ENABLED) {
-    return;
-  }
-
   const { AccountsController } = Engine.context;
   const { calls, from: paramFrom } = params;
   const { networkClientId, origin } = req as JsonRpcRequest & {
@@ -289,6 +285,10 @@ function getChainIdForNetworkClientId(networkClientId: string): Hex {
 }
 
 function validateSendCallsVersion(sendCalls: SendCalls) {
+  if (!process.env.MM_SMART_ACCOUNT_UI_ENABLED) {
+    throw rpcErrors.invalidParams('Functionality not available');
+  }
+
   const { version } = sendCalls;
 
   if (version !== VERSION) {
