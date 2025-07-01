@@ -72,10 +72,10 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useDepositTokenExchange', () => ({
-  __esModule: true,
-  default: () => mockUseDepositTokenExchange(),
-}));
+jest.mock(
+  '../../hooks/useDepositTokenExchange',
+  () => () => mockUseDepositTokenExchange(),
+);
 
 jest.mock('../ProviderWebview/ProviderWebview', () => ({
   createProviderWebviewNavDetails: jest.fn(({ quote }) => [
@@ -130,10 +130,7 @@ jest.mock('react-native', () => {
   };
 });
 
-jest.mock('../../hooks/useHandleNewOrder', () => ({
-  __esModule: true,
-  default: () => mockHandleNewOrder,
-}));
+jest.mock('../../hooks/useHandleNewOrder', () => () => mockHandleNewOrder);
 
 function render(Component: React.ComponentType) {
   return renderDepositTestComponent(Component, Routes.DEPOSIT.BUILD_QUOTE);

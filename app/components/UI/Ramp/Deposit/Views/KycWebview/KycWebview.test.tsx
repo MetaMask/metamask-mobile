@@ -62,16 +62,16 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
   createNavigationDetails: () => jest.fn(),
 }));
 
-jest.mock('../../hooks/useUserDetailsPolling', () => ({
-  __esModule: true,
-  default: () => mockUseUserDetailsPolling,
-  KycStatus: {
+jest.mock('../../hooks/useUserDetailsPolling', () => {
+  const mockHook = () => mockUseUserDetailsPolling;
+  mockHook.KycStatus = {
     NOT_SUBMITTED: 'NOT_SUBMITTED',
     SUBMITTED: 'SUBMITTED',
     APPROVED: 'APPROVED',
     REJECTED: 'REJECTED',
-  },
-}));
+  };
+  return mockHook;
+});
 
 jest.mock('../../../../Navbar', () => ({
   getDepositNavbarOptions: jest.fn().mockReturnValue({
