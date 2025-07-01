@@ -787,10 +787,13 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                 </View>
                                 <View
                                   style={
-                                    {
-                                      "flexDirection": "column",
-                                      "marginBottom": 16,
-                                    }
+                                    [
+                                      {
+                                        "flexDirection": "column",
+                                        "marginBottom": 16,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   <Text
@@ -814,118 +817,106 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                     style={
                                       {
                                         "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "borderColor": "#b7bbc8",
+                                        "borderRadius": 8,
+                                        "borderWidth": 1,
                                         "flexDirection": "row",
+                                        "height": 48,
+                                        "opacity": 1,
+                                        "paddingHorizontal": 16,
                                       }
                                     }
+                                    testID="textfield"
                                   >
                                     <View
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderBottomLeftRadius": 8,
-                                          "borderColor": "#b7bbc8",
-                                          "borderRightWidth": 0,
-                                          "borderTopLeftRadius": 8,
-                                          "borderWidth": 1,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "paddingHorizontal": 12,
+                                          "marginRight": 8,
                                         }
                                       }
+                                      testID="textfield-startacccessory"
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        onPress={[Function]}
                                         style={
                                           {
-                                            "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 16,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                            "marginRight": 4,
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
                                           }
                                         }
                                       >
-                                        🇺🇸
-                                      </Text>
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          {
-                                            "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
-                                        }
-                                      >
-                                        +
-                                        1
-                                      </Text>
-                                    </View>
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderBottomLeftRadius": 0,
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
-                                          "borderTopLeftRadius": 0,
-                                          "borderWidth": 1,
-                                          "flex": 1,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "opacity": 1,
-                                          "paddingHorizontal": 16,
-                                        }
-                                      }
-                                      testID="textfield"
-                                    >
-                                      <View
-                                        style={
-                                          {
-                                            "flex": 1,
-                                          }
-                                        }
-                                      >
-                                        <TextInput
-                                          autoComplete="tel"
-                                          autoFocus={false}
-                                          editable={true}
-                                          keyboardAppearance="light"
-                                          keyboardType="phone-pad"
-                                          onBlur={[Function]}
-                                          onChangeText={[Function]}
-                                          onFocus={[Function]}
-                                          onSubmitEditing={[Function]}
-                                          placeholder="(234) 567-8910"
-                                          placeholderTextColor="#9ca1af"
-                                          returnKeyType="next"
+                                        <Text
+                                          accessibilityRole="text"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
-                                              "borderColor": "transparent",
-                                              "borderWidth": 1,
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
                                               "letterSpacing": 0,
-                                              "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "lineHeight": 24,
                                             }
                                           }
-                                          testID="phone-number-input"
-                                          textContentType="telephoneNumber"
-                                          value="(123) 456-7890"
-                                        />
-                                      </View>
+                                        >
+                                          🇺🇸
+                                        </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#9ca1af",
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                              "marginLeft": 4,
+                                            }
+                                          }
+                                        >
+                                          +1
+                                        </Text>
+                                      </TouchableOpacity>
+                                    </View>
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                    >
+                                      <TextInput
+                                        autoFocus={false}
+                                        editable={true}
+                                        keyboardAppearance="light"
+                                        keyboardType="phone-pad"
+                                        onBlur={[Function]}
+                                        onChangeText={[Function]}
+                                        onFocus={[Function]}
+                                        onSubmitEditing={[Function]}
+                                        placeholder="(555) 555-1234"
+                                        placeholderTextColor="#9ca1af"
+                                        style={
+                                          {
+                                            "backgroundColor": "#ffffff",
+                                            "borderColor": "transparent",
+                                            "borderWidth": 1,
+                                            "color": "#121314",
+                                            "fontFamily": "CentraNo1-Book",
+                                            "fontSize": 16,
+                                            "fontWeight": "400",
+                                            "height": 24,
+                                            "letterSpacing": 0,
+                                            "opacity": 1,
+                                            "paddingVertical": 0,
+                                          }
+                                        }
+                                        testID="deposit-phone-field-test-id"
+                                        value="(234) 567-890"
+                                      />
                                     </View>
                                   </View>
                                 </View>
@@ -2043,10 +2034,13 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                 </View>
                                 <View
                                   style={
-                                    {
-                                      "flexDirection": "column",
-                                      "marginBottom": 16,
-                                    }
+                                    [
+                                      {
+                                        "flexDirection": "column",
+                                        "marginBottom": 16,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   <Text
@@ -2070,118 +2064,106 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "borderColor": "#b7bbc8",
+                                        "borderRadius": 8,
+                                        "borderWidth": 1,
                                         "flexDirection": "row",
+                                        "height": 48,
+                                        "opacity": 1,
+                                        "paddingHorizontal": 16,
                                       }
                                     }
+                                    testID="textfield"
                                   >
                                     <View
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderBottomLeftRadius": 8,
-                                          "borderColor": "#b7bbc8",
-                                          "borderRightWidth": 0,
-                                          "borderTopLeftRadius": 8,
-                                          "borderWidth": 1,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "paddingHorizontal": 12,
+                                          "marginRight": 8,
                                         }
                                       }
+                                      testID="textfield-startacccessory"
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        onPress={[Function]}
                                         style={
                                           {
-                                            "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 16,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                            "marginRight": 4,
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
                                           }
                                         }
                                       >
-                                        🇺🇸
-                                      </Text>
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          {
-                                            "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
-                                        }
-                                      >
-                                        +
-                                        1
-                                      </Text>
-                                    </View>
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderBottomLeftRadius": 0,
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
-                                          "borderTopLeftRadius": 0,
-                                          "borderWidth": 1,
-                                          "flex": 1,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "opacity": 1,
-                                          "paddingHorizontal": 16,
-                                        }
-                                      }
-                                      testID="textfield"
-                                    >
-                                      <View
-                                        style={
-                                          {
-                                            "flex": 1,
-                                          }
-                                        }
-                                      >
-                                        <TextInput
-                                          autoComplete="tel"
-                                          autoFocus={false}
-                                          editable={true}
-                                          keyboardAppearance="light"
-                                          keyboardType="phone-pad"
-                                          onBlur={[Function]}
-                                          onChangeText={[Function]}
-                                          onFocus={[Function]}
-                                          onSubmitEditing={[Function]}
-                                          placeholder="(234) 567-8910"
-                                          placeholderTextColor="#9ca1af"
-                                          returnKeyType="next"
+                                        <Text
+                                          accessibilityRole="text"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
-                                              "borderColor": "transparent",
-                                              "borderWidth": 1,
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
                                               "letterSpacing": 0,
-                                              "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "lineHeight": 24,
                                             }
                                           }
-                                          testID="phone-number-input"
-                                          textContentType="telephoneNumber"
-                                          value=""
-                                        />
-                                      </View>
+                                        >
+                                          🇺🇸
+                                        </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#9ca1af",
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                              "marginLeft": 4,
+                                            }
+                                          }
+                                        >
+                                          +1
+                                        </Text>
+                                      </TouchableOpacity>
+                                    </View>
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                    >
+                                      <TextInput
+                                        autoFocus={false}
+                                        editable={true}
+                                        keyboardAppearance="light"
+                                        keyboardType="phone-pad"
+                                        onBlur={[Function]}
+                                        onChangeText={[Function]}
+                                        onFocus={[Function]}
+                                        onSubmitEditing={[Function]}
+                                        placeholder="(555) 555-1234"
+                                        placeholderTextColor="#9ca1af"
+                                        style={
+                                          {
+                                            "backgroundColor": "#ffffff",
+                                            "borderColor": "transparent",
+                                            "borderWidth": 1,
+                                            "color": "#121314",
+                                            "fontFamily": "CentraNo1-Book",
+                                            "fontSize": 16,
+                                            "fontWeight": "400",
+                                            "height": 24,
+                                            "letterSpacing": 0,
+                                            "opacity": 1,
+                                            "paddingVertical": 0,
+                                          }
+                                        }
+                                        testID="deposit-phone-field-test-id"
+                                        value=""
+                                      />
                                     </View>
                                   </View>
                                 </View>
@@ -3331,10 +3313,13 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                 </View>
                                 <View
                                   style={
-                                    {
-                                      "flexDirection": "column",
-                                      "marginBottom": 16,
-                                    }
+                                    [
+                                      {
+                                        "flexDirection": "column",
+                                        "marginBottom": 16,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   <Text
@@ -3358,118 +3343,106 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     style={
                                       {
                                         "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "borderColor": "#b7bbc8",
+                                        "borderRadius": 8,
+                                        "borderWidth": 1,
                                         "flexDirection": "row",
+                                        "height": 48,
+                                        "opacity": 1,
+                                        "paddingHorizontal": 16,
                                       }
                                     }
+                                    testID="textfield"
                                   >
                                     <View
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderBottomLeftRadius": 8,
-                                          "borderColor": "#b7bbc8",
-                                          "borderRightWidth": 0,
-                                          "borderTopLeftRadius": 8,
-                                          "borderWidth": 1,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "paddingHorizontal": 12,
+                                          "marginRight": 8,
                                         }
                                       }
+                                      testID="textfield-startacccessory"
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        onPress={[Function]}
                                         style={
                                           {
-                                            "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 16,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                            "marginRight": 4,
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
                                           }
                                         }
                                       >
-                                        🇺🇸
-                                      </Text>
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          {
-                                            "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
-                                        }
-                                      >
-                                        +
-                                        1
-                                      </Text>
-                                    </View>
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderBottomLeftRadius": 0,
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
-                                          "borderTopLeftRadius": 0,
-                                          "borderWidth": 1,
-                                          "flex": 1,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "opacity": 1,
-                                          "paddingHorizontal": 16,
-                                        }
-                                      }
-                                      testID="textfield"
-                                    >
-                                      <View
-                                        style={
-                                          {
-                                            "flex": 1,
-                                          }
-                                        }
-                                      >
-                                        <TextInput
-                                          autoComplete="tel"
-                                          autoFocus={false}
-                                          editable={true}
-                                          keyboardAppearance="light"
-                                          keyboardType="phone-pad"
-                                          onBlur={[Function]}
-                                          onChangeText={[Function]}
-                                          onFocus={[Function]}
-                                          onSubmitEditing={[Function]}
-                                          placeholder="(234) 567-8910"
-                                          placeholderTextColor="#9ca1af"
-                                          returnKeyType="next"
+                                        <Text
+                                          accessibilityRole="text"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
-                                              "borderColor": "transparent",
-                                              "borderWidth": 1,
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
                                               "letterSpacing": 0,
-                                              "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "lineHeight": 24,
                                             }
                                           }
-                                          testID="phone-number-input"
-                                          textContentType="telephoneNumber"
-                                          value=""
-                                        />
-                                      </View>
+                                        >
+                                          🇺🇸
+                                        </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#9ca1af",
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                              "marginLeft": 4,
+                                            }
+                                          }
+                                        >
+                                          +1
+                                        </Text>
+                                      </TouchableOpacity>
+                                    </View>
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                    >
+                                      <TextInput
+                                        autoFocus={false}
+                                        editable={true}
+                                        keyboardAppearance="light"
+                                        keyboardType="phone-pad"
+                                        onBlur={[Function]}
+                                        onChangeText={[Function]}
+                                        onFocus={[Function]}
+                                        onSubmitEditing={[Function]}
+                                        placeholder="(555) 555-1234"
+                                        placeholderTextColor="#9ca1af"
+                                        style={
+                                          {
+                                            "backgroundColor": "#ffffff",
+                                            "borderColor": "transparent",
+                                            "borderWidth": 1,
+                                            "color": "#121314",
+                                            "fontFamily": "CentraNo1-Book",
+                                            "fontSize": 16,
+                                            "fontWeight": "400",
+                                            "height": 24,
+                                            "letterSpacing": 0,
+                                            "opacity": 1,
+                                            "paddingVertical": 0,
+                                          }
+                                        }
+                                        testID="deposit-phone-field-test-id"
+                                        value=""
+                                      />
                                     </View>
                                   </View>
                                   <Text

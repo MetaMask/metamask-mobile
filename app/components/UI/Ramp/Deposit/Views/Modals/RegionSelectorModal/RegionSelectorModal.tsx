@@ -103,7 +103,7 @@ function RegionSelectorModal() {
   const renderRegionItem = useCallback(
     ({ item: region }: { item: DepositRegion }) => (
       <ListItemSelect
-        isSelected={selectedRegionCode === region.code}
+        isSelected={selectedRegionCode === region.isoCode}
         onPress={() => {
           if (region.supported) {
             handleOnRegionPressCallback(region);
@@ -196,7 +196,7 @@ function RegionSelectorModal() {
         data={dataSearchResults}
         renderItem={renderRegionItem}
         extraData={selectedRegionCode}
-        keyExtractor={(item) => item.code}
+        keyExtractor={(item) => item.isoCode}
         ListEmptyComponent={renderEmptyList}
         keyboardDismissMode="none"
         keyboardShouldPersistTaps="always"

@@ -1330,40 +1330,52 @@ exports[`RegionSelectorModal Component region selector modal renders the default
                             data={
                               [
                                 {
-                                  "code": "US",
                                   "currency": "USD",
                                   "flag": "🇺🇸",
+                                  "isoCode": "US",
                                   "name": "United States",
-                                  "phoneDigitCount": 10,
-                                  "phonePrefix": "+1",
+                                  "phone": {
+                                    "placeholder": "(555) 555-1234",
+                                    "prefix": "+1",
+                                    "template": "(XXX) XXX-XXXX",
+                                  },
                                   "recommended": true,
                                   "supported": true,
                                 },
                                 {
-                                  "code": "DE",
                                   "currency": "EUR",
                                   "flag": "🇩🇪",
+                                  "isoCode": "DE",
                                   "name": "Germany",
-                                  "phoneDigitCount": 10,
-                                  "phonePrefix": "+49",
+                                  "phone": {
+                                    "placeholder": "123 456 7890",
+                                    "prefix": "+49",
+                                    "template": "XXX XXX XXXX",
+                                  },
                                   "supported": true,
                                 },
                                 {
-                                  "code": "CA",
                                   "currency": "CAD",
                                   "flag": "🇨🇦",
+                                  "isoCode": "CA",
                                   "name": "Canada",
-                                  "phoneDigitCount": 10,
-                                  "phonePrefix": "+1",
+                                  "phone": {
+                                    "placeholder": "(555) 555-1234",
+                                    "prefix": "+1",
+                                    "template": "(XXX) XXX-XXXX",
+                                  },
                                   "supported": false,
                                 },
                                 {
-                                  "code": "FR",
                                   "currency": "EUR",
                                   "flag": "🇫🇷",
+                                  "isoCode": "FR",
                                   "name": "France",
-                                  "phoneDigitCount": 9,
-                                  "phonePrefix": "+33",
+                                  "phone": {
+                                    "placeholder": "1 23 45 67 89",
+                                    "prefix": "+33",
+                                    "template": "X XX XX XX XX",
+                                  },
                                   "supported": true,
                                 },
                               ]
@@ -2485,12 +2497,15 @@ exports[`RegionSelectorModal Component region selector modal renders with search
                             data={
                               [
                                 {
-                                  "code": "DE",
                                   "currency": "EUR",
                                   "flag": "🇩🇪",
+                                  "isoCode": "DE",
                                   "name": "Germany",
-                                  "phoneDigitCount": 10,
-                                  "phonePrefix": "+49",
+                                  "phone": {
+                                    "placeholder": "123 456 7890",
+                                    "prefix": "+49",
+                                    "template": "XXX XXX XXXX",
+                                  },
                                   "supported": true,
                                 },
                               ]
@@ -3250,40 +3265,52 @@ exports[`RegionSelectorModal Component region selector modal sorts recommended r
                             data={
                               [
                                 {
-                                  "code": "US",
                                   "currency": "USD",
                                   "flag": "🇺🇸",
+                                  "isoCode": "US",
                                   "name": "United States",
-                                  "phoneDigitCount": 10,
-                                  "phonePrefix": "+1",
+                                  "phone": {
+                                    "placeholder": "(555) 555-1234",
+                                    "prefix": "+1",
+                                    "template": "(XXX) XXX-XXXX",
+                                  },
                                   "recommended": true,
                                   "supported": true,
                                 },
                                 {
-                                  "code": "DE",
                                   "currency": "EUR",
                                   "flag": "🇩🇪",
+                                  "isoCode": "DE",
                                   "name": "Germany",
-                                  "phoneDigitCount": 10,
-                                  "phonePrefix": "+49",
+                                  "phone": {
+                                    "placeholder": "123 456 7890",
+                                    "prefix": "+49",
+                                    "template": "XXX XXX XXXX",
+                                  },
                                   "supported": true,
                                 },
                                 {
-                                  "code": "CA",
                                   "currency": "CAD",
                                   "flag": "🇨🇦",
+                                  "isoCode": "CA",
                                   "name": "Canada",
-                                  "phoneDigitCount": 10,
-                                  "phonePrefix": "+1",
+                                  "phone": {
+                                    "placeholder": "(555) 555-1234",
+                                    "prefix": "+1",
+                                    "template": "(XXX) XXX-XXXX",
+                                  },
                                   "supported": false,
                                 },
                                 {
-                                  "code": "FR",
                                   "currency": "EUR",
                                   "flag": "🇫🇷",
+                                  "isoCode": "FR",
                                   "name": "France",
-                                  "phoneDigitCount": 9,
-                                  "phonePrefix": "+33",
+                                  "phone": {
+                                    "placeholder": "1 23 45 67 89",
+                                    "prefix": "+33",
+                                    "template": "X XX XX XX XX",
+                                  },
                                   "supported": true,
                                 },
                               ]

@@ -29,40 +29,52 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
 jest.mock('../../../constants', () => ({
   DEPOSIT_REGIONS: [
     {
-      code: 'US',
+      isoCode: 'US',
       flag: '🇺🇸',
       name: 'United States',
-      phonePrefix: '+1',
+      phone: {
+        prefix: '+1',
+        placeholder: '(555) 555-1234',
+        template: '(XXX) XXX-XXXX',
+      },
       currency: 'USD',
-      phoneDigitCount: 10,
       recommended: true,
       supported: true,
     },
     {
-      code: 'DE',
+      isoCode: 'DE',
       flag: '🇩🇪',
       name: 'Germany',
-      phonePrefix: '+49',
+      phone: {
+        prefix: '+49',
+        placeholder: '123 456 7890',
+        template: 'XXX XXX XXXX',
+      },
       currency: 'EUR',
-      phoneDigitCount: 10,
       supported: true,
     },
     {
-      code: 'CA',
+      isoCode: 'CA',
       flag: '🇨🇦',
       name: 'Canada',
-      phonePrefix: '+1',
+      phone: {
+        prefix: '+1',
+        placeholder: '(555) 555-1234',
+        template: '(XXX) XXX-XXXX',
+      },
       currency: 'CAD',
-      phoneDigitCount: 10,
       supported: false,
     },
     {
-      code: 'FR',
+      isoCode: 'FR',
       flag: '🇫🇷',
       name: 'France',
-      phonePrefix: '+33',
+      phone: {
+        prefix: '+33',
+        placeholder: '1 23 45 67 89',
+        template: 'X XX XX XX XX',
+      },
       currency: 'EUR',
-      phoneDigitCount: 9,
       supported: true,
     },
   ],
@@ -114,7 +126,7 @@ describe('RegionSelectorModal Component', () => {
 
       expect(mockHandleSelectRegion).toHaveBeenCalledWith(
         expect.objectContaining({
-          code: 'DE',
+          isoCode: 'DE',
           name: 'Germany',
           supported: true,
         }),
