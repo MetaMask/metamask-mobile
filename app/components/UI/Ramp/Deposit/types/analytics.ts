@@ -223,11 +223,10 @@ interface RampsPaymentMethodAdded {
 }
 
 export interface AnalyticsEvents {
-  DEPOSIT_BUTTON_CLICKED: RampsButtonClicked;
-  RAMP_PAYMENT_METHOD_CLICKED: RampsPaymentMethodSelected;
   RAMPS_BUTTON_CLICKED: RampsButtonClicked;
   RAMPS_DEPOSIT_CASH_BUTTON_CLICKED: RampsDepositCashButtonClicked;
   RAMPS_PAYMENT_METHOD_SELECTED: RampsPaymentMethodSelected;
+  RAMPS_PAYMENT_METHOD_ADDED: RampsPaymentMethodAdded;
   RAMPS_TOKEN_SELECTED: RampsTokenSelected;
   RAMPS_REGION_SELECTED: RampsRegionSelected;
   RAMPS_ORDER_PROPOSED: RampsOrderProposed;
@@ -245,5 +244,4 @@ export interface AnalyticsEvents {
   RAMPS_TRANSACTION_FAILED: RampsTransactionFailed;
   RAMPS_KYC_APPLICATION_FAILED: RampsKycApplicationFailed;
   RAMPS_KYC_APPLICATION_APPROVED: RampsKycApplicationApproved;
-  RAMPS_PAYMENT_METHOD_ADDED: RampsPaymentMethodAdded;
 }
