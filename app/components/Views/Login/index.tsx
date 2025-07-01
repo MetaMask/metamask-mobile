@@ -90,6 +90,10 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
+// In android, having {} will cause the styles to update state
+// using a constant will prevent this
+const EmptyRecordConstant = {};
+
 /**
  * View where returning users can authenticate
  */
@@ -118,7 +122,7 @@ const Login: React.FC = () => {
   const {
     styles,
     theme: { colors, themeAppearance },
-  } = useStyles(stylesheet, {});
+  } = useStyles(stylesheet, EmptyRecordConstant);
   const dispatch = useDispatch();
   const setOnboardingWizardStep = (step: number) =>
     dispatch(setOnboardingWizardStepUtil(step));

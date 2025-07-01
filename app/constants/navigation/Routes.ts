@@ -33,6 +33,15 @@ const Routes = {
     KYC_PROCESSING: 'KycProcessing',
     KYC_WEBVIEW: 'KycWebview',
     PROVIDER_WEBVIEW: 'ProviderWebview',
+    ORDER_PROCESSING: 'OrderProcessing',
+    ORDER_DETAILS: 'DepositOrderDetails',
+    MODALS: {
+      ID: 'DepositModals',
+      TOKEN_SELECTOR: 'DepositTokenSelectorModal',
+      REGION_SELECTOR: 'DepositRegionSelectorModal',
+      PAYMENT_METHOD_SELECTOR: 'DepositPaymentMethodSelectorModal',
+      UNSUPPORTED_REGION: 'DepositUnsupportedRegionModal',
+    },
   },
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',
@@ -181,6 +190,7 @@ const Routes = {
       QUOTE_INFO_MODAL: 'QuoteInfoModal',
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
       QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
+      BLOCKAID_MODAL: 'BlockaidModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -228,6 +238,7 @@ const Routes = {
   },
   MULTICHAIN_ACCOUNTS: {
     ACCOUNT_DETAILS: 'MultichainAccountDetails',
+    WALLET_DETAILS: 'MultichainWalletDetails',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
