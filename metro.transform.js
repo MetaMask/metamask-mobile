@@ -48,7 +48,8 @@ const flaskFeatureSet = new Set([
   'solana',
   'seedless-onboarding',
 ]);
-const experimentalFeatureSet = new Set(['experimental']);
+// Experimental feature set includes all main features plus experimental
+const experimentalFeatureSet = new Set([...mainFeatureSet, 'experimental']);
 
 /**
  * Gets the features for the current build type, used to determine which code
