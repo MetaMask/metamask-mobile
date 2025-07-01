@@ -131,6 +131,8 @@ const DeleteWalletModal: React.FC = () => {
           </Text>
 
           <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Default}
             testID={ForgotPasswordModalSelectorsIDs.DESCRIPTION}
           >
             {strings('login.forgot_password_desc_2')}
