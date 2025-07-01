@@ -117,8 +117,7 @@ const DeleteWalletModal: React.FC = () => {
   return (
     <BottomSheet ref={modalRef}>
       {!isResetWallet ? (
-        <View 
-          style={styles.forgotPasswordContainer}
+        <View
           testID={ForgotPasswordModalSelectorsIDs.CONTAINER}
         >
           <Text
@@ -130,9 +129,7 @@ const DeleteWalletModal: React.FC = () => {
             {strings('login.forgot_password_desc')}
           </Text>
 
-          <Text 
-            variant={TextVariant.BodyMD} 
-            color={TextColor.Default}
+          <Text
             testID={ForgotPasswordModalSelectorsIDs.DESCRIPTION}
           >
             {strings('login.forgot_password_desc_2')}
