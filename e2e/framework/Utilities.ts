@@ -32,9 +32,9 @@ export default class Utilities {
    * Check if element is enabled (non-retry version)
    */
   static async checkElementEnabled(
-    elementPromise: DetoxElement,
+    detoxElement: DetoxElement,
   ): Promise<void> {
-    const el = (await elementPromise) as Detox.IndexableNativeElement;
+    const el = (await detoxElement) as Detox.IndexableNativeElement;
     const attributes = await el.getAttributes();
     if (!('enabled' in attributes) || !attributes.enabled) {
       throw new Error(
@@ -55,12 +55,12 @@ export default class Utilities {
    * Wait for element to be enabled with retry mechanism
    */
   static async waitForElementToBeEnabled(
-    elementPromise: DetoxElement,
+    detoxElement: DetoxElement,
     timeout = 3500,
     interval = 100,
   ): Promise<void> {
     return this.executeWithRetry(
-      () => this.checkElementEnabled(elementPromise),
+      () => this.checkElementEnabled(detoxElement),
       {
         timeout,
         interval,
@@ -74,15 +74,10 @@ export default class Utilities {
    * Android-specific check for element obscuration
    */
   static async checkElementNotObscured(
-    elementPromise: DetoxElement,
+    detoxElement: DetoxElement,
   ): Promise<void> {
-    if (device.getPlatform() === 'ios') {
-      // Not finding this issue on iOS, so skipping the check
-      return;
-    }
-
     try {
-      const el = (await elementPromise) as Detox.IndexableNativeElement;
+      const el = (await detoxElement) as Detox.IndexableNativeElement;
       const attributes = await el.getAttributes();
 
       // Check if element has proper frame/bounds
@@ -118,7 +113,7 @@ export default class Utilities {
    * Check if element is stable (non-retry version)
    */
   static async checkElementStable(
-    elementPromise: DetoxElement,
+    detoxElement: DetoxElement,
     options: StabilityOptions = {},
   ): Promise<void> {
     const { timeout = 2000, interval = 200, stableCount = 3 } = options;
@@ -145,7 +140,7 @@ export default class Utilities {
     };
 
     while (Date.now() - start < timeout) {
-      const el = (await elementPromise) as Detox.IndexableNativeElement;
+      const el = (await detoxElement) as Detox.IndexableNativeElement;
       const position = await getPosition(el);
 
       if (!position) {
@@ -179,12 +174,12 @@ export default class Utilities {
    * Waits for an element to become stable (not moving) by checking its position multiple times.
    */
   static async waitForElementToStopMoving(
-    elementPromise: DetoxElement,
+    detoxElement: DetoxElement,
     options: StabilityOptions = {},
   ): Promise<void> {
     const { timeout = 5000 } = options;
     return this.executeWithRetry(
-      () => this.checkElementStable(elementPromise, options),
+      () => this.checkElementStable(detoxElement, options),
       {
         timeout,
         description: 'Element stability',
@@ -196,7 +191,7 @@ export default class Utilities {
    * Check element ready state (non-retry version)
    */
   static async checkElementReadyState(
-    elementPromise: DetoxElement,
+    detoxElement: DetoxElement,
     options: {
       timeout?: number;
       checkStability?: boolean;
@@ -211,7 +206,7 @@ export default class Utilities {
       checkEnabled = true,
     } = options;
 
-    const el = (await elementPromise) as Detox.IndexableNativeElement;
+    const el = (await detoxElement) as Detox.IndexableNativeElement;
     /**
      * IMPORTANT: Default timeout behavior
      *
@@ -258,7 +253,7 @@ export default class Utilities {
    * Wait for element to be in a ready state (visible, enabled, stable)
    */
   static async waitForReadyState(
-    elementPromise: DetoxElement,
+    detoxElement: DetoxElement,
     options: {
       timeout?: number;
       checkStability?: boolean;
@@ -269,7 +264,7 @@ export default class Utilities {
     const { timeout = TEST_CONFIG_DEFAULTS.timeout, elemDescription } = options;
 
     return this.executeWithRetry(
-      () => this.checkElementReadyState(elementPromise, options),
+      () => this.checkElementReadyState(detoxElement, options),
       {
         timeout,
         description: 'Element ready state check',
