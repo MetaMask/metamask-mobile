@@ -35,6 +35,9 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
       opacity: 0.4,
       marginVertical: 8,
     },
+    listContainer: {
+      flexDirection: 'row',
+    },
   });
 
 export default styleSheet;
