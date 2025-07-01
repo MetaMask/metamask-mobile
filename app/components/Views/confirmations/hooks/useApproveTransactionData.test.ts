@@ -35,7 +35,7 @@ describe('useApproveTransactionData', () => {
     mockUseGetTokenStandardAndDetails.mockReturnValue({
       details: {
         standard: TokenStandard.ERC20,
-        decimalsNumber: 18,
+        decimalsNumber: 0,
       },
       isPending: false,
     } as unknown as ReturnType<typeof useGetTokenStandardAndDetails>);
@@ -264,6 +264,7 @@ describe('useApproveTransactionData', () => {
       mockUseGetTokenStandardAndDetails.mockReturnValue({
         details: {
           standard: TokenStandard.ERC20,
+          decimalsNumber: 0,
         },
         isPending: false,
       } as unknown as ReturnType<typeof useGetTokenStandardAndDetails>);
