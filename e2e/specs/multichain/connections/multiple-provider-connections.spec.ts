@@ -3,10 +3,11 @@ import { SmokeMultiStandardDappConnection } from '../../../tags';
 import Assertions from '../../../utils/Assertions';
 import TestHelpers from '../../../helpers';
 import { withSolanaAccountEnabled } from '../../../common-solana';
-import MultichainTestDApp, { MULTICHAIN_TEST_DAPP_LOCAL_URL } from '../../../pages/Browser/MultichainTestDApp';
+import MultichainTestDApp from '../../../pages/Browser/MultichainTestDApp';
 import MultichainUtilities from '../../../utils/MultichainUtilities';
 import { DEFAULT_FIXTURE_ACCOUNT, DEFAULT_SOLANA_FIXTURE_ACCOUNT } from '../../../fixtures/fixture-builder';
 import { SolScope } from '@metamask/keyring-api';
+import { DEFAULT_MULTICHAIN_TEST_DAPP_PATH } from '../../../fixtures/fixture-helper';
 
 describe(SmokeMultiStandardDappConnection('Multiple Standard Dapp Connections'), () => {
   beforeAll(async () => {
@@ -20,7 +21,7 @@ describe(SmokeMultiStandardDappConnection('Multiple Standard Dapp Connections'),
   // it('should default account selection to already permitted Solana account and requested Ethereum account when `wallet_requestPermissions` is called with specific Ethereum account', async () => { });
   it('should be able to request specific chains when connecting through the EVM provider with existing permissions', async () => {
     await withSolanaAccountEnabled({
-      dappPath: MULTICHAIN_TEST_DAPP_LOCAL_URL,
+      dappPath: DEFAULT_MULTICHAIN_TEST_DAPP_PATH,
       solanaAccountPermitted: true,
     }, async () => {
       await MultichainTestDApp.setupAndNavigateToTestDapp('?autoMode=true');
