@@ -1,25 +1,32 @@
 import React from 'react';
-import { View } from 'react-native';
-import { useSelector } from 'react-redux';
 
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { useApproveTransactionData } from '../../../../hooks/useApproveTransactionData';
-import { selectUseTransactionSimulations } from '../../../../../../../selectors/preferencesController';
-import { StaticSimulationApprove } from '../../../static-simulation-approve';
-import { RawApprove } from '../../../raw-approve';
+import { ApproveMethod } from '../../../../types/approve';
+import { ApproveAndPermit2 } from '../../../approve-static-simulations/approve-and-permit2';
+import { SetApprovalForAll } from '../../../approve-static-simulations/set-approval-for-all';
+import { IncreaseDecreaseAllowance } from '../../../approve-static-simulations/increase-decrease-allowance';
+import { StaticSimulationLayout } from '../../../UI/static-simulation-layout';
 
 export const ApproveRow = () => {
-  const approveTransactionData = useApproveTransactionData();
-  const isSimulationEnabled = useSelector(selectUseTransactionSimulations);
-
-  if (approveTransactionData.isLoading) {
-    // Nice to have: Add loading component
-    return null;
-  }
+  const { approveMethod, isLoading } = useApproveTransactionData();
 
   return (
-    <View testID={ConfirmationRowComponentIDs.APPROVE_ROW}>
-      {isSimulationEnabled ? <StaticSimulationApprove /> : <RawApprove />}
-    </View>
+    <StaticSimulationLayout
+      isLoading={isLoading}
+      testID={ConfirmationRowComponentIDs.APPROVE_ROW}
+    >
+      {(approveMethod === ApproveMethod.APPROVE ||
+        approveMethod === ApproveMethod.PERMIT2_APPROVE) && (
+        <ApproveAndPermit2 />
+      )}
+      {approveMethod === ApproveMethod.SET_APPROVAL_FOR_ALL && (
+        <SetApprovalForAll />
+      )}
+      {(approveMethod === ApproveMethod.INCREASE_ALLOWANCE ||
+        approveMethod === ApproveMethod.DECREASE_ALLOWANCE) && (
+        <IncreaseDecreaseAllowance />
+      )}
+    </StaticSimulationLayout>
   );
 };
