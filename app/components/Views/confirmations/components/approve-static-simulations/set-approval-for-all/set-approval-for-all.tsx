@@ -1,5 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
+import { TransactionMeta } from '@metamask/transaction-controller';
 
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
@@ -12,14 +13,11 @@ import { Pill } from '../../UI/pill';
 import styleSheet from '../shared-styles';
 
 interface NFTInfoRowProps {
-  transactionMetadata: any;
-  styles: any;
+  transactionMetadata: TransactionMeta;
 }
 
-const NFTInfoRow: React.FC<NFTInfoRowProps> = ({
-  transactionMetadata,
-  styles,
-}) => {
+const NFTInfoRow: React.FC<NFTInfoRowProps> = ({ transactionMetadata }) => {
+  const { styles } = useStyles(styleSheet, {});
   return (
     <InfoRow label={strings('confirm.nfts')}>
       <View style={styles.amountAndAddressContainer}>
@@ -72,7 +70,6 @@ const SpenderInfoRow: React.FC<SpenderInfoRowProps> = ({
 };
 
 export const SetApprovalForAll = () => {
-  const { styles } = useStyles(styleSheet, {});
   const { tokenStandard, isRevoke, spender } = useApproveTransactionData();
   const transactionMetadata = useTransactionMetadataRequest();
   const isERC721 = tokenStandard === TokenStandard.ERC721;
@@ -86,7 +83,9 @@ export const SetApprovalForAll = () => {
   if (isRevoke) {
     return (
       <>
-        <NFTInfoRow transactionMetadata={transactionMetadata} styles={styles} />
+        <NFTInfoRow
+          transactionMetadata={transactionMetadata as TransactionMeta}
+        />
         <PermissionFromInfoRow
           spender={spender}
           transactionMetadata={transactionMetadata}
@@ -97,7 +96,9 @@ export const SetApprovalForAll = () => {
 
   return (
     <>
-      <NFTInfoRow transactionMetadata={transactionMetadata} styles={styles} />
+      <NFTInfoRow
+        transactionMetadata={transactionMetadata as TransactionMeta}
+      />
       <SpenderInfoRow
         spender={spender}
         transactionMetadata={transactionMetadata}
