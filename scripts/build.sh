@@ -124,11 +124,11 @@ remapEnvVariableLocal() {
   	echo "Remapping local env variables for development"
   	remapEnvVariable "MM_SENTRY_DSN_DEV" "MM_SENTRY_DSN"
 
-	remapEnvVariable "795351133007-47aohp9j9n7r8fef5n6ejeauhu4kfc9e.apps.googleusercontent.com" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "com.googleusercontent.apps.795351133007-47aohp9j9n7r8fef5n6ejeauhu4kfc9e:/oauth2redirect/google" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "io.metamask.appleloginclient.prod" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "795351133007-jcaor637tblrlpuj29shdej3co8bu8kv.apps.googleusercontent.com" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "795351133007-jcaor637tblrlpuj29shdej3co8bu8kv.apps.googleusercontent.com" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
+	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
 remapEnvVariableQA() {
@@ -139,11 +139,11 @@ remapEnvVariableQA() {
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
   	remapEnvVariable "MM_SENTRY_DSN_TEST" "MM_SENTRY_DSN"
 
-	remapEnvVariable "387141446914-5ja3p4dfanfkm8uq238fm1b8t1rkscv4.apps.googleusercontent.com" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "com.googleusercontent.apps.387141446914-5ja3p4dfanfkm8uq238fm1b8t1rkscv4:/oauth2redirect/google" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "io.metamask.appleloginclient.uat" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "387141446914-olajr83p1bbvabh1u8tfglt1k4u6jlcb.apps.googleusercontent.com" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "387141446914-olajr83p1bbvabh1u8tfglt1k4u6jlcb.apps.googleusercontent.com" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_UAT" "IOS_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT" "IOS_GOOGLE_REDIRECT_URI"
+	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_UAT" "ANDROID_APPLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT" "ANDROID_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
 remapEnvVariableRelease() {
@@ -161,11 +161,11 @@ remapFlaskEnvVariables() {
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_FLASK" "SEGMENT_DELETE_API_SOURCE_ID"
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_FLASK" "SEGMENT_REGULATIONS_ENDPOINT"
 
-	remapEnvVariable "795351133007-gvuagr9t7tfkak3sp2cmng4pdhchlfpd.apps.googleusercontent.com" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "com.googleusercontent.apps.795351133007-gvuagr9t7tfkak3sp2cmng4pdhchlfpd:/oauth2redirect/google" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "io.metamask.appleloginclient.flask.prod" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "795351133007-gh67d3hot6ib24htu9d7sh01bg90lpdu.apps.googleusercontent.com" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "795351133007-gh67d3hot6ib24htu9d7sh01bg90lpdu.apps.googleusercontent.com" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+	remapEnvVariable "FLASK_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
+	remapEnvVariable "FLASK_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
+	remapEnvVariable "FLASK_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
+	remapEnvVariable "FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
+	remapEnvVariable "FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
 remapEnvVariableProduction() {
