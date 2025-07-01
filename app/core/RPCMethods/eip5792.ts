@@ -50,7 +50,7 @@ export async function processSendCalls(
   req: JsonRpcRequest,
 ): Promise<SendCallsResult> {
   if (process.env.MM_SMART_ACCOUNT_UI_ENABLED !== 'true') {
-    throw rpcErrors.invalidParams('Functionality not available');
+    throw rpcErrors.methodNotFound('Functionality not available');
   }
   const { AccountsController } = Engine.context;
   const { calls, from: paramFrom } = params;
