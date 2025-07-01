@@ -24,7 +24,6 @@ import {
   getFormattedAddressFromInternalAccount,
   isNonEvmAddress,
 } from '../../../core/Multichain/utils';
-import { useMultichainBalancesForAllAccounts } from '../useMultichainBalances';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -32,7 +31,6 @@ import { useMultichainBalancesForAllAccounts } from '../useMultichainBalances';
  * @returns Object that contains both wallet accounts and ens name information.
  */
 const useAccounts = ({
-  checkBalanceError: checkBalanceErrorFn,
   isLoading = false,
 }: UseAccountsParams = {}): UseAccounts => {
   const isMountedRef = useRef(false);
@@ -43,9 +41,6 @@ const useAccounts = ({
   const currentChainId = useSelector(selectChainId);
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-
-  // const { multichainBalancesForAllAccounts } =
-  //   useMultichainBalancesForAllAccounts();
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,

@@ -13,7 +13,6 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
-import { CaipChainId } from '@metamask/utils';
 import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -40,7 +39,7 @@ import { AvatarAccountType } from '../../../component-library/components/Avatars
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
-import { Account, Assets } from '../../hooks/useAccounts';
+import { Account } from '../../hooks/useAccounts';
 import Engine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
@@ -52,7 +51,6 @@ import {
   FlattenedAccountListItem,
 } from './EvmAccountSelectorList.types';
 import styleSheet from './EvmAccountSelectorList.styles';
-import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
@@ -67,6 +65,7 @@ import { AccountWallet } from '@metamask/account-tree-controller';
 import { getAggregatedBalance } from '../../hooks/useMultichainBalances/utils';
 import { renderFiat } from '../../../util/number';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
+import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
@@ -117,20 +116,9 @@ const EvmAccountSelectorList = ({
   const currentCurrency = useSelector(selectCurrentCurrency);
   // eslint-disable-next-line no-console
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [aggregatedBalanceByAccount, setAggregatedBalanceByAccount] = useState<{
     [address: string]: number | null;
-  }>(() => {
-    const initialBalance: {
-      [address: string]: number | null;
-    } = {};
-
-    internalAccounts.forEach((account) => {
-      initialBalance[account.address] = null;
-    });
-
-    return initialBalance;
-  });
+  }>({});
 
   const internalAccountsById = useSelector(selectInternalAccountsById);
 
@@ -215,38 +203,39 @@ const EvmAccountSelectorList = ({
   }, [selectedAddresses]);
 
   const renderAccountBalances = useCallback(
-    (
-      { fiatBalance }: Assets,
-      partialAccount: { address: string; scopes: CaipChainId[] },
-      isLoadingAccount: boolean,
-    ) => {
-      const fiatBalanceStrSplit = fiatBalance.split('\n');
-      const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
-
-      return (
-        <View
-          style={styles.balancesContainer}
-          testID={`${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${partialAccount.address}`}
-        >
-          {isLoadingAccount ? (
-            <Skeleton width={60} height={24} />
-          ) : (
-            <>
-              <SensitiveText
-                length={SensitiveTextLength.Long}
-                style={styles.balanceLabel}
-                isHidden={privacyMode}
-              >
-                {fiatBalanceAmount}
-              </SensitiveText>
-
-              <AccountNetworkIndicator partialAccount={partialAccount} />
-            </>
-          )}
-        </View>
-      );
-    },
-    [styles.balancesContainer, styles.balanceLabel, privacyMode],
+    (address: string, item: FlattenedAccountListItem & { type: 'account' }) => (
+      <View
+        style={styles.balancesContainer}
+        testID={`${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${address}`}
+      >
+        {aggregatedBalanceByAccount[address] !== null &&
+        aggregatedBalanceByAccount[address] !== undefined ? (
+          <>
+            <SensitiveText
+              length={SensitiveTextLength.Long}
+              style={styles.balanceLabel}
+              isHidden={privacyMode}
+            >
+              {renderFiat(
+                aggregatedBalanceByAccount[address] as number,
+                currentCurrency,
+                2,
+              )}
+            </SensitiveText>
+            <AccountNetworkIndicator partialAccount={item.data} />
+          </>
+        ) : (
+          <Skeleton width={60} height={24} />
+        )}
+      </View>
+    ),
+    [
+      aggregatedBalanceByAccount,
+      privacyMode,
+      currentCurrency,
+      styles.balancesContainer,
+      styles.balanceLabel,
+    ],
   );
 
   const onLongPress = useCallback(
@@ -411,74 +400,64 @@ const EvmAccountSelectorList = ({
 
   // Async function to fetch and update aggregated balances
   const fetchAggregatedBalances = useCallback(async (): Promise<void> => {
+    if (!internalAccounts.length) return;
+
     try {
       const aggregatedBalanceNewState: {
         [address: string]: number | null;
       } = {};
 
+      // Initialize all accounts with null to show loading state
+      internalAccounts.forEach((account) => {
+        aggregatedBalanceNewState[toFormattedAddress(account.address)] = null;
+      });
+
+      // Update state immediately to show loading state
+      setAggregatedBalanceByAccount(aggregatedBalanceNewState);
+
       // Process each account and get their balance
       for (const account of internalAccounts) {
         try {
           const balanceData = getAggregatedBalance(account);
+          const totalBalance =
+            (balanceData?.ethFiat || 0) + (balanceData?.tokenFiat || 0);
 
           aggregatedBalanceNewState[toFormattedAddress(account.address)] =
-            balanceData?.ethFiat + balanceData?.tokenFiat;
+            totalBalance;
+
+          // Update state incrementally for better UX
+          setAggregatedBalanceByAccount((prev) => ({
+            ...prev,
+            [toFormattedAddress(account.address)]: totalBalance,
+          }));
         } catch (error) {
-          // eslint-disable-next-line no-console
           console.error(
             `Error fetching balance for account ${account.address}:`,
             error,
           );
-          aggregatedBalanceNewState[account.address] = null;
+          // Keep null for failed accounts
         }
       }
-
-      // Update state with new balance data
-      setAggregatedBalanceByAccount(aggregatedBalanceNewState);
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error('Error in fetchAggregatedBalances:', error);
     }
   }, [internalAccounts]);
 
-  // Call the async function through useEffect
+  // Fetch aggregated balances when internal accounts change
   useEffect(() => {
-    const executeAsyncFunction = async () => {
-      try {
-        await fetchAggregatedBalances();
-        // eslint-disable-next-line no-console
-        console.log('Aggregated balances fetch completed');
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('Error executing fetchAggregatedBalances:', error);
-      }
-    };
-
-    executeAsyncFunction();
+    fetchAggregatedBalances();
   }, [fetchAggregatedBalances]);
 
   const renderItem = useCallback(
     ({ item }: { item: FlattenedAccountListItem }) => {
-      // eslint-disable-next-line no-console
       if (item.type === 'header') {
         return renderSectionHeader(item.data);
       }
-
       if (item.type === 'footer') {
         return renderSectionFooter();
       }
-
-      // Render account item
-      const {
-        id,
-        name,
-        address,
-        assets,
-        type,
-        isSelected,
-        balanceError,
-        isLoadingAccount,
-      } = item.data;
+      // Only for account items
+      const { id, name, address, type, isSelected, balanceError } = item.data;
 
       const internalAccount = internalAccountsById[id];
       const shortAddress = formatAddress(address, 'short');
@@ -572,24 +551,11 @@ const EvmAccountSelectorList = ({
           style={cellStyle}
           buttonProps={buttonProps}
         >
-          {aggregatedBalanceByAccount?.[address] !== null ? (
-            <SensitiveText
-              length={SensitiveTextLength.Long}
-              style={styles.balanceLabel}
-              isHidden={privacyMode}
-            >
-              {renderFiat(
-                aggregatedBalanceByAccount[address],
-                currentCurrency,
-                2,
-              )}
-            </SensitiveText>
-          ) : (
-            <Skeleton width={60} height={24} />
-          )}
           {renderRightAccessory?.(address, accountName) ||
-            (assets &&
-              renderAccountBalances(assets, item.data, isLoadingAccount))}
+            renderAccountBalances(
+              address,
+              item as typeof item & { type: 'account' },
+            )}
         </Cell>
       );
     },
@@ -602,7 +568,6 @@ const EvmAccountSelectorList = ({
       selectedAddressesLookup,
       accountAvatarType,
       renderRightAccessory,
-      renderAccountBalances,
       onLongPress,
       onSelectAccount,
       useMultichainAccountDesign,
@@ -613,10 +578,7 @@ const EvmAccountSelectorList = ({
       renderSectionHeader,
       renderSectionFooter,
       internalAccountsById,
-      aggregatedBalanceByAccount,
-      currentCurrency,
-      privacyMode,
-      styles.balanceLabel,
+      renderAccountBalances,
     ],
   );
 
