@@ -967,26 +967,31 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
   );
 
   const sendActiveAccount = useCallback(async (targetUrl?: string) => {
-    // Use the target URL if provided, otherwise use current resolved URL
-    const urlToCheck = targetUrl || resolvedUrlRef.current;
-    if (!urlToCheck) return;
-
-    const hostname = new URLParse(urlToCheck).hostname;
-    const permissionsControllerState = Engine.context.PermissionController.state;
-
-    // Get permitted accounts specifically for the target hostname
-    const permittedAccountsForTarget = getPermittedEvmAddressesByHostname(
-      permissionsControllerState,
-      hostname,
-    );
-
-    // Only send account information if the target URL has explicit permissions
-    if (permittedAccountsForTarget.length > 0) {
-      notifyAllConnections({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: permittedAccountsForTarget,
-      });
+    try {
+      const urlToCheck = targetUrl || resolvedUrlRef.current;
+      if (!urlToCheck) return;
+      const hostname = new URLParse(urlToCheck).hostname;
+      const permissionsControllerState = Engine.context.PermissionController.state;
+  
+      // Get permitted accounts specifically for the target hostname
+      const permittedAccountsForTarget = getPermittedEvmAddressesByHostname(
+        permissionsControllerState,
+        hostname,
+      );
+  
+      // Only send account information if the target URL has explicit permissions
+      if (permittedAccountsForTarget.length > 0) {
+        notifyAllConnections({
+          method: NOTIFICATION_NAMES.accountsChanged,
+          params: permittedAccountsForTarget,
+        });
+      }
+    } catch (err) {
+      Logger.error(err as Error, 'Error in sendActiveAccount');
+      return
     }
+    // Use the target URL if provided, otherwise use current resolved URL
+
   }, [notifyAllConnections]);
 
   /**
