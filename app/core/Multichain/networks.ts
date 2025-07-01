@@ -100,7 +100,7 @@ export function getMultichainBlockExplorer(selectedAccount: InternalAccount):
     if (isEvmAccountType(selectedAccount.type)) {
       return {
         url: `https://etherscan.io/address/${selectedAccount.address}#asset-multichain`,
-        title: 'Etherscan (Multichain)',
+        title: 'Etherscan',
         blockExplorerName: 'Etherscan (Multichain)',
       };
     }
