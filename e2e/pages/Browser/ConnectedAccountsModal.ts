@@ -8,170 +8,169 @@ import Gestures from '../../utils/Gestures';
 import TestHelpers from '../../helpers';
 
 class ConnectedAccountsModal {
-  get container() {
+  get container(): DetoxElement {
     return Matchers.getElementByID(ConnectedAccountsSelectorsIDs.CONTAINER);
   }
 
-  get permissionsButton() {
+  get permissionsButton(): DetoxElement {
     return Matchers.getElementByText(
       ConnectedAccountModalSelectorsText.PERMISSION_LINK,
     );
   }
 
-  get networkPicker() {
+  get networkPicker(): DetoxElement {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.NETWORK_PICKER,
     );
   }
 
-  get disconnectAllButton() {
+  get disconnectAllButton(): DetoxElement {
     return Matchers.getElementByText(
       ConnectedAccountModalSelectorsText.DISCONNECT_ALL,
     );
   }
-  get disconnectButton() {
+
+  get disconnectButton(): DetoxElement {
     return Matchers.getElementByID(ConnectedAccountsSelectorsIDs.DISCONNECT);
   }
 
-  get disconnectAllAccountsAndNetworksButton() {
+  get disconnectAllAccountsAndNetworksButton(): DetoxElement {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS,
     );
   }
 
-  get navigateToEditNetworksPermissionsButton() {
+  get navigateToEditNetworksPermissionsButton(): DetoxElement {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
     );
   }
 
-  get connectAccountsButton() {
+  get connectAccountsButton(): DetoxElement {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.CONNECT_ACCOUNTS_BUTTON,
     );
   }
-  get managePermissionsButton() {
+
+  get managePermissionsButton(): DetoxElement {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.MANAGE_PERMISSIONS,
     );
   }
 
-  get permissionsSummaryTab() {
+  get permissionsSummaryTab(): DetoxElement {
     return Matchers.getElementByText(
       WalletViewSelectorsText.PERMISSIONS_SUMMARY_TAB,
     );
   }
 
-  get accountsSummaryTab() {
+  get accountsSummaryTab(): DetoxElement {
     return Matchers.getElementByText(
       WalletViewSelectorsText.ACCOUNTS_SUMMARY_TAB,
     );
   }
 
-  get accountListBottomSheet() {
+  get accountListBottomSheet(): DetoxElement {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET,
     );
   }
 
-  get title() {
+  get title(): DetoxElement {
     return Matchers.getElementByText(ConnectedAccountModalSelectorsText.TITLE);
   }
 
-  get selectAllNetworksButton() {
+  get selectAllNetworksButton(): DetoxElement {
     return Matchers.getElementByText(
       ConnectedAccountModalSelectorsText.SELECT_ALL,
     );
-    // return Matchers.getElementByID(
-    //   ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON,
-    // );
   }
 
-  get disconnectNetworksButton() {
+  get disconnectNetworksButton(): DetoxElement {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.DISCONNECT_NETWORKS_BUTTON,
     );
   }
 
-  get confirmDisconnectNetworksButton() {
+  get confirmDisconnectNetworksButton(): DetoxElement {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.CONFIRM_DISCONNECT_NETWORKS_BUTTON,
     );
   }
 
-  async tapPermissionsButton() {
+  async tapPermissionsButton(): Promise<void> {
     await Gestures.waitAndTap(this.permissionsButton);
   }
 
-  async tapNetworksPicker() {
+  async tapNetworksPicker(): Promise<void> {
     await Gestures.waitAndTap(this.networkPicker);
   }
 
-  async tapDisconnectAllButton() {
+  async tapDisconnectAllButton(): Promise<void> {
     await Gestures.waitAndTap(this.disconnectAllButton);
   }
 
-  async tapManagePermissionsButton() {
+  async tapManagePermissionsButton(): Promise<void> {
     await TestHelpers.delay(4000);
     await Gestures.waitAndTap(this.managePermissionsButton);
   }
 
-  async tapPermissionsSummaryTab() {
+  async tapPermissionsSummaryTab(): Promise<void> {
     await Gestures.waitAndTap(this.permissionsSummaryTab);
   }
 
-  async tapAccountsSummaryTab() {
+  async tapAccountsSummaryTab(): Promise<void> {
     await TestHelpers.delay(1000);
     await Gestures.waitAndTap(this.accountsSummaryTab);
   }
 
-  async tapAccountListBottomSheet() {
+  async tapAccountListBottomSheet(): Promise<void> {
     await Gestures.waitAndTap(this.accountListBottomSheet);
   }
 
-  async tapDisconnectButton() {
+  async tapDisconnectButton(): Promise<void> {
     await Gestures.waitAndTap(this.disconnectButton);
   }
-  async tapDisconnectAllAccountsAndNetworksButton() {
+
+  async tapDisconnectAllAccountsAndNetworksButton(): Promise<void> {
     await Gestures.waitAndTap(this.disconnectAllAccountsAndNetworksButton);
   }
 
-  async tapNavigateToEditNetworksPermissionsButton() {
+  async tapNavigateToEditNetworksPermissionsButton(): Promise<void> {
     await Gestures.waitAndTap(this.navigateToEditNetworksPermissionsButton);
   }
 
-  async tapSelectAllNetworksButton() {
+  async tapSelectAllNetworksButton(): Promise<void> {
     await Gestures.waitAndTap(this.selectAllNetworksButton);
   }
 
-  async tapDeselectAllNetworksButton() {
+  async tapDeselectAllNetworksButton(): Promise<void> {
     await Gestures.waitAndTap(this.selectAllNetworksButton);
   }
 
-  async tapDisconnectNetworksButton() {
+  async tapDisconnectNetworksButton(): Promise<void> {
     await Gestures.waitAndTap(this.disconnectNetworksButton);
   }
 
-  async tapConfirmDisconnectNetworksButton() {
+  async tapConfirmDisconnectNetworksButton(): Promise<void> {
     await Gestures.waitAndTap(this.confirmDisconnectNetworksButton);
   }
 
-  //async tapToSetAsPrimaryAccount() {
-  // }
-
-  async scrollToBottomOfModal() {
-    await Gestures.swipe(this.title, 'down', 'fast');
+  async scrollToBottomOfModal(): Promise<void> {
+    await Gestures.swipe(this.title as Promise<IndexableNativeElement>, 'down', 'fast');
   }
 
-  async tapConnectMoreAccountsButton() {
+  async tapConnectMoreAccountsButton(): Promise<void> {
     await Gestures.waitAndTap(this.connectAccountsButton);
   }
-  async getNetworkName() {
 
-    const networkNameElement  = this.navigateToEditNetworksPermissionsButton
-    const attributes = await networkNameElement.label;
-    return attributes;
+  async getNetworkName(): Promise<string> {
+    const networkNameElement = this.navigateToEditNetworksPermissionsButton;
+    const element = await networkNameElement;
+    // Type assertion to access label property which exists on Detox elements
+    const attributes = await (element as any).getAttributes();
+    return attributes.label as string;
   }
 }
 
-export default new ConnectedAccountsModal();
+export default new ConnectedAccountsModal(); 

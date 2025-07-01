@@ -14,8 +14,29 @@ import WalletView from '../../../../pages/wallet/WalletView';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
 import NetworkEducationModal from '../../../../pages/Network/NetworkEducationModal';
-
 import PermissionSummaryBottomSheet from '../../../../pages/Browser/PermissionSummaryBottomSheet';
+
+// Define proper types for withFixtures options
+interface DappOptions {
+  numberOfDapps: number;
+}
+
+interface WithFixturesOptions {
+  fixture: any;
+  dapp?: boolean;
+  multichainDapp?: boolean;
+  dappOptions?: DappOptions;
+  dappPath?: string;
+  dappPaths?: string[];
+  ganacheOptions?: any;
+  languageAndLocale?: any;
+  launchArgs?: any;
+  restartDevice?: boolean;
+  smartContract?: any;
+  testSpecificMock?: any;
+  disableGanache?: boolean;
+  localNodeOptions?: any;
+}
 
 /*
 Test Steps:
@@ -28,13 +49,13 @@ Test Steps:
 7. Check Dapp 1 is still on Linea Sepolia
 8. Check Dapp 2 is still on ETH Mainnet
 */
-describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
-  beforeAll(async () => {
+describe(SmokeNetworkExpansion('Per Dapp Management'), (): void => {
+  beforeAll(async (): Promise<void> => {
     jest.setTimeout(300000);
     await TestHelpers.reverseServerPort();
   });
 
-  it('handles two dapps concurrently', async () => {
+  it('handles two dapps concurrently', async (): Promise<void> => {
     await withFixtures(
       {
         dapp: true,
@@ -45,8 +66,8 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
           .withSecondTestDappTab()
           .build(),
         restartDevice: true,
-      },
-      async () => {
+      } as WithFixturesOptions,
+      async (): Promise<void> => {
         // Step 1: Navigate to browser view
         await loginToApp();
         await TabBarComponent.tapBrowser();
@@ -85,7 +106,7 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
         await NetworkConnectMultiSelector.tapUpdateButton();
 
         await Assertions.checkIfElementHasLabel(
-          ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
+          ConnectedAccountsModal.navigateToEditNetworksPermissionsButton as TypableElement,
           'Use your enabled networks Linea Sepolia',
         );
 
@@ -112,7 +133,7 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
 
         await device.enableSynchronization(); // re-enabling synchronization
         await Assertions.checkIfElementHasLabel(
-          ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
+          ConnectedAccountsModal.navigateToEditNetworksPermissionsButton as TypableElement,
           'Use your enabled networks Sepolia',
         );
 
@@ -135,7 +156,7 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
 
         await Assertions.checkIfElementHasLabel(
-          ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
+          ConnectedAccountsModal.navigateToEditNetworksPermissionsButton as TypableElement,
           'Use your enabled networks Sepolia',
         );
 
@@ -157,10 +178,10 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
 
         await Assertions.checkIfElementHasLabel(
-          ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
+          ConnectedAccountsModal.navigateToEditNetworksPermissionsButton as TypableElement,
           'Use your enabled networks Linea Sepolia',
         );
       },
     );
   });
-});
+}); 
