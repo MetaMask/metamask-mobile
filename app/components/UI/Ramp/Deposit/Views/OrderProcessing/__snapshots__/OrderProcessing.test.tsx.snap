@@ -417,6 +417,46 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
             </Text>
           </View>
         </View>
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+              "justifyContent": "center",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            View order details in Transak
+          </Text>
+          <SvgMock
+            color="#4459ff"
+            fill="currentColor"
+            height={16}
+            name="Export"
+            style={
+              {
+                "height": 16,
+                "width": 16,
+              }
+            }
+            width={16}
+          />
+        </TouchableOpacity>
       </View>
     </View>
     <View>
@@ -905,6 +945,46 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
             </Text>
           </View>
         </View>
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+              "justifyContent": "center",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            View order details in Transak
+          </Text>
+          <SvgMock
+            color="#4459ff"
+            fill="currentColor"
+            height={16}
+            name="Export"
+            style={
+              {
+                "height": 16,
+                "width": 16,
+              }
+            }
+            width={16}
+          />
+        </TouchableOpacity>
       </View>
     </View>
     <View>
@@ -1560,6 +1640,46 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
             </Text>
           </View>
         </View>
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+              "justifyContent": "center",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            View order details in Transak
+          </Text>
+          <SvgMock
+            color="#4459ff"
+            fill="currentColor"
+            height={16}
+            name="Export"
+            style={
+              {
+                "height": 16,
+                "width": 16,
+              }
+            }
+            width={16}
+          />
+        </TouchableOpacity>
       </View>
     </View>
     <View>
@@ -2048,6 +2168,46 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
             </Text>
           </View>
         </View>
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+              "justifyContent": "center",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            View order details in Transak
+          </Text>
+          <SvgMock
+            color="#4459ff"
+            fill="currentColor"
+            height={16}
+            name="Export"
+            style={
+              {
+                "height": 16,
+                "width": 16,
+              }
+            }
+            width={16}
+          />
+        </TouchableOpacity>
       </View>
     </View>
     <View>

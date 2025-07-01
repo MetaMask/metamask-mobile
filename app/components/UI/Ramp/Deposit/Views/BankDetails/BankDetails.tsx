@@ -35,12 +35,14 @@ import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import { processFiatOrder } from '../../../index';
 import { useTheme } from '../../../../../../util/theme';
 import { RootState } from '../../../../../../reducers';
-import { isDepositOrder } from '../../utils';
+import { hasDepositOrderField } from '../../utils';
 import { useDepositSDK } from '../../sdk';
 import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
+import { SUPPORTED_PAYMENT_METHODS } from '../../constants';
+import { DepositOrder } from '@consensys/native-ramps-sdk';
 
 export interface BankDetailsParams {
   orderId: string;
@@ -141,8 +143,7 @@ const BankDetails = () => {
 
   const getFieldValue = useCallback(
     (fieldName: string): string | null => {
-      if (!isDepositOrder(order?.data) || !order?.data?.paymentOptions)
-        return null;
+      if (!hasDepositOrderField(order?.data, 'paymentOptions')) return null;
 
       const field = order.data.paymentOptions[0].fields.find(
         (f) => f.name === fieldName,
@@ -157,7 +158,10 @@ const BankDetails = () => {
   const amount = getFieldValue('Amount');
   const firstName = getFieldValue('First Name (Beneficiary)');
   const lastName = getFieldValue('Last Name (Beneficiary)');
-  const accountName = firstName && lastName ? `${firstName} ${lastName}` : null;
+  const accountName =
+    firstName || lastName
+      ? `${firstName ?? ''} ${lastName ?? ''}`.trim()
+      : null;
   const accountType = getFieldValue('Account Type');
   const bankName = getFieldValue('Bank Name');
   const bankAddress = getFieldValue('Bank Address');
@@ -167,22 +171,31 @@ const BankDetails = () => {
   const bic = getFieldValue('BIC');
 
   useEffect(() => {
+    const paymentMethodName =
+      hasDepositOrderField(order?.data, 'paymentMethod') &&
+      order?.data.paymentMethod
+        ? SUPPORTED_PAYMENT_METHODS.find(
+            (method) =>
+              method.id === (order.data as DepositOrder).paymentMethod,
+          )?.name
+        : '';
+
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
         {
           title: strings('deposit.bank_details.title', {
-            paymentMethod: 'SEPA',
+            paymentMethod: paymentMethodName,
           }),
         },
         theme,
       ),
     );
-  }, [navigation, theme]);
+  }, [navigation, theme, order]);
 
   const handleBankTransferSent = useCallback(async () => {
     try {
-      if (!isDepositOrder(order?.data)) {
+      if (!hasDepositOrderField(order?.data, 'paymentOptions')) {
         console.error('Order or payment options not found');
         return;
       }

@@ -23,6 +23,7 @@ const mockOrderData = {
     status: 'created',
     orderType: 'buy',
     walletAddress: '0x123...',
+    paymentMethod: 'sepa_bank_transfer',
     paymentOptions: [
       {
         id: 'payment-option-id',
@@ -164,7 +165,7 @@ describe('BankDetails Component', () => {
 
     expect(mockSetNavigationOptions).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: expect.stringContaining('SEPA'),
+        title: expect.stringContaining('SEPA Bank Transfer'),
       }),
     );
   });

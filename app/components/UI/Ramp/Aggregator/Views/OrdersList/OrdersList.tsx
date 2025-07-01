@@ -29,8 +29,9 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import { createDepositOrderDetailsNavDetails } from '../../../Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { isDepositOrder } from '../../../Deposit/utils';
+import { hasDepositOrderField } from '../../../Deposit/utils';
 import { SEPA_PAYMENT_METHOD } from '../../../Deposit/constants';
+import { DepositOrder } from '@consensys/native-ramps-sdk';
 
 type filterType = 'ALL' | 'PURCHASE' | 'SELL';
 
@@ -88,8 +89,8 @@ function OrdersList() {
       const order = orders.find((o) => o.id === orderId);
 
       const isBankTransfer =
-        isDepositOrder(order?.data) &&
-        order?.data.paymentMethod === SEPA_PAYMENT_METHOD.id;
+        hasDepositOrderField(order?.data, 'paymentMethod') &&
+        (order?.data as DepositOrder).paymentMethod === SEPA_PAYMENT_METHOD.id;
 
       if (
         isBankTransfer &&

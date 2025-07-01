@@ -239,28 +239,20 @@ export function getCryptoCurrencyFromTransakId(
 }
 
 /**
- * Type guard to check if data object is a DepositOrder
+ * Type guard to check if data object has a specific field from DepositOrder
  * @param data - The data to check
- * @returns True if data object is a DepositOrder, false otherwise
+ * @param field - The field to check for existence
+ * @returns True if data object has the specified field, false otherwise
  */
-export const isDepositOrder = (data: unknown): data is DepositOrder => {
+export const hasDepositOrderField = (
+  data: unknown,
+  field: keyof DepositOrder,
+): data is DepositOrder => {
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
     return false;
   }
 
   const depositOrder = data as Record<string, unknown>;
 
-  const hasRequiredProperties =
-    typeof depositOrder.id === 'string' &&
-    typeof depositOrder.provider === 'string' &&
-    typeof depositOrder.createdAt === 'number' &&
-    typeof depositOrder.fiatAmount === 'number' &&
-    typeof depositOrder.fiatCurrency === 'string' &&
-    typeof depositOrder.cryptoCurrency === 'string' &&
-    typeof depositOrder.network === 'string' &&
-    typeof depositOrder.status === 'string' &&
-    typeof depositOrder.orderType === 'string' &&
-    typeof depositOrder.walletAddress === 'string';
-
-  return hasRequiredProperties;
+  return field in depositOrder && depositOrder[field] !== undefined;
 };

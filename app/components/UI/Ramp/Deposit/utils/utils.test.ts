@@ -6,7 +6,7 @@ import {
   getTransakPaymentMethodId,
   getNotificationDetails,
   formatCurrency,
-  isDepositOrder,
+  hasDepositOrderField,
 } from '.';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import {
@@ -285,8 +285,8 @@ describe('getNotificationDetails', () => {
   });
 });
 
-describe('isDepositOrder', () => {
-  it('should return true for valid DepositOrder objects', () => {
+describe('hasDepositOrderField', () => {
+  it('should return true when object has the specified field', () => {
     const validDepositOrder: DepositOrder = {
       id: 'test-id',
       provider: 'test-provider',
@@ -301,53 +301,65 @@ describe('isDepositOrder', () => {
       txHash: '0x987654321',
     } as DepositOrder;
 
-    const result = isDepositOrder(validDepositOrder);
+    const result = hasDepositOrderField(validDepositOrder, 'cryptoCurrency');
 
     expect(result).toBe(true);
   });
 
-  it('should return false for objects missing required properties', () => {
-    const incompleteObject = {
+  it('should return false for null or undefined data', () => {
+    expect(hasDepositOrderField(null, 'cryptoCurrency')).toBe(false);
+    expect(hasDepositOrderField(undefined, 'cryptoCurrency')).toBe(false);
+  });
+
+  it('should return false for non-object data', () => {
+    expect(hasDepositOrderField('string', 'cryptoCurrency')).toBe(false);
+    expect(hasDepositOrderField(123, 'cryptoCurrency')).toBe(false);
+    expect(hasDepositOrderField([], 'cryptoCurrency')).toBe(false);
+  });
+
+  it('should return false when field does not exist', () => {
+    const objectWithoutField = {
       id: 'test-id',
       provider: 'test-provider',
     };
 
-    const result = isDepositOrder(incompleteObject);
+    const result = hasDepositOrderField(objectWithoutField, 'cryptoCurrency');
 
     expect(result).toBe(false);
   });
 
-  it('should return false when any required property is missing', () => {
-    const requiredProperties = [
-      'id',
-      'provider',
-      'createdAt',
-      'fiatAmount',
-      'fiatCurrency',
+  it('should return false when field exists but is undefined', () => {
+    const objectWithUndefinedField = {
+      id: 'test-id',
+      provider: 'test-provider',
+      cryptoCurrency: undefined,
+    };
+
+    const result = hasDepositOrderField(
+      objectWithUndefinedField,
       'cryptoCurrency',
-      'network',
-      'status',
-      'orderType',
-      'walletAddress',
-    ];
+    );
 
-    requiredProperties.forEach((property) => {
-      const objectMissingProperty = {
-        id: 'test-id',
-        provider: 'test-provider',
-        createdAt: 1673886669608,
-        fiatAmount: 123,
-        fiatCurrency: 'USD',
-        cryptoCurrency: 'ETH',
-        network: 'ethereum',
-        status: 'COMPLETED',
-        orderType: 'DEPOSIT',
-        walletAddress: '0x1234',
-      };
+    expect(result).toBe(false);
+  });
 
-      delete (objectMissingProperty as Record<string, unknown>)[property];
+  it('should return true for different valid fields', () => {
+    const validDepositOrder: DepositOrder = {
+      id: 'test-id',
+      provider: 'test-provider',
+      createdAt: 1673886669608,
+      fiatAmount: 123,
+      fiatCurrency: 'USD',
+      cryptoCurrency: 'ETH',
+      network: 'ethereum',
+      status: 'COMPLETED',
+      orderType: 'DEPOSIT',
+      walletAddress: '0x1234',
+    } as DepositOrder;
 
-      expect(isDepositOrder(objectMissingProperty)).toBe(false);
-    });
+    expect(hasDepositOrderField(validDepositOrder, 'id')).toBe(true);
+    expect(hasDepositOrderField(validDepositOrder, 'fiatAmount')).toBe(true);
+    expect(hasDepositOrderField(validDepositOrder, 'network')).toBe(true);
+    expect(hasDepositOrderField(validDepositOrder, 'status')).toBe(true);
   });
 });

@@ -17,7 +17,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import {
   formatCurrency,
   getCryptoCurrencyFromTransakId,
-  isDepositOrder,
+  hasDepositOrderField,
 } from '../../utils';
 import { selectChainId } from '../../../../../../selectors/networkController';
 import { selectEvmNetworkName } from '../../../../../../selectors/networkInfos';
@@ -55,7 +55,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
   );
 
   const getCryptoToken = () => {
-    if (!isDepositOrder(order?.data)) {
+    if (!hasDepositOrderField(order?.data, 'cryptoCurrency')) {
       return null;
     }
     return getCryptoCurrencyFromTransakId(order.data.cryptoCurrency);
@@ -83,7 +83,10 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
   }, [order?.id]);
 
   const handleViewInTransak = useCallback(() => {
-    if (isDepositOrder(order?.data) && order.data.providerOrderLink) {
+    if (
+      hasDepositOrderField(order?.data, 'providerOrderLink') &&
+      order.data.providerOrderLink
+    ) {
       Linking.openURL(order.data.providerOrderLink);
     }
   }, [order?.data]);
@@ -102,7 +105,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
   );
 
   const getSubtitle = () => {
-    if (!isDepositOrder(order.data)) {
+    if (!hasDepositOrderField(order.data, 'paymentMethod')) {
       return strings('deposit.order_processing.description');
     }
 
@@ -243,21 +246,24 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
         </View>
       </View>
 
-      {isDepositOrder(order.data) && order.data.providerOrderLink && (
-        <TouchableOpacity
-          style={styles.transakLink}
-          onPress={handleViewInTransak}
-        >
-          <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
-            {strings('deposit.order_processing.view_order_details_in_transak')}
-          </Text>
-          <Icon
-            name={IconName.Export}
-            size={IconSize.Sm}
-            color={theme.colors.primary.default}
-          />
-        </TouchableOpacity>
-      )}
+      {hasDepositOrderField(order.data, 'providerOrderLink') &&
+        order.data.providerOrderLink && (
+          <TouchableOpacity
+            style={styles.transakLink}
+            onPress={handleViewInTransak}
+          >
+            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+              {strings(
+                'deposit.order_processing.view_order_details_in_transak',
+              )}
+            </Text>
+            <Icon
+              name={IconName.Export}
+              size={IconSize.Sm}
+              color={theme.colors.primary.default}
+            />
+          </TouchableOpacity>
+        )}
     </>
   );
 };

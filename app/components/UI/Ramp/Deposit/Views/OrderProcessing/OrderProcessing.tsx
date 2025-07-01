@@ -26,7 +26,8 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
-import { isDepositOrder } from '../../utils';
+import { hasDepositOrderField } from '../../utils';
+import { DepositOrder } from '@consensys/native-ramps-sdk';
 
 export interface OrderProcessingParams {
   orderId: string;
@@ -152,8 +153,9 @@ const OrderProcessing = () => {
               />
             )}
             <View style={styles.buttonsContainer}>
-              {isDepositOrder(order.data) &&
-                order.data.paymentMethod === SEPA_PAYMENT_METHOD.id &&
+              {hasDepositOrderField(order.data, 'paymentMethod') &&
+                (order.data as DepositOrder).paymentMethod ===
+                  SEPA_PAYMENT_METHOD.id &&
                 order.state === FIAT_ORDER_STATES.PENDING && (
                   <Button
                     style={styles.button}
