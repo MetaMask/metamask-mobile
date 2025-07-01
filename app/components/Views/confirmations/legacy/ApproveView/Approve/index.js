@@ -449,8 +449,11 @@ class Approve extends PureComponent {
   };
 
   prepareTransaction = () => {
-    const { gasEstimateType, showCustomNonce, transaction } = this.props;
-
+    const { gasEstimateType, showCustomNonce, transaction: trxn } = this.props;
+    const transaction =
+      Engine.context.TransactionController.state.transactions.find(
+        ({ id }) => id === trxn.id,
+      );
     const {
       legacyGasTransaction: gasDataLegacy,
       eip1559GasTransaction: gasDataEIP1559,
@@ -461,7 +464,7 @@ class Approve extends PureComponent {
       gasDataLegacy,
       gasEstimateType,
       showCustomNonce,
-      transaction,
+      transaction: transaction.txParams,
     });
   };
 
@@ -520,13 +523,13 @@ class Approve extends PureComponent {
   onConfirm = async () => {
     const { KeyringController, ApprovalController } = Engine.context;
     const {
-      transactions,
       gasEstimateType,
       metrics,
       chainId,
       shouldUseSmartTransaction,
       simulationData: { isUpdatedAfterSecurityCheck } = {},
       navigation,
+      transaction: trxn,
     } = this.props;
     const {
       legacyGasTransaction,
@@ -589,7 +592,10 @@ class Approve extends PureComponent {
           (transactionMeta) => transactionMeta.id === transaction.id,
         );
 
-      const fullTx = transactions.find(({ id }) => id === transaction.id);
+      const fullTx =
+        Engine.context.TransactionController.state.transactions.find(
+          ({ id }) => id === trxn.id,
+        );
 
       const updatedTx = {
         ...fullTx,
@@ -599,6 +605,7 @@ class Approve extends PureComponent {
           chainId,
         },
       };
+
       await updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
 
@@ -625,7 +632,7 @@ class Approve extends PureComponent {
         return;
       }
 
-      await ApprovalController.accept(transaction.id, undefined, {
+      await ApprovalController.accept(trxn.id, undefined, {
         waitForResult: !shouldUseSmartTransaction,
       });
       if (shouldUseSmartTransaction) {
