@@ -104,35 +104,25 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
     order.currency,
   );
 
-  const getSubtitle = () => {
-    if (!hasDepositOrderField(order.data, 'paymentMethod')) {
-      return strings('deposit.order_processing.description');
-    }
+  let subtitle = strings('deposit.order_processing.description');
 
+  if (hasDepositOrderField(order.data, 'paymentMethod')) {
     if (order.state === FIAT_ORDER_STATES.COMPLETED) {
-      return strings('deposit.order_processing.success_description', {
+      subtitle = strings('deposit.order_processing.success_description', {
         amount: order.amount,
         currency: order.currency,
       });
-    }
-
-    if (order.state === FIAT_ORDER_STATES.FAILED) {
-      return strings('deposit.order_processing.error_description');
-    }
-
-    if (order.state === FIAT_ORDER_STATES.CANCELLED) {
-      return strings('deposit.order_processing.cancel_order_description');
-    }
-
-    if (
+    } else if (order.state === FIAT_ORDER_STATES.FAILED) {
+      subtitle = strings('deposit.order_processing.error_description');
+    } else if (order.state === FIAT_ORDER_STATES.CANCELLED) {
+      subtitle = strings('deposit.order_processing.cancel_order_description');
+    } else if (
       order.state === FIAT_ORDER_STATES.PENDING &&
       order.data.paymentMethod === SEPA_PAYMENT_METHOD.id
     ) {
-      return strings('deposit.order_processing.bank_transfer_description');
+      subtitle = strings('deposit.order_processing.bank_transfer_description');
     }
-
-    return strings('deposit.order_processing.description');
-  };
+  }
 
   return (
     <>
@@ -173,7 +163,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           color={TextColor.Alternative}
           style={styles.subtitle}
         >
-          {getSubtitle()}
+          {subtitle}
         </Text>
       </View>
 
