@@ -27,6 +27,7 @@ import {
   fiatOrdersGetStartedDeposit,
   setFiatOrdersGetStartedDeposit,
 } from '../../../../../reducers/fiatOrders';
+import { DepositRegion, DEPOSIT_REGIONS } from '../constants';
 
 export interface DepositSDK {
   sdk?: NativeRampsSdk;
@@ -41,6 +42,8 @@ export interface DepositSDK {
   getStarted: boolean;
   setGetStarted: (seen: boolean) => void;
   selectedWalletAddress?: string;
+  selectedRegion: DepositRegion | null;
+  setSelectedRegion: (region: DepositRegion | null) => void;
 }
 
 const isDevelopment =
@@ -78,12 +81,24 @@ export const DepositSDKProvider = ({
   const INITIAL_GET_STARTED = useSelector(fiatOrdersGetStartedDeposit);
   const [getStarted, setGetStarted] = useState<boolean>(INITIAL_GET_STARTED);
 
+  // Initialize with US region as default
+  const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
+    DEPOSIT_REGIONS.find((region) => region.isoCode === 'US') || null,
+  );
+
   const setGetStartedCallback = useCallback(
     (getStartedFlag: boolean) => {
       setGetStarted(getStartedFlag);
       dispatch(setFiatOrdersGetStartedDeposit(getStartedFlag));
     },
     [dispatch],
+  );
+
+  const setSelectedRegionCallback = useCallback(
+    (region: DepositRegion | null) => {
+      setSelectedRegion(region);
+    },
+    [],
   );
 
   useEffect(() => {
@@ -171,6 +186,8 @@ export const DepositSDKProvider = ({
       getStarted,
       setGetStarted: setGetStartedCallback,
       selectedWalletAddress,
+      selectedRegion,
+      setSelectedRegion: setSelectedRegionCallback,
     }),
     [
       sdk,
@@ -185,6 +202,8 @@ export const DepositSDKProvider = ({
       getStarted,
       setGetStartedCallback,
       selectedWalletAddress,
+      selectedRegion,
+      setSelectedRegionCallback,
     ],
   );
 
