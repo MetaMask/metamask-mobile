@@ -17,10 +17,12 @@ export async function withSolanaAccountEnabled(
     numberOfAccounts = 1,
     dappPath,
     solanaAccountPermitted,
+    evmAccountPermitted,
   }: {
     numberOfAccounts?: number;
     dappPath?: string;
     solanaAccountPermitted?: boolean
+    evmAccountPermitted?: boolean
   },
   test: () => Promise<void>,
 ) {
@@ -30,6 +32,10 @@ export async function withSolanaAccountEnabled(
 
   if (solanaAccountPermitted) {
     fixtureBuilder = fixtureBuilder.withSolanaAccountPermission();
+  }
+
+  if (evmAccountPermitted) {
+    fixtureBuilder = fixtureBuilder.withChainPermission(['0x1']);
   }
   const fixtures = fixtureBuilder.build();
 
