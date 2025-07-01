@@ -29,6 +29,10 @@ const styleSheet = (params: {
       display: 'flex',
       maxHeight: screenHeight * 0.9,
     },
+    accountListContainer: {
+      // flex: 1,
+      marginVertical: 16,
+    },
   });
 };
 

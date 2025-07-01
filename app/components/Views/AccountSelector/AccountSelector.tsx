@@ -47,6 +47,12 @@ import {
   trace,
 } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
+import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const { height: screenHeight } = useWindowDimensions();
@@ -159,31 +165,15 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   const renderAccountSelector = useCallback(
     () => (
-      <Fragment>
-        <SheetHeader title={strings('accounts.accounts_title')} />
-        <EvmAccountSelectorList
-          onSelectAccount={_onSelectAccount}
-          onRemoveImportedAccount={onRemoveImportedAccount}
-          accounts={accounts}
-          ensByAccountAddress={ensByAccountAddress}
-          isRemoveAccountEnabled
-          privacyMode={privacyMode && !disablePrivacyMode}
-          testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
-        />
-        <View style={styles.stickyButton}>
-          <Button
-            style={styles.sheet}
-            variant={ButtonVariants.Secondary}
-            label={strings('account_actions.add_account_or_hardware_wallet')}
-            width={ButtonWidthTypes.Full}
-            size={ButtonSize.Lg}
-            onPress={handleAddAccount}
-            testID={
-              AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
-            }
-          />
-        </View>
-      </Fragment>
+      <EvmAccountSelectorList
+        onSelectAccount={_onSelectAccount}
+        onRemoveImportedAccount={onRemoveImportedAccount}
+        accounts={accounts}
+        ensByAccountAddress={ensByAccountAddress}
+        isRemoveAccountEnabled
+        privacyMode={privacyMode && !disablePrivacyMode}
+        testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
+      />
     ),
     [
       accounts,
@@ -192,9 +182,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       onRemoveImportedAccount,
       privacyMode,
       disablePrivacyMode,
-      handleAddAccount,
-      styles.sheet,
-      styles.stickyButton,
     ],
   );
 
@@ -220,7 +207,22 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       ref={sheetRef}
       onOpen={onOpen}
     >
-      {renderAccountScreens()}
+      <BottomSheetHeader>
+        <Text variant={TextVariant.HeadingMD}>
+          {strings('accounts.accounts_title')}
+        </Text>
+      </BottomSheetHeader>
+      <ScrollView>{renderAccountScreens()}</ScrollView>
+      <BottomSheetFooter
+        buttonPropsArray={[
+          {
+            variant: ButtonVariants.Secondary,
+            label: strings('account_actions.add_account_or_hardware_wallet'),
+            onPress: handleAddAccount,
+            size: ButtonSize.Lg,
+          },
+        ]}
+      />
     </BottomSheet>
   );
 };
