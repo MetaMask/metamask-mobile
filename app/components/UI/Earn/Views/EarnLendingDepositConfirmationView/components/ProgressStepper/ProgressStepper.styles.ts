@@ -24,6 +24,9 @@ const styleSheet = (params: { theme: Theme }) => {
       position: 'relative',
       bottom: 17,
     },
+    stepLabelContainer: {
+      textAlign: 'center',
+    },
   });
 };
 
