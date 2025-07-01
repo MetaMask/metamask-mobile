@@ -60,7 +60,6 @@ import {
 } from '../../../selectors/accountsController';
 import { AccountWallet } from '@metamask/account-tree-controller';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
-import { getUseOfValueInStyleWarning } from 'react-native-reanimated';
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
