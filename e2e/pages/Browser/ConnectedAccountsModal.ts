@@ -1,3 +1,5 @@
+/// <reference path="../../types/detox.d.ts" />
+
 import {
   ConnectedAccountModalSelectorsText,
   ConnectedAccountsSelectorsIDs,
