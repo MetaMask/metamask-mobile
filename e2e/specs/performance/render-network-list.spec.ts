@@ -8,6 +8,7 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 describe(SmokePerformance('Network List Load Testing'), () => {
   beforeAll(async () => {
@@ -134,7 +135,7 @@ describe(SmokePerformance('Network List Load Testing'), () => {
       {
         fixture: new FixtureBuilder()
           .withPopularNetworks()
-          .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountOneQrAccountOneSimpleKeyPairAccount()
+          .withMultipleAccountsInKeyring()
           .build(),
         restartDevice: true,
       },
@@ -211,7 +212,7 @@ describe(SmokePerformance('Network List Load Testing'), () => {
     for (let i = 1; i <= 50; i++) {
       // 50 tokens for stress testing
       heavyTokenLoad.push({
-        address: `0xabcd${i.toString().padStart(36, '0')}`,
+        address: toChecksumAddress(`0xabcd${i.toString().padStart(36, '0')}`),
         symbol: `HEAVY${i}`,
         decimals: 18,
         name: `Heavy Load Token ${i}`,
@@ -294,7 +295,7 @@ describe(SmokePerformance('Network List Load Testing'), () => {
     for (let i = 1; i <= 50; i++) {
       // 50 tokens for stress testing
       heavyTokenLoad.push({
-        address: `0xabcd${i.toString().padStart(36, '0')}`,
+        address: toChecksumAddress(`0xabcd${i.toString().padStart(36, '0')}`),
         symbol: `HEAVY${i}`,
         decimals: 18,
         name: `Heavy Load Token ${i}`,
@@ -385,13 +386,13 @@ describe(SmokePerformance('Network List Load Testing'), () => {
     // Baseline test with minimal tokens for comparison
     const minimalTokens = [
       {
-        address: '0x1111111111111111111111111111111111111111',
+        address: toChecksumAddress(`0x1111111111111111111111111111111111111111`),
         symbol: 'MIN1',
         decimals: 18,
         name: 'Minimal Token 1',
       },
       {
-        address: '0x2222222222222222222222222222222222222222',
+        address: toChecksumAddress(`0x2222222222222222222222222222222222222222`),
         symbol: 'MIN2',
         decimals: 18,
         name: 'Minimal Token 2',

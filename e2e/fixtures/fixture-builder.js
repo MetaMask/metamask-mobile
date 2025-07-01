@@ -1118,7 +1118,7 @@ class FixtureBuilder {
   }
 
   // We need to rename this
-  withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringControllerWithMultipleAccounts() {
+  withMultipleAccountsInKeyring() {
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
       isUnlocked: true,
       keyrings: [

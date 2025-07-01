@@ -122,7 +122,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
     for (let i = 1; i <= 50; i++) {
       // 50 tokens for stress testing
       heavyTokenLoad.push({
-        address: `0xabcd${i.toString().padStart(36, '0')}`,
+        address: toChecksumAddress(`0xabcd${i.toString().padStart(36, '0')}`),
         symbol: `HEAVY${i}`,
         decimals: 18,
         name: `Heavy Load Token ${i}`,
@@ -188,7 +188,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
     for (let i = 1; i <= 50; i++) {
       // 50 tokens for stress testing
       heavyTokenLoad.push({
-        address: `0xabcd${i.toString().padStart(36, '0')}`,
+        address: toChecksumAddress(`0xabcd${i.toString().padStart(36, '0')}`),
         symbol: `HEAVY${i}`,
         decimals: 18,
         name: `Heavy Load Token ${i}`,
@@ -308,7 +308,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
       {
         fixture: new FixtureBuilder()
           .withPopularNetworks()
-          .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountOneQrAccountOneSimpleKeyPairAccount()
+          .withMultipleAccountsInKeyring()
           .build(),
         restartDevice: true,
       },
@@ -386,7 +386,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
     );
   });
 
-  it.only('handle account list performance with heavy token load (profile syncing disabled)', async () => {
+  it('handle account list performance with heavy token load (profile syncing disabled)', async () => {
     // Create a large number of test tokens to stress test the system
     const heavyTokenLoad = [];
     for (let i = 1; i <= 50; i++) {
@@ -407,7 +407,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringControllerWithMultipleAccounts()
+          .withMultipleAccountsInKeyring()
           .withPopularNetworks()
           .withTokensForAllPopularNetworks(heavyTokenLoad)
           .build(),
@@ -458,13 +458,13 @@ describe(SmokePerformance('Account List Load Testing'), () => {
     // Baseline test with minimal tokens for comparison
     const minimalTokens = [
       {
-        address: '0x1111111111111111111111111111111111111111',
+        address: toChecksumAddress(`0x1111111111111111111111111111111111111111`),
         symbol: 'MIN1',
         decimals: 18,
         name: 'Minimal Token 1',
       },
       {
-        address: '0x2222222222222222222222222222222222222222',
+        address: toChecksumAddress(`0x2222222222222222222222222222222222222222`),
         symbol: 'MIN2',
         decimals: 18,
         name: 'Minimal Token 2',
