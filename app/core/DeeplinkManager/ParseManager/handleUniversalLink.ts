@@ -65,7 +65,7 @@ async function handleUniversalLink({
     urlObj.hostname === MM_IO_UNIVERSAL_LINK_TEST_HOST;
 
   if (
-    !Object.keys(ACTIONS).includes(action.toUpperCase()) ||
+    !Object.keys(SUPPORTED_ACTIONS).includes(action.toUpperCase()) ||
     !isSupportedDomain
   ) {
     isInvalidLink = true;
@@ -133,16 +133,22 @@ async function handleUniversalLink({
     action === SUPPORTED_ACTIONS.BUY
   ) {
     const rampPath = urlObj.href
-      .replace(`${urlObj.hostname}/${SUPPORTED_ACTIONS.BUY_CRYPTO}`, '')
-      .replace(`${urlObj.hostname}/${SUPPORTED_ACTIONS.BUY}`, '');
+      .replace(
+        `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.BUY_CRYPTO}`,
+        '',
+      )
+      .replace(`${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.BUY}`, '');
     instance._handleBuyCrypto(rampPath);
   } else if (
     action === SUPPORTED_ACTIONS.SELL_CRYPTO ||
     action === SUPPORTED_ACTIONS.SELL
   ) {
     const rampPath = urlObj.href
-      .replace(`${urlObj.hostname}/${SUPPORTED_ACTIONS.SELL_CRYPTO}`, '')
-      .replace(`${urlObj.hostname}/${SUPPORTED_ACTIONS.SELL}`, '');
+      .replace(
+        `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.SELL_CRYPTO}`,
+        '',
+      )
+      .replace(`${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.SELL}`, '');
     instance._handleSellCrypto(rampPath);
   } else if (action === SUPPORTED_ACTIONS.HOME) {
     instance._handleOpenHome();
