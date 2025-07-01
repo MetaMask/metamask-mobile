@@ -22,6 +22,11 @@ const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
 
 describe(SmokeConfirmations('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
+  const testSpecificMock = {
+      GET: [
+        mockEvents.GET.suggestedGasFeesApiGanache
+      ],
+    };
 
   beforeAll(async () => {
     jest.setTimeout(150000);
@@ -29,12 +34,6 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
   });
 
   it('send an ERC721 token from a dapp', async () => {
-    const testSpecificMock  = {
-      GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache
-      ],
-    };
-
     await withFixtures(
       {
         dapp: true,
@@ -79,12 +78,6 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
   });
 
 it(`send an ERC721 token from a dapp using ${MEGAETH_TESTNET.nickname} (local)`, async () => {
-    const testSpecificMock = {
-      GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache
-      ],
-    };
-
     // Create MegaETH-like Ganache configuration
     const megaEthLocalConfig = {
       ...defaultGanacheOptions,
@@ -151,12 +144,6 @@ it(`send an ERC721 token from a dapp using ${MEGAETH_TESTNET.nickname} (local)`,
   });
 
 it(`send an ERC721 token from a dapp using ${MONAD_TESTNET.nickname} (local)`, async () => {
-    const testSpecificMock = {
-      GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache
-      ],
-    };
-
     // Create Monad-like Ganache configuration
     const monadLocalConfig = {
       ...defaultGanacheOptions,
