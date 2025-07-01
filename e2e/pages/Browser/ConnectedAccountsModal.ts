@@ -169,9 +169,9 @@ class ConnectedAccountsModal {
 
   async getNetworkName(): Promise<string> {
     const networkNameElement = this.navigateToEditNetworksPermissionsButton;
-    const element = await networkNameElement;
+    const elem = await networkNameElement;
     // Type assertion to access label property which exists on Detox elements
-    const attributes = await (element as IndexableNativeElement).getAttributes();
+    const attributes = await (elem as IndexableNativeElement).getAttributes();
     return (attributes as { label: string }).label;
   }
 }
