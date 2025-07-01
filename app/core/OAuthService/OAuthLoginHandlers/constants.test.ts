@@ -31,20 +31,14 @@ describe('OAuth Constants', () => {
     });
 
     it('should have IOS configuration from jest config', () => {
-      expect(IosGID).toBe(CURRENT_OAUTH_CONFIG.IOS_GOOGLE_CLIENT_ID);
-      expect(IosGoogleRedirectUri).toBe(
-        CURRENT_OAUTH_CONFIG.IOS_GOOGLE_REDIRECT_URI,
-      );
+      expect(IosGID).toBe('iosGoogleClientId');
+      expect(IosGoogleRedirectUri).toBe('iosGoogleRedirectUri');
       expect(IosAppleClientId).toBe('io.metamask.MetaMask');
     });
 
     it('should have Android configuration from jest config', () => {
-      expect(AndroidGoogleWebGID).toBe(
-        CURRENT_OAUTH_CONFIG.ANDROID_GOOGLE_SERVER_CLIENT_ID,
-      );
-      expect(AppleWebClientId).toBe(
-        CURRENT_OAUTH_CONFIG.ANDROID_APPLE_CLIENT_ID,
-      );
+      expect(AndroidGoogleWebGID).toBe('androidGoogleWebClientId');
+      expect(AppleWebClientId).toBe('androidAppleClientId');
     });
 
     it('should generate correct Apple server redirect URI', () => {
