@@ -25,7 +25,7 @@ export const SEEDLESS_ONBOARDING_ENABLED =
  */
 const buildTypeMapping = (buildType: string, dev: boolean) => {
   // use development config for now
-  if (process.env.DEV_OAUTH_CONFIG === 'true' || dev) {
+  if (process.env.DEV_OAUTH_CONFIG === 'true' && dev) {
     return 'development';
   }
 
