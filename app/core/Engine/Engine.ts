@@ -1182,7 +1182,7 @@ export class Engine {
           .build();
         MetaMetrics.getInstance().trackEvent(metricsEvent);
       },
-      trace: trace as TraceCallback,
+      traceFn: trace as TraceCallback,
     });
 
     const bridgeStatusController = new BridgeStatusController({
