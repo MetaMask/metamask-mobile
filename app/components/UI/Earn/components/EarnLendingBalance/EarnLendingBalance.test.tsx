@@ -143,6 +143,15 @@ jest.mock('../../../../../selectors/earnController', () => ({
   },
 }));
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      findNetworkClientIdByChainId: jest.fn(() => 'mainnet'),
+      setActiveNetwork: jest.fn().mockResolvedValue(undefined),
+    },
+  },
+}));
+
 describe('EarnLendingBalance', () => {
   const mockInitialState = {
     engine: {

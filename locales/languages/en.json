@@ -163,7 +163,7 @@
     "default_settings_footer": "Settings are optimized for ease of use and security.\nChange these at any time.",
     "no_srp_title": "Reminder set!",
     "no_srp_description": "If you get locked out of the app or get a new device, you will lose your funds. Be sure to back up your Secret Recovery Phrase in",
-    "import_title": "Your Wallet is ready!",
+    "import_title": "Your wallet is ready!",
     "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
     "import_description2": "you can keep this phrase safe so you never lose access to your money.",
     "done": "Done",
@@ -484,6 +484,25 @@
       "search_by_name_or_address": "Search token by name or address",
       "no_tokens_found": "No tokens match \"{{searchString}}\""
     },
+    "region_modal": {
+      "select_a_region": "Select a region",
+      "search_by_country": "Search by country",
+      "no_regions_found": "No regions match \"{{searchString}}\""
+    },
+    "payment_modal": {
+      "select_a_payment_method": "Select a Payment Method"
+    },
+    "payment_duration": {
+      "instant":"Instant",
+      "1_to_2_days": "1 to 2 days"
+    },
+    "unsupported_region_modal": {
+      "title": "Region not supported",
+      "message": "We're sorry, but we don't support deposits in %{regionName} yet. Please try a different region or contact support for assistance.",
+      "description": "We're sorry, but we don't support deposits in your region yet. Please try a different region or contact support for assistance.",
+      "select_different_region": "Select a different region",
+      "exit_to_wallet_home": "Exit to wallet home"
+    },
     "get_started": {
       "title": "Top up your wallet with USDC",
       "bullet_1_title": "Value-backed by the US dollar",
@@ -581,7 +600,11 @@
       "total": "Total",
       "view_order_details_in_transak": "View order details in Transak",
       "no_order_found": "No order found",
-      "back_to_wallet": "Back to Wallet"
+      "back_to_wallet": "Back to Wallet",
+      "cancel_order_button": "Cancel"
+    },
+    "order_details": {
+      "title": "Deposit Order"
     },
     "notifications": {
       "deposit_failed_title": "Deposit of {{currency}} has failed! Please try again, sorry for the inconvenience!",
@@ -646,6 +669,10 @@
     "solana": {
       "title": "Solana is now supported",
       "subtitle": "Create a Solana account to get started"
+    },
+    "backupAndSync": {
+      "title": "Introducing backup and sync",
+      "subtitle": "Back up your accounts and sync settings."
     }
   },
   "wallet": {
@@ -1522,14 +1549,14 @@
     "done": "Done",
     "confirm": "Next",
     "seed_phrase_explanation": [
-      "The",
-      "Secret Recovery Phrase (SRP)",
+      "Your",
+      "Secret Recovery Phrase",
       "gives",
       "full access to your wallet, funds and accounts.\n\n",
       "MetaMask is a",
       "non-custodial wallet.",
       "That means,",
-      "you are the owner of your SRP."
+      "you are the owner of your Secret Recovery Phrase."
     ],
     "private_key_explanation": "Save it somewhere safe and secret.",
     "private_key_warning": "This is the private key for the current selected account: {{accountName}}. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
@@ -3932,7 +3959,8 @@
     "earnings_history_list_title": {
       "lending": "Position history",
       "staking": "Payout history"
-    }
+    },
+    "allowance_reset": "Allowance Reset"
   },
   "stake": {
     "stake": "Stake",
@@ -4149,6 +4177,8 @@
       "part3": "."
     },
     "label": {
+      "amount": "Amount",
+      "value": "Value",
       "account": "Account",
       "balance": "Balance",
       "interacting_with": "Interacting with",
@@ -4158,7 +4188,8 @@
       "signing_in_with": "Signing in with",
       "spender": "Spender",
       "now": "Now",
-      "switching_to": "Switching To"
+      "switching_to": "Switching To",
+      "value": "Value"
     },
     "title": {
       "signature": "Signature request",
@@ -4174,14 +4205,22 @@
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
+      "permit_revoke": "You're removing someone's permission to spend tokens from your account.",
       "permit_NFTs": "This site wants permission to withdraw your NFTs.",
+      "permit_revoke_NFTs": "This site would like to reset the withdraw limit for your NFTs",
       "signature": "Review request details before you confirm.",
       "signature_siwe": "A site wants you to sign in to prove you own this account.",
       "contract_interaction": "Review request details before you confirm.",
       "switch_to_smart_account": "You're switching to a smart account.",
       "switch_to_standard_account": "You're switching back to a standard account (EOA).",
-      "contract_deployment": "This site wants you to deploy a contract"
+      "contract_deployment": "This site wants you to deploy a contract",
+      "decrease_allowance": "This site wants decrease the spending cap for your tokens."
     },
+    "spending_cap": "Spending cap",
+    "withdraw": "Withdraw",
+    "nfts": "NFTs",
+    "permission_from": "Permission from",
+    "spender": "Spender",
     "request_from": "Request from",
     "staking_from": "Staking from",
     "signing_in_with": "Signing in with",
@@ -4234,6 +4273,7 @@
       "smartAccountLabel": "Smart Account",
       "standardAccountLabel": "Standard Account",
       "switch": "Switch",
+      "switchBack": "Switch back",
       "splashpage": {
         "accept": "Yes",
         "betterTransaction": "Faster transactions, lower fees",
@@ -4319,6 +4359,11 @@
     "title": "New quotes are available",
     "description": "Rates update every {{refreshRate}} seconds, so tap Get new quote when you're ready.",
     "get_new_quote": "Get new quote"
+  },
+  "blockaid_modal": {
+    "simulation_title": "Transaction failed in simulation",
+    "validation_title": "Transaction failed validation",
+    "go_back": "Go back"
   },
   "bridge_transaction_details": {
     "status": "Status",
@@ -4419,7 +4464,7 @@
     "export_credentials": {
       "export_private_key": "Private key",
       "private_key_warning_title": "Never disclose this key.",
-      "private_key_warning_description": "Anyone with your private key can stead any assets held in your account.",
+      "private_key_warning_description": "Anyone with your private key can steal any assets held in your account.",
       "credential_as_text": "Text",
       "credential_as_qr": "QR code",
       "export_mnemonic": "Export mnemonic",
@@ -4428,7 +4473,7 @@
     "reveal_private_key": {
       "title": "Show private key",
       "banner_title": "Never disclose this key.",
-      "banner_description": "Anyone with your private key can stead any assets held in your account.",
+      "banner_description": "Anyone with your private key can steal any assets held in your account.",
       "enter_password": "Enter your password",
       "password_placeholder": "Password",
       "next": "Next",
