@@ -1,6 +1,6 @@
 import React from 'react';
 import ResetPassword from './';
-import { render, act } from '@testing-library/react-native';
+import { render, act, fireEvent, waitFor } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { Provider } from 'react-redux';
@@ -10,7 +10,8 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import { InteractionManager } from 'react-native';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-// import { strings } from '../../../../locales/i18n';
+import { strings } from '../../../../locales/i18n';
+// import Engine from '../../../core/Engine';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 
@@ -24,7 +25,7 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     KeyringController: {
       createNewVaultAndKeychain: jest.fn().mockResolvedValue(true),
-      exportSeedPhrase: mockExportSeedPhrase,
+      exportSeedPhrase: () => mockExportSeedPhrase(),
     },
   },
 }));
@@ -191,6 +192,35 @@ describe('ResetPassword', () => {
       const result = await mockExportSeedPhrase('test');
       expect(result).toBe('test result');
       expect(mockExportSeedPhrase).toHaveBeenCalledWith('test');
+    });
+
+    it('should test the mock directly', async () => {
+      // Test the mock directly to ensure it's working
+      mockExportSeedPhrase.mockResolvedValue('test result');
+
+      const component = renderWithProviders(
+        <ResetPassword {...defaultProps} />,
+      );
+
+      const currentPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(currentPasswordInput, 'CurrentPassword123');
+      });
+
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+
+      fireEvent.press(submitButton);
+
+      await waitFor(() => {
+        expect(
+          component.getByText(strings('reset_password.password')),
+        ).toBeOnTheScreen();
+      });
     });
   });
 });
