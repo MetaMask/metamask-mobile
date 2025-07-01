@@ -723,7 +723,6 @@ workflows:
         machine_type_id: elite-xl
     envs:
       - METAMASK_BUILD_TYPE: 'flask'
-      - MM_UNIFIED_SWAPS_ENABLED: 'true'
     after_run:
       - android_e2e_build
   run_flask_e2e_android:
@@ -733,19 +732,16 @@ workflows:
         machine_type_id: elite-xl
     envs:
       - METAMASK_BUILD_TYPE: 'flask'
-      - MM_UNIFIED_SWAPS_ENABLED: 'true'
     after_run:
       - android_e2e_test
   build_flask_e2e_ios:
     envs:
       - METAMASK_BUILD_TYPE: 'flask'
-      - MM_UNIFIED_SWAPS_ENABLED: 'true'
     after_run:
       - ios_e2e_build
   run_flask_e2e_ios:
     envs:
       - METAMASK_BUILD_TYPE: 'flask'
-      - MM_UNIFIED_SWAPS_ENABLED: 'true'
     after_run:
       - ios_e2e_test
   run_tag_upgrade_android:
