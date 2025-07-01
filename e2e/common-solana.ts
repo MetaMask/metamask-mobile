@@ -33,7 +33,6 @@ export async function withSolanaAccountEnabled(
   if (solanaAccountPermitted) {
     fixtureBuilder = fixtureBuilder.withSolanaAccountPermission();
   }
-
   if (evmAccountPermitted) {
     fixtureBuilder = fixtureBuilder.withChainPermission(['0x1']);
   }

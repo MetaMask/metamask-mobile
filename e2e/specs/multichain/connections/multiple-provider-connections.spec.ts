@@ -18,18 +18,73 @@ import NetworkConnectMultiSelector from '../../../pages/Browser/NetworkConnectMu
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../selectors/Network/NetworkNonPemittedBottomSheet.selectors';
 import { connectSolanaTestDapp, navigateToSolanaTestDApp } from '../solana-wallet-standard/testHelpers';
 import { loginToApp } from '../../../viewHelper';
+import { Caip25CaveatType, Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 
 describe(SmokeMultiStandardDappConnection('Multiple Standard Dapp Connections'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
   });
 
-  // it('should default account selection to already permitted account(s) plus the selected account (if not already permitted) when `wallet_requestPermissions` is called with no accounts specified', async () => { });
-
-  it.only('should default account selection to both accounts when `wallet_requestPermissions` is called with specific account while another is already connected', async () => {
+  // FIXME: Acc_1 is permitted instead of DEFAULT_FIXTURE_ACCOUNT_2 at the start ...
+  it.skip('should default account selection to already permitted account(s) plus the selected account (if not already permitted) when `wallet_requestPermissions` is called with no accounts specified', async () => {
     await withFixtures({
       dapp: true,
       fixture: new FixtureBuilder()
+        .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
+        .withPermissionControllerConnectedToTestDapp({
+          [Caip25EndowmentPermissionName]: {
+            caveats: [{
+              type: Caip25CaveatType, value: {
+                optionalScopes: {
+                  'eip155:1': { accounts: [`eip155:1:${DEFAULT_FIXTURE_ACCOUNT_2.toLowerCase()}`] },
+                },
+                requiredScopes: {},
+                sessionProperties: {},
+                isMultichainOrigin: false,
+              }
+            }]
+          }
+        })
+        .build(),
+      restartDevice: true,
+    }, async () => {
+      await TestHelpers.reverseServerPort();
+      await loginToApp();
+
+      await TabBarComponent.tapBrowser();
+      await Browser.navigateToTestDApp();
+
+      await TestHelpers.delay(3000);
+      const webView = web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID));
+      const bodyElement = webView.element(by.web.tag('body'));
+
+      // Execute the injection
+      const requestPermissionsRequest = JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'wallet_requestPermissions',
+        params: [{ eth_accounts: { caveats: [{ type: 'restrictReturnedAccounts', value: [DEFAULT_FIXTURE_ACCOUNT_2] }] } }],
+      });
+
+      await bodyElement.runScript(`(el) => { window.ethereum.request(${requestPermissionsRequest}); }`);
+
+      // Wait a moment for the async operation to complete
+      await TestHelpers.delay(1000);
+
+      await ConnectBottomSheet.tapConnectButton();
+
+      // // Validate both EVM accounts are connected
+      await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
+      await Assertions.checkIfTextIsDisplayed('Account 1');
+      await Assertions.checkIfTextIsDisplayed('Account 2');
+    });
+  });
+
+  // FIXME: legit error, request is showing with Acc_1 instead of both Acc_1 and 2
+  it.skip('should default account selection to both accounts when `wallet_requestPermissions` is called with specific account while another is already connected', async () => {
+    await withFixtures({
+      dapp: true,
+      fixture: new FixtureBuilder()
+        .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
         .withPermissionControllerConnectedToTestDapp()
         .withChainPermission() // Initialize with Ethereum mainnet only
         .build(),
@@ -42,44 +97,27 @@ describe(SmokeMultiStandardDappConnection('Multiple Standard Dapp Connections'),
       await Browser.navigateToTestDApp();
 
       await TestHelpers.delay(3000);
-      const myWebView = web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID));
-      const webElement = await myWebView.element(by.web.tag('body'));
+      const webView = web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID));
+      const bodyElement = webView.element(by.web.tag('body'));
+
+      // Execute the injection
       const requestPermissionsRequest = JSON.stringify({
         jsonrpc: '2.0',
         method: 'wallet_requestPermissions',
-        params: [{ eth_accounts: { caveats: { type: 'restrictReturnedAccounts', value: [DEFAULT_FIXTURE_ACCOUNT_2] } } }],
+        params: [{ eth_accounts: { caveats: [{ type: 'restrictReturnedAccounts', value: [DEFAULT_FIXTURE_ACCOUNT_2] }] } }],
       });
 
-      // Wait for ethereum object to be available and then send the request
-      await webElement.runScript(`(el, requestData) => {
-        return new Promise((resolve, reject) => {
-          const checkEthereum = () => {
-            if (window.ethereum) {
-              window.ethereum.request(JSON.parse(requestData))
-                .then(result => {
-                  console.log('Request successful:', result);
-                  resolve(result);
-                })
-                .catch(error => {
-                  console.error('Request failed:', error);
-                  reject(error);
-                });
-            } else {
-              console.log('Ethereum object not ready, retrying...');
-              setTimeout(checkEthereum, 100);
-            }
-          };
-          checkEthereum();
-        });
-      }`, [requestPermissionsRequest]);
+      await bodyElement.runScript(`(el) => { window.ethereum.request(${requestPermissionsRequest}); }`);
 
-      // // Validate both EVM and Solana accounts are connected
-      // await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
+      // Wait a moment for the async operation to complete
+      await TestHelpers.delay(1000);
+
+      await ConnectBottomSheet.tapConnectButton();
 
       // // Validate both EVM accounts are connected
-      // await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-      // await Assertions.checkIfTextIsDisplayed('Account 1');
-      // await Assertions.checkIfTextIsDisplayed('Account 2');
+      await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
+      await Assertions.checkIfTextIsDisplayed('Account 1');
+      await Assertions.checkIfTextIsDisplayed('Account 2');
     });
   });
 
@@ -132,7 +170,7 @@ describe(SmokeMultiStandardDappConnection('Multiple Standard Dapp Connections'),
     });
   });
 
-  it.skip('should default account selection to already permitted Solana account and requested Ethereum account when `wallet_requestPermissions` is called with specific Ethereum account', async () => {
+  it('should default account selection to already permitted Solana account and requested Ethereum account when `wallet_requestPermissions` is called with specific Ethereum account', async () => {
     await withSolanaAccountEnabled({
       dappPath: DEFAULT_TEST_DAPP_PATH,
       solanaAccountPermitted: true,
@@ -141,31 +179,27 @@ describe(SmokeMultiStandardDappConnection('Multiple Standard Dapp Connections'),
       await Browser.navigateToTestDApp();
 
       // TODO: [ffmcgee] abstract this away ?
-      // FIXME: this script ain't calling
       const myWebView = web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID));
       const webElement = await myWebView.element(by.web.tag('body'));
       const requestPermissionsRequest = JSON.stringify({
         jsonrpc: '2.0',
         method: 'wallet_requestPermissions',
-        params: [{ eth_accounts: { caveats: { type: 'restrictReturnedAccounts', value: [DEFAULT_FIXTURE_ACCOUNT_2] } } }],
+        params: [{ eth_accounts: { caveats: [{ type: 'restrictReturnedAccounts', value: [DEFAULT_FIXTURE_ACCOUNT] }] } }],
       });
 
       await webElement.runScript(`(el) => {
         window.ethereum.request(${requestPermissionsRequest})
       }`);
 
-      await TestHelpers.delay(3000);
-      // Connect accounts modal
+      await TestHelpers.delay(1000);
       await ConnectBottomSheet.tapConnectButton();
-      await TestHelpers.delay(3000);
+
       // END [ffmcgee] abstract this away ?
 
-      // Open network permissions menu
+      // Validate both EVM and Solana accounts are connected
       await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-      await Assertions.checkIfVisible(ConnectedAccountsModal.title);
-      await ConnectedAccountsModal.tapManagePermissionsButton();
-      await ConnectedAccountsModal.tapPermissionsSummaryTab();
-      await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
+      await Assertions.checkIfTextIsDisplayed('Account 1');
+      await Assertions.checkIfTextIsDisplayed('Solana Account 1');
     });
   });
 
