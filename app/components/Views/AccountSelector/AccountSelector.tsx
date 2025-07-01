@@ -170,8 +170,9 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           privacyMode={privacyMode && !disablePrivacyMode}
           testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
         />
-        <View style={styles.sheet}>
+        <View style={styles.stickyButton}>
           <Button
+            style={styles.sheet}
             variant={ButtonVariants.Secondary}
             label={strings('account_actions.add_account_or_hardware_wallet')}
             width={ButtonWidthTypes.Full}
@@ -193,6 +194,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       disablePrivacyMode,
       handleAddAccount,
       styles.sheet,
+      styles.stickyButton,
     ],
   );
 
