@@ -25,7 +25,9 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        testSpecificMock: { GET: [mockEvents.GET.remoteFeatureFlagsRedesignedConfirmationsFlask] },
+        testSpecificMock: {
+          GET: [mockEvents.GET.remoteFeatureFlagsRedesignedConfirmationsFlask],
+        },
       },
       async () => {
         await loginToApp();
@@ -40,15 +42,10 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
 
         await TestSnaps.tapButton('getChainIdButton');
         await TestHelpers.delay(500);
-        await TestSnaps.checkResultSpan(
-          'ethereumProviderResultSpan',
-          '"0x1"',
-        );
+        await TestSnaps.checkResultSpan('ethereumProviderResultSpan', '"0x1"');
 
         await TestSnaps.tapButton('getAccountsButton');
-        await Assertions.checkIfVisible(
-          ConnectBottomSheet.connectButton,
-        );
+        await Assertions.checkIfVisible(ConnectBottomSheet.connectButton);
         await ConnectBottomSheet.tapConnectButton();
         await TestHelpers.delay(500);
         await TestSnaps.checkResultSpanIncludes(
@@ -59,9 +56,7 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
         // Test `personal_sign`.
         await TestSnaps.fillMessage('personalSignMessageInput', 'foo');
         await TestSnaps.tapButton('personalSignButton');
-        await Assertions.checkIfVisible(
-          RequestTypes.PersonalSignRequest,
-        );
+        await Assertions.checkIfVisible(RequestTypes.PersonalSignRequest);
         await TestSnaps.approveNativeConfirmation();
         await TestSnaps.checkResultSpan(
           'personalSignResultSpan',
@@ -71,9 +66,7 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
         // Test `eth_signTypedData_v4`.
         await TestSnaps.fillMessage('signTypedDataMessageInput', 'bar');
         await TestSnaps.tapButton('signTypedDataButton');
-        await Assertions.checkIfVisible(
-          RequestTypes.TypedSignRequest,
-        );
+        await Assertions.checkIfVisible(RequestTypes.TypedSignRequest);
         await TestSnaps.approveNativeConfirmation();
         await TestSnaps.checkResultSpan(
           'signTypedDataResultSpan',
@@ -84,10 +77,7 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
         await TestSnaps.selectInDropdown('networkDropDown', 'Ethereum');
         await TestSnaps.tapButton('getChainIdButton');
         await TestHelpers.delay(500);
-        await TestSnaps.checkResultSpan(
-          'ethereumProviderResultSpan',
-          '"0x1"',
-        );
+        await TestSnaps.checkResultSpan('ethereumProviderResultSpan', '"0x1"');
 
         await TestSnaps.selectInDropdown('networkDropDown', 'Linea');
         await TestSnaps.tapButton('getChainIdButton');
