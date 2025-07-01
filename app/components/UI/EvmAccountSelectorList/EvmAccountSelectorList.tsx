@@ -53,7 +53,10 @@ import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants
 import { toHex } from '@metamask/controller-utils';
 import AccountNetworkIndicator from '../AccountNetworkIndicator';
 import { Skeleton } from '../../../component-library/components/Skeleton';
-import { selectInternalAccounts, selectInternalAccountsById } from '../../../selectors/accountsController';
+import {
+  selectInternalAccounts,
+  selectInternalAccountsById,
+} from '../../../selectors/accountsController';
 import { AccountWallet } from '@metamask/account-tree-controller';
 
 /**
