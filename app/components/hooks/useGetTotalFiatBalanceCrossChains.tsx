@@ -5,7 +5,7 @@ import {
   selectNetworkConfigurations,
 } from '../../selectors/networkController';
 import { selectAccountsByChainId } from '../../selectors/accountTrackerController';
-import { hexToBN, toChecksumHexAddress } from '@metamask/controller-utils';
+import { hexToBN } from '@metamask/controller-utils';
 import { TokensWithBalances } from './useGetFormattedTokensPerChain';
 import {
   selectCurrencyRates,
