@@ -70,7 +70,6 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
               "color": "#121314",
               "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -83,9 +82,8 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
           style={
             {
               "color": "#9ca1af",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginLeft": 4,
@@ -119,7 +117,7 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 24,
@@ -206,7 +204,6 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
               "color": "#121314",
               "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -219,9 +216,8 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
           style={
             {
               "color": "#9ca1af",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginLeft": 4,
@@ -255,7 +251,7 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 24,
@@ -342,7 +338,6 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
               "color": "#121314",
               "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -355,9 +350,8 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
           style={
             {
               "color": "#9ca1af",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginLeft": 4,
@@ -391,7 +385,7 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 24,
@@ -425,9 +419,8 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginBottom": 6,
@@ -477,9 +470,8 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -492,9 +484,8 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
           style={
             {
               "color": "#9ca1af",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginLeft": 4,
@@ -528,7 +519,7 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 24,
@@ -562,9 +553,8 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginBottom": 6,
@@ -614,9 +604,8 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -629,9 +618,8 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
           style={
             {
               "color": "#9ca1af",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginLeft": 4,
@@ -665,7 +653,7 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 24,
@@ -767,7 +755,6 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
               "color": "#121314",
               "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -780,9 +767,8 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
           style={
             {
               "color": "#9ca1af",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginLeft": 4,
@@ -816,7 +802,7 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 24,
@@ -850,9 +836,8 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginBottom": 6,
@@ -902,9 +887,8 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -917,9 +901,8 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
           style={
             {
               "color": "#9ca1af",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginLeft": 4,
@@ -954,7 +937,7 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 24,
@@ -988,9 +971,8 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginBottom": 6,
@@ -1040,9 +1022,8 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -1055,9 +1036,8 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
           style={
             {
               "color": "#9ca1af",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginLeft": 4,
@@ -1091,7 +1071,7 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 24,
@@ -1125,9 +1105,8 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginBottom": 6,
@@ -1177,9 +1156,8 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -1192,9 +1170,8 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
           style={
             {
               "color": "#9ca1af",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginLeft": 4,
@@ -1228,7 +1205,7 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 24,
@@ -1262,9 +1239,8 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginBottom": 6,
@@ -1314,9 +1290,8 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -1329,9 +1304,8 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
           style={
             {
               "color": "#9ca1af",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginLeft": 4,
@@ -1365,7 +1339,7 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 24,
