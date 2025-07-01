@@ -57,3 +57,8 @@ export const EARN_CONTRACT_INTERACTION_TYPES = [
   TransactionType.lendingDeposit,
   TransactionType.lendingWithdraw,
 ];
+
+export const EARN_CONTRACT_INTERACTION_TYPES_2 = [
+  TransactionType.lendingDeposit,
+  TransactionType.lendingWithdraw,
+];
