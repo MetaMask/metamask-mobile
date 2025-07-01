@@ -262,7 +262,7 @@ const defaultAccountsMock = [
     yOffset: 78,
     isSelected: false,
     balanceError: undefined,
-    caipAccountId: `${EthScope.Eoa}:${BUSINESS_ACCOUNT}` as CaipAccountId,
+    caipAccountId: `${EthScope.Eoa}:${PERSONAL_ACCOUNT}` as CaipAccountId,
     scopes: [EthScope.Eoa],
     isLoadingAccount: false,
   },
