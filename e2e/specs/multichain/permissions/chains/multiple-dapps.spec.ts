@@ -1,5 +1,4 @@
 'use strict';
-import { device } from 'detox';
 import TestHelpers from '../../../../helpers';
 import { SmokeNetworkExpansion } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
@@ -22,20 +21,20 @@ interface DappOptions {
 }
 
 interface WithFixturesOptions {
-  fixture: any;
+  fixture: object;
   dapp?: boolean;
   multichainDapp?: boolean;
   dappOptions?: DappOptions;
   dappPath?: string;
   dappPaths?: string[];
-  ganacheOptions?: any;
-  languageAndLocale?: any;
-  launchArgs?: any;
+  ganacheOptions?: object;
+  languageAndLocale?: object;
+  launchArgs?: object;
   restartDevice?: boolean;
-  smartContract?: any;
-  testSpecificMock?: any;
+  smartContract?: object;
+  testSpecificMock?: object;
   disableGanache?: boolean;
-  localNodeOptions?: any;
+  localNodeOptions?: object;
 }
 
 /*
