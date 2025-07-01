@@ -6,7 +6,6 @@ import {
   Platform,
   ScrollView,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -557,16 +556,13 @@ const RevealPrivateCredential = ({
                 : strings('reveal_credential.reveal_credential_modal')[2]}
             </Text>
             {strings('reveal_credential.reveal_credential_modal')[3]}
-            <TouchableOpacity
+            <Text
+              color={colors.primary.default}
+              variant={TextVariant.BodyMDBold}
               onPress={() => Linking.openURL(KEEP_SRP_SAFE_URL)}
             >
-              <Text
-                color={colors.primary.default}
-                variant={TextVariant.BodyMDBold}
-              >
-                {strings('reveal_credential.reveal_credential_modal')[4]}
-              </Text>
-            </TouchableOpacity>
+              {strings('reveal_credential.reveal_credential_modal')[4]}
+            </Text>
           </Text>
           {isTest ? (
             <Button
