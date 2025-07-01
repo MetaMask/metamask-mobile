@@ -6,21 +6,56 @@ import { backgroundState } from '../../util/test/initial-root-state';
 import { RootState } from '../../reducers';
 import { useGetTotalFiatBalanceCrossChains } from './useGetTotalFiatBalanceCrossChains';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { EntropySourceId, EthAccountType, EthScope } from '@metamask/keyring-api';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import { toFormattedAddress } from '../../util/address';
 
+const mockEntropySource: EntropySourceId = 'mock-entropy-source';
+const mockAccount: InternalAccount = {
+  id: 'mock-account-id-1',
+  address: '0x2990079bcdee240329a520d2444386fc119da21a',
+  type: EthAccountType.Eoa as const,
+  scopes: [EthScope.Eoa],
+  options: {
+    entropySource: mockEntropySource,
+  },
+  methods: [],
+  metadata: {
+    name: 'Account 1',
+    keyring: {
+      type: KeyringTypes.hd,
+    },
+    importTime: 0,
+  },
+} as const;
+const mockFormattedAddress = toFormattedAddress(mockAccount.address);
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
     backgroundState: {
       ...backgroundState,
+      KeyringController: {
+        keyrings: [
+          { type: KeyringTypes.hd, accounts: [mockAccount.address], metadata: { id: mockEntropySource, name: '' } },
+        ],
+      },
+      AccountsController: {
+        internalAccounts: {
+          selectedAccount: mockAccount.id,
+          accounts: {
+            [mockAccount.id]: mockAccount,
+          },
+        },
+      },
       AccountTrackerController: {
         accountsByChainId: {
           '0x1': {
-            '0x2990079bcdEe240329a520d2444386FC119da21a': {
+            [mockFormattedAddress]: {
               balance: '0x514709b083007',
             },
           },
           '0xe708': {
-            '0x2990079bcdEe240329a520d2444386FC119da21a': {
+            [mockFormattedAddress]: {
               balance: '0x445ad0c72ea74',
             },
           },
@@ -54,11 +89,8 @@ jest.mock('react-redux', () => ({
 
 describe('useGetTotalFiatBalanceCrossChains', () => {
   it('should return cross chain fiat balance aggregated successfully', async () => {
-    const testAccount = {
-      address: '0x2990079bcdee240329a520d2444386fc119da21a',
-    };
     const testFormattedTokens = {
-      [testAccount.address]: [
+      [mockAccount.address]: [
         {
           chainId: '0x1',
           tokensWithBalances: [
@@ -94,7 +126,7 @@ describe('useGetTotalFiatBalanceCrossChains', () => {
     };
 
     const expectedResult = {
-      [testAccount.address]: {
+      [mockAccount.address]: {
         totalFiatBalance: 16.56,
         totalTokenFiat: 7.1,
         tokenFiatBalancesCrossChains: [
@@ -139,7 +171,7 @@ describe('useGetTotalFiatBalanceCrossChains', () => {
     const { result } = renderHookWithProvider(
       () =>
         useGetTotalFiatBalanceCrossChains(
-          [testAccount as InternalAccount],
+          [mockAccount],
           testFormattedTokens,
         ),
       {

@@ -179,7 +179,7 @@ export const selectSelectedInternalAccountFormattedAddress =
  */
 export const selectFormattedAddressByAccountId =
   createDeepEqualSelector(selectInternalAccounts, (accounts) =>
-    accounts.reduce((formattedAddresses: Record<string, string>, account) => {
+    accounts.reduce((formattedAddresses: Record<AccountId, string>, account) => {
       formattedAddresses[account.id] = getFormattedAddressFromInternalAccount(account);
       return formattedAddresses;
     }, {})

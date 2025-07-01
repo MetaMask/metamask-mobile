@@ -162,6 +162,7 @@ export const useGetTotalFiatBalanceCrossChains = (
     return aggregatedBalPerAccount;
   }, [
     accounts,
+    addressesByAccountId,
     formattedTokensWithBalancesPerChain,
     allNetworks,
     currencyRates,
