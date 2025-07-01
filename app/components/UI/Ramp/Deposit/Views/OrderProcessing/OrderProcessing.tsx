@@ -12,7 +12,6 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { getOrderById } from '../../../../../../reducers/fiatOrders';
@@ -20,15 +19,11 @@ import { RootState } from '../../../../../../reducers';
 import { strings } from '../../../../../../../locales/i18n';
 import DepositOrderContent from '../../components/DepositOrderContent/DepositOrderContent';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
-import { SEPA_PAYMENT_METHOD, TRANSAK_SUPPORT_URL } from '../../constants';
-import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
+import { TRANSAK_SUPPORT_URL } from '../../constants';
 import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
-import { hasDepositOrderField } from '../../utils';
-import { DepositOrder } from '@consensys/native-ramps-sdk';
-
 export interface OrderProcessingParams {
   orderId: string;
 }
@@ -45,14 +40,6 @@ const OrderProcessing = () => {
 
   const order = useSelector((state: RootState) => getOrderById(state, orderId));
 
-  const [{ error: cancelOrderError }, cancelOrder] = useDepositSdkMethod(
-    {
-      method: 'cancelOrder',
-      onMount: false,
-    },
-    orderId,
-  );
-
   const handleMainAction = useCallback(() => {
     if (
       order?.state === FIAT_ORDER_STATES.CANCELLED ||
@@ -68,14 +55,6 @@ const OrderProcessing = () => {
     // TODO: Discuss proper support feature
     Linking.openURL(TRANSAK_SUPPORT_URL);
   }, []);
-
-  const handleCancelOrder = useCallback(async () => {
-    try {
-      await cancelOrder();
-    } catch (error) {
-      console.error(error);
-    }
-  }, [cancelOrder]);
 
   useEffect(() => {
     const title =
@@ -134,12 +113,6 @@ const OrderProcessing = () => {
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
           <View style={styles.bottomContainer}>
-            {cancelOrderError && (
-              <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
-                {strings('deposit.order_processing.error_message')}
-              </Text>
-            )}
-
             {(order.state === FIAT_ORDER_STATES.CANCELLED ||
               order.state === FIAT_ORDER_STATES.FAILED) && (
               <Button
@@ -153,20 +126,6 @@ const OrderProcessing = () => {
               />
             )}
             <View style={styles.buttonsContainer}>
-              {hasDepositOrderField(order.data, 'paymentMethod') &&
-                (order.data as DepositOrder).paymentMethod ===
-                  SEPA_PAYMENT_METHOD.id &&
-                order.state === FIAT_ORDER_STATES.PENDING && (
-                  <Button
-                    style={styles.button}
-                    variant={ButtonVariants.Secondary}
-                    size={ButtonSize.Lg}
-                    onPress={handleCancelOrder}
-                    label={strings(
-                      'deposit.order_processing.cancel_order_button',
-                    )}
-                  />
-                )}
               <Button
                 style={styles.button}
                 variant={ButtonVariants.Primary}

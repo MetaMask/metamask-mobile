@@ -106,22 +106,21 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
 
   let subtitle = strings('deposit.order_processing.description');
 
-  if (hasDepositOrderField(order.data, 'paymentMethod')) {
-    if (order.state === FIAT_ORDER_STATES.COMPLETED) {
-      subtitle = strings('deposit.order_processing.success_description', {
-        amount: order.amount,
-        currency: order.currency,
-      });
-    } else if (order.state === FIAT_ORDER_STATES.FAILED) {
-      subtitle = strings('deposit.order_processing.error_description');
-    } else if (order.state === FIAT_ORDER_STATES.CANCELLED) {
-      subtitle = strings('deposit.order_processing.cancel_order_description');
-    } else if (
-      order.state === FIAT_ORDER_STATES.PENDING &&
-      order.data.paymentMethod === SEPA_PAYMENT_METHOD.id
-    ) {
-      subtitle = strings('deposit.order_processing.bank_transfer_description');
-    }
+  if (order.state === FIAT_ORDER_STATES.COMPLETED) {
+    subtitle = strings('deposit.order_processing.success_description', {
+      amount: order.amount,
+      currency: order.currency,
+    });
+  } else if (order.state === FIAT_ORDER_STATES.FAILED) {
+    subtitle = strings('deposit.order_processing.error_description');
+  } else if (order.state === FIAT_ORDER_STATES.CANCELLED) {
+    subtitle = strings('deposit.order_processing.cancel_order_description');
+  } else if (
+    order.state === FIAT_ORDER_STATES.PENDING &&
+    hasDepositOrderField(order.data, 'paymentMethod') &&
+    order.data.paymentMethod === SEPA_PAYMENT_METHOD.id
+  ) {
+    subtitle = strings('deposit.order_processing.bank_transfer_description');
   }
 
   return (
