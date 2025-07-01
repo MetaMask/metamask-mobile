@@ -23,7 +23,7 @@ import SensitiveText, {
 import {
   areAddressesEqual,
   formatAddress,
-  getLabelTextByAddress,
+  getLabelTextByInternalAccount,
   toFormattedAddress,
 } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
@@ -49,8 +49,7 @@ import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants
 import { toHex } from '@metamask/controller-utils';
 import AccountNetworkIndicator from '../AccountNetworkIndicator';
 import { Skeleton } from '../../../component-library/components/Skeleton';
-import { selectInternalAccounts } from '../../../selectors/accountsController';
-import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
+import { selectInternalAccounts, selectInternalAccountsById } from '../../../selectors/accountsController';
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
@@ -98,16 +97,13 @@ const EvmAccountSelectorList = ({
 
   const accountTreeSections = useSelector(selectAccountSections);
   const internalAccounts = useSelector(selectInternalAccounts);
+  const internalAccountsById = useSelector(selectInternalAccountsById);
 
   const accountSections = useMemo((): AccountSection[] => {
     if (accountTreeSections) {
       const accountsById = new Map<string, Account>();
       internalAccounts.forEach((account) => {
-        const formattedAddress =
-          getFormattedAddressFromInternalAccount(account);
-        const accountObj = accounts.find(
-          (a) => areAddressesEqual(a.address, formattedAddress),
-        );
+        const accountObj = accounts.find((a) => a.id === account.id);
         if (accountObj) {
           accountsById.set(account.id, accountObj);
         }
@@ -361,22 +357,21 @@ const EvmAccountSelectorList = ({
 
       // Render account item
       const {
+        id,
         name,
         address,
         assets,
         type,
         isSelected,
         balanceError,
-        scopes,
         isLoadingAccount,
       } = item.data;
 
-      const partialAccount = {
-        address,
-        scopes,
-      };
+      const internalAccount = internalAccountsById[id];
       const shortAddress = formatAddress(address, 'short');
-      const tagLabel = accountTreeSections ? undefined : getLabelTextByAddress(address);
+      const tagLabel = accountTreeSections
+        ? undefined
+        : getLabelTextByInternalAccount(internalAccount);
       const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
@@ -420,8 +415,7 @@ const EvmAccountSelectorList = ({
 
       const handleButtonClick = () => {
         if (useMultichainAccountDesign) {
-          const account =
-            Engine.context.AccountsController.getAccountByAddress(address);
+          const account = internalAccount;
 
           if (!account) return;
 
@@ -467,7 +461,7 @@ const EvmAccountSelectorList = ({
         >
           {renderRightAccessory?.(address, accountName) ||
             (assets &&
-              renderAccountBalances(assets, partialAccount, isLoadingAccount))}
+              renderAccountBalances(assets, item.data, isLoadingAccount))}
         </Cell>
       );
     },
@@ -490,6 +484,7 @@ const EvmAccountSelectorList = ({
       accountTreeSections,
       renderSectionHeader,
       renderSectionFooter,
+      internalAccountsById,
     ],
   );
 
@@ -529,7 +524,7 @@ const EvmAccountSelectorList = ({
       keyExtractor={getKeyExtractor}
       renderItem={renderItem}
       // Increasing number of items at initial render fixes scroll issue.
-      initialNumToRender={999}
+      initialNumToRender={flattenedData.length} // Using the optimal number of items.
       testID={ACCOUNT_SELECTOR_LIST_TESTID}
       {...props}
     />
