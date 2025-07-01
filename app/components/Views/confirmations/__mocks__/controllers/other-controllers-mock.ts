@@ -26,6 +26,9 @@ export const accountsControllerMock = {
               address: accountMock,
               metadata: {
                 name: 'Account 1',
+                keyring: {
+                  type: 'HD Key Tree',
+                },
               },
             },
           },
