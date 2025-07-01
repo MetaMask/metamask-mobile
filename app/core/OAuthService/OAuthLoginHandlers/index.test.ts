@@ -108,7 +108,7 @@ describe('OAuth login handlers', () => {
                 expect(handler.authServerPath).toBe('api/v1/oauth/id_token');
                 break;
               case AuthConnection.Google:
-                expect(handler.scope).toEqual(['email', 'profile']);
+                expect(handler.scope).toEqual(['email', 'profile', 'openid']);
                 expect(handler.authServerPath).toBe('api/v1/oauth/token');
                 break;
             }
@@ -121,7 +121,7 @@ describe('OAuth login handlers', () => {
                 expect(handler.authServerPath).toBe('api/v1/oauth/token');
                 break;
               case AuthConnection.Google:
-                expect(handler.scope).toEqual(['email', 'profile']);
+                expect(handler.scope).toEqual(['email', 'profile', 'openid']);
                 expect(handler.authServerPath).toBe('api/v1/oauth/id_token');
                 break;
             }
