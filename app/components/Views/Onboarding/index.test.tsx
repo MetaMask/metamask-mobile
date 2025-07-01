@@ -16,6 +16,8 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import { EXISTING_USER } from '../../../constants/storage';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
+import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
+import { strings } from '../../../../locales/i18n';
 
 const mockInitialState = {
   engine: {
@@ -50,6 +52,24 @@ jest.mock('../../../core/OAuthService/OAuthLoginHandlers', () => ({
   createLoginHandler: jest.fn(),
 }));
 
+jest.mock('../../../core/OAuthService/OAuthService', () => ({
+  handleOAuthLogin: jest.fn(),
+  resetOauthState: jest.fn(),
+}));
+
+jest.mock('../../../core/OAuthService/error', () => ({
+  OAuthError: class OAuthError extends Error {
+    code: string;
+    constructor(code: string) {
+      super();
+      this.code = code;
+    }
+  },
+  OAuthErrorType: {
+    UserCancelled: 'user_cancelled',
+  },
+}));
+
 jest.mock('../../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
 }));
@@ -61,15 +81,18 @@ jest.mock('../../../core', () => ({
   },
 }));
 
-jest.mock('../../../core/OAuthService/OAuthLoginHandlers/constants', () => {
-  const originalConstants = jest.requireActual(
-    '../../../core/OAuthService/OAuthLoginHandlers/constants',
-  );
-  return {
-    ...originalConstants,
-    SEEDLESS_ONBOARDING_ENABLED: true,
-  };
-});
+jest.mock('../../../util/trace', () => ({
+  ...jest.requireActual('../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+}));
+
+const mockSeedlessOnboardingEnabled = jest.fn();
+jest.mock('../../../core/OAuthService/OAuthLoginHandlers/constants', () => ({
+  get SEEDLESS_ONBOARDING_ENABLED() {
+    return mockSeedlessOnboardingEnabled();
+  },
+}));
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
@@ -208,17 +231,12 @@ describe('Onboarding', () => {
   });
 
   describe('Create wallet flow', () => {
-    const originalEnv = { ...process.env };
-
-    beforeEach(() => {
-      process.env = { ...originalEnv, SEEDLESS_ONBOARDING_ENABLED: 'true' };
-    });
-
     afterEach(() => {
-      process.env = originalEnv;
+      mockSeedlessOnboardingEnabled.mockReset();
     });
 
     it('should navigate to onboarding sheet when create wallet is pressed for new user', async () => {
+      mockSeedlessOnboardingEnabled.mockReturnValue(true);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
       const { getByTestId } = renderScreen(
@@ -237,7 +255,9 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await act(async () => {
+        await Promise.resolve();
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
@@ -249,10 +269,42 @@ describe('Onboarding', () => {
         }),
       );
     });
+
+    it('should navigate to ChoosePassword when create wallet is pressed with seedless disabled', async () => {
+      mockSeedlessOnboardingEnabled.mockReturnValue(false);
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+
+      const { getByTestId } = renderScreen(
+          Onboarding,
+          { name: 'Onboarding' },
+          {
+            state: mockInitialState,
+          },
+        );
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith('ChoosePassword', {
+        [PREVIOUS_SCREEN]: ONBOARDING,
+      });
+    });
   });
 
   describe('Import wallet flow', () => {
+    afterEach(() => {
+      mockSeedlessOnboardingEnabled.mockReset();
+    });
     it('should navigate to onboarding sheet when have an existing wallet button is pressed for new user', async () => {
+      mockSeedlessOnboardingEnabled.mockReturnValue(true);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
       const { getByTestId } = renderScreen(
@@ -271,7 +323,9 @@ describe('Onboarding', () => {
         fireEvent.press(importSeedButton);
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await act(async () => {
+        await Promise.resolve();
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
@@ -281,6 +335,34 @@ describe('Onboarding', () => {
             createWallet: false,
           }),
         }),
+      );
+    });
+
+    it('should navigate to import flow when import wallet is pressed with seedless disabled', async () => {
+      mockSeedlessOnboardingEnabled.mockReturnValue(false);
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const importSeedButton = getByTestId(
+        OnboardingSelectorIDs.IMPORT_SEED_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(importSeedButton);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        { [PREVIOUS_SCREEN]: ONBOARDING }
       );
     });
   });
@@ -405,6 +487,266 @@ describe('Onboarding', () => {
 
       animatedTimingSpy.mockRestore();
       jest.useRealTimers();
+    });
+  });
+
+  describe('OAuth Login Methods', () => {
+    const mockOAuthService = jest.requireMock('../../../core/OAuthService/OAuthService');
+    const mockCreateLoginHandler = jest.requireMock('../../../core/OAuthService/OAuthLoginHandlers').createLoginHandler;
+    const { OAuthError, OAuthErrorType } = jest.requireMock('../../../core/OAuthService/error');
+
+    beforeEach(() => {
+      mockSeedlessOnboardingEnabled.mockReturnValue(true);
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+      mockSeedlessOnboardingEnabled.mockReset();
+    });
+
+    it('should call Google OAuth login for create wallet flow', async () => {
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@example.com',
+      });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(OnboardingSelectorIDs.NEW_WALLET_BUTTON);
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(call =>
+        call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+        call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      await act(async () => {
+        await googleOAuthFunction(true);
+      });
+
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'google');
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith('mockGoogleHandler');
+      expect(mockNavigate).toHaveBeenCalledWith('ChoosePassword', {
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: true,
+      });
+    });
+
+    it('should call Apple OAuth login for import wallet flow', async () => {
+      mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: true,
+        accountName: 'test@icloud.com',
+      });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const importSeedButton = getByTestId(OnboardingSelectorIDs.IMPORT_SEED_BUTTON);
+      await act(async () => {
+        fireEvent.press(importSeedButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(call =>
+        call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+        call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET
+      );
+
+      const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
+
+      await act(async () => {
+        await appleOAuthFunction(false);
+      });
+
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'apple');
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith('mockAppleHandler');
+      expect(mockNavigate).toHaveBeenCalledWith('Rehydrate', {
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: true,
+      });
+    });
+
+    it('should handle OAuth login error with user cancellation', async () => {
+      const cancelError = new OAuthError(OAuthErrorType.UserCancelled);
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockRejectedValue(cancelError);
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(OnboardingSelectorIDs.NEW_WALLET_BUTTON);
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(call =>
+        call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+        call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      await act(async () => {
+        await googleOAuthFunction(true);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            title: strings('error_sheet.user_cancelled_title'),
+            description: strings('error_sheet.user_cancelled_description'),
+            descriptionAlign: 'center',
+            buttonLabel: strings('error_sheet.user_cancelled_button'),
+            type: 'error',
+          }),
+        }),
+      );
+    });
+
+    it('should handle OAuth login error with general error', async () => {
+      const generalError = new OAuthError('general_error');
+      mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
+      mockOAuthService.handleOAuthLogin.mockRejectedValue(generalError);
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const importSeedButton = getByTestId(OnboardingSelectorIDs.IMPORT_SEED_BUTTON);
+      await act(async () => {
+        fireEvent.press(importSeedButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(call =>
+        call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+        call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET
+      );
+
+      const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
+
+      await act(async () => {
+        await appleOAuthFunction(false);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            title: strings('error_sheet.oauth_error_title'),
+            description: strings('error_sheet.oauth_error_description'),
+            descriptionAlign: 'center',
+            buttonLabel: strings('error_sheet.oauth_error_button'),
+            type: 'error',
+          }),
+        }),
+      );
+    });
+
+    it('should navigate to AccountAlreadyExists for existing user in create wallet flow', async () => {
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: true,
+        accountName: 'existing@example.com',
+      });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(OnboardingSelectorIDs.NEW_WALLET_BUTTON);
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(call =>
+        call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+        call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      await act(async () => {
+        await googleOAuthFunction(true);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith('AccountAlreadyExists', {
+        accountName: 'existing@example.com',
+        oauthLoginSuccess: true,
+      });
+    });
+
+    it('should navigate to AccountNotFound for new user in import wallet flow', async () => {
+      mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'newuser@icloud.com',
+      });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const importSeedButton = getByTestId(OnboardingSelectorIDs.IMPORT_SEED_BUTTON);
+      await act(async () => {
+        fireEvent.press(importSeedButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(call =>
+        call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+        call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET
+      );
+
+      const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
+
+      await act(async () => {
+        await appleOAuthFunction(false);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith('AccountNotFound', {
+        accountName: 'newuser@icloud.com',
+        oauthLoginSuccess: true,
+      });
     });
   });
 });

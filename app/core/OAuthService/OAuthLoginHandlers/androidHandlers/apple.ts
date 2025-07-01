@@ -1,19 +1,26 @@
-import {
-  CodeChallengeMethod,
-  ResponseType,
-  AuthRequest,
-} from 'expo-auth-session';
+import { ResponseType, AuthRequest } from 'expo-auth-session';
 import {
   AuthConnection,
+  AuthResponse,
+  HandleFlowParams,
   LoginHandler,
   LoginHandlerCodeResult,
 } from '../../OAuthInterface';
 import { BaseLoginHandler } from '../baseHandler';
 import { OAuthError, OAuthErrorType } from '../../error';
+import { sha256 } from '@noble/hashes/sha256';
+import { bytesToBase64 } from '@metamask/utils';
 export interface AndroidAppleLoginHandlerParams {
   clientId: string;
   redirectUri: string;
   appRedirectUri: string;
+}
+
+export function toBase64UrlSafe(base64String: string): string {
+  return base64String
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/[=]/g, '');
 }
 
 /**
@@ -70,20 +77,23 @@ export class AndroidAppleLoginHandler
    * @returns LoginHandlerCodeResult
    */
   async login(): Promise<LoginHandlerCodeResult> {
+    const codeChallenge = bytesToBase64(sha256(this.nonce));
+    const codeChallengeBase64SafeUrl = toBase64UrlSafe(codeChallenge);
+
     const state = JSON.stringify({
       provider: this.authConnection,
       client_redirect_back_uri: this.appRedirectUri,
       redirectUri: this.redirectUri,
       clientId: this.clientId,
       random: this.nonce,
+      code_challenge: codeChallengeBase64SafeUrl,
     });
+
     const authRequest = new AuthRequest({
       clientId: this.clientId,
       redirectUri: this.redirectUri,
       scopes: this.#scope,
       responseType: ResponseType.Code,
-      codeChallengeMethod: CodeChallengeMethod.S256,
-      usePKCE: true,
       state,
       extraParams: {
         response_mode: 'form_post',
@@ -113,10 +123,10 @@ export class AndroidAppleLoginHandler
     if (result.type === 'success') {
       return {
         authConnection: AuthConnection.Apple,
-        code: result.params.code,
+        code: codeChallengeBase64SafeUrl,
         clientId: this.clientId,
         redirectUri: this.redirectUri,
-        codeVerifier: authRequest.codeVerifier,
+        codeVerifier: this.nonce,
       };
     }
     if (result.type === 'error') {
@@ -143,6 +153,58 @@ export class AndroidAppleLoginHandler
     throw new OAuthError(
       'handleAndroidAppleLogin: Unknown error',
       OAuthErrorType.UnknownError,
+    );
+  }
+
+  async getAuthTokens(
+    params: HandleFlowParams,
+    authServerUrl: string,
+  ): Promise<AuthResponse> {
+    if (!('code' in params)) {
+      throw new OAuthError(
+        'Missing code params',
+        OAuthErrorType.InvalidGetAuthTokenParams,
+      );
+    }
+    const {
+      code,
+      codeVerifier,
+      clientId,
+      authConnection,
+      redirectUri,
+      web3AuthNetwork,
+    } = params;
+
+    const body = {
+      code,
+      client_id: clientId,
+      login_provider: authConnection,
+      network: web3AuthNetwork,
+      redirect_uri: redirectUri,
+      code_verifier: codeVerifier,
+    };
+
+    const res = await fetch(`${authServerUrl}/api/v1/oauth/callback/verify`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status === 200) {
+      const data = (await res.json()) satisfies AuthResponse;
+      if (data.success) {
+        return data;
+      }
+      throw new OAuthError(data.message, OAuthErrorType.AuthServerError);
+    }
+
+    throw new OAuthError(
+      `AuthServer Error, request failed with status: [${
+        res.status
+      }]: ${await res.text()}`,
+      OAuthErrorType.AuthServerError,
     );
   }
 }

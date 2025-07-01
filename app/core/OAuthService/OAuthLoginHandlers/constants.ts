@@ -6,9 +6,45 @@ import { OAUTH_CONFIG } from './config';
 export const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
-// const BuildType = AppConstants.IS_DEV ? 'development' : AppConstants.METAMASK_BUILD_TYPE || 'development';
-// use development config for now
-const BuildType = 'development';
+/**
+ * Mapping of old Build Type to new BuildType formatting for oauth config
+ * Main -> main_prod
+ * QA -> main_uat
+ * Debug -> main_dev
+ * flask -> flask_prod
+ * flask QA -> flask_uat
+ * flask Debug -> flask_dev
+ *
+ * new build types
+ * main_beta -> main_prod
+ * main_rc -> main_prod
+ *
+ * @param buildType - The build type to map
+ * @param dev - Whether the build is a development build
+ * @returns The mapped build type
+ */
+const buildTypeMapping = (buildType: string, dev: boolean) => {
+  // use development config for now
+  if (process.env.DEV_OAUTH_CONFIG === 'true' || dev) {
+    return 'development';
+  }
+
+  switch (buildType) {
+    case 'main':
+      return dev ? 'main_dev' : 'main_prod';
+    case 'qa':
+      return dev ? 'main_dev' : 'main_uat';
+    case 'flask':
+      return dev ? 'flask_dev' : 'flask_prod';
+    default:
+      return 'development';
+  }
+};
+
+const BuildType = buildTypeMapping(
+  AppConstants.METAMASK_BUILD_TYPE || 'main',
+  AppConstants.IS_DEV,
+);
 const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG[BuildType];
 
 export const web3AuthNetwork = CURRENT_OAUTH_CONFIG.WEB3AUTH_NETWORK;
