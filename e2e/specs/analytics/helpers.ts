@@ -139,6 +139,4 @@ export const onboardingEvents = {
   ONBOARDING_TOUR_STEP_REVISITED: 'Onboarding Tour Step Revisited',
   ONBOARDING_TOUR_COMPLETED: 'Onboarding Tour Completed',
   WALLET_SECURITY_SKIP_CONFIRMED: 'Wallet Security Skip Confirmed',
-  WALLET_SECURITY_MANUAL_BACKUP_INITIATED: 'Manual Backup Initiated',
-  WALLET_SECURITY_PHRASE_REVEALED: 'Phrase Revealed',
 };

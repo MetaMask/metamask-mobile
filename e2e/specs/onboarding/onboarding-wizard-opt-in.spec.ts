@@ -28,22 +28,15 @@ const testSpecificMock = {
   POST: [mockEvents.POST.segmentTrack],
 };
 
-//const fixtureServer = new FixtureServer();
-
 describe(
   Regression('Onboarding wizard opt-in, metametrics opt out from settings WITH ANALYTICS'),
   () => {
     let mockServer: MockttpServer;
-    let eventsTrackedUntilDisableAnalytics: EventPayload[];
+    let eventsBeforeDisablingAnalytics: EventPayload[];
 
     beforeAll(async () => {
       jest.setTimeout(150000);
       await TestHelpers.reverseServerPort();
-      //const fixture = new FixtureBuilder()
-      //  .withOnboardingFixture()
-      //  .build();
-      //await startFixtureServer(fixtureServer);
-      // await loadFixture(fixtureServer, { fixture });
 
       const mockServerPort = getMockServerPort();
       mockServer = await startMockServer(testSpecificMock, mockServerPort);
@@ -51,36 +44,38 @@ describe(
       await TestHelpers.launchApp({
         permissions: { notifications: 'YES' },
         launchArgs: {
-          //fixtureServerPort: `${getFixturesServerPort()}`,
           mockServerPort: `${mockServerPort}`,
         },
       });
     });
 
-    it('should create a new wallet', async () => {
+    afterAll(async () => {
+      if (mockServer) {
+        await mockServer.stop();
+      }
+    });
+
+    it('should create a new wallet with analytics opt-in', async () => {
       await CreateNewWallet({ optInToMetrics: true });
     });
 
     it('should check that metametrics is enabled in settings', async () => {
-      await TestHelpers.delay(2000); // Wait for UI to stabilize
+      await TestHelpers.delay(1500); // Wait for UI to stabilize
       await TabBarComponent.tapSettings();
-      await TestHelpers.delay(2000); // Wait for settings to load
+      await TestHelpers.delay(1500); // Wait for settings to load
       await SettingsView.tapSecurityAndPrivacy();
       await SecurityAndPrivacy.scrollToMetaMetrics();
-      await TestHelpers.delay(2000);
+      await TestHelpers.delay(1500);
       await Assertions.checkIfToggleIsOn(SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>);
     });
 
     it('should disable metametrics and track preference change', async () => {
       await SecurityAndPrivacy.tapMetaMetricsToggle();
-      await TestHelpers.delay(1500);
-      // we may have a race condition here
-      // We can stop any actions and still check for the events afterwards
+      await TestHelpers.delay(1000); // Wait for toggle action
       await CommonView.tapOkAlert();
       await Assertions.checkIfToggleIsOff(SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>);
 
       const events = await getEventsPayloads(mockServer);
-      console.warn('events after disabling analytics', events);
 
       const softAssert = new SoftAssert();
       await softAssert.checkAndCollect(async () => {
@@ -97,45 +92,45 @@ describe(
 
       softAssert.throwIfErrors();
 
-      // We will be asserting this on the next test so that we make sure that
-      // restarting the app keeps the analytics preference set to off
-      eventsTrackedUntilDisableAnalytics = events;
+      // Store events before terminating app to verify no new events are sent after relaunch
+      eventsBeforeDisablingAnalytics = events;
 
-      // Restarting the app for the next test
+      // Terminating the app for the next test
       await device.terminateApp();
-      await TestHelpers.delay(2000);
+      await TestHelpers.delay(1500); // Wait for app termination
+    });
+
+    it('should relaunch and log in, verifying no new MetaMetrics events were sent', async () => {
+      // Launch the app for this test
       await device.launchApp({
         launchArgs: {
           mockServerPort: `${getMockServerPort()}`,
           detoxURLBlacklistRegex: Utilities.BlacklistURLs,
         },
       });
-      await TestHelpers.delay(3000);
-    });
-
-    it('should relaunch and log in, verifying no new MetaMetrics events were sent', async () => {
+      await TestHelpers.delay(2000); // Wait for app launch
+      
       await LoginView.enterPassword(PASSWORD);
       await Assertions.checkIfVisible(WalletView.container);
-      await TestHelpers.delay(2000);
+      // Removed delay - we already wait for wallet view to be visible
 
       const eventsAfterRelaunch = await getEventsPayloads(mockServer);
-      await Assertions.checkIfArrayHasLength(eventsAfterRelaunch, eventsTrackedUntilDisableAnalytics.length);
+      await Assertions.checkIfArrayHasLength(eventsAfterRelaunch, eventsBeforeDisablingAnalytics.length);
     });
 
-    it('should verify metametrics is turned off', async () => {
-      // We don't need synchronization here as we just need to navigate to the toggle
+    it('should verify metametrics remains turned off after app restart', async () => {
       await device.disableSynchronization();
       await TestHelpers.delay(500); // Wait for UI to stabilize
       await TabBarComponent.tapSettings();
       await TestHelpers.delay(500); // Wait for settings to load
       await SettingsView.tapSecurityAndPrivacy(); // ANIMATION HERE, we need to be careful with this
 
-      // Theres an animation here that we need to wait for
-      // we need to be careful with this and should find a better way to handle this
-      await TestHelpers.delay(500);
+      await TestHelpers.delay(500); // Wait for animation
 
       await SecurityAndPrivacy.scrollToMetaMetrics();
       await Assertions.checkIfToggleIsOff(SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>);
+      
+      await device.enableSynchronization();
     });
   }
 );
