@@ -525,7 +525,14 @@ const stakingConfirmationBaseState = {
         internalAccounts: {
           accounts: {
             '0x0000000000000000000000000000000000000000': {
+              id: '0x0000000000000000000000000000000000000000',
               address: '0x0000000000000000000000000000000000000000',
+              metadata: {
+                name: 'Account 1',
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+              },
             },
           },
           selectedAccount: '0x0000000000000000000000000000000000000000',
