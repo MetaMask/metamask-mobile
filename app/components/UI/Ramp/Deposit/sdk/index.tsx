@@ -30,6 +30,7 @@ import {
   setFiatOrdersRegionDeposit,
 } from '../../../../../reducers/fiatOrders';
 import { DepositRegion, DEPOSIT_REGIONS } from '../constants';
+import { getGeolocation } from '../utils/geolocation';
 
 export interface DepositSDK {
   sdk?: NativeRampsSdk;
@@ -110,9 +111,26 @@ export const DepositSDKProvider = ({
   );
 
   useEffect(() => {
-    if (INITIAL_SELECTED_REGION === null && defaultRegion) {
-      dispatch(setFiatOrdersRegionDeposit(defaultRegion));
+    async function setRegionByGeolocation() {
+      if (INITIAL_SELECTED_REGION === null) {
+        try {
+          const geo = await getGeolocation();
+          const region = DEPOSIT_REGIONS.find(
+            (r) => r.isoCode === geo.ipCountryCode && r.supported,
+          );
+          if (region) {
+            dispatch(setFiatOrdersRegionDeposit(region));
+          } else if (defaultRegion) {
+            dispatch(setFiatOrdersRegionDeposit(defaultRegion));
+          }
+        } catch (error) {
+          if (defaultRegion) {
+            dispatch(setFiatOrdersRegionDeposit(defaultRegion));
+          }
+        }
+      }
     }
+    setRegionByGeolocation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
