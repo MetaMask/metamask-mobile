@@ -1,0 +1,13 @@
+diff --git a/node_modules/@metamask/swaps-controller/dist/swapsUtil.js b/node_modules/@metamask/swaps-controller/dist/swapsUtil.js
+index a14e1b8..dbc4f9b 100644
+--- a/node_modules/@metamask/swaps-controller/dist/swapsUtil.js
++++ b/node_modules/@metamask/swaps-controller/dist/swapsUtil.js
+@@ -178,7 +178,7 @@ function shouldEnableDirectWrapping(chainId, sourceToken, destinationToken) {
+ const getBaseApiURL = function (type, chainId) {
+     const [apiChainId, apiBaseUrl] = chainId === constants_1.SWAPS_TESTNET_CHAIN_ID
+         ? [constants_1.ETH_CHAIN_ID, constants_1.DEV_BASE_URL]
+-        : [chainId, constants_1.API_BASE_URL];
++        : [chainId, constants_1.DEV_BASE_URL];
+     const apiDecimalChainId = (0, controller_utils_1.convertHexToDecimal)(apiChainId);
+     switch (type) {
+         case APIType.TRADES:
