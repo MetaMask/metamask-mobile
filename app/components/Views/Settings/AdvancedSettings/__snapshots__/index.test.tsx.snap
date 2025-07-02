@@ -231,6 +231,24 @@ exports[`AdvancedSettings should render correctly 1`] = `
             }
           >
             Keep this on to automatically switch accounts created within MetaMask to smart accounts whenever relevant features are available, such as faster transactions, lower network fees and payment flexibility on payment for those.
+             
+            <Text
+              accessibilityRole="text"
+              link={true}
+              onPress={[Function]}
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Learn more.
+            </Text>
           </Text>
         </View>
         <View

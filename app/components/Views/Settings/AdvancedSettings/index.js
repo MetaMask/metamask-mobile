@@ -365,6 +365,10 @@ class AdvancedSettings extends PureComponent {
     Linking.openURL(AppConstants.URLS.SMART_TXS);
   };
 
+  openLinkAboutSmartAccount = () => {
+    Linking.openURL(AppConstants.URLS.SMART_ACCOUNTS);
+  };
+
   render = () => {
     const {
       showHexData,
@@ -420,7 +424,18 @@ class AdvancedSettings extends PureComponent {
 
             <SettingsRow
               heading={strings('app_settings.use_smart_account_heading')}
-              description={strings('app_settings.use_smart_account_desc')}
+              description={
+                <>
+                  {strings('app_settings.use_smart_account_desc')}{' '}
+                  <Text
+                    color={TextColor.Primary}
+                    link
+                    onPress={this.openLinkAboutSmartAccount}
+                  >
+                    {strings('app_settings.use_smart_account_learn_more')}
+                  </Text>
+                </>
+              }
               value={smartAccountOptIn}
               onValueChange={this.toggleSmartAccountOptIn}
               testId={AdvancedViewSelectorsIDs.SMART_ACCOUNT_OPT_IN}
