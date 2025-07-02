@@ -8,6 +8,9 @@ const styleSheet = () =>
       paddingLeft: 24,
       paddingRight: 24,
     },
+    addressContainer: {
+      width: 200,
+    },
   });
 
 export default styleSheet;
