@@ -42,9 +42,7 @@ describe(SmokeMultiStandardDappConnection('Multiple Standard Dapp Connections'),
     jest.setTimeout(150000);
   });
 
-  // FIXME: [ffmcgee] *AccountConnect.tsx* might need adjustments on defaultAccounts ? if sending `eth_accounts: {}`, request does not increment currently permitted + default account, but sends only the CURRENTLY PERMITTED ACCOUNT :thinking-emoji:
-  // TODO: maybe desired behaviour ? extension test seems to suggest so... comment with wenfix
-  it.only('should default account selection to already permitted account(s) plus the selected account (if not already permitted) when `wallet_requestPermissions` is called with no accounts specified', async () => {
+  it('should default account selection to already permitted account when `wallet_requestPermissions` is called with no accounts specified', async () => {
     await withFixtures({
       dapp: true,
       fixture: new FixtureBuilder()
@@ -72,15 +70,14 @@ describe(SmokeMultiStandardDappConnection('Multiple Standard Dapp Connections'),
       await TabBarComponent.tapBrowser();
       await Browser.navigateToTestDApp();
 
-      await TestHelpers.delay(3000);
       await callRequestPermissionsScript();
 
       await ConnectBottomSheet.tapConnectButton();
 
-      // // Validate both EVM accounts are connected
+      // Validate only existing permitted EVM account is connected
       await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-      await Assertions.checkIfTextIsDisplayed('Account 1');
       await Assertions.checkIfTextIsDisplayed('Account 2');
+      await Assertions.checkIfTextIsNotDisplayed('Account 1');
     });
   });
 
@@ -100,7 +97,6 @@ describe(SmokeMultiStandardDappConnection('Multiple Standard Dapp Connections'),
       await TabBarComponent.tapBrowser();
       await Browser.navigateToTestDApp();
 
-      await TestHelpers.delay(3000);
       await callRequestPermissionsScript([DEFAULT_FIXTURE_ACCOUNT_2]);
 
       await ConnectBottomSheet.tapConnectButton();
