@@ -14,6 +14,7 @@ import { createProviderWebviewNavDetails } from '../Views/ProviderWebview/Provid
 import { createBasicInfoNavDetails } from '../Views/BasicInfo/BasicInfo';
 import { createKycWebviewNavDetails } from '../Views/KycWebview/KycWebview';
 import { createBankDetailsNavDetails } from '../Views/BankDetails/BankDetails';
+import { useDepositSDK } from '../sdk';
 
 export interface UseDepositRoutingParams {
   selectedWalletAddress?: string;
@@ -28,6 +29,7 @@ export const useDepositRouting = ({
 }: UseDepositRoutingParams) => {
   const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
+  const { selectedRegion } = useDepositSDK();
 
   const [{ error: kycFormsFetchError }, fetchKycForms] = useDepositSdkMethod({
     method: 'getKYCForms',
@@ -55,6 +57,74 @@ export const useDepositRouting = ({
     onMount: false,
   });
 
+  const [{ error: purposeError }, submitPurposeOfUsage] = useDepositSdkMethod({
+    method: 'submitPurposeOfUsageForm',
+    onMount: false,
+  });
+
+  const handleApprovedKycFlow = useCallback(
+    async (quote: BuyQuote) => {
+      const userDetails = await fetchUserDetails();
+
+      if (userDetailsFetchError) {
+        throw new Error(strings('deposit.buildQuote.unexpectedError'));
+      }
+
+      if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
+        if (paymentMethodId === SEPA_PAYMENT_METHOD.id) {
+          const reservation = await createReservation(
+            quote,
+            selectedWalletAddress,
+          );
+
+          if (reservationError || !reservation) {
+            throw new Error(strings('deposit.buildQuote.unexpectedError'));
+          }
+
+          const order = await createOrder(reservation);
+
+          if (orderError || !order) {
+            throw new Error(strings('deposit.buildQuote.unexpectedError'));
+          }
+
+          const processedOrder = {
+            ...depositOrderToFiatOrder(order),
+            account: selectedWalletAddress || order.walletAddress,
+            network: cryptoCurrencyChainId,
+          };
+
+          await handleNewOrder(processedOrder);
+
+          navigation.navigate(
+            ...createBankDetailsNavDetails({
+              orderId: order.id,
+              shouldUpdate: false,
+            }),
+          );
+        } else {
+          navigation.navigate(...createProviderWebviewNavDetails({ quote }));
+        }
+        return true;
+      }
+
+      navigation.navigate(...createKycProcessingNavDetails({ quote }));
+      return false;
+    },
+    [
+      fetchUserDetails,
+      userDetailsFetchError,
+      paymentMethodId,
+      createReservation,
+      reservationError,
+      createOrder,
+      orderError,
+      selectedWalletAddress,
+      handleNewOrder,
+      navigation,
+      cryptoCurrencyChainId,
+    ],
+  );
+
   const routeAfterAuthentication = useCallback(
     async (quote: BuyQuote) => {
       const forms = await fetchKycForms(quote);
@@ -66,50 +136,7 @@ export const useDepositRouting = ({
       const { forms: requiredForms } = forms || {};
 
       if (requiredForms?.length === 0) {
-        const userDetails = await fetchUserDetails();
-
-        if (userDetailsFetchError) {
-          throw new Error(strings('deposit.buildQuote.unexpectedError'));
-        }
-
-        if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
-          if (paymentMethodId === SEPA_PAYMENT_METHOD.id) {
-            const reservation = await createReservation(
-              quote,
-              selectedWalletAddress,
-            );
-
-            if (reservationError || !reservation) {
-              throw new Error(strings('deposit.buildQuote.unexpectedError'));
-            }
-
-            const order = await createOrder(reservation);
-
-            if (orderError || !order) {
-              throw new Error(strings('deposit.buildQuote.unexpectedError'));
-            }
-
-            const processedOrder = {
-              ...depositOrderToFiatOrder(order),
-              account: selectedWalletAddress || order.walletAddress,
-              network: cryptoCurrencyChainId,
-            };
-
-            await handleNewOrder(processedOrder);
-
-            navigation.navigate(
-              ...createBankDetailsNavDetails({
-                orderId: order.id,
-                shouldUpdate: false,
-              }),
-            );
-          } else {
-            navigation.navigate(...createProviderWebviewNavDetails({ quote }));
-          }
-          return;
-        }
-
-        navigation.navigate(...createKycProcessingNavDetails({ quote }));
+        await handleApprovedKycFlow(quote);
         return;
       }
 
@@ -125,6 +152,39 @@ export const useDepositRouting = ({
         (form) => form.id === 'idProof',
       );
 
+      const ssnKycForm = requiredForms?.find((form) => form.id === 'usSSN');
+
+      const purposeOfUsageKycForm = requiredForms?.find(
+        (form) => form.id === 'purposeOfUsage',
+      );
+
+      // Handle Purpose of Usage form if it's the only remaining form
+      if (purposeOfUsageKycForm && requiredForms?.length === 1) {
+        try {
+          await submitPurposeOfUsage(['Buying/selling crypto for investments']);
+
+          if (purposeError) {
+            throw new Error(strings('deposit.buildQuote.unexpectedError'));
+          }
+
+          // After successful purpose of usage submission, check forms again
+          const updatedForms = await fetchKycForms(quote);
+
+          if (kycFormsFetchError) {
+            throw new Error(strings('deposit.buildQuote.unexpectedError'));
+          }
+
+          const { forms: updatedRequiredForms } = updatedForms || {};
+
+          if (updatedRequiredForms?.length === 0) {
+            await handleApprovedKycFlow(quote);
+            return;
+          }
+        } catch (error) {
+          throw new Error(strings('deposit.buildQuote.unexpectedError'));
+        }
+      }
+
       const idProofData = idProofKycForm
         ? await fetchKycFormData(quote, idProofKycForm)
         : null;
@@ -133,7 +193,9 @@ export const useDepositRouting = ({
         throw new Error(strings('deposit.buildQuote.unexpectedError'));
       }
 
-      if (personalDetailsKycForm || addressKycForm) {
+      // Navigate to BasicInfo if personal details, address, or SSN forms are required
+      const shouldShowSsnForm = ssnKycForm && selectedRegion?.isoCode === 'US';
+      if (personalDetailsKycForm || addressKycForm || shouldShowSsnForm) {
         navigation.navigate(
           ...createBasicInfoNavDetails({
             quote,
@@ -155,19 +217,13 @@ export const useDepositRouting = ({
     [
       fetchKycForms,
       kycFormsFetchError,
-      fetchUserDetails,
-      userDetailsFetchError,
-      createReservation,
-      reservationError,
-      createOrder,
-      orderError,
-      selectedWalletAddress,
-      handleNewOrder,
-      navigation,
-      cryptoCurrencyChainId,
+      handleApprovedKycFlow,
       fetchKycFormData,
       kycFormFetchError,
-      paymentMethodId,
+      submitPurposeOfUsage,
+      purposeError,
+      selectedRegion,
+      navigation,
     ],
   );
 

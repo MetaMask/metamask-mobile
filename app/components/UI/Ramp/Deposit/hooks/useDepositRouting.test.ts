@@ -23,6 +23,7 @@ let mockCreateReservation = jest
 let mockCreateOrder = jest
   .fn()
   .mockResolvedValue({ id: 'order-id', walletAddress: '0x123' });
+let mockSubmitPurposeOfUsage = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('./useDepositSdkMethod', () => ({
   useDepositSdkMethod: jest.fn((config) => {
@@ -41,8 +42,17 @@ jest.mock('./useDepositSdkMethod', () => ({
     if (config?.method === 'createOrder') {
       return [mockUseDepositSdkMethodInitialState, mockCreateOrder];
     }
+    if (config?.method === 'submitPurposeOfUsageForm') {
+      return [mockUseDepositSdkMethodInitialState, mockSubmitPurposeOfUsage];
+    }
     return [mockUseDepositSdkMethodInitialState, jest.fn()];
   }),
+}));
+
+jest.mock('../sdk', () => ({
+  useDepositSDK: jest.fn(() => ({
+    selectedRegion: { isoCode: 'US' },
+  })),
 }));
 
 jest.mock('./useHandleNewOrder');
@@ -99,6 +109,7 @@ describe('useDepositRouting', () => {
     mockCreateOrder = jest
       .fn()
       .mockResolvedValue({ id: 'order-id', walletAddress: '0x123' });
+    mockSubmitPurposeOfUsage = jest.fn().mockResolvedValue(undefined);
 
     mockUseHandleNewOrder.mockReturnValue(
       jest.fn().mockResolvedValue(undefined),
@@ -204,6 +215,53 @@ describe('useDepositRouting', () => {
       expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
         id: 'idProof',
       });
+    });
+
+    it('should navigate to BasicInfo when SSN form is required for US user', async () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        selectedWalletAddress: '0x123',
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+
+      mockFetchKycForms = jest.fn().mockResolvedValue({
+        forms: [{ id: 'usSSN' }],
+      });
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).resolves.not.toThrow();
+
+      expect(mockFetchKycForms).toHaveBeenCalledWith(mockQuote);
+    });
+
+    it('should auto-submit purpose of usage form when it is the only remaining form', async () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        selectedWalletAddress: '0x123',
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+
+      mockFetchKycForms = jest.fn()
+        .mockResolvedValueOnce({
+          forms: [{ id: 'purposeOfUsage' }],
+        })
+        .mockResolvedValueOnce({
+          forms: [],
+        });
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).resolves.not.toThrow();
+
+      expect(mockSubmitPurposeOfUsage).toHaveBeenCalledWith(['Buying/selling crypto for investments']);
+      expect(mockFetchKycForms).toHaveBeenCalledTimes(2);
     });
 
     it('should navigate to KycWebview when only idProof form is required', async () => {
