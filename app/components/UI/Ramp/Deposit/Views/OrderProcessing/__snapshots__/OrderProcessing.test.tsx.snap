@@ -478,112 +478,53 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
             }
           }
         >
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={0.2}
-            onPress={[Function]}
+          <View
             style={
-              [
-                [
-                  {
-                    "borderRadius": 12,
-                    "justifyContent": "center",
-                    "padding": 15,
-                  },
-                  {
-                    "backgroundColor": "#4459ff",
-                    "minHeight": 50,
-                  },
-                  undefined,
-                ],
-                null,
-              ]
-            }
-            testID="main-action-button"
-          >
-            <Text
-              style={
-                [
-                  {
-                    "color": "#007aff",
-                    "fontSize": 17,
-                    "fontWeight": "500",
-                    "textAlign": "center",
-                  },
-                  null,
-                  [
-                    {
-                      "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
-                      "fontWeight": "600",
-                      "textAlign": "center",
-                    },
-                    {
-                      "color": "#ffffff",
-                    },
-                    undefined,
-                  ],
-                  null,
-                ]
+              {
+                "flexDirection": "row",
+                "gap": 16,
               }
-            >
-              Close
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={0.2}
-            onPress={[Function]}
-            style={
-              [
-                [
-                  {
-                    "borderRadius": 12,
-                    "justifyContent": "center",
-                    "padding": 15,
-                  },
-                  {
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#686e7d",
-                    "borderWidth": 1,
-                  },
-                  undefined,
-                ],
-                null,
-              ]
             }
           >
-            <Text
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
-                [
-                  {
-                    "color": "#007aff",
-                    "fontSize": 17,
-                    "fontWeight": "500",
-                    "textAlign": "center",
-                  },
-                  null,
-                  [
-                    {
-                      "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
-                      "fontWeight": "600",
-                      "textAlign": "center",
-                    },
-                    {
-                      "color": "#686e7d",
-                    },
-                    undefined,
-                  ],
-                  null,
-                ]
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#4459ff",
+                  "borderRadius": 12,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
               }
+              testID="main-action-button"
             >
-              Cancel
-            </Text>
-          </TouchableOpacity>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 16,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Close
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
@@ -1068,109 +1009,89 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
           <TouchableOpacity
             accessibilityRole="button"
             accessible={true}
-            activeOpacity={0.2}
+            activeOpacity={1}
             onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
-              [
-                [
-                  {
-                    "borderRadius": 12,
-                    "justifyContent": "center",
-                    "padding": 15,
-                  },
-                  {
-                    "backgroundColor": "#4459ff",
-                    "minHeight": 50,
-                  },
-                  undefined,
-                ],
-                null,
-              ]
-            }
-            testID="main-action-button"
-          >
-            <Text
-              style={
-                [
-                  {
-                    "color": "#007aff",
-                    "fontSize": 17,
-                    "fontWeight": "500",
-                    "textAlign": "center",
-                  },
-                  null,
-                  [
-                    {
-                      "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
-                      "fontWeight": "600",
-                      "textAlign": "center",
-                    },
-                    {
-                      "color": "#ffffff",
-                    },
-                    undefined,
-                  ],
-                  null,
-                ]
+              {
+                "alignItems": "center",
+                "alignSelf": "flex-start",
+                "backgroundColor": "transparent",
+                "borderColor": "#4459ff",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "flex": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "paddingHorizontal": 16,
               }
-            >
-              Try again
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={0.2}
-            onPress={[Function]}
-            style={
-              [
-                [
-                  {
-                    "borderRadius": 12,
-                    "justifyContent": "center",
-                    "padding": 15,
-                  },
-                  {
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#4459ff",
-                    "borderWidth": 1,
-                  },
-                  undefined,
-                ],
-                null,
-              ]
             }
           >
             <Text
+              accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#007aff",
-                    "fontSize": 17,
-                    "fontWeight": "500",
-                    "textAlign": "center",
-                  },
-                  null,
-                  [
-                    {
-                      "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
-                      "fontWeight": "600",
-                      "textAlign": "center",
-                    },
-                    {
-                      "color": "#4459ff",
-                    },
-                    undefined,
-                  ],
-                  null,
-                ]
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               Contact support
             </Text>
           </TouchableOpacity>
+          <View
+            style={
+              {
+                "flexDirection": "row",
+                "gap": 16,
+              }
+            }
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#4459ff",
+                  "borderRadius": 12,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="main-action-button"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 16,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Try again
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
@@ -1259,67 +1180,43 @@ exports[`OrderProcessing Component renders no order found state 1`] = `
           ]
         }
       >
-        <View
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
             {
-              "gap": 16,
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#4459ff",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
             }
           }
+          testID="no-order-back-button"
         >
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={0.2}
-            onPress={[Function]}
+          <Text
+            accessibilityRole="text"
             style={
-              [
-                [
-                  {
-                    "borderRadius": 12,
-                    "justifyContent": "center",
-                    "padding": 15,
-                  },
-                  {
-                    "backgroundColor": "#4459ff",
-                    "minHeight": 50,
-                  },
-                  undefined,
-                ],
-                null,
-              ]
-            }
-            testID="no-order-back-button"
-          >
-            <Text
-              style={
-                [
-                  {
-                    "color": "#007aff",
-                    "fontSize": 17,
-                    "fontWeight": "500",
-                    "textAlign": "center",
-                  },
-                  null,
-                  [
-                    {
-                      "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
-                      "fontWeight": "600",
-                      "textAlign": "center",
-                    },
-                    {
-                      "color": "#ffffff",
-                    },
-                    undefined,
-                  ],
-                  null,
-                ]
+              {
+                "color": "#ffffff",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
               }
-            >
-              Back to Wallet
-            </Text>
-          </TouchableOpacity>
-        </View>
+            }
+          >
+            Back to Wallet
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   </View>
@@ -1804,59 +1701,53 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
             }
           }
         >
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={0.2}
-            onPress={[Function]}
+          <View
             style={
-              [
-                [
-                  {
-                    "borderRadius": 12,
-                    "justifyContent": "center",
-                    "padding": 15,
-                  },
-                  {
-                    "backgroundColor": "#4459ff",
-                    "minHeight": 50,
-                  },
-                  undefined,
-                ],
-                null,
-              ]
-            }
-            testID="main-action-button"
-          >
-            <Text
-              style={
-                [
-                  {
-                    "color": "#007aff",
-                    "fontSize": 17,
-                    "fontWeight": "500",
-                    "textAlign": "center",
-                  },
-                  null,
-                  [
-                    {
-                      "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
-                      "fontWeight": "600",
-                      "textAlign": "center",
-                    },
-                    {
-                      "color": "#ffffff",
-                    },
-                    undefined,
-                  ],
-                  null,
-                ]
+              {
+                "flexDirection": "row",
+                "gap": 16,
               }
+            }
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#4459ff",
+                  "borderRadius": 12,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="main-action-button"
             >
-              Close
-            </Text>
-          </TouchableOpacity>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 16,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Close
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
@@ -2338,59 +2229,53 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
             }
           }
         >
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={0.2}
-            onPress={[Function]}
+          <View
             style={
-              [
-                [
-                  {
-                    "borderRadius": 12,
-                    "justifyContent": "center",
-                    "padding": 15,
-                  },
-                  {
-                    "backgroundColor": "#4459ff",
-                    "minHeight": 50,
-                  },
-                  undefined,
-                ],
-                null,
-              ]
-            }
-            testID="main-action-button"
-          >
-            <Text
-              style={
-                [
-                  {
-                    "color": "#007aff",
-                    "fontSize": 17,
-                    "fontWeight": "500",
-                    "textAlign": "center",
-                  },
-                  null,
-                  [
-                    {
-                      "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
-                      "fontWeight": "600",
-                      "textAlign": "center",
-                    },
-                    {
-                      "color": "#ffffff",
-                    },
-                    undefined,
-                  ],
-                  null,
-                ]
+              {
+                "flexDirection": "row",
+                "gap": 16,
               }
+            }
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#4459ff",
+                  "borderRadius": 12,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="main-action-button"
             >
-              Close
-            </Text>
-          </TouchableOpacity>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 16,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Close
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>

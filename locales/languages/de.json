@@ -597,6 +597,10 @@
     "solana": {
       "title": "Solana wird jetzt unterstützt",
       "subtitle": "Erstellen Sie ein Solana-Konto, um loszulegen"
+    },
+    "backupAndSync": {
+      "title": "Einführung in Backup und Synchronisierung",
+      "subtitle": "Sichern Sie Ihre Konten und Synchronisierungseinstellungen."
     }
   },
   "wallet": {
