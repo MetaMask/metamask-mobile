@@ -274,18 +274,16 @@ buildAndroidRun(){
 
 buildAndroidDevBuild(){
 	prebuild_android
-	if [ -e $ANDROID_ENV_FILE ]
-	then
-		source $ANDROID_ENV_FILE
-	fi
 
-	TASK_NAME="assembleProdDebug assembleProdDebugAndroidTest"
+	# Generate both APK (for development) and test APK (for E2E testing)
+	cd android && ./gradlew assembleProdDebug assembleProdDebugAndroidTest --build-cache --parallel && cd ..
+}
 
-	if [ "$METAMASK_BUILD_TYPE" = "flask" ] ; then
-		TASK_NAME="assembleFlaskDebug assembleFlaskDebugAndroidTest"
-	fi
+buildAndroidFlaskDevBuild(){
+	prebuild_android
 
-	cd android && ./gradlew $TASK_NAME -DtestBuildType=debug --build-cache --parallel && cd ..
+	# Generate both APK (for development) and test APK (for E2E testing)
+	cd android && ./gradlew assembleFlaskDebug assembleFlaskDebugAndroidTest --build-cache --parallel && cd ..
 }
 
 buildAndroidRunQA(){
@@ -617,6 +615,8 @@ buildAndroid() {
 		buildAndroidRunQA
 	elif [ "$MODE" == "flaskDebug" ] ; then
 		buildAndroidRunFlask
+	elif [ "$MODE" == "flaskDevBuild" ]; then
+		buildAndroidFlaskDevBuild
 	elif [ "$MODE" == "devBuild" ] ; then
 		buildAndroidDevBuild
 	else
@@ -729,7 +729,7 @@ if [ "$MODE" == "main" ]; then
 	elif [ "$ENVIRONMENT" == "exp" ]; then
 		remapEnvVariableExperimental
 	fi
-elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebug" ]; then
+elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebug" || [ "$MODE" == "flaskDevBuild" ] ]; then
 	remapFlaskEnvVariables
 fi
 
