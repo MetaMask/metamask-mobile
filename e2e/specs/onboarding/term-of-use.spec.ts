@@ -1,9 +1,9 @@
+'use strict';
+
 import TermsOfUseModal from '../../pages/Onboarding/TermsOfUseModal';
 import TestHelpers from '../../helpers';
 import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselView';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
-import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
-import ImportWalletView from '../../pages/Onboarding/ImportWalletView';
 import Assertions from '../../utils/Assertions';
 import { Regression } from '../../tags';
 
@@ -45,4 +45,4 @@ describe(Regression('Term of Use Modal'), () => {
     await Assertions.checkIfNotVisible(TermsOfUseModal.container);
     await Assertions.checkIfVisible(OnboardingView.container);
   });
-});
+}); 
