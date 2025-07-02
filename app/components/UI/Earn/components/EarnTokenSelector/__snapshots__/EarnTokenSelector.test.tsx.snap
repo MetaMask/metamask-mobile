@@ -53,7 +53,7 @@ exports[`EarnTokenSelector renders correctly 1`] = `
             {
               "alignItems": "center",
               "flexDirection": "row",
-              "maxWidth": 210,
+              "maxWidth": "95%",
               "paddingRight": 16,
             }
           }
@@ -234,11 +234,14 @@ exports[`EarnTokenSelector renders correctly 1`] = `
           style={
             {
               "alignItems": "flex-end",
+              "maxWidth": "100%",
+              "minWidth": "50%",
             }
           }
         >
           <Text
             accessibilityRole="text"
+            numberOfLines={1}
             style={
               {
                 "color": "#1c7e33",
@@ -253,6 +256,8 @@ exports[`EarnTokenSelector renders correctly 1`] = `
           </Text>
           <Text
             accessibilityRole="text"
+            ellipsizeMode="tail"
+            numberOfLines={1}
             style={
               {
                 "color": "#686e7d",
@@ -260,6 +265,8 @@ exports[`EarnTokenSelector renders correctly 1`] = `
                 "fontSize": 14,
                 "letterSpacing": 0,
                 "lineHeight": 22,
+                "textAlign": "right",
+                "width": "100%",
               }
             }
           >

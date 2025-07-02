@@ -252,6 +252,7 @@ exports[`DepositInfoSection renders correctly 1`] = `
             >
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -266,6 +267,8 @@ exports[`DepositInfoSection renders correctly 1`] = `
               </Text>
               <Text
                 accessibilityRole="text"
+                ellipsizeMode="head"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#686e7d",

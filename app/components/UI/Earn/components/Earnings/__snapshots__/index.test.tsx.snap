@@ -120,6 +120,14 @@ exports[`Earnings displays lending maintenance banner when feature flag is enabl
             accessible={true}
             activeOpacity={1}
             disabled={false}
+            hitSlop={
+              {
+                "bottom": 15,
+                "left": 15,
+                "right": 15,
+                "top": 15,
+              }
+            }
             onPress={[Function]}
             onPressIn={[Function]}
             onPressOut={[Function]}
@@ -469,6 +477,14 @@ exports[`Earnings displays pooled-staking maintenance banner when feature flag i
             accessible={true}
             activeOpacity={1}
             disabled={false}
+            hitSlop={
+              {
+                "bottom": 15,
+                "left": 15,
+                "right": 15,
+                "top": 15,
+              }
+            }
             onPress={[Function]}
             onPressIn={[Function]}
             onPressOut={[Function]}
@@ -759,6 +775,14 @@ exports[`Earnings should render correctly 1`] = `
             accessible={true}
             activeOpacity={1}
             disabled={false}
+            hitSlop={
+              {
+                "bottom": 15,
+                "left": 15,
+                "right": 15,
+                "top": 15,
+              }
+            }
             onPress={[Function]}
             onPressIn={[Function]}
             onPressOut={[Function]}

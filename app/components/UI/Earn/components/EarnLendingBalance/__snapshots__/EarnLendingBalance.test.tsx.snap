@@ -121,6 +121,14 @@ exports[`EarnLendingBalance does renders earnings for output tokens 1`] = `
                 accessible={true}
                 activeOpacity={1}
                 disabled={false}
+                hitSlop={
+                  {
+                    "bottom": 15,
+                    "left": 15,
+                    "right": 15,
+                    "top": 15,
+                  }
+                }
                 onPress={[Function]}
                 onPressIn={[Function]}
                 onPressOut={[Function]}
@@ -387,7 +395,7 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
           "alignSelf": "center",
           "flex": 1,
           "justifyContent": "center",
-          "marginLeft": 20,
+          "marginLeft": 16,
         }
       }
     >
