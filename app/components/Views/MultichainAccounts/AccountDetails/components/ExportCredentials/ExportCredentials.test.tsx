@@ -165,9 +165,10 @@ describe('ExportCredentials', () => {
     fireEvent.press(mnemonicButton);
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_SRP_CREDENTIAL,
+      Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
       {
-        account: mockAccount,
+        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_SRP_CREDENTIAL,
+        params: { account: mockAccount },
       },
     );
   });
@@ -191,9 +192,11 @@ describe('ExportCredentials', () => {
     fireEvent.press(privateKeyButton);
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL,
+      Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
       {
-        account: mockAccount,
+        screen:
+          Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL,
+        params: { account: mockAccount },
       },
     );
   });
