@@ -21,7 +21,7 @@ import { useAddNetwork } from '../../../../hooks/useAddNetwork';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { selectIsBridgeEnabledSource } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
-import { trace, TraceName, TraceOperation } from '../../../../../util/trace';
+import { trace, TraceName } from '../../../../../util/trace';
 
 export enum SwapBridgeNavigationLocation {
   TabBar = 'TabBar',
