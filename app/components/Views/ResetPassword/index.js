@@ -156,9 +156,9 @@ const createStyles = (colors) =>
     },
     checkboxContainer: {
       flexDirection: 'row',
-      alignItems: 'flex-start',
-      justifyContent: 'flex-start',
-      gap: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      columnGap: 8,
       marginTop: 8,
       marginBottom: 16,
     },
@@ -178,6 +178,15 @@ const createStyles = (colors) =>
     learnMore: {
       textDecorationLine: 'underline',
       textDecorationColor: colors.primary.default,
+    },
+    learnMoreTextContainer: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'flex-start',
+      gap: 1,
+      flexWrap: 'wrap',
+      width: '90%',
+      marginTop: 4,
     },
     field: {
       position: 'relative',
@@ -569,7 +578,11 @@ class ResetPassword extends PureComponent {
   onPasswordChange = (val) => {
     const passInfo = zxcvbn(val);
 
-    this.setState({ password: val, passwordStrength: passInfo.score });
+    this.setState((prevState) => ({
+      password: val,
+      passwordStrength: passInfo.score,
+      confirmPassword: val === '' ? '' : prevState.confirmPassword,
+    }));
   };
 
   toggleShowHide = () => {
