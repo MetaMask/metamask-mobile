@@ -2,7 +2,6 @@ import { createSelector } from 'reselect';
 import { getVersion } from 'react-native-device-info';
 import compareVersions from 'compare-versions';
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
-import { isProduction } from '../../../../../util/environment';
 
 export interface LaunchDarklyFlag {
   enabled: boolean;
