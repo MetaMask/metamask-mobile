@@ -463,9 +463,8 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -487,9 +486,8 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 6,
@@ -539,7 +537,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                         "height": 24,
@@ -1099,9 +1097,8 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -1123,9 +1120,8 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 6,
@@ -1175,7 +1171,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                         "height": 24,
@@ -1193,9 +1189,8 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                 style={
                                   {
                                     "color": "#ca3542",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -1750,9 +1745,8 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -1774,9 +1768,8 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 6,
@@ -1826,7 +1819,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                         "height": 24,
@@ -2391,9 +2384,8 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -2415,9 +2407,8 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 6,
@@ -2467,7 +2458,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                         "height": 24,
@@ -2485,9 +2476,8 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                 style={
                                   {
                                     "color": "#ca3542",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }

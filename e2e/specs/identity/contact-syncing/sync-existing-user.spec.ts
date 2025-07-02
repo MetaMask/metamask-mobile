@@ -20,12 +20,15 @@ import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { MockttpServer } from 'mockttp';
 import ContactsView from '../../../pages/Settings/Contacts/ContactsView';
 import SettingsView from '../../../pages/Settings/SettingsView';
+import { arrangeTestUtils } from '../utils/helpers';
+import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController';
 
 describe(
   SmokeWalletPlatform('Contact syncing - syncs previously synced contacts'),
   () => {
     const TEST_SPECIFIC_MOCK_SERVER_PORT = 8005;
     let mockServer: MockttpServer;
+    let userStorageMockttpController: UserStorageMockttpController;
 
     beforeAll(async () => {
       const segmentMock = {
@@ -44,7 +47,9 @@ describe(
       const { userStorageMockttpControllerInstance } =
         await mockIdentityServices(mockServer);
 
-      await userStorageMockttpControllerInstance.setupPath(
+      userStorageMockttpController = userStorageMockttpControllerInstance;
+
+      await userStorageMockttpController.setupPath(
         USER_STORAGE_FEATURE_NAMES.addressBook,
         mockServer,
         {
@@ -69,6 +74,10 @@ describe(
     });
 
     it('retrieves all previously synced contacts', async () => {
+      const { waitUntilSyncedElementsNumberEquals } = arrangeTestUtils(
+        userStorageMockttpController,
+      );
+
       const contactsSyncMockResponse = await getContactsSyncMockResponse();
 
       const decryptedContactNames = await Promise.all(
@@ -90,7 +99,12 @@ describe(
       await TestHelpers.delay(1000);
       await SettingsView.tapContacts();
       await Assertions.checkIfVisible(ContactsView.container);
-      await TestHelpers.delay(4000);
+
+      // Wait for contacts to be synced from remote storage
+      await waitUntilSyncedElementsNumberEquals(
+        USER_STORAGE_FEATURE_NAMES.addressBook,
+        contactsSyncMockResponse.length,
+      );
 
       for (const contactName of decryptedContactNames) {
         await ContactsView.isContactAliasVisible(contactName);
