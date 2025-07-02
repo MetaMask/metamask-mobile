@@ -116,6 +116,11 @@ export const DepositSDKProvider = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Synchronize local selectedRegion state with Redux state changes
+  useEffect(() => {
+    setSelectedRegion(INITIAL_SELECTED_REGION || defaultRegion);
+  }, [INITIAL_SELECTED_REGION, defaultRegion]);
+
   useEffect(() => {
     try {
       if (!providerApiKey || !providerFrontendAuth) {
