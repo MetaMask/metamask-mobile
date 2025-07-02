@@ -1,4 +1,3 @@
-import { isCaipAccountAddress, isCaipChainId } from '@metamask/utils';
 import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
 
 /**
