@@ -26,6 +26,9 @@ export const accountsControllerMock = {
               address: accountMock,
               metadata: {
                 name: 'Account 1',
+                keyring: {
+                  type: 'HD Key Tree',
+                },
               },
             },
           },
@@ -123,6 +126,50 @@ export const nftControllerMock = {
   },
 };
 
+export const swapsState = {
+  swaps: {
+    featureFlags: {
+      smartTransactions: {
+        mobileActive: false,
+      },
+    },
+  },
+};
+
+export const smartTransactionsControllerMock = {
+  engine: {
+    backgroundState: {
+      SmartTransactionsController: {
+        smartTransactionsState: {
+          liveness: false,
+        },
+      },
+    },
+  },
+};
+
+export const preferencesControllerMock = {
+  engine: {
+    backgroundState: {
+      PreferencesController: {
+        useTransactionSimulations: false,
+      },
+    },
+  },
+};
+
+export const tokenListControllerMock = {
+  engine: {
+    backgroundState: {
+      TokenListController: {
+        tokensChainsCache: {
+          '0x1': {},
+        },
+      },
+    },
+  },
+};
+
 export const otherControllersMock = merge(
   {},
   accountsControllerMock,
@@ -132,5 +179,10 @@ export const otherControllersMock = merge(
   networkControllerMock,
   multichainNetworkControllerMock,
   nftControllerMock,
+  preferencesControllerMock,
   tokenBalancesControllerMock,
+  swapsState,
+  smartTransactionsControllerMock,
+  preferencesControllerMock,
+  tokenListControllerMock,
 );
