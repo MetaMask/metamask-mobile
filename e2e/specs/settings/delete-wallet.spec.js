@@ -66,9 +66,8 @@ describe(
 
         // should lock wallet from Settings
         // TODO: remove the condition but keep the step once the issue above is fixed
-        if (device.getPlatform() === 'ios' && !process.env.CI) {
-          await CommonView.tapBackButton();
-        } else {
+        // Skip back button tap only on iOS CI, execute otherwise
+        if (!(device.getPlatform() === 'ios' && process.env.CI)) {
           await CommonView.tapBackButton();
         }
         await SettingsView.tapLock();
