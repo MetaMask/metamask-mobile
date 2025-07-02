@@ -54,6 +54,7 @@ export const mockEvents = {
             contract_deployment: false,
             contract_interaction: false,
             transfer: false,
+            approve: false,
           },
         },
       ],
