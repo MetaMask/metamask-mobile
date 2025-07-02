@@ -788,14 +788,14 @@ export class BackgroundBridge extends EventEmitter {
     controllerMessenger.subscribe(
       `${PermissionController.name}:stateChange`,
       this.handleCaipSessionScopeChanges,
-      getAuthorizedScopes(this.origin),
+      getAuthorizedScopes(this.realOrigin),
     );
 
     // wallet_notify for solana accountChanged when permission changes
     controllerMessenger.subscribe(
       `${PermissionController.name}:stateChange`,
       this.handleSolanaAccountChangedFromScopeChanges,
-      getAuthorizedScopes(this.origin),
+      getAuthorizedScopes(this.realOrigin),
     );
 
     // wallet_notify for solana accountChanged when selected account changes
@@ -813,7 +813,7 @@ export class BackgroundBridge extends EventEmitter {
    * @returns function that handlers session scope changes.
    */
   handleCaipSessionScopeChanges = async (currentValue, previousValue) => {
-    const origin = this.origin;
+    const origin = this.realOrigin;
     const changedAuthorization = getChangedAuthorization(
       currentValue,
       previousValue,
@@ -939,7 +939,7 @@ export class BackgroundBridge extends EventEmitter {
       let caip25Caveat;
       try {
         caip25Caveat = Engine.context.PermissionController.getCaveat(
-          this.origin,
+          this.realOrigin,
           Caip25EndowmentPermissionName,
           Caip25CaveatType,
         );
@@ -1076,7 +1076,7 @@ export class BackgroundBridge extends EventEmitter {
     let caip25Caveat;
     try {
       caip25Caveat = Engine.context.PermissionController.getCaveat(
-        this.origin,
+        this.realOrigin,
         Caip25EndowmentPermissionName,
         Caip25CaveatType,
       );
