@@ -1,8 +1,10 @@
-import React, { useEffect } from 'react';
-import { View } from 'react-native';
+import React, {useEffect} from 'react';
+import {View, Alert} from 'react-native';
+import {fireEvent, waitFor} from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import ErrorBoundary from './';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import ErrorBoundary, {Fallback} from './';
+import {MetricsEventBuilder} from '../../../core/Analytics/MetricsEventBuilder';
+import { captureSentryFeedback } from '../../../util/sentry/utils';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = MetricsEventBuilder.createEventBuilder;
@@ -24,6 +26,15 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
     )),
 }));
 
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+}));
+
+jest.mock('../../../util/sentry/utils', () => ({
+  captureSentryFeedback: jest.fn(),
+}));
+
 const MockThrowComponent = () => {
   useEffect(() => {
     throw new Error('Throw');
@@ -32,6 +43,19 @@ const MockThrowComponent = () => {
 };
 
 describe('ErrorBoundary', () => {
+  const mockProps = {
+    errorMessage: 'Test error message',
+    showExportSeedphrase: jest.fn(),
+    copyErrorToClipboard: jest.fn(),
+    sentryId: 'test-sentry-id',
+  };
+
+  const initialState = {
+    security: {
+      dataCollectionForMarketing: true,
+    },
+  };
+
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -49,5 +73,161 @@ describe('ErrorBoundary', () => {
     );
 
     expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
+  it('renders all buttons when dataCollectionForMarketing is true', () => {
+    const {getByText} = renderWithProvider(
+      <Fallback {...mockProps} />,
+      {state: initialState},
+    );
+
+    expect(getByText('Describe what happened')).toBeTruthy();
+    expect(getByText('Contact support')).toBeTruthy();
+    expect(getByText('Try again')).toBeTruthy();
+  });
+
+  it('hides Describe what happened button when dataCollectionForMarketing is false', () => {
+    const stateWithoutDataCollection = {
+      security: {
+        dataCollectionForMarketing: false,
+      },
+    };
+
+    const {queryByText, getByText} = renderWithProvider(
+      <Fallback {...mockProps} />,
+      {state: stateWithoutDataCollection},
+    );
+
+    expect(queryByText('Describe what happened')).toBeNull();
+    expect(getByText('Contact support')).toBeTruthy();
+    expect(getByText('Try again')).toBeTruthy();
+  });
+
+  it('opens modal when describe button is pressed', async () => {
+    const {getByText, getByPlaceholderText} = renderWithProvider(
+      <Fallback {...mockProps} />,
+      {state: initialState},
+    );
+
+    const describeButton = getByText('Describe what happened');
+    fireEvent.press(describeButton);
+
+    await waitFor(() => {
+      expect(getByPlaceholderText('Sharing details like how we can reproduce the bug will help us fix the problem.')).toBeTruthy();
+      expect(getByText('Cancel')).toBeTruthy();
+      expect(getByText('Submit')).toBeTruthy();
+    });
+  });
+
+  it('closes modal when cancel button is pressed', async () => {
+    const {getByText, queryByText} = renderWithProvider(
+      <Fallback {...mockProps} />,
+      {state: initialState},
+    );
+
+    // Open modal
+    const describeButton = getByText('Describe what happened');
+    fireEvent.press(describeButton);
+
+    await waitFor(() => {
+      expect(getByText('Cancel')).toBeTruthy();
+    });
+
+    // Close modal
+    const cancelButton = getByText('Cancel');
+    fireEvent.press(cancelButton);
+
+    // Verify modal is closed
+    await waitFor(() => {
+      expect(queryByText('Cancel')).toBeNull();
+    });
+  });
+
+  it('enables submit button when feedback is entered', async () => {
+    const {getByText, getByPlaceholderText} = renderWithProvider(
+      <Fallback {...mockProps} />,
+      {state: initialState},
+    );
+
+    // Open modal
+    const describeButton = getByText('Describe what happened');
+    fireEvent.press(describeButton);
+
+    await waitFor(() => {
+      const textInput = getByPlaceholderText('Sharing details like how we can reproduce the bug will help us fix the problem.');
+      const submitButton = getByText('Submit').parent?.parent;
+      if (!submitButton) {
+        throw new Error('Could not find submit button');
+      }
+
+      // Initially submit should be disabled (opacity 0.5)
+      expect(submitButton.props.style).toContainEqual({opacity: 0.5});
+
+      // Add feedback text
+      fireEvent.changeText(textInput, 'Test feedback');
+
+      // Submit should now be enabled (opacity 1)
+      expect(submitButton.props.style).toContainEqual({opacity: 1});
+    });
+  });
+
+  it('calls copyErrorToClipboard when copy button is pressed', () => {
+    const {getByText} = renderWithProvider(
+      <Fallback {...mockProps} />,
+      {state: initialState},
+    );
+
+    const copyButton = getByText('Copy');
+    fireEvent.press(copyButton);
+
+    expect(mockProps.copyErrorToClipboard).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls showExportSeedphrase when save seedphrase link is pressed', () => {
+    const {getAllByText} = renderWithProvider(
+      <Fallback {...mockProps} />,
+      {state: initialState},
+    );
+
+    const seedphraseLink = getAllByText('save your Secret Recovery Phrase')[0];
+    fireEvent.press(seedphraseLink);
+
+    expect(mockProps.showExportSeedphrase).toHaveBeenCalledTimes(1);
+  });
+
+  it('submits feedback and shows success alert when submit is pressed', async () => {
+    const spyAlert = jest.spyOn(Alert, 'alert');
+
+    const {getByText, getByPlaceholderText} = renderWithProvider(
+      <Fallback {...mockProps} />,
+      {state: initialState},
+    );
+
+    const describeButton = getByText('Describe what happened');
+    fireEvent.press(describeButton);
+
+    await waitFor(() => {
+      const textInput = getByPlaceholderText('Sharing details like how we can reproduce the bug will help us fix the problem.');
+      const submitButton = getByText('Submit');
+      fireEvent.changeText(textInput, 'Test feedback');
+
+      fireEvent.press(submitButton);
+
+      expect(captureSentryFeedback).toHaveBeenCalledWith({
+        sentryId: mockProps.sentryId,
+        comments: 'Test feedback',
+      });
+
+      expect(spyAlert).toHaveBeenCalledWith('Thanks! We’ll take a look soon.');
+    });
+  });
+
+  it('renders error message correctly', () => {
+    const {getByText} = renderWithProvider(
+      <Fallback {...mockProps} />,
+      {state: initialState},
+    );
+
+    expect(getByText('Test error message')).toBeTruthy();
   });
 });
