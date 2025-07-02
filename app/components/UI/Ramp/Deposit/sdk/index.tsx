@@ -12,6 +12,7 @@ import {
   selectDepositProviderFrontendAuth,
   selectDepositProviderApiKey,
 } from '../../../../../selectors/featureFlagController/deposit';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import {
   NativeRampsSdk,
   NativeTransakAccessToken,
@@ -40,6 +41,7 @@ export interface DepositSDK {
   checkExistingToken: () => Promise<boolean>;
   getStarted: boolean;
   setGetStarted: (seen: boolean) => void;
+  selectedWalletAddress?: string;
   selectedRegion: DepositRegion | null;
   setSelectedRegion: (region: DepositRegion | null) => void;
 }
@@ -68,6 +70,9 @@ export const DepositSDKProvider = ({
   const dispatch = useDispatch();
   const providerApiKey = useSelector(selectDepositProviderApiKey);
   const providerFrontendAuth = useSelector(selectDepositProviderFrontendAuth);
+  const selectedWalletAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
   const [sdk, setSdk] = useState<NativeRampsSdk>();
   const [sdkError, setSdkError] = useState<Error>();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -89,9 +94,12 @@ export const DepositSDKProvider = ({
     [dispatch],
   );
 
-  const setSelectedRegionCallback = useCallback((region: DepositRegion | null) => {
-    setSelectedRegion(region);
-  }, []);
+  const setSelectedRegionCallback = useCallback(
+    (region: DepositRegion | null) => {
+      setSelectedRegion(region);
+    },
+    [],
+  );
 
   useEffect(() => {
     try {
@@ -177,6 +185,7 @@ export const DepositSDKProvider = ({
       checkExistingToken,
       getStarted,
       setGetStarted: setGetStartedCallback,
+      selectedWalletAddress,
       selectedRegion,
       setSelectedRegion: setSelectedRegionCallback,
     }),
@@ -192,6 +201,7 @@ export const DepositSDKProvider = ({
       checkExistingToken,
       getStarted,
       setGetStartedCallback,
+      selectedWalletAddress,
       selectedRegion,
       setSelectedRegionCallback,
     ],

@@ -16,6 +16,9 @@ const mockFetchUserDetails = jest.fn();
 const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
 const mockCreateUnsupportedRegionModalNavigationDetails = jest.fn();
+const mockCreateReservation = jest.fn();
+const mockCreateOrder = jest.fn();
+const mockHandleNewOrder = jest.fn();
 const mockInteractionManager = {
   runAfterInteractions: jest.fn((callback) => callback()),
 };
@@ -58,6 +61,12 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
     }
     if (config?.method === 'getUserDetails') {
       return [{ error: null }, mockFetchUserDetails];
+    }
+    if (config?.method === 'walletReserve') {
+      return [{ error: null }, mockCreateReservation];
+    }
+    if (config?.method === 'createOrder') {
+      return [{ error: null }, mockCreateOrder];
     }
     return [{ error: null }, jest.fn()];
   }),
@@ -121,6 +130,11 @@ jest.mock('react-native', () => {
   };
 });
 
+jest.mock('../../hooks/useHandleNewOrder', () => ({
+  __esModule: true,
+  default: () => mockHandleNewOrder,
+}));
+
 function render(Component: React.ComponentType) {
   return renderDepositTestComponent(Component, Routes.DEPOSIT.BUILD_QUOTE);
 }
@@ -143,6 +157,7 @@ describe('BuildQuote Component', () => {
         onSelectDifferentRegion: expect.any(Function),
       },
     ]);
+    mockHandleNewOrder.mockResolvedValue(undefined);
   });
 
   it('render matches snapshot', () => {
@@ -758,6 +773,113 @@ describe('BuildQuote Component', () => {
       mockFetchKycForms.mockResolvedValue(mockForms);
 
       render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(screen.toJSON()).toMatchSnapshot();
+      });
+    });
+
+    it('navigates to BankDetails when user is authenticated, no forms required, KYC approved, and SEPA payment method is selected', async () => {
+      const mockQuote = { id: 'test-quote' };
+      const mockForms = { forms: [] };
+      const mockUserDetails = { kyc: { l1: { status: 'APPROVED' } } };
+      const mockReservation = { id: 'reservation-123' };
+      const mockOrder = { id: 'order-123', walletAddress: 'wallet-address' };
+
+      mockUseDepositSDK.mockReturnValue({
+        isAuthenticated: true,
+        selectedWalletAddress: 'selected-wallet',
+      });
+      mockGetQuote.mockResolvedValue(mockQuote);
+      mockFetchKycForms.mockResolvedValue(mockForms);
+      mockFetchUserDetails.mockResolvedValue(mockUserDetails);
+      mockCreateReservation.mockResolvedValue(mockReservation);
+      mockCreateOrder.mockResolvedValue(mockOrder);
+
+      render(BuildQuote);
+
+      const payWithButton = screen.getByText('Pay with');
+      fireEvent.press(payWithButton);
+
+      const handleSelectPaymentMethodId =
+        mockNavigate.mock.calls[0][1].params.handleSelectPaymentMethodId;
+      act(() => handleSelectPaymentMethodId('sepa_bank_transfer'));
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockCreateReservation).toHaveBeenCalledWith(
+          mockQuote,
+          'selected-wallet',
+        );
+        expect(mockCreateOrder).toHaveBeenCalledWith(mockReservation);
+        expect(mockHandleNewOrder).toHaveBeenCalled();
+      });
+    });
+
+    it('shows error when SEPA reservation fails', async () => {
+      const mockQuote = { id: 'test-quote' };
+      const mockForms = { forms: [] };
+      const mockUserDetails = { kyc: { l1: { status: 'APPROVED' } } };
+
+      mockUseDepositSDK.mockReturnValue({
+        isAuthenticated: true,
+        selectedWalletAddress: 'selected-wallet',
+      });
+      mockGetQuote.mockResolvedValue(mockQuote);
+      mockFetchKycForms.mockResolvedValue(mockForms);
+      mockFetchUserDetails.mockResolvedValue(mockUserDetails);
+      mockCreateReservation.mockResolvedValue(null);
+
+      render(BuildQuote);
+
+      const payWithButton = screen.getByText('Pay with');
+      fireEvent.press(payWithButton);
+
+      const handleSelectPaymentMethodId =
+        mockNavigate.mock.calls[0][1].params.handleSelectPaymentMethodId;
+      act(() => handleSelectPaymentMethodId('sepa_bank_transfer'));
+
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(screen.toJSON()).toMatchSnapshot();
+      });
+    });
+
+    it('shows error when SEPA order creation fails', async () => {
+      const mockQuote = { id: 'test-quote' };
+      const mockForms = { forms: [] };
+      const mockUserDetails = { kyc: { l1: { status: 'APPROVED' } } };
+      const mockReservation = { id: 'reservation-123' };
+
+      mockUseDepositSDK.mockReturnValue({
+        isAuthenticated: true,
+        selectedWalletAddress: 'selected-wallet',
+      });
+      mockGetQuote.mockResolvedValue(mockQuote);
+      mockFetchKycForms.mockResolvedValue(mockForms);
+      mockFetchUserDetails.mockResolvedValue(mockUserDetails);
+      mockCreateReservation.mockResolvedValue(mockReservation);
+      mockCreateOrder.mockResolvedValue(null);
+
+      render(BuildQuote);
+
+      const payWithButton = screen.getByText('Pay with');
+      fireEvent.press(payWithButton);
+
+      const handleSelectPaymentMethodId =
+        mockNavigate.mock.calls[0][1].params.handleSelectPaymentMethodId;
+      act(() => handleSelectPaymentMethodId('sepa_bank_transfer'));
 
       const continueButton = screen.getByText('Continue');
       await act(async () => {
