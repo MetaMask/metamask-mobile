@@ -25,6 +25,13 @@ const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
+// Shared mock configuration for all tests
+const testSpecificMock = {
+  GET: [
+    mockEvents.GET.suggestedGasFeesApiGanache
+  ],
+};
+
 describe(SmokeConfirmations('ERC20 tokens'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
@@ -32,7 +39,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
   });
 
   it('send an ERC20 token from a dapp', async () => {
-    const testSpecificMock  = {
+    const testSpecificMockWithFlags = {
       GET: [
         mockEvents.GET.suggestedGasFeesApiGanache,
         mockEvents.GET.remoteFeatureFlagsOldConfirmations
@@ -49,7 +56,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
         smartContract: HST_CONTRACT,
-        testSpecificMock,
+        testSpecificMock: testSpecificMockWithFlags,
       },
       // Remove any once withFixtures is typed
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -88,18 +95,40 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
     );
   });
 
-it(`send an ERC20 token from a dapp using ${MONAD_TESTNET.nickname}`, async () => {
+it(`send an ERC20 token from a dapp using ${MONAD_TESTNET.nickname} (local)`, async () => {
+    // Use the same working pattern but with Monad characteristics
+
+    // Create Monad-like Ganache configuration
+    const monadLocalConfig = {
+      ...defaultGanacheOptions,
+      chainId: parseInt(MONAD_TESTNET.chainId, 16), // Use Monad chain ID
+      networkId: parseInt(MONAD_TESTNET.chainId, 16),
+      // Keep other Monad characteristics
+      gasPrice: '0x1',        // 1 wei (ultra-low) like Monad
+      gasLimit: '0x5f5e100',  // 100M gas limit like Monad
+    };
+
     await withFixtures(
       {
         dapp: true,
         fixture: new FixtureBuilder()
-          .withMonadTestnetNetwork()
+          .withNetworkController({
+            providerConfig: {
+              chainId: '0x539',                     // Ganache chain ID (for compatibility)
+              rpcUrl: 'http://localhost:8545',      // Local Ganache
+              ticker: MONAD_TESTNET.ticker,         // "Monad" ticker (for display)
+              nickname: `${MONAD_TESTNET.nickname} (Local)`, // "Monad Testnet (Local)"
+              type: 'custom',
+            },
+          })
           .withPermissionControllerConnectedToTestDapp(
-            buildPermissions([`${MONAD_TESTNET.chainId}`]),
+            buildPermissions(['0x539']) // Ganache chain ID for permissions
           )
           .build(),
         restartDevice: true,
         smartContract: HST_CONTRACT,
+        ganacheOptions: monadLocalConfig, // Apply Monad characteristics
+        testSpecificMock,
       },
       // Remove any once withFixtures is typed
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -132,18 +161,40 @@ it(`send an ERC20 token from a dapp using ${MONAD_TESTNET.nickname}`, async () =
     );
   });
 
-  it(`send an ERC20 token from a dapp using ${MEGAETH_TESTNET.nickname}`, async () => {
+  it(`send an ERC20 token from a dapp using ${MEGAETH_TESTNET.nickname} (local)`, async () => {
+    // Use the same working pattern but with Mega ETH characteristics
+
+    // Create Mega ETH-like Ganache configuration
+    const megaEthLocalConfig = {
+      ...defaultGanacheOptions,
+      chainId: parseInt(MEGAETH_TESTNET.chainId, 16), // Use Mega ETH chain ID
+      networkId: parseInt(MEGAETH_TESTNET.chainId, 16),
+      // Keep other Mega ETH characteristics
+      gasPrice: '0x3b9aca00', // 1 gwei like Mega ETH
+      gasLimit: '0x1c9c380',  // 30M gas limit like Mega ETH
+    };
+
     await withFixtures(
       {
         dapp: true,
         fixture: new FixtureBuilder()
-          .withMegaTestnetNetwork()
+          .withNetworkController({
+            providerConfig: {
+              chainId: '0x539',                     // Ganache chain ID (for compatibility)
+              rpcUrl: 'http://localhost:8545',      // Local Ganache
+              ticker: MEGAETH_TESTNET.ticker,       // "MegaETH" ticker (for display)
+              nickname: `${MEGAETH_TESTNET.nickname} (Local)`, // "Mega Testnet (Local)"
+              type: 'custom',
+            },
+          })
           .withPermissionControllerConnectedToTestDapp(
-            buildPermissions([`${MEGAETH_TESTNET.chainId}`]),
+            buildPermissions(['0x539']) // Ganache chain ID for permissions
           )
           .build(),
         restartDevice: true,
         smartContract: HST_CONTRACT,
+        ganacheOptions: megaEthLocalConfig, // Apply Mega ETH characteristics
+        testSpecificMock,
       },
       // Remove any once withFixtures is typed
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
