@@ -61,6 +61,13 @@ describe('ApproveAndPermit2', () => {
     expect(getByText(shortenedSpenderMock)).toBeTruthy();
   });
 
+  it('renders edit spending cap button for ERC20', () => {
+    const { getByTestId } = renderWithProvider(<ApproveAndPermit2 />, {
+      state: approveERC20TransactionStateMock,
+    });
+    expect(getByTestId('edit-spending-cap-button')).toBeOnTheScreen();
+  });
+
   it('renders withdraw and spender for ERC721', () => {
     mockUseGetTokenStandardAndDetails.mockReturnValue({
       details: {
@@ -69,9 +76,10 @@ describe('ApproveAndPermit2', () => {
       },
       isPending: false,
     } as unknown as ReturnType<typeof useGetTokenStandardAndDetails>);
-    const { getByText } = renderWithProvider(<ApproveAndPermit2 />, {
+    const { getByText, queryByTestId } = renderWithProvider(<ApproveAndPermit2 />, {
       state: approveERC721TransactionStateMock,
     });
+    expect(queryByTestId('edit-spending-cap-button')).toBeNull();
     expect(getByText('Withdraw')).toBeTruthy();
     expect(getByText(shortenedTokenAddressMock)).toBeTruthy();
     expect(getByText('Spender')).toBeTruthy();

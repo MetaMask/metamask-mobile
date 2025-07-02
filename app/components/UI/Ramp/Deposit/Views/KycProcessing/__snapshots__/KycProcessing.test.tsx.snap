@@ -464,9 +464,8 @@ exports[`KycProcessing Component render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 16,
-                                    "fontWeight": "700",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -483,9 +482,8 @@ We’re verifying your identity now.
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -1063,9 +1061,8 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 16,
-                                    "fontWeight": "700",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -1081,9 +1078,8 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -1647,9 +1643,8 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 16,
-                                    "fontWeight": "700",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -1665,9 +1660,8 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -2223,9 +2217,8 @@ exports[`KycProcessing Component renders loading state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 16,
-                                    "fontWeight": "700",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -2242,9 +2235,8 @@ We’re verifying your identity now.
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -2808,9 +2800,8 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 16,
-                                    "fontWeight": "700",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -2826,9 +2817,8 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -3392,9 +3382,8 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 16,
-                                    "fontWeight": "700",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -3410,9 +3399,8 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
