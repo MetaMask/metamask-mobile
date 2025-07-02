@@ -20,22 +20,21 @@ export const SEEDLESS_ONBOARDING_ENABLED =
  * main_rc -> main_prod
  *
  * @param buildType - The build type to map
- * @param dev - Whether the build is a development build
+ * @param isDev - Whether the build is a development build
  * @returns The mapped build type
  */
-const buildTypeMapping = (buildType: string, dev: boolean) => {
+const buildTypeMapping = (buildType: string, isDev: boolean) => {
   // use development config for now
-  if (process.env.DEV_OAUTH_CONFIG === 'true' && dev) {
+  if (process.env.DEV_OAUTH_CONFIG === 'true' && isDev) {
     return 'development';
   }
+  const IS_QA = process.env['METAMASK_ENVIRONMENT'] === 'qa';
 
   switch (buildType) {
     case 'main':
-      return dev ? 'main_dev' : 'main_prod';
-    case 'qa':
-      return dev ? 'main_dev' : 'main_uat';
+      return isDev ? 'main_dev' : IS_QA ? 'main_uat' : 'main_prod';
     case 'flask':
-      return dev ? 'flask_dev' : 'flask_prod';
+      return isDev ? 'flask_dev' : IS_QA ? 'flask_uat' : 'flask_prod';
     default:
       return 'development';
   }
