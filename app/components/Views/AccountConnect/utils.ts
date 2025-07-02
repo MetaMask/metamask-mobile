@@ -187,11 +187,11 @@ export function sortSelectedInternalAccounts(internalAccounts: InternalAccountWi
   // This logic comes from the `AccountsController`:
   // TODO: Expose a free function from this controller and use it here
   return [...internalAccounts].sort((accountA, accountB) =>
-  // Sort by `.lastSelected` in descending order
-  (
-    (accountB.metadata.lastSelected ?? 0) -
-    (accountA.metadata.lastSelected ?? 0)
-  )
+    // Sort by `.lastSelected` in descending order
+     (
+      (accountB.metadata.lastSelected ?? 0) -
+      (accountA.metadata.lastSelected ?? 0)
+    )
   );
 }
 
