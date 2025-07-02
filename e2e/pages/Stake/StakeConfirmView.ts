@@ -8,7 +8,7 @@ class StakeConfirmationView {
   }
 
   async tapConfirmButton() {
-    await Gestures.waitAndTap(this.confirmButton);
+    await Gestures.waitAndTap(this.confirmButton, { delayBeforeTap: 1000});
   }
 }
 
