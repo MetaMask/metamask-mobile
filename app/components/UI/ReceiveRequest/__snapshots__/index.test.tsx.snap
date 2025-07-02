@@ -614,6 +614,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }
@@ -1346,6 +1347,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }
@@ -2078,6 +2080,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }

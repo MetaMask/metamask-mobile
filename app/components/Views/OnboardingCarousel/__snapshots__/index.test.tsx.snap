@@ -308,6 +308,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -656,6 +657,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -1004,6 +1006,7 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -1352,6 +1355,7 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -1700,6 +1704,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -2048,6 +2053,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -2396,6 +2402,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -2744,6 +2751,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -3092,6 +3100,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -3440,6 +3449,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -3788,6 +3798,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }

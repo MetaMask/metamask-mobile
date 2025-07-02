@@ -517,7 +517,7 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -1673,11 +1673,12 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -2231,7 +2232,7 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -3387,11 +3388,12 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -3945,7 +3947,7 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -5077,11 +5079,12 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -9063,7 +9066,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -10195,11 +10198,12 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -10753,7 +10757,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -11885,11 +11889,12 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -12443,7 +12448,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -13575,11 +13580,12 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -14133,7 +14139,7 @@ exports[`BuildQuote Component Region Selection handles unsupported region select
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -15265,11 +15271,12 @@ exports[`BuildQuote Component Region Selection handles unsupported region select
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -15821,7 +15828,7 @@ exports[`BuildQuote Component Region Selection updates selected region and fiat 
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -16953,11 +16960,12 @@ exports[`BuildQuote Component Region Selection updates selected region and fiat 
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -17509,7 +17517,7 @@ exports[`BuildQuote Component Region Selection updates selected region but keeps
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -18641,11 +18649,12 @@ exports[`BuildQuote Component Region Selection updates selected region but keeps
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -19197,7 +19206,7 @@ exports[`BuildQuote Component Region Selection updates selected region when hand
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -20329,11 +20338,12 @@ exports[`BuildQuote Component Region Selection updates selected region when hand
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -20887,7 +20897,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -22019,11 +22029,12 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
