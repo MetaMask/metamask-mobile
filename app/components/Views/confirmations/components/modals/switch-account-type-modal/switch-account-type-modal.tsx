@@ -31,7 +31,7 @@ const SwitchAccountTypeModal = () => {
   const navigation = useNavigation();
   const address =
     (route?.params as { address: Hex })?.address ??
-    Engine.context.AccountsController.getSelectedAccount().address;
+    Engine.context.AccountsController.getSelectedAccount()?.address;
   const { network7702List, pending } = useEIP7702Networks(address);
   const internalAccounts = useSelector(selectInternalAccounts);
   const account = internalAccounts.find(
