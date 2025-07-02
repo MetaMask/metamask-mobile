@@ -20,6 +20,7 @@ const ETH_MAINNET_INFURA_URL = `https://mainnet.infura.io/v3/${process.env.MM_IN
 const BASE_INFURA_URL = `https://base-mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`;
 const LINEA_INFURA_URL = `https://linea-mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`;
 const ARBITRUM_INFURA_URL = `https://arbitrum-mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`;
+const BSC_INFURA_URL = `https://bsc-dataseed.bnbchain.org`;
 
 // Minimal ERC20 ABI containing only needed function signatures/
 const erc20Abi = [
@@ -46,6 +47,7 @@ const CHAIN_ID_TO_INFURA_URL_MAPPING: Record<string, string> = {
   '0x2105': BASE_INFURA_URL,
   '0xe708': LINEA_INFURA_URL,
   '0xa4b1': ARBITRUM_INFURA_URL,
+  '0x38': BSC_INFURA_URL,
 };
 
 const ETHEREUM_MAINNET_AAVE_V3_POOL_CONTRACT_ADDRESS =
@@ -63,6 +65,9 @@ const SEPOLIA_AAVE_V3_POOL_CONTRACT_ADDRESS =
 const ARBITRUM_ONE_AAVE_V3_POOL_CONTRACT_ADDRESS =
   '0x794a61358D6845594F94dc1DB02A252b5b4814aD';
 
+const BSC_AAVE_V3_POOL_CONTRACT_ADDRESS =
+  '0x6807dc923806fE8Fd134338EABCA509979a7e0cB';
+
 export const CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS: Record<string, string> =
   {
     '0x1': ETHEREUM_MAINNET_AAVE_V3_POOL_CONTRACT_ADDRESS,
@@ -70,6 +75,7 @@ export const CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS: Record<string, string> =
     '0xe708': LINEA_AAVE_V3_POOL_CONTRACT_ADDRESS,
     '0xa4b1': ARBITRUM_ONE_AAVE_V3_POOL_CONTRACT_ADDRESS,
     '0xaa36a7': SEPOLIA_AAVE_V3_POOL_CONTRACT_ADDRESS,
+    '0x38': BSC_AAVE_V3_POOL_CONTRACT_ADDRESS,
   };
 
 export const getErc20SpendingLimit = async (
@@ -244,10 +250,10 @@ export const getLendingPoolLiquidity = async (
   tokenAddress: string, // e.g. DAI
   receiptTokenAddress: string, // e.g. ADAI
   chainId: string,
-): Promise<string> => {
+): Promise<string | undefined> => {
   const infuraUrl = CHAIN_ID_TO_INFURA_URL_MAPPING[chainId];
 
-  if (!infuraUrl) return '0';
+  if (!infuraUrl) return undefined;
 
   const provider = new ethers.providers.JsonRpcProvider(infuraUrl);
 
@@ -255,9 +261,9 @@ export const getLendingPoolLiquidity = async (
 
   const liquidityLowestDenomination = await tokenContract
     .balanceOf(receiptTokenAddress)
-    .catch(() => '0');
+    .catch(() => undefined);
 
-  return liquidityLowestDenomination.toString() ?? '0';
+  return liquidityLowestDenomination?.toString() ?? undefined;
 };
 interface AaveV3UserAccountData {
   raw: {
@@ -370,14 +376,7 @@ export const getAaveV3MaxSafeWithdrawal = async (
 
     // If no debt, can withdraw everything
     if (totalDebtBase.isZero()) {
-      // totalCollateralBase is in USD with 8 decimals
-      // assetPrice is in USD with 8 decimals
-      // We want result in token decimals
-      const maxTokenAmount = totalCollateralBase
-        .mul(parseUnits('1', tokenDecimals)) // Scale up to token decimals
-        .div(assetPrice); // Divide by price (removes the 8 decimals from price)
-
-      return maxTokenAmount.toString();
+      return;
     }
 
     // Calculate current health factor
@@ -565,58 +564,63 @@ export const calculateAaveV3HealthFactorAfterWithdrawal = async (
 
   if (!receiptToken?.chainId) return result;
 
-  const userData = await getAaveUserAccountData(
-    activeAccountAddress,
-    receiptToken.chainId,
-  );
+  try {
+    const userData = await getAaveUserAccountData(
+      activeAccountAddress,
+      receiptToken.chainId,
+    );
 
-  result.before = userData.formatted.healthFactor;
+    result.before = userData.formatted.healthFactor;
 
-  const { totalCollateralBase, totalDebtBase, currentLiquidationThreshold } =
-    userData.raw;
+    const { totalCollateralBase, totalDebtBase, currentLiquidationThreshold } =
+      userData.raw;
 
-  // Convert withdrawal amount to BigNumber
-  const withdrawalAmountTokenMinimalUnitBN = ethers.BigNumber.from(
-    withdrawalAmountTokenMinimalUnit,
-  );
+    // Convert withdrawal amount to BigNumber
+    const withdrawalAmountTokenMinimalUnitBN = ethers.BigNumber.from(
+      withdrawalAmountTokenMinimalUnit,
+    );
 
-  const assetPrice = parseUnits(
-    receiptToken.tokenUsdExchangeRate.toFixed(8),
-    8,
-  );
+    const assetPrice = parseUnits(
+      receiptToken.tokenUsdExchangeRate.toFixed(8),
+      8,
+    );
 
-  // Convert withdrawal amount to USD with 8 decimals: (withdrawalAmountTokenMinimalUnit * assetPrice) / 10^lendingTokenDecimals
-  const withdrawalUsdValue = withdrawalAmountTokenMinimalUnitBN
-    .mul(assetPrice)
-    .div(ethers.BigNumber.from(10).pow(receiptToken.decimals));
+    // Convert withdrawal amount to USD with 8 decimals: (withdrawalAmountTokenMinimalUnit * assetPrice) / 10^lendingTokenDecimals
+    const withdrawalUsdValue = withdrawalAmountTokenMinimalUnitBN
+      .mul(assetPrice)
+      .div(ethers.BigNumber.from(10).pow(receiptToken.decimals));
 
-  // New collateral after withdrawal
-  const newTotalCollateralBase = totalCollateralBase.sub(withdrawalUsdValue);
+    // New collateral after withdrawal
+    const newTotalCollateralBase = totalCollateralBase.sub(withdrawalUsdValue);
 
-  // Health factor formula: (collateral * liquidationThreshold) / (debt * 10000)
-  // If debt is zero, health factor is "infinite" (return a very large number)
-  if (totalDebtBase.isZero()) {
-    result.before = AAVE_V3_INFINITE_HEALTH_FACTOR;
-    result.after = AAVE_V3_INFINITE_HEALTH_FACTOR;
-    result.risk = AAVE_WITHDRAWAL_RISKS.LOW;
+    // Health factor formula: (collateral * liquidationThreshold) / (debt * 10000)
+    // If debt is zero, health factor is "infinite" (return a very large number)
+    if (totalDebtBase.isZero()) {
+      result.before = AAVE_V3_INFINITE_HEALTH_FACTOR;
+      result.after = AAVE_V3_INFINITE_HEALTH_FACTOR;
+      result.risk = AAVE_WITHDRAWAL_RISKS.LOW;
+
+      return result;
+    }
+
+    const numerator = newTotalCollateralBase.mul(currentLiquidationThreshold);
+    const denominator = totalDebtBase.mul(10000);
+
+    // Health factor is a fixed-point number with 18 decimals (WAD)
+    const healthFactor = numerator
+      .mul(ethers.BigNumber.from(10).pow(18))
+      .div(denominator);
+
+    const healthFactorParsed = formatUnits(healthFactor, 18);
+
+    result.after = healthFactorParsed;
+    result.risk = getWithdrawalRiskLabel(healthFactor);
 
     return result;
+  } catch (e) {
+    console.error(e);
+    return result;
   }
-
-  const numerator = newTotalCollateralBase.mul(currentLiquidationThreshold);
-  const denominator = totalDebtBase.mul(10000);
-
-  // Health factor is a fixed-point number with 18 decimals (WAD)
-  const healthFactor = numerator
-    .mul(ethers.BigNumber.from(10).pow(18))
-    .div(denominator);
-
-  const healthFactorParsed = formatUnits(healthFactor, 18);
-
-  result.after = healthFactorParsed;
-  result.risk = getWithdrawalRiskLabel(healthFactor);
-
-  return result;
 };
 /**
  * Returns the maximum value a user can withdraw given the following constraints:
@@ -634,26 +638,34 @@ export const getAaveV3MaxRiskAwareWithdrawalAmount = async (
     !receiptToken?.chainId ||
     !receiptToken?.balanceMinimalUnit
   )
-    return '0';
+    return undefined;
 
-  const userData = await getAaveUserAccountData(
-    activeAccountAddress,
-    receiptToken.chainId,
-  );
+  try {
+    const userData = await getAaveUserAccountData(
+      activeAccountAddress,
+      receiptToken.chainId,
+    );
+    const [poolLiquidityInTokens, maxHealthFactorWithdrawalInTokens] =
+      await Promise.all([
+        getLendingPoolLiquidity(
+          receiptToken.experience.market.underlying.address,
+          receiptToken.address,
+          receiptToken.chainId,
+        ),
+        getAaveV3MaxSafeWithdrawal(userData, receiptToken as EarnTokenDetails),
+      ]);
 
-  const [poolLiquidityInTokens, maxHealthFactorWithdrawalInTokens] =
-    await Promise.all([
-      getLendingPoolLiquidity(
-        receiptToken.experience.market.underlying.address,
-        receiptToken.address,
-        receiptToken.chainId,
-      ),
-      getAaveV3MaxSafeWithdrawal(userData, receiptToken as EarnTokenDetails),
-    ]).catch((_e) => '0');
+    const valuesToCompare = [
+      poolLiquidityInTokens,
+      maxHealthFactorWithdrawalInTokens,
+      receiptToken.balanceMinimalUnit,
+    ].filter(Boolean) as string[];
 
-  return BigNumber.min(
-    poolLiquidityInTokens,
-    maxHealthFactorWithdrawalInTokens,
-    receiptToken.balanceMinimalUnit,
-  ).toString();
+    if (valuesToCompare.length === 0) return undefined;
+
+    return BigNumber.min(...valuesToCompare).toString();
+  } catch (e) {
+    console.error('error getting max risk aware withdrawal amount', e);
+    return undefined;
+  }
 };
