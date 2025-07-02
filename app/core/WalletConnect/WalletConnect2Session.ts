@@ -15,7 +15,7 @@ import { getGlobalNetworkClientId } from '../../util/networks/global-network';
 import { addTransaction } from '../../util/transaction-controller';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
 import { Minimizer } from '../NativeModules';
-import { getPermittedAccounts, getPermittedChains, removePermittedChain, updatePermittedChains } from '../Permissions';
+import { getPermittedAccounts, getPermittedChains } from '../Permissions';
 import getRpcMethodMiddleware, { getRpcMethodMiddlewareHooks } from '../RPCMethods/RPCMethodMiddleware';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { ERROR_MESSAGES } from './WalletConnectV2';
@@ -562,7 +562,6 @@ class WalletConnect2Session {
     hideWCLoadingState({ navigation: this.navigation });
 
     const origin = getRequestOrigin(requestEvent, this.origin);
-    const hostname = getHostname(origin);
     const method = requestEvent.params.request.method;
     const isSwitchingChain = isSwitchingChainRequest(requestEvent);
     const caip2ChainId = (isSwitchingChain ? `eip155:${parseInt(requestEvent.params.request.params[0].chainId, 16)}` : requestEvent.params.chainId) as CaipChainId;
@@ -580,21 +579,12 @@ class WalletConnect2Session {
     }
 
     if (method === 'wallet_switchEthereumChain') {
-      /**
-       * Method used to)
-       * 1. If has permissions, switching the network
-       * 2. If it doesn't have permission, reject the request
-       * 3. If it has permission, before switching network, we will updatePermittedChains, then switching network and try catching and removing permitted chains
-      */
       try {
         await this.handleSwitchChainRequest(requestEvent);
         // respond to the request as successful
         DevLogger.log(`WC::handleRequest approving switch chain request`);
         return this.approveRequest({ id: requestEvent.id + '', result: true });
       } catch (error) {
-        // TODO: is this needed?
-        // If we failed to switch to the network, remove the chain from the permitted chains
-        // This is so we don't leave any dangling permissions if the user rejects the switch
         this._isHandlingRequest = false;
         return this.web3Wallet.respondSessionRequest({
           topic: this.session.topic,
@@ -612,7 +602,7 @@ class WalletConnect2Session {
     const chainId = getChainIdForCaipChainId(caip2ChainId);
     const currentChainId = this.getCurrentChainId();
     if (currentChainId !== chainId && isAllowedChainId) {
-      await this.switchToChain(caip2ChainId, origin);
+      await this.switchToChain(caip2ChainId, this.channelId);
     }
 
     if (!isAllowedChainId) {

@@ -134,6 +134,8 @@ export const checkActiveAccountAndChainId = async ({
   isWalletConnect: boolean;
 }) => {
   let isInvalidAccount = false;
+  const origin = channelId ?? hostname;
+
   if (address) {
     const formattedAddress = safeToChecksumAddress(address);
     DevLogger.log('checkActiveAccountAndChainId', {
@@ -156,7 +158,6 @@ export const checkActiveAccountAndChainId = async ({
       permissionsController.state,
     );
 
-    const origin = channelId ?? hostname;
     const accounts = getPermittedAccounts(origin);
     const normalizedAccounts = accounts.map(safeToChecksumAddress);
 
@@ -190,13 +191,14 @@ export const checkActiveAccountAndChainId = async ({
       networkType && getAllNetworks().includes(networkType);
     let activeChainId;
 
-    if (hostname && isPerDappSelectedNetworkEnabled()) {
+    if (origin && isPerDappSelectedNetworkEnabled()) {
       const perOriginChainId = selectPerOriginChainId(
         store.getState(),
-        hostname,
+        origin,
       );
 
       activeChainId = perOriginChainId;
+
     } else if (isInitialNetwork) {
       activeChainId = ChainId[networkType as keyof typeof ChainId];
     } else if (networkType === RPC) {
