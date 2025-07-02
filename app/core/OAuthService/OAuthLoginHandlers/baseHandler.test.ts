@@ -11,6 +11,13 @@ import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 // Mock fetch globally
 global.fetch = jest.fn();
 
+const mockRandomUUID = jest.fn();
+
+jest.mock('react-native-quick-crypto', () => ({
+  randomBytes: jest.fn().mockReturnValue(Buffer.from('mock-random-bytes')),
+  randomUUID: () => mockRandomUUID(),
+}));
+
 // Mock handler class that extends BaseLoginHandler for testing
 class MockLoginHandler extends BaseLoginHandler {
   getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams {
@@ -78,7 +85,9 @@ describe('BaseLoginHandler', () => {
 
   describe('constructor', () => {
     it('generates a nonce when instantiated', () => {
+      mockRandomUUID.mockReturnValue('mock-random-uuid-1');
       const handler1 = new MockLoginHandler(mockBaseHandlerParams);
+      mockRandomUUID.mockReturnValue('mock-random-uuid-2');
       const handler2 = new MockLoginHandler(mockBaseHandlerParams);
 
       expect(handler1.nonce).toBeDefined();
