@@ -68,7 +68,9 @@ import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
 import { doesTokenRequireAllowanceReset } from '../../utils';
 import { ScrollView } from 'react-native-gesture-handler';
-import { endTrace, TraceName } from '../../../../../util/trace';
+import { TraceName } from '../../../../../util/trace';
+import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
+
 
 const EarnInputView = () => {
   // navigation hooks
@@ -171,11 +173,8 @@ const EarnInputView = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    // End trace when first render is complete
-    endTrace({ name: TraceName.EarnDepositScreen });
-  }, []);
+  
+  useEndTraceOnMount(TraceName.EarnDepositScreen);
 
   const navigateToLearnMoreModal = () => {
     const tokenExperience = earnToken?.experience?.type;
