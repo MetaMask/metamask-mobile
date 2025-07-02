@@ -9,22 +9,23 @@ export const getFontFamily = (
   const resolvedWeight = fontWeight ?? typography[variant].fontWeight;
   const resolvedStyle = fontStyle ?? 'normal';
 
-  const weightToFontSuffix: Record<FontWeight, 'Book' | 'Medium' | 'Bold'> = {
-    '100': 'Book',
-    '200': 'Book',
-    '300': 'Book',
-    '400': 'Book',
-    '500': 'Medium',
-    '600': 'Medium',
-    '700': 'Bold',
-    '800': 'Bold',
-    '900': 'Bold',
-    normal: 'Book',
-    bold: 'Bold',
-  };
+  const weightToFontSuffix: Record<FontWeight, 'Regular' | 'Medium' | 'Bold'> =
+    {
+      '100': 'Regular',
+      '200': 'Regular',
+      '300': 'Regular',
+      '400': 'Regular',
+      '500': 'Medium',
+      '600': 'Medium',
+      '700': 'Bold',
+      '800': 'Bold',
+      '900': 'Bold',
+      normal: 'Regular',
+      bold: 'Bold',
+    };
 
   const fontSuffix = weightToFontSuffix[resolvedWeight as FontWeight];
-  const italicSuffix = resolvedStyle === 'italic' ? 'Italic' : '';
+  const italicSuffix = resolvedStyle === 'italic' ? ' Italic' : '';
 
-  return `CentraNo1-${fontSuffix}${italicSuffix}`;
+  return `Geist ${fontSuffix}${italicSuffix}`;
 };
