@@ -6,22 +6,20 @@ import WalletView from '../../pages/wallet/WalletView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import LoginView from '../../pages/wallet/LoginView';
-import {CreateNewWallet, closeOnboardingModals } from '../../viewHelper';
+import {CreateNewWallet } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import CommonView from '../../pages/CommonView';
 import Assertions from '../../utils/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import {
   getEventsPayloads,
-  findEvent,
   onboardingEvents,
-} from '../analytics/helpers';
+  filterEvents,
+ EventPayload } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
 import { MockttpServer } from 'mockttp';
-import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils';
-import FixtureServer from '../../fixtures/fixture-server';
+import { getMockServerPort } from '../../fixtures/utils';
 import { startMockServer } from '../../api-mocking/mock-server';
-import { EventPayload } from '../analytics/helpers';
 import Utilities from '../../utils/Utilities';
 
 const PASSWORD = '12345678';
@@ -36,6 +34,7 @@ describe(
   Regression('Onboarding wizard opt-in, metametrics opt out from settings WITH ANALYTICS'),
   () => {
     let mockServer: MockttpServer;
+    let eventsTrackedUntilDisableAnalytics: EventPayload[];
 
     beforeAll(async () => {
       jest.setTimeout(150000);
@@ -48,7 +47,7 @@ describe(
 
       const mockServerPort = getMockServerPort();
       mockServer = await startMockServer(testSpecificMock, mockServerPort);
-      
+
       await TestHelpers.launchApp({
         permissions: { notifications: 'YES' },
         launchArgs: {
@@ -80,29 +79,33 @@ describe(
       await CommonView.tapOkAlert();
       await Assertions.checkIfToggleIsOff(SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>);
 
-      const events = await getEventsPayloads(mockServer, [
-        onboardingEvents.ANALYTICS_PREFERENCE_SELECTED,
-      ]);
-      const softAssert = new SoftAssert(); 
+      const events = await getEventsPayloads(mockServer);
+      console.warn('events after disabling analytics', events);
+
+      const softAssert = new SoftAssert();
       await softAssert.checkAndCollect(async () => {
-        const e = findEvent(events, onboardingEvents.ANALYTICS_PREFERENCE_SELECTED) as EventPayload;
+        const e = filterEvents(events, onboardingEvents.ANALYTICS_PREFERENCE_SELECTED) as EventPayload[];
         await Assertions.checkIfValueIsDefined(e);
-        await Assertions.checkIfObjectContains(e.properties, {
+        await Assertions.checkIfArrayHasLength(e, 1);
+        await Assertions.checkIfObjectContains(e[0].properties, {
           has_marketing_consent: false,
           is_metrics_opted_in: true,
           location: 'onboarding_metametrics',
           updated_after_onboarding: false,
         });
-      }, 'Analytics Preference Selected (opt-out) tracked');
+      }, 'Analytics Preference Selected (opt-in) was tracked during onboarding and is not tracked after disabling analytics');
 
       softAssert.throwIfErrors();
+
+      // We will be asserting this on the next test so that we make sure that
+      // restarting the app keeps the analytics preference set to off
+      eventsTrackedUntilDisableAnalytics = events;
 
       // Restarting the app for the next test
       await device.terminateApp();
       await TestHelpers.delay(2000);
       await device.launchApp({
         launchArgs: {
-          fixtureServerPort: `${getFixturesServerPort()}`,
           mockServerPort: `${getMockServerPort()}`,
           detoxURLBlacklistRegex: Utilities.BlacklistURLs,
         },
@@ -110,27 +113,13 @@ describe(
       await TestHelpers.delay(3000);
     });
 
-    it('should relaunch and log in, verifying no events with metametrics disabled', async () => {
-      // Get events count before login
-      const eventsBefore = await getEventsPayloads(mockServer, [
-        onboardingEvents.ANALYTICS_PREFERENCE_SELECTED,
-      ]);
-      const eventCountBefore = eventsBefore.length;
-
+    it('should relaunch and log in, verifying no new MetaMetrics events were sent', async () => {
       await LoginView.enterPassword(PASSWORD);
       await Assertions.checkIfVisible(WalletView.container);
       await TestHelpers.delay(2000);
-      
-      // Get events count after login
-      const eventsAfter = await getEventsPayloads(mockServer, [
-        onboardingEvents.ANALYTICS_PREFERENCE_SELECTED,
-      ]);
-      const eventCountAfter = eventsAfter.length;
 
-      // Should have no new events since metametrics is disabled
-      if (eventCountAfter !== eventCountBefore) {
-        throw new Error(`Expected no new events, but found ${eventCountAfter - eventCountBefore} new events. Before: ${eventCountBefore}, After: ${eventCountAfter}`);
-      }
+      const eventsAfterRelaunch = await getEventsPayloads(mockServer);
+      await Assertions.checkIfArrayHasLength(eventsAfterRelaunch, eventsTrackedUntilDisableAnalytics.length);
     });
 
     it('should verify metametrics is turned off', async () => {

@@ -211,11 +211,17 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   //'Should dismiss Enable device Notifications checks alert'
   await this.skipNotificationsDeviceSettings();
 
-  // Dismissing to protect your wallet modal
-  await Assertions.checkIfVisible(ProtectYourWalletModal.collapseWalletModal);
-  await ProtectYourWalletModal.tapRemindMeLaterButton();
-  await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-  await SkipAccountSecurityModal.tapSkipButton();
+  try {
+    // The protect your wallet modal doesn't always show up
+    // Dismissing to protect your wallet modal
+    await Assertions.checkIfVisible(ProtectYourWalletModal.collapseWalletModal);
+    await ProtectYourWalletModal.tapRemindMeLaterButton();
+    await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+    await SkipAccountSecurityModal.tapSkipButton();
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.log('Protect your wallet modal is not visible');
+  }
 
   // 'should dismiss the onboarding wizard'
   // dealing with flakiness on bitrise.
