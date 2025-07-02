@@ -71,7 +71,7 @@ import { setTransactionSendFlowContextualChainId } from '../../../../../../actio
 import { store } from '../../../../../../store';
 import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
 import { toHexadecimal } from '../../../../../../util/number';
-
+// temp comment
 const dummy = () => true;
 
 /**
