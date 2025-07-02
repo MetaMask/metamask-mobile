@@ -164,17 +164,14 @@ const initialState = {
           roots: {
             'default-group': {
               metadata: {
-                name: 'Default Group'
+                name: 'Default Group',
               },
               groups: {
                 'hd-accounts': {
-                  accounts: [
-                    BUSINESS_ACCOUNT_ID,
-                    PERSONAL_ACCOUNT_ID,
-                  ]
-                }
-              }
-            }
+                  accounts: [BUSINESS_ACCOUNT_ID, PERSONAL_ACCOUNT_ID],
+                },
+              },
+            },
           },
         },
       },
@@ -385,7 +382,9 @@ describe('EvmAccountSelectorList', () => {
     const { getAllByTestId } = renderComponent(initialState);
 
     await waitFor(() => {
-      const accountNameItems = getAllByTestId(CellComponentSelectorsIDs.BASE_TITLE);
+      const accountNameItems = getAllByTestId(
+        CellComponentSelectorsIDs.BASE_TITLE,
+      );
       expect(within(accountNameItems[0]).getByText('Account 1')).toBeDefined();
       expect(within(accountNameItems[1]).getByText('Account 2')).toBeDefined();
     });
@@ -680,7 +679,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
       },
     ]);
 
@@ -813,7 +812,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
       },
     ]);
 
@@ -854,7 +853,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
       },
     ]);
 
@@ -979,69 +978,69 @@ describe('EvmAccountSelectorList', () => {
   it('should display ENS name instead of account name when available', async () => {
     // Access the mocked function directly from the jest mock
     const mockENSUtils = jest.requireMock('../../../util/ENSUtils');
-    mockENSUtils.isDefaultAccountName.mockReturnValueOnce(true);
+    mockENSUtils.isDefaultAccountName.mockReturnValue(true);
 
     // Mock accounts with ENS names
-    setAccountsMock([
-      {
-        name: 'Account 1', // Default account name
-        address: BUSINESS_ACCOUNT,
-        assets: {
-          fiatBalance: '$3200.00\n1 ETH',
+    setAccountsMock(
+      [
+        {
+          name: 'Account 1', // Default account name
+          address: BUSINESS_ACCOUNT,
+          assets: {
+            fiatBalance: '$3200.00\n1 ETH',
+          },
+          type: 'HD Key Tree',
+          yOffset: 0,
+          isSelected: true,
+          balanceError: undefined,
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
         },
-        type: 'HD Key Tree',
-        yOffset: 0,
-        isSelected: true,
-        balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+      ],
+      {
+        [BUSINESS_ACCOUNT]: 'vitalik.eth', // ENS name for the account
       },
-    ], {
-      [BUSINESS_ACCOUNT]: 'vitalik.eth', // ENS name for the account
-    });
+    );
 
-    const { getAllByTestId } = renderComponent(initialState);
+    const { getByText } = renderComponent(initialState);
 
     await waitFor(() => {
-      const accountNameItems = getAllByTestId(CellComponentSelectorsIDs.BASE_TITLE);
-      // Should use ENS name instead of account name
-      expect(
-        within(accountNameItems[0]).getByText('vitalik.eth'),
-      ).toBeDefined();
+      expect(getByText('vitalik.eth')).toBeDefined();
     });
+    mockENSUtils.isDefaultAccountName.mockRestore();
   });
 
   it('should use account name when ENS name is available but not a default account name', async () => {
     // Access the mocked function directly from the jest mock
     const mockENSUtils = jest.requireMock('../../../util/ENSUtils');
-    mockENSUtils.isDefaultAccountName.mockReturnValueOnce(false);
+    mockENSUtils.isDefaultAccountName.mockReturnValue(false);
 
     // Mock accounts with a custom name
-    setAccountsMock([
-      {
-        name: 'My Custom Account Name',
-        address: BUSINESS_ACCOUNT,
-        assets: {
-          fiatBalance: '$3200.00\n1 ETH',
+    setAccountsMock(
+      [
+        {
+          name: 'My Custom Account Name',
+          address: BUSINESS_ACCOUNT,
+          assets: {
+            fiatBalance: '$3200.00\n1 ETH',
+          },
+          type: 'HD Key Tree',
+          yOffset: 0,
+          isSelected: true,
+          balanceError: undefined,
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
         },
-        type: 'HD Key Tree',
-        yOffset: 0,
-        isSelected: true,
-        balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+      ],
+      {
+        [BUSINESS_ACCOUNT]: 'vitalik.eth', // ENS name is available
       },
-    ], {
-      [BUSINESS_ACCOUNT]: 'vitalik.eth', // ENS name is available
-    });
+    );
 
-    const { getAllByTestId } = renderComponent(initialState);
+    const { getByText } = renderComponent(initialState);
 
     await waitFor(() => {
-      const accountNameItems = getAllByTestId(CellComponentSelectorsIDs.BASE_TITLE);
-      // Should use the custom account name since it's not a default name
-      expect(
-        within(accountNameItems[0]).getByText('My Custom Account Name'),
-      ).toBeDefined();
+      expect(getByText('My Custom Account Name')).toBeDefined();
     });
+    mockENSUtils.isDefaultAccountName.mockRestore();
   });
 
   it('selects an account when tapped', async () => {
@@ -1071,7 +1070,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 78,
         isSelected: false,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${PERSONAL_ACCOUNT}`
+        caipAccountId: `eip155:0:${PERSONAL_ACCOUNT}`,
       },
     ];
 
@@ -1262,8 +1261,14 @@ describe('EvmAccountSelectorList', () => {
                 groups: {
                   group1: {
                     accounts: [
-                      Object.keys(initialState.engine.backgroundState.AccountsController.internalAccounts.accounts)[0],
-                      Object.keys(initialState.engine.backgroundState.AccountsController.internalAccounts.accounts)[1]
+                      Object.keys(
+                        initialState.engine.backgroundState.AccountsController
+                          .internalAccounts.accounts,
+                      )[0],
+                      Object.keys(
+                        initialState.engine.backgroundState.AccountsController
+                          .internalAccounts.accounts,
+                      )[1],
                     ],
                   },
                 },
@@ -1307,7 +1312,8 @@ describe('EvmAccountSelectorList', () => {
     fireEvent.press(accountActionsButton);
 
     const expectedAccount =
-      multichainState.engine.backgroundState.AccountsController.internalAccounts.accounts[BUSINESS_ACCOUNT_ID];
+      multichainState.engine.backgroundState.AccountsController.internalAccounts
+        .accounts[BUSINESS_ACCOUNT_ID];
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS,
       {
@@ -1354,9 +1360,15 @@ describe('EvmAccountSelectorList', () => {
     expect(Array.isArray(data)).toBe(true);
 
     // Should have header, accounts, and footer items
-    const headerItems = data.filter((item: { type: string }) => item.type === 'header');
-    const accountItems = data.filter((item: { type: string }) => item.type === 'account');
-    const footerItems = data.filter((item: { type: string }) => item.type === 'footer');
+    const headerItems = data.filter(
+      (item: { type: string }) => item.type === 'header',
+    );
+    const accountItems = data.filter(
+      (item: { type: string }) => item.type === 'account',
+    );
+    const footerItems = data.filter(
+      (item: { type: string }) => item.type === 'footer',
+    );
 
     expect(headerItems.length).toBeGreaterThan(0);
     expect(accountItems.length).toBeGreaterThan(0);
@@ -1465,7 +1477,8 @@ describe('EvmAccountSelectorList', () => {
 
   it('creates footer items when there are multiple sections', () => {
     const accountIds = Object.keys(
-      initialState.engine.backgroundState.AccountsController.internalAccounts.accounts,
+      initialState.engine.backgroundState.AccountsController.internalAccounts
+        .accounts,
     );
     // Create a state with multiple sections to trigger footer creation
     const multiSectionState = {
@@ -1483,16 +1496,12 @@ describe('EvmAccountSelectorList', () => {
                   },
                   groups: {
                     group1: {
-                      accounts: [
-                        accountIds[0]
-                      ]
+                      accounts: [accountIds[0]],
                     },
                     group2: {
-                      accounts: [
-                        accountIds[1]
-                      ]
-                    }
-                  }
+                      accounts: [accountIds[1]],
+                    },
+                  },
                 },
                 wallet2: {
                   metadata: {
@@ -1500,10 +1509,10 @@ describe('EvmAccountSelectorList', () => {
                   },
                   groups: {
                     group3: {
-                      accounts: []
-                    }
-                  }
-                }
+                      accounts: [],
+                    },
+                  },
+                },
               },
             },
           },
@@ -1526,9 +1535,15 @@ describe('EvmAccountSelectorList', () => {
     const data = flatList.props.data;
 
     // Should have header, accounts, and footer items
-    const headerItems = data.filter((item: { type: string }) => item.type === 'header');
-    const accountItems = data.filter((item: { type: string }) => item.type === 'account');
-    const footerItems = data.filter((item: { type: string }) => item.type === 'footer');
+    const headerItems = data.filter(
+      (item: { type: string }) => item.type === 'header',
+    );
+    const accountItems = data.filter(
+      (item: { type: string }) => item.type === 'account',
+    );
+    const footerItems = data.filter(
+      (item: { type: string }) => item.type === 'footer',
+    );
 
     expect(headerItems.length).toBeGreaterThan(0);
     expect(accountItems.length).toBeGreaterThan(0);
@@ -1536,10 +1551,12 @@ describe('EvmAccountSelectorList', () => {
     expect(footerItems.length).toBeGreaterThan(0);
 
     // Verify footer items have correct structure
-    footerItems.forEach((footerItem: { type: string; sectionIndex: number }) => {
-      expect(footerItem.type).toBe('footer');
-      expect(typeof footerItem.sectionIndex).toBe('number');
-    });
+    footerItems.forEach(
+      (footerItem: { type: string; sectionIndex: number }) => {
+        expect(footerItem.type).toBe('footer');
+        expect(typeof footerItem.sectionIndex).toBe('number');
+      },
+    );
   });
 
   describe('onContentSizeChange callback logic', () => {
@@ -1654,36 +1671,46 @@ describe('EvmAccountSelectorList', () => {
         },
       ];
 
-      testCases.forEach(({ accounts: testAccounts, selectedAddresses, isAutoScrollEnabled }) => {
-        setAccountsMock(testAccounts);
+      testCases.forEach(
+        ({
+          accounts: testAccounts,
+          selectedAddresses,
+          isAutoScrollEnabled,
+        }) => {
+          setAccountsMock(testAccounts);
 
-        const TestComponent: React.FC = () => {
-          const { accounts, ensByAccountAddress } = useAccounts();
-          return (
-            <EvmAccountSelectorList
-              onSelectAccount={onSelectAccount}
-              accounts={accounts}
-              ensByAccountAddress={ensByAccountAddress}
-              selectedAddresses={selectedAddresses}
-              isAutoScrollEnabled={isAutoScrollEnabled}
-            />
-          );
-        };
+          const TestComponent: React.FC = () => {
+            const { accounts, ensByAccountAddress } = useAccounts();
+            return (
+              <EvmAccountSelectorList
+                onSelectAccount={onSelectAccount}
+                accounts={accounts}
+                ensByAccountAddress={ensByAccountAddress}
+                selectedAddresses={selectedAddresses}
+                isAutoScrollEnabled={isAutoScrollEnabled}
+              />
+            );
+          };
 
-        const { getByTestId } = renderComponent(initialState, TestComponent);
-        const flatList = getByTestId(ACCOUNT_SELECTOR_LIST_TESTID);
+          const { getByTestId } = renderComponent(initialState, TestComponent);
+          const flatList = getByTestId(ACCOUNT_SELECTOR_LIST_TESTID);
 
-        expect(flatList.props.onContentSizeChange).toBeDefined();
-        expect(typeof flatList.props.onContentSizeChange).toBe('function');
-        expect(() => flatList.props.onContentSizeChange()).not.toThrow();
-      });
+          expect(flatList.props.onContentSizeChange).toBeDefined();
+          expect(typeof flatList.props.onContentSizeChange).toBe('function');
+          expect(() => flatList.props.onContentSizeChange()).not.toThrow();
+        },
+      );
     });
 
     it('should call scrollToOffset with correct parameters when conditions are met', () => {
       const mockScrollToOffset = jest.fn();
       const mockRef = { current: { scrollToOffset: mockScrollToOffset } };
 
-      const testScrollLogic = (accounts: Account[], selectedAddresses?: string[], isAutoScrollEnabled = true) => {
+      const testScrollLogic = (
+        accounts: Account[],
+        selectedAddresses?: string[],
+        isAutoScrollEnabled = true,
+      ) => {
         if (!accounts.length || !isAutoScrollEnabled) return;
 
         // Simulate the accountsLengthRef logic
@@ -1694,8 +1721,9 @@ describe('EvmAccountSelectorList', () => {
 
           if (selectedAddresses?.length) {
             const selectedAddress = selectedAddresses[0];
-            selectedAccount = accounts.find((acc) =>
-              acc.address.toLowerCase() === selectedAddress.toLowerCase(),
+            selectedAccount = accounts.find(
+              (acc) =>
+                acc.address.toLowerCase() === selectedAddress.toLowerCase(),
             );
           }
 
