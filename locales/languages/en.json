@@ -4220,8 +4220,7 @@
       "signing_in_with": "Signing in with",
       "spender": "Spender",
       "now": "Now",
-      "switching_to": "Switching To",
-      "value": "Value"
+      "switching_to": "Switching To"
     },
     "title": {
       "signature": "Signature request",
