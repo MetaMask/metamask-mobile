@@ -14,6 +14,13 @@ JS_ENV_FILE=".js.env"
 ANDROID_ENV_FILE=".android.env"
 IOS_ENV_FILE=".ios.env"
 
+echo "PLATFORM = $PLATFORM"
+echo "MODE = $MODE"
+echo "ENVIRONMENT = $ENVIRONMENT"
+
+export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-"$MODE"}
+export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-"$ENVIRONMENT"}
+
 envFileMissing() {
 	FILE="$1"
 	echo "'$FILE' is missing, you'll need to add it to the root of the project."
@@ -238,17 +245,17 @@ prebuild_android(){
 	# Copy fonts with iconset
 	yes | cp -rf ./app/fonts/Metamask.ttf ./android/app/src/main/assets/fonts/Metamask.ttf
 
-  #Create google-services.json file to be used by the Firebase services.
-  # Check if GOOGLE_SERVICES_B64_ANDROID is set
-  if [ ! -z "$GOOGLE_SERVICES_B64_ANDROID" ]; then
-    echo -n $GOOGLE_SERVICES_B64_ANDROID | base64 -d > ./android/app/google-services.json
-    echo "google-services.json has been created successfully."
-    # Ensure the file has read and write permissions
-    chmod 664 ./android/app/google-services.json
-  else
-    echo "GOOGLE_SERVICES_B64_ANDROID is not set in the .env file."
-    exit 1
-  fi
+	#Create google-services.json file to be used by the Firebase services.
+	# Check if GOOGLE_SERVICES_B64_ANDROID is set
+	if [ ! -z "$GOOGLE_SERVICES_B64_ANDROID" ]; then
+		echo -n $GOOGLE_SERVICES_B64_ANDROID | base64 -d > ./android/app/google-services.json
+		echo "google-services.json has been created successfully."
+		# Ensure the file has read and write permissions
+		chmod 664 ./android/app/google-services.json
+	else
+		echo "GOOGLE_SERVICES_B64_ANDROID is not set in the .env file."
+		exit 1
+	fi
 
 	if [ "$PRE_RELEASE" = false ] ; then
 		if [ -e $ANDROID_ENV_FILE ]
@@ -708,25 +715,22 @@ checkParameters "$@"
 printTitle
 loadJSEnv
 
-echo "PLATFORM = $PLATFORM"
-echo "MODE = $MODE"
-echo "ENVIRONMENT = $ENVIRONMENT"
-
-# TODO: We should be able to remove some of the conditions in this if statement
-if [ "$MODE" == "main" ] && { [ "$ENVIRONMENT" == "production" ] || [ "$ENVIRONMENT" == "beta" ] || [ "$ENVIRONMENT" == "rc" ] || [ "$ENVIRONMENT" == "exp" ] ; }; then
-  export METAMASK_BUILD_TYPE="$MODE"
-  export METAMASK_ENVIRONMENT="$ENVIRONMENT"
-  export GENERATE_BUNDLE=true # Used only for Android
-  export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
-  if [ "$ENVIRONMENT" == "production" ]; then
-    remapEnvVariableProduction
-  elif [ "$ENVIRONMENT" == "beta" ]; then
-    remapEnvVariableBeta
-  elif [ "$ENVIRONMENT" == "rc" ]; then
-    remapEnvVariableReleaseCandidate
-  elif [ "$ENVIRONMENT" == "exp" ]; then
-    remapEnvVariableExperimental
-  fi
+# Map environment variables based on mode.
+# TODO: MODE should be renamed to TARGET
+if [ "$MODE" == "main" ]; then
+	export GENERATE_BUNDLE=true # Used only for Android
+	export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
+	if [ "$ENVIRONMENT" == "production" ]; then
+		remapEnvVariableProduction
+	elif [ "$ENVIRONMENT" == "beta" ]; then
+		remapEnvVariableBeta
+	elif [ "$ENVIRONMENT" == "rc" ]; then
+		remapEnvVariableReleaseCandidate
+	elif [ "$ENVIRONMENT" == "exp" ]; then
+		remapEnvVariableExperimental
+	fi
+elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebug" ]; then
+	remapFlaskEnvVariables
 fi
 
 if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
