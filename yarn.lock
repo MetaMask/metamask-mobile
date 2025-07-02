@@ -1439,10 +1439,10 @@
   dependencies:
     expo-build-properties "^0.13.1"
 
-"@consensys/native-ramps-sdk@1.0.4":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@consensys/native-ramps-sdk/-/native-ramps-sdk-1.0.4.tgz#a39a71e81f8df08d3ac467323c1baa12f0d0add6"
-  integrity sha512-EVxKD843Pdb7ZMxgYzDqkSiEumDY+cE3qf0Jps7kFj6/9jZv9y3tIccxaLi/sDc+2zc4iwV48HnRzem/aQ63dw==
+"@consensys/native-ramps-sdk@^1.0.6":
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/@consensys/native-ramps-sdk/-/native-ramps-sdk-1.0.6.tgz#48bc12161fcd830100c677b85de91e6b503c9210"
+  integrity sha512-C62A4LTEhtfASTjLrwBB66x6YbTUAlRODawFaTyB4bw0hzmJRugeQii4AHRl0dQkwNKojYkxm1ThimIs2hK3tw==
   dependencies:
     async "^3.2.3"
     axios "^1.8.3"
@@ -5436,10 +5436,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
-"@metamask/multichain-api-client@^0.6.3":
-  version "0.6.3"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-api-client/-/multichain-api-client-0.6.3.tgz#490438bd3d348bf44e954b0b85dd3c4c58c7457d"
-  integrity sha512-E7vKYnfCKRC/cGGnt/dFAJYrRm+wP3wT1hGK4ZFi1oY9VfHfyDOIdvZizDZwB36sqJPy3TdcnYOcqgSUucEwNg==
+"@metamask/multichain-api-client@^0.6.4":
+  version "0.6.4"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-api-client/-/multichain-api-client-0.6.4.tgz#417009a7f202fcbdf365f4041e388fe25da77e6c"
+  integrity sha512-UvyRWwJMb74mYsR5LSPT0v6pyDdSiJ9wRhQDfpqOaOvB8Nfy1IcHUrSd9eNeZa2epegdIXZNYEKAvr0pwmLkog==
 
 "@metamask/multichain-api-middleware@^0.4.0":
   version "0.4.0"
@@ -6047,10 +6047,10 @@
     ses "^1.12.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/solana-wallet-snap@^1.33.3":
-  version "1.33.3"
-  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.33.3.tgz#ffccd80625c7b8536b4f5f2ba3b6b2c554afab3d"
-  integrity sha512-G2nBgV+dE4hp+YltEiMAMcJfyRBRoJjP0Ff79R5r8TBgrjLdBIzzYeC2zgT7xvRjPEv6vCqeZ+Suntc+J1vDag==
+"@metamask/solana-wallet-snap@^1.34.0":
+  version "1.34.0"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.34.0.tgz#b65df4bce9666cd0bc69f0cf1197c925644a2965"
+  integrity sha512-8YkGp4oGOFbVqh32uhF5kfCpm6pXffz3xo/f0CIj1iSChJFjYMMAsKEJ+K4cfsiVuXTs8Il4hA/txSdlGNuBiQ==
 
 "@metamask/solana-wallet-standard@^0.5.0":
   version "0.5.0"
