@@ -88,12 +88,10 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
   };
 
   const handleCopyOrderId = useCallback(() => {
-    if (order?.id) {
-      const idParts = order.id.split('/');
-      const actualId = idParts[idParts.length - 1];
-      Clipboard.setString(actualId);
+    if (hasDepositOrderField(order?.data, 'providerOrderId')) {
+      Clipboard.setString(order.data.providerOrderId);
     }
-  }, [order?.id]);
+  }, [order?.data]);
 
   const handleViewInTransak = useCallback(() => {
     if (
