@@ -84,6 +84,30 @@ export const mockEvents = {
       responseCode: 200,
     },
 
+    remoteFeatureFlagsRedesignedConfirmationsFlask: {
+      urlEndpoint:
+        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=flask&environment=dev',
+      response: [
+        {
+          mobileMinimumVersions: {
+            appMinimumBuild: 1243,
+            appleMinimumOS: 6,
+            androidMinimumAPIVersion: 21,
+          },
+        },
+        {
+          confirmation_redesign: {
+            signatures: true,
+            staking_confirmations: true,
+            contract_deployment: true,
+            contract_interaction: true,
+            transfer: true,
+          },
+        },
+      ],
+      responseCode: 200,
+    },
+
     // TODO: Remove when this feature is no longer behind a feature flag
     remoteFeatureFlagsDefiPositionsEnabled: {
       urlEndpoint:
