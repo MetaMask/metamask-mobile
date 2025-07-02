@@ -502,7 +502,6 @@ class ResetPassword extends PureComponent {
           status: 'success',
           duration: 5000,
           title: strings('reset_password.password_updated'),
-          description: strings('reset_password.successfully_changed'),
         });
       });
     } catch (error) {
@@ -818,6 +817,13 @@ class ResetPassword extends PureComponent {
                 testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}
                 style={styles.changePasswordContainer}
               >
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  {strings('choose_password.description')}
+                </Text>
+
                 <View style={styles.field}>
                   <Label
                     variant={TextVariant.BodyMDMedium}
