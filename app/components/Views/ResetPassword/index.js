@@ -119,7 +119,7 @@ const createStyles = (colors) =>
     },
     scrollableWrapper: {
       flex: 1,
-      padding: 16,
+      paddingHorizontal: 16,
     },
     keyboardScrollableWrapper: {
       flexGrow: 1,
