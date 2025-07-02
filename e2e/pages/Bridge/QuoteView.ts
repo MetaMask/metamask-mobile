@@ -6,6 +6,10 @@ import {
 } from '../../selectors/Bridge/QuoteView.selectors';
 
 class QuoteView {
+  get selectAmountLabel(): DetoxElement {
+    return Matchers.getElementByText(QuoteViewSelectorText.SELECT_AMOUNT);
+  }
+
   get confirmBridge(): DetoxElement {
     return Matchers.getElementByText(QuoteViewSelectorText.CONFIRM_BRIDGE);
   }
@@ -31,12 +35,13 @@ class QuoteView {
   }
 
   token(chainId: string, symbol: string): DetoxElement {
+    console.log(`asset-${chainId}-${symbol}`)
     return Matchers.getElementByID(`asset-${chainId}-${symbol}`);
   }
 
   async enterAmount(amount: string): Promise<void> {
     for (const digit of amount) {
-      const button = await Matchers.getElementByText(digit);
+      const button = Matchers.getElementByText(digit);
       await Gestures.waitAndTap(button, { delayBeforeTap: 500});
     }
   }

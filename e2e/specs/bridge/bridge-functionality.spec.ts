@@ -110,6 +110,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await QuoteView.tapSwapTo();
     await device.disableSynchronization();
     await QuoteView.selectNetwork('Solana');
+    await TestHelpers.delay(1000000)
     await Assertions.checkIfVisible(QuoteView.token(destChainId, 'SOL'));
     await QuoteView.tapToken(destChainId, 'SOL');
     await QuoteView.enterAmount('1');

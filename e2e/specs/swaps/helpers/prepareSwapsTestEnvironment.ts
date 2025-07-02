@@ -27,7 +27,7 @@ interface FlagItem {
  * @param wallet - An object with a privateKey property for the account to import
  * @throws {Error} If disabling stx or importing the account fails
  */
-export async function prepareSwapsTestEnvironment(wallet: ethers.Wallet): Promise<void> {
+export async function prepareSwapsTestEnvironment(): Promise<void> {
     try {
         // Disable Smart Transactions (stx)
         await TabBarComponent.tapSettings();
@@ -36,21 +36,5 @@ export async function prepareSwapsTestEnvironment(wallet: ethers.Wallet): Promis
         await TabBarComponent.tapWallet();
     } catch (e) {
         throw new Error('Failed to disable Smart Transactions: ' + (e instanceof Error ? e.message : e));
-    }
-
-    try {
-        // Import funded account for swaps
-        await WalletView.tapIdenticon();
-        await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-        await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapImportAccount();
-        await Assertions.checkIfVisible(ImportAccountView.container);
-        await ImportAccountView.enterPrivateKey(wallet.privateKey);
-        await Assertions.checkIfVisible(SuccessImportAccountView.container);
-        await SuccessImportAccountView.tapCloseButton();
-        await AccountListBottomSheet.swipeToDismissAccountsModal();
-        await Assertions.checkIfVisible(WalletView.container);
-    } catch (e) {
-        throw new Error('Failed to import account for swaps: ' + (e instanceof Error ? e.message : e));
     }
 }
