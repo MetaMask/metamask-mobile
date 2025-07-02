@@ -2196,7 +2196,8 @@
     "add_input_placeholder": "Public address (0x), or ENS",
     "between_account": "Transfer between my accounts",
     "others": "Others",
-    "memo": "Memo"
+    "memo": "Memo",
+    "network": "Network"
   },
   "duplicate_address": {
     "title": "This is a duplicate address",
