@@ -66,6 +66,7 @@ export enum TraceName {
   DisconnectAllAccountPermissions = 'Disconnect All Account Permissions',
   OnboardingCreateWallet = 'Onboarding Create Wallet',
   QRTabSwitcher = 'QR Tab Switcher',
+  SwapViewLoaded = 'Swap View Loaded'
 }
 
 export enum TraceOperation {
@@ -88,6 +89,7 @@ export enum TraceOperation {
   CreateSnapAccount = 'create.snap.account',
   RevealPrivateCredential = 'reveal.private.credential',
   DiscoverAccounts = 'discover.accounts',
+  SwapViewLoaded = 'swap.view.loaded'
 }
 
 const ID_DEFAULT = 'default';
