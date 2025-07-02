@@ -1221,6 +1221,7 @@ export class Engine {
         this.userOperationController?.addUserOperationFromTransaction?.(
           ...args,
         ),
+      traceFn: trace as TraceCallback,
       config: {
         customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
       },
