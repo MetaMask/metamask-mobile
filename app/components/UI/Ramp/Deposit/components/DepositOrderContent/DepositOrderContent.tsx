@@ -89,7 +89,9 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
 
   const handleCopyOrderId = useCallback(() => {
     if (order?.id) {
-      Clipboard.setString(order.id);
+      const idParts = order.id.split('/');
+      const actualId = idParts[idParts.length - 1];
+      Clipboard.setString(actualId);
     }
   }, [order?.id]);
 
