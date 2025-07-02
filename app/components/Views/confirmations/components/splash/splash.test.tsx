@@ -61,7 +61,11 @@ describe('Splash', () => {
   });
 
   it('renders null for internal confirmation', async () => {
-    const { queryByText } = renderComponent();
+    const { queryByText } = renderComponent(
+      getAppStateForConfirmation(upgradeOnlyAccountConfirmation, {
+        PreferencesController: { smartAccountOptIn: false },
+      }),
+    );
 
     expect(queryByText('Use smart account?')).toBeNull();
   });
