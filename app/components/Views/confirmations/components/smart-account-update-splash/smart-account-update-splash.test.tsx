@@ -10,10 +10,10 @@ import {
 import * as ConfirmationReducerActions from '../../../../../actions/confirmations';
 // eslint-disable-next-line import/no-namespace
 import * as ConfirmationActions from '../../hooks/useConfirmActions';
+// eslint-disable-next-line import/no-namespace
+import * as AddressUtils from '../../../../../util/address';
 import { SmartAccountUpdateSplash } from './smart-account-update-splash';
 import { useDispatch } from 'react-redux';
-import { RootState } from '../../../../../reducers';
-import { DeepPartial } from 'redux';
 
 jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
@@ -48,6 +48,10 @@ const renderComponent = (state?: Record<string, unknown>) =>
   });
 
 describe('SmartContractWithLogo', () => {
+  beforeEach(() => {
+    jest.spyOn(AddressUtils, 'isHardwareAccount').mockReturnValue(false);
+  });
+
   it('renders correctly', () => {
     const { getByText } = renderComponent();
     expect(getByText('Use smart account?')).toBeTruthy();
@@ -95,7 +99,7 @@ describe('SmartContractWithLogo', () => {
     expect(queryByText('Request for')).toBeNull();
   });
 
-  it('renders null if preference smartAccountOptIn is true', async () => {
+  it('renders null if preference smartAccountOptIn is true and account is not hardware account', async () => {
     const { queryByText } = renderComponent(
       getAppStateForConfirmation(upgradeAccountConfirmation, {
         PreferencesController: { smartAccountOptIn: true },
@@ -103,5 +107,17 @@ describe('SmartContractWithLogo', () => {
     );
 
     expect(queryByText('Request for')).toBeNull();
+  });
+
+  it('does not renders null if preference smartAccountOptIn is true and but account is hardware account', async () => {
+    jest.spyOn(AddressUtils, 'isHardwareAccount').mockReturnValue(true);
+    const { getByText } = renderComponent(
+      getAppStateForConfirmation(upgradeAccountConfirmation, {
+        PreferencesController: { smartAccountOptIn: true },
+      }),
+    );
+
+    expect(getByText('Use smart account?')).toBeTruthy();
+    expect(getByText('Request for')).toBeTruthy();
   });
 });

@@ -16,6 +16,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { selectSmartAccountOptIn } from '../../../../../selectors/preferencesController';
+import { isHardwareAccount } from '../../../../../util/address';
 import { upgradeSplashPageAcknowledgedForAccount } from '../../../../../actions/confirmations';
 import { useTheme } from '../../../../../util/theme';
 import Name from '../../../../UI/Name';
@@ -68,7 +69,7 @@ export const SmartAccountUpdateSplash = () => {
   const upgradeSplashPageAcknowledgedForAccounts = useSelector(
     selectUpgradeSplashPageAcknowledgedForAccounts,
   );
-  const startAccountOptIn = useSelector(selectSmartAccountOptIn);
+  const smartAccountOptIn = useSelector(selectSmartAccountOptIn);
   const {
     txParams: { from },
   } = transactionMetadata ?? { txParams: {} };
@@ -97,7 +98,7 @@ export const SmartAccountUpdateSplash = () => {
   if (
     !transactionMetadata ||
     acknowledged ||
-    startAccountOptIn ||
+    (smartAccountOptIn && from && !isHardwareAccount(from)) ||
     upgradeSplashPageAcknowledgedForAccounts.includes(from as string)
   ) {
     return null;
