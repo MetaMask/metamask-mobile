@@ -14,12 +14,15 @@ export default (params: { theme: Theme }) => {
       borderColor: theme.colors.border.default,
     },
     startAccessoryContainer: {
-      marginRight: 8,
+      paddingRight: 16,
       flexDirection: 'row',
       alignItems: 'center',
+      maxWidth: '95%',
     },
     endAccessoryContainer: {
       alignItems: 'flex-end',
+      maxWidth: '100%',
+      minWidth: '50%',
     },
     aprText: {
       color: theme.colors.success.default,
@@ -28,9 +31,13 @@ export default (params: { theme: Theme }) => {
     tokenText: {
       marginLeft: 8,
     },
+    balanceText: {
+      textAlign: 'right',
+      width: '100%',
+    },
     networkAvatar: {
-      width: 24,
-      height: 24,
+      width: 32,
+      height: 32,
     },
   });
 };

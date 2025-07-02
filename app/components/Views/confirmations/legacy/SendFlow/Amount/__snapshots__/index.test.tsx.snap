@@ -241,6 +241,9 @@ exports[`Amount converts ERC-20 token value to USD 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -311,9 +314,12 @@ exports[`Amount converts ERC-20 token value to USD 1`] = `
                   >
                     <RNCSafeAreaView
                       edges={
-                        [
-                          "bottom",
-                        ]
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
                       }
                       style={
                         {
@@ -435,6 +441,7 @@ exports[`Amount converts ERC-20 token value to USD 1`] = `
                                   disabled={true}
                                   onPress={[Function]}
                                   style={{}}
+                                  testID="max-button"
                                 >
                                   <Text
                                     style={
@@ -628,7 +635,7 @@ exports[`Amount converts ERC-20 token value to USD 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -683,6 +690,7 @@ exports[`Amount converts ERC-20 token value to USD 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
+                      <View />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -937,6 +945,9 @@ exports[`Amount converts ETH to USD 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1007,9 +1018,12 @@ exports[`Amount converts ETH to USD 1`] = `
                   >
                     <RNCSafeAreaView
                       edges={
-                        [
-                          "bottom",
-                        ]
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
                       }
                       style={
                         {
@@ -1131,6 +1145,7 @@ exports[`Amount converts ETH to USD 1`] = `
                                   disabled={true}
                                   onPress={[Function]}
                                   style={{}}
+                                  testID="max-button"
                                 >
                                   <Text
                                     style={
@@ -1324,7 +1339,7 @@ exports[`Amount converts ETH to USD 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -1379,6 +1394,7 @@ exports[`Amount converts ETH to USD 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
+                      <View />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -1633,6 +1649,9 @@ exports[`Amount converts USD to ERC-20 token value 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1703,9 +1722,12 @@ exports[`Amount converts USD to ERC-20 token value 1`] = `
                   >
                     <RNCSafeAreaView
                       edges={
-                        [
-                          "bottom",
-                        ]
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
                       }
                       style={
                         {
@@ -1827,6 +1849,7 @@ exports[`Amount converts USD to ERC-20 token value 1`] = `
                                   disabled={true}
                                   onPress={[Function]}
                                   style={{}}
+                                  testID="max-button"
                                 >
                                   <Text
                                     style={
@@ -2037,7 +2060,7 @@ exports[`Amount converts USD to ERC-20 token value 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -2092,6 +2115,7 @@ exports[`Amount converts USD to ERC-20 token value 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
+                      <View />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -2346,6 +2370,9 @@ exports[`Amount converts USD to ETH 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2416,9 +2443,12 @@ exports[`Amount converts USD to ETH 1`] = `
                   >
                     <RNCSafeAreaView
                       edges={
-                        [
-                          "bottom",
-                        ]
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
                       }
                       style={
                         {
@@ -2540,6 +2570,7 @@ exports[`Amount converts USD to ETH 1`] = `
                                   disabled={true}
                                   onPress={[Function]}
                                   style={{}}
+                                  testID="max-button"
                                 >
                                   <Text
                                     style={
@@ -2750,7 +2781,7 @@ exports[`Amount converts USD to ETH 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -2805,6 +2836,7 @@ exports[`Amount converts USD to ETH 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
+                      <View />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -3059,6 +3091,9 @@ exports[`Amount displays correct balance 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -3129,9 +3164,12 @@ exports[`Amount displays correct balance 1`] = `
                   >
                     <RNCSafeAreaView
                       edges={
-                        [
-                          "bottom",
-                        ]
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
                       }
                       style={
                         {
@@ -3253,6 +3291,7 @@ exports[`Amount displays correct balance 1`] = `
                                   disabled={true}
                                   onPress={[Function]}
                                   style={{}}
+                                  testID="max-button"
                                 >
                                   <Text
                                     style={
@@ -3445,7 +3484,7 @@ exports[`Amount displays correct balance 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -3500,6 +3539,7 @@ exports[`Amount displays correct balance 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
+                      <View />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -3754,6 +3794,9 @@ exports[`Amount does not show a warning when conversion rate is available 1`] = 
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -3824,9 +3867,12 @@ exports[`Amount does not show a warning when conversion rate is available 1`] = 
                   >
                     <RNCSafeAreaView
                       edges={
-                        [
-                          "bottom",
-                        ]
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
                       }
                       style={
                         {
@@ -3948,6 +3994,7 @@ exports[`Amount does not show a warning when conversion rate is available 1`] = 
                                   disabled={true}
                                   onPress={[Function]}
                                   style={{}}
+                                  testID="max-button"
                                 >
                                   <Text
                                     style={
@@ -4140,7 +4187,7 @@ exports[`Amount does not show a warning when conversion rate is available 1`] = 
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -4195,6 +4242,7 @@ exports[`Amount does not show a warning when conversion rate is available 1`] = 
                           </TouchableOpacity>
                         </View>
                       </View>
+                      <View />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -4449,6 +4497,9 @@ exports[`Amount does not show a warning when transfering collectibles 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -4519,9 +4570,12 @@ exports[`Amount does not show a warning when transfering collectibles 1`] = `
                   >
                     <RNCSafeAreaView
                       edges={
-                        [
-                          "bottom",
-                        ]
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
                       }
                       style={
                         {
@@ -4801,7 +4855,7 @@ exports[`Amount does not show a warning when transfering collectibles 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -4856,6 +4910,7 @@ exports[`Amount does not show a warning when transfering collectibles 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
+                      <View />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -5110,6 +5165,9 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -5180,9 +5238,12 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                   >
                     <RNCSafeAreaView
                       edges={
-                        [
-                          "bottom",
-                        ]
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
                       }
                       style={
                         {
@@ -5304,6 +5365,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                   disabled={false}
                                   onPress={[Function]}
                                   style={{}}
+                                  testID="max-button"
                                 >
                                   <Text
                                     style={
@@ -5498,7 +5560,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -5547,6 +5609,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                           </TouchableOpacity>
                         </View>
                       </View>
+                      <View />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -5801,6 +5864,9 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -5871,9 +5937,12 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                   >
                     <RNCSafeAreaView
                       edges={
-                        [
-                          "bottom",
-                        ]
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
                       }
                       style={
                         {
@@ -5995,6 +6064,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                   disabled={false}
                                   onPress={[Function]}
                                   style={{}}
+                                  testID="max-button"
                                 >
                                   <Text
                                     style={
@@ -6189,7 +6259,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -6238,6 +6308,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                           </TouchableOpacity>
                         </View>
                       </View>
+                      <View />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -6492,6 +6563,9 @@ exports[`Amount renders correctly 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -6562,9 +6636,12 @@ exports[`Amount renders correctly 1`] = `
                   >
                     <RNCSafeAreaView
                       edges={
-                        [
-                          "bottom",
-                        ]
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
                       }
                       style={
                         {
@@ -6762,6 +6839,7 @@ exports[`Amount renders correctly 1`] = `
                                   disabled={true}
                                   onPress={[Function]}
                                   style={{}}
+                                  testID="max-button"
                                 >
                                   <Text
                                     style={
@@ -6873,7 +6951,7 @@ exports[`Amount renders correctly 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -6928,6 +7006,7 @@ exports[`Amount renders correctly 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
+                      <View />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -7182,6 +7261,9 @@ exports[`Amount shows a warning when conversion rate is not available 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -7252,9 +7334,12 @@ exports[`Amount shows a warning when conversion rate is not available 1`] = `
                   >
                     <RNCSafeAreaView
                       edges={
-                        [
-                          "bottom",
-                        ]
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
                       }
                       style={
                         {
@@ -7452,6 +7537,7 @@ exports[`Amount shows a warning when conversion rate is not available 1`] = `
                                   disabled={true}
                                   onPress={[Function]}
                                   style={{}}
+                                  testID="max-button"
                                 >
                                   <Text
                                     style={
@@ -7563,7 +7649,7 @@ exports[`Amount shows a warning when conversion rate is not available 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -7618,6 +7704,7 @@ exports[`Amount shows a warning when conversion rate is not available 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
+                      <View />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -7872,6 +7959,9 @@ exports[`Amount shows an error message if balance is insufficient 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -7942,9 +8032,12 @@ exports[`Amount shows an error message if balance is insufficient 1`] = `
                   >
                     <RNCSafeAreaView
                       edges={
-                        [
-                          "bottom",
-                        ]
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
                       }
                       style={
                         {
@@ -8066,6 +8159,7 @@ exports[`Amount shows an error message if balance is insufficient 1`] = `
                                   disabled={false}
                                   onPress={[Function]}
                                   style={{}}
+                                  testID="max-button"
                                 >
                                   <Text
                                     style={
@@ -8301,7 +8395,7 @@ exports[`Amount shows an error message if balance is insufficient 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -8350,6 +8444,7 @@ exports[`Amount shows an error message if balance is insufficient 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
+                      <View />
                     </RNCSafeAreaView>
                   </View>
                 </View>

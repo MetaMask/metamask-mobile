@@ -255,6 +255,7 @@ exports[`DepositInfoSection renders correctly 1`] = `
             >
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -270,6 +271,8 @@ exports[`DepositInfoSection renders correctly 1`] = `
               </Text>
               <Text
                 accessibilityRole="text"
+                ellipsizeMode="head"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#686e7d",
@@ -281,7 +284,7 @@ exports[`DepositInfoSection renders correctly 1`] = `
                   }
                 }
               >
-                5 DAI
+                5 USDC
               </Text>
             </View>
           </View>
@@ -755,7 +758,7 @@ exports[`DepositInfoSection renders correctly 1`] = `
                     }
                   }
                 >
-                  AAVE v3
+                  aave
                 </Text>
               </View>
             </View>

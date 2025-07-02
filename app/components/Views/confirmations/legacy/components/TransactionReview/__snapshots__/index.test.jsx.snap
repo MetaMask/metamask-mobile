@@ -692,6 +692,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                             </View>
                           </View>
                         </View>
+                        <View />
                       </View>
                     </View>
                     <View>
@@ -1028,6 +1029,9 @@ exports[`TransactionReview should match snapshot 1`] = `
                             </View>
                           </View>
                         </View>
+                        <View />
+                        <View />
+                        <View />
                       </View>
                       <View
                         style={
@@ -1068,12 +1072,15 @@ exports[`TransactionReview should match snapshot 1`] = `
             </View>
             <View
               style={
-                {
-                  "flex": 0,
-                  "flexDirection": "row",
-                  "paddingHorizontal": 24,
-                  "paddingVertical": 16,
-                }
+                [
+                  {
+                    "flex": 0,
+                    "flexDirection": "row",
+                    "paddingHorizontal": 16,
+                    "paddingVertical": 16,
+                  },
+                  undefined,
+                ]
               }
             >
               <TouchableOpacity
@@ -1085,7 +1092,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                   [
                     [
                       {
-                        "borderRadius": 100,
+                        "borderRadius": 12,
                         "justifyContent": "center",
                         "padding": 15,
                       },
@@ -1146,7 +1153,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                   [
                     [
                       {
-                        "borderRadius": 100,
+                        "borderRadius": 12,
                         "justifyContent": "center",
                         "padding": 15,
                       },
@@ -1386,6 +1393,7 @@ exports[`TransactionReview should match snapshot 1`] = `
           </RCTScrollView>
         </View>
       </View>
+      <View />
     </View>
   </View>,
 ]

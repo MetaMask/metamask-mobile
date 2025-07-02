@@ -36,11 +36,13 @@ const mockApprovalRow = [
       tokenId: undefined,
       type: 'ERC20',
     },
+    balance: new BigNumber('100'),
     fiatAmount: null,
     isAllApproval: false,
     isApproval: true,
     isUnlimitedApproval: false,
     nestedTransactionIndex: -1,
+    tokenSymbol: 'DAI',
   },
 ];
 
@@ -64,6 +66,8 @@ describe('useBatchApproveBalanceChanges', () => {
         decimals: '18',
         standard: 'ERC20',
         symbol: 'DAI',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        balance: '0x5' as any,
       } as TokenUtils.TokenDetailsERC20);
   });
 
@@ -81,6 +85,8 @@ describe('useBatchApproveBalanceChanges', () => {
             type: AssetType.ERC20,
           },
           fiatAmount: null,
+          balance: new BigNumber(100),
+          tokenSymbol: 'DAI',
         },
       ],
     });

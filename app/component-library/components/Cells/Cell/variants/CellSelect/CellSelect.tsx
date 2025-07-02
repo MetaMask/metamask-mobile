@@ -17,6 +17,7 @@ const CellSelect = ({
   style,
   avatarProps,
   title,
+  titleProps,
   secondaryText,
   tertiaryText,
   tagLabel,
@@ -36,6 +37,7 @@ const CellSelect = ({
       <CellBase
         avatarProps={avatarProps}
         title={title}
+        titleProps={titleProps}
         secondaryText={secondaryText}
         tertiaryText={tertiaryText}
         tagLabel={tagLabel}

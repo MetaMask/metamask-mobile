@@ -241,6 +241,9 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -607,12 +610,15 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                                 </View>
                                 <View
                                   style={
-                                    {
-                                      "flex": 0,
-                                      "flexDirection": "row",
-                                      "paddingHorizontal": 24,
-                                      "paddingVertical": 16,
-                                    }
+                                    [
+                                      {
+                                        "flex": 0,
+                                        "flexDirection": "row",
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 16,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   <TouchableOpacity
@@ -625,7 +631,7 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                                       [
                                         [
                                           {
-                                            "borderRadius": 100,
+                                            "borderRadius": 12,
                                             "justifyContent": "center",
                                             "padding": 15,
                                           },
@@ -686,7 +692,7 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                                       [
                                         [
                                           {
-                                            "borderRadius": 100,
+                                            "borderRadius": 12,
                                             "justifyContent": "center",
                                             "padding": 15,
                                           },

@@ -15,6 +15,9 @@ export const RevealSeedViewSelectorsIDs = {
   PASSWORD_INPUT_BOX_ID: 'private-credential-password-text-input',
   REVEAL_CREDENTIAL_MODAL_ID: 'reveal-credential-modal',
   REVEAL_CREDENTIAL_QR_CODE_IMAGE_ID: `reveal-credential-qr-code-image`,
+  TAB_SCROLL_VIEW: 'tab-scroll-view',
+  TAB_SCROLL_VIEW_TEXT: 'tab-scroll-view-text',
+  TAB_SCROLL_VIEW_QR_CODE: 'tab-scroll-view-qr-code',
 };
 
 export const RevealSeedViewSelectorsText = {

@@ -11,7 +11,6 @@ import AVAX from './avalanche.png';
 import LINEA_TESTNET from './linea-testnet-logo.png';
 import SEPOLIA from './sepolia-logo-dark.png';
 import LINEA_MAINNET from './linea-mainnet-logo.png';
-import APE_TOKEN from './ape-token.png';
 import SOLANA from './solana-logo.png';
 import GRAVITY from './gravity.png';
 import KAIA_MAINNET from './kaia.png';
@@ -19,14 +18,22 @@ import FOX_LOGO from '../../app/images/branding/tiny-logo.png';
 import BTC from './bitcoin-logo.png';
 import BASE from './base.png';
 import MEGAETH_TESTNET from './megaeth-testnet-logo.png';
-import XRPLEVM_XRP_TOKEN from './xrp-logo.png';
+import XRPLEVM_TOKEN from './xrp-logo.png';
 import SEI from './sei.png';
 import MONAD_TESTNET from './monad-testnet-logo.png';
 import MATCHAIN from './matchain.png';
 import FLOW from './flow.png';
 import LENS from './lens.png';
 import PLUME from './plume-native.png';
-
+import GENESYS from './genesys.png';
+import KATANA from './katana.png';
+import SOPHON from './sophon.png';
+import SOPHON_TESTNET from './sophon-testnet.png';
+import APECHAIN_TOKEN from './apechain-token.png';
+import BERACHAIN_TOKEN from './berachain-token.png';
+import EDU from './edu.png';
+import ABSTRACT from './abstract.png';
+import OMNI_TOKEN from './omni-token.png';
 
 export default {
   PALM,
@@ -43,7 +50,6 @@ export default {
   'LINEA-SEPOLIA': LINEA_TESTNET,
   SEPOLIA,
   'LINEA-MAINNET': LINEA_MAINNET,
-  APE: APE_TOKEN,
   G: GRAVITY,
   'KAIA-MAINNET': KAIA_MAINNET,
   'KAIA-KAIROS-TESTNET': KAIA_MAINNET,
@@ -52,11 +58,20 @@ export default {
   BTC,
   BASE,
   'MEGAETH-TESTNET': MEGAETH_TESTNET,
-  XRPLEVM_XRP_TOKEN,
+  XRP: XRPLEVM_TOKEN,
   SEI,
   'MONAD-TESTNET': MONAD_TESTNET,
   MATCHAIN,
   FLOW,
   LENS,
   PLUME,
+  GENESYS,
+  KATANA,
+  SOPHON,
+  'SOPHON-TESTNET': SOPHON_TESTNET,
+  APE: APECHAIN_TOKEN,
+  BERA: BERACHAIN_TOKEN,
+  EDU,
+  ABSTRACT,
+  OMNI: OMNI_TOKEN,
 };

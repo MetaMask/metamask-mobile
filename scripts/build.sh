@@ -97,10 +97,6 @@ checkParameters(){
 			fi
 		elif [ "$3"  == "--pre" ] ; then
 			PRE_RELEASE=true
-		else
-			printError "Unknown argument: $4"
-			displayHelp
-			exit 0;
 		fi
 	fi
 }
@@ -136,6 +132,7 @@ remapEnvVariableQA() {
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
   	remapEnvVariable "MM_SENTRY_DSN_TEST" "MM_SENTRY_DSN"
+	remapEnvVariable "MAIN_WEB3AUTH_NETWORK_UAT" "WEB3AUTH_NETWORK"
 }
 
 remapEnvVariableRelease() {
@@ -144,6 +141,7 @@ remapEnvVariableRelease() {
   	remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
+	remapEnvVariable "MAIN_WEB3AUTH_NETWORK_PROD" "WEB3AUTH_NETWORK"
 }
 
 remapFlaskEnvVariables() {
@@ -152,6 +150,34 @@ remapFlaskEnvVariables() {
   	remapEnvVariable "SEGMENT_PROXY_URL_FLASK" "SEGMENT_PROXY_URL"
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_FLASK" "SEGMENT_DELETE_API_SOURCE_ID"
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_FLASK" "SEGMENT_REGULATIONS_ENDPOINT"
+	remapEnvVariable "FLASK_WEB3AUTH_NETWORK_PROD" "WEB3AUTH_NETWORK"
+}
+
+remapEnvVariableProduction() {
+  	echo "Remapping Production env variable names to match Production values"
+  	remapEnvVariable "SEGMENT_WRITE_KEY_PROD" "SEGMENT_WRITE_KEY"
+    remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
+    remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
+    remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
+	remapEnvVariable "MAIN_WEB3AUTH_NETWORK_PROD" "WEB3AUTH_NETWORK"
+}
+
+remapEnvVariableBeta() {
+  	echo "Remapping Beta env variable names to match Beta values"
+  	remapEnvVariable "SEGMENT_WRITE_KEY_PROD" "SEGMENT_WRITE_KEY"
+    remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
+    remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
+    remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
+	remapEnvVariable "MAIN_WEB3AUTH_NETWORK_PROD" "WEB3AUTH_NETWORK"
+}
+
+remapEnvVariableReleaseCandidate() {
+  	echo "Remapping Release Candidate env variable names to match Release Candidate values"
+  	remapEnvVariable "SEGMENT_WRITE_KEY_PROD" "SEGMENT_WRITE_KEY"
+    remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
+    remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
+    remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
+	remapEnvVariable "MAIN_WEB3AUTH_NETWORK_PROD" "WEB3AUTH_NETWORK"
 }
 
 loadJSEnv(){
@@ -235,7 +261,7 @@ buildAndroidDevBuild(){
 	then
 		source $ANDROID_ENV_FILE
 	fi
-	cd android && ./gradlew assembleProdDebug -DtestBuildType=debug --build-cache --parallel && cd ..
+	cd android && ./gradlew assembleProdDebug assembleProdDebugAndroidTest -DtestBuildType=debug --build-cache --parallel && cd ..
 }
 
 buildAndroidRunQA(){
@@ -254,8 +280,8 @@ buildAndroidRunFlask(){
 buildIosDevBuild(){
 	remapEnvVariableLocal
 	prebuild_ios
-	
-	
+
+
 	echo "Setting up env vars...";
 	echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
 	echo "Build started..."
@@ -353,7 +379,10 @@ generateArchivePackages() {
 }
 
 buildIosRelease(){
+  if [ "$MODE" != "main" ]; then
+    # For main Mode variables are already remapped
   	remapEnvVariableRelease
+  fi
 
 	# Enable Sentry to auto upload source maps and debug symbols
 	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
@@ -474,8 +503,10 @@ buildAndroidQA(){
 }
 
 buildAndroidRelease(){
-
-  remapEnvVariableRelease
+    if [ "$MODE" != "main" ]; then
+      # For main Mode variables are already remapped
+    	remapEnvVariableRelease
+    fi
 
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask || true
@@ -541,7 +572,7 @@ buildAndroidQAE2E(){
 }
 
 buildAndroid() {
-	if [ "$MODE" == "release" ] ; then
+	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
 		buildAndroidRelease
 	elif [ "$MODE" == "flask" ] ; then
 		buildAndroidFlaskRelease
@@ -570,12 +601,13 @@ buildAndroidRunE2E(){
 	then
 		source $ANDROID_ENV_FILE
 	fi
-	cd android && ./gradlew assembleProdDebug app:assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=debug --build-cache --parallel && cd ..
+	# Specify specific task name :app:TASKNAME to prevent processing other variants
+	cd android && ./gradlew :app:assembleProdDebug :app:assembleProdDebugAndroidTest -PminSdkVersion=26 -DtestBuildType=debug --build-cache && cd ..
 }
 
 buildIos() {
 	echo "Build iOS $MODE started..."
-	if [ "$MODE" == "release" ] ; then
+	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
 		buildIosRelease
 	elif [ "$MODE" == "flask" ] ; then
 		buildIosFlaskRelease
@@ -586,7 +618,7 @@ buildIos() {
 	elif [ "$MODE" == "qadebugE2E" ] ; then
 			buildIosQASimulatorE2E
 	elif [ "$MODE" == "flaskDebugE2E" ] ; then
-			buildIosFlaskSimulatorE2E	
+			buildIosFlaskSimulatorE2E
 	elif [ "$MODE" == "QA" ] ; then
 		buildIosQA
 	elif [ "$MODE" == "qaDebug" ] ; then
@@ -653,11 +685,30 @@ checkParameters "$@"
 
 printTitle
 loadJSEnv
+
+echo "PLATFORM = $PLATFORM"
+echo "MODE = $MODE"
+echo "TARGET = $TARGET"
+
+if [ "$MODE" == "main" ] && { [ "$TARGET" == "production" ] || [ "$TARGET" == "beta" ] || [ "$TARGET" == "rc" ]; }; then
+  export METAMASK_BUILD_TYPE="$MODE"
+  export METAMASK_ENVIRONMENT="$TARGET"
+  export GENERATE_BUNDLE=true # Used only for Android
+  export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
+  if [ "$TARGET" == "production" ]; then
+    remapEnvVariableProduction
+  elif [ "$TARGET" == "beta" ]; then
+    remapEnvVariableBeta
+  elif [ "$TARGET" == "rc" ]; then
+    remapEnvVariableReleaseCandidate
+  fi
+fi
+
 if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
 	echo "DEBUG SENTRY PROPS"
 	checkAuthToken 'sentry.debug.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
-elif [ "$MODE" == "release" ] || [ "$MODE" == "flask" ]; then
+elif [ "$MODE" == "release" ] || [ "$MODE" == "flask" ] || [ "$MODE" == "main" ]; then
 	echo "RELEASE SENTRY PROPS"
 	checkAuthToken 'sentry.release.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"

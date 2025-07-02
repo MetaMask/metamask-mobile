@@ -12,7 +12,7 @@ import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 
-function parseDeeplink({
+async function parseDeeplink({
   deeplinkManager: instance,
   url,
   origin,
@@ -95,9 +95,7 @@ function parseDeeplink({
   } catch (error) {
     const isPrivateKey = url.length === 64;
     if (error && !isPrivateKey) {
-      Logger.log(
-        'DeepLinkManager:parse error parsing deeplink',
-      );
+      Logger.log('DeepLinkManager:parse error parsing deeplink');
       if (origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) {
         Alert.alert(
           strings('qr_scanner.unrecognized_address_qr_code_title'),

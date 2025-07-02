@@ -24,7 +24,7 @@ export function useChainRedirect(selectedAddress: string): boolean {
 
   useEffect(() => {
     if (selectedAddress && isSolanaAddress(selectedAddress)) {
-      // First kick them out of Swaps to the Home screen in case they press back in the Bridge UI
+      // First navigate to Home screen in case they press back after they are in the Bridge UI
       navigation.navigate(Routes.WALLET.HOME, {
         screen: Routes.WALLET.TAB_STACK_FLOW,
         params: {
@@ -32,8 +32,14 @@ export function useChainRedirect(selectedAddress: string): boolean {
         },
       });
 
-      // Then send them to the Bridge UI to handle Solana single chain swaps
-      goToSwaps();
+      // Wait for next render cycle, then navigate to bridge
+      // Without this we are stuck on Home screen
+      const frameId = requestAnimationFrame(() => {
+        goToSwaps();
+      });
+
+      // Cleanup function
+      return () => cancelAnimationFrame(frameId);
     }
   }, [selectedAddress, goToSwaps, navigation]);
 

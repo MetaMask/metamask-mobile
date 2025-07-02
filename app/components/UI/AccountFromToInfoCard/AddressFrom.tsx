@@ -19,8 +19,8 @@ import {
 } from '../../../util/address';
 import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import stylesheet from './AddressFrom.styles';
-import { selectInternalAccounts } from '../../../selectors/accountsController';
-import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import { selectInternalEvmAccounts } from '../../../selectors/accountsController';
+import useNetworkInfo from '../../Views/confirmations/hooks/useNetworkInfo';
 import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 
 interface Asset {
@@ -61,12 +61,12 @@ const AddressFrom = ({
 
   const accountsByChainId = useSelector(selectAccountsByChainId);
 
-  const internalAccounts = useSelector(selectInternalAccounts);
+  const internalAccounts = useSelector(selectInternalEvmAccounts);
   const activeAddress = toChecksumAddress(from);
 
   const networkName = useSelector(selectEvmNetworkName);
   const networkImage = useSelector(selectEvmNetworkImageSource);
-  const perDappNetworkInfo = useNetworkInfo(origin);
+  const perDappNetworkInfo = useNetworkInfo(chainId);
 
   const useBlockieIcon = useSelector(
     // TODO: Replace "any" with type
@@ -85,12 +85,12 @@ const AddressFrom = ({
     }
   }, [accountsByChainId, internalAccounts, activeAddress, origin]);
 
-  const displayNetworkName = isPerDappSelectedNetworkEnabled() 
-    ? perDappNetworkInfo.networkName 
+  const displayNetworkName = isPerDappSelectedNetworkEnabled()
+    ? perDappNetworkInfo.networkName
     : networkName;
-  
-  const displayNetworkImage = isPerDappSelectedNetworkEnabled() 
-    ? perDappNetworkInfo.networkImageSource 
+
+  const displayNetworkImage = isPerDappSelectedNetworkEnabled()
+    ? perDappNetworkInfo.networkImage
     : networkImage;
 
   const accountTypeLabel = getLabelTextByAddress(activeAddress);
@@ -108,7 +108,7 @@ const AddressFrom = ({
         accountName={accountName}
         accountBalanceLabel={strings('transaction.balance')}
         accountTypeLabel={accountTypeLabel as string}
-        accountNetwork={displayNetworkName}
+        accountNetwork={String(displayNetworkName)}
         badgeProps={{
           variant: BadgeVariant.Network,
           name: displayNetworkName,

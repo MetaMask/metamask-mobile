@@ -34,7 +34,7 @@ describe(Regression('Clear Privacy data'), () => {
 
         await TabBarComponent.tapBrowser();
         await BrowserView.navigateToTestDApp();
-        await BrowserView.tapNetworkAvatarButtonOnBrowser();
+        await BrowserView.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.checkIfVisible(ConnectedAccountsModal.title);
         await ConnectedAccountsModal.scrollToBottomOfModal();
 
@@ -48,7 +48,7 @@ describe(Regression('Clear Privacy data'), () => {
         await ClearPrivacyModal.tapClearButton();
 
         await TabBarComponent.tapBrowser();
-        await BrowserView.tapNetworkAvatarButtonOnBrowser();
+        await BrowserView.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
       },
     );

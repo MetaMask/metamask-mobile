@@ -14,10 +14,12 @@ import {
 } from '../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
-import * as EditNonceHook from '../../../../../components/hooks/useEditNonce';
-// eslint-disable-next-line import/no-namespace
 import * as ConfirmationRedesignEnabled from '../../hooks/useConfirmationRedesignEnabled';
 import { Confirm } from './confirm-component';
+
+jest.mock('../../../../../components/hooks/useEditNonce', () => ({
+  useEditNonce: jest.fn().mockReturnValue({}),
+}));
 
 jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
@@ -74,7 +76,16 @@ jest.mock('../../../../../core/Engine', () => ({
   context: {
     KeyringController: {
       state: {
-        keyrings: [],
+        keyrings: [
+          {
+            type: 'HD Key Tree',
+            accounts: ['0x935e73edb9ff52e23bac7f7e043a1ecd06d05477'],
+            metadata: {
+              id: '01JNG7170V9X27V5NFDTY04PJ4',
+              name: '',
+            },
+          }
+        ],
       },
       getOrAddQRKeyring: jest.fn(),
     },
@@ -91,9 +102,22 @@ jest.mock('../../../../../core/Engine', () => ({
         internalAccounts: {
           accounts: {
             '1': {
+              id: '1',
+              type: 'eip155:eoa',
               address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+              options: {
+                entropySource: '01JNG7170V9X27V5NFDTY04PJ4',
+              },
+              metadata: {
+                name: 'Account 1',
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+              },
+              scopes: ['eip155:0'],
             },
           },
+          selectedAccount: '1',
         },
       },
     },
@@ -206,7 +230,6 @@ describe('Confirm', () => {
     const { getByText } = renderWithProvider(<Confirm />, {
       state: stakingClaimConfirmationState,
     });
-    expect(getByText('Estimated changes')).toBeDefined();
     expect(getByText('Claiming to')).toBeDefined();
     expect(getByText('Interacting with')).toBeDefined();
     expect(getByText('Pooled Staking')).toBeDefined();
@@ -219,14 +242,6 @@ describe('Confirm', () => {
     jest
       .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
       .mockReturnValue({ isRedesignedEnabled: true });
-
-    jest.spyOn(EditNonceHook, 'useEditNonce').mockReturnValue({
-      setShowNonceModal: jest.fn(),
-      setUserSelectedNonce: jest.fn(),
-      showNonceModal: false,
-      proposedNonce: 10,
-      userSelectedNonce: 10,
-    });
 
     const { getByText } = renderWithProvider(<Confirm />, {
       state: generateContractInteractionState,

@@ -356,6 +356,9 @@ exports[`Confirm should render correctly 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -426,9 +429,12 @@ exports[`Confirm should render correctly 1`] = `
                   >
                     <RNCSafeAreaView
                       edges={
-                        [
-                          "bottom",
-                        ]
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
                       }
                       style={
                         {
@@ -752,7 +758,7 @@ exports[`Confirm should render correctly 1`] = `
                                       }
                                     }
                                   >
-                                    Ethereum Main Network
+                                    Ethereum Network default RPC
                                   </Text>
                                   <View
                                     style={
@@ -1028,6 +1034,7 @@ exports[`Confirm should render correctly 1`] = `
                             </TouchableOpacity>
                           </View>
                         </View>
+                        <View />
                       </View>
                       <RCTScrollView
                         style={
@@ -1637,6 +1644,9 @@ exports[`Confirm should render correctly 1`] = `
                                 </View>
                               </View>
                             </View>
+                            <View />
+                            <View />
+                            <View />
                           </View>
                           <View
                             style={
@@ -1720,7 +1730,7 @@ exports[`Confirm should render correctly 1`] = `
                             [
                               [
                                 {
-                                  "borderRadius": 100,
+                                  "borderRadius": 12,
                                   "justifyContent": "center",
                                   "padding": 15,
                                 },
@@ -1778,6 +1788,7 @@ exports[`Confirm should render correctly 1`] = `
                           </Text>
                         </TouchableOpacity>
                       </View>
+                      <View />
                     </RNCSafeAreaView>
                   </View>
                 </View>

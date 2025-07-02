@@ -8,6 +8,18 @@ import Text from '../../../../Texts/Text';
 // Internal dependencies
 import BottomSheetDialog from './BottomSheetDialog';
 import { BottomSheetDialogRef } from './BottomSheetDialog.types';
+import { Platform } from 'react-native';
+
+jest.mock('react-native', () => {
+  const actualRN = jest.requireActual('react-native');
+  return {
+    ...actualRN,
+    Platform: {
+      ...actualRN.Platform,
+      OS: 'ios',
+    },
+  };
+});
 
 jest.mock('react-native-safe-area-context', () => {
   // using disting digits for mock rects to make sure they are not mixed up
@@ -70,7 +82,10 @@ describe('BottomSheetDialog', () => {
 
     expect(onOpenMock).toHaveBeenCalled();
   });
+
   it('should call onClose when onCloseDialog ref is called', () => {
+    Platform.OS = 'ios';
+
     const onCloseMock = jest.fn();
     const TestComponent = () => {
       const ref = useRef<BottomSheetDialogRef>(null);

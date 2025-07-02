@@ -122,7 +122,7 @@ const AnimatedPulse = ({
   }, [cleanup, isPulsing, opacity, runSinglePulseCycle]);
 
   if (preventPulse) {
-    return <View>{children}</View>;
+    return <View testID={props.testID}>{children}</View>;
   }
 
   return (

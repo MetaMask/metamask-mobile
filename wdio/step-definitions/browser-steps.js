@@ -405,9 +405,6 @@ When(/^I connect my active wallet to the test dapp$/, async () => {
   await ExternalWebsitesScreen.tapDappConnectButton();
   await AccountApprovalModal.tapConnectButtonByText();
   await AccountApprovalModal.waitForDisappear();
-  await CommonScreen.waitForToastToDisplay();
-  await CommonScreen.waitForToastToDisappear();
-  await driver.pause(3500);
 });
 
 When(/^I scroll to the ERC20 section$/, async () => {

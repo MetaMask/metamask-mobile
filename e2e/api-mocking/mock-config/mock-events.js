@@ -7,6 +7,7 @@ import {
   suggestedGasApiResponses,
   suggestedGasFeesApiGanache,
 } from '../mock-responses/gas-api-responses.json';
+import defiPositionsWithData from '../mock-responses/defi-api-response-data.json';
 
 export const mockEvents = {
   /**
@@ -50,6 +51,7 @@ export const mockEvents = {
           confirmation_redesign: {
             signatures: false,
             staking_confirmations: false,
+            contract_deployment: false,
             contract_interaction: false,
             transfer: false,
           },
@@ -58,7 +60,7 @@ export const mockEvents = {
       responseCode: 200,
     },
 
-    remoteFeatureFlagsReDesignedConfirmations: {
+    remoteFeatureFlagsRedesignedConfirmations: {
       urlEndpoint:
         'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
       response: [
@@ -73,9 +75,80 @@ export const mockEvents = {
           confirmation_redesign: {
             signatures: true,
             staking_confirmations: true,
+            contract_deployment: true,
             contract_interaction: true,
-            // Regardless of the redesigned flags, transfer is disabled for now
-            transfer: false,
+            transfer: true,
+          },
+        },
+      ],
+      responseCode: 200,
+    },
+
+    remoteFeatureFlagsRedesignedConfirmationsFlask: {
+      urlEndpoint:
+        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=flask&environment=dev',
+      response: [
+        {
+          mobileMinimumVersions: {
+            appMinimumBuild: 1243,
+            appleMinimumOS: 6,
+            androidMinimumAPIVersion: 21,
+          },
+        },
+        {
+          confirmation_redesign: {
+            signatures: true,
+            staking_confirmations: true,
+            contract_deployment: true,
+            contract_interaction: true,
+            transfer: true,
+          },
+        },
+      ],
+      responseCode: 200,
+    },
+
+    // TODO: Remove when this feature is no longer behind a feature flag
+    remoteFeatureFlagsDefiPositionsEnabled: {
+      urlEndpoint:
+        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
+      response: [
+        {
+          assetsDefiPositionsEnabled: true,
+        },
+      ],
+      responseCode: 200,
+    },
+
+    defiPositionsWithNoData: {
+      urlEndpoint:
+        'https://defiadapters.api.cx.metamask.io/positions/0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      response: { data: [] },
+      responseCode: 200,
+    },
+
+    defiPositionsError: {
+      urlEndpoint:
+        'https://defiadapters.api.cx.metamask.io/positions/0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      responseCode: 500,
+    },
+
+    defiPositionsWithData: {
+      urlEndpoint:
+        'https://defiadapters.api.cx.metamask.io/positions/0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      response: { data: defiPositionsWithData },
+      responseCode: 200,
+    },
+
+    remoteFeatureMultichainAccountsAccountDetails: {
+      urlEndpoint:
+        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
+      response: [
+        {
+          enableMultichainAccounts: {
+            enabled: true,
+            featureVersion: '1',
+            minimumVersion: '7.46.0',
           },
         },
       ],
@@ -130,6 +203,7 @@ export const mockEvents = {
     segmentTrack: {
       urlEndpoint: E2E_METAMETRICS_TRACK_URL,
       responseCode: 200,
+      response: { success: true },
     },
   },
 };

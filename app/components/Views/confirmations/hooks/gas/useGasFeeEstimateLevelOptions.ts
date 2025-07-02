@@ -14,7 +14,7 @@ import { toHumanEstimatedTimeRange } from '../../utils/time';
 import { useFeeCalculations } from './useFeeCalculations';
 import { updateTransactionGasFees } from '../../../../../util/transaction-controller';
 import { type GasOption } from '../../types/gas';
-import { GasOptionIcon } from '../../constants/gas';
+import { EMPTY_VALUE_STRING, GasOptionIcon } from '../../constants/gas';
 
 const HEX_ZERO = '0x0';
 
@@ -107,8 +107,8 @@ export const useGasFeeEstimateLevelOptions = ({
         key: level,
         name: strings(`transactions.gas_modal.${level}`),
         onSelect: () => onGasFeeEstimateLevelClick(level),
-        value: preciseNativeCurrencyFee || '--',
-        valueInFiat: currentCurrencyFee || '',
+        value: preciseNativeCurrencyFee || EMPTY_VALUE_STRING,
+        valueInFiat: currentCurrencyFee || EMPTY_VALUE_STRING,
       });
     });
   }

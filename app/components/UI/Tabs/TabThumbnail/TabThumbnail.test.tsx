@@ -1,9 +1,11 @@
 import React from 'react';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider, { DeepPartial } from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import TabThumbnail from './TabThumbnail';
 import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
+import { RootState } from '../../../../reducers';
+import { Caip25CaveatType, Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 
 const mockTab = {
   url: 'https://example.com',
@@ -123,5 +125,84 @@ describe('TabThumbnail', () => {
     );
 
     expect(queryByTestId('footer-container')).toBeNull();
+  });
+
+  it('should render footer when there is a selectedAccount', () => {
+    const mockAccount = {
+      id: 'mock-account-id',
+      address: '0x1234567890123456789012345678901234567890',
+      metadata: {
+        name: 'Test Account',
+        keyring: { type: 'HD Key Tree' },
+      },
+      type: 'eip155:eoa',
+      scopes: ['eip155:1'],
+    };
+
+    //  mock state is a bit complex because we need accounts
+    // and specifically for them to have permission on the
+    // specific website
+    const mockState: DeepPartial<RootState> = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [mockAccount.id]: mockAccount,
+              },
+              selectedAccount: mockAccount.id,
+            },
+          },
+          KeyringController: {
+            keyrings: [],
+            keyringsMetadata: [],
+          },
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+            networkConfigurationsByChainId: {},
+          },
+          PermissionController: {
+            subjects: {
+              'example.com': {
+                permissions: {
+                  [Caip25EndowmentPermissionName]: {
+                    caveats: [
+                      {
+                        type: Caip25CaveatType,
+                        value: {
+                          requiredScopes: {
+                            'eip155:1': {
+                              accounts: [`eip155:1:${mockAccount.address}`],
+                            },
+                          },
+                          optionalScopes: {},
+                          sessionProperties: {},
+                          isMultichainOrigin: false,
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const { getByTestId } = renderWithProvider(
+      <TabThumbnail
+        tab={{
+          url: 'https://example.com',
+          image: 'https://example.com/favicon.ico',
+          id: 0,
+        }}
+        isActiveTab
+        onClose={jest.fn()}
+        onSwitch={jest.fn()}
+      />,
+      { state: mockState },
+    );
+    expect(getByTestId('footer-container')).toBeTruthy();
   });
 });

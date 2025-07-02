@@ -5,6 +5,7 @@ import {
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 import TestHelpers from '../../helpers';
+import Assertions from '../../utils/Assertions';
 
 class WalletView {
   get container() {
@@ -35,6 +36,10 @@ class WalletView {
 
   get accountIcon() {
     return Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ICON);
+  }
+
+  get eyeSlashIcon() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.EYE_SLASH_ICON);
   }
 
   get notificationBellIcon() {
@@ -133,11 +138,15 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_CONTAINER);
   }
 
-
   get carouselProgressDots() {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS,
     );
+  }
+  get testCollectible() {
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByID(WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK, 1)
+      : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE, 1);
   }
 
   getCarouselSlide(id) {
@@ -188,18 +197,17 @@ class WalletView {
     await Gestures.swipe(this.nftTabContainer, 'up', 'slow', 0.6);
   }
 
+  async scrollDownOnTokensTab() {
+    const tokensContainer = await this.getTokensInWallet();
+    await Gestures.swipe(tokensContainer, 'up', 'slow', 0.2);
+  }
+
   async scrollUpOnNFTsTab() {
     await Gestures.swipe(this.nftTabContainer, 'down', 'slow', 0.6);
   }
 
   async tapImportNFTButton() {
     await Gestures.waitAndTap(this.importNFTButton);
-  }
-
-  get testCollectible() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByID(WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK, 1)
-      : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE, 1);
   }
 
   async tapOnNftName() {
@@ -311,6 +319,87 @@ class WalletView {
     await Gestures.tap(this.getCarouselSlide(id));
   }
 
+  get defiTab() {
+    return Matchers.getElementByText(WalletViewSelectorsText.DEFI_TAB);
+  }
+
+  get defiNetworkFilter() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER,
+    );
+  }
+
+  get defiTabContainer() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
+    );
+  }
+
+  get defiPositionDetailsContainer() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER,
+    );
+  }
+
+  async tapOnDeFiTab() {
+    await Gestures.waitAndTap(this.defiTab);
+  }
+
+  async tapOnDeFiNetworksFilter() {
+    await Gestures.waitAndTap(this.defiNetworkFilter);
+  }
+
+  async tapOnDeFiPosition(positionName) {
+    const elem = Matchers.getElementByText(positionName);
+    await Gestures.waitAndTap(elem);
+  }
+
+  async getBalanceText() {
+    const balanceElement = this.totalBalance;
+    await Assertions.checkIfVisible(balanceElement);
+    
+    const balanceAttributes = await (await balanceElement).getAttributes();
+    return balanceAttributes.text || balanceAttributes.label;
+  }
+
+  /**
+   * Toggles the balance visibility by tapping the eye slash icon.
+   * This method can be used to both hide and show the balance.
+   * @returns {Promise<void>} A promise that resolves when the balance visibility is toggled.
+   */
+  async toggleBalanceVisibility() {
+    await Gestures.waitAndTap(this.eyeSlashIcon);
+  }
+
+  /**
+   * Checks if the balance is currently visible by examining the balance text.
+   * @returns {Promise<boolean>} A promise that resolves to true if balance is visible, false if hidden.
+   */
+  async isBalanceVisible() {
+    const balanceText = await this.getBalanceText();
+    // If it shows currency symbols or numbers, it's visible
+    return !balanceText.includes('••••');
+  }
+
+  /**
+   * Hides the balance by tapping the eye slash icon only if it's currently visible.
+   * @returns {Promise<void>} A promise that resolves when the balance is hidden.
+   */
+  async hideBalance() {
+    if (await this.isBalanceVisible()) {
+      await this.toggleBalanceVisibility();
+    }
+  }
+
+  /**
+   * Shows the balance by tapping the eye slash icon only if it's currently hidden.
+   * @returns {Promise<void>} A promise that resolves when the balance is shown.
+   */
+  async showBalance() {
+    if (!(await this.isBalanceVisible())) {
+      await this.toggleBalanceVisibility();
+    }
+  }
 }
 
 export default new WalletView();
