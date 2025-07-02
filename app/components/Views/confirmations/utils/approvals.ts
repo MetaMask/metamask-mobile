@@ -100,5 +100,16 @@ export function calculateApprovalTokenAmount(
     10 ** (decimals ?? 18),
   );
   const isUnlimited = amountInDecimals.gt(TOKEN_VALUE_UNLIMITED_THRESHOLD);
-  return isUnlimited ? strings('confirm.unlimited') : amountInDecimals.toString();
+  return isUnlimited
+    ? strings('confirm.unlimited')
+    : amountInDecimals.toString();
+}
+
+export function calculateTokenBalance(
+  tokenBalance?: string,
+  decimals?: number,
+): string {
+  return new BigNumber(tokenBalance ?? '0')
+    .div(new BigNumber(10).pow(decimals ?? 0))
+    .toString();
 }
