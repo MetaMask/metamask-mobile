@@ -102,9 +102,9 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     WEB3AUTH_NETWORK: 'sapphire_mainnet',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-flask-uat-android',
-    ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-uat-android',
+    ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-uat-common',
     IOS_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-flask-uat-ios',
-    IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-uat-ios',
+    IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-uat-common',
   },
   flask_dev: {
     IOS_APPLE_CLIENT_ID: getBundleId
@@ -117,8 +117,8 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     WEB3AUTH_NETWORK: 'sapphire_devnet',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-flask-dev-android',
-    ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-dev-android',
+    ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-dev-common',
     IOS_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-flask-dev-ios',
-    IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-dev-ios',
+    IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-dev-common',
   },
 };

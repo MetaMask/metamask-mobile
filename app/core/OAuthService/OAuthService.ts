@@ -21,7 +21,6 @@ import { OAuthError, OAuthErrorType } from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
 import { Platform } from 'react-native';
 
-
 export interface OAuthServiceConfig {
   authConnectionConfig: {
     [key in SupportedPlatforms]: {
@@ -29,7 +28,7 @@ export interface OAuthServiceConfig {
         authConnectionId: string;
         groupedAuthConnectionId?: string;
       };
-    }
+    };
   };
   web3AuthNetwork: Web3AuthNetwork;
   authServerUrl: string;
@@ -99,13 +98,14 @@ export class OAuthService {
         throw new Error('No user id found');
       }
 
-
       const authConnectionConfig =
-        this.config.authConnectionConfig[Platform.OS as SupportedPlatforms]?.[authConnection];
+        this.config.authConnectionConfig[Platform.OS as SupportedPlatforms]?.[
+          authConnection
+        ];
 
       const result =
         await Engine.context.SeedlessOnboardingController.authenticate({
-          idTokens: Object.values(data.jwt_tokens),
+          idTokens: [data.id_token],
           authConnection,
           authConnectionId: authConnectionConfig.authConnectionId,
           groupedAuthConnectionId: authConnectionConfig.groupedAuthConnectionId,
@@ -149,14 +149,9 @@ export class OAuthService {
           { ...result, web3AuthNetwork },
           this.config.authServerUrl,
         );
-        const audience = 'metamask';
-
-        if (!data.jwt_tokens[audience]) {
-          throw new OAuthError('No token found', OAuthErrorType.LoginError);
-        }
 
         const jwtPayload = JSON.parse(
-          loginHandler.decodeIdToken(data.jwt_tokens[audience]),
+          loginHandler.decodeIdToken(data.id_token),
         ) as Partial<OAuthUserInfo>;
         const userId = jwtPayload.sub ?? '';
         const accountName = jwtPayload.email ?? '';

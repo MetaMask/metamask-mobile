@@ -12,7 +12,6 @@ import {
   AndroidGoogleWebGID,
   AppleWebClientId,
   IosAppleClientId,
-  AppleServerRedirectUri,
   web3AuthNetwork,
 } from './constants';
 import { OAuthErrorType, OAuthError } from '../error';
@@ -73,7 +72,6 @@ export function createLoginHandler(
         case AuthConnection.Apple:
           return new AndroidAppleLoginHandler({
             clientId: AppleWebClientId,
-            redirectUri: AppleServerRedirectUri,
             appRedirectUri: AppRedirectUri,
             authServerUrl: AuthServerUrl,
             web3AuthNetwork,

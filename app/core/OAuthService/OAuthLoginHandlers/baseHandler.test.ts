@@ -4,7 +4,7 @@ import {
   LoginHandlerResult,
 } from '../OAuthInterface';
 import { BaseLoginHandler, getAuthTokens } from './baseHandler';
-import { OAuthErrorType } from '../error';
+import { OAuthError, OAuthErrorType } from '../error';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 
 // Mock fetch globally
@@ -276,8 +276,9 @@ describe('BaseLoginHandler', () => {
       };
 
       (global.fetch as jest.Mock).mockResolvedValueOnce({
-        status: 200,
+        status: 400,
         json: () => Promise.resolve(mockErrorResponse),
+        text: () => Promise.resolve('Bad Request'),
       });
 
       const params: HandleFlowParams = {
@@ -292,7 +293,8 @@ describe('BaseLoginHandler', () => {
       await expect(
         mockHandler.getAuthTokens(params, mockAuthServerUrl),
       ).rejects.toMatchObject({
-        message: 'Auth server error - Invalid credentials',
+        message:
+          'Auth server error - AuthServer Error, request failed with status: [400]: Bad Request',
         code: OAuthErrorType.AuthServerError,
       });
     });
