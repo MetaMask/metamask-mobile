@@ -36,13 +36,11 @@ const MOCK_ACCOUNT_1: Account = {
   type: KeyringTypes.hd,
   yOffset: 0,
   isSelected: false,
-  assets: {
-    fiatBalance: '$0.00\n0 ETH',
-  },
+  assets: undefined,
   balanceError: undefined,
   caipAccountId: `eip155:0:${MOCK_ACCOUNTS[0].address}`,
   scopes: [EthScope.Eoa],
-  isLoadingAccount: false,
+  isLoadingAccount: true,
 };
 const MOCK_ACCOUNT_2: Account = {
   id: MOCK_ACCOUNTS[1].id,
@@ -51,13 +49,11 @@ const MOCK_ACCOUNT_2: Account = {
   type: KeyringTypes.hd,
   yOffset: 78,
   isSelected: true,
-  assets: {
-    fiatBalance: '$0.00\n0 ETH',
-  },
+  assets: undefined,
   balanceError: undefined,
   caipAccountId: `eip155:0:${MOCK_ACCOUNTS[1].address}`,
   scopes: [EthScope.Eoa],
-  isLoadingAccount: false,
+  isLoadingAccount: true,
 };
 
 const MOCK_STORE_STATE = {
