@@ -85,8 +85,12 @@ export const DepositSDKProvider = ({
     fiatOrdersRegionSelectorDeposit,
   );
   const [getStarted, setGetStarted] = useState<boolean>(INITIAL_GET_STARTED);
+
+  const defaultRegion =
+    DEPOSIT_REGIONS.find((region) => region.isoCode === 'US') || null;
+
   const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
-    INITIAL_SELECTED_REGION,
+    INITIAL_SELECTED_REGION || defaultRegion,
   );
 
   const setGetStartedCallback = useCallback(
@@ -104,13 +108,13 @@ export const DepositSDKProvider = ({
     },
     [dispatch],
   );
+
   useEffect(() => {
-    setSelectedRegion(
-      INITIAL_SELECTED_REGION ||
-        DEPOSIT_REGIONS.find((region) => region.isoCode === 'US') ||
-        null,
-    );
-  }, [INITIAL_SELECTED_REGION]);
+    if (INITIAL_SELECTED_REGION === null && defaultRegion) {
+      dispatch(setFiatOrdersRegionDeposit(defaultRegion));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     try {
