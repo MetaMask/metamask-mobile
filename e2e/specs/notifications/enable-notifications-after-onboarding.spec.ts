@@ -51,7 +51,7 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
     await importWalletWithRecoveryPhrase({
       seedPhrase: NOTIFICATIONS_TEAM_SEED_PHRASE,
       password: NOTIFICATIONS_TEAM_PASSWORD,
-      optInToMetrics: true,
+      optInToMetrics: false,
     });
 
     // Bell Icon
