@@ -3,7 +3,6 @@ import {
   AuthConnection,
   AuthRequestParams,
   HandleFlowParams,
-  AuthRequestIdTokenParams,
 } from '../../OAuthInterface';
 import { signInWithGoogle } from '@metamask/react-native-acm';
 import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
@@ -14,15 +13,6 @@ import Logger from '../../../../util/Logger';
  * AndroidGoogleLoginHandler is the login handler for the Google login on android.
  */
 export class AndroidGoogleLoginHandler extends BaseLoginHandler {
-  getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams {
-    const { idToken, clientId } = params as LoginHandlerIdTokenResult;
-    return {
-      client_id: clientId,
-      id_token: idToken,
-      login_provider: this.authConnection,
-      network: this.options.web3AuthNetwork,
-    } as AuthRequestIdTokenParams;
-  }
   readonly #scope = ['email', 'profile', 'openid'];
 
   protected clientId: string;
@@ -96,5 +86,21 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
         );
       }
     }
+  }
+
+  getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams {
+    if (!('idToken' in params)) {
+      throw new OAuthError(
+        'handleAndroidGoogleLogin: Invalid params',
+        OAuthErrorType.InvalidGetAuthTokenParams,
+      );
+    }
+    const { idToken, clientId, web3AuthNetwork } = params;
+    return {
+      client_id: clientId,
+      id_token: idToken,
+      login_provider: this.authConnection,
+      network: web3AuthNetwork,
+    };
   }
 }

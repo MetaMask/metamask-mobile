@@ -3,7 +3,6 @@ import {
   AuthConnection,
   AuthRequestParams,
   HandleFlowParams,
-  AuthRequestIdTokenParams,
 } from '../../OAuthInterface';
 import {
   signInAsync,
@@ -17,18 +16,6 @@ import Logger from '../../../../util/Logger';
  * IosAppleLoginHandler is the login handler for the Apple login on ios.
  */
 export class IosAppleLoginHandler extends BaseLoginHandler {
-  getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams {
-    const { redirectUri, idToken, clientId } =
-      params as LoginHandlerIdTokenResult;
-    return {
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      id_token: idToken,
-      login_provider: this.authConnection,
-      network: this.options.web3AuthNetwork,
-    } as AuthRequestIdTokenParams;
-  }
-
   readonly #scope = [
     AppleAuthenticationScope.FULL_NAME,
     AppleAuthenticationScope.EMAIL,
@@ -107,5 +94,22 @@ export class IosAppleLoginHandler extends BaseLoginHandler {
         );
       }
     }
+  }
+
+  getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams {
+    if (!('idToken' in params)) {
+      throw new OAuthError(
+        'handleIosAppleLogin: Invalid params',
+        OAuthErrorType.InvalidGetAuthTokenParams,
+      );
+    }
+    const { redirectUri, idToken, clientId, web3AuthNetwork } = params;
+    return {
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      id_token: idToken,
+      login_provider: this.authConnection,
+      network: web3AuthNetwork,
+    };
   }
 }
