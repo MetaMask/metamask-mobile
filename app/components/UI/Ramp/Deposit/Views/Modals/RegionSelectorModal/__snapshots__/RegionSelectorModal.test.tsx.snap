@@ -467,9 +467,8 @@ exports[`RegionSelectorModal Component region selector modal renders empty state
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 18,
-                                    "fontWeight": "700",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -589,7 +588,7 @@ exports[`RegionSelectorModal Component region selector modal renders empty state
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 24,
@@ -691,9 +690,8 @@ exports[`RegionSelectorModal Component region selector modal renders empty state
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontFamily": "Geist Medium",
                                       "fontSize": 18,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -1186,9 +1184,8 @@ exports[`RegionSelectorModal Component region selector modal renders the default
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 18,
-                                    "fontWeight": "700",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -1308,7 +1305,7 @@ exports[`RegionSelectorModal Component region selector modal renders the default
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 24,
@@ -1472,9 +1469,8 @@ exports[`RegionSelectorModal Component region selector modal renders the default
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
-                                                  "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -1489,9 +1485,8 @@ exports[`RegionSelectorModal Component region selector modal renders the default
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
-                                                  "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -1570,9 +1565,8 @@ exports[`RegionSelectorModal Component region selector modal renders the default
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
-                                                  "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -1587,9 +1581,8 @@ exports[`RegionSelectorModal Component region selector modal renders the default
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
-                                                  "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -1668,9 +1661,8 @@ exports[`RegionSelectorModal Component region selector modal renders the default
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
-                                                  "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -1685,9 +1677,8 @@ exports[`RegionSelectorModal Component region selector modal renders the default
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
-                                                  "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -1766,9 +1757,8 @@ exports[`RegionSelectorModal Component region selector modal renders the default
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
-                                                  "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -1783,9 +1773,8 @@ exports[`RegionSelectorModal Component region selector modal renders the default
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
-                                                  "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -2284,9 +2273,8 @@ exports[`RegionSelectorModal Component region selector modal renders with search
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 18,
-                                    "fontWeight": "700",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -2406,7 +2394,7 @@ exports[`RegionSelectorModal Component region selector modal renders with search
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 24,
@@ -2574,9 +2562,8 @@ exports[`RegionSelectorModal Component region selector modal renders with search
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
-                                                  "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -2591,9 +2578,8 @@ exports[`RegionSelectorModal Component region selector modal renders with search
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
-                                                  "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -3092,9 +3078,8 @@ exports[`RegionSelectorModal Component region selector modal sorts recommended r
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 18,
-                                    "fontWeight": "700",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -3214,7 +3199,7 @@ exports[`RegionSelectorModal Component region selector modal sorts recommended r
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 24,
@@ -3378,9 +3363,8 @@ exports[`RegionSelectorModal Component region selector modal sorts recommended r
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
-                                                  "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -3395,9 +3379,8 @@ exports[`RegionSelectorModal Component region selector modal sorts recommended r
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
-                                                  "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -3476,9 +3459,8 @@ exports[`RegionSelectorModal Component region selector modal sorts recommended r
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
-                                                  "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -3493,9 +3475,8 @@ exports[`RegionSelectorModal Component region selector modal sorts recommended r
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
-                                                  "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -3574,9 +3555,8 @@ exports[`RegionSelectorModal Component region selector modal sorts recommended r
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
-                                                  "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -3591,9 +3571,8 @@ exports[`RegionSelectorModal Component region selector modal sorts recommended r
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
-                                                  "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -3672,9 +3651,8 @@ exports[`RegionSelectorModal Component region selector modal sorts recommended r
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
-                                                  "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -3689,9 +3667,8 @@ exports[`RegionSelectorModal Component region selector modal sorts recommended r
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
-                                                  "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
