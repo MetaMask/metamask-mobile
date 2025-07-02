@@ -82,9 +82,9 @@ describe(Regression('Swap from Token view'), (): void => {
     await Assertions.checkIfVisible(WalletView.container);
   });
 
-  it('should complete a USDC to DAI swap from the token chart', async (): Promise<void> => {
+  it('should complete a ETH to USDC swap from the token chart', async (): Promise<void> => {
     const sourceTokenSymbol: string = 'ETH';
-    const destTokenSymbol: string = 'DAI';
+    const destTokenSymbol: string = 'USDC';
 
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
@@ -124,8 +124,8 @@ describe(Regression('Swap from Token view'), (): void => {
     await device.enableSynchronization();
     await TestHelpers.delay(10000);
 
-    // After the swap is complete, the DAI balance shouldn't be 0
-    await Assertions.checkIfTextIsNotDisplayed('0 DAI', 60000);
+    // After the swap is complete, the USDC balance shouldn't be 0
+    await Assertions.checkIfTextIsNotDisplayed('0 USDC', 60000);
 
     // Check the swap activity completed
     await TabBarComponent.tapActivity();
