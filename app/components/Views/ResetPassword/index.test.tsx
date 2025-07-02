@@ -443,4 +443,56 @@ describe('ResetPassword', () => {
       '@MetaMask:passcodeDisabled',
     );
   });
+
+  it('on updating new password, confirm password is not cleared', async () => {
+    const component = await renderConfirmPasswordView();
+
+    const newPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(newPasswordInput, 'NewPassword123');
+    });
+
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(confirmPasswordInput, 'NewPassword123');
+    });
+
+    await act(async () => {
+      fireEvent.changeText(newPasswordInput, 'NewPassword');
+    });
+
+    expect(newPasswordInput.props.value).toBe('NewPassword');
+
+    expect(confirmPasswordInput.props.value).toBe('NewPassword123');
+  });
+
+  it('on clicking show password icon, the password is shown', async () => {
+    const component = await renderConfirmPasswordView();
+
+    const newPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(newPasswordInput, 'NewPassword123');
+    });
+
+    expect(newPasswordInput.props.secureTextEntry).toBe(true);
+
+    const newPasswordShowIcon = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID,
+    );
+
+    fireEvent.press(newPasswordShowIcon);
+
+    await waitFor(() => {
+      expect(newPasswordInput.props.secureTextEntry).toBe(false);
+    });
+  });
 });

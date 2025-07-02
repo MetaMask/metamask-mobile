@@ -585,10 +585,6 @@ class ResetPassword extends PureComponent {
     }));
   };
 
-  toggleShowHide = () => {
-    this.setState((state) => ({ secureTextEntry: !state.secureTextEntry }));
-  };
-
   learnMore = () => {
     this.props.navigation.push('Webview', {
       screen: 'SimpleWebview',
@@ -788,6 +784,9 @@ class ResetPassword extends PureComponent {
                         size={IconSize.Lg}
                         color={colors.icon.alternative}
                         onPress={() => this.toggleShowPassword(0)}
+                        testID={
+                          ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID
+                        }
                       />
                     }
                   />
@@ -859,6 +858,9 @@ class ResetPassword extends PureComponent {
                         size={IconSize.Lg}
                         color={colors.icon.alternative}
                         onPress={() => this.toggleShowPassword(1)}
+                        testID={
+                          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID
+                        }
                       />
                     }
                     isDisabled={!password}
