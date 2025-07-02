@@ -45,6 +45,11 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     };
     mockServer = await startMockServer(segmentMock);
 
+    await Tenderly.addFunds(
+      CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
+      wallet.address,
+    );
+
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
       .withNetworkController(CustomNetworks.Tenderly.Mainnet)
@@ -74,7 +79,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
   it.each`
     type        | quantity | sourceTokenSymbol | destTokenSymbol | network
     ${'swap'}   | ${'1'}   | ${'ETH'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet}
-    ${'swap'}   | ${'1'}   | ${'USDC'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
+    ${'swap'}   | ${'19'}   | ${'USDC'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
     ${'wrap'}   | ${'.03'} | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
     ${'unwrap'} | ${'.01'} | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
   `(
@@ -130,7 +135,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
         type: 'swap',
         sourceTokenSymbol: 'USDC',
         destTokenSymbol: 'ETH',
-        quantity: '1',
+        quantity: '19',
       },
       {
         type: 'wrap',
