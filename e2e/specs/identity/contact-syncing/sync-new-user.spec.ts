@@ -88,6 +88,7 @@ describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
     await Assertions.checkIfVisible(ContactsView.container);
     await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
 
+    // Verify contact was synced
     await waitUntilSyncedElementsNumberEquals(
       USER_STORAGE_FEATURE_NAMES.addressBook,
       1,

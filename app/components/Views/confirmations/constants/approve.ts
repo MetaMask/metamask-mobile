@@ -7,3 +7,5 @@ export const APPROVAL_4BYTE_SELECTORS = {
 };
 
 export const ZERO_AMOUNT = '0';
+
+export const TOKEN_VALUE_UNLIMITED_THRESHOLD = 10 ** 15;

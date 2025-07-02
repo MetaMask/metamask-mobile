@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(bridge): add "hardware wallets not supported" error when attempting Solana swap/bridge ([#15743](https://github.com/MetaMask/metamask-mobile/pull/15743))
 - feat(bridge): fetch all tokens for bridge input([#15993](https://github.com/MetaMask/metamask-mobile/pull/15993))
 - fix(bridge): don't show currency value unless amount is above zero ([#15798](https://github.com/MetaMask/metamask-mobile/pull/15798))
+- fix(bridge): prevent crash when viewing Solana asset details ([#16770](https://github.com/MetaMask/metamask-mobile/pull/16770))
 
 ## [7.47.1]
 
