@@ -65,7 +65,7 @@ const useIsInsufficientBalance = ({
     !hasValidDecimals ||
     !token ||
     !latestBalance?.atomicBalance ||
-    gasIncluded
+    !!gasIncluded
   ) {
     return false;
   }

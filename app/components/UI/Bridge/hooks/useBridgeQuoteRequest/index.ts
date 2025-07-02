@@ -17,7 +17,7 @@ import { getDecimalChainId } from '../../../../../util/networks';
 import { calcTokenValue } from '../../../../../util/transactions';
 import { debounce } from 'lodash';
 import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
-import { selectSmartTransactionsEnabled } from '../../../../../selectors/smartTransactionsController';
+import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 
 export const DEBOUNCE_WAIT = 700;
 
@@ -36,7 +36,7 @@ export const useBridgeQuoteRequest = () => {
   const isEvmToSolana = useSelector(selectIsEvmToSolana);
   const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
   const context = useUnifiedSwapBridgeContext();
-  const smartTransactionsEnabled = useSelector(selectSmartTransactionsEnabled);
+  const shouldUseSmartTransaction = useSelector(selectShouldUseSmartTransaction);
   /**
    * Updates quote parameters in the bridge controller
    */
@@ -69,7 +69,7 @@ export const useBridgeQuoteRequest = () => {
       walletAddress,
       destWalletAddress:
         isEvmToSolana || isSolanaToEvm ? destAddress : walletAddress,
-      gasIncluded: smartTransactionsEnabled,
+      gasIncluded: shouldUseSmartTransaction,
     };
 
     await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
@@ -87,7 +87,7 @@ export const useBridgeQuoteRequest = () => {
     isEvmToSolana,
     isSolanaToEvm,
     context,
-    smartTransactionsEnabled,
+    shouldUseSmartTransaction,
   ]);
 
   // Create a stable debounced function that persists across renders

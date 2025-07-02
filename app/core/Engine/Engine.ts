@@ -1221,6 +1221,9 @@ export class Engine {
       addTransactionBatchFn: (
         ...args: Parameters<typeof this.transactionController.addTransactionBatch>
       ) => this.transactionController.addTransactionBatch(...args),
+      updateTransactionFn: (
+        ...args: Parameters<typeof this.transactionController.updateTransaction>
+      ) => this.transactionController.updateTransaction(...args),
       config: {
         customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
       },
