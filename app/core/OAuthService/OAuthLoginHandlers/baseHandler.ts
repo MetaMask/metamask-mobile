@@ -67,12 +67,9 @@ export async function getAuthTokens(
     body: JSON.stringify(body),
   });
 
-  if (res.status === 200) {
+  if (res.status === 200 || res.status === 201) {
     const data = (await res.json()) satisfies AuthResponse;
-    if (data.success) {
-      return data;
-    }
-    throw new OAuthError(data.message, OAuthErrorType.AuthServerError);
+    return data;
   }
 
   throw new OAuthError(

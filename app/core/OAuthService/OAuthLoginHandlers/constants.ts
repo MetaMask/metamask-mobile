@@ -49,9 +49,10 @@ const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG[BuildType];
 
 export const web3AuthNetwork = CURRENT_OAUTH_CONFIG.WEB3AUTH_NETWORK;
 export const AuthServerUrl = CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL;
+export const IosAppleClientId = CURRENT_OAUTH_CONFIG.IOS_APPLE_CLIENT_ID;
+
 export const IosGID = process.env.IOS_GOOGLE_CLIENT_ID;
 export const IosGoogleRedirectUri = process.env.IOS_GOOGLE_REDIRECT_URI;
-export const IosAppleClientId = CURRENT_OAUTH_CONFIG.IOS_APPLE_CLIENT_ID;
 export const AndroidGoogleWebGID = process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID;
 export const AppleWebClientId = process.env.ANDROID_APPLE_CLIENT_ID;
 

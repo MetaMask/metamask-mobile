@@ -11,7 +11,6 @@ import { OAuthError, OAuthErrorType } from '../../error';
 
 export interface AndroidAppleLoginHandlerParams extends BaseHandlerOptions {
   clientId: string;
-  redirectUri: string;
   appRedirectUri: string;
 }
 
@@ -50,9 +49,9 @@ export class AndroidAppleLoginHandler
    */
   constructor(params: AndroidAppleLoginHandlerParams) {
     super(params);
-    const { appRedirectUri, redirectUri, clientId, authServerUrl } = params;
+    const { appRedirectUri, clientId, authServerUrl } = params;
     this.clientId = clientId;
-    this.redirectUri = redirectUri;
+    this.redirectUri = `${authServerUrl}/api/v1/oauth/callback`;
     this.appRedirectUri = appRedirectUri;
     this.OAUTH_SERVER_URL = `${authServerUrl}/api/v1/oauth/initiate`;
   }
@@ -86,6 +85,7 @@ export class AndroidAppleLoginHandler
       redirectUri: this.redirectUri,
       scopes: this.#scope,
       responseType: ResponseType.Code,
+      usePKCE: false,
       state,
       extraParams: {
         response_mode: 'form_post',
@@ -184,12 +184,9 @@ export class AndroidAppleLoginHandler
       body: JSON.stringify(body),
     });
 
-    if (res.status === 200) {
+    if (res.status === 200 || res.status === 201) {
       const data = (await res.json()) satisfies AuthResponse;
-      if (data.success) {
-        return data;
-      }
-      throw new OAuthError(data.message, OAuthErrorType.AuthServerError);
+      return data;
     }
 
     throw new OAuthError(
