@@ -6,7 +6,7 @@ import { ToastSelectorsIDs } from '../../e2e/selectors/wallet/ToastModal.selecto
 import { TabBarSelectorIDs } from '../../e2e/selectors/wallet/TabBar.selectors';
 
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.testIds';
-import { WalletViewSelectorsIDs } from '../../e2e/selectors/wallet/WalletView.selectors.js';
+import { WalletViewSelectorsIDs } from '../../e2e/selectors/wallet/WalletView.selectors';
 
 class WalletMainScreen {
   get ImportToken() {
