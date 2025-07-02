@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 import Text, {
   TextVariant,
@@ -17,19 +18,12 @@ import Button, {
 
 import styleSheet from './UnsupportedRegionModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../../util/navigation/navUtils';
+import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
-import { DepositRegion } from '../../../constants';
-
-interface UnsupportedRegionModalNavigationDetails {
-  onSelectDifferentRegion?: () => void;
-  onNavigateToBuy?: () => void;
-  selectedRegion: DepositRegion;
-}
+import { createBuyNavigationDetails } from '../../../../../../../components/UI/Ramp/Aggregator/routes/utils';
+import { createRegionSelectorModalNavigationDetails } from '../RegionSelectorModal';
+import { useDepositSDK } from '../../../sdk';
 
 export const createUnsupportedRegionModalNavigationDetails =
   createNavigationDetails(
@@ -39,22 +33,24 @@ export const createUnsupportedRegionModalNavigationDetails =
 
 function UnsupportedRegionModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { onSelectDifferentRegion, onNavigateToBuy, selectedRegion } =
-    useParams<UnsupportedRegionModalNavigationDetails>();
+  const navigation = useNavigation();
+  const { selectedRegion } = useDepositSDK();
 
   const { styles } = useStyles(styleSheet, {});
 
   const handleNavigateToBuy = useCallback(() => {
-    if (onNavigateToBuy) {
-      sheetRef.current?.onCloseBottomSheet(onNavigateToBuy);
-    }
-  }, [onNavigateToBuy]);
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(...createBuyNavigationDetails());
+    });
+  }, [navigation]);
 
   const handleSelectDifferentRegion = useCallback(() => {
-    if (onSelectDifferentRegion) {
-      sheetRef.current?.onCloseBottomSheet(onSelectDifferentRegion);
-    }
-  }, [onSelectDifferentRegion]);
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(
+        ...createRegionSelectorModalNavigationDetails(),
+      );
+    });
+  }, [navigation]);
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack isInteractable={false}>
@@ -70,14 +66,14 @@ function UnsupportedRegionModal() {
         </Text>
         <View style={styles.countryContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {selectedRegion.flag}
+            {selectedRegion?.flag}
           </Text>
           <Text
             variant={TextVariant.BodyMD}
             color={TextColor.Default}
             style={styles.countryName}
           >
-            {selectedRegion.name}
+            {selectedRegion?.name}
           </Text>
         </View>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>

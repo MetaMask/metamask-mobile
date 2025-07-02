@@ -50,7 +50,6 @@ import { createTokenSelectorModalNavigationDetails } from '../Modals/TokenSelect
 import { createPaymentMethodSelectorModalNavigationDetails } from '../Modals/PaymentMethodSelectorModal/PaymentMethodSelectorModal';
 import { createRegionSelectorModalNavigationDetails } from '../Modals/RegionSelectorModal';
 import { createUnsupportedRegionModalNavigationDetails } from '../Modals/UnsupportedRegionModal';
-import { createBuyNavigationDetails } from '../../../Aggregator/routes/utils';
 
 import {
   getTransakCryptoCurrencyId,
@@ -71,8 +70,6 @@ import {
   USD_CURRENCY,
   DepositFiatCurrency,
   EUR_CURRENCY,
-  DEPOSIT_REGIONS,
-  DepositRegion,
   SEPA_PAYMENT_METHOD,
   DEBIT_CREDIT_PAYMENT_METHOD,
 } from '../../constants';
@@ -96,12 +93,9 @@ const BuildQuote = () => {
     useState<DepositFiatCurrency>(USD_CURRENCY);
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
-  const { isAuthenticated, selectedWalletAddress } = useDepositSDK();
+  const { isAuthenticated, selectedWalletAddress, selectedRegion } =
+    useDepositSDK();
   const [error, setError] = useState<string | null>();
-
-  const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
-    DEPOSIT_REGIONS.find((region) => region.isoCode === 'US') || null,
-  );
 
   const handleNewOrder = useHandleNewOrder();
 
@@ -159,50 +153,30 @@ const BuildQuote = () => {
     );
   }, [navigation, theme]);
 
-  const handleSelectRegion = useCallback(
-    (region: DepositRegion) => {
-      if (!region.supported) {
-        return;
-      }
-
-      setSelectedRegion(region);
-
-      if (region.currency === 'USD') {
+  useEffect(() => {
+    if (selectedRegion) {
+      if (selectedRegion.currency === 'USD') {
         setFiatCurrency(USD_CURRENCY);
-      } else if (region.currency === 'EUR') {
+      } else if (selectedRegion.currency === 'EUR') {
         setFiatCurrency(EUR_CURRENCY);
       }
-    },
-    [setFiatCurrency, setSelectedRegion],
-  );
-
-  const handleNavigateToBuy = useCallback(() => {
-    navigation.navigate(...createBuyNavigationDetails());
-  }, [navigation]);
+    }
+  }, [selectedRegion]);
 
   const handleRegionPress = useCallback(() => {
-    navigation.navigate(
-      ...createRegionSelectorModalNavigationDetails({
-        selectedRegion,
-        handleSelectRegion,
-      }),
-    );
-  }, [navigation, selectedRegion, handleSelectRegion]);
+    navigation.navigate(...createRegionSelectorModalNavigationDetails({}));
+  }, [navigation]);
 
   useFocusEffect(
     useCallback(() => {
       if (!selectedRegion?.supported) {
         InteractionManager.runAfterInteractions(() => {
           navigation.navigate(
-            ...createUnsupportedRegionModalNavigationDetails({
-              onSelectDifferentRegion: handleRegionPress,
-              onNavigateToBuy: handleNavigateToBuy,
-              selectedRegion,
-            }),
+            ...createUnsupportedRegionModalNavigationDetails({}),
           );
         });
       }
-    }, [selectedRegion, navigation, handleRegionPress, handleNavigateToBuy]),
+    }, [selectedRegion, navigation]),
   );
 
   const handleOnPressContinue = useCallback(async () => {

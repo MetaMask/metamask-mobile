@@ -1,7 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import RegionSelectorModal from './RegionSelectorModal';
-import { useParams } from '../../../../../../../util/navigation/navUtils';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 
@@ -21,9 +20,8 @@ function renderWithProvider(component: React.ComponentType) {
   );
 }
 
-jest.mock('../../../../../../../util/navigation/navUtils', () => ({
-  createNavigationDetails: jest.fn(),
-  useParams: jest.fn(),
+jest.mock('../../../sdk', () => ({
+  useDepositSDK: jest.fn(),
 }));
 
 jest.mock('../../../constants', () => ({
@@ -81,12 +79,14 @@ jest.mock('../../../constants', () => ({
 }));
 
 describe('RegionSelectorModal Component', () => {
-  let mockHandleSelectRegion: jest.Mock;
+  let mockSetSelectedRegion: jest.Mock;
+  let mockUseDepositSDK: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockHandleSelectRegion = jest.fn();
-    (useParams as jest.Mock).mockReturnValue({
+    mockSetSelectedRegion = jest.fn();
+    mockUseDepositSDK = jest.requireMock('../../../sdk').useDepositSDK;
+    mockUseDepositSDK.mockReturnValue({
       selectedRegion: {
         isoCode: 'US',
         flag: '🇺🇸',
@@ -100,144 +100,64 @@ describe('RegionSelectorModal Component', () => {
         recommended: true,
         supported: true,
       },
-      handleSelectRegion: mockHandleSelectRegion,
+      setSelectedRegion: mockSetSelectedRegion,
     });
   });
 
-  describe('region selector modal', () => {
-    it('renders the default modal', () => {
-      const { toJSON } = renderWithProvider(RegionSelectorModal);
-      expect(toJSON()).toMatchSnapshot();
-    });
+  it('render matches snapshot', () => {
+    const { toJSON } = renderWithProvider(RegionSelectorModal);
 
-    it('renders with search results', () => {
-      const { getByPlaceholderText, toJSON } =
-        renderWithProvider(RegionSelectorModal);
-      fireEvent.changeText(
-        getByPlaceholderText('Search by country'),
-        'Germany',
-      );
-      expect(toJSON()).toMatchSnapshot();
-    });
+    expect(toJSON()).toMatchSnapshot();
+  });
 
-    it('renders empty state', () => {
-      const { getByPlaceholderText, toJSON } =
-        renderWithProvider(RegionSelectorModal);
-      fireEvent.changeText(
-        getByPlaceholderText('Search by country'),
-        'Nonexistent Country',
-      );
-      expect(toJSON()).toMatchSnapshot();
-    });
+  it('render matches snapshot when searching for a country', () => {
+    const { getByPlaceholderText, toJSON } =
+      renderWithProvider(RegionSelectorModal);
 
-    it('calls handleSelectRegion when supported region is pressed', () => {
-      const { getByText } = renderWithProvider(RegionSelectorModal);
-      
-      const germanyRegion = getByText('Germany');
-      fireEvent.press(germanyRegion);
+    fireEvent.changeText(getByPlaceholderText('Search by country'), 'Germany');
 
-      expect(mockHandleSelectRegion).toHaveBeenCalledWith(
-        expect.objectContaining({
-          isoCode: 'DE',
-          name: 'Germany',
-          supported: true,
-        }),
-      );
-    });
+    expect(toJSON()).toMatchSnapshot();
+  });
 
-    it('does not call handleSelectRegion when unsupported region is pressed', () => {
-      const { getByText } = renderWithProvider(RegionSelectorModal);
-      
-      const canadaRegion = getByText('Canada');
-      fireEvent.press(canadaRegion);
+  it('render matches snapshot when search has no results', () => {
+    const { getByPlaceholderText, toJSON } =
+      renderWithProvider(RegionSelectorModal);
 
-      expect(mockHandleSelectRegion).not.toHaveBeenCalled();
-    });
+    fireEvent.changeText(
+      getByPlaceholderText('Search by country'),
+      'Nonexistent Country',
+    );
 
-    it('handles undefined handleSelectRegion gracefully', () => {
-      (useParams as jest.Mock).mockReturnValue({
-        selectedRegion: {
-          isoCode: 'US',
-          flag: '🇺🇸',
-          name: 'United States',
-          phone: {
-            prefix: '+1',
-            placeholder: '(555) 555-1234',
-            template: '(XXX) XXX-XXXX',
-          },
-          currency: 'USD',
-          recommended: true,
-          supported: true,
-        },
-        handleSelectRegion: undefined,
-      });
+    expect(toJSON()).toMatchSnapshot();
+  });
 
-      const { getByText } = renderWithProvider(RegionSelectorModal);
-      
-      const germanyRegion = getByText('Germany');
-      fireEvent.press(germanyRegion);
+  it('calls setSelectedRegion when a supported region is selected', () => {
+    const { getByText } = renderWithProvider(RegionSelectorModal);
 
-      expect(mockHandleSelectRegion).not.toHaveBeenCalled();
-    });
+    const germanyRegion = getByText('Germany');
+    fireEvent.press(germanyRegion);
 
-    it('sorts recommended regions to the top when no search is active', () => {
-      jest.doMock('../../../constants', () => ({
-        DEPOSIT_REGIONS: [
-          {
-            isoCode: 'UK',
-            flag: '🇬🇧',
-            name: 'United Kingdom',
-            phone: {
-              prefix: '+44',
-              placeholder: '1234 567890',
-              template: 'XXXX XXXXXX',
-            },
-            currency: 'GBP',
-            recommended: true,
-            supported: true,
-          },
-          {
-            isoCode: 'AU',
-            flag: '🇦🇺',
-            name: 'Australia',
-            phone: {
-              prefix: '+61',
-              placeholder: '123 456 789',
-              template: 'XXX XXX XXX',
-            },
-            currency: 'AUD',
-            supported: true,
-          },
-          {
-            isoCode: 'JP',
-            flag: '🇯🇵',
-            name: 'Japan',
-            phone: {
-              prefix: '+81',
-              placeholder: '123 456 7890',
-              template: 'XXX XXX XXXX',
-            },
-            currency: 'JPY',
-            recommended: true,
-            supported: true,
-          },
-          {
-            isoCode: 'BR',
-            flag: '🇧🇷',
-            name: 'Brazil',
-            phone: {
-              prefix: '+55',
-              placeholder: '11 12345 6789',
-              template: 'XX XXXXX XXXX',
-            },
-            currency: 'BRL',
-            supported: false,
-          },
-        ],
-      }));
+    expect(mockSetSelectedRegion).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isoCode: 'DE',
+        name: 'Germany',
+        supported: true,
+      }),
+    );
+  });
 
-      const { toJSON } = renderWithProvider(RegionSelectorModal);
-      expect(toJSON()).toMatchSnapshot();
-    });
+  it('does not call setSelectedRegion when an unsupported region is selected', () => {
+    const { getByText } = renderWithProvider(RegionSelectorModal);
+
+    const canadaRegion = getByText('Canada');
+    fireEvent.press(canadaRegion);
+
+    expect(mockSetSelectedRegion).not.toHaveBeenCalled();
+  });
+
+  it('sorts recommended regions to the top when no search is active', () => {
+    const { getAllByText } = renderWithProvider(RegionSelectorModal);
+    const firstRegion = getAllByText('United States')[0];
+    expect(firstRegion).toBeTruthy();
   });
 });

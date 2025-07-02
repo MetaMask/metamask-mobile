@@ -3,9 +3,26 @@ import { fireEvent } from '@testing-library/react-native';
 import UnsupportedRegionModal from './UnsupportedRegionModal';
 import renderDepositTestComponent from '../../../utils/renderDepositTestComponent';
 import Routes from '../../../../../../../constants/navigation/Routes';
-import { useParams } from '../../../../../../../util/navigation/navUtils';
 
-const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
+const mockNavigate = jest.fn();
+const mockUseDepositSDK = jest.fn();
+const mockGoBack = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+    }),
+  };
+});
+
+jest.mock('../../../sdk', () => ({
+  useDepositSDK: () => mockUseDepositSDK(),
+  DepositSDKProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
 
 jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
@@ -16,28 +33,36 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   ]),
 }));
 
+jest.mock('../RegionSelectorModal', () => ({
+  createRegionSelectorModalNavigationDetails: jest.fn(() => [
+    'DepositModals',
+    'DepositRegionSelectorModal',
+    {},
+  ]),
+}));
+
 jest.mock('../../../../utils/withRampAndDepositSDK', () =>
   jest.fn((Component) => (props: Record<string, unknown>) => (
     <Component {...props} />
   )),
 );
-
 describe('UnsupportedRegionModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
-    mockUseParams.mockReturnValue({
-      onSelectDifferentRegion: jest.fn(),
-      onNavigateToBuy: jest.fn(),
+  it('render match snapshot', () => {
+    mockUseDepositSDK.mockReturnValue({
       selectedRegion: {
-        code: 'US',
-        flag: '🇺🇸',
-        name: 'United States',
-        phonePrefix: '+1',
-        currency: 'USD',
-        phoneDigitCount: 10,
+        isoCode: 'BR',
+        flag: '🇧🇷',
+        name: 'Brazil',
+        phone: {
+          prefix: '+55',
+          placeholder: '11 12345 6789',
+          template: 'XX XXXXX XXXX',
+        },
+        currency: 'BRL',
         supported: false,
       },
     });
@@ -49,40 +74,18 @@ describe('UnsupportedRegionModal', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders correctly with countryName and countryFlag', () => {
-    mockUseParams.mockReturnValue({
-      onSelectDifferentRegion: jest.fn(),
-      onNavigateToBuy: jest.fn(),
+  it('navigates to buy screen when Buy Crypto button is pressed', () => {
+    mockUseDepositSDK.mockReturnValue({
       selectedRegion: {
-        code: 'BR',
+        isoCode: 'BR',
         flag: '🇧🇷',
         name: 'Brazil',
-        phonePrefix: '+55',
+        phone: {
+          prefix: '+55',
+          placeholder: '11 12345 6789',
+          template: 'XX XXXXX XXXX',
+        },
         currency: 'BRL',
-        phoneDigitCount: 11,
-        supported: false,
-      },
-    });
-
-    const { toJSON } = renderDepositTestComponent(
-      UnsupportedRegionModal,
-      Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('calls onNavigateToBuy when Buy Crypto button is pressed', () => {
-    const mockOnNavigateToBuy = jest.fn();
-    mockUseParams.mockReturnValue({
-      onSelectDifferentRegion: jest.fn(),
-      onNavigateToBuy: mockOnNavigateToBuy,
-      selectedRegion: {
-        code: 'BR',
-        flag: '🇧🇷',
-        name: 'Brazil',
-        phonePrefix: '+55',
-        currency: 'BRL',
-        phoneDigitCount: 11,
         supported: false,
       },
     });
@@ -94,24 +97,25 @@ describe('UnsupportedRegionModal', () => {
 
     const buyCryptoButton = getByText('Buy Crypto');
     fireEvent.press(buyCryptoButton);
-
-    expect(mockOnNavigateToBuy).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith('RampBuy');
   });
 
-  it('calls onSelectDifferentRegion when Change region button is pressed', () => {
-    const mockOnSelectDifferentRegion = jest.fn();
-    mockUseParams.mockReturnValue({
-      onSelectDifferentRegion: mockOnSelectDifferentRegion,
-      onNavigateToBuy: jest.fn(),
-      selectedRegion: {
-        code: 'BR',
-        flag: '🇧🇷',
-        name: 'Brazil',
-        phonePrefix: '+55',
-        currency: 'BRL',
-        phoneDigitCount: 11,
-        supported: false,
+  it('navigates to region selector when Change region button is pressed', () => {
+    const mockSelectedRegion = {
+      isoCode: 'BR',
+      flag: '🇧🇷',
+      name: 'Brazil',
+      phone: {
+        prefix: '+55',
+        placeholder: '11 12345 6789',
+        template: 'XX XXXXX XXXX',
       },
+      currency: 'BRL',
+      supported: false,
+    };
+
+    mockUseDepositSDK.mockReturnValue({
+      selectedRegion: mockSelectedRegion,
     });
 
     const { getByText } = renderDepositTestComponent(
@@ -122,43 +126,16 @@ describe('UnsupportedRegionModal', () => {
     const changeRegionButton = getByText('Change region');
     fireEvent.press(changeRegionButton);
 
-    expect(mockOnSelectDifferentRegion).toHaveBeenCalled();
-  });
-
-  it('handles missing callback functions gracefully', () => {
-    mockUseParams.mockReturnValue({
-      selectedRegion: {
-        code: 'US',
-        flag: '🇺🇸',
-        name: 'United States',
-        phonePrefix: '+1',
-        currency: 'USD',
-        phoneDigitCount: 10,
-        supported: false,
-      },
-    });
-
-    const { toJSON } = renderDepositTestComponent(
-      UnsupportedRegionModal,
-      Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'DepositModals',
+      'DepositRegionSelectorModal',
+      {},
     );
-
-    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('handles missing regionName gracefully', () => {
-    mockUseParams.mockReturnValue({
-      onSelectDifferentRegion: jest.fn(),
-      onNavigateToBuy: jest.fn(),
-      selectedRegion: {
-        code: 'US',
-        flag: '🇺🇸',
-        name: 'United States',
-        phonePrefix: '+1',
-        currency: 'USD',
-        phoneDigitCount: 10,
-        supported: false,
-      },
+  it('handles missing region gracefully', () => {
+    mockUseDepositSDK.mockReturnValue({
+      selectedRegion: null,
     });
 
     const { toJSON } = renderDepositTestComponent(
