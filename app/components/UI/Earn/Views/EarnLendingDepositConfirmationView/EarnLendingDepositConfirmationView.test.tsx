@@ -819,6 +819,11 @@ describe('EarnLendingDepositConfirmationView', () => {
           .build(),
       );
 
+      // Wait for setTimeout to complete before checking navigation
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
 
       // Clear and test confirmed status
