@@ -22,7 +22,9 @@
  */
 import TestHelpers from '../../helpers';
 import { SmokeMultiChainAPI } from '../../tags';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import FixtureBuilder, {
+  DEFAULT_FIXTURE_ACCOUNT,
+} from '../../fixtures/fixture-builder';
 import {
   withFixtures,
   DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
@@ -33,8 +35,10 @@ import MultichainUtilities from '../../utils/MultichainUtilities';
 import Assertions from '../../utils/Assertions';
 import { MULTICHAIN_TEST_TIMEOUTS } from '../../selectors/Browser/MultichainTestDapp.selectors';
 import { waitFor } from 'detox';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Tenderly from '../../tenderly';
+import { CustomNetworks } from '../../resources/networks.e2e';
+import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
+import { isHexString } from '@metamask/utils';
 
 describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
   beforeEach(() => {
@@ -400,8 +404,15 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
     });
   });
 
-  describe.only('EIP-5792', () => {
-    it('should be able to call method: wallet_getCapabilties', async () => {
+  describe.only('EIP-5792 methods', () => {
+    beforeAll(async () => {
+      await Tenderly.addFunds(
+        CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
+        DEFAULT_FIXTURE_ACCOUNT,
+      );
+    });
+
+    it('should be able to call: wallet_getCapabilties', async () => {
       await withFixtures(
         {
           ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
@@ -427,6 +438,8 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
             method,
           );
 
+          const result = JSON.parse(resultText ?? '{}');
+
           const expectedResult = {
             '0x1': {
               alternateGasFees: { supported: true },
@@ -434,19 +447,18 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
             },
           };
 
-          await Assertions.checkIfTextMatches(
-            resultText ?? '',
-            JSON.stringify(expectedResult),
-          );
+          await Assertions.checkIfObjectsMatch(result, expectedResult);
         },
       );
     });
 
-    it.only('should be able to call method: wallet_sendCalls', async () => {
+    it('should be able to call: wallet_sendCalls', async () => {
       await withFixtures(
         {
           ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
-          fixture: new FixtureBuilder().withPopularNetworks().build(),
+          fixture: new FixtureBuilder()
+            .withNetworkController(CustomNetworks.Tenderly.Mainnet)
+            .build(),
           restartDevice: true,
         },
         async () => {
@@ -463,15 +475,91 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
             method,
           );
 
-          const confirmButton = await Matchers.getElementByText('Yes');
-          await Gestures.waitAndTap(confirmButton);
+          await FooterActions.tapConfirmButton();
 
           const resultText = await MultichainTestDApp.getInvokeMethodResult(
             MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET,
             method,
           );
 
-          console.log('resultText', resultText);
+          const result = JSON.parse(resultText ?? '{}');
+
+          Assertions.checkIfObjectHasKeysAndValidValues(result, {
+            id: isHexString,
+          });
+        },
+      );
+    });
+
+    it('should be able to call: wallet_getCallsStatus', async () => {
+      await withFixtures(
+        {
+          ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
+          fixture: new FixtureBuilder()
+            .withNetworkController(CustomNetworks.Tenderly.Mainnet)
+            .build(),
+          restartDevice: true,
+        },
+        async () => {
+          await MultichainTestDApp.setupAndNavigateToTestDapp();
+
+          const networksToTest =
+            MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
+          await MultichainTestDApp.createSessionWithNetworks(networksToTest);
+
+          const chainId = MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET;
+
+          // First call wallet_sendCalls to get a batch ID
+          const sendCallsMethod = 'wallet_sendCalls';
+          await MultichainTestDApp.invokeMethodOnChain(
+            chainId,
+            sendCallsMethod,
+          );
+          await FooterActions.tapConfirmButton();
+
+          const sendCallsResultText =
+            await MultichainTestDApp.getInvokeMethodResult(
+              chainId,
+              sendCallsMethod,
+            );
+
+          const sendCallsResult = JSON.parse(sendCallsResultText ?? '{}');
+          const batchId = sendCallsResult.id;
+
+          if (!batchId || !isHexString(batchId)) {
+            throw new Error(
+              `Invalid batch ID from wallet_sendCalls: ${batchId}`,
+            );
+          }
+
+          await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.METHOD_INVOCATION);
+
+          // Now call wallet_getCallsStatus with the batch ID
+          const getStatusMethod = 'wallet_getCallsStatus';
+
+          await MultichainTestDApp.invokeMethod(
+            MultichainUtilities.EIP155_SCOPES.ETHEREUM_MAINNET,
+            getStatusMethod,
+            [batchId],
+          );
+
+          const getStatusResultText =
+            await MultichainTestDApp.getInvokeMethodResult(
+              chainId,
+              getStatusMethod,
+            );
+
+          const getStatusResult = JSON.parse(getStatusResultText ?? '{}');
+
+          Assertions.checkIfObjectHasKeysAndValidValues(getStatusResult, {
+            version: (value: string) =>
+              typeof value === 'string' && value.length > 0,
+            id: isHexString,
+            chainId: isHexString,
+            atomic: Boolean,
+            status: 200,
+            receipts: Array.isArray,
+          });
         },
       );
     });
