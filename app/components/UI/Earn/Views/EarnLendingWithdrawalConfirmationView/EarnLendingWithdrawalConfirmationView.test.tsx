@@ -282,7 +282,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       Engine.context.EarnController.executeLendingWithdraw,
     ).toHaveBeenCalledWith({
       amount: '1000000',
-      gasOptions: {},
+      gasOptions: {
+        gasLimit: 'none',
+      },
       protocol: LendingProtocol.AAVE,
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
@@ -420,7 +422,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       Engine.context.EarnController.executeLendingWithdraw,
     ).toHaveBeenCalledWith({
       amount: '1000000',
-      gasOptions: {},
+      gasOptions: {
+        gasLimit: 'none',
+      },
       protocol: LendingProtocol.AAVE,
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
@@ -465,7 +469,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     ).toHaveBeenCalledWith({
       amount:
         '115792089237316195423570985008687907853269984665640564039457584007913129639935', // MaxUint256
-      gasOptions: {},
+      gasOptions: {
+        gasLimit: 'none',
+      },
       protocol: LendingProtocol.AAVE,
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
@@ -507,7 +513,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       Engine.context.EarnController.executeLendingWithdraw,
     ).toHaveBeenCalledWith({
       amount: '500000', // Actual amount, not MaxUint256
-      gasOptions: {},
+      gasOptions: {
+        gasLimit: 'none',
+      },
       protocol: LendingProtocol.AAVE,
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
@@ -836,6 +844,12 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
           },
         }),
       );
+
+      // Wait for the setTimeout to be called before checking for navigation
+      // as the navigation is handled by a setTimeout to avoid a race condition
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
 

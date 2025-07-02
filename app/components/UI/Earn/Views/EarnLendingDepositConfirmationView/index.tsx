@@ -7,7 +7,7 @@ import { Hex } from '@metamask/utils';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { isEmpty } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -379,7 +379,10 @@ const EarnLendingDepositConfirmationView = () => {
         'TransactionController:transactionSubmitted',
         () => {
           emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED);
-          navigation.navigate(Routes.TRANSACTIONS_VIEW);
+          // There is variance in when navigation can be called across chains
+          setTimeout(() => {
+            navigation.navigate(Routes.TRANSACTIONS_VIEW);
+          }, 0);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
@@ -552,7 +555,9 @@ const EarnLendingDepositConfirmationView = () => {
           amount: '0',
           underlyingTokenAddress:
             earnToken?.experience?.market?.underlying?.address,
-          gasOptions: {},
+          gasOptions: {
+            gasLimit: 'none',
+          },
           txOptions: {
             deviceConfirmedOn: WalletDevice.MM_MOBILE,
             networkClientId,
@@ -585,7 +590,9 @@ const EarnLendingDepositConfirmationView = () => {
         amount: amountTokenMinimalUnit,
         underlyingTokenAddress:
           earnToken?.experience?.market?.underlying?.address,
-        gasOptions: {},
+        gasOptions: {
+          gasLimit: 'none',
+        },
         txOptions: {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
           networkClientId,
@@ -614,7 +621,9 @@ const EarnLendingDepositConfirmationView = () => {
         protocol: earnToken?.experience?.market?.protocol,
         underlyingTokenAddress:
           earnToken?.experience?.market?.underlying?.address,
-        gasOptions: {},
+        gasOptions: {
+          gasLimit: 'none',
+        },
         txOptions: {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
           networkClientId,
@@ -713,7 +722,11 @@ const EarnLendingDepositConfirmationView = () => {
 
   return (
     <View style={styles.pageContainer}>
-      <View style={styles.contentContainer}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
         <Erc20TokenHero
           token={token}
           amountTokenMinimalUnit={amountTokenMinimalUnit}
@@ -749,7 +762,7 @@ const EarnLendingDepositConfirmationView = () => {
             currentCurrency,
           )}
         />
-      </View>
+      </ScrollView>
       <ConfirmationFooter
         onCancel={handleCancel}
         onConfirm={handleConfirm}

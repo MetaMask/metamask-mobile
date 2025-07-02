@@ -26,44 +26,55 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
 
-// Mock the constants to control test data
 jest.mock('../../../constants', () => ({
   DEPOSIT_REGIONS: [
     {
-      code: 'US',
+      isoCode: 'US',
       flag: '🇺🇸',
       name: 'United States',
-      phonePrefix: '+1',
+      phone: {
+        prefix: '+1',
+        placeholder: '(555) 555-1234',
+        template: '(XXX) XXX-XXXX',
+      },
       currency: 'USD',
-      phoneDigitCount: 10,
       recommended: true,
       supported: true,
     },
     {
-      code: 'DE',
+      isoCode: 'DE',
       flag: '🇩🇪',
       name: 'Germany',
-      phonePrefix: '+49',
+      phone: {
+        prefix: '+49',
+        placeholder: '123 456 7890',
+        template: 'XXX XXX XXXX',
+      },
       currency: 'EUR',
-      phoneDigitCount: 10,
       supported: true,
     },
     {
-      code: 'CA',
+      isoCode: 'CA',
       flag: '🇨🇦',
       name: 'Canada',
-      phonePrefix: '+1',
+      phone: {
+        prefix: '+1',
+        placeholder: '(555) 555-1234',
+        template: '(XXX) XXX-XXXX',
+      },
       currency: 'CAD',
-      phoneDigitCount: 10,
       supported: false,
     },
     {
-      code: 'FR',
+      isoCode: 'FR',
       flag: '🇫🇷',
       name: 'France',
-      phonePrefix: '+33',
+      phone: {
+        prefix: '+33',
+        placeholder: '1 23 45 67 89',
+        template: 'X XX XX XX XX',
+      },
       currency: 'EUR',
-      phoneDigitCount: 9,
       supported: true,
     },
   ],
@@ -115,7 +126,7 @@ describe('RegionSelectorModal Component', () => {
 
       expect(mockHandleSelectRegion).toHaveBeenCalledWith(
         expect.objectContaining({
-          code: 'DE',
+          isoCode: 'DE',
           name: 'Germany',
           supported: true,
         }),
@@ -143,6 +154,54 @@ describe('RegionSelectorModal Component', () => {
       fireEvent.press(germanyRegion);
 
       expect(mockHandleSelectRegion).not.toHaveBeenCalled();
+    });
+
+    it('sorts recommended regions to the top when no search is active', () => {
+      jest.doMock('../../../constants', () => ({
+        DEPOSIT_REGIONS: [
+          {
+            code: 'UK',
+            flag: '🇬🇧',
+            name: 'United Kingdom',
+            phonePrefix: '+44',
+            currency: 'GBP',
+            phoneDigitCount: 10,
+            recommended: true,
+            supported: true,
+          },
+          {
+            code: 'AU',
+            flag: '🇦🇺',
+            name: 'Australia',
+            phonePrefix: '+61',
+            currency: 'AUD',
+            phoneDigitCount: 9,
+            supported: true,
+          },
+          {
+            code: 'JP',
+            flag: '🇯🇵',
+            name: 'Japan',
+            phonePrefix: '+81',
+            currency: 'JPY',
+            phoneDigitCount: 10,
+            recommended: true,
+            supported: true,
+          },
+          {
+            code: 'BR',
+            flag: '🇧🇷',
+            name: 'Brazil',
+            phonePrefix: '+55',
+            currency: 'BRL',
+            phoneDigitCount: 10,
+            supported: false,
+          },
+        ],
+      }));
+
+      const { toJSON } = renderWithProvider(RegionSelectorModal);
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 });
