@@ -59,10 +59,11 @@ describe(Regression('change password'), () => {
     await ChangePasswordView.tapIUnderstandCheckBox();
     await ChangePasswordView.tapSubmitButton();
 
+    // bug on CI that tap wallet button makes change password continue
     if (device.getPlatform() === 'ios') {
       await TabBarComponent.tapWallet();
     }
-    
+
     //wait for screen transitions after password change
     await Assertions.checkIfNotVisible(ChangePasswordView.submitButton, 25000);
     await Assertions.checkIfVisible(ToastModal.notificationTitle);
