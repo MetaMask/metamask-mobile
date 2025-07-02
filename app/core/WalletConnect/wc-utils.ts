@@ -272,12 +272,9 @@ export const getNetworkClientIdForCaipChainId = (caipChainId: CaipChainId) => {
 }
 
 export const hasPermissionsToSwitchChainRequest = async (
-  request: WalletKitTypes.SessionRequest,
-  origin: string,
+  caip2ChainId: CaipChainId,
   channelId: string
 ) => {
-  const allowSwitchingToNewChain = isSwitchingChainRequest(request);
-  const caip2ChainId = getRequestCaip2ChainId(request);
   const networkConfigurations = selectNetworkConfigurations(store.getState());
   const hexChainIdString = getChainIdForCaipChainId(caip2ChainId);
 
@@ -300,22 +297,10 @@ export const hasPermissionsToSwitchChainRequest = async (
 
   const providerConfig = selectProviderConfig(store.getState());
   const activeChainIdHex = providerConfig.chainId;
-  debugger;
   const activeCaip2ChainId = `${KnownCaipNamespace.Eip155}:${parseInt(
     activeChainIdHex,
     16,
   )}`;
-
-  DevLogger.log(
-    `WC::checkWCPermissions origin=${origin} caip2ChainId=${caip2ChainId} activeCaip2ChainId=${activeCaip2ChainId} permittedChains=${permittedChains} isAllowedChainId=${isAllowedChainId}`,
-  );
-
-  if (!isAllowedChainId && !allowSwitchingToNewChain) {
-    DevLogger.log(`WC::checkWCPermissions chainId is not permitted`);
-    throw rpcErrors.invalidParams({
-      message: `Invalid parameters: active chainId is different than the one provided.`,
-    });
-  }
 
   DevLogger.log(
     `WC::checkWCPermissions switching to network:`,
