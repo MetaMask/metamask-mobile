@@ -30,6 +30,9 @@ describe(Regression('Balance Privacy Toggle'), (): void => {
       async (): Promise<void> => {
 
         await loginToApp();
+        await TestHelpers.delay(2000);
+        await Assertions.checkIfVisible(WalletView.container);
+        await Assertions.checkIfVisible(WalletView.totalBalance);
         const actualBalance: string = await WalletView.getBalanceText();
         await Assertions.checkIfTextMatches(actualBalance, EXPECTED_BALANCE);
         await WalletView.hideBalance();
