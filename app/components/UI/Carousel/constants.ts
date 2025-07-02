@@ -51,7 +51,7 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
       navigate: () => [
         Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE,
         {
-          screen: '',
+          screen: Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE,
           params: {},
         },
       ],
