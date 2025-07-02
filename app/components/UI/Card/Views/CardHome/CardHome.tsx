@@ -1,118 +1,69 @@
-import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Dimensions, TouchableOpacity, View } from 'react-native';
 
 import Icon, {
   IconName,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
+} from '../../../../../component-library/components/Icons/Icon';
 
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import Routes from '../../../constants/navigation/Routes';
+} from '../../../../../component-library/components/Texts/Text';
+import Routes from '../../../../../constants/navigation/Routes';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import ButtonIcon, {
   ButtonIconSizes,
-} from '../../../component-library/components/Buttons/ButtonIcon';
-import CardAssetList from '../../UI/Card/CardAssetList/CardAssetList';
-import Logger from '../../../util/Logger';
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import Logger from '../../../../../util/Logger';
 import { useSelector } from 'react-redux';
-import { selectCardFeature } from '../../../selectors/featureFlagController/card';
-import {
-  fetchSupportedTokensBalances,
-  getGeoLocation,
-  mapTokenBalanceToTokenKey,
-  TokenConfig,
-} from '../../UI/Card/card.utils';
-import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 import SensitiveText, {
   SensitiveTextLength,
-} from '../../../component-library/components/Texts/SensitiveText';
-import Engine from '../../../core/Engine';
-import { useTheme } from '../../../util/theme';
-import { selectPrivacyMode } from '../../../selectors/preferencesController';
-import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert';
-import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
+} from '../../../../../component-library/components/Texts/SensitiveText';
+import Engine from '../../../../../core/Engine';
+import { useTheme } from '../../../../../util/theme';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
+import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner';
 import createStyles, { headerStyle } from './styles';
-import { TokenListItem } from '../../UI/Tokens/TokenList/TokenListItem';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
-import Loader from '../../../component-library/components-temp/Loader';
-import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
+} from '../../../../../component-library/components/Buttons/Button';
+import Loader from '../../../../../component-library/components-temp/Loader';
+import { ScreenshotDeterrent } from '../../../../UI/ScreenshotDeterrent';
+import { TokenListItem } from '../../../Tokens/TokenList/TokenListItem';
+import { mapTokenBalanceToTokenKey } from '../../sdk';
+import { useCardTokenBalances, useUserLocation } from '../../hooks';
+import CardAssetList from '../../components/CardAssetList/CardAssetList';
 
-interface ICardViewProps {
+interface ICardHomeProps {
   navigation?: NavigationProp<ParamListBase>;
 }
 
-const CardView = ({ navigation }: ICardViewProps) => {
+const CardHome = ({ navigation }: ICardHomeProps) => {
   const hasNavigation = Boolean(navigation);
   const { PreferencesController } = Engine.context;
-  const [refreshing, setRefreshing] = useState(false);
-  const [geolocation, setGeolocation] = useState<string | null>(null);
   const privacyMode = useSelector(selectPrivacyMode);
   const theme = useTheme();
-  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
-  const cardFeature = useSelector(selectCardFeature);
-  const [supportedTokenBalances, setSupportedTokenBalances] = useState<{
-    tokenConfigs: TokenConfig[];
-    totalBalanceDisplay: string;
-    priorityToken: TokenConfig | null;
-  } | null>(null);
   const itemHeight = 130;
   const { width: deviceWidth } = Dimensions.get('window');
   const styles = createStyles(theme, itemHeight, deviceWidth);
+  const {
+    priorityToken,
+    balances: supportedTokenBalances,
+    isLoading: isLoadingBalances,
+    refetch: fetchBalances,
+  } = useCardTokenBalances(true);
+  const { location: geolocation } = useUserLocation(true);
 
   const selectedTokenKey = useMemo(() => {
-    if (!supportedTokenBalances?.priorityToken) {
+    if (!priorityToken) {
       return null;
     }
 
-    return mapTokenBalanceToTokenKey(
-      supportedTokenBalances.priorityToken,
-      theme.colors,
-    );
-  }, [supportedTokenBalances, theme]);
-
-  const refreshTokens = useCallback(async () => {
-    setRefreshing(true);
-
-    if (!cardFeature) {
-      throw new Error('Card feature is not enabled');
-    }
-
-    if (selectedAddress) {
-      const { balanceList, totalBalanceDisplay, priorityToken } =
-        await fetchSupportedTokensBalances(selectedAddress, cardFeature);
-
-      setSupportedTokenBalances({
-        tokenConfigs: balanceList,
-        totalBalanceDisplay,
-        priorityToken,
-      });
-
-      setRefreshing(false);
-    }
-  }, [selectedAddress, cardFeature]);
-
-  useLayoutEffect(() => {
-    const fetchBalances = async () => {
-      await refreshTokens();
-    };
-
-    fetchBalances();
-  }, [refreshTokens]);
-
-  useLayoutEffect(() => {
-    const fetchGeolocation = async () => {
-      const retrievedGeolocation = await getGeoLocation();
-      setGeolocation(retrievedGeolocation);
-    };
-
-    fetchGeolocation();
-  }, []);
+    return mapTokenBalanceToTokenKey(priorityToken, theme.colors);
+  }, [priorityToken, theme]);
 
   const toggleIsBalanceAndAssetsHidden = useCallback(
     (value: boolean) => {
@@ -121,7 +72,7 @@ const CardView = ({ navigation }: ICardViewProps) => {
     [PreferencesController],
   );
 
-  if (refreshing) {
+  if (isLoadingBalances) {
     return (
       <View style={styles.wrapper}>
         <Loader />
@@ -139,8 +90,8 @@ const CardView = ({ navigation }: ICardViewProps) => {
               length={SensitiveTextLength.Long}
               variant={TextVariant.HeadingLG}
             >
-              {supportedTokenBalances?.priorityToken
-                ? `${supportedTokenBalances?.priorityToken?.balance} ${supportedTokenBalances?.priorityToken?.symbol}`
+              {priorityToken
+                ? `${priorityToken.balance} ${priorityToken.symbol}`
                 : '0'}
             </SensitiveText>
             <TouchableOpacity
@@ -184,8 +135,12 @@ const CardView = ({ navigation }: ICardViewProps) => {
             <View style={styles.spendingWith}>
               <TokenListItem
                 assetKey={selectedTokenKey}
-                showRemoveMenu={() => {}}
-                setShowScamWarningModal={() => {}}
+                showRemoveMenu={() => {
+                  Logger.log('Remove menu pressed');
+                }}
+                setShowScamWarningModal={() => {
+                  Logger.log('Remove menu pressed');
+                }}
                 privacyMode={privacyMode}
                 showPercentageChange={false}
               />
@@ -215,9 +170,9 @@ const CardView = ({ navigation }: ICardViewProps) => {
         </Text>
       </View>
       <CardAssetList
-        tokenBalances={supportedTokenBalances?.tokenConfigs || []}
-        refreshing={refreshing}
-        onRefresh={refreshTokens}
+        tokenBalances={supportedTokenBalances || []}
+        refreshing={isLoadingBalances}
+        onRefresh={fetchBalances}
       />
       <ScreenshotDeterrent
         hasNavigation={hasNavigation}
@@ -228,9 +183,9 @@ const CardView = ({ navigation }: ICardViewProps) => {
   );
 };
 
-export default CardView;
+export default CardHome;
 
-CardView.navigationOptions = ({
+CardHome.navigationOptions = ({
   navigation,
 }: {
   navigation: NavigationProp<ParamListBase>;

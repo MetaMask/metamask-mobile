@@ -14,7 +14,8 @@ import balanceScannerAbi from './balanceScannerAbi.json';
 import { StyleProp, ViewStyle } from 'react-native';
 import { ThemeColors } from '@metamask/design-tokens';
 import BigNumber from 'bignumber.js';
-
+import { LINEA_DEFAULT_RPC_URL } from '../../../constants/urls';
+import { AllowanceState, TokenConfig } from './types';
 /**
  * Linea Mainnet contract addresses
  */
@@ -44,14 +45,6 @@ const foxConnectAbi = [
 ];
 
 /**
- * Enum for asset delegation status
- */
-export enum AllowanceState {
-  Delegatable = 'delegatable',
-  Unlimited = 'unlimited',
-  Limited = 'limited',
-}
-/**
  * Transfer event topic
  */
 const TRANSFER_EVENT_TOPIC = ethers.utils.id(
@@ -65,40 +58,8 @@ const cardHolderCache: Record<string, { status: boolean; timestamp: number }> =
 // Cache expiration time (15 minutes)
 const CACHE_EXPIRATION = 15 * 60 * 1000;
 
-// Helper interface for token balances
-export interface TokenConfig {
-  address: string;
-  contract?: ethers.Contract;
-  decimals: number;
-  symbol: string;
-  name: string;
-  balance: string; // Display balance formatted for UI
-  allowanceState: AllowanceState;
-  rawBalance: ethers.BigNumber;
-  globalAllowance: string;
-  usAllowance: string;
-}
-
-const createProvider = () => {
-  // Try to get API key from environment, otherwise use a public RPC URL
-  let provider: ethers.providers.JsonRpcProvider;
-  const infuraKey = process.env.MM_INFURA_PROJECT_ID;
-
-  if (infuraKey) {
-    Logger.log('Using Infura provider');
-    provider = new ethers.providers.JsonRpcProvider(
-      `https://linea-mainnet.infura.io/v3/${infuraKey}`,
-    );
-  } else {
-    Logger.log('Using public RPC provider');
-    // Fallback to a public RPC if no API key is available
-    provider = new ethers.providers.JsonRpcProvider(
-      'https://linea-mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
-    );
-  }
-
-  return provider;
-};
+const createProvider = () =>
+  new ethers.providers.JsonRpcProvider(LINEA_DEFAULT_RPC_URL);
 
 /**
  * getAllowanceState - Determines the allowance state based on the allowance value
@@ -144,7 +105,7 @@ const getPriorityTokenAddress = async ({
   const spenderTopics = spenders.map((s) =>
     ethers.utils.hexZeroPad(s.toLowerCase(), 32),
   );
-  const fromBlock = -50000; // Check from the last 50,000 blocks
+  const fromBlock = -500000; // Check from the last 500,000 blocks
 
   const logsPerToken = await Promise.all(
     supportedTokensAddresses.map((tokenAddress) =>
@@ -422,7 +383,6 @@ export const fetchSupportedTokensBalances = async (
   cardFeature: CardFeature | null,
 ): Promise<{
   balanceList: TokenConfig[];
-  totalBalanceDisplay: string;
   priorityToken: TokenConfig | null;
 }> => {
   const provider = createProvider();
@@ -432,7 +392,6 @@ export const fetchSupportedTokensBalances = async (
     console.warn('No supported tokens found for the card feature');
     return {
       balanceList: [],
-      totalBalanceDisplay: '0',
       priorityToken: null,
     };
   }
@@ -446,10 +405,9 @@ export const fetchSupportedTokensBalances = async (
   const scanner = getBalanceScannerContract(provider);
 
   try {
-    const [tokensBalance, spendersAllowancesForTokens, priorityTokenAddress]: [
+    const [tokensBalance, spendersAllowancesForTokens]: [
       [boolean, string][],
       [boolean, string][][],
-      string | null,
     ] = await Promise.all([
       scanner.tokensBalance(address, tokenAddrs),
       scanner.spendersAllowancesForTokens(
@@ -457,12 +415,6 @@ export const fetchSupportedTokensBalances = async (
         tokenAddrs,
         spendersAllowances,
       ),
-      getPriorityTokenAddress({
-        provider,
-        supportedTokensAddresses: tokenAddrs,
-        owner: address,
-        spenders,
-      }),
     ]);
 
     const balanceList = tokensBalance.map((item, i) => {
@@ -495,16 +447,15 @@ export const fetchSupportedTokensBalances = async (
       };
     });
 
-    // compute total display
-    const totalRaw = balanceList.reduce(
-      (sum, t) => sum.add(t.rawBalance),
-      ethers.BigNumber.from('0'),
-    );
-    const totalBalanceDisplay = totalRaw.isZero()
-      ? 'No tokens available'
-      : `$${parseFloat(
-          renderFromTokenMinimalUnit(totalRaw.toString(), 6),
-        ).toFixed(2)}`;
+    const tokenAddressesWithBalances = balanceList
+      .filter((token) => token.rawBalance.gt(0))
+      .map((token) => token.address.toLowerCase());
+    const priorityTokenAddress = await getPriorityTokenAddress({
+      provider,
+      supportedTokensAddresses: tokenAddressesWithBalances,
+      owner: address,
+      spenders,
+    });
 
     let priorityToken = null;
 
@@ -514,14 +465,8 @@ export const fetchSupportedTokensBalances = async (
           (token) =>
             token.address.toLowerCase() === priorityTokenAddress.toLowerCase(),
         ) ?? null;
-      if (priorityToken) {
-        if (priorityToken.rawBalance.isZero()) {
-          Logger.log(
-            `Priority token ${priorityTokenAddress} has zero balance, selecting first available token`,
-          );
-          priorityToken = balanceList[0] || null;
-        }
 
+      if (priorityToken) {
         // Remove the priority token from the balance list
         const index = balanceList.indexOf(priorityToken);
         if (index > -1) {
@@ -532,8 +477,7 @@ export const fetchSupportedTokensBalances = async (
 
     return {
       balanceList,
-      totalBalanceDisplay,
-      priorityToken,
+      priorityToken: priorityToken ?? balanceList[0],
     };
   } catch (error) {
     Logger.error(

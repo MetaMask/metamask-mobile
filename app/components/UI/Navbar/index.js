@@ -21,12 +21,8 @@ import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import {
-  importAccountFromPrivateKey,
-} from '../../../util/importAccountFromPrivateKey';
-import {
-  getLabelTextByAddress,
-} from '../../../util/address';
+import { importAccountFromPrivateKey } from '../../../util/importAccountFromPrivateKey';
+import { getLabelTextByAddress } from '../../../util/address';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import Device from '../../../util/device';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -1114,7 +1110,7 @@ export function getWalletNavbarOptions(
           <ButtonIcon
             iconColor={IconColor.Default}
             onPress={() => {
-              navigation.navigate('CardModeView');
+              navigation.navigate(Routes.CARD.ROOT);
             }}
             iconName={IconName.Card}
             size={IconSize.Xl}
