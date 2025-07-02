@@ -9,11 +9,13 @@ import { BrowserURLBarSelectorsIDs } from '../../selectors/Browser/BrowserURLBar
 import { AddBookmarkViewSelectorsIDs } from '../../selectors/Browser/AddBookmarkView.selectors';
 import Gestures from '../../framework/Gestures.ts';
 import Matchers from '../../framework/Matchers.ts';
+import Utilities from '../../framework/Utilities.ts';
 import { waitForTestDappToLoad } from '../../viewHelper';
 import {
   TEST_DAPP_LOCAL_URL,
   getSecondTestDappLocalUrl,
 } from '../../fixtures/utils';
+import Assertions from '../../framework/Assertions.ts';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
@@ -145,9 +147,22 @@ class Browser {
   }
 
   async tapOpenAllTabsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.tabsButton, {
-      elemDescription: 'Open All Tabs Button',
-    });
+    return Utilities.executeWithRetry(
+      async () => {
+        await Gestures.waitAndTap(this.tabsButton, {
+          timeout: 2000
+        });
+
+        await Assertions.expectVisible(this.tabsNumber, {
+          timeout: 2000
+        });
+      },
+      {
+        timeout: 30000,
+        description: 'tap open all tabs button and verify navigation',
+        elemDescription: 'Open All Tabs Button',
+      }
+    );
   }
 
   async tapSecondTabButton(): Promise<void> {

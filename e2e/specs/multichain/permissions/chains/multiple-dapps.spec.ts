@@ -70,7 +70,7 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), (): void => {
         // Step 1: Navigate to browser view
         await loginToApp();
         await TabBarComponent.tapBrowser();
-        await Assertions.checkIfVisible(Browser.browserScreenID);
+        await Assertions.expectVisible(Browser.browserScreenID);
 
         // Step 2: Navigate to 1st test dApp to load page this should be connected to global network selector: Eth mainnet
         await Browser.navigateToTestDApp();

@@ -497,3 +497,43 @@ The framework is designed to be self-documenting through TypeScript types and co
 - **"Test is slow"** → Avoid nested retries, use appropriate timeouts, use `checkStability: true` only when needed
 - **"Hard to maintain"** → Implement Page Object pattern, avoid repeated selectors
 - **"Timeouts not working as expected"** → Check for nested retry patterns, use single-level framework retries
+
+#### **Handling Flaky Navigation/Tap Issues**
+
+**Problem**: Element tap succeeds but doesn't trigger navigation or expected action (common with buttons that sometimes don't respond to taps due to obscuration or timing issues).
+
+**Solution**: Use higher-level retry pattern that wraps both the action and verification:
+
+```typescript
+// ✅ DO: Wrap tap + verification in single retry operation
+async tapOpenAllTabsButton(): Promise<void> {
+  return Utilities.executeWithRetry(
+    async () => {
+      await Gestures.waitAndTap(this.tabsButton, {
+        timeout: 2000  // Short timeout for individual action
+      });
+
+      await Assertions.expectVisible(this.tabsNumber, {
+        timeout: 2000  // Short timeout for verification
+      });
+    },
+    {
+      timeout: 30000,  // Longer overall timeout for retries
+      description: 'tap open all tabs button and verify navigation',
+      elemDescription: 'Open All Tabs Button',
+    }
+  );
+}
+```
+
+**Why this works**:
+- **Fast inner timeouts (2s)** - Prevents long waits when tap doesn't trigger navigation
+- **Outer retry logic** - Handles the flaky tap scenario by retrying the entire flow
+- **Total timeout control** - 30s outer timeout gives reasonable overall time limit
+- **Clear failure modes** - Each step fails fast, allowing quick retry of the whole operation
+
+**When to use this pattern**:
+- Buttons that sometimes don't respond (obscuration issues)
+- Navigation taps that may fail silently
+- Actions that require verification of success (screen transitions)
+- Complex interactions where multiple steps must succeed together
