@@ -65,7 +65,10 @@ describe(
         await Assertions.checkIfVisible(SecurityAndPrivacyView.securityAndPrivacyHeading);
 
         // should lock wallet from Settings
-        await CommonView.tapBackButton();
+        // TODO: remove the condition but keep the step once the issue above is fixed
+        if (device.getPlatform() === 'ios' && !process.env.CI) {
+          await CommonView.tapBackButton();
+        }
         await SettingsView.tapLock();
         await SettingsView.tapYesAlertButton();
         await Assertions.checkIfVisible(LoginView.container);
