@@ -25,6 +25,7 @@ enum BUILD_TYPE {
 
 export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
   development: {
+    // TODO: point to main dev
     IOS_APPLE_CLIENT_ID: getBundleId ? getBundleId() : 'io.metamask.MetaMask',
 
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-seedless-onboarding',
@@ -46,9 +47,9 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     WEB3AUTH_NETWORK: 'sapphire_mainnet',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-main-android',
-    ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-main-android',
+    ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-main-common',
     IOS_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-main-ios',
-    IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-main-ios',
+    IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-main-common',
   },
   main_uat: {
     IOS_APPLE_CLIENT_ID: getBundleId ? getBundleId() : 'io.metamask.MetaMask',
@@ -59,9 +60,9 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     WEB3AUTH_NETWORK: 'sapphire_mainnet',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-uat-android',
-    ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-uat-android',
+    ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-uat-common',
     IOS_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-uat-ios',
-    IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-uat-ios',
+    IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-uat-common',
   },
   main_dev: {
     IOS_APPLE_CLIENT_ID: getBundleId ? getBundleId() : 'io.metamask.MetaMask',
@@ -72,9 +73,9 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     WEB3AUTH_NETWORK: 'sapphire_devnet',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-dev-android',
-    ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-dev-android',
+    ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-dev-common',
     IOS_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-dev-ios',
-    IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-dev-ios',
+    IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-dev-common',
   },
   flask_prod: {
     IOS_APPLE_CLIENT_ID: getBundleId
@@ -87,9 +88,9 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     WEB3AUTH_NETWORK: 'sapphire_mainnet',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-flask-main-android',
-    ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-main-android',
+    ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-main-common',
     IOS_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-flask-main-ios',
-    IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-main-ios',
+    IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-main-common',
   },
   flask_uat: {
     IOS_APPLE_CLIENT_ID: getBundleId

@@ -1,10 +1,11 @@
 import {
   AuthConnection,
+  AuthRequestParams,
   HandleFlowParams,
   LoginHandlerResult,
 } from '../OAuthInterface';
 import { BaseLoginHandler, getAuthTokens } from './baseHandler';
-import { OAuthError, OAuthErrorType } from '../error';
+import { OAuthErrorType } from '../error';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 
 // Mock fetch globally
@@ -12,6 +13,29 @@ global.fetch = jest.fn();
 
 // Mock handler class that extends BaseLoginHandler for testing
 class MockLoginHandler extends BaseLoginHandler {
+  getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams {
+    let body: AuthRequestParams;
+    if ('code' in params) {
+      body = {
+        code: params.code,
+        client_id: params.clientId,
+        login_provider: params.authConnection,
+        network: params.web3AuthNetwork,
+        redirect_uri: params.redirectUri,
+        code_verifier: params.codeVerifier,
+      };
+    } else {
+      body = {
+        id_token: params.idToken,
+        client_id: params.clientId,
+        login_provider: params.authConnection,
+        network: params.web3AuthNetwork,
+        redirect_uri: params.redirectUri,
+        code_verifier: params.codeVerifier,
+      };
+    }
+    return body;
+  }
   get authConnection(): AuthConnection {
     return AuthConnection.Google;
   }
@@ -345,7 +369,7 @@ describe('BaseLoginHandler', () => {
       };
 
       const result = await getAuthTokens(
-        params,
+        mockHandler.getAuthTokenRequestData(params),
         mockPathname,
         mockAuthServerUrl,
       );
@@ -393,7 +417,7 @@ describe('BaseLoginHandler', () => {
       };
 
       const result = await getAuthTokens(
-        params,
+        mockHandler.getAuthTokenRequestData(params),
         mockPathname,
         mockAuthServerUrl,
       );
