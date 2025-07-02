@@ -3,6 +3,7 @@ import fs from 'fs';
 import { $ } from 'execa';
 import { Listr } from 'listr2';
 import path from 'path';
+import { validateMainEnvVars } from './validate-env.mjs';
 
 const IS_CI = process.env.CI;
 const IS_OSX = process.platform === 'darwin';
@@ -50,9 +51,6 @@ const rendererOptions = {
   collapseSubtasks: false,
 };
 
-/*
- * TODO: parse example env file and add missing variables to existing .js.env
- */
 const copyAndSourceEnvVarsTask = {
   title: 'Copy and source environment variables',
   task: (_, task) => {
@@ -83,6 +81,16 @@ const copyAndSourceEnvVarsTask = {
                 return;
               }
             });
+          },
+        },
+        {
+          title: 'Validate .js.env variables',
+          task: async () => {
+            // Validate that all variables from .js.env.example exist in .js.env
+            const result = validateMainEnvVars(false);
+            if (!result.isValid) {
+              throw new Error(`Environment validation failed. Missing variables: ${result.missingVars.join(', ')}`);
+            }
           },
         },
         {
