@@ -1,7 +1,5 @@
-import { Platform } from 'react-native';
 import QuickCrypto from 'react-native-quick-crypto';
 import { ACTIONS } from '../../../constants/deeplinks';
-import Device from '../../../util/device';
 import AppConstants from '../../AppConstants';
 import SDKConnect from '../../SDKConnect/SDKConnect';
 import handleDeeplink from '../../SDKConnect/handlers/handleDeeplink';
@@ -10,7 +8,6 @@ import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleUniversalLink from './handleUniversalLink';
-import Routes from '../../../constants/navigation/Routes';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
 import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
 
@@ -70,17 +67,7 @@ describe('handleUniversalLinks', () => {
 
   let urlObj = {} as ReturnType<typeof extractURLParams>['urlObj'];
 
-  let params = {
-    pubkey: '',
-    uri: '',
-    redirect: '',
-    channelId: '',
-    comm: '',
-  } as ReturnType<typeof extractURLParams>['params'];
-
   const mockBrowserCallBack = jest.fn();
-  let origin = '';
-  let wcURL = '';
   let url = '';
 
   const mockHandleDeepLinkModalDisplay =
@@ -114,16 +101,6 @@ describe('handleUniversalLinks', () => {
       connect: mockWC2ManagerConnect,
     });
 
-    params = {
-      pubkey: '',
-      uri: '',
-      redirect: '',
-      channelId: '',
-      comm: '',
-    };
-
-    origin = 'test-origin';
-    wcURL = 'test-wc-url';
     url = 'https://metamask.app.link';
   });
 
