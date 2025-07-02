@@ -62,7 +62,7 @@ describe(Regression('change password'), () => {
     // bug on CI when tap wallet button makes change password continue
     // github issue: https://github.com/MetaMask/metamask-mobile/issues/16758
     // TODO: remove this once the issue is fixed
-    if (device.getPlatform() === 'ios') {
+    if (device.getPlatform() === 'ios' && process.env.CI) {
       await TabBarComponent.tapWallet();
     }
 
