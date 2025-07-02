@@ -477,9 +477,6 @@ describe('ChoosePassword', () => {
     const props: ChoosePasswordProps = {
       route: { params: { [ONBOARDING]: true } },
       navigation: mockNavigation,
-      metrics: {
-        isEnabled: jest.fn(),
-      },
     };
 
     const component = renderWithProviders(<ChoosePassword {...props} />);
