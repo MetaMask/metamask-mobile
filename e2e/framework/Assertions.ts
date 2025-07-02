@@ -175,10 +175,13 @@ export default class Assertions {
    */
   static async expectToggleState(
     detoxElement: DetoxElement,
-    expectedState: boolean,
+    expectedState: 'on' | 'off' | boolean,
     options: AssertionOptions = {},
   ): Promise<void> {
     const { timeout = BASE_DEFAULTS.timeout } = options;
+
+    const expectedStateBoolean =
+      expectedState === 'on' || expectedState === true;
 
     return Utilities.executeWithRetry(
       async () => {
@@ -188,11 +191,11 @@ export default class Assertions {
           ('text' in attributes && attributes.text === 'true') ||
           ('label' in attributes && attributes.label === 'true') ||
           ('value' in attributes && attributes.value === 'true');
-        if (isToggled !== expectedState) {
+        if (isToggled !== expectedStateBoolean) {
           throw new Error(
             [
               '🔄 Toggle state mismatch detected',
-              `   Expected: ${expectedState}`,
+              `   Expected: ${expectedStateBoolean ? 'on' : 'off'}`,
               `   Actual:   ${isToggled}`,
             ].join('\n'),
           );

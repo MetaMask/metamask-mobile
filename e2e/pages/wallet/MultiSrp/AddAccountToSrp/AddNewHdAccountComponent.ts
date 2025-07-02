@@ -33,16 +33,20 @@ class AddNewHdAccountComponent {
   }
 
   async tapConfirm() {
-    await Gestures.waitAndTap(this.confirmButton);
+    await Gestures.waitAndTap(this.confirmButton, {
+      elemDescription: 'Add New HD Account - Confirm Button',
+      checkStability: true,
+    });
   }
 
   async enterName(accountName: string) {
-    await Gestures.clearField(
-      this.nameInput as Promise<IndexableNativeElement>,
-    );
-    await Gestures.typeTextAndHideKeyboard(
+    await Gestures.typeText(
       this.nameInput as Promise<IndexableNativeElement>,
       accountName,
+      {
+        elemDescription: 'Add New HD Account - Name Input',
+        hideKeyboard: true,
+      }
     );
   }
 }

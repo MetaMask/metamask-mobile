@@ -63,17 +63,18 @@ class ImportWalletView {
         );
       }
 
-      await Gestures.clearField(wordInput);
       const elemDescription = `Seed Phrase Input ${i + 1}`;
       if (i !== 11) {
         await Gestures.typeText(wordInput, words[i] + ' ', {
           hideKeyboard: true,
           elemDescription,
+          sensitive: true,
         });
       } else {
         await Gestures.typeText(wordInput, words[i], {
           hideKeyboard: true,
           elemDescription,
+          sensitive: true,
         });
       }
     }

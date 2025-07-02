@@ -6,7 +6,7 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 import { SmokeTrade } from '../../tags';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions.ts';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import QuotesView from '../../pages/Ramps/QuotesView';
@@ -77,8 +77,8 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
 
   it('should get to the Amount to buy screen, after selecting Get Started', async () => {
     await setupOnRampTest(async () => {
-      await Assertions.checkIfVisible(BuildQuoteView.amountToBuyLabel);
-      await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
+      await Assertions.expectVisible(BuildQuoteView.amountToBuyLabel);
+      await Assertions.expectVisible(BuildQuoteView.getQuotesButton);
       await BuildQuoteView.tapCancelButton();
     });
   });
@@ -86,15 +86,15 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
   it('should skip to the Amount to buy screen for returning user', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapBuyButton();
-    await Assertions.checkIfVisible(BuildQuoteView.amountToBuyLabel);
-    await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
+    await Assertions.expectVisible(BuildQuoteView.amountToBuyLabel);
+    await Assertions.expectVisible(BuildQuoteView.getQuotesButton);
   });
 
   it('should enter amount and show quotes', async () => {
     await setupOnRampTest(async () => {
       await BuildQuoteView.enterAmount('100');
       await BuildQuoteView.tapGetQuotesButton();
-      await Assertions.checkIfVisible(QuotesView.quotes);
+      await Assertions.expectVisible(QuotesView.quotes);
     });
   });
 
@@ -103,8 +103,8 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
       await device.disableSynchronization();
       try {
         await QuotesView.tapExploreMoreOptions();
-        await Assertions.checkIfVisible(QuotesView.expandedQuotesSection);
-        await Assertions.checkIfVisible(QuotesView.continueWithProvider);
+        await Assertions.expectVisible(QuotesView.expandedQuotesSection);
+        await Assertions.expectVisible(QuotesView.continueWithProvider);
         await QuotesView.tapContinueWithProvider();
         await TestHelpers.pause(650); // Waiting for the last event to be sent
       } catch (error) {

@@ -6,7 +6,7 @@ import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.js';
 import ImportAccountView from '../../../pages/importAccount/ImportAccountView.js';
 import SuccessImportAccountView from '../../../pages/importAccount/SuccessImportAccountView.js';
-import Assertions from '../../../utils/Assertions.js';
+import Assertions from '../../../framework/Assertions.ts';
 import { ethers } from 'ethers';
 /**
  * Prepares the swaps test environment by disabling Smart Transactions (stx)
@@ -30,15 +30,15 @@ export async function prepareSwapsTestEnvironment(wallet: ethers.Wallet): Promis
     try {
         // Import funded account for swaps
         await WalletView.tapIdenticon();
-        await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+        await Assertions.expectVisible(AccountListBottomSheet.accountList);
         await AccountListBottomSheet.tapAddAccountButton();
         await AddAccountBottomSheet.tapImportAccount();
-        await Assertions.checkIfVisible(ImportAccountView.container);
+        await Assertions.expectVisible(ImportAccountView.container);
         await ImportAccountView.enterPrivateKey(wallet.privateKey);
-        await Assertions.checkIfVisible(SuccessImportAccountView.container);
+        await Assertions.expectVisible(SuccessImportAccountView.container);
         await SuccessImportAccountView.tapCloseButton();
         await AccountListBottomSheet.swipeToDismissAccountsModal();
-        await Assertions.checkIfVisible(WalletView.container);
+        await Assertions.expectVisible(WalletView.container);
     } catch (e) {
         throw new Error('Failed to import account for swaps: ' + (e instanceof Error ? e.message : e));
     }

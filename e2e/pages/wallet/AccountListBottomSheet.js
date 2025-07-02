@@ -106,7 +106,10 @@ class AccountListBottomSheet {
   }
 
   async tapAddAccountButton() {
-    await Gestures.waitAndTap(this.addAccountButton);
+    await Gestures.waitAndTap(this.addAccountButton, {
+      elemDescription: 'Account List Bottom Sheet - Add Account Button',
+      checkStability: true,
+    });
   }
 
   async tapAddEthereumAccountButton() {

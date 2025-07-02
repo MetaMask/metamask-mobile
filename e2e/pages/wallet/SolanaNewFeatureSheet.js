@@ -34,7 +34,9 @@ class SolanaNewFeatureSheet {
 
   // Interaction methods
   async tapCreateAccountButton() {
-    await Gestures.waitAndTap(this.createAccountButton);
+    await Gestures.waitAndTap(this.createAccountButton, {
+        elemDescription: 'Create Solana Account Button',
+    });
   }
 
   async tapViewAccountButton() {
