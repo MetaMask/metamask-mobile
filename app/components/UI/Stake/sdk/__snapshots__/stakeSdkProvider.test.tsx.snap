@@ -7,9 +7,8 @@ exports[`Stake Modals With Stake Sdk Provider renders stake screen with stake sd
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
       }
