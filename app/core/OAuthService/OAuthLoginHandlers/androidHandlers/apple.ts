@@ -1,9 +1,7 @@
 import { ResponseType, AuthRequest } from 'expo-auth-session';
 import {
   AuthConnection,
-  AuthRequestCodeParams,
   AuthRequestParams,
-  AuthResponse,
   HandleFlowParams,
   LoginHandler,
   LoginHandlerCodeResult,
@@ -23,17 +21,6 @@ export class AndroidAppleLoginHandler
   extends BaseLoginHandler
   implements LoginHandler
 {
-  getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams {
-    const { code, clientId, codeVerifier } = params as LoginHandlerCodeResult;
-    return {
-      client_id: clientId,
-      code,
-      login_provider: this.authConnection,
-      network: this.options.web3AuthNetwork,
-      code_verifier: codeVerifier,
-      redirect_uri: this.redirectUri,
-    } as AuthRequestCodeParams;
-  }
   public readonly OAUTH_SERVER_URL: string;
   readonly #scope = ['name', 'email'];
 
@@ -50,7 +37,7 @@ export class AndroidAppleLoginHandler
   }
 
   get authServerPath() {
-    return 'api/v1/oauth/token';
+    return 'api/v1/oauth/callback/verify';
   }
 
   /**
@@ -76,7 +63,7 @@ export class AndroidAppleLoginHandler
    * It then prompts the auth request via the client auth request instance with auth url generated with server redirect uri and state.
    *
    * Data flow:
-   * App -> Apple -> AuthServer -> App
+   * App -> AuthServer -> Apple -> AuthServer -> App
    *
    * @returns LoginHandlerCodeResult
    */
@@ -84,14 +71,16 @@ export class AndroidAppleLoginHandler
     const { codeVerifier, challenge } = this.generateCodeVerifierChallenge();
 
     const state = JSON.stringify({
+      provider: this.authConnection,
       client_redirect_back_uri: this.appRedirectUri,
+      clientId: this.clientId,
       code_challenge: challenge,
       nonce: this.nonce,
     });
 
     const authRequest = new AuthRequest({
       clientId: this.clientId,
-      redirectUri: this.redirectUri,
+      redirectUri: this.appRedirectUri,
       scopes: this.#scope,
       responseType: ResponseType.Code,
       usePKCE: false,
@@ -100,28 +89,11 @@ export class AndroidAppleLoginHandler
         response_mode: 'form_post',
       },
     });
-    // generate the auth url
-    const authUrl = await authRequest.makeAuthUrlAsync({
+
+    const result = await authRequest.promptAsync({
       authorizationEndpoint: this.OAUTH_SERVER_URL,
     });
 
-    // create a client auth request instance so that the auth-session can return result on appRedirectUrl
-    const authRequestClient = new AuthRequest({
-      clientId: this.clientId,
-      redirectUri: this.appRedirectUri,
-      state,
-    });
-
-    // TODO: remove the double promptAsync
-    // prompt the auth request using generated auth url instead of the client auth request instance
-    const result = await authRequestClient.promptAsync(
-      {
-        authorizationEndpoint: this.OAUTH_SERVER_URL,
-      },
-      {
-        url: authUrl,
-      },
-    );
     if (result.type === 'success') {
       return {
         authConnection: AuthConnection.Apple,
@@ -158,52 +130,22 @@ export class AndroidAppleLoginHandler
     );
   }
 
-  async getAuthTokens(
-    params: HandleFlowParams,
-    authServerUrl: string,
-  ): Promise<AuthResponse> {
+  getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams {
     if (!('code' in params)) {
       throw new OAuthError(
-        'Missing code params',
+        'handleAndroidAppleLogin: Invalid params',
         OAuthErrorType.InvalidGetAuthTokenParams,
       );
     }
-    const {
-      code,
-      codeVerifier,
-      clientId,
-      authConnection,
-      redirectUri,
-      web3AuthNetwork,
-    } = params;
-
-    const body = {
-      code,
+    const { code, clientId, codeVerifier, web3AuthNetwork, redirectUri } =
+      params;
+    return {
       client_id: clientId,
-      login_provider: authConnection,
+      code,
+      login_provider: this.authConnection,
       network: web3AuthNetwork,
-      redirect_uri: redirectUri,
       code_verifier: codeVerifier,
+      redirect_uri: redirectUri,
     };
-
-    const res = await fetch(`${authServerUrl}/api/v1/oauth/callback/verify`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
-
-    if (res.status === 200 || res.status === 201) {
-      const data = (await res.json()) satisfies AuthResponse;
-      return data;
-    }
-
-    throw new OAuthError(
-      `AuthServer Error, request failed with status: [${
-        res.status
-      }]: ${await res.text()}`,
-      OAuthErrorType.AuthServerError,
-    );
   }
 }

@@ -3,7 +3,6 @@ import {
   AuthConnection,
   AuthRequestParams,
   HandleFlowParams,
-  AuthRequestCodeParams,
 } from '../../OAuthInterface';
 import {
   AuthRequest,
@@ -25,18 +24,6 @@ export interface IosGoogleLoginHandlerParams extends BaseHandlerOptions {
  * IosGoogleLoginHandler is the login handler for the Google login
  */
 export class IosGoogleLoginHandler extends BaseLoginHandler {
-  getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams {
-    const { redirectUri, code, clientId, codeVerifier } =
-      params as LoginHandlerCodeResult;
-    return {
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      code,
-      login_provider: this.authConnection,
-      network: this.options.web3AuthNetwork,
-      code_verifier: codeVerifier,
-    } as AuthRequestCodeParams;
-  }
   public readonly OAUTH_SERVER_URL =
     'https://accounts.google.com/o/oauth2/v2/auth';
 
@@ -120,5 +107,24 @@ export class IosGoogleLoginHandler extends BaseLoginHandler {
       'handleIosGoogleLogin: Unknown error',
       OAuthErrorType.UnknownError,
     );
+  }
+
+  getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams {
+    if (!('code' in params)) {
+      throw new OAuthError(
+        'handleIosGoogleLogin: Invalid params',
+        OAuthErrorType.InvalidGetAuthTokenParams,
+      );
+    }
+    const { redirectUri, code, clientId, codeVerifier, web3AuthNetwork } =
+      params;
+    return {
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      code,
+      login_provider: this.authConnection,
+      network: web3AuthNetwork,
+      code_verifier: codeVerifier,
+    };
   }
 }
