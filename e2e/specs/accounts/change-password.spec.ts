@@ -59,7 +59,9 @@ describe(Regression('change password'), () => {
     await ChangePasswordView.tapIUnderstandCheckBox();
     await ChangePasswordView.tapSubmitButton();
 
-    // bug on CI that tap wallet button makes change password continue
+    // bug on CI when tap wallet button makes change password continue
+    // github issue: https://github.com/MetaMask/metamask-mobile/issues/16758
+    // TODO: remove this once the issue is fixed
     if (device.getPlatform() === 'ios') {
       await TabBarComponent.tapWallet();
     }
