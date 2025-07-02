@@ -36,15 +36,11 @@ import AccountSelector from '../../components/AccountSelector';
 import { useDepositSDK } from '../../sdk';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import useDepositTokenExchange from '../../hooks/useDepositTokenExchange';
-import { KycStatus } from '../../hooks/useUserDetailsPolling';
+
 import { useStyles } from '../../../../../hooks/useStyles';
 import useSupportedTokens from '../../hooks/useSupportedTokens';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
 
-import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
-import { createProviderWebviewNavDetails } from '../ProviderWebview/ProviderWebview';
-import { createBasicInfoNavDetails } from '../BasicInfo/BasicInfo';
-import { createKycWebviewNavDetails } from '../KycWebview/KycWebview';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 import { createTokenSelectorModalNavigationDetails } from '../Modals/TokenSelectorModal/TokenSelectorModal';
 import { createPaymentMethodSelectorModalNavigationDetails } from '../Modals/PaymentMethodSelectorModal/PaymentMethodSelectorModal';
@@ -72,12 +68,9 @@ import {
   EUR_CURRENCY,
   DEPOSIT_REGIONS,
   DepositRegion,
-  SEPA_PAYMENT_METHOD,
   DEBIT_CREDIT_PAYMENT_METHOD,
 } from '../../constants';
-import { createBankDetailsNavDetails } from '../BankDetails/BankDetails';
-import { depositOrderToFiatOrder } from '../../orderProcessor';
-import useHandleNewOrder from '../../hooks/useHandleNewOrder';
+import { useDepositRouting } from '../../hooks/useDepositRouting';
 import Routes from '../../../../../../constants/navigation/Routes';
 
 const BuildQuote = () => {
@@ -103,7 +96,11 @@ const BuildQuote = () => {
     DEPOSIT_REGIONS.find((region) => region.isoCode === 'US') || null,
   );
 
-  const handleNewOrder = useHandleNewOrder();
+  const { routeAfterAuthentication } = useDepositRouting({
+    selectedWalletAddress,
+    cryptoCurrencyChainId: cryptoCurrency.chainId,
+    paymentMethodId: paymentMethod.id,
+  });
 
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
 
@@ -115,32 +112,6 @@ const BuildQuote = () => {
     paymentMethod.id,
     amount,
   );
-
-  const [{ error: kycFormsFetchError }, fetchKycForms] = useDepositSdkMethod({
-    method: 'getKYCForms',
-    onMount: false,
-  });
-
-  const [{ error: kycFormFetchError }, fetchKycFormData] = useDepositSdkMethod({
-    method: 'getKycForm',
-    onMount: false,
-  });
-
-  const [{ error: userDetailsFetchError }, fetchUserDetails] =
-    useDepositSdkMethod({
-      method: 'getUserDetails',
-      onMount: false,
-    });
-
-  const [{ error: reservationError }, createReservation] = useDepositSdkMethod({
-    method: 'walletReserve',
-    onMount: false,
-  });
-
-  const [{ error: orderError }, createOrder] = useDepositSdkMethod({
-    method: 'createOrder',
-    onMount: false,
-  });
 
   const {
     tokenAmount,
@@ -234,109 +205,17 @@ const BuildQuote = () => {
       }
 
       if (!isAuthenticated) {
-        navigation.navigate(...createEnterEmailNavDetails({ quote }));
-      }
-
-      const forms = await fetchKycForms(quote);
-
-      if (kycFormsFetchError) {
-        setError(strings('deposit.buildQuote.unexpectedError'));
-        return;
-      }
-
-      const { forms: requiredForms } = forms || {};
-
-      if (requiredForms?.length === 0) {
-        const userDetails = await fetchUserDetails();
-
-        if (userDetailsFetchError) {
-          setError(strings('deposit.buildQuote.unexpectedError'));
-          return;
-        }
-
-        if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
-          if (paymentMethod.id === SEPA_PAYMENT_METHOD.id) {
-            const reservation = await createReservation(
-              quote,
-              selectedWalletAddress,
-            );
-
-            if (reservationError || !reservation) {
-              setError(strings('deposit.buildQuote.unexpectedError'));
-              return;
-            }
-
-            const order = await createOrder(reservation);
-
-            if (orderError || !order) {
-              setError(strings('deposit.buildQuote.unexpectedError'));
-              return;
-            }
-
-            const processedOrder = {
-              ...depositOrderToFiatOrder(order),
-              account: selectedWalletAddress || order.walletAddress,
-              network: cryptoCurrency.chainId,
-            };
-
-            await handleNewOrder(processedOrder);
-
-            navigation.navigate(
-              ...createBankDetailsNavDetails({
-                orderId: order.id,
-                shouldUpdate: false,
-              }),
-            );
-          } else {
-            navigation.navigate(...createProviderWebviewNavDetails({ quote }));
-          }
-          return;
-        }
-
-        navigation.navigate(...createKycProcessingNavDetails({ quote }));
-        return;
-      }
-
-      const personalDetailsKycForm = requiredForms?.find(
-        (form) => form.id === 'personalDetails',
-      );
-
-      const addressKycForm = requiredForms?.find(
-        (form) => form.id === 'address',
-      );
-
-      const idProofKycForm = requiredForms?.find(
-        (form) => form.id === 'idProof',
-      );
-
-      const idProofData = idProofKycForm
-        ? await fetchKycFormData(quote, idProofKycForm)
-        : null;
-
-      if (kycFormFetchError) {
-        setError(strings('deposit.buildQuote.unexpectedError'));
-        return;
-      }
-
-      if (personalDetailsKycForm || addressKycForm) {
         navigation.navigate(
-          ...createBasicInfoNavDetails({
+          ...createEnterEmailNavDetails({
             quote,
-            kycUrl: idProofData?.data?.kycUrl,
-          }),
-        );
-        return;
-      } else if (idProofData) {
-        navigation.navigate(
-          ...createKycWebviewNavDetails({
-            quote,
-            kycUrl: idProofData.data.kycUrl,
+            paymentMethodId: paymentMethod.id,
+            cryptoCurrencyChainId: cryptoCurrency.chainId,
           }),
         );
         return;
       }
-      setError(strings('deposit.buildQuote.unexpectedError'));
-      return;
+
+      await routeAfterAuthentication(quote);
     } catch (_) {
       setError(strings('deposit.buildQuote.unexpectedError'));
       return;
@@ -349,19 +228,8 @@ const BuildQuote = () => {
     amount,
     quoteFetchError,
     isAuthenticated,
-    fetchKycForms,
-    kycFormsFetchError,
-    fetchKycFormData,
-    kycFormFetchError,
     navigation,
-    fetchUserDetails,
-    userDetailsFetchError,
-    createReservation,
-    reservationError,
-    createOrder,
-    orderError,
-    selectedWalletAddress,
-    handleNewOrder,
+    routeAfterAuthentication,
   ]);
 
   const handleKeypadChange = useCallback(
@@ -440,7 +308,9 @@ const BuildQuote = () => {
             >
               <View style={styles.regionContent}>
                 <Text variant={TextVariant.BodyMD}>{selectedRegion?.flag}</Text>
-                <Text variant={TextVariant.BodyMD}>{selectedRegion?.isoCode}</Text>
+                <Text variant={TextVariant.BodyMD}>
+                  {selectedRegion?.isoCode}
+                </Text>
                 <Icon
                   name={IconName.ArrowDown}
                   size={IconSize.Sm}
