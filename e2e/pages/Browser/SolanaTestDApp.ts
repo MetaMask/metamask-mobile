@@ -102,8 +102,8 @@ class SolanaTestDApp {
   /**
    * Tap a button in the WebView
    */
-  async tapButton(webElement: WebElement, scroll = true): Promise<void> {
-   if (scroll) await Gestures.scrollToWebViewPort(webElement);
+  async tapButton(webElement: WebElement): Promise<void> {
+    await Gestures.scrollToWebViewPort(webElement);
     await Gestures.tap(webElement);
   }
 
@@ -116,8 +116,7 @@ class SolanaTestDApp {
         await this.tapButton(this.disconnectButtonSelector);
       },
       selectMetaMask: async () => {
-        const isIOS = await device.getPlatform() === 'ios';
-        await this.tapButton(this.walletButtonSelector, isIOS); // This is faling on the scroll on Android, so we scroll to the button only on iOS
+        await this.tapButton(this.walletButtonSelector);
       },
       getConnectionStatus: async () => {
         const connectionStatusDiv = await getTestElement(

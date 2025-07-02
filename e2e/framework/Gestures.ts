@@ -324,7 +324,7 @@ export default class Gestures {
    */
   static async scrollToElement(
     targetElement: DetoxElement,
-    scrollableContainer: Detox.NativeMatcher,
+    scrollableContainer: Promise<Detox.NativeMatcher>,
     options: ScrollOptions = {},
   ): Promise<void> {
     const {
@@ -486,10 +486,6 @@ export default class Gestures {
     return this.replaceText(detoxElement, text, { timeout });
   }
 
-  /**
-   * Legacy method: Scroll to web view port
-   * @deprecated Use scrollToElement() instead for better error handling and retry mechanisms
-   */
   static async scrollToWebViewPort(
     detoxElement: WebElement,
   ): Promise<void> {

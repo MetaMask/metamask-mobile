@@ -109,7 +109,7 @@ export default class Matchers {
     webviewID: string,
     selector: string,
   ): Promise<Detox.IndexableWebElement> {
-    const myWebView = web(by.id(webviewID));
+    const myWebView = this.getWebViewByID(webviewID);
     return myWebView
       .element(by.web.cssSelector(selector))
       .atIndex(0) as unknown as Detox.IndexableWebElement;
@@ -133,7 +133,7 @@ export default class Matchers {
     webviewID: string,
     url: string,
   ): Promise<Detox.IndexableWebElement> {
-    const myWebView = web(by.id(webviewID));
+    const myWebView = this.getWebViewByID(webviewID);
     return myWebView
       .element(by.web.href(url))
       .atIndex(0) as unknown as Detox.IndexableWebElement;
