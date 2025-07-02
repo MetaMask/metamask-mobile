@@ -125,7 +125,6 @@ describe(Regression('Swap from Token view'), (): void => {
     await Assertions.checkIfVisible(SwapView.gasFee);
     await SwapView.tapIUnderstandPriceWarning();
     await SwapView.tapSwapButton();
-    await TestHelpers.delay(2000);
     //Wait for Swap to complete
     try {
       await Assertions.checkIfTextIsDisplayed(
