@@ -37,9 +37,7 @@ class ChangePasswordView {
   }
 
   get submitButton() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByText(ChoosePasswordSelectorsIDs.RESET_PASSWORD_BUTTON_TEXT)
-      : Matchers.getElementByID(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
+    return Matchers.getElementByText(ChoosePasswordSelectorsIDs.RESET_PASSWORD_BUTTON_TEXT);
   }
 
   async typeInConfirmPasswordInputBox(PASSWORD) {
