@@ -175,7 +175,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                 }
               }
             >
-              Select a token
+              Select a token to deposit
             </Text>
           </View>
           <View
@@ -245,7 +245,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                   }
                 }
               >
-                4%
+                $100.00
               </Text>
               <Text
                 accessibilityRole="text"
@@ -266,7 +266,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
             <View
               style={
                 {
-                  "padding": 16,
+                  "paddingVertical": 16,
                 }
               }
             >
@@ -323,9 +323,13 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                               },
                               undefined,
                               false,
-                              false,
                               {
-                                "flexShrink": 0,
+                                "borderRadius": 35,
+                                "height": 70,
+                                "width": 70,
+                              },
+                              {
+                                "flexGrow": 1,
                                 "height": 32,
                                 "width": 32,
                               },
@@ -350,8 +354,8 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                             style={
                               [
                                 {
-                                  "borderRadius": 12,
-                                  "flexShrink": 0,
+                                  "borderRadius": 35,
+                                  "flexGrow": 1,
                                   "height": 32,
                                   "width": 32,
                                 },
@@ -438,6 +442,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                   >
                     <Text
                       accessibilityRole="text"
+                      ellipsizeMode="tail"
                       numberOfLines={1}
                       style={
                         {
@@ -459,6 +464,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                     {
                       "alignItems": "flex-end",
                       "justifyContent": "center",
+                      "paddingLeft": 16,
                     }
                   }
                 >
@@ -498,7 +504,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
             <View
               style={
                 {
-                  "padding": 16,
+                  "paddingVertical": 16,
                 }
               }
             >
@@ -539,7 +545,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                           {
                             "backgroundColor": "#ffffff",
                             "borderRadius": 16,
-                            "flexShrink": 0,
+                            "flexGrow": 1,
                             "height": 32,
                             "overflow": "hidden",
                             "width": 32,
@@ -639,6 +645,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                   >
                     <Text
                       accessibilityRole="text"
+                      ellipsizeMode="tail"
                       numberOfLines={1}
                       style={
                         {
@@ -660,6 +667,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                     {
                       "alignItems": "flex-end",
                       "justifyContent": "center",
+                      "paddingLeft": 16,
                     }
                   }
                 >
