@@ -26,7 +26,6 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
 
-// Mock the constants to control test data
 jest.mock('../../../constants', () => ({
   DEPOSIT_REGIONS: [
     {
@@ -155,6 +154,54 @@ describe('RegionSelectorModal Component', () => {
       fireEvent.press(germanyRegion);
 
       expect(mockHandleSelectRegion).not.toHaveBeenCalled();
+    });
+
+    it('sorts recommended regions to the top when no search is active', () => {
+      jest.doMock('../../../constants', () => ({
+        DEPOSIT_REGIONS: [
+          {
+            code: 'UK',
+            flag: '🇬🇧',
+            name: 'United Kingdom',
+            phonePrefix: '+44',
+            currency: 'GBP',
+            phoneDigitCount: 10,
+            recommended: true,
+            supported: true,
+          },
+          {
+            code: 'AU',
+            flag: '🇦🇺',
+            name: 'Australia',
+            phonePrefix: '+61',
+            currency: 'AUD',
+            phoneDigitCount: 9,
+            supported: true,
+          },
+          {
+            code: 'JP',
+            flag: '🇯🇵',
+            name: 'Japan',
+            phonePrefix: '+81',
+            currency: 'JPY',
+            phoneDigitCount: 10,
+            recommended: true,
+            supported: true,
+          },
+          {
+            code: 'BR',
+            flag: '🇧🇷',
+            name: 'Brazil',
+            phonePrefix: '+55',
+            currency: 'BRL',
+            phoneDigitCount: 10,
+            supported: false,
+          },
+        ],
+      }));
+
+      const { toJSON } = renderWithProvider(RegionSelectorModal);
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 });
