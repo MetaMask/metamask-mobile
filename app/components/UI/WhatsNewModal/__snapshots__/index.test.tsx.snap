@@ -31,6 +31,9 @@ exports[`WhatsNewModal should render correctly 1`] = `
   />
   <View
     collapsable={false}
+    enabled={true}
+    handlerTag={-1}
+    handlerType="PanGestureHandler"
     onGestureHandlerEvent={[Function]}
     onGestureHandlerStateChange={[Function]}
     style={
@@ -104,9 +107,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Bold",
+                "fontFamily": "Geist Bold",
                 "fontSize": 18,
-                "fontWeight": "700",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -159,6 +161,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
         >
           <RCTScrollView
             collapsable={false}
+            handlerTag={-1}
+            handlerType="NativeViewGestureHandler"
             horizontal={true}
             onGestureHandlerEvent={[Function]}
             onGestureHandlerStateChange={[Function]}
@@ -176,6 +180,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
             <View>
               <RCTScrollView
                 collapsable={false}
+                handlerTag={-1}
+                handlerType="NativeViewGestureHandler"
                 onGestureHandlerEvent={[Function]}
                 onGestureHandlerStateChange={[Function]}
                 style={
@@ -214,9 +220,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "CentraNo1-Medium",
+                            "fontFamily": "Geist Medium",
                             "fontSize": 18,
-                            "fontWeight": "500",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                             "marginBottom": 12,
@@ -256,9 +261,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 20,
                             "marginBottom": 24,
@@ -274,9 +278,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 20,
                             "marginBottom": 24,
@@ -292,9 +295,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 20,
                             "marginBottom": 24,
@@ -370,6 +372,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
               </RCTScrollView>
               <RCTScrollView
                 collapsable={false}
+                handlerTag={-1}
+                handlerType="NativeViewGestureHandler"
                 onGestureHandlerEvent={[Function]}
                 onGestureHandlerStateChange={[Function]}
                 style={
@@ -432,9 +436,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "CentraNo1-Medium",
+                            "fontFamily": "Geist Medium",
                             "fontSize": 18,
-                            "fontWeight": "500",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                             "marginBottom": 12,
@@ -450,9 +453,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 20,
                             "marginBottom": 24,
@@ -468,9 +470,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 20,
                             "marginBottom": 24,

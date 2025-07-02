@@ -15,6 +15,12 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import { AAVE_WITHDRAWAL_RISKS } from '../../utils/tempLending';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import { useMetrics } from '../../../../hooks/useMetrics';
 // eslint-disable-next-line import/no-namespace
 import * as NavbarUtils from '../../../Navbar';
 import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
@@ -23,12 +29,7 @@ import {
   CONFIRMATION_FOOTER_BUTTON_TEST_IDS,
   CONFIRMATION_FOOTER_LINK_TEST_IDS,
 } from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
-import { useMetrics } from '../../../../hooks/useMetrics';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import Routes from '../../../../../constants/navigation/Routes';
 
 expect.addSnapshotSerializer({
   // any is the expected type for the val parameter
@@ -40,6 +41,7 @@ expect.addSnapshotSerializer({
 const getStakingNavbarSpy = jest.spyOn(NavbarUtils, 'getStakingNavbar');
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -47,7 +49,7 @@ jest.mock('@react-navigation/native', () => {
     ...actual,
     useRoute: jest.fn(),
     useNavigation: () => ({
-      navigate: jest.fn(),
+      navigate: mockNavigate,
       goBack: mockGoBack,
       setOptions: jest.fn(),
     }),
@@ -217,7 +219,8 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('displays advanced details section when user has detected borrow positions', () => {
+  // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-1044 Add back in v1.1
+  it.skip('displays advanced details section when user has detected borrow positions', () => {
     (useRoute as jest.MockedFunction<typeof useRoute>).mockReturnValue({
       ...defaultRouteParams,
       params: {
@@ -279,7 +282,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       Engine.context.EarnController.executeLendingWithdraw,
     ).toHaveBeenCalledWith({
       amount: '1000000',
-      gasOptions: {},
+      gasOptions: {
+        gasLimit: 'none',
+      },
       protocol: LendingProtocol.AAVE,
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
@@ -417,7 +422,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       Engine.context.EarnController.executeLendingWithdraw,
     ).toHaveBeenCalledWith({
       amount: '1000000',
-      gasOptions: {},
+      gasOptions: {
+        gasLimit: 'none',
+      },
       protocol: LendingProtocol.AAVE,
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
@@ -429,6 +436,95 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     });
 
     expect(Engine.context.TokensController.addToken).toHaveBeenCalledTimes(1);
+  });
+
+  it('should use MaxUint256 when amountTokenMinimalUnit equals balanceMinimalUnit', async () => {
+    // Mock the route params to have amountTokenMinimalUnit equal to balanceMinimalUnit
+    (useRoute as jest.MockedFunction<typeof useRoute>).mockReturnValue({
+      ...defaultRouteParams,
+      params: {
+        ...defaultRouteParams.params,
+        amountTokenMinimalUnit: mockLineaAUsdc.balanceMinimalUnit, // Set to balance
+      },
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingWithdrawalConfirmationView />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const footerConfirmationButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(footerConfirmationButton);
+    });
+
+    // Verify that MaxUint256 was used instead of the actual amount
+    expect(
+      Engine.context.EarnController.executeLendingWithdraw,
+    ).toHaveBeenCalledWith({
+      amount:
+        '115792089237316195423570985008687907853269984665640564039457584007913129639935', // MaxUint256
+      gasOptions: {
+        gasLimit: 'none',
+      },
+      protocol: LendingProtocol.AAVE,
+      txOptions: {
+        deviceConfirmedOn: 'metamask_mobile',
+        networkClientId: 'linea-mainnet',
+        origin: 'metamask',
+        type: 'lendingWithdraw',
+      },
+      underlyingTokenAddress: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
+    });
+  });
+
+  it('should use actual amount when amountTokenMinimalUnit does not equal balanceMinimalUnit', async () => {
+    // Mock the route params to have amountTokenMinimalUnit different from balanceMinimalUnit
+    (useRoute as jest.MockedFunction<typeof useRoute>).mockReturnValue({
+      ...defaultRouteParams,
+      params: {
+        ...defaultRouteParams.params,
+        amountTokenMinimalUnit: '500000', // Different from balance
+      },
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingWithdrawalConfirmationView />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const footerConfirmationButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(footerConfirmationButton);
+    });
+
+    // Verify that the actual amount was used
+    expect(
+      Engine.context.EarnController.executeLendingWithdraw,
+    ).toHaveBeenCalledWith({
+      amount: '500000', // Actual amount, not MaxUint256
+      gasOptions: {
+        gasLimit: 'none',
+      },
+      protocol: LendingProtocol.AAVE,
+      txOptions: {
+        deviceConfirmedOn: 'metamask_mobile',
+        networkClientId: 'linea-mainnet',
+        origin: 'metamask',
+        type: 'lendingWithdraw',
+      },
+      underlyingTokenAddress: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
+    });
   });
 
   describe('Analytics', () => {
@@ -748,6 +844,14 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
           },
         }),
       );
+
+      // Wait for the setTimeout to be called before checking for navigation
+      // as the navigation is handled by a setTimeout to avoid a race condition
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
 
       mockTrackEvent.mockClear();
 

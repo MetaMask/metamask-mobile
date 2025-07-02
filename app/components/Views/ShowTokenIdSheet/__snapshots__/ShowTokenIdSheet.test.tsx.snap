@@ -241,6 +241,9 @@ exports[`ShowTokenId should render correctly 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -371,6 +374,9 @@ exports[`ShowTokenId should render correctly 1`] = `
                       >
                         <View
                           collapsable={false}
+                          enabled={true}
+                          handlerTag={-1}
+                          handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           onLayout={[Function]}
@@ -447,9 +453,8 @@ exports[`ShowTokenId should render correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Bold",
+                                  "fontFamily": "Geist Bold",
                                   "fontSize": 18,
-                                  "fontWeight": "700",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -479,9 +484,8 @@ exports[`ShowTokenId should render correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 16,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
