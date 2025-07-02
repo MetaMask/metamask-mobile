@@ -911,7 +911,10 @@ class FixtureBuilder {
     return this;
   }
 
-  // TODO: [ffmcgee] tsdocs
+  /**
+   * Adds Solana account permissions for default fixture account.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
   withSolanaAccountPermission() {
     const caveatValue = {
       optionalScopes: {
