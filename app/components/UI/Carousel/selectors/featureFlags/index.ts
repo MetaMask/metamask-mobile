@@ -13,20 +13,17 @@ const hasMinimumRequiredVersion = (minRequiredVersion: string) => {
   return compareVersions.compare(currentVersion, minRequiredVersion, '>=');
 };
 
-const resolveFlag = (localFlag: boolean, remoteFlag: LaunchDarklyFlag) => {
-  return (
-    localFlag ||
-    (Boolean(remoteFlag?.enabled) &&
-      hasMinimumRequiredVersion(remoteFlag?.minimumVersion))
-  );
-};
+const resolveFlag = (localFlag: boolean, remoteFlag: LaunchDarklyFlag) =>
+  localFlag ||
+  (Boolean(remoteFlag?.enabled) &&
+    hasMinimumRequiredVersion(remoteFlag?.minimumVersion));
 
 export const selectContentfulCarouselEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFlags): boolean => {
     const localFlag = process.env.MM_CONTENTFUL_CAROUSEL_ENABLED === 'true';
     const remoteFlag =
-      remoteFlags?.contentfulCarouselEnabled as unknown as LaunchDarklyFlag;
+      remoteFlags?.contentfulCarouselIntegration as unknown as LaunchDarklyFlag;
 
     return resolveFlag(localFlag, remoteFlag);
   },
