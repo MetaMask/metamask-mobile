@@ -7,17 +7,19 @@ import NotificationMenuView from '../../pages/Notifications/NotificationMenuView
 import WalletView from '../../pages/wallet/WalletView';
 import { SmokeNetworkAbstractions } from '../../tags';
 import Assertions from '../../utils/Assertions';
-import { importWalletWithRecoveryPhrase } from '../../viewHelper';
-import { getMockServerPort } from '../../fixtures/utils';
-import {
-  NOTIFICATIONS_TEAM_PASSWORD,
-  NOTIFICATIONS_TEAM_SEED_PHRASE,
-} from './utils/constants';
+import { loginToApp } from '../../viewHelper';
+import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils';
+
 import {
   getMockFeatureAnnouncementItemId,
   getMockWalletNotificationItemIds,
   mockNotificationServices,
 } from './utils/mocks';
+import FixtureServer from '../../fixtures/fixture-server';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import { loadFixture, startFixtureServer, stopFixtureServer } from '../../fixtures/fixture-helper';
+
+const fixtureServer = new FixtureServer();
 
 const launchAppSettings = (port: number): DeviceLaunchAppConfig => ({
   newInstance: true,
@@ -25,7 +27,10 @@ const launchAppSettings = (port: number): DeviceLaunchAppConfig => ({
   permissions: {
     notifications: 'YES',
   },
-  launchArgs: { mockServerPort: port },
+  launchArgs: {
+    mockServerPort: port,
+    fixtureServerPort: `${getFixturesServerPort()}`,
+  },
 });
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
@@ -34,25 +39,27 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
 
+    const fixture = new FixtureBuilder()
+      .withDefaultFixture()
+      .build();
+    await startFixtureServer(fixtureServer);
+    await loadFixture(fixtureServer, { fixture });
+
     // Mock Server
     mockServer = await startMockServer({}, getMockServerPort());
     await mockNotificationServices(mockServer);
 
     // Launch App
     await TestHelpers.launchApp(launchAppSettings(mockServer.port));
+    await loginToApp();
   });
 
   afterAll(async () => {
     await stopMockServer(mockServer);
+    await stopFixtureServer(fixtureServer);
   });
 
   it('enables notifications through bell icon', async () => {
-    // Onboard - Import SRP
-    await importWalletWithRecoveryPhrase({
-      seedPhrase: NOTIFICATIONS_TEAM_SEED_PHRASE,
-      password: NOTIFICATIONS_TEAM_PASSWORD,
-      optInToMetrics: false,
-    });
 
     // Bell Icon
     await WalletView.tapBellIcon();
