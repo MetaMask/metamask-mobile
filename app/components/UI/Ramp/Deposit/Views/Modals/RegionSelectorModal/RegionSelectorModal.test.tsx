@@ -87,7 +87,19 @@ describe('RegionSelectorModal Component', () => {
     jest.clearAllMocks();
     mockHandleSelectRegion = jest.fn();
     (useParams as jest.Mock).mockReturnValue({
-      selectedRegionCode: 'US',
+      selectedRegion: {
+        isoCode: 'US',
+        flag: '🇺🇸',
+        name: 'United States',
+        phone: {
+          prefix: '+1',
+          placeholder: '(555) 555-1234',
+          template: '(XXX) XXX-XXXX',
+        },
+        currency: 'USD',
+        recommended: true,
+        supported: true,
+      },
       handleSelectRegion: mockHandleSelectRegion,
     });
   });
@@ -144,7 +156,19 @@ describe('RegionSelectorModal Component', () => {
 
     it('handles undefined handleSelectRegion gracefully', () => {
       (useParams as jest.Mock).mockReturnValue({
-        selectedRegionCode: 'US',
+        selectedRegion: {
+          isoCode: 'US',
+          flag: '🇺🇸',
+          name: 'United States',
+          phone: {
+            prefix: '+1',
+            placeholder: '(555) 555-1234',
+            template: '(XXX) XXX-XXXX',
+          },
+          currency: 'USD',
+          recommended: true,
+          supported: true,
+        },
         handleSelectRegion: undefined,
       });
 
@@ -160,41 +184,53 @@ describe('RegionSelectorModal Component', () => {
       jest.doMock('../../../constants', () => ({
         DEPOSIT_REGIONS: [
           {
-            code: 'UK',
+            isoCode: 'UK',
             flag: '🇬🇧',
             name: 'United Kingdom',
-            phonePrefix: '+44',
+            phone: {
+              prefix: '+44',
+              placeholder: '1234 567890',
+              template: 'XXXX XXXXXX',
+            },
             currency: 'GBP',
-            phoneDigitCount: 10,
             recommended: true,
             supported: true,
           },
           {
-            code: 'AU',
+            isoCode: 'AU',
             flag: '🇦🇺',
             name: 'Australia',
-            phonePrefix: '+61',
+            phone: {
+              prefix: '+61',
+              placeholder: '123 456 789',
+              template: 'XXX XXX XXX',
+            },
             currency: 'AUD',
-            phoneDigitCount: 9,
             supported: true,
           },
           {
-            code: 'JP',
+            isoCode: 'JP',
             flag: '🇯🇵',
             name: 'Japan',
-            phonePrefix: '+81',
+            phone: {
+              prefix: '+81',
+              placeholder: '123 456 7890',
+              template: 'XXX XXX XXXX',
+            },
             currency: 'JPY',
-            phoneDigitCount: 10,
             recommended: true,
             supported: true,
           },
           {
-            code: 'BR',
+            isoCode: 'BR',
             flag: '🇧🇷',
             name: 'Brazil',
-            phonePrefix: '+55',
+            phone: {
+              prefix: '+55',
+              placeholder: '11 12345 6789',
+              template: 'XX XXXXX XXXX',
+            },
             currency: 'BRL',
-            phoneDigitCount: 10,
             supported: false,
           },
         ],

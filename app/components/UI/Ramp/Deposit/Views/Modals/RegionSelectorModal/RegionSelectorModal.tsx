@@ -103,7 +103,7 @@ function RegionSelectorModal() {
   const renderRegionItem = useCallback(
     ({ item: region }: { item: DepositRegion }) => (
       <ListItemSelect
-        isSelected={selectedRegion?.isoCode === region.isoCode}
+        isSelected={selectedRegion.isoCode === region.isoCode}
         onPress={() => {
           if (region.supported) {
             handleOnRegionPressCallback(region);
@@ -111,7 +111,7 @@ function RegionSelectorModal() {
         }}
         accessibilityRole="button"
         accessible
-        disabled={!region?.supported}
+        disabled={!region.supported}
       >
         <ListItemColumn widthType={WidthType.Fill}>
           <View style={styles.region}>
@@ -119,20 +119,20 @@ function RegionSelectorModal() {
               <Text
                 variant={TextVariant.BodyLGMedium}
                 color={
-                  region?.supported ? TextColor.Default : TextColor.Alternative
+                  region.supported ? TextColor.Default : TextColor.Alternative
                 }
               >
-                {region?.flag}
+                {region.flag}
               </Text>
             </View>
             <View>
               <Text
                 variant={TextVariant.BodyLGMedium}
                 color={
-                  region?.supported ? TextColor.Default : TextColor.Alternative
+                  region.supported ? TextColor.Default : TextColor.Alternative
                 }
               >
-                {region?.name}
+                {region.name}
               </Text>
             </View>
           </View>

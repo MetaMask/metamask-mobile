@@ -70,14 +70,14 @@ function UnsupportedRegionModal() {
         </Text>
         <View style={styles.countryContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {selectedRegion?.flag}
+            {selectedRegion.flag}
           </Text>
           <Text
             variant={TextVariant.BodyMD}
             color={TextColor.Default}
             style={styles.countryName}
           >
-            {selectedRegion?.name}
+            {selectedRegion.name}
           </Text>
         </View>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>

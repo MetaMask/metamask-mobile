@@ -648,6 +648,7 @@ exports[`RegionSelectorModal Component region selector modal renders empty state
                             ListEmptyComponent={[Function]}
                             collapsable={false}
                             data={[]}
+                            extraData="US"
                             getItem={[Function]}
                             getItemCount={[Function]}
                             handlerTag={7}
@@ -1376,6 +1377,7 @@ exports[`RegionSelectorModal Component region selector modal renders the default
                                 },
                               ]
                             }
+                            extraData="US"
                             getItem={[Function]}
                             getItemCount={[Function]}
                             handlerTag={-1}
@@ -1498,6 +1500,33 @@ exports[`RegionSelectorModal Component region selector modal renders the default
                                         </View>
                                       </View>
                                     </View>
+                                  </View>
+                                  <View
+                                    accessibilityRole="checkbox"
+                                    accessible={true}
+                                    style={
+                                      {
+                                        "backgroundColor": "#4459ff1a",
+                                        "bottom": 0,
+                                        "flexDirection": "row",
+                                        "left": 0,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "backgroundColor": "#4459ff",
+                                          "borderRadius": 2,
+                                          "marginLeft": 4,
+                                          "marginVertical": 4,
+                                          "width": 4,
+                                        }
+                                      }
+                                    />
                                   </View>
                                 </TouchableOpacity>
                               </View>
@@ -2469,6 +2498,7 @@ exports[`RegionSelectorModal Component region selector modal renders with search
                                 },
                               ]
                             }
+                            extraData="US"
                             getItem={[Function]}
                             getItemCount={[Function]}
                             handlerTag={4}
@@ -3270,6 +3300,7 @@ exports[`RegionSelectorModal Component region selector modal sorts recommended r
                                 },
                               ]
                             }
+                            extraData="US"
                             getItem={[Function]}
                             getItemCount={[Function]}
                             handlerTag={-1}
@@ -3392,6 +3423,33 @@ exports[`RegionSelectorModal Component region selector modal sorts recommended r
                                         </View>
                                       </View>
                                     </View>
+                                  </View>
+                                  <View
+                                    accessibilityRole="checkbox"
+                                    accessible={true}
+                                    style={
+                                      {
+                                        "backgroundColor": "#4459ff1a",
+                                        "bottom": 0,
+                                        "flexDirection": "row",
+                                        "left": 0,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "backgroundColor": "#4459ff",
+                                          "borderRadius": 2,
+                                          "marginLeft": 4,
+                                          "marginVertical": 4,
+                                          "width": 4,
+                                        }
+                                      }
+                                    />
                                   </View>
                                 </TouchableOpacity>
                               </View>
