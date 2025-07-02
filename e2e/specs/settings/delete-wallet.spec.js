@@ -68,6 +68,8 @@ describe(
         // TODO: remove the condition but keep the step once the issue above is fixed
         if (device.getPlatform() === 'ios' && !process.env.CI) {
           await CommonView.tapBackButton();
+        } else {
+          await CommonView.tapBackButton();
         }
         await SettingsView.tapLock();
         await SettingsView.tapYesAlertButton();
