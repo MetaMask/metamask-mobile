@@ -6,6 +6,7 @@ import renderWithProvider from '../../../../../../../util/test/renderWithProvide
 import { RootState } from '../../../../../../../reducers';
 import { mockTransaction } from '../../../../../../../util/test/confirm-data-helpers';
 import { EIP7702NetworkConfiguration } from '../../../../hooks/7702/useEIP7702Networks';
+import Routes from '../../../../../../../constants/navigation/Routes';
 import AccountNetworkRow from './account-network-row';
 
 const MOCK_NETWORK = {
@@ -285,6 +286,20 @@ describe('Account Network Row', () => {
       fireEvent.press(getByText('Switch back'));
 
       expect(mockDowngradeAccount).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not close account modal when useMultichainAccountsDesign is true', () => {
+      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
+      const { getByTestId } = renderWithProvider(
+        <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
+        { state: MOCK_STATE },
+      );
+
+      fireEvent.press(getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH));
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+      });
     });
   });
 });
