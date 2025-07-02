@@ -62,7 +62,10 @@ import {
   selectInternalAccountsById,
 } from '../../../selectors/accountsController';
 import { AccountWallet } from '@metamask/account-tree-controller';
-import { getAggregatedBalance } from '../../hooks/useMultichainBalances/utils';
+import {
+  getAggregatedBalance,
+  getMultiChainFiatBalance,
+} from '../../hooks/useMultichainBalances/utils';
 import { renderFiat } from '../../../util/number';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
@@ -129,7 +132,7 @@ const EvmAccountSelectorList = ({
   const nonEvmNetworkChainId = useSelector(selectSelectedNonEvmNetworkChainId);
 
   const [aggregatedBalanceByAccount, setAggregatedBalanceByAccount] = useState<{
-    [address: string]: number | null;
+    [address: string]: string | null;
   }>({});
 
   const internalAccountsById = useSelector(selectInternalAccountsById);
@@ -228,11 +231,7 @@ const EvmAccountSelectorList = ({
               style={styles.balanceLabel}
               isHidden={privacyMode}
             >
-              {renderFiat(
-                aggregatedBalanceByAccount[address] as number,
-                currentCurrency,
-                2,
-              )}
+              {aggregatedBalanceByAccount[address]}
             </SensitiveText>
             <AccountNetworkIndicator partialAccount={item.data} />
           </>
@@ -416,7 +415,7 @@ const EvmAccountSelectorList = ({
 
     try {
       const aggregatedBalanceNewState: {
-        [address: string]: number | null;
+        [address: string]: string | null;
       } = {};
 
       // Initialize all accounts with null to show loading state
@@ -439,9 +438,14 @@ const EvmAccountSelectorList = ({
               nonEvmNetworkChainId,
             );
 
-            const totalBalance =
-              (balanceData?.totalBalanceFiat || 0) +
-              (Number(balanceData?.totalNativeTokenBalance?.amount) || 0);
+            // const totalBalance =
+            //   (balanceData?.totalBalanceFiat || 0) +
+            //   (Number(balanceData?.totalNativeTokenBalance?.amount) || 0);
+
+            const totalBalance = getMultiChainFiatBalance(
+              balanceData.totalBalanceFiat,
+              currentCurrency,
+            );
 
             aggregatedBalanceNewState[toFormattedAddress(account.address)] =
               totalBalance;
@@ -449,14 +453,15 @@ const EvmAccountSelectorList = ({
             const balanceData = getAggregatedBalance(account);
             const totalBalance =
               (balanceData?.ethFiat || 0) + (balanceData?.tokenFiat || 0);
+            const totalFiat = renderFiat(totalBalance, currentCurrency, 2);
 
             aggregatedBalanceNewState[toFormattedAddress(account.address)] =
-              totalBalance;
+              totalFiat;
 
             // Update state incrementally for better UX
             setAggregatedBalanceByAccount((prev) => ({
               ...prev,
-              [toFormattedAddress(account.address)]: totalBalance,
+              [toFormattedAddress(account.address)]: totalFiat,
             }));
           }
         } catch (error) {

@@ -63,7 +63,7 @@ export const getEvmBalance = (
 };
 
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-const getMultiChainFiatBalance = (
+export const getMultiChainFiatBalance = (
   balance: number | undefined,
   currency: string,
 ) => {
