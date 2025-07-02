@@ -2,6 +2,7 @@ import URLParse from 'url-parse';
 import { getPermittedEvmAddressesByHostname } from '../../../core/Permissions';
 import Engine from '../../../core/Engine';
 import { NOTIFICATION_NAMES } from './constants';
+import Logger from '../../../util/Logger';
 
 type EthereumAddress = `0x${string}`;
 type MockURLParse = URLParse<Record<string, string>>;
@@ -9,6 +10,7 @@ type MockURLParse = URLParse<Record<string, string>>;
 // Mock dependencies
 jest.mock('url-parse');
 jest.mock('../../../core/Permissions');
+jest.mock('../../../util/Logger');
 jest.mock('../../../core/Engine', () => ({
   context: {
     PermissionController: {
@@ -22,28 +24,34 @@ jest.mock('../../../core/Engine', () => ({
 const mockNotifyAllConnections = jest.fn();
 const mockGetPermittedEvmAddressesByHostname = getPermittedEvmAddressesByHostname as jest.MockedFunction<typeof getPermittedEvmAddressesByHostname>;
 const mockURLParse = URLParse as jest.MockedFunction<typeof URLParse>;
+const mockLoggerLog = Logger.log as jest.MockedFunction<typeof Logger.log>;
 
 // Extract and test the sendActiveAccount logic
 const createSendActiveAccount = (notifyAllConnections: jest.Mock, resolvedUrlRef: { current: string }) => async (targetUrl?: string) => {
-    // Use the target URL if provided, otherwise use current resolved URL
-    const urlToCheck = targetUrl || resolvedUrlRef.current;
-    if (!urlToCheck) return;
+    try {
+      // Use the target URL if provided, otherwise use current resolved URL
+      const urlToCheck = targetUrl || resolvedUrlRef.current;
+      if (!urlToCheck) return;
 
-    const hostname = new URLParse(urlToCheck).hostname;
-    const permissionsControllerState = Engine.context.PermissionController.state;
+      const hostname = new URLParse(urlToCheck).hostname;
+      const permissionsControllerState = Engine.context.PermissionController.state;
 
-    // Get permitted accounts specifically for the target hostname
-    const permittedAccountsForTarget = getPermittedEvmAddressesByHostname(
-      permissionsControllerState,
-      hostname,
-    );
+      // Get permitted accounts specifically for the target hostname
+      const permittedAccountsForTarget = getPermittedEvmAddressesByHostname(
+        permissionsControllerState,
+        hostname,
+      );
 
-    // Only send account information if the target URL has explicit permissions
-    if (permittedAccountsForTarget.length > 0) {
-      notifyAllConnections({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: permittedAccountsForTarget,
-      });
+      // Only send account information if the target URL has explicit permissions
+      if (permittedAccountsForTarget.length > 0) {
+        notifyAllConnections({
+          method: NOTIFICATION_NAMES.accountsChanged,
+          params: permittedAccountsForTarget,
+        });
+      }
+    } catch (err) {
+      Logger.log(err as Error, 'Error in sendActiveAccount');
+      return;
     }
   };
 
@@ -267,21 +275,37 @@ describe('sendActiveAccount function', () => {
 
     it('handle URL parsing errors gracefully', async () => {
       const targetUrl = 'invalid-url';
+      const error = new Error('Invalid URL');
       mockURLParse.mockImplementation(() => {
-        throw new Error('Invalid URL');
+        throw error;
       });
 
       // Should not throw, but handle gracefully
-      await expect(sendActiveAccount(targetUrl)).rejects.toThrow('Invalid URL');
+      await expect(sendActiveAccount(targetUrl)).resolves.toBeUndefined();
+      
+      // Should log the error
+      expect(mockLoggerLog).toHaveBeenCalledWith(error, 'Error in sendActiveAccount');
+      
+      // Should not proceed to call other functions
+      expect(mockGetPermittedEvmAddressesByHostname).not.toHaveBeenCalled();
+      expect(mockNotifyAllConnections).not.toHaveBeenCalled();
     });
 
     it('handle permission checking errors gracefully', async () => {
       const targetUrl = 'https://test-dapp.com';
+      const error = new Error('Permission check failed');
       mockGetPermittedEvmAddressesByHostname.mockImplementation(() => {
-        throw new Error('Permission check failed');
+        throw error;
       });
 
-      await expect(sendActiveAccount(targetUrl)).rejects.toThrow('Permission check failed');
+      // Should not throw, but handle gracefully
+      await expect(sendActiveAccount(targetUrl)).resolves.toBeUndefined();
+      
+      // Should log the error
+      expect(mockLoggerLog).toHaveBeenCalledWith(error, 'Error in sendActiveAccount');
+      
+      // Should not proceed to notify connections
+      expect(mockNotifyAllConnections).not.toHaveBeenCalled();
     });
   });
 

@@ -987,7 +987,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
         });
       }
     } catch (err) {
-      Logger.error(err as Error, 'Error in sendActiveAccount');
+      Logger.log(err as Error, 'Error in sendActiveAccount');
       return
     }
     // Use the target URL if provided, otherwise use current resolved URL
