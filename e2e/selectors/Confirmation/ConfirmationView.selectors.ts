@@ -64,3 +64,10 @@ export const AlertModalSelectorsText = {
 export const AlertTypeIDs = {
   INLINE_ALERT: 'inline-alert',
 } as const; 
+
+export const ApproveComponentIDs = {
+  SPENDING_CAP_VALUE: 'spending-cap-value',
+  EDIT_SPENDING_CAP_BUTTON: 'edit-spending-cap-button',
+  EDIT_SPENDING_CAP_INPUT: 'edit-spending-cap-input',
+  EDIT_SPENDING_CAP_SAVE_BUTTON: 'edit-spending-cap-save-button',
+} as const;

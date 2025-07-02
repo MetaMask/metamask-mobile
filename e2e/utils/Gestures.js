@@ -195,7 +195,7 @@ class Gestures {
   /**
    * Replace the text in the field of an element identified by ID.
    *
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to replace the text in
+   * @param {Promise<Detox.IndexableNativeElement | Detox.NativeElement | Detox.IndexableSystemElement>} element - The element to replace the text in
    * @param {string} text - Text to replace the existing text in the element
    */
   static async replaceTextInField(element, text, timeout = 10000) {

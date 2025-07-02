@@ -3,6 +3,7 @@ import { View } from 'react-native';
 
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
+import { ApproveComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useApproveTransactionData } from '../../../hooks/useApproveTransactionData';
 import { useApproveTransactionActions } from '../../../hooks/useApproveTransactionActions';
@@ -45,7 +46,10 @@ export const IncreaseDecreaseAllowance = () => {
               onSpendingCapUpdate,
             }}
           />
-          <Pill text={amount ?? ''} />
+          <Pill
+            testID={ApproveComponentIDs.SPENDING_CAP_VALUE}
+            text={amount ?? ''}
+          />
           <Address
             address={transactionMetadata?.txParams?.to ?? ''}
             chainId={transactionMetadata?.chainId ?? ''}

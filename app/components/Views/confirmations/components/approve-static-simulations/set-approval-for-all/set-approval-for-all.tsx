@@ -4,6 +4,7 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
+import { ApproveComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useApproveTransactionData } from '../../../hooks/useApproveTransactionData';
 import { TokenStandard } from '../../../types/token';
@@ -21,7 +22,10 @@ const NFTInfoRow: React.FC<NFTInfoRowProps> = ({ transactionMetadata }) => {
   return (
     <InfoRow label={strings('confirm.nfts')}>
       <View style={styles.amountAndAddressContainer}>
-        <Pill text={strings('confirm.all')} />
+        <Pill
+          testID={ApproveComponentIDs.SPENDING_CAP_VALUE}
+          text={strings('confirm.all')}
+        />
         <Address
           address={transactionMetadata?.txParams?.to ?? ''}
           chainId={transactionMetadata?.chainId ?? ''}
