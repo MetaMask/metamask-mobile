@@ -19,8 +19,6 @@ const mockCreateUnsupportedRegionModalNavigationDetails = jest.fn();
 const mockCreateReservation = jest.fn();
 const mockCreateOrder = jest.fn();
 const mockHandleNewOrder = jest.fn();
-const mockUseSupportedTokens = jest.fn();
-const mockUsePaymentMethods = jest.fn();
 const mockInteractionManager = {
   runAfterInteractions: jest.fn((callback) => callback()),
 };
@@ -150,8 +148,6 @@ describe('BuildQuote Component', () => {
     mockUseDepositTokenExchange.mockReturnValue({
       tokenAmount: '0.00',
     });
-    mockUseSupportedTokens.mockReturnValue([]);
-    mockUsePaymentMethods.mockReturnValue([]);
     mockCreateUnsupportedRegionModalNavigationDetails.mockReturnValue([
       'DepositModals',
       'DepositUnsupportedRegionModal',
