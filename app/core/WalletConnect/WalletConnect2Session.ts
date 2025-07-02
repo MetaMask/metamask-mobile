@@ -521,18 +521,6 @@ class WalletConnect2Session {
         hooks: getRpcMethodMiddlewareHooks(channelId),
       });
     }
-
-    if (isPerDappSelectedNetworkEnabled()) {
-      const chainId = getChainIdForCaipChainId(caip2ChainId);
-      const currentChainId = this.getCurrentChainId();
-      if (currentChainId !== chainId) {
-        const networkClientId = getNetworkClientIdForCaipChainId(caip2ChainId)
-        Engine.context.SelectedNetworkController.setNetworkClientIdForDomain(
-          this.channelId,
-          networkClientId
-        )
-      }
-    }
   }
 
   private async handleSwitchChainRequest(request: WalletKitTypes.SessionRequest) {
@@ -564,7 +552,8 @@ class WalletConnect2Session {
     const origin = getRequestOrigin(requestEvent, this.origin);
     const method = requestEvent.params.request.method;
     const isSwitchingChain = isSwitchingChainRequest(requestEvent);
-    const caip2ChainId = (isSwitchingChain ? `eip155:${parseInt(requestEvent.params.request.params[0].chainId, 16)}` : requestEvent.params.chainId) as CaipChainId;
+    const hexChainId = isSwitchingChain ? requestEvent.params.request.params[0].chainId : getChainIdForCaipChainId(requestEvent.params.chainId as CaipChainId)
+    const caip2ChainId = `eip155:${parseInt(hexChainId, 16)}`as CaipChainId;
     const methodParams = requestEvent.params.request.params;
 
     DevLogger.log(
@@ -599,10 +588,15 @@ class WalletConnect2Session {
 
     // if the chainId for the request is different from the active chainId, we need to switch to it
     // (as long as it's permitted already)
-    const chainId = getChainIdForCaipChainId(caip2ChainId);
     const currentChainId = this.getCurrentChainId();
-    if (currentChainId !== chainId && isAllowedChainId) {
+    DevLogger.log(`WC::handleRequest currentChainId=${currentChainId} chainId=${hexChainId} isAllowedChainId=${isAllowedChainId}`);
+    if (currentChainId !== hexChainId && isAllowedChainId) {
+      DevLogger.log(`WC::handleRequest switching to chainId=${caip2ChainId}`);
       await this.switchToChain(caip2ChainId, this.channelId);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Emit chainChanged event
+      await this.emitEvent('chainChanged', parseInt(hexChainId, 16));
     }
 
     if (!isAllowedChainId) {
