@@ -235,7 +235,6 @@ class OptinMetrics extends PureComponent {
    * Action to be triggered when pressing any button
    */
   continue = async () => {
-    this.props.setMetaMetricsUISeen(true);
     const onContinue = this.props.route?.params?.onContinue;
     if (onContinue) {
       return onContinue();
@@ -249,6 +248,7 @@ class OptinMetrics extends PureComponent {
       this.props.setOnboardingWizardStep(1);
       this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
     }
+    this.props.setMetaMetricsUISeen(true);
   };
 
   /**
