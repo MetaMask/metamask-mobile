@@ -60,6 +60,11 @@ export const selectInternalAccounts = createDeepEqualSelector(
   },
 );
 
+export const selectInternalEvmAccounts = createSelector(
+  selectInternalAccounts,
+  (accounts) => accounts.filter((account) => isEvmAccountType(account.type)),
+);
+
 /**
  * A memoized selector that returns internal accounts from the AccountsController,
  * sorted by the order of KeyringController's keyring accounts,

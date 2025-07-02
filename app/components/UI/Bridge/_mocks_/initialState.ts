@@ -65,10 +65,12 @@ export const initialState = {
               [formatChainIdToCaip(ethChainId)]: {
                 isActiveSrc: true,
                 isActiveDest: true,
+                isUnifiedUIEnabled: true,
               },
               [formatChainIdToCaip(optimismChainId)]: {
                 isActiveSrc: true,
                 isActiveDest: true,
+                isUnifiedUIEnabled: true,
               },
             },
           },
@@ -291,6 +293,11 @@ export const initialState = {
           },
         },
       },
+      AccountTreeController: {
+        accountTree: {
+          wallets: {},
+        },
+      },
       SmartTransactionsController: {
         smartTransactionsState: {
           liveness: true,
@@ -481,5 +488,6 @@ export const initialState = {
     selectedSourceChainIds: undefined,
     selectedDestChainId: undefined,
     slippage: '0.5',
+    bridgeViewMode: undefined,
   },
 };

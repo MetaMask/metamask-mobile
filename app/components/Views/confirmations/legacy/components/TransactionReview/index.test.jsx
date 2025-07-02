@@ -12,7 +12,6 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../../../../util/transactions';
-// eslint-disable-next-line import/no-namespace
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../BlockaidBanner/BlockaidBanner.constants';
 import { MOCK_KEYRING_CONTROLLER_STATE } from '../../../../../../util/test/keyringControllerTestUtils';
 
@@ -56,6 +55,15 @@ jest.mock('../../../../../../reducers/swaps', () => ({
       },
     },
   }),
+}));
+
+jest.mock('../../../../../Views/confirmations/hooks/useNetworkInfo', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+      networkImage: 1,
+      networkName: 'Ethereum Main Network',
+      networkNativeCurrency: 'ETH',
+  })),
 }));
 
 const MOCK_ADDRESS_1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';

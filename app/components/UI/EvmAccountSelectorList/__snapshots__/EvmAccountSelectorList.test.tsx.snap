@@ -6,37 +6,53 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
   data={
     [
       {
-        "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
-        "assets": {
-          "fiatBalance": "$3200.00
+        "accountIndex": 0,
+        "data": {
+          "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+          "assets": {
+            "fiatBalance": "$3200.00
 1 ETH",
-          "tokens": [],
+            "tokens": [],
+          },
+          "balanceError": undefined,
+          "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+          "isLoadingAccount": false,
+          "isSelected": true,
+          "name": "Account 1",
+          "scopes": [],
+          "type": "HD Key Tree",
+          "yOffset": 0,
         },
-        "balanceError": undefined,
-        "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
-        "isSelected": true,
-        "name": "Account 1",
-        "type": "HD Key Tree",
-        "yOffset": 0,
+        "sectionIndex": 0,
+        "type": "account",
       },
       {
-        "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
-        "assets": {
-          "fiatBalance": "$6400.00
+        "accountIndex": 1,
+        "data": {
+          "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
+          "assets": {
+            "fiatBalance": "$6400.00
 2 ETH",
-          "tokens": [],
+            "tokens": [],
+          },
+          "balanceError": undefined,
+          "caipAccountId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
+          "isLoadingAccount": false,
+          "isSelected": false,
+          "name": "Account 2",
+          "scopes": [],
+          "type": "HD Key Tree",
+          "yOffset": 78,
         },
-        "balanceError": undefined,
-        "caipAccountId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
-        "isSelected": false,
-        "name": "Account 2",
-        "type": "HD Key Tree",
-        "yOffset": 78,
+        "sectionIndex": 0,
+        "type": "account",
       },
     ]
   }
   getItem={[Function]}
   getItemCount={[Function]}
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
   initialNumToRender={999}
   keyExtractor={[Function]}
   onContentSizeChange={[Function]}
@@ -441,7 +457,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-0"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"
@@ -816,7 +832,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-1"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"
@@ -845,37 +861,53 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
   data={
     [
       {
-        "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
-        "assets": {
-          "fiatBalance": "$3200.00
+        "accountIndex": 0,
+        "data": {
+          "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+          "assets": {
+            "fiatBalance": "$3200.00
 1 ETH",
-          "tokens": [],
+            "tokens": [],
+          },
+          "balanceError": undefined,
+          "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+          "isLoadingAccount": false,
+          "isSelected": true,
+          "name": "Account 1",
+          "scopes": [],
+          "type": "HD Key Tree",
+          "yOffset": 0,
         },
-        "balanceError": undefined,
-        "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
-        "isSelected": true,
-        "name": "Account 1",
-        "type": "HD Key Tree",
-        "yOffset": 0,
+        "sectionIndex": 0,
+        "type": "account",
       },
       {
-        "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
-        "assets": {
-          "fiatBalance": "$6400.00
+        "accountIndex": 1,
+        "data": {
+          "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
+          "assets": {
+            "fiatBalance": "$6400.00
 2 ETH",
-          "tokens": [],
+            "tokens": [],
+          },
+          "balanceError": undefined,
+          "caipAccountId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
+          "isLoadingAccount": false,
+          "isSelected": false,
+          "name": "Account 2",
+          "scopes": [],
+          "type": "HD Key Tree",
+          "yOffset": 78,
         },
-        "balanceError": undefined,
-        "caipAccountId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
-        "isSelected": false,
-        "name": "Account 2",
-        "type": "HD Key Tree",
-        "yOffset": 78,
+        "sectionIndex": 0,
+        "type": "account",
       },
     ]
   }
   getItem={[Function]}
   getItemCount={[Function]}
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
   initialNumToRender={999}
   keyExtractor={[Function]}
   onContentSizeChange={[Function]}
@@ -1242,7 +1274,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-0"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"
@@ -1579,7 +1611,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-1"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"
@@ -1608,37 +1640,53 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
   data={
     [
       {
-        "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
-        "assets": {
-          "fiatBalance": "$3200.00
+        "accountIndex": 0,
+        "data": {
+          "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+          "assets": {
+            "fiatBalance": "$3200.00
 1 ETH",
-          "tokens": [],
+            "tokens": [],
+          },
+          "balanceError": undefined,
+          "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+          "isLoadingAccount": false,
+          "isSelected": true,
+          "name": "Account 1",
+          "scopes": [],
+          "type": "HD Key Tree",
+          "yOffset": 0,
         },
-        "balanceError": undefined,
-        "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
-        "isSelected": true,
-        "name": "Account 1",
-        "type": "HD Key Tree",
-        "yOffset": 0,
+        "sectionIndex": 0,
+        "type": "account",
       },
       {
-        "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
-        "assets": {
-          "fiatBalance": "$6400.00
+        "accountIndex": 1,
+        "data": {
+          "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
+          "assets": {
+            "fiatBalance": "$6400.00
 2 ETH",
-          "tokens": [],
+            "tokens": [],
+          },
+          "balanceError": undefined,
+          "caipAccountId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
+          "isLoadingAccount": false,
+          "isSelected": false,
+          "name": "Account 2",
+          "scopes": [],
+          "type": "HD Key Tree",
+          "yOffset": 78,
         },
-        "balanceError": undefined,
-        "caipAccountId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
-        "isSelected": false,
-        "name": "Account 2",
-        "type": "HD Key Tree",
-        "yOffset": 78,
+        "sectionIndex": 0,
+        "type": "account",
       },
     ]
   }
   getItem={[Function]}
   getItemCount={[Function]}
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
   initialNumToRender={999}
   keyExtractor={[Function]}
   onContentSizeChange={[Function]}
@@ -2043,7 +2091,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-0"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"
@@ -2418,7 +2466,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-1"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"
@@ -2447,37 +2495,53 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
   data={
     [
       {
-        "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
-        "assets": {
-          "fiatBalance": "$3200.00
+        "accountIndex": 0,
+        "data": {
+          "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+          "assets": {
+            "fiatBalance": "$3200.00
 1 ETH",
-          "tokens": [],
+            "tokens": [],
+          },
+          "balanceError": undefined,
+          "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+          "isLoadingAccount": false,
+          "isSelected": true,
+          "name": "Account 1",
+          "scopes": [],
+          "type": "HD Key Tree",
+          "yOffset": 0,
         },
-        "balanceError": undefined,
-        "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
-        "isSelected": true,
-        "name": "Account 1",
-        "type": "HD Key Tree",
-        "yOffset": 0,
+        "sectionIndex": 0,
+        "type": "account",
       },
       {
-        "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
-        "assets": {
-          "fiatBalance": "$6400.00
+        "accountIndex": 1,
+        "data": {
+          "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
+          "assets": {
+            "fiatBalance": "$6400.00
 2 ETH",
-          "tokens": [],
+            "tokens": [],
+          },
+          "balanceError": undefined,
+          "caipAccountId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
+          "isLoadingAccount": false,
+          "isSelected": false,
+          "name": "Account 2",
+          "scopes": [],
+          "type": "HD Key Tree",
+          "yOffset": 78,
         },
-        "balanceError": undefined,
-        "caipAccountId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
-        "isSelected": false,
-        "name": "Account 2",
-        "type": "HD Key Tree",
-        "yOffset": 78,
+        "sectionIndex": 0,
+        "type": "account",
       },
     ]
   }
   getItem={[Function]}
   getItemCount={[Function]}
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
   initialNumToRender={999}
   keyExtractor={[Function]}
   onContentSizeChange={[Function]}
@@ -2882,7 +2946,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-0"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"
@@ -3257,7 +3321,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions-1"
+            testID="main-wallet-account-actions"
           >
             <SvgMock
               color="#121314"

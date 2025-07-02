@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 import PropTypes from 'prop-types';
 import {
   TouchableOpacity,
@@ -56,6 +62,7 @@ import { createTokenBottomSheetFilterNavDetails } from '../Tokens/TokensBottomSh
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { prepareNftDetectionEvents } from '../../../util/assets';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -171,6 +178,13 @@ const CollectibleContracts = ({
   isIpfsGatewayEnabled,
   displayNftMedia,
 }) => {
+  // Start tracing component loading
+  const isFirstRender = useRef(true);
+
+  if (isFirstRender.current) {
+    trace({ name: TraceName.CollectibleContractsComponent });
+  }
+
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const allNetworks = useSelector(selectNetworkConfigurations);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
@@ -189,21 +203,23 @@ const CollectibleContracts = ({
     [tokenNetworkFilter, allNetworks],
   );
 
-  const filteredCollectibleContracts = useMemo(
-    () =>
-      isAllNetworks
-        ? Object.values(collectibleContracts).flat()
-        : collectibleContracts[chainId] || [],
-    [collectibleContracts, chainId, isAllNetworks],
-  );
+  const filteredCollectibleContracts = useMemo(() => {
+    trace({ name: TraceName.LoadCollectibles, id: 'contracts' });
+    const contracts = isAllNetworks
+      ? Object.values(collectibleContracts).flat()
+      : collectibleContracts[chainId] || [];
+    endTrace({ name: TraceName.LoadCollectibles, id: 'contracts' });
+    return contracts;
+  }, [collectibleContracts, chainId, isAllNetworks]);
 
-  const filteredCollectibles = useMemo(
-    () =>
-      isAllNetworks
-        ? Object.values(allCollectibles).flat()
-        : allCollectibles[chainId] || [],
-    [allCollectibles, chainId, isAllNetworks],
-  );
+  const filteredCollectibles = useMemo(() => {
+    trace({ name: TraceName.LoadCollectibles });
+    const collectibles = isAllNetworks
+      ? Object.values(allCollectibles).flat()
+      : allCollectibles[chainId] || [];
+    endTrace({ name: TraceName.LoadCollectibles });
+    return collectibles;
+  }, [allCollectibles, chainId, isAllNetworks]);
 
   const collectibles = filteredCollectibles.filter(
     (singleCollectible) => singleCollectible.isCurrentlyOwned === true,
@@ -415,6 +431,7 @@ const CollectibleContracts = ({
       const previousNfts = cloneDeep(
         NftController.state.allNfts[selectedAddress.toLowerCase()],
       );
+      trace({ name: TraceName.DetectNfts });
 
       setRefreshing(true);
 
@@ -429,6 +446,7 @@ const CollectibleContracts = ({
 
       await Promise.allSettled(actions);
       setRefreshing(false);
+      endTrace({ name: TraceName.DetectNfts });
 
       // Get updated state after refresh
       const newNfts = cloneDeep(
@@ -528,6 +546,12 @@ const CollectibleContracts = ({
       styles.emptyView,
     ],
   );
+
+  // End trace when component has finished initial loading
+  useEffect(() => {
+    endTrace({ name: TraceName.CollectibleContractsComponent });
+    isFirstRender.current = false;
+  }, []);
 
   return (
     <View

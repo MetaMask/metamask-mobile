@@ -4,7 +4,6 @@ import {
   UserProfileMetaData,
   UserProfileProperty,
 } from './UserProfileAnalyticsMetaData.types';
-import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { getConfiguredCaipChainIds } from '../MultichainAPI/networkMetricUtils';
 
 /**
@@ -21,8 +20,6 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
     appTheme === 'os' ? Appearance.getColorScheme() : appTheme;
   const isDataCollectionForMarketingEnabled =
     reduxState?.security?.dataCollectionForMarketing;
-
-  const hdKeyrings = selectHDKeyrings(reduxState);
 
   const chainIds = getConfiguredCaipChainIds();
 
@@ -50,7 +47,6 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
       isDataCollectionForMarketingEnabled
         ? UserProfileProperty.ON
         : UserProfileProperty.OFF,
-    [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: hdKeyrings.length,
     [UserProfileProperty.CHAIN_IDS]: chainIds,
   };
 };

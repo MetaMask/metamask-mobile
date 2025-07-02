@@ -18,7 +18,7 @@ import BN4 from 'bnjs4';
 import { useRampSDK } from '../../sdk';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
 import useRegions from '../../hooks/useRegions';
-import useAnalytics from '../../hooks/useAnalytics';
+import useAnalytics from '../../../hooks/useAnalytics';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
 import useLimits from '../../hooks/useLimits';
@@ -316,8 +316,11 @@ const BuildQuote = () => {
   }, [amountBNMinimalUnit, isBuy, maxSellAmount]);
 
   const hasInsufficientBalance = useMemo(() => {
-    if (!balanceBN || !amountBNMinimalUnit) {
+    if (!amountBNMinimalUnit || amountBNMinimalUnit.isZero()) {
       return false;
+    }
+    if (!balanceBN) {
+      return true;
     }
     return balanceBN.lt(amountBNMinimalUnit);
   }, [balanceBN, amountBNMinimalUnit]);

@@ -15,6 +15,7 @@ import UnstakingTimeCard from '../../components/StakingConfirmation/UnstakeTimeC
 import { ScrollView } from 'react-native-gesture-handler';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import { getDecimalChainId } from '../../../../../util/networks';
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
@@ -59,6 +60,7 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
             contractName={MOCK_STAKING_CONTRACT_NAME}
             primaryLabel={strings('stake.staking_from')}
             secondaryLabel={strings('stake.interacting_with')}
+            chainId={getDecimalChainId(route?.params?.chainId)}
           />
           <RewardsCard
             rewardRate={route.params.annualRewardRate}

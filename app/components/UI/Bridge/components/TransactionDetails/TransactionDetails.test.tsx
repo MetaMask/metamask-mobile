@@ -200,6 +200,11 @@ describe('BridgeTransactionDetails', () => {
             },
           ],
         },
+        EarnController: {
+          lending: {
+            markets: [],
+          },
+        },
         NetworkController: {
           selectedNetworkClientId: 'selectedNetworkClientId',
           networksMetadata: {

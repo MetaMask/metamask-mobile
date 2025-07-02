@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Order } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { ScrollView } from 'react-native-gesture-handler';
-import useAnalytics from '../../hooks/useAnalytics';
+import useAnalytics from '../../../hooks/useAnalytics';
 import useThunkDispatch from '../../../../../hooks/useThunkDispatch';
 import ScreenLayout from '../../components/ScreenLayout';
 import OrderDetail from '../../components/OrderDetails';
@@ -19,7 +19,7 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { processFiatOrder } from '../../index';
+import { processFiatOrder } from '../../../index';
 import {
   createNavigationDetails,
   useParams,

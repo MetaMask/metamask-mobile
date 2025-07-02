@@ -1,5 +1,7 @@
 import React from 'react';
 import { merge } from 'lodash';
+import { TransactionType } from '@metamask/transaction-controller';
+
 import {
   generateContractInteractionState,
   personalSignatureConfirmationState,
@@ -13,6 +15,7 @@ import {
   upgradeAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { approveERC20TransactionStateMock } from '../../__mocks__/approve-transaction-mock';
 import Title from './title';
 
 describe('Confirm Title', () => {
@@ -118,4 +121,33 @@ describe('Confirm Title', () => {
     });
     expect(getByText('Includes 2 transactions')).toBeTruthy();
   });
+
+  it('renders expected elements for approve', () => {
+    const { getByText } = renderWithProvider(<Title />, {
+      state: approveERC20TransactionStateMock,
+    });
+    expect(getByText('Approve request')).toBeTruthy();
+  });
+
+  it.each([TransactionType.lendingDeposit, TransactionType.lendingWithdraw])(
+    'does not render subtitle for %s',
+    (transactionType) => {
+      const fakeLendingDepositState = merge(generateContractInteractionState, {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [{ type: transactionType }],
+            },
+          },
+        },
+      });
+      const { getByText, queryByText } = renderWithProvider(<Title />, {
+        state: fakeLendingDepositState,
+      });
+      expect(getByText('Transaction request')).toBeTruthy();
+      expect(
+        queryByText('Review request details before you confirm.'),
+      ).toBeNull();
+    },
+  );
 });

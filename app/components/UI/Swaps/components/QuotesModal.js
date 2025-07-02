@@ -33,6 +33,7 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectSwapsQuoteValues } from '../../../../reducers/swaps';
+import { QuotesModalSelectorIDs } from '../../../../../e2e/selectors/swaps/QuotesModal.selectors';
 
 const createStyles = (colors, shadows) =>
   StyleSheet.create({
@@ -260,6 +261,7 @@ function QuotesModal({
           <TouchableOpacity
             onPress={toggleModal}
             hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
+            testID={QuotesModalSelectorIDs.QUOTES_MODAL_CLOSE}
           >
             <IonicIcon name="close" style={styles.closeIcon} size={30} />
           </TouchableOpacity>

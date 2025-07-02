@@ -64,9 +64,10 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
 
     const defiPositionsList = Object.entries(chainFilteredDeFiPositions)
       .map(([chainId, chainDeFiPositions]) =>
-        Object.values(chainDeFiPositions.protocols).map(
-          (protocolAggregate) => ({
+        Object.entries(chainDeFiPositions.protocols).map(
+          ([protocolId, protocolAggregate]) => ({
             chainId: toHex(chainId),
+            protocolId,
             protocolAggregate,
           }),
         ),
@@ -84,20 +85,20 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     return sortAssets(defiPositionsList, defiSortConfig);
   }, [defiPositions, isAllNetworks, currentChainId, tokenSortConfig]);
 
-  if (!formattedDeFiPositions || formattedDeFiPositions.length === 0) {
-    let emptyContent;
-
+  if (!formattedDeFiPositions) {
     if (formattedDeFiPositions === undefined) {
       // Position data is still loading
-      emptyContent = (
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          {strings('defi_positions.loading_positions')}
-        </Text>
+      return (
+        <View style={styles.emptyView}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('defi_positions.loading_positions')}
+          </Text>
+        </View>
       );
     } else if (formattedDeFiPositions === null) {
       // Error fetching position data
-      emptyContent = (
-        <>
+      return (
+        <View style={styles.emptyView}>
           <Icon
             name={IconName.Danger}
             color={IconColor.Alternative}
@@ -109,18 +110,23 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('defi_positions.error_visit_again')}
           </Text>
-        </>
-      );
-    } else {
-      // No positions found for the current account
-      emptyContent = (
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          {strings('defi_positions.no_positions')}
-        </Text>
+        </View>
       );
     }
+  }
 
-    return <View style={styles.emptyView}>{emptyContent}</View>;
+  if (formattedDeFiPositions.length === 0) {
+    // No positions found for the current account
+    return (
+      <View testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}>
+        <DeFiPositionsControlBar />
+        <View style={styles.emptyView}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('defi_positions.no_positions')}
+          </Text>
+        </View>
+      </View>
+    );
   }
 
   return (
@@ -130,9 +136,12 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
         <FlatList
           testID={WalletViewSelectorsIDs.DEFI_POSITIONS_LIST}
           data={formattedDeFiPositions}
-          renderItem={({ item: { chainId, protocolAggregate } }) => (
+          renderItem={({
+            item: { chainId, protocolId, protocolAggregate },
+          }) => (
             <DeFiPositionsListItem
               chainId={chainId}
+              protocolId={protocolId}
               protocolAggregate={protocolAggregate}
               privacyMode={privacyMode}
             />

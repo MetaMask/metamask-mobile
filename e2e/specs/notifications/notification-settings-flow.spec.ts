@@ -11,6 +11,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import { SmokeNetworkAbstractions } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
+import { getMockServerPort } from '../../fixtures/utils';
 import {
   NOTIFICATION_WALLET_ACCOUNT_1,
   NOTIFICATIONS_TEAM_PASSWORD,
@@ -31,11 +32,10 @@ describe(SmokeNetworkAbstractions('Notification Settings Flow'), () => {
   let mockServer: Mockttp;
 
   beforeAll(async () => {
-    jest.setTimeout(200000);
     await TestHelpers.reverseServerPort();
 
     // Mock Server
-    mockServer = await startMockServer({});
+    mockServer = await startMockServer({}, getMockServerPort());
     await mockNotificationServices(mockServer);
 
     // Launch App
@@ -60,7 +60,7 @@ describe(SmokeNetworkAbstractions('Notification Settings Flow'), () => {
 
   it('enables notifications toggle', async () => {
     await NotificationSettingsView.tapNotificationToggle();
-    TestHelpers.delay(2000);
+    await TestHelpers.delay(2000);
     await Assertions.checkIfVisible(
       NotificationSettingsView.pushNotificationsToggle,
     );
@@ -74,16 +74,16 @@ describe(SmokeNetworkAbstractions('Notification Settings Flow'), () => {
 
   it('toggles push notification switch on and off', async () => {
     await NotificationSettingsView.tapPushNotificationsToggle();
-    TestHelpers.delay(2000);
+    await TestHelpers.delay(2000);
     await NotificationSettingsView.tapPushNotificationsToggle();
-    TestHelpers.delay(2000);
+    await TestHelpers.delay(2000);
   });
 
   it('toggles feature announcement switch on and off', async () => {
     await NotificationSettingsView.tapFeatureAnnouncementsToggle();
-    TestHelpers.delay(2000);
+    await TestHelpers.delay(2000);
     await NotificationSettingsView.tapFeatureAnnouncementsToggle();
-    TestHelpers.delay(2000);
+    await TestHelpers.delay(2000);
   });
 
   it('toggles account notifications switch on and off', async () => {
@@ -99,7 +99,7 @@ describe(SmokeNetworkAbstractions('Notification Settings Flow'), () => {
 
   it('disables notifications', async () => {
     await NotificationSettingsView.tapNotificationToggle();
-    TestHelpers.delay(2000);
+    await TestHelpers.delay(2000);
     await Assertions.checkIfNotVisible(
       NotificationSettingsView.pushNotificationsToggle as Promise<IndexableNativeElement>,
     );
