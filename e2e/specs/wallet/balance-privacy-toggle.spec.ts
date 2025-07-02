@@ -39,6 +39,9 @@ describe(Regression('Balance Privacy Toggle'), (): void => {
         await Assertions.checkIfElementToHaveText(WalletView.totalBalance, EXPECTED_HIDDEN_BALANCE);
         await TabBarComponent.tapSettings();
         await TabBarComponent.tapWallet();
+        await TestHelpers.delay(2000);
+        await Assertions.checkIfVisible(WalletView.container);
+        await Assertions.checkIfVisible(WalletView.totalBalance);
         await Assertions.checkIfElementToHaveText(WalletView.totalBalance, EXPECTED_HIDDEN_BALANCE);
         await WalletView.showBalance();
         await Assertions.checkIfElementToHaveText(WalletView.totalBalance, actualBalance);
