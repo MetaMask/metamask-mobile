@@ -145,7 +145,7 @@ class AesCryptoTestForm {
       this.scrollViewIdentifier,
       {
         elemDescription: 'AES Form - Decrypt Button',
-        scrollAmount: 1000
+        scrollAmount: 2000
       }
     );
   }
@@ -251,6 +251,8 @@ class AesCryptoTestForm {
 
   async decrypt(encryptionKey) {
     await this.scrollToDecrypt();
+    await Gestures.swipe(this.encryptButton, 'up', 'slow', {
+    }); // Workaround for CI where the button is not visible
     await Gestures.typeText(
       this.decryptPasswordInput,
       encryptionKey,
