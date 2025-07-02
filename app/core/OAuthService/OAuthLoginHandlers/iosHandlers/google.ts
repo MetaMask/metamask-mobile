@@ -1,4 +1,10 @@
-import { LoginHandlerCodeResult, AuthConnection } from '../../OAuthInterface';
+import {
+  LoginHandlerCodeResult,
+  AuthConnection,
+  AuthRequestParams,
+  HandleFlowParams,
+  AuthRequestCodeParams,
+} from '../../OAuthInterface';
 import {
   AuthRequest,
   CodeChallengeMethod,
@@ -19,6 +25,18 @@ export interface IosGoogleLoginHandlerParams extends BaseHandlerOptions {
  * IosGoogleLoginHandler is the login handler for the Google login
  */
 export class IosGoogleLoginHandler extends BaseLoginHandler {
+  getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams {
+    const { redirectUri, code, clientId, codeVerifier } =
+      params as LoginHandlerCodeResult;
+    return {
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      code,
+      login_provider: this.authConnection,
+      network: this.options.web3AuthNetwork,
+      code_verifier: codeVerifier,
+    } as AuthRequestCodeParams;
+  }
   public readonly OAUTH_SERVER_URL =
     'https://accounts.google.com/o/oauth2/v2/auth';
 

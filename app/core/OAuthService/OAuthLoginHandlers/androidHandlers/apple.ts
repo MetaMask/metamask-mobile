@@ -1,6 +1,8 @@
 import { ResponseType, AuthRequest } from 'expo-auth-session';
 import {
   AuthConnection,
+  AuthRequestCodeParams,
+  AuthRequestParams,
   AuthResponse,
   HandleFlowParams,
   LoginHandler,
@@ -21,6 +23,17 @@ export class AndroidAppleLoginHandler
   extends BaseLoginHandler
   implements LoginHandler
 {
+  getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams {
+    const { code, clientId, codeVerifier } = params as LoginHandlerCodeResult;
+    return {
+      client_id: clientId,
+      code,
+      login_provider: this.authConnection,
+      network: this.options.web3AuthNetwork,
+      code_verifier: codeVerifier,
+      redirect_uri: this.redirectUri,
+    } as AuthRequestCodeParams;
+  }
   public readonly OAUTH_SERVER_URL: string;
   readonly #scope = ['name', 'email'];
 
@@ -71,11 +84,7 @@ export class AndroidAppleLoginHandler
     const { codeVerifier, challenge } = this.generateCodeVerifierChallenge();
 
     const state = JSON.stringify({
-      provider: this.authConnection,
       client_redirect_back_uri: this.appRedirectUri,
-      redirectUri: this.redirectUri,
-      clientId: this.clientId,
-      random: this.nonce,
       code_challenge: challenge,
       nonce: this.nonce,
     });
@@ -103,6 +112,7 @@ export class AndroidAppleLoginHandler
       state,
     });
 
+    // TODO: remove the double promptAsync
     // prompt the auth request using generated auth url instead of the client auth request instance
     const result = await authRequestClient.promptAsync(
       {

@@ -25,46 +25,16 @@ import QuickCrypto from 'react-native-quick-crypto';
  * @param authServerUrl - The url of the auth server
  */
 export async function getAuthTokens(
-  params: HandleFlowParams,
+  params: AuthRequestParams,
   pathname: string,
   authServerUrl: string,
 ): Promise<AuthResponse> {
-  const {
-    authConnection,
-    clientId,
-    redirectUri,
-    codeVerifier,
-    web3AuthNetwork,
-  } = params;
-
-  let body: AuthRequestParams;
-
-  if ('code' in params) {
-    body = {
-      code: params.code,
-      client_id: clientId,
-      login_provider: authConnection,
-      network: web3AuthNetwork,
-      redirect_uri: redirectUri,
-      code_verifier: codeVerifier,
-    };
-  } else {
-    body = {
-      id_token: params.idToken,
-      client_id: clientId,
-      login_provider: authConnection,
-      network: web3AuthNetwork,
-      redirect_uri: redirectUri,
-      code_verifier: codeVerifier,
-    };
-  }
-
   const res = await fetch(`${authServerUrl}/${pathname}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(params),
   });
 
   if (res.status === 200 || res.status === 201) {
@@ -114,13 +84,22 @@ export abstract class BaseLoginHandler {
   }
 
   /**
+   * Get the auth token request data
+   *
+   * @param params - The params from the login handler
+   * @returns The auth token request data
+   */
+  abstract getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams;
+
+  /**
    * Get the auth tokens from the auth server
    *
    * @param params - The params from the login handler
    * @param authServerUrl - The url of the auth server
    */
   getAuthTokens(params: HandleFlowParams, authServerUrl: string) {
-    return getAuthTokens(params, this.authServerPath, authServerUrl);
+    const requestData = this.getAuthTokenRequestData(params);
+    return getAuthTokens(requestData, this.authServerPath, authServerUrl);
   }
 
   /**
@@ -239,7 +218,7 @@ export abstract class BaseLoginHandler {
    * @returns The nonce value.
    */
   protected generateNonce(): string {
-    return Math.random().toString(36).substring(2, 15);
+    return QuickCrypto.randomUUID();
   }
 
   /**
@@ -251,13 +230,15 @@ export abstract class BaseLoginHandler {
     codeVerifier: string;
     challenge: string;
   } {
-    const codeVerifier = QuickCrypto.randomBytes(32);
-    const challenge = QuickCrypto.createHash('sha256')
+    const codeVerifierBytes = QuickCrypto.randomBytes(32);
+    const codeVerifier = toBase64UrlSafe(fromByteArray(codeVerifierBytes));
+    const challengeBytes = QuickCrypto.createHash('sha256')
       .update(codeVerifier)
       .digest();
+    const challenge = toBase64UrlSafe(fromByteArray(challengeBytes));
     return {
-      challenge: toBase64UrlSafe(fromByteArray(challenge)),
-      codeVerifier: toBase64UrlSafe(fromByteArray(codeVerifier)),
+      challenge,
+      codeVerifier,
     };
   }
 }
