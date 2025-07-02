@@ -452,6 +452,7 @@ class FixtureBuilder {
               jobs: {},
               events: {},
             },
+            SnapController: {},
           },
         },
         privacy: {
@@ -1131,10 +1132,10 @@ class FixtureBuilder {
           type: 'HD Key Tree',
           accounts: [
             '0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b',
-            // Unknown why this 3 addresses are not loading, we should fix it
             '0xf04d744cf1d81bb702a6e7b8faf0fd7914e230f4',
             '0x7cc004a80e3a0e2aa88b1a2de5cacc615474008c',
             '0x7c0f9b6dff9ebdcaf4f517e4e097ffdbdc692329',
+            '0x29196464a40cfaa6a67a7c807c3d7047f2d95d45',
           ],
           metadata: {
             id: '01JX9NZWRAVQKES02TWSN8GD91',
@@ -1142,63 +1143,332 @@ class FixtureBuilder {
           },
         },
         {
-          accounts: ['CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd'],
+          type: 'Snap Keyring',
+          accounts: [
+            'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd',
+            '9Wa2rRA8TRUjmBGN6RXqZCqErCAXsxjtnd8JWuXVDj2U',
+            'DCy3hcdBAgP47Xn3R3QrFLrbWUHvrDueYrtfeyHvza5G',
+            'H9Mf8Pk8uBKFYHLAcWh56LVqNpjpgNLujCx2Efs3kVYW',
+            'D943VJknFRynJt9Fj7amY93493pQfnvg9vQvQbWM1Ebv',
+          ],
           metadata: {
-            id: '01JZ3J0DB2P62VZRJEYBMG7Z2F',
+            id: '01JZ62F08QKQQY6EGVC5WGR2J4',
             name: '',
           },
-          type: 'Snap Keyring',
         },
       ],
       vault:
-        '{"cipher":"60wBNhSYopamhXuFuk34HxJPwLUZ+m3Pudw5/GEmJ0RzXspPO1hCx3IWq7+HA/2DFtp97+FVx1/cIAJY9EaV6gZkDpjJkhtDSKHjfgkOyVKtmWam+fCE0US2yRGBgq/5SQ+dKMe7HVaiQok8A6VOEAUOUGo5FNoSp5uRIEFhzCa1SWS++IIHjExe16hvO5xYe9fgBMtIi13bHdf62/Kup9KimK5URcynMqr7Vtm67hcaWFzzCMj/mLnPtSxInHtMthspiqjfZjKC/jOLsEk21m/TPa5Mt0WpO/YuaZLhAAGRTEje+n9J7Dsklwf++zQrSO1inG9B3tQh8w2vmi9JiL3A35Zs5cPiev7kdi7WPT8JAKE+eO5ZNK+6rDPBAxR4edfb5c9DvoAiKteOeyIWu0IPZaY6P0xhySrpyFUW172k2rn+Cb1yQwDb/BqY+KmaOHHnHOUbSFWK6SOvy2HnoNf+0bXoxmePPheQfYdw25hbvvDRcuunmpVGAIWPPjvCYAKUx4KprXDzx8sKgIWrx8/0ROxfQD/YWpXvxHLp/Px5r/GRtEhN/FFbfP3xE/glUg+Ye4tMk3CpByQ9sChKvgiXNGTbHpBTZ2rJhHZOwWVhYERW7SQ1QaCIL7l3Bd5aVVtXLEG7b/vzmy7sntAMSafgQx7Wm4N0vJiZJ4ke53VFzxu3VMuowQYb6V48go5c0sEojy4Hur70ovV2UD3aoTR6FOA0t3bObuFvBa7UruOLtSVVnf1MkWNfa3GbcAdae8FqnbIH88rguKpld2bYkk3qCC5brSuWyNZqxIr5ZpvgWXtvaY6V1bI9xnvD9B7ALX2aRW7eie8gYk1IRVoj+7Zhx6Lai7a+7zAXwogfOigq47af65NQnI6FSLzLhhCoMhXwjHCWgtKEdux/Qj9PdIzNWeZjscki9cm7uKEIjOe4K6/bl/MrrXOYN8socUMtLFTbfgNuVjICy4pwSmfumYLuhba9b1d5F7KRuo//5GpXL4CJz0znMSx+h0VvYE8p5EImyi5THyITZqrEuqxm1JLmGHAcf0ZZB9nMzygUYp7Hv3a83CCDs/Z2mNtPdETNny2IjX29ucHH90+e1oCqss+J7Gtl2vjID+M8fZG50fHYHtg9tbOmlANLfizOrM22KXZ8H98UDZ863zGVVaIMUw34tzOPTnM0KWKehtU76W6z62Kb8Bnn6qyaopi+rExwuMTgSxIDKz0JXkFNuHZVDYs8RrAP2DcHww8vewPoQDdEX5SUT/pyYpJoPx0/fPx7QJ7wT2MzArUEjS9sunVRi/YGYIu0jyqfb38gwXRoSwPJNkqUai6sgrDqYO04KJ03YOpwqaCBDtQp7QV6LPoXro+INj9qquXwJF0cpTAYEJcaXj2x/W8gKYPj6wQXggroC0jHEov5rQlgl4ga0tqsBu7THJ8r1symqAgluO6Z5x+BiG3QFxMjSx7wzFxjDUp2W6itX0XBaki+D+XJh6VTOWKTgCCXZ0wbSIuE5UQEVWM56Vh5H9MHaTMXcnSoSHDhvTcqe4TNEEcruOYkuW4d/TdmsDCMTvOFLHFcFiCkCrV5EcYs/B6ErwvwJcA+vtNt","iv":"d5f918e6d20f111769b0419253ec478b","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"5Dedq0Jg6wCFJ9whKIeUzP6yePVlUFO1aY2ZlmR+q3A="}',
+        '{"cipher":"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","iv":"329d7f918b5adce90a9a6132a5f73c4a","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"5Dedq0Jg6wCFJ9whKIeUzP6yePVlUFO1aY2ZlmR+q3A="}',
+      encryptionKey:
+        'eyJrZXkiOiI4VjcyaTQzL2UrUFc3bitmWGx6dkwyaGh4Y3k4MGtmZDd6c1E2SGc1cHgwPSIsImtleU1ldGFkYXRhIjp7ImFsZ29yaXRobSI6IlBCS0RGMiIsInBhcmFtcyI6eyJpdGVyYXRpb25zIjo1MDAwfX0sImV4cG9ydGFibGUiOnRydWUsImxpYiI6Im9yaWdpbmFsIn0=',
+      encryptionSalt: '5Dedq0Jg6wCFJ9whKIeUzP6yePVlUFO1aY2ZlmR+q3A=',
     });
 
-    merge(this.fixture.state.engine.backgroundState.AccountsController, {
-      internalAccounts: {
-        accounts: {
-          'dc225a92-dc8b-4d3a-bcb4-b8222a06f30f': {
-            address: 'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd',
-            id: 'dc225a92-dc8b-4d3a-bcb4-b8222a06f30f',
-            metadata: {
-              importTime: 1751385096240,
-              keyring: { type: 'Snap Keyring' },
-              lastSelected: 1751385126224,
-              name: 'Solana Account 1',
-              nameLastUpdatedAt: 1751385096304,
-              snap: {
-                enabled: true,
-                id: 'npm:@metamask/solana-wallet-snap',
-                name: 'Solana',
-              },
+    return this;
+  }
+
+  withSnapUnencriptedState() {
+    merge(
+      this.fixture.state.engine.backgroundState.SnapController,
+      SNAPS_CONTROLLER_STATE,
+    );
+
+    return this;
+  }
+
+  withSnapPermissions() {
+    merge(this.fixture.state.engine.backgroundState.PermissionController, {
+      subjects: {
+        'npm:@metamask/message-signing-snap': {
+          origin: 'npm:@metamask/message-signing-snap',
+          permissions: {
+            snap_getEntropy: {
+              id: '4ZiGu5AY86BDYxhzzkAYK',
+              parentCapability: 'snap_getEntropy',
+              invoker: 'npm:@metamask/message-signing-snap',
+              caveats: null,
+              date: 1751473353645,
             },
-            methods: [
-              'signAndSendTransaction',
-              'signTransaction',
-              'signMessage',
-              'signIn',
-            ],
-            options: {
-              derivationPath: "m/44'/501'/0'/0'",
-              entropySource: '01JZ3AZE0XHT7BDKHAYHTRQKHZ',
-              index: 0,
-              scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            'endowment:rpc': {
+              id: 'f4KZLHAusny9OkDCAVCqa',
+              parentCapability: 'endowment:rpc',
+              invoker: 'npm:@metamask/message-signing-snap',
+              caveats: [
+                {
+                  type: 'rpcOrigin',
+                  value: {
+                    dapps: true,
+                    snaps: true,
+                  },
+                },
+              ],
+              date: 1751473353646,
             },
-            scopes: [
-              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-              'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z',
-              'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
-            ],
-            type: 'solana:data-account',
+          },
+        },
+        'https://portfolio.metamask.io': {
+          origin: 'https://portfolio.metamask.io',
+          permissions: {
+            wallet_snap: {
+              id: 'gv0_3nc0IZkl0wYU3ruZQ',
+              parentCapability: 'wallet_snap',
+              invoker: 'https://portfolio.metamask.io',
+              caveats: [
+                {
+                  type: 'snapIds',
+                  value: {
+                    'npm:@metamask/message-signing-snap': {},
+                    'npm:@metamask/solana-wallet-snap': {},
+                  },
+                },
+              ],
+              date: 1751473353650,
+            },
+          },
+        },
+        'https://portfolio-builds.metafi-dev.codefi.network': {
+          origin: 'https://portfolio-builds.metafi-dev.codefi.network',
+          permissions: {
+            wallet_snap: {
+              id: 'zwDEouLctYBlyyCu363u9',
+              parentCapability: 'wallet_snap',
+              invoker: 'https://portfolio-builds.metafi-dev.codefi.network',
+              caveats: [
+                {
+                  type: 'snapIds',
+                  value: {
+                    'npm:@metamask/message-signing-snap': {},
+                  },
+                },
+              ],
+              date: 1751473353651,
+            },
+          },
+        },
+        'https://docs.metamask.io': {
+          origin: 'https://docs.metamask.io',
+          permissions: {
+            wallet_snap: {
+              id: '1IxIvP9AC4feW5dKUNZpv',
+              parentCapability: 'wallet_snap',
+              invoker: 'https://docs.metamask.io',
+              caveats: [
+                {
+                  type: 'snapIds',
+                  value: {
+                    'npm:@metamask/message-signing-snap': {},
+                  },
+                },
+              ],
+              date: 1751473353652,
+            },
+          },
+        },
+        'https://developer.metamask.io': {
+          origin: 'https://developer.metamask.io',
+          permissions: {
+            wallet_snap: {
+              id: 'qqGP9vBgo4bJUzWqzK9Le',
+              parentCapability: 'wallet_snap',
+              invoker: 'https://developer.metamask.io',
+              caveats: [
+                {
+                  type: 'snapIds',
+                  value: {
+                    'npm:@metamask/message-signing-snap': {},
+                  },
+                },
+              ],
+              date: 1751473353653,
+            },
+          },
+        },
+        'npm:@metamask/gator-permissions-snap': {
+          origin: 'npm:@metamask/gator-permissions-snap',
+          permissions: {
+            wallet_snap: {
+              id: 'gQmp7dPg0BEWzrHckgmBH',
+              parentCapability: 'wallet_snap',
+              invoker: 'npm:@metamask/gator-permissions-snap',
+              caveats: [
+                {
+                  type: 'snapIds',
+                  value: {
+                    'npm:@metamask/message-signing-snap': {},
+                  },
+                },
+              ],
+              date: 1751473353653,
+            },
+          },
+        },
+        'npm:@metamask/solana-wallet-snap': {
+          origin: 'npm:@metamask/solana-wallet-snap',
+          permissions: {
+            'endowment:rpc': {
+              id: 'zbb1Hd2raCkRpybTytnhe',
+              parentCapability: 'endowment:rpc',
+              invoker: 'npm:@metamask/solana-wallet-snap',
+              caveats: [
+                {
+                  type: 'rpcOrigin',
+                  value: {
+                    dapps: true,
+                    snaps: false,
+                  },
+                },
+              ],
+              date: 1751473353714,
+            },
+            'endowment:keyring': {
+              id: 'GjvoLZ7uM0hBQEW10qrDH',
+              parentCapability: 'endowment:keyring',
+              invoker: 'npm:@metamask/solana-wallet-snap',
+              caveats: [
+                {
+                  type: 'keyringOrigin',
+                  value: {
+                    allowedOrigins: ['https://portfolio.metamask.io'],
+                  },
+                },
+              ],
+              date: 1751473353714,
+            },
+            snap_getBip32Entropy: {
+              id: 'OAhfPijQMJC6dYebEs8zg',
+              parentCapability: 'snap_getBip32Entropy',
+              invoker: 'npm:@metamask/solana-wallet-snap',
+              caveats: [
+                {
+                  type: 'permittedDerivationPaths',
+                  value: [
+                    {
+                      path: ['m', "44'", "501'"],
+                      curve: 'ed25519',
+                    },
+                  ],
+                },
+              ],
+              date: 1751473353714,
+            },
+            'endowment:network-access': {
+              id: '6wTIQuOmTttI-PTF0s8YN',
+              parentCapability: 'endowment:network-access',
+              invoker: 'npm:@metamask/solana-wallet-snap',
+              caveats: null,
+              date: 1751473353715,
+            },
+            'endowment:cronjob': {
+              id: 'jBrDsGDkYHAtFEWGTbo8q',
+              parentCapability: 'endowment:cronjob',
+              invoker: 'npm:@metamask/solana-wallet-snap',
+              caveats: [
+                {
+                  type: 'snapCronjob',
+                  value: {
+                    jobs: [
+                      {
+                        expression: '* * * * *',
+                        request: {
+                          method: 'refreshSend',
+                          params: {},
+                        },
+                      },
+                      {
+                        expression: '* * * * *',
+                        request: {
+                          method: 'refreshConfirmationEstimation',
+                          params: {},
+                        },
+                      },
+                      {
+                        expression: '*/2 * * * *',
+                        request: {
+                          method: 'scheduleRefreshAccounts',
+                          params: {},
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+              date: 1751473353716,
+            },
+            'endowment:protocol': {
+              id: 'z8CbR3ogtpYu9ezmXZ75y',
+              parentCapability: 'endowment:protocol',
+              invoker: 'npm:@metamask/solana-wallet-snap',
+              caveats: [
+                {
+                  type: 'protocolSnapScopes',
+                  value: {
+                    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                      methods: [
+                        'getGenesisHash',
+                        'getLatestBlockhash',
+                        'getMinimumBalanceForRentExemption',
+                      ],
+                    },
+                    'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1': {
+                      methods: [
+                        'getGenesisHash',
+                        'getLatestBlockhash',
+                        'getMinimumBalanceForRentExemption',
+                      ],
+                    },
+                  },
+                },
+              ],
+              date: 1751473353718,
+            },
+            'endowment:assets': {
+              id: 'x9K_-0OkqWvbtjRDum0WY',
+              parentCapability: 'endowment:assets',
+              invoker: 'npm:@metamask/solana-wallet-snap',
+              caveats: [
+                {
+                  type: 'chainIds',
+                  value: [
+                    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+                    'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
+                  ],
+                },
+              ],
+              date: 1751473353718,
+            },
+            snap_manageAccounts: {
+              id: 'BsuPVu-Bym8ettmbknIna',
+              parentCapability: 'snap_manageAccounts',
+              invoker: 'npm:@metamask/solana-wallet-snap',
+              caveats: null,
+              date: 1751473353718,
+            },
+            snap_manageState: {
+              id: '_PYVL55h9JrLLlff4TlOk',
+              parentCapability: 'snap_manageState',
+              invoker: 'npm:@metamask/solana-wallet-snap',
+              caveats: null,
+              date: 1751473353718,
+            },
+            snap_dialog: {
+              id: 'aFrRFn3nDwyC8VlWhkR8q',
+              parentCapability: 'snap_dialog',
+              invoker: 'npm:@metamask/solana-wallet-snap',
+              caveats: null,
+              date: 1751473353718,
+            },
+            snap_getPreferences: {
+              id: 'fqXkfMCvNdmy-qjqoElVZ',
+              parentCapability: 'snap_getPreferences',
+              invoker: 'npm:@metamask/solana-wallet-snap',
+              caveats: null,
+              date: 1751473353719,
+            },
           },
         },
       },
     });
 
-    merge(
-      this.fixture.state.engine.backgroundState.SnapController,
-      SNAPS_CONTROLLER_STATE,
-    );
     return this;
   }
 
