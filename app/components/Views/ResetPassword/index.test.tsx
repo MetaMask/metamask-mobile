@@ -17,6 +17,7 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { Authentication } from '../../../core';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
+import Device from '../../../util/device';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 
@@ -164,6 +165,8 @@ describe('ResetPassword', () => {
     jest.clearAllMocks();
     mockTrackOnboarding.mockClear();
     mockExportSeedPhrase.mockClear();
+    // Reset the navigation mocks to ensure they're properly tracked
+    mockNavigation.push.mockClear();
   });
 
   const renderConfirmPasswordView = async () => {
@@ -205,6 +208,8 @@ describe('ResetPassword', () => {
   });
 
   it('renders the current password view initially', async () => {
+    jest.spyOn(Device, 'isIos').mockReturnValue(true);
+
     const component = renderWithProviders(<ResetPassword {...defaultProps} />);
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -310,6 +315,29 @@ describe('ResetPassword', () => {
     });
   });
 
+  it('open webview on learnMore click', async () => {
+    const component = await renderConfirmPasswordView();
+
+    // The "Learn More" link should be visible immediately in the reset password view
+    const learnMoreLink = component.getByTestId(
+      ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID,
+    );
+
+    expect(learnMoreLink).toBeOnTheScreen();
+
+    // Click the "Learn More" link
+    fireEvent.press(learnMoreLink);
+
+    // Verify that the learnMore function was called with correct parameters
+    expect(mockNavigation.push).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+        title: 'support.metamask.io',
+      },
+    });
+  });
+
   it('password length is less than 8 characters, it shows an error', async () => {
     const component = await renderConfirmPasswordView();
 
@@ -339,6 +367,7 @@ describe('ResetPassword', () => {
 
     await act(async () => {
       fireEvent.changeText(newPasswordInput, 'NewPassword123');
+      fireEvent(newPasswordInput, 'SubmitEditing');
     });
 
     const confirmPasswordInput = component.getByTestId(
@@ -444,6 +473,59 @@ describe('ResetPassword', () => {
     );
   });
 
+  it('biometric authentication flow when biometry is available and enabled', async () => {
+    // Mock Authentication.getType to return availableBiometryType
+    const mockGetType = jest.spyOn(Authentication, 'getType');
+    mockGetType.mockResolvedValueOnce({
+      currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+      availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+    });
+
+    // Mock Authentication.getPassword to return credentials
+    const mockGetPassword = jest.spyOn(Authentication, 'getPassword');
+    mockGetPassword.mockResolvedValueOnce({
+      username: 'testUser',
+      password: 'testPassword123',
+      service: 'testService',
+      storage: 'testStorage',
+    });
+
+    // Mock StorageWrapper.getItem to return biometry choice
+    const mockStorageWrapper = jest.mocked(StorageWrapper);
+    mockStorageWrapper.getItem.mockImplementation((key) => {
+      if (key === '@MetaMask:biometryChoice') {
+        return Promise.resolve('TRUE');
+      }
+      if (key === '@MetaMask:biometryChoiceDisabled') {
+        return Promise.resolve(null);
+      }
+      if (key === '@MetaMask:passcodeDisabled') {
+        return Promise.resolve(null);
+      }
+      if (key === '@MetaMask:UserTermsAcceptedv1.0') {
+        return Promise.resolve('true');
+      }
+      return Promise.resolve(null);
+    });
+    const component = renderWithProviders(<ResetPassword {...defaultProps} />);
+
+    // Wait for componentDidMount to complete and all async operations to finish
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    });
+
+    // Verify that StorageWrapper.getItem was called with all expected keys
+    expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+      '@MetaMask:biometryChoiceDisabled',
+    );
+    expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+      '@MetaMask:passcodeDisabled',
+    );
+
+    // Component should render without errors
+    expect(component).toBeTruthy();
+  });
+
   it('on updating new password, confirm password is not cleared', async () => {
     const component = await renderConfirmPasswordView();
 
@@ -493,6 +575,26 @@ describe('ResetPassword', () => {
 
     await waitFor(() => {
       expect(newPasswordInput.props.secureTextEntry).toBe(false);
+    });
+
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(confirmPasswordInput, 'NewPassword123');
+    });
+
+    expect(confirmPasswordInput.props.secureTextEntry).toBe(true);
+
+    const confirmPasswordShowIcon = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID,
+    );
+
+    fireEvent.press(confirmPasswordShowIcon);
+
+    await waitFor(() => {
+      expect(confirmPasswordInput.props.secureTextEntry).toBe(false);
     });
   });
 });
