@@ -401,7 +401,7 @@ export const getRpcMethodMiddleware = ({
 }: RPCMethodsMiddleParameters) => {
   // Make sure to always have the correct origin
   hostname = hostname.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
-  const origin = isWalletConnect ? hostname : channelId ?? hostname;
+  const origin = channelId ?? hostname;
   const hooks = getRpcMethodMiddlewareHooks(origin);
 
   DevLogger.log(

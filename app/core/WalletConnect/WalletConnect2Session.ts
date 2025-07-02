@@ -466,8 +466,23 @@ class WalletConnect2Session {
     }
   };
 
+  private doesChainExist(caip2ChainId: CaipChainId) {
+    try {
+      const chainId = getChainIdForCaipChainId(caip2ChainId);
+      const networkConfigurations = selectEvmNetworkConfigurationsByChainId(store.getState());
+      return networkConfigurations[chainId] !== undefined;
+    } catch (err) {
+      return false;
+    }
+  }
+
   private async switchToChain(caip2ChainId: CaipChainId, originFromRequest?: string, allowSwitchingToNewChain = false) {
-    const chainId = getChainIdForCaipChainId(caip2ChainId);
+    if (!this.doesChainExist(caip2ChainId)) {
+      throw rpcErrors.invalidParams({
+        message: `Invalid parameters: chainId does not exist.`,
+      });
+    }
+
     const channelId = this.channelId;
     const origin = originFromRequest ?? this.origin;
 
@@ -580,6 +595,7 @@ class WalletConnect2Session {
         // TODO: is this needed?
         // If we failed to switch to the network, remove the chain from the permitted chains
         // This is so we don't leave any dangling permissions if the user rejects the switch
+        this._isHandlingRequest = false;
         return this.web3Wallet.respondSessionRequest({
           topic: this.session.topic,
           response: {
