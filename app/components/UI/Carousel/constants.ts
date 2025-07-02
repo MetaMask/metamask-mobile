@@ -125,7 +125,7 @@ export const BANNER_IMAGES: Partial<Record<SlideId, ImageSourcePropType>> = {
   aggregated: aggregatedImage,
   multisrp: multiSrpImage,
   backupAndSync: backupAndSyncImage,
-  smartAccount: smartAccount,
+  smartAccount,
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
   solana: solanaImage,
   ///: END:ONLY_INCLUDE_IF
