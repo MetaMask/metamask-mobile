@@ -106,7 +106,7 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
     await AccountListBottomSheet.tapAddAccountButton();
     await AddAccountBottomSheet.tapImportAccount();
     await Assertions.checkIfVisible(ImportAccountView.container);
-    await ImportAccountView.enterPrivateKey('89b432e4a45503b8f6eb5502f99b3a5b5dbc59c1061d8394144dfff9ebf420f5');
+    await ImportAccountView.enterPrivateKey(process.env.MM_STAKE_TEST_ACCOUNT_PRIVATE_KEY);
     await Assertions.checkIfVisible(SuccessImportAccountView.container);
     await SuccessImportAccountView.tapCloseButton();
     await AccountListBottomSheet.swipeToDismissAccountsModal();
