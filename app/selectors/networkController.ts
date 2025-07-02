@@ -347,6 +347,15 @@ export const selectIsPopularNetwork = createSelector(
     PopularList.some((network) => network.chainId === chainId),
 );
 
+export const selectIsAllPopularNetworks = createSelector(
+  selectChainId,
+  (chainId) =>
+    chainId === CHAIN_IDS.MAINNET ||
+    chainId === CHAIN_IDS.LINEA_MAINNET ||
+    PopularList.some((network) => network.chainId === chainId) ||
+    chainId.includes(KnownCaipNamespace.Solana),
+);
+
 export const selectIsAllNetworks = createSelector(
   selectAllPopularNetworkConfigurations,
   (state: RootState) => selectTokenNetworkFilter(state),

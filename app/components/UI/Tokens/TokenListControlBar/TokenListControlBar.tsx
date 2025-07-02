@@ -11,6 +11,7 @@ import { useSelector } from 'react-redux';
 import {
   selectChainId,
   selectIsAllNetworks,
+  selectIsAllPopularNetworks,
   selectIsPopularNetwork,
 } from '../../../../selectors/networkController';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
@@ -43,7 +44,8 @@ export const TokenListControlBar = ({
   const styles = createStyles(colors);
 
   const currentChainId = useSelector(selectChainId);
-  const isPopularNetwork = useSelector(selectIsPopularNetwork);
+  const isAllPopularEVMNetworks = useSelector(selectIsPopularNetwork);
+  const isAllPopularNetworks = useSelector(selectIsAllPopularNetworks);
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const networkName = useSelector(selectNetworkName);
@@ -53,15 +55,20 @@ export const TokenListControlBar = ({
       StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
     >();
 
+  const isPopularNetwork = isRemoveGlobalNetworkSelectorEnabled()
+    ? isAllPopularNetworks
+    : isAllPopularEVMNetworks;
   const isDisabled = isTestNet(currentChainId) || !isPopularNetwork;
 
-  const showFilterControls = useCallback(() => {
+  const handleFilterControls = useCallback(() => {
     if (isRemoveGlobalNetworkSelectorEnabled()) {
       navigation.navigate(...createNetworkManagerNavDetails({}));
-    } else {
+    } else if (isEvmSelected) {
       navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+    } else {
+      return null;
     }
-  }, [navigation]);
+  }, [navigation, isEvmSelected]);
 
   const showSortControls = useCallback(() => {
     navigation.navigate(...createTokensBottomSheetNavDetails({}));
@@ -80,7 +87,7 @@ export const TokenListControlBar = ({
             </Text>
           }
           isDisabled={isDisabled}
-          onPress={isEvmSelected ? showFilterControls : () => null}
+          onPress={handleFilterControls}
           endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
           style={
             isDisabled ? styles.controlButtonDisabled : styles.controlButton

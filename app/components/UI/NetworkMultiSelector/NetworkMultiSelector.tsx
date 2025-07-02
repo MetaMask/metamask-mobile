@@ -2,10 +2,14 @@
 import React, { useMemo, useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { CaipChainId } from '@metamask/utils';
+import {
+  CaipChainId,
+  parseCaipChainId,
+  KnownCaipNamespace,
+} from '@metamask/utils';
 
 // external dependencies
-import NetworkMultiSelectorList from '../NetworkMultiSelectorList/NetworkMultiSelectorList';
+import Engine from '../../../core/Engine';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import { useTheme } from '../../../util/theme';
 import { useStyles } from '../../../component-library/hooks/useStyles';
@@ -21,6 +25,9 @@ import { strings } from '../../../../locales/i18n';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import NetworkMultiSelectorList from '../NetworkMultiSelectorList/NetworkMultiSelectorList';
+import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
+import { selectedSelectedMultichainNetworkChainId } from '../../../selectors/multichainNetworkController';
 
 // internal dependencies
 import stylesheet from './NetworkMultiSelector.styles';
@@ -35,85 +42,117 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
 
   const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
   const [popularNetwork, setPopularNetwork] = useState<ExtendedNetwork>();
-  const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>([]);
   const [showWarningModal, setShowWarningModal] = useState(false);
 
-  const onSelectNetwork = useCallback(
-    (currentChainId: CaipChainId) => {
-      if (selectedChainIds.includes(currentChainId)) {
-        setSelectedChainIds(
-          selectedChainIds.filter((_chainId) => _chainId !== currentChainId),
-        );
-      } else {
-        setSelectedChainIds([...selectedChainIds, currentChainId]);
-      }
-    },
-    [selectedChainIds, setSelectedChainIds],
+  // Possibly convert to a hook
+  const enabledNetworksByNamespace = useSelector(
+    selectEnabledNetworksByNamespace,
   );
+  const currentCaipChainId = useSelector(
+    selectedSelectedMultichainNetworkChainId,
+  );
+  const { namespace } = parseCaipChainId(currentCaipChainId);
 
-  const showNetworkModal = (networkConfiguration: ExtendedNetwork) => {
-    setShowPopularNetworkModal(true);
-    setPopularNetwork({
-      ...networkConfiguration,
-      formattedRpcUrl: networkConfiguration.warning
-        ? null
-        : hideKeyFromUrl(networkConfiguration.rpcUrl),
-    });
-  };
+  const onSelectNetwork = useCallback((currentChainId: CaipChainId) => {
+    const { NetworkEnablementController } = Engine.context;
+    const isEnabled =
+      NetworkEnablementController.isNetworkEnabled(currentChainId);
+    if (isEnabled) {
+      NetworkEnablementController.setDisabledNetwork(currentChainId);
+    } else {
+      NetworkEnablementController.setEnabledNetwork(currentChainId);
+    }
+  }, []);
+
+  const showNetworkModal = useCallback(
+    (networkConfiguration: ExtendedNetwork) => {
+      setShowPopularNetworkModal(true);
+      setPopularNetwork({
+        ...networkConfiguration,
+        formattedRpcUrl: networkConfiguration.warning
+          ? null
+          : hideKeyFromUrl(networkConfiguration.rpcUrl),
+      });
+    },
+    [setShowPopularNetworkModal, setPopularNetwork],
+  );
 
   const onCancel = useCallback(() => {
     setShowPopularNetworkModal(false);
     setPopularNetwork(undefined);
   }, []);
 
-  const toggleWarningModal = () => {
+  const toggleWarningModal = useCallback(() => {
     setShowWarningModal(!showWarningModal);
-  };
+  }, [setShowWarningModal, showWarningModal]);
 
   const networks = useMemo(
     () =>
-      Object.entries(networkConfigurations).map(
-        ([key, network]: [
-          string,
-          EvmAndMultichainNetworkConfigurationsWithCaipChainId,
-        ]) => {
-          const rpcUrl =
-            'rpcEndpoints' in network
-              ? network.rpcEndpoints?.[network.defaultRpcEndpointIndex]?.url
-              : undefined;
-          return {
-            id: key,
-            name: network.name,
-            isSelected: false,
-            imageSource: getNetworkImageSource({
-              chainId: network.caipChainId,
-            }),
-            caipChainId: network.caipChainId,
-            networkTypeOrRpcUrl: rpcUrl,
-          };
-        },
-      ),
-    [networkConfigurations],
+      Object.entries(networkConfigurations)
+        .map(
+          ([key, network]: [
+            string,
+            EvmAndMultichainNetworkConfigurationsWithCaipChainId,
+          ]) => {
+            const rpcUrl =
+              'rpcEndpoints' in network
+                ? network.rpcEndpoints?.[network.defaultRpcEndpointIndex]?.url
+                : undefined;
+            const isSelected = Boolean(
+              enabledNetworksByNamespace[namespace][network.chainId],
+            );
+            return {
+              id: key,
+              name: network.name,
+              isSelected,
+              imageSource: getNetworkImageSource({
+                chainId: network.caipChainId,
+              }),
+              caipChainId: network.caipChainId,
+              networkTypeOrRpcUrl: rpcUrl,
+            };
+          },
+        )
+        .filter((network) => {
+          const curNamespace = parseCaipChainId(network.caipChainId).namespace;
+          return curNamespace === namespace;
+        }),
+    [networkConfigurations, enabledNetworksByNamespace, namespace],
   );
 
-  const areAllNetworksSelected = networks.every(({ caipChainId }) =>
-    selectedChainIds.includes(caipChainId),
-  );
-  const areAnyNetworksSelected = Boolean(selectedChainIds.length > 0);
+  const areAllNetworksSelected = useMemo(() => {
+    const networksThatAreEnabled = networks.filter(({ caipChainId }) => {
+      const { NetworkEnablementController } = Engine.context;
+      const isEnabled =
+        NetworkEnablementController.isNetworkEnabled(caipChainId);
+      return isEnabled;
+    });
+    const enabledNetworks = Object.entries(
+      enabledNetworksByNamespace[namespace],
+    );
+
+    return networksThatAreEnabled.length === enabledNetworks.length;
+  }, [networks, enabledNetworksByNamespace, namespace]);
 
   const renderSelectAllCheckbox = useCallback((): React.JSX.Element | null => {
-    const areSomeNetworksSelectedButNotAll =
-      areAnyNetworksSelected && !areAllNetworksSelected;
+    const { NetworkEnablementController } = Engine.context;
 
     const selectAll = () => {
       const allSelectedChainIds = networks.map(
         ({ caipChainId }) => caipChainId,
       );
-      setSelectedChainIds(allSelectedChainIds);
+      allSelectedChainIds.forEach((caipChainId) => {
+        NetworkEnablementController.setEnabledNetwork(caipChainId);
+      });
     };
 
     const unselectAll = () => {
-      setSelectedChainIds([]);
+      const allSelectedChainIds = networks.map(
+        ({ caipChainId }) => caipChainId,
+      );
+      allSelectedChainIds.forEach((caipChainId) => {
+        NetworkEnablementController.setDisabledNetwork(caipChainId);
+      });
     };
 
     const onPress = () => {
@@ -127,19 +166,13 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
           onPress={onPress}
           variant={TextVariant.BodyMD}
         >
-          {areSomeNetworksSelectedButNotAll || areAllNetworksSelected
+          {areAllNetworksSelected
             ? strings('networks.deselect_all')
             : strings('networks.select_all')}
         </Text>
       </View>
     );
-  }, [
-    areAllNetworksSelected,
-    areAnyNetworksSelected,
-    networks,
-    setSelectedChainIds,
-    styles.selectAllText,
-  ]);
+  }, [networks, styles.selectAllText, areAllNetworksSelected]);
 
   return (
     <View style={styles.bodyContainer}>
@@ -147,27 +180,33 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
       <NetworkMultiSelectorList
         openModal={openModal}
         networks={networks}
-        selectedChainIds={selectedChainIds}
+        selectedChainIds={
+          Object.keys(enabledNetworksByNamespace[namespace]) as CaipChainId[]
+        }
         onSelectNetwork={onSelectNetwork}
         additionalNetworksComponent={
-          <View style={styles.customNetworkContainer}>
-            <CustomNetwork
-              isNetworkModalVisible={showPopularNetworkModal}
-              closeNetworkModal={onCancel}
-              selectedNetwork={popularNetwork}
-              toggleWarningModal={toggleWarningModal}
-              showNetworkModal={showNetworkModal}
-              switchTab={undefined}
-              shouldNetworkSwitchPopToWallet={false}
-              customNetworksList={PopularList}
-              showCompletionMessage={false}
-              showPopularNetworkModal
-              allowNetworkSwitch={false}
-              hideWarningIcons
-              listHeader={strings('networks.additional_networks')}
-              compactMode
-            />
-          </View>
+          <>
+            {namespace === KnownCaipNamespace.Eip155 && (
+              <View style={styles.customNetworkContainer}>
+                <CustomNetwork
+                  isNetworkModalVisible={showPopularNetworkModal}
+                  closeNetworkModal={onCancel}
+                  selectedNetwork={popularNetwork}
+                  toggleWarningModal={toggleWarningModal}
+                  showNetworkModal={showNetworkModal}
+                  switchTab={undefined}
+                  shouldNetworkSwitchPopToWallet={false}
+                  customNetworksList={PopularList}
+                  showCompletionMessage={false}
+                  showPopularNetworkModal
+                  allowNetworkSwitch={false}
+                  hideWarningIcons
+                  listHeader={strings('networks.additional_networks')}
+                  compactMode
+                />
+              </View>
+            )}
+          </>
         }
       />
     </View>

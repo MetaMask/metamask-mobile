@@ -1,6 +1,7 @@
 // third party dependencies
 import { View } from 'react-native';
 import React, { useRef, useMemo, useCallback, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import ScrollableTabView, {
@@ -12,6 +13,7 @@ import { toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 // external dependencies
+import Engine from '../../../core/Engine';
 import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { MetaMetrics } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
@@ -39,7 +41,8 @@ import NetworkMultiSelector from '../NetworkMultiSelector/NetworkMultiSelector';
 import CustomNetworkSelector from '../CustomNetworkSelector/CustomNetworkSelector';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
-import { selectNetworkEnablementControllerState } from '../../../selectors/networkEnablementController';
+import { createNavigationDetails } from '../../../util/navigation/navUtils';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 
 // internal dependencies
 import createStyles from './index.styles';
@@ -48,10 +51,6 @@ import {
   ShowConfirmDeleteModalState,
   ShowMultiRpcSelectModalState,
 } from './index.types';
-import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
-import { useSelector } from 'react-redux';
-import Engine from '../../../core/Engine';
-import { createNavigationDetails } from '../../../util/navigation/navUtils';
 
 export const createNetworkManagerNavDetails = createNavigationDetails(
   Routes.MODAL.ROOT_MODAL_FLOW,
@@ -94,16 +93,11 @@ const NetworkManager = () => {
     useState<NetworkMenuModalState>(initialNetworkMenuModal);
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] =
     useState<ShowConfirmDeleteModalState>(initialShowConfirmDeleteModal);
-
   const [showMultiRpcSelectModal, setShowMultiRpcSelectModal] =
     useState<ShowMultiRpcSelectModalState>(initialShowMultiRpcSelectModal);
 
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
-  );
-
-  const networkEnablementControllerState = useSelector(
-    selectNetworkEnablementControllerState,
   );
 
   const onChangeTab = useCallback(
@@ -209,25 +203,6 @@ const NetworkManager = () => {
       MetaMetrics.getInstance().addTraitsToUser(
         removeItemFromChainIdList(chainId),
       );
-
-      // // set tokenNetworkFilter
-      // if (isPortfolioViewEnabled()) {
-      //   const { PreferencesController } = Engine.context;
-      //   if (!isAllNetwork) {
-      //     PreferencesController.setTokenNetworkFilter({
-      //       [chainId]: true,
-      //     });
-      //   } else {
-      //     // Remove the chainId from the tokenNetworkFilter
-      //     const { [chainId]: _, ...newTokenNetworkFilter } = tokenNetworkFilter;
-      //     PreferencesController.setTokenNetworkFilter({
-      //       // TODO fix type of preferences controller level
-      //       // setTokenNetworkFilter in preferences controller accepts Record<string, boolean> while tokenNetworkFilter is Record<string, string>
-      //       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      //       ...(newTokenNetworkFilter as any),
-      //     });
-      //   }
-      // }
 
       setShowConfirmDeleteModal({
         isVisible: false,

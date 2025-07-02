@@ -60,18 +60,6 @@ const createStyles = (params: { theme: Theme }) => {
       alignItems: 'center',
     },
     // custom network styles
-    container: {
-      flex: 1,
-    },
-    addNetworkButtonContainer: {
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    iconContainer: {
-      marginRight: 14,
-    },
     containerDeleteText: {
       paddingLeft: 16,
       paddingRight: 8,

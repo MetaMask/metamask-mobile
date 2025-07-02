@@ -26,7 +26,7 @@ export interface AdditionalNetworkSection {
 export type NetworkListItem = Network | AdditionalNetworkSection;
 
 export interface NetworkMultiSelectorListProps {
-  onSelectNetwork?: (caipChainId: CaipChainId, isSelected: boolean) => void;
+  onSelectNetwork?: (caipChainId: CaipChainId) => void;
   networks?: Network[];
   additionalNetworks?: Network[];
   isLoading?: boolean;

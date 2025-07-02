@@ -103,11 +103,6 @@ const NetworkMultiSelectList = ({
         networkTypeOrRpcUrl,
       } = item as Network;
       const isDisabled = isLoading || isSelectionDisabled;
-
-      let isSelectedNetwork = isSelected;
-      if (selectedChainIds) {
-        isSelectedNetwork = selectedChainIds.includes(caipChainId);
-      }
       const parsedCaipChainId = parseCaipChainId(caipChainId);
       const namespace = parsedCaipChainId.namespace;
 
@@ -116,14 +111,12 @@ const NetworkMultiSelectList = ({
       if (chainId && isTestNet(chainId)) return null;
 
       return (
-        <View
-          testID={`${name}-${isSelectedNetwork ? 'selected' : 'not-selected'}`}
-        >
+        <View testID={`${name}-${isSelected ? 'selected' : 'not-selected'}`}>
           <Cell
             variant={CellVariant.MultiSelectWithMenu}
-            isSelected={isSelectedNetwork}
+            isSelected={isSelected}
             title={name}
-            onPress={() => onSelectNetwork?.(caipChainId, isSelectedNetwork)}
+            onPress={() => onSelectNetwork?.(caipChainId)}
             avatarProps={{
               variant: AvatarVariant.Network,
               name,
@@ -155,7 +148,6 @@ const NetworkMultiSelectList = ({
     },
     [
       isLoading,
-      selectedChainIds,
       renderRightAccessory,
       isSelectionDisabled,
       onSelectNetwork,
