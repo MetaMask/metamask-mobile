@@ -66,6 +66,14 @@ import { getAggregatedBalance } from '../../hooks/useMultichainBalances/utils';
 import { renderFiat } from '../../../util/number';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
+import {
+  getMultichainNetworkAggregatedBalance,
+  selectMultichainBalances,
+  selectMultichainAssetsRates,
+  selectMultichainAssets,
+} from '../../../selectors/multichain';
+import { SolAccountType } from '@metamask/keyring-api';
+import { selectSelectedNonEvmNetworkChainId } from '../../../selectors/multichainNetworkController';
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
@@ -114,7 +122,11 @@ const EvmAccountSelectorList = ({
   const accountTreeSections = useSelector(selectAccountSections);
   const internalAccounts = useSelector(selectInternalAccounts);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  // eslint-disable-next-line no-console
+
+  const multichainBalances = useSelector(selectMultichainBalances);
+  const multichainAssets = useSelector(selectMultichainAssets);
+  const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
+  const nonEvmNetworkChainId = useSelector(selectSelectedNonEvmNetworkChainId);
 
   const [aggregatedBalanceByAccount, setAggregatedBalanceByAccount] = useState<{
     [address: string]: number | null;
@@ -418,18 +430,35 @@ const EvmAccountSelectorList = ({
       // Process each account and get their balance
       for (const account of internalAccounts) {
         try {
-          const balanceData = getAggregatedBalance(account);
-          const totalBalance =
-            (balanceData?.ethFiat || 0) + (balanceData?.tokenFiat || 0);
+          if (account.type === SolAccountType.DataAccount) {
+            const balanceData = getMultichainNetworkAggregatedBalance(
+              account,
+              multichainBalances,
+              multichainAssets,
+              multichainAssetsRates,
+              nonEvmNetworkChainId,
+            );
 
-          aggregatedBalanceNewState[toFormattedAddress(account.address)] =
-            totalBalance;
+            const totalBalance =
+              (balanceData?.totalBalanceFiat || 0) +
+              (Number(balanceData?.totalNativeTokenBalance?.amount) || 0);
 
-          // Update state incrementally for better UX
-          setAggregatedBalanceByAccount((prev) => ({
-            ...prev,
-            [toFormattedAddress(account.address)]: totalBalance,
-          }));
+            aggregatedBalanceNewState[toFormattedAddress(account.address)] =
+              totalBalance;
+          } else {
+            const balanceData = getAggregatedBalance(account);
+            const totalBalance =
+              (balanceData?.ethFiat || 0) + (balanceData?.tokenFiat || 0);
+
+            aggregatedBalanceNewState[toFormattedAddress(account.address)] =
+              totalBalance;
+
+            // Update state incrementally for better UX
+            setAggregatedBalanceByAccount((prev) => ({
+              ...prev,
+              [toFormattedAddress(account.address)]: totalBalance,
+            }));
+          }
         } catch (error) {
           console.error(
             `Error fetching balance for account ${account.address}:`,
