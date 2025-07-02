@@ -15,6 +15,6 @@ export interface UserState {
   isAuthChecked: boolean;
   initialScreen: string;
   appTheme: AppThemeKey;
-  ambiguousAddressEntries: Record<string, unknown>;
+  ambiguousAddressEntries: Record<string, string[]>;
   appServicesReady: boolean;
 }
