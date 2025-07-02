@@ -24,18 +24,8 @@ export const recreateVaultWithNewPassword = async (
 ) => {
   const { KeyringController } = Engine.context;
   const { setSelectedAddress } = Engine;
-  try {
-    await KeyringController.verifyPassword(password);
-  } catch (e) {
-    throw new Error('Invalid password');
-  }
-
-  try {
-    await KeyringController.changePassword(password, newPassword);
-  } catch (e) {
-    throw new Error('Error while changing password');
-  }
-
+  await KeyringController.verifyPassword(password);
+  await KeyringController.changePassword(password, newPassword);
   setSelectedAddress(selectedAddress);
 };
 
