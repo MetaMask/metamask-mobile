@@ -645,7 +645,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontFamily": "Geist Medium",
                                   "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
@@ -690,9 +690,8 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -723,7 +722,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
@@ -1065,7 +1064,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontFamily": "Geist Medium",
                                   "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
@@ -1110,9 +1109,8 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -1143,7 +1141,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
@@ -1894,7 +1892,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontFamily": "Geist Medium",
                                   "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
@@ -1939,9 +1937,8 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -2276,7 +2273,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontFamily": "Geist Medium",
                                   "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
@@ -2321,9 +2318,8 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -3065,7 +3061,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontFamily": "Geist Medium",
                                   "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
@@ -3110,9 +3106,8 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -3143,7 +3138,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
@@ -3485,7 +3480,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontFamily": "Geist Medium",
                                   "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
@@ -3530,9 +3525,8 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -3563,7 +3557,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
@@ -4313,7 +4307,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontFamily": "Geist Medium",
                                   "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
@@ -4358,9 +4352,8 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -4391,7 +4384,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
@@ -4733,7 +4726,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontFamily": "Geist Medium",
                                   "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
@@ -4778,9 +4771,8 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -4811,7 +4803,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
