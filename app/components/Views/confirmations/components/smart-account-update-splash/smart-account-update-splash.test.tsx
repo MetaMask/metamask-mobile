@@ -12,6 +12,8 @@ import * as ConfirmationReducerActions from '../../../../../actions/confirmation
 import * as ConfirmationActions from '../../hooks/useConfirmActions';
 import { SmartAccountUpdateSplash } from './smart-account-update-splash';
 import { useDispatch } from 'react-redux';
+import { RootState } from '../../../../../reducers';
+import { DeepPartial } from 'redux';
 
 jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
@@ -36,11 +38,18 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
+const renderComponent = (state?: Record<string, unknown>) =>
+  renderWithProvider(<SmartAccountUpdateSplash />, {
+    state:
+      state ??
+      getAppStateForConfirmation(upgradeAccountConfirmation, {
+        PreferencesController: { smartAccountOptIn: false },
+      }),
+  });
+
 describe('SmartContractWithLogo', () => {
   it('renders correctly', () => {
-    const { getByText } = renderWithProvider(<SmartAccountUpdateSplash />, {
-      state: getAppStateForConfirmation(upgradeAccountConfirmation),
-    });
+    const { getByText } = renderComponent();
     expect(getByText('Use smart account?')).toBeTruthy();
     expect(getByText('Request for')).toBeTruthy();
   });
@@ -53,12 +62,7 @@ describe('SmartContractWithLogo', () => {
       'upgradeSplashPageAcknowledgedForAccount',
     );
 
-    const { getByText, queryByText } = renderWithProvider(
-      <SmartAccountUpdateSplash />,
-      {
-        state: getAppStateForConfirmation(upgradeAccountConfirmation),
-      },
-    );
+    const { getByText, queryByText } = renderComponent();
     expect(queryByText('Request for')).toBeTruthy();
     fireEvent.press(getByText('Yes'));
     expect(mockDispatch).toHaveBeenCalled();
@@ -71,12 +75,7 @@ describe('SmartContractWithLogo', () => {
     jest
       .spyOn(ConfirmationActions, 'useConfirmActions')
       .mockReturnValue({ onConfirm: jest.fn(), onReject: mockOnReject });
-    const { getByText, queryByText } = renderWithProvider(
-      <SmartAccountUpdateSplash />,
-      {
-        state: getAppStateForConfirmation(upgradeAccountConfirmation),
-      },
-    );
+    const { getByText, queryByText } = renderComponent();
     expect(queryByText('Request for')).toBeTruthy();
     fireEvent.press(getByText('No'));
     expect(mockOnReject).toHaveBeenCalledTimes(1);
@@ -84,16 +83,24 @@ describe('SmartContractWithLogo', () => {
 
   it('renders null if splash page is already acknowledged for the account', async () => {
     const mockState = getAppStateForConfirmation(upgradeAccountConfirmation);
-    const { queryByText } = renderWithProvider(<SmartAccountUpdateSplash />, {
-      state: {
-        ...mockState,
-        confirmation: {
-          upgradeSplashPageAcknowledgedForAccounts: [
-            upgradeAccountConfirmation.txParams.from,
-          ],
-        },
+    const { queryByText } = renderComponent({
+      ...mockState,
+      confirmation: {
+        upgradeSplashPageAcknowledgedForAccounts: [
+          upgradeAccountConfirmation.txParams.from,
+        ],
       },
     });
+
+    expect(queryByText('Request for')).toBeNull();
+  });
+
+  it('renders null if preference smartAccountOptIn is true', async () => {
+    const { queryByText } = renderComponent(
+      getAppStateForConfirmation(upgradeAccountConfirmation, {
+        PreferencesController: { smartAccountOptIn: true },
+      }),
+    );
 
     expect(queryByText('Request for')).toBeNull();
   });
