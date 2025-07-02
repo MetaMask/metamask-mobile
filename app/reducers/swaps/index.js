@@ -15,6 +15,7 @@ import { NETWORKS_CHAIN_ID } from '../../constants/network';
 import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
 import { CHAIN_ID_TO_NAME_MAP } from '@metamask/swaps-controller/dist/constants';
 import { invert } from 'lodash';
+import { createDeepEqualSelector } from '../../selectors/util';
 
 // If we are in dev and on a testnet, just use mainnet feature flags,
 // since we don't have feature flags for testnets in the API
@@ -41,6 +42,42 @@ export const setSwapsHasOnboarded = (hasOnboarded) => ({
 });
 
 // * Functions
+
+/**
+ * Processes and normalizes a token by removing unwanted properties
+ * and ensuring consistent data types
+ */
+function processToken(token) {
+  if (!token) return null;
+  const { hasBalanceError, image, ...tokenData } = token;
+  return {
+    occurrences: 0,
+    ...tokenData,
+    decimals: Number(tokenData.decimals),
+    address: tokenData.address.toLowerCase(),
+  };
+}
+
+/**
+ * Combines tokens from multiple sources with deduplication
+ * Maintains first-occurrence-wins behavior
+ */
+function combineTokens(tokenSources) {
+  const tokenMap = new Map();
+
+  for (const tokens of tokenSources) {
+    if (!tokens) continue;
+
+    for (const token of tokens) {
+      const processedToken = processToken(token);
+      if (processedToken && !tokenMap.has(processedToken.address)) {
+        tokenMap.set(processedToken.address, processedToken);
+      }
+    }
+  }
+
+  return Array.from(tokenMap.values());
+}
 
 function addMetadata(chainId, tokens, tokenList) {
   if (!isMainnetByChainId(chainId)) {
@@ -172,58 +209,29 @@ export const selectSwapsIsInPolling = createSelector(
 const swapsControllerAndUserTokens = createSelector(
   swapsControllerTokens,
   selectTokens,
-  (swapsTokens, tokens) => {
-    const values = [...(swapsTokens || []), ...(tokens || [])]
-      .filter(Boolean)
-      .reduce((map, { hasBalanceError, image, ...token }) => {
-        const key = token.address.toLowerCase();
-
-        if (!map.has(key)) {
-          map.set(key, {
-            occurrences: 0,
-            ...token,
-            decimals: Number(token.decimals),
-            address: key,
-          });
-        }
-        return map;
-      }, new Map())
-      .values();
-
-    return [...values];
-  },
+  (swapsTokens, tokens) => combineTokens([swapsTokens, tokens]),
 );
 
-const swapsControllerAndUserTokensMultichain = createSelector(
+const swapsControllerAndUserTokensMultichain = createDeepEqualSelector(
   swapsControllerTokens,
   selectAllTokens,
   selectSelectedInternalAccountAddress,
   (swapsTokens, allTokens, currentUserAddress) => {
-    const allTokensArr = Object.values(allTokens);
-    const allUserTokensCrossChains = allTokensArr.reduce(
-      (acc, tokensElement) => {
-        const found = tokensElement[currentUserAddress] || [];
-        return [...acc, ...found.flat()];
-      },
-      [],
-    );
-    const values = [...(swapsTokens || []), ...(allUserTokensCrossChains || [])]
-      .filter(Boolean)
-      .reduce((map, { hasBalanceError, image, ...token }) => {
-        const key = token.address.toLowerCase();
+    // Flatten user tokens from all chains
+    const userTokensFlat = [];
+    if (allTokens && currentUserAddress) {
+      for (const chainId in allTokens) {
+        const chainTokens = allTokens[chainId];
+        if (!chainTokens || !chainTokens[currentUserAddress]) continue;
 
-        if (!map.has(key)) {
-          map.set(key, {
-            occurrences: 0,
-            ...token,
-            decimals: Number(token.decimals),
-            address: key,
-          });
+        const userTokensForChain = chainTokens[currentUserAddress];
+        if (Array.isArray(userTokensForChain)) {
+          userTokensFlat.push(...userTokensForChain);
         }
-        return map;
-      }, new Map())
-      .values();
-    return [...values];
+      }
+    }
+
+    return combineTokens([swapsTokens, userTokensFlat]);
   },
 );
 
