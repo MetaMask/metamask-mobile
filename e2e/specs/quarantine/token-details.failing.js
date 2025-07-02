@@ -6,7 +6,7 @@ import {
   importWalletWithRecoveryPhrase,
   switchToSepoliaNetwork,
 } from '../../viewHelper';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions.ts';
 import CommonView from '../../pages/CommonView';
 import TestHelpers from '../../helpers';
 

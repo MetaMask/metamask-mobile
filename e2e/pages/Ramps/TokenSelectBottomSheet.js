@@ -1,5 +1,5 @@
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 import { selectTokenSelectors } from '../../selectors/Ramps/SelectToken.selectors';
 
 class TokenSelectBottomSheet {

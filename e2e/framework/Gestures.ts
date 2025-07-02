@@ -191,7 +191,7 @@ export default class Gestures {
     text: string,
     options: TypeTextOptions = {},
   ): Promise<void> {
-    const { 
+    const {
       timeout = BASE_DEFAULTS.timeout,
       clearFirst = true,
       hideKeyboard = false,

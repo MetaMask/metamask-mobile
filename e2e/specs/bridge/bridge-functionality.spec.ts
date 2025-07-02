@@ -13,7 +13,7 @@ import FixtureServer from '../../fixtures/fixture-server';
 import WalletView from '../../pages/wallet/WalletView';
 import TestHelpers from '../../helpers';
 import { SmokeTrade } from '../../tags';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions.ts';
 import Ganache from '../../../app/util/test/ganache';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 import SettingsView from '../../pages/Settings/SettingsView';

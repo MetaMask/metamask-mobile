@@ -6,7 +6,7 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 import { SmokeTrade } from '../../tags';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions.ts';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import SelectCurrencyView from '../../pages/Ramps/SelectCurrencyView';
 import TokenSelectBottomSheet from '../../pages/Ramps/TokenSelectBottomSheet';
