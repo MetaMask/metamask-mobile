@@ -111,11 +111,13 @@ describe(Regression('Swap from Token view'), (): void => {
     try {
       await Assertions.checkIfVisible(SwapView.fetchingQuotes, 5000);
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.log('Fetching quotes not found, trying quote summary:', e);
       // If fetching quotes is not found, try to find the quote summary directly
       try {
         await Assertions.checkIfVisible(SwapView.quoteSummary, 5000);
       } catch (e2) {
+        // eslint-disable-next-line no-console
         console.log('Quote summary also not found:', e2);
         // If neither is found, wait a bit more and try again
         await Assertions.checkIfVisible(SwapView.quoteSummary, 5000);
