@@ -6,7 +6,7 @@ export const ConnectedAccountModalSelectorsText = {
   IMPORTED: enContent.accounts.imported,
   TITLE: enContent.accounts.connected_accounts_title,
   SELECT_ALL: enContent.networks.select_all,
-};
+} as const;
 
 export const ConnectedAccountsSelectorsIDs = {
   CONNECT_ACCOUNTS_BUTTON: 'connect-accounts-buttons',
@@ -23,9 +23,14 @@ export const ConnectedAccountsSelectorsIDs = {
   CONFIRM_DISCONNECT_NETWORKS_BUTTON: 'confirm_disconnect_networks',
   MANAGE_PERMISSIONS: 'manage_permissions',
   ACCOUNT_LIST_BOTTOM_SHEET: 'account-list-bottom-sheet',
-};
+} as const;
 
 export const PermissionsSummarySelectorsIDs = {
   ACCOUNTS_TAB: 'accounts-tab',
   PERMISSIONS_TAB: 'permissions-tab',
-};
+} as const;
+
+// Type definitions for the selectors
+export type ConnectedAccountModalSelectorsTextType = typeof ConnectedAccountModalSelectorsText;
+export type ConnectedAccountsSelectorsIDsType = typeof ConnectedAccountsSelectorsIDs;
+export type PermissionsSummarySelectorsIDsType = typeof PermissionsSummarySelectorsIDs; 
