@@ -1,6 +1,5 @@
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 
 import Text, {
   TextVariant,
@@ -25,10 +24,10 @@ import {
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { DepositRegion } from '../../../constants';
-import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
 
 interface UnsupportedRegionModalNavigationDetails {
   onSelectDifferentRegion?: () => void;
+  onNavigateToBuy?: () => void;
   selectedRegion: DepositRegion;
 }
 
@@ -40,15 +39,16 @@ export const createUnsupportedRegionModalNavigationDetails =
 
 function UnsupportedRegionModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
-  const { onSelectDifferentRegion, selectedRegion } =
+  const { onSelectDifferentRegion, onNavigateToBuy, selectedRegion } =
     useParams<UnsupportedRegionModalNavigationDetails>();
 
   const { styles } = useStyles(styleSheet, {});
 
-  const navigateToBuy = useCallback(() => {
-    navigation.navigate(...createBuyNavigationDetails());
-  }, [navigation]);
+  const handleNavigateToBuy = useCallback(() => {
+    if (onNavigateToBuy) {
+      sheetRef.current?.onCloseBottomSheet(onNavigateToBuy);
+    }
+  }, [onNavigateToBuy]);
 
   const handleSelectDifferentRegion = useCallback(() => {
     if (onSelectDifferentRegion) {
@@ -58,7 +58,7 @@ function UnsupportedRegionModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack isInteractable={false}>
-      <BottomSheetHeader onClose={navigateToBuy}>
+      <BottomSheetHeader onClose={handleNavigateToBuy}>
         <Text variant={TextVariant.HeadingMD}>
           {strings('deposit.unsupported_region_modal.title')}
         </Text>
@@ -95,7 +95,7 @@ function UnsupportedRegionModal() {
         />
         <Button
           size={ButtonSize.Lg}
-          onPress={navigateToBuy}
+          onPress={handleNavigateToBuy}
           label={strings('deposit.unsupported_region_modal.buy_crypto')}
           variant={ButtonVariants.Primary}
           width={ButtonWidthTypes.Full}

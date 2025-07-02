@@ -30,6 +30,7 @@ describe('UnsupportedRegionModal', () => {
   it('renders correctly', () => {
     mockUseParams.mockReturnValue({
       onSelectDifferentRegion: jest.fn(),
+      onNavigateToBuy: jest.fn(),
       selectedRegion: {
         code: 'US',
         flag: '🇺🇸',
@@ -51,6 +52,7 @@ describe('UnsupportedRegionModal', () => {
   it('renders correctly with countryName and countryFlag', () => {
     mockUseParams.mockReturnValue({
       onSelectDifferentRegion: jest.fn(),
+      onNavigateToBuy: jest.fn(),
       selectedRegion: {
         code: 'BR',
         flag: '🇧🇷',
@@ -69,10 +71,11 @@ describe('UnsupportedRegionModal', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('calls navigateToBuy when Buy Crypto button is pressed', () => {
-    const mockNavigateToBuy = jest.fn();
+  it('calls onNavigateToBuy when Buy Crypto button is pressed', () => {
+    const mockOnNavigateToBuy = jest.fn();
     mockUseParams.mockReturnValue({
       onSelectDifferentRegion: jest.fn(),
+      onNavigateToBuy: mockOnNavigateToBuy,
       selectedRegion: {
         code: 'BR',
         flag: '🇧🇷',
@@ -91,14 +94,15 @@ describe('UnsupportedRegionModal', () => {
 
     const buyCryptoButton = getByText('Buy Crypto');
     fireEvent.press(buyCryptoButton);
-    // Note: navigateToBuy is not passed as a param, it's created internally in the component
-    // This test should verify the button is pressable, not that a specific function is called
+
+    expect(mockOnNavigateToBuy).toHaveBeenCalled();
   });
 
   it('calls onSelectDifferentRegion when Change region button is pressed', () => {
     const mockOnSelectDifferentRegion = jest.fn();
     mockUseParams.mockReturnValue({
       onSelectDifferentRegion: mockOnSelectDifferentRegion,
+      onNavigateToBuy: jest.fn(),
       selectedRegion: {
         code: 'BR',
         flag: '🇧🇷',
@@ -145,6 +149,7 @@ describe('UnsupportedRegionModal', () => {
   it('handles missing regionName gracefully', () => {
     mockUseParams.mockReturnValue({
       onSelectDifferentRegion: jest.fn(),
+      onNavigateToBuy: jest.fn(),
       selectedRegion: {
         code: 'US',
         flag: '🇺🇸',
