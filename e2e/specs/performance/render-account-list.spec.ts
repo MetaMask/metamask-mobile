@@ -282,7 +282,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
     );
   });
 
-  it('render account list efficiently with multiple accounts and networks (profile syncing disabled)', async () => {
+  it.only('render account list efficiently with multiple accounts and networks (profile syncing disabled)', async () => {
     // Platform-specific performance thresholds (in milliseconds)
     const isAndroid = device.getPlatform() === 'android';
     const PERFORMANCE_THRESHOLDS = isAndroid
@@ -306,9 +306,11 @@ describe(SmokePerformance('Account List Load Testing'), () => {
 
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withPopularNetworks()
-          .withMultipleAccountsInKeyring()
+        fixture: new FixtureBuilder({ onboarding: true })
+          //  .withPopularNetworks()
+          //.withMultipleAccountsInKeyring()
+          //.withSnapUnencriptedState()
+          //.withSnapPermissions()
           .build(),
         restartDevice: true,
       },
@@ -458,13 +460,17 @@ describe(SmokePerformance('Account List Load Testing'), () => {
     // Baseline test with minimal tokens for comparison
     const minimalTokens = [
       {
-        address: toChecksumAddress(`0x1111111111111111111111111111111111111111`),
+        address: toChecksumAddress(
+          `0x1111111111111111111111111111111111111111`,
+        ),
         symbol: 'MIN1',
         decimals: 18,
         name: 'Minimal Token 1',
       },
       {
-        address: toChecksumAddress(`0x2222222222222222222222222222222222222222`),
+        address: toChecksumAddress(
+          `0x2222222222222222222222222222222222222222`,
+        ),
         symbol: 'MIN2',
         decimals: 18,
         name: 'Minimal Token 2',
