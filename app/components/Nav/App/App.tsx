@@ -780,10 +780,9 @@ const AppFlow = () => {
 };
 
 const App: React.FC = () => {
+  const navigation = useNavigation();
   const userLoggedIn = useSelector(selectUserLoggedIn);
   const [onboarded, setOnboarded] = useState(false);
-  const navigation = useNavigation();
-  // const queueOfHandleDeeplinkFunctions = useRef<(() => void)[]>([]);
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
   const sdkInit = useRef<boolean | undefined>(undefined);
@@ -891,18 +890,6 @@ const App: React.FC = () => {
         const deeplink = opts.uri || (val['+non_branch_link'] as string);
         handleDeeplink({ uri: deeplink });
       });
-
-      // TODO: We should be able to remove this since deeplinks are only parsed if user is logged in
-      // if (sdkInit.current) {
-      //   handleDeeplink(opts);
-      // } else {
-      //   queueOfHandleDeeplinkFunctions.current =
-      //     queueOfHandleDeeplinkFunctions.current.concat([
-      //       () => {
-      //         handleDeeplink(opts);
-      //       },
-      //     ]);
-      // }
     });
   }, [dispatch, handleDeeplink, navigation]);
 
@@ -927,12 +914,7 @@ const App: React.FC = () => {
             context: 'Nav/App',
             navigation: NavigationService.navigation,
           });
-          await SDKConnect.getInstance().postInit(() => {
-            // TODO: We should be able to remove queueOfHandleDeeplinkFunctions since deeplinks are only parsed if user is logged in
-            // setTimeout(() => {
-            //   queueOfHandleDeeplinkFunctions.current = [];
-            // }, 1000);
-          });
+          await SDKConnect.getInstance().postInit();
           sdkInit.current = true;
         } catch (err) {
           sdkInit.current = undefined;
@@ -941,14 +923,9 @@ const App: React.FC = () => {
       }
     }
 
-    initSDKConnect()
-      // TODO: We should be able to remove this since deeplinks are only parsed if user is logged in
-      // .then(() => {
-      //   queueOfHandleDeeplinkFunctions.current.forEach((func) => func());
-      // })
-      .catch((err) => {
-        Logger.error(err, 'Error initializing SDKConnect');
-      });
+    initSDKConnect().catch((err) => {
+      Logger.error(err, 'Error initializing SDKConnect');
+    });
   }, [onboarded, userLoggedIn]);
 
   useEffect(() => {

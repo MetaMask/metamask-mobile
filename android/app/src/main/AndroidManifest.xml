@@ -61,6 +61,7 @@
 				<category android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
 			<!-- Branch App Links -->
+			<!-- autoVerify links should be at the top of the intent-filter list -->
 			<intent-filter android:autoVerify="true">
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
