@@ -14,9 +14,10 @@ import { getProviderByChainId } from '../../../../../util/notifications/methods/
 import { BigNumber, constants, Contract } from 'ethers';
 import usePrevious from '../../../../hooks/usePrevious';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { isSolanaChainId } from '@metamask/bridge-controller';
+import { isNativeAddress, isSolanaChainId } from '@metamask/bridge-controller';
 import { selectMultichainTokenListForAccountId } from '../../../../../selectors/multichain/multichain';
 import { RootState } from '../../../../../reducers';
+import { endTrace, trace, TraceName } from '../../../../../util/trace';
 ///: END:ONLY_INCLUDE_IF
 
 export async function fetchAtomicTokenBalance(
@@ -90,6 +91,14 @@ export const useLatestBalance = (
       chainId && !isCaipChainId(chainId) &&
       selectedAddress
     ) {
+      trace({
+        name: TraceName.BridgeBalancesUpdated,
+        data: {
+          srcChainId: chainId,
+          isNative: isNativeAddress(token?.address),
+        },
+        startTime: Date.now(),
+      });
       const web3Provider = getProviderByChainId(chainId);
       const atomicBalance = await fetchEvmAtomicBalance(
         web3Provider,
@@ -97,6 +106,7 @@ export const useLatestBalance = (
         token.address,
         chainId,
       );
+      endTrace({ name: TraceName.BridgeBalancesUpdated, timestamp: Date.now() });
       if (atomicBalance && token.decimals) {
         setBalance({
           displayBalance: formatUnits(atomicBalance, token.decimals),

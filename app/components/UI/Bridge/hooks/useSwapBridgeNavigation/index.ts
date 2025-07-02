@@ -109,7 +109,6 @@ export const useSwapBridgeNavigation = ({
       );
       trace({
         name: TraceName.SwapViewLoaded,
-        op: TraceOperation.SwapViewLoaded,
         startTime: Date.now(),
       });
     },
