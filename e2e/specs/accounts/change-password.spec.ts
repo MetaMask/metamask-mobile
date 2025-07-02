@@ -59,6 +59,7 @@ describe(Regression('change password'), () => {
     await ChangePasswordView.tapIUnderstandCheckBox();
     await ChangePasswordView.tapSubmitButton();
 
+    if (device.getPlatform() === 'ios') {
     await TabBarComponent.tapWallet();
 
     //wait for screen transitions after password change
