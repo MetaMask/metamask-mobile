@@ -99,12 +99,6 @@ export class WC2Manager {
       accountsController.getSelectedAccount().address,
     );
 
-    // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
-    const chainId = selectEvmChainId(store.getState());
-    DevLogger.log(
-      `[WC2Manager::constructor chainId=${chainId} type=${typeof chainId}`,
-      this.navigation,
-    );
     const permissionController = (
       Engine.context as {
         // TODO: Replace 'any' with type
@@ -118,25 +112,25 @@ export class WC2Manager {
     if (activeSessions) {
       activeSessions.forEach(async (session) => {
         const sessionKey = session.topic;
+        const pairingTopic = session.pairingTopic;
         try {
-          this.sessions[sessionKey] = new WalletConnect2Session({
+          const wcSession = new WalletConnect2Session({
             web3Wallet,
-            channelId: sessionKey,
+            channelId: pairingTopic,
             navigation: this.navigation,
             deeplink:
               typeof deeplinkSessions[session.pairingTopic] !== 'undefined',
             session,
           });
+          this.sessions[sessionKey] = wcSession;
 
           // Find approvedAccounts for current sessions
           DevLogger.log(
-            `WC2::init getPermittedAccounts for ${sessionKey} origin=${getHostname(
-              session.peer.metadata.url,
-            )}`,
+            `WC2::init getPermittedAccounts for ${sessionKey} origin=${sessionKey}`,
             JSON.stringify(permissionController.state, null, 2),
           );
           const accountPermission = permissionController.getPermission(
-            session.peer.metadata.url,
+            sessionKey,
             'eth_accounts',
           );
 
@@ -145,9 +139,8 @@ export class WC2Manager {
             JSON.stringify(accountPermission, null, 2),
           );
 
-          const hostname = getHostname(session.peer.metadata.url);
           let approvedAccounts =
-            getPermittedAccounts(hostname) ?? [];
+            getPermittedAccounts(sessionKey) ?? [];
 
           DevLogger.log(
             `WC2::init approvedAccounts id ${accountPermission?.id}`,
@@ -163,6 +156,10 @@ export class WC2Manager {
             approvedAccounts = extractApprovedAccounts(accountPermission);
             DevLogger.log(`WC2::init approvedAccounts`, approvedAccounts);
           }
+
+          updatePermittedChains(sessionKey, wcSession.getAllowedChainIds, true);
+
+          const chainId = wcSession.getCurrentChainId();
 
           const nChainId = parseInt(chainId, 16);
           DevLogger.log(
@@ -392,8 +389,8 @@ export class WC2Manager {
     //  Open session proposal modal for confirmation / rejection
     const { id, params } = proposal;
 
-    const channelId = `${id}`
     const pairingTopic = proposal.params.pairingTopic;
+    const channelId = `${pairingTopic}`
     DevLogger.log(
       `WC2::session_proposal id=${id} pairingTopic=${pairingTopic}`,
       params,

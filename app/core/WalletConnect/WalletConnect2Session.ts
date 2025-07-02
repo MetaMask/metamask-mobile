@@ -180,7 +180,7 @@ class WalletConnect2Session {
     }
   }
 
-  private getCurrentChainId() {
+  public getCurrentChainId() {
     const providerConfigChainId = selectEvmChainId(store.getState());
     if (isPerDappSelectedNetworkEnabled()) {
       const perOriginChainId = selectPerOriginChainId(
@@ -273,6 +273,10 @@ class WalletConnect2Session {
       chainId: `eip155:${data}`,
     });
   };
+
+  public get getAllowedChainIds(): CaipChainId[] {
+    return this.session.namespaces.eip155?.chains?.map((chain) => chain as CaipChainId) || [];
+  }
 
   /** Handle chain change by updating session namespaces and emitting event */
   private async handleChainChange(chainIdDecimal: number) {
@@ -501,13 +505,7 @@ class WalletConnect2Session {
       });
     }
 
-    const providerConfig = selectProviderConfig(store.getState());
-    const activeChainIdHex = providerConfig.chainId;
-    const activeCaip2ChainId = `${KnownCaipNamespace.Eip155}:${parseInt(
-      activeChainIdHex,
-      16,
-    )}`;
-
+    const activeCaip2ChainId = `${KnownCaipNamespace.Eip155}:${parseInt(this.getCurrentChainId(), 16)}`;
     if (caip2ChainId !== activeCaip2ChainId) {
       DevLogger.log(`WC::checkWCPermissions switching to network:`, existingNetwork);
       // Switching to the network is allowed so try switching into it
