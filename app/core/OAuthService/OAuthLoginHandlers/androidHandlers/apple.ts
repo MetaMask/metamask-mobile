@@ -22,8 +22,7 @@ export class AndroidAppleLoginHandler
   extends BaseLoginHandler
   implements LoginHandler
 {
-  public readonly OAUTH_SERVER_URL = 'https://appleid.apple.com/auth/authorize';
-
+  public readonly OAUTH_SERVER_URL: string;
   readonly #scope = ['name', 'email'];
 
   protected clientId: string;
@@ -51,10 +50,11 @@ export class AndroidAppleLoginHandler
    */
   constructor(params: AndroidAppleLoginHandlerParams) {
     super(params);
-    const { appRedirectUri, redirectUri, clientId } = params;
+    const { appRedirectUri, redirectUri, clientId, authServerUrl } = params;
     this.clientId = clientId;
     this.redirectUri = redirectUri;
     this.appRedirectUri = appRedirectUri;
+    this.OAUTH_SERVER_URL = `${authServerUrl}/api/v1/oauth/initiate`;
   }
 
   /**

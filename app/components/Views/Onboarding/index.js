@@ -65,20 +65,21 @@ const createStyles = (colors) =>
       alignItems: 'center',
       paddingVertical: 30,
     },
-    foxWrapper: {
-      width: Device.isLargeDevice() ? 200 : 175,
-      height: Device.isLargeDevice() ? 200 : 175,
-      marginVertical: 20,
-    },
     image: {
       alignSelf: 'center',
-      width: Device.isLargeDevice() ? 280 : 220,
-      height: Device.isLargeDevice() ? 280 : 220,
+      width: 240,
+      height: 240,
     },
     largeFoxWrapper: {
+      marginTop: 60,
+      marginBottom: Device.isLargeDevice() ? 80 : 40,
+      width: 240,
+      height: 240,
+      display: 'flex',
       alignItems: 'center',
-      paddingTop: 40,
-      paddingBottom: Device.isLargeDevice() ? 80 : 40,
+      justifyContent: 'center',
+      marginHorizontal: 'auto',
+      padding: 40,
     },
     foxImage: {
       width: 145,
@@ -542,7 +543,7 @@ class Onboarding extends PureComponent {
         </View>
 
         <Text
-          variant={TextVariant.HeadingSMRegular}
+          variant={TextVariant.BodyMD}
           style={styles.title}
           testID={OnboardingSelectorIDs.SCREEN_TITLE}
         >

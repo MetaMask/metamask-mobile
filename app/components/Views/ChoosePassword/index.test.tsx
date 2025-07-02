@@ -25,7 +25,9 @@ jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 import ChoosePassword from './';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 
-const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<typeof trackOnboarding>;
+const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
+  typeof trackOnboarding
+>;
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -414,7 +416,7 @@ describe('ChoosePassword', () => {
         params: {
           ...defaultProps.route.params,
           [PREVIOUS_SCREEN]: ONBOARDING,
-        }
+        },
       },
     };
     const component = renderWithProviders(<ChoosePassword {...props} />);
@@ -479,6 +481,51 @@ describe('ChoosePassword', () => {
 
     // // Clean up mock
     mockNewWalletAndKeychain.mockRestore();
+  });
+
+  it('confirm password input is cleared when password input is cleared', async () => {
+    const props: ChoosePasswordProps = {
+      route: { params: { [ONBOARDING]: true } },
+      navigation: mockNavigation,
+    };
+
+    const component = renderWithProviders(<ChoosePassword {...props} />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'StrongPassword123!@#');
+    });
+
+    expect(passwordInput.props.value).toBe('StrongPassword123!@#');
+
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!@#');
+    });
+
+    expect(confirmPasswordInput.props.value).toBe('StrongPassword123!@#');
+
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'StrongPassword123!@');
+    });
+
+    expect(confirmPasswordInput.props.value).toBe('StrongPassword123!@#');
+
+    await act(async () => {
+      fireEvent.changeText(passwordInput, '');
+    });
+
+    expect(confirmPasswordInput.props.value).toBe('');
   });
 
   it('should track failure when password requirements are not met', async () => {
@@ -575,7 +622,10 @@ describe('ChoosePassword', () => {
     jest.spyOn(Device, 'isIos').mockReturnValue(true);
 
     // Mock newWalletAndKeychain to throw error first, then succeed
-    const mockNewWalletAndKeychain = jest.spyOn(Authentication, 'newWalletAndKeychain');
+    const mockNewWalletAndKeychain = jest.spyOn(
+      Authentication,
+      'newWalletAndKeychain',
+    );
     mockNewWalletAndKeychain
       .mockRejectedValueOnce(new Error('User rejected biometric prompt'))
       .mockResolvedValueOnce(undefined);
@@ -587,7 +637,7 @@ describe('ChoosePassword', () => {
         params: {
           ...defaultProps.route.params,
           [PREVIOUS_SCREEN]: ONBOARDING,
-        }
+        },
       },
     };
     const component = renderWithProviders(<ChoosePassword {...props} />);
@@ -628,8 +678,13 @@ describe('ChoosePassword', () => {
 
   it('should show alert when passcode not set error occurs', async () => {
     jest.spyOn(Device, 'isIos').mockReturnValue(false);
-    const mockComponentAuthenticationType = jest.spyOn(Authentication, 'componentAuthenticationType');
-    mockComponentAuthenticationType.mockRejectedValueOnce(new Error('Passcode not set.'));
+    const mockComponentAuthenticationType = jest.spyOn(
+      Authentication,
+      'componentAuthenticationType',
+    );
+    mockComponentAuthenticationType.mockRejectedValueOnce(
+      new Error('Passcode not set.'),
+    );
 
     const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
 
@@ -674,7 +729,10 @@ describe('ChoosePassword', () => {
   });
 
   it('should navigate to success screen when oauth2Login is true and metrics enabled', async () => {
-    const mockNewWalletAndKeychain = jest.spyOn(Authentication, 'newWalletAndKeychain');
+    const mockNewWalletAndKeychain = jest.spyOn(
+      Authentication,
+      'newWalletAndKeychain',
+    );
     mockNewWalletAndKeychain.mockResolvedValue(undefined);
     mockMetricsIsEnabled.mockReturnValueOnce(true);
 
@@ -685,8 +743,8 @@ describe('ChoosePassword', () => {
         params: {
           ...defaultProps.route.params,
           [PREVIOUS_SCREEN]: ONBOARDING,
-          oauthLoginSuccess: true
-        }
+          oauthLoginSuccess: true,
+        },
       },
       navigation: mockNavigation,
     };
@@ -737,7 +795,10 @@ describe('ChoosePassword', () => {
   });
 
   it('should navigate to OptinMetrics when oauth2Login is true and metrics disabled', async () => {
-    const mockNewWalletAndKeychain = jest.spyOn(Authentication, 'newWalletAndKeychain');
+    const mockNewWalletAndKeychain = jest.spyOn(
+      Authentication,
+      'newWalletAndKeychain',
+    );
     mockNewWalletAndKeychain.mockResolvedValue(undefined);
     mockMetricsIsEnabled.mockReturnValueOnce(false);
 
@@ -748,8 +809,8 @@ describe('ChoosePassword', () => {
         params: {
           ...defaultProps.route.params,
           [PREVIOUS_SCREEN]: ONBOARDING,
-          oauthLoginSuccess: true
-        }
+          oauthLoginSuccess: true,
+        },
       },
       navigation: mockNavigation,
     };

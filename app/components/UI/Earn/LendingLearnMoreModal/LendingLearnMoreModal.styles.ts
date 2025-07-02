@@ -2,6 +2,9 @@ import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
+    textContainer: {
+      flex: 1,
+    },
     bodyTextContainer: {
       paddingHorizontal: 16,
       paddingBottom: 16,
