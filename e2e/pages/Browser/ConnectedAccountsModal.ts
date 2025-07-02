@@ -160,7 +160,7 @@ class ConnectedAccountsModal {
   }
 
   async scrollToBottomOfModal(): Promise<void> {
-    await Gestures.swipe(this.title as Promise<IndexableNativeElement>, 'down', 'fast');
+    await Gestures.swipe(this.title as Promise<IndexableNativeElement>, 'down');
   }
 
   async tapConnectMoreAccountsButton(): Promise<void> {
