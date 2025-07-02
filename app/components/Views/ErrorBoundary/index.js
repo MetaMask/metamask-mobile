@@ -332,7 +332,7 @@ export const Fallback = (props) => {
         onRequestClose={toggleModal}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={'padding'}
           style={styles.keyboardViewContainer}
         >
           <View style={styles.modalWrapper}>
