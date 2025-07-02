@@ -794,3 +794,7 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
 ];
 
 export const TRANSAK_SUPPORT_URL = 'https://support.transak.com';
+
+export const TRANSAK_GEOLOCATION_ENDPOINT = 'fiat/public/v1/get/country';
+
+export const TRANSAK_API_URL = 'https://api-stg.transak.com';
