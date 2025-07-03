@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 
+import { ApproveComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { ApproveMethod } from '../../../types/approve';
 import { EditSpendingCapModal } from './edit-spending-cap-modal';
 
@@ -54,8 +55,8 @@ describe('EditSpendingCapModal', () => {
   it('renders buttons with correct labels', () => {
     const { getByText } = render(<EditSpendingCapModal {...defaultProps} />);
 
-    expect(getByText('Cancel')).toBeOnTheScreen();
-    expect(getByText('Save')).toBeOnTheScreen();
+    expect(getByText('confirm.simulation.cancel')).toBeOnTheScreen();
+    expect(getByText('confirm.simulation.save')).toBeOnTheScreen();
   });
 
   it('calls onClose when cancel button is pressed', () => {
@@ -64,7 +65,7 @@ describe('EditSpendingCapModal', () => {
       <EditSpendingCapModal {...defaultProps} onClose={onClose} />,
     );
 
-    const cancelButton = getByText('Cancel');
+    const cancelButton = getByText('confirm.simulation.cancel');
     fireEvent.press(cancelButton);
 
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -79,7 +80,7 @@ describe('EditSpendingCapModal', () => {
       />,
     );
 
-    const saveButton = getByText('Save');
+    const saveButton = getByText('confirm.simulation.save');
     fireEvent.press(saveButton);
 
     await waitFor(() => {
@@ -98,7 +99,7 @@ describe('EditSpendingCapModal', () => {
       />,
     );
 
-    const saveButton = getByText('Save');
+    const saveButton = getByText('confirm.simulation.save');
     fireEvent.press(saveButton);
 
     await waitFor(() => {
@@ -119,10 +120,10 @@ describe('EditSpendingCapModal', () => {
       />,
     );
 
-    const saveButton = getByText('Save');
+    const saveButton = getByText('confirm.simulation.save');
     fireEvent.press(saveButton);
 
-    const cancelButton = getByText('Cancel');
+    const cancelButton = getByText('confirm.simulation.cancel');
     fireEvent.press(cancelButton);
 
     // Should not call onClose because isDataUpdating is true
@@ -149,14 +150,18 @@ describe('EditSpendingCapModal', () => {
   it('renders SpendingCapInput with correct props', () => {
     const { getByTestId } = render(<EditSpendingCapModal {...defaultProps} />);
 
-    const spendingCapInput = getByTestId('spending-cap-input');
+    const spendingCapInput = getByTestId(
+      ApproveComponentIDs.EDIT_SPENDING_CAP_INPUT,
+    );
     expect(spendingCapInput).toBeOnTheScreen();
   });
 
   it('updates spending cap when input changes', () => {
     const { getByTestId } = render(<EditSpendingCapModal {...defaultProps} />);
 
-    const spendingCapInput = getByTestId('spending-cap-input');
+    const spendingCapInput = getByTestId(
+      ApproveComponentIDs.EDIT_SPENDING_CAP_INPUT,
+    );
     fireEvent.changeText(spendingCapInput, '750');
 
     expect(spendingCapInput.props.value).toBe('750');
@@ -165,7 +170,7 @@ describe('EditSpendingCapModal', () => {
   it('disables save button when there is an error', () => {
     const { getByText } = render(<EditSpendingCapModal {...defaultProps} />);
 
-    const saveButton = getByText('Save');
+    const saveButton = getByText('confirm.simulation.save');
     fireEvent.press(saveButton);
 
     // The button should still be pressable when there's no error
@@ -183,8 +188,8 @@ describe('EditSpendingCapModal', () => {
       />,
     );
 
-    const cancelButton = getByText('Cancel');
-    const saveButton = getByText('Save');
+    const cancelButton = getByText('confirm.simulation.cancel');
+    const saveButton = getByText('confirm.simulation.save');
 
     fireEvent.press(saveButton);
 
@@ -197,7 +202,9 @@ describe('EditSpendingCapModal', () => {
   it('updates spending cap state when input changes', () => {
     const { getByTestId } = render(<EditSpendingCapModal {...defaultProps} />);
 
-    const spendingCapInput = getByTestId('spending-cap-input');
+    const spendingCapInput = getByTestId(
+      ApproveComponentIDs.EDIT_SPENDING_CAP_INPUT,
+    );
     fireEvent.changeText(spendingCapInput, '750');
 
     // The input should reflect the new value
@@ -213,10 +220,12 @@ describe('EditSpendingCapModal', () => {
       />,
     );
 
-    const spendingCapInput = getByTestId('spending-cap-input');
+    const spendingCapInput = getByTestId(
+      ApproveComponentIDs.EDIT_SPENDING_CAP_INPUT,
+    );
     fireEvent.changeText(spendingCapInput, '750');
 
-    const saveButton = getByText('Save');
+    const saveButton = getByText('confirm.simulation.save');
     fireEvent.press(saveButton);
 
     await waitFor(() => {
