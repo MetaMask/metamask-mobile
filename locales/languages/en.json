@@ -1678,7 +1678,7 @@
     "receive_button": "Receive",
     "portfolio_button": "Portfolio",
     "earn_button": "Earn",
-    "perps_button": "Perps",
+    "perps_button": "Perpetuals",
     "add_collectible_button": "Add",
     "info": "Info",
     "swap": "Swap",
@@ -1692,7 +1692,7 @@
       "send": "Sending not supported for this account",
       "action": "This action is not supported for this account",
       "earn": "Earning not supported for this account",
-      "perps": "Perps trading not supported for this account"
+      "perps": "Perpetuals trading not supported for this account"
     },
     "description": "Description",
     "totalSupply": "Total Supply",
