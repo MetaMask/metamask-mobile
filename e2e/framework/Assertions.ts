@@ -1,6 +1,7 @@
 import { waitFor } from 'detox';
 import Utilities, { BASE_DEFAULTS } from './Utilities';
 import { AssertionOptions } from './types';
+import Matchers from './Matchers';
 
 /**
  * Assertions with auto-retry and better error messages
@@ -155,8 +156,8 @@ export default class Assertions {
     return Utilities.executeWithRetry(
       async () => {
         const textElement = allowDuplicates
-          ? element(by.text(text)).atIndex(0)
-          : element(by.text(text));
+          ? (await Matchers.getElementByText(text)).atIndex(0)
+          : await Matchers.getElementByText(text);
         if (device.getPlatform() === 'ios') {
           await waitFor(textElement).toExist().withTimeout(100);
         } else {
@@ -170,15 +171,42 @@ export default class Assertions {
     );
   }
 
+    /**
+   * Assert text is not displayed anywhere on screen with auto-retry
+   */
+  static async expectTextNotDisplayed(
+    text: string,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const { timeout = BASE_DEFAULTS.timeout } = options;
+    return Utilities.executeWithRetry(
+      async () => {
+        const textElement = await Matchers.getElementByText(text);
+        if (device.getPlatform() === 'ios') {
+          await waitFor(textElement).not.toExist().withTimeout(100);
+        } else {
+          await waitFor(textElement).not.toBeVisible().withTimeout(100);
+        }
+      },
+      {
+        timeout,
+        description: `expectTextNotDisplayed("${text}")`,
+      },
+    );
+  }
+
   /**
    * Assert toggle state with auto-retry
    */
   static async expectToggleState(
     detoxElement: DetoxElement,
-    expectedState: boolean,
+    expectedState: 'on' | 'off' | boolean,
     options: AssertionOptions = {},
   ): Promise<void> {
     const { timeout = BASE_DEFAULTS.timeout } = options;
+
+    const expectedStateBoolean =
+      expectedState === 'on' || expectedState === true;
 
     return Utilities.executeWithRetry(
       async () => {
@@ -188,11 +216,11 @@ export default class Assertions {
           ('text' in attributes && attributes.text === 'true') ||
           ('label' in attributes && attributes.label === 'true') ||
           ('value' in attributes && attributes.value === 'true');
-        if (isToggled !== expectedState) {
+        if (isToggled !== expectedStateBoolean) {
           throw new Error(
             [
               '🔄 Toggle state mismatch detected',
-              `   Expected: ${expectedState}`,
+              `   Expected: ${expectedStateBoolean ? 'on' : 'off'}`,
               `   Actual:   ${isToggled}`,
             ].join('\n'),
           );
@@ -268,7 +296,7 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if text is displayed anywhere on screen
-   * @deprecated Use expectTextDisplayed() instead for better error handling and retry mechanisms
+   * @deprecated Use expectTextNotDisplayed() instead for better error handling and retry mechanisms
    */
   static async checkIfTextIsDisplayed(
     text: string,
@@ -287,7 +315,7 @@ export default class Assertions {
   ): Promise<void> {
     return Utilities.executeWithRetry(
       async () => {
-        const textElement = element(by.text(text));
+        const textElement = await Matchers.getElementByText(text);
         await waitFor(textElement).not.toBeVisible().withTimeout(100);
       },
       {
@@ -543,5 +571,52 @@ export default class Assertions {
         description: `Label contains text "${text}"`,
       },
     );
+  }
+
+  /**
+   * Checks if the actual object contains all keys from the expected array
+   * @param actual - The object to check against
+   * @param validations - Object with keys and their expected values
+   */
+  static async checkIfObjectHasKeysAndValidValues(
+    actual: Record<string, unknown>,
+    validations: Record<string, string | ((value: unknown) => boolean)>,
+  ): Promise<void> {
+    const errors: string[] = [];
+
+    for (const [key, validation] of Object.entries(validations)) {
+      if (!Object.prototype.hasOwnProperty.call(actual, key)) {
+        errors.push(`Missing key: ${key}`);
+        continue;
+      }
+
+      const value = actual[key];
+
+      if (typeof validation === 'string') {
+        const actualType = typeof value;
+
+        if (Array.isArray(value) && validation === 'array') continue;
+        if (value === null && validation === 'null') continue;
+
+        // Check type
+        if (actualType !== validation && !(Array.isArray(value) && validation === 'array')) {
+          errors.push(`Type mismatch for key "${key}": expected "${validation}", got "${actualType}"`);
+        }
+      }
+      else if (typeof validation === 'function') {
+        try {
+          const valid = validation(value);
+          if (!valid) {
+            errors.push(`Validation failed for key "${key}": custom validator returned false`);
+          }
+        } catch (err) {
+          errors.push(`Validation error for key "${key}": ${(err as Error).message}`);
+        }
+      }
+    }
+
+    if (errors.length > 0) {
+      throw new Error('Object validation failed:\n' + errors.join('\n'));
+    }
   }
 }

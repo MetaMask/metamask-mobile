@@ -191,7 +191,7 @@ export default class Gestures {
     text: string,
     options: TypeTextOptions = {},
   ): Promise<void> {
-    const { 
+    const {
       timeout = BASE_DEFAULTS.timeout,
       clearFirst = true,
       hideKeyboard = false,
@@ -337,7 +337,7 @@ export default class Gestures {
     return Utilities.executeWithRetry(
       async () => {
         const target = (await targetElement) as Detox.IndexableNativeElement;
-        const scrollable = (await scrollableContainer);
+        const scrollable = (await scrollableContainer); // This is only working when it's awaited
         await waitFor(target)
           .toBeVisible()
           .whileElement(scrollable)
