@@ -1169,8 +1169,7 @@ function SwapsQuotesView({
           await submitSwapsSmartTransaction();
 
         // Update info to show in Activity list
-        // We use the stx uuids instead of the txMeta.id since we don't have the txMeta
-        // Approval tx info
+        // Use stx uuids instead of the txMeta.id since we don't have the txMeta
         if (approvalTxUuid) {
           addSwapsTransaction(approvalTxUuid, {
             action: 'approval',
@@ -1186,17 +1185,14 @@ function SwapsQuotesView({
           });
         }
 
-        // Trade tx info
         updateSwapsTransactions(tradeTxUuid, approvalTxUuid);
 
         // Route to TransactionsView and show Swaps STX modal
         navigation.navigate(Routes.TRANSACTIONS_VIEW);
         Engine.context.ApprovalController.addAndShowApprovalRequest({
-          id: tradeTxUuid, // Doesn't really matter what this is, as long as it's unique, we will just read it from latest STX in SmartTransactionStatus
+          id: tradeTxUuid,
           origin: ORIGIN_METAMASK,
           type: ApprovalTypes.SMART_TRANSACTION_STATUS,
-          // requestState gets passed to app/components/Views/confirmations/components/Approval/TemplateConfirmation/Templates/SmartTransactionStatus.ts
-          // can also be read from approvalController.state.pendingApprovals[approvalId].requestState
           requestState: {
             smartTransaction: {
               status: SmartTransactionStatuses.PENDING,
@@ -1229,7 +1225,7 @@ function SwapsQuotesView({
 
                 // Clean up the listener when the transaction is complete
                 if (smartTransaction.status === 'success' || smartTransaction.status === 'cancelled' || smartTransaction.status === 'failed') {
-                  // Note: We can't unsubscribe here because we don't have the subscription reference
+                  // Note: We can't unsubscribe here, we don't have the subscription reference
                   // The listener will be cleaned up when the component unmounts
                 }
               }
@@ -1272,7 +1268,7 @@ function SwapsQuotesView({
         // Check status every 5 seconds as a fallback
         const statusCheckInterval = setInterval(checkTransactionStatus, 5000);
 
-        // Ffallback that forces success after 30 seconds
+        // Fallback that forces success after 30 seconds
         // This is a workaround for when the transaction completes but the state isn't updated properly
         setTimeout(async () => {
           try {
