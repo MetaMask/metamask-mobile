@@ -28,6 +28,9 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'center',
       alignItems: 'center',
     },
+    footerContent: {
+      gap: 8,
+    },
   });
 };
 

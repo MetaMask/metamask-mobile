@@ -1166,77 +1166,60 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     "padding": 15,
                                   },
                                   undefined,
-                                  undefined,
+                                  {
+                                    "gap": 8,
+                                  },
                                 ]
                               }
                             >
-                              <View
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                accessible={true}
+                                activeOpacity={1}
+                                disabled={false}
+                                loading={false}
+                                onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
                                 style={
-                                  [
-                                    {
-                                      "marginVertical": 8,
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={0.2}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  style={
-                                    [
-                                      [
-                                        {
-                                          "borderRadius": 12,
-                                          "justifyContent": "center",
-                                          "padding": 15,
-                                        },
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "minHeight": 50,
-                                        },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
+                                  {
+                                    "alignItems": "center",
+                                    "alignSelf": "stretch",
+                                    "backgroundColor": "#4459ff",
+                                    "borderRadius": 12,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "paddingHorizontal": 16,
                                   }
-                                  testID="address-continue-button"
-                                >
-                                  <Text
-                                    style={
-                                      [
-                                        {
-                                          "color": "#007aff",
-                                          "fontSize": 17,
-                                          "fontWeight": "500",
-                                          "textAlign": "center",
-                                        },
-                                        null,
-                                        [
-                                          {
-                                            "fontFamily": "CentraNo1-Bold",
-                                            "fontSize": 14,
-                                            "fontWeight": "600",
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "color": "#ffffff",
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                }
+                                testID="address-continue-button"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#ffffff",
+                                      "fontFamily": "Geist Medium",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
                                     }
-                                  >
-                                    Continue
-                                  </Text>
-                                </TouchableOpacity>
-                              </View>
+                                  }
+                                >
+                                  Continue
+                                </Text>
+                              </TouchableOpacity>
+                              <SvgMock
+                                fill="currentColor"
+                                name="powered-by-transak-logo"
+                                style={
+                                  {
+                                    "color": "#686e7d",
+                                    "height": 24,
+                                  }
+                                }
+                              />
                             </View>
                           </View>
                         </View>
@@ -2345,77 +2328,60 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     "padding": 15,
                                   },
                                   undefined,
-                                  undefined,
+                                  {
+                                    "gap": 8,
+                                  },
                                 ]
                               }
                             >
-                              <View
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                accessible={true}
+                                activeOpacity={1}
+                                disabled={false}
+                                loading={false}
+                                onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
                                 style={
-                                  [
-                                    {
-                                      "marginVertical": 8,
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={0.2}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  style={
-                                    [
-                                      [
-                                        {
-                                          "borderRadius": 12,
-                                          "justifyContent": "center",
-                                          "padding": 15,
-                                        },
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "minHeight": 50,
-                                        },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
+                                  {
+                                    "alignItems": "center",
+                                    "alignSelf": "stretch",
+                                    "backgroundColor": "#4459ff",
+                                    "borderRadius": 12,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "paddingHorizontal": 16,
                                   }
-                                  testID="address-continue-button"
-                                >
-                                  <Text
-                                    style={
-                                      [
-                                        {
-                                          "color": "#007aff",
-                                          "fontSize": 17,
-                                          "fontWeight": "500",
-                                          "textAlign": "center",
-                                        },
-                                        null,
-                                        [
-                                          {
-                                            "fontFamily": "CentraNo1-Bold",
-                                            "fontSize": 14,
-                                            "fontWeight": "600",
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "color": "#ffffff",
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                }
+                                testID="address-continue-button"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#ffffff",
+                                      "fontFamily": "Geist Medium",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
                                     }
-                                  >
-                                    Continue
-                                  </Text>
-                                </TouchableOpacity>
-                              </View>
+                                  }
+                                >
+                                  Continue
+                                </Text>
+                              </TouchableOpacity>
+                              <SvgMock
+                                fill="currentColor"
+                                name="powered-by-transak-logo"
+                                style={
+                                  {
+                                    "color": "#686e7d",
+                                    "height": 24,
+                                  }
+                                }
+                              />
                             </View>
                           </View>
                         </View>
