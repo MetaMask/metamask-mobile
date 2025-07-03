@@ -15,6 +15,8 @@ import { useGetTokenStandardAndDetails } from '../../../hooks/useGetTokenStandar
 import { TokenStandard } from '../../../types/token';
 import { ApproveAndPermit2 } from './approve-and-permit2';
 import { ApproveMethod } from '../../../types/approve';
+// eslint-disable-next-line import/no-namespace
+import * as useApproveTransactionDataModule from '../../../hooks/useApproveTransactionData';
 
 jest.mock('../../../hooks/useGetTokenStandardAndDetails', () => ({
   useGetTokenStandardAndDetails: jest.fn(),
@@ -92,7 +94,7 @@ describe('ApproveAndPermit2', () => {
 
   it('renders with default values if transaction data is not present', () => {
     const mockUseApproveTransactionData = jest.spyOn(
-      require('../../../hooks/useApproveTransactionData'),
+      useApproveTransactionDataModule,
       'useApproveTransactionData',
     );
     mockUseApproveTransactionData.mockReturnValue({
@@ -103,7 +105,7 @@ describe('ApproveAndPermit2', () => {
       tokenStandard: TokenStandard.ERC20,
       rawAmount: undefined,
       spender: '0x123456789',
-    });
+    } as ReturnType<typeof useApproveTransactionDataModule.useApproveTransactionData>);
     const { getByText } = renderWithProvider(<ApproveAndPermit2 />, {
       state: approveERC721TransactionStateMock,
     });

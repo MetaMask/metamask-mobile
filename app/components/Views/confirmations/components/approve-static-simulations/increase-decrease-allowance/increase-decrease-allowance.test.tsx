@@ -12,8 +12,10 @@ import {
 } from '../../../__mocks__/controllers/transaction-controller-mock';
 import { useGetTokenStandardAndDetails } from '../../../hooks/useGetTokenStandardAndDetails';
 import { TokenStandard } from '../../../types/token';
-import { IncreaseDecreaseAllowance } from './increase-decrease-allowance';
 import { ApproveMethod } from '../../../types/approve';
+// eslint-disable-next-line import/no-namespace
+import * as useApproveTransactionDataModule from '../../../hooks/useApproveTransactionData';
+import { IncreaseDecreaseAllowance } from './increase-decrease-allowance';
 
 jest.mock('../../../hooks/useGetTokenStandardAndDetails', () => ({
   useGetTokenStandardAndDetails: jest.fn(),
@@ -74,7 +76,7 @@ describe('IncreaseDecreaseAllowance', () => {
 
   it('renders with default values if transaction data is not present', () => {
     const mockUseApproveTransactionData = jest.spyOn(
-      require('../../../hooks/useApproveTransactionData'),
+      useApproveTransactionDataModule,
       'useApproveTransactionData',
     );
     mockUseApproveTransactionData.mockReturnValue({
@@ -85,13 +87,10 @@ describe('IncreaseDecreaseAllowance', () => {
       tokenStandard: TokenStandard.ERC20,
       rawAmount: undefined,
       spender: '0x123456789',
+    } as ReturnType<typeof useApproveTransactionDataModule.useApproveTransactionData>);
+    const { getByText } = renderWithProvider(<IncreaseDecreaseAllowance />, {
+      state: increaseAllowanceERC20TransactionStateMock,
     });
-    const { getByText } = renderWithProvider(
-      <IncreaseDecreaseAllowance />,
-      {
-        state: increaseAllowanceERC20TransactionStateMock,
-      },
-    );
     // Just assert that the spender is rendered
     expect(getByText('0x12345...56789')).toBeTruthy();
   });
