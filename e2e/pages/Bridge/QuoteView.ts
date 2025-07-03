@@ -6,8 +6,12 @@ import {
 } from '../../selectors/Bridge/QuoteView.selectors';
 
 class QuoteView {
-  get confirmButton(): DetoxElement {
+  get confirmBridge(): DetoxElement {
     return Matchers.getElementByText(QuoteViewSelectorText.CONFIRM_BRIDGE);
+  }
+
+  get confirmSwap(): DetoxElement {
+    return Matchers.getElementByText(QuoteViewSelectorText.CONFIRM_SWAP);
   }
 
   get bridgeTo(): DetoxElement {
@@ -26,45 +30,53 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.NETWORK_FEE);
   }
 
-  token(symbol: string): DetoxElement {
-    return Matchers.getElementByID(`asset-${symbol}`);
+  token(chainId: string, symbol: string): DetoxElement {
+    return Matchers.getElementByID(`asset-${chainId}-${symbol}`);
   }
 
-  async enterBridgeAmount(amount: string): Promise<void> {
-  for (const digit of amount) {
-    const button = Matchers.getElementByText(digit);
-    await Gestures.waitAndTap(button);
+  async enterAmount(amount: string): Promise<void> {
+    for (const digit of amount) {
+      const button = await Matchers.getElementByText(digit);
+      await Gestures.waitAndTap(button, { delayBeforeTap: 500});
+    }
   }
-}
 
   async tapSearchToken(): Promise<void> {
     await Gestures.waitAndTap(this.searchToken);
   }
 
   async tapBridgeTo(): Promise<void> {
-    await Gestures.waitAndTap(this.bridgeTo);
+    await Gestures.waitAndTap(this.bridgeTo, { delayBeforeTap: 1000 });
+  }
+
+  async tapToken(chainId: string, symbol: string): Promise<void> {
+    await Gestures.waitAndTap(this.token(chainId, symbol), { delayBeforeTap: 1000 });
+  }
+
+  async tapSourceToken(): Promise<void> {
+    const token = Matchers.getElementByText('ETH');
+    await Gestures.waitAndTap(token, { delayBeforeTap: 1000 });
   }
 
   async tapSwapTo(): Promise<void> {
-    await Gestures.waitAndTap(this.swapTo);
+    await Gestures.waitAndTap(this.swapTo, { delayBeforeTap: 1000 });
   }
 
   async selectNetwork(network: string): Promise<void> {
     const networkElement = Matchers.getElementByText(network);
-    await Gestures.waitAndTap(networkElement);
+    await Gestures.waitAndTap(networkElement, { delayBeforeTap: 1000 });
   }
 
   async typeSearchToken(symbol: string): Promise<void> {
     await Gestures.typeTextAndHideKeyboard(this.searchToken, symbol);
   }
 
-  async selectToken(symbol: string): Promise<void> {
-    const token = this.token(symbol);
-    await Gestures.waitAndTap(token);
+  async tapConfirmBridge(): Promise<void> {
+    await Gestures.waitAndTap(this.confirmBridge);
   }
 
-  async tapConfirm(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmButton);
+  async tapConfirmSwap(): Promise<void> {
+    await Gestures.waitAndTap(this.confirmSwap);
   }
 }
 

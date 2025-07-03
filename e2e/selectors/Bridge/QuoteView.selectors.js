@@ -5,6 +5,7 @@ export const QuoteViewSelectorText = {
   BRIDGE_TO: enContent.bridge.bridge_to,
   SWAP_TO: enContent.bridge.swap_to,
   CONFIRM_BRIDGE: enContent.bridge.confirm_bridge,
+  CONFIRM_SWAP: enContent.bridge.confirm_swap,
 };
 
 export const QuoteViewSelectorIDs = {
