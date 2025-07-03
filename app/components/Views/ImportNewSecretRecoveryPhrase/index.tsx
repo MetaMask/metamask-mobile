@@ -100,6 +100,8 @@ const ImportNewSecretRecoveryPhrase = () => {
   const [invalidSRPWords, setInvalidSRPWords] = useState<boolean[]>(
     Array(numberOfWords).fill(false),
   );
+  const [selections, setSelections] = useState<Array<{start: number; end: number}>>
+    (Array(numberOfWords).fill({ start: 0, end: 0 }));
   const hdKeyrings = useSelector(selectHDKeyrings);
   const { trackEvent, createEventBuilder } = useMetrics();
   const copyToClipboard = useCopyClipboard();
@@ -145,6 +147,7 @@ const ImportNewSecretRecoveryPhrase = () => {
     setNumberOfWords(value);
     setSecretRecoveryPhrase(Array(value).fill(''));
     setInvalidSRPWords(Array(value).fill(false));
+    setSelections(Array(value).fill({ start: 0, end: 0 }));
     setSrpError('');
   };
 
@@ -219,9 +222,16 @@ const ImportNewSecretRecoveryPhrase = () => {
     (index: number, newWord: string) => {
       const newSrp = secretRecoveryPhrase.slice();
       newSrp[index] = newWord.trim();
+      
+      // Calculate cursor position after trimming
+      const cursorPosition = newWord.length;
+      const newSelections = [...selections];
+      newSelections[index] = { start: cursorPosition, end: cursorPosition };
+      
       onSrpChange(newSrp);
+      setSelections(newSelections);
     },
-    [secretRecoveryPhrase, onSrpChange],
+    [secretRecoveryPhrase, onSrpChange, selections],
   );
 
   const dismiss = () => {
@@ -283,6 +293,7 @@ const ImportNewSecretRecoveryPhrase = () => {
     setSecretRecoveryPhrase(Array(numberOfWords).fill(''));
     setSrpError('');
     setInvalidSRPWords(Array(numberOfWords).fill(false));
+    setSelections(Array(numberOfWords).fill({ start: 0, end: 0 }));
   };
 
   return (
@@ -306,6 +317,7 @@ const ImportNewSecretRecoveryPhrase = () => {
           <TouchableOpacity
             style={styles.subheading}
             onPress={() => setShowPassword(!showPassword)}
+            testID={ImportSRPIDs.PASSWORD_TOGGLE}
           >
             <View style={styles.options}>
               <SelectComponent
@@ -343,6 +355,14 @@ const ImportNewSecretRecoveryPhrase = () => {
                   value={showPassword ? secretRecoveryPhrase[index] : '***'}
                   onChangeText={(value) => {
                     onSrpWordChange(index, value);
+                  }}
+                  selection={showPassword ? selections[index] : undefined}
+                  onSelectionChange={(event) => {
+                    if (showPassword) {
+                      const newSelections = [...selections];
+                      newSelections[index] = event.nativeEvent.selection;
+                      setSelections(newSelections);
+                    }
                   }}
                   secureTextEntry={!showPassword}
                   textContentType={showPassword ? 'none' : 'password'}

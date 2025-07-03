@@ -9,4 +9,5 @@ export const ImportSRPIDs = {
   SRP_INPUT_WORD_NUMBER: 'srp-input-word',
   SRP_SELECTION_DROPDOWN: 'srp-selection-dropdown',
   SRP_ERROR: 'srp-error',
+  PASSWORD_TOGGLE: 'password-toggle',
 };

@@ -367,4 +367,79 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       expect(error).toBeTruthy();
     });
   });
+
+  describe('cursor position management', () => {
+    it('maintains cursor position when typing in SRP input fields', async () => {
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      const firstInput = getByTestId(`${ImportSRPIDs.SRP_INPUT_WORD_NUMBER}-1`);
+      
+      // Type a word
+      await fireEvent.changeText(firstInput, 'test');
+      
+      // Verify selection is maintained at the end
+      expect(firstInput.props.selection).toEqual({ start: 4, end: 4 });
+      
+      // Simulate cursor position change
+      await fireEvent(firstInput, 'selectionChange', {
+        nativeEvent: { selection: { start: 2, end: 2 } }
+      });
+      
+      // Type more text
+      await fireEvent.changeText(firstInput, 'testing');
+      
+      // Cursor should be at the end of the new text
+      expect(firstInput.props.selection).toEqual({ start: 7, end: 7 });
+    });
+
+    it('resets cursor position when clearing all inputs', async () => {
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      // Type some words
+      const firstInput = getByTestId(`${ImportSRPIDs.SRP_INPUT_WORD_NUMBER}-1`);
+      await fireEvent.changeText(firstInput, 'test');
+      
+      const secondInput = getByTestId(`${ImportSRPIDs.SRP_INPUT_WORD_NUMBER}-2`);
+      await fireEvent.changeText(secondInput, 'word');
+      
+      // Clear all
+      const clearButton = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+      await fireEvent.press(clearButton);
+      
+      // Verify selections are reset
+      expect(firstInput.props.selection).toEqual({ start: 0, end: 0 });
+      expect(secondInput.props.selection).toEqual({ start: 0, end: 0 });
+    });
+
+    it('does not apply selection when password view is hidden', async () => {
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      // Click the eye icon to hide password
+      const passwordToggle = getByTestId(ImportSRPIDs.PASSWORD_TOGGLE);
+      await fireEvent.press(passwordToggle);
+      
+      const firstInput = getByTestId(`${ImportSRPIDs.SRP_INPUT_WORD_NUMBER}-1`);
+      
+      // When password is hidden, selection should be undefined
+      expect(firstInput.props.selection).toBeUndefined();
+    });
+  });
 });
