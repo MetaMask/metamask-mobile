@@ -77,9 +77,8 @@ exports[`GetStarted render matches snapshot 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Bold",
+                  "fontFamily": "Geist Bold",
                   "fontSize": 24,
-                  "fontWeight": "700",
                   "letterSpacing": 0,
                   "lineHeight": 32,
                   "textAlign": "center",
@@ -145,7 +144,7 @@ exports[`GetStarted render matches snapshot 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
                       "fontWeight": "bold",
                       "letterSpacing": 0,
@@ -160,9 +159,8 @@ exports[`GetStarted render matches snapshot 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 14,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -217,7 +215,7 @@ exports[`GetStarted render matches snapshot 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
                       "fontWeight": "bold",
                       "letterSpacing": 0,
@@ -232,9 +230,8 @@ exports[`GetStarted render matches snapshot 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 14,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -289,7 +286,7 @@ exports[`GetStarted render matches snapshot 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
                       "fontWeight": "bold",
                       "letterSpacing": 0,
@@ -304,9 +301,8 @@ exports[`GetStarted render matches snapshot 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 14,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
