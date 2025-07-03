@@ -1839,6 +1839,7 @@ export class Engine {
     totalNativeTokenBalance: string;
     ticker: string;
   } => {
+    console.log('IM HERE *************** 22222');
     const {
       CurrencyRateController,
       AccountsController,
@@ -2433,6 +2434,7 @@ export default {
 
   getTotalEvmFiatAccountBalance(account?: InternalAccount) {
     assertEngineExists(instance);
+    console.log('IM HERE *************** 33333');
     return instance.getTotalEvmFiatAccountBalance(account);
   },
 

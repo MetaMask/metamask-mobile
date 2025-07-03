@@ -100,7 +100,12 @@ export const getShouldShowAggregatedPercentage = (
 };
 
 export const getAggregatedBalance = (account: InternalAccount) => {
+  console.log(
+    'IM HERE *************** 44444',
+    Engine.getTotalEvmFiatAccountBalance,
+  );
   const balance = Engine.getTotalEvmFiatAccountBalance(account);
+  console.log('balance *************** 11111', balance);
   return {
     ethFiat: balance?.ethFiat ?? 0,
     tokenFiat: balance?.tokenFiat ?? 0,

@@ -1,6 +1,6 @@
 import React from 'react';
 // eslint-disable-next-line @typescript-eslint/no-shadow
-import { waitFor, within, fireEvent } from '@testing-library/react-native';
+import { waitFor, within, fireEvent, act } from '@testing-library/react-native';
 import { Alert, AlertButton, View } from 'react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import EvmAccountSelectorList from './EvmAccountSelectorList';
@@ -111,6 +111,8 @@ jest.mock('../../hooks/useAccounts', () => {
   };
 });
 
+const mockGetTotalEvmFiatAccountBalance = jest.fn();
+
 // Mock Engine
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -168,13 +170,10 @@ const initialState = {
               },
               groups: {
                 'hd-accounts': {
-                  accounts: [
-                    BUSINESS_ACCOUNT_ID,
-                    PERSONAL_ACCOUNT_ID,
-                  ]
-                }
-              }
-            }
+                  accounts: [BUSINESS_ACCOUNT_ID, PERSONAL_ACCOUNT_ID],
+                },
+              },
+            },
           },
         },
       },
@@ -777,7 +776,9 @@ describe('EvmAccountSelectorList', () => {
     const { getAllByTestId } = renderComponent(initialState);
 
     // Find buttons with the correct test ID
-    const actionButtons = getAllByTestId(WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
+    const actionButtons = getAllByTestId(
+      WalletViewSelectorsIDs.ACCOUNT_ACTIONS,
+    );
     expect(actionButtons.length).toBe(2);
 
     // Click the first account's action button
@@ -1193,8 +1194,12 @@ describe('EvmAccountSelectorList', () => {
     expect(onSelectAccount).toHaveBeenCalledWith(PERSONAL_ACCOUNT, false);
   });
 
-  it('renders network icons for accounts with transaction activity', () => {
+  it('renders network icons for accounts with transaction activity', async () => {
     const { toJSON } = renderComponent(initialState);
+
+    // eslint-disable-next-line no-empty-function
+    await act(async () => {});
+
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -1326,7 +1331,8 @@ describe('EvmAccountSelectorList', () => {
     fireEvent.press(accountActionsButton);
 
     const expectedAccount =
-      multichainState.engine.backgroundState.AccountsController.internalAccounts.accounts[BUSINESS_ACCOUNT_ID];
+      multichainState.engine.backgroundState.AccountsController.internalAccounts
+        .accounts[BUSINESS_ACCOUNT_ID];
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS,
       {

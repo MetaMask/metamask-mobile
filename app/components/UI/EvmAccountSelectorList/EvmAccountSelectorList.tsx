@@ -126,10 +126,12 @@ const EvmAccountSelectorList = ({
   const internalAccounts = useSelector(selectInternalAccounts);
   const currentCurrency = useSelector(selectCurrentCurrency);
 
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const multichainBalances = useSelector(selectMultichainBalances);
   const multichainAssets = useSelector(selectMultichainAssets);
   const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
   const nonEvmNetworkChainId = useSelector(selectSelectedNonEvmNetworkChainId);
+  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
   const [aggregatedBalanceByAccount, setAggregatedBalanceByAccount] = useState<{
     [address: string]: string | null;
@@ -243,7 +245,6 @@ const EvmAccountSelectorList = ({
     [
       aggregatedBalanceByAccount,
       privacyMode,
-      currentCurrency,
       styles.balancesContainer,
       styles.balanceLabel,
     ],
@@ -430,6 +431,7 @@ const EvmAccountSelectorList = ({
       for (const account of internalAccounts) {
         try {
           if (account.type === SolAccountType.DataAccount) {
+            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
             const balanceData = getMultichainNetworkAggregatedBalance(
               account,
               multichainBalances,
@@ -438,10 +440,6 @@ const EvmAccountSelectorList = ({
               nonEvmNetworkChainId,
             );
 
-            // const totalBalance =
-            //   (balanceData?.totalBalanceFiat || 0) +
-            //   (Number(balanceData?.totalNativeTokenBalance?.amount) || 0);
-
             const totalBalance = getMultiChainFiatBalance(
               balanceData.totalBalanceFiat,
               currentCurrency,
@@ -449,15 +447,19 @@ const EvmAccountSelectorList = ({
 
             aggregatedBalanceNewState[toFormattedAddress(account.address)] =
               totalBalance;
+            ///: END:ONLY_INCLUDE_IF(keyring-snaps)
           } else {
+            console.log('account ***************', account);
             const balanceData = getAggregatedBalance(account);
+            console.log('balanceData ***************', balanceData);
             const totalBalance =
               (balanceData?.ethFiat || 0) + (balanceData?.tokenFiat || 0);
             const totalFiat = renderFiat(totalBalance, currentCurrency, 2);
 
+            console.log('totalFiat ***************', totalFiat);
+
             aggregatedBalanceNewState[toFormattedAddress(account.address)] =
               totalFiat;
-
             // Update state incrementally for better UX
             setAggregatedBalanceByAccount((prev) => ({
               ...prev,
@@ -475,7 +477,14 @@ const EvmAccountSelectorList = ({
     } catch (error) {
       console.error('Error in fetchAggregatedBalances:', error);
     }
-  }, [internalAccounts]);
+  }, [
+    internalAccounts,
+    currentCurrency,
+    multichainBalances,
+    multichainAssets,
+    multichainAssetsRates,
+    nonEvmNetworkChainId,
+  ]);
 
   // Fetch aggregated balances when internal accounts change
   useEffect(() => {

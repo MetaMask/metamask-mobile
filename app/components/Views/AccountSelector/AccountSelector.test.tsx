@@ -1,9 +1,10 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { screen, act } from '@testing-library/react-native';
 import AccountSelector from './AccountSelector';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import Routes from '../../../constants/navigation/Routes';
+import { RootState } from '../../../reducers';
 import {
   AccountSelectorParams,
   AccountSelectorProps,
@@ -54,6 +55,22 @@ const mockInitialState = {
       PreferencesController: {
         privacyMode: false,
       },
+      MultichainBalancesController: {
+        balances: {},
+      },
+      MultichainAssetsController: {
+        accountsAssets: {},
+      },
+      MultichainAssetsRatesController: {
+        conversionRates: {},
+      },
+      MultichainNetworkController: {
+        multichainNetworkConfigurationsByChainId: {},
+        selectedNonEvmNetworkChainId: 'eip155:1',
+      },
+      CurrencyRateController: {
+        currentCurrency: 'USD',
+      },
     },
   },
   accounts: {
@@ -70,7 +87,13 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: () => mockDispatch,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  useSelector: (selector: any) => selector(mockInitialState),
+  useSelector: (selector: any) => {
+    const result = selector(mockInitialState);
+    // Return a new object to avoid identity function warnings
+    return typeof result === 'object' && result !== null
+      ? { ...result }
+      : result;
+  },
 }));
 
 jest.mock('../../hooks/useAccounts', () => ({
@@ -98,6 +121,7 @@ jest.mock('../../../core/Engine', () => {
         },
       },
     },
+    getTotalEvmFiatAccountBalance: jest.fn(() => 0),
     setSelectedAddress: jest.fn(),
   };
 });
@@ -125,7 +149,7 @@ describe('AccountSelector', () => {
     jest.clearAllMocks();
   });
 
-  it('should render correctly', () => {
+  it('should render correctly', async () => {
     const wrapper = renderScreen(
       AccountSelectorWrapper,
       {
@@ -133,24 +157,35 @@ describe('AccountSelector', () => {
         options: {},
       },
       {
-        state: mockInitialState,
+        state: mockInitialState as unknown as RootState,
       },
       mockRoute.params,
     );
+
+    // Wait for the effect to run
+    await act(async () => {
+      await Promise.resolve();
+    });
+
     expect(wrapper.toJSON()).toMatchSnapshot();
   });
 
-  it('includes all accounts', () => {
+  it('includes all accounts', async () => {
     const { queryByText } = renderScreen(
       AccountSelectorWrapper,
       {
         name: Routes.SHEET.ACCOUNT_SELECTOR,
       },
       {
-        state: mockInitialState,
+        state: mockInitialState as unknown as RootState,
       },
       mockRoute.params,
     );
+
+    // Wait for the effect to run
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     const accountsList = screen.getByTestId(
       AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
@@ -162,14 +197,14 @@ describe('AccountSelector', () => {
     expect(queryByText(internalAccount2.metadata.name)).toBeDefined();
   });
 
-  it('includes only EVM accounts if isEvmOnly', () => {
+  it('includes only EVM accounts if isEvmOnly', async () => {
     const { queryByText } = renderScreen(
       AccountSelectorWrapper,
       {
         name: Routes.SHEET.ACCOUNT_SELECTOR,
       },
       {
-        state: mockInitialState,
+        state: mockInitialState as unknown as RootState,
       },
       { ...mockRoute.params, isEvmOnly: true },
     );
@@ -184,17 +219,22 @@ describe('AccountSelector', () => {
     expect(queryByText(internalAccount2.metadata.name)).toBeDefined();
   });
 
-  it('should display add account button', () => {
+  it('should display add account button', async () => {
     renderScreen(
       AccountSelectorWrapper,
       {
         name: Routes.SHEET.ACCOUNT_SELECTOR,
       },
       {
-        state: mockInitialState,
+        state: mockInitialState as unknown as RootState,
       },
       mockRoute.params,
     );
+
+    // Wait for the effect to run
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     const addButton = screen.getByTestId(
       AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,

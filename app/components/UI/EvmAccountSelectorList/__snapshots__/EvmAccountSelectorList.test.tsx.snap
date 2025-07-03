@@ -910,7 +910,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
   }
   getItem={[Function]}
   getItemCount={[Function]}
-  handlerTag={-1}
+  handlerTag={3}
   handlerType="NativeViewGestureHandler"
   initialNumToRender={2}
   keyExtractor={[Function]}
@@ -1691,7 +1691,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
   }
   getItem={[Function]}
   getItemCount={[Function]}
-  handlerTag={-1}
+  handlerTag={1}
   handlerType="NativeViewGestureHandler"
   initialNumToRender={2}
   keyExtractor={[Function]}
@@ -2018,7 +2018,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                         }
                       }
                     >
-                      $3200.00
+                      $0
                     </Text>
                     <View
                       style={
@@ -2421,7 +2421,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                         }
                       }
                     >
-                      $6400.00
+                      $0
                     </Text>
                     <View
                       style={
@@ -2548,7 +2548,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
   }
   getItem={[Function]}
   getItemCount={[Function]}
-  handlerTag={-1}
+  handlerTag={24}
   handlerType="NativeViewGestureHandler"
   initialNumToRender={2}
   keyExtractor={[Function]}
@@ -2875,7 +2875,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                         }
                       }
                     >
-                      $3200.00
+                      $0
                     </Text>
                     <View
                       style={
@@ -3278,7 +3278,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                         }
                       }
                     >
-                      $6400.00
+                      $0
                     </Text>
                     <View
                       style={

@@ -799,6 +799,51 @@ exports[`AccountSelector should render correctly 1`] = `
                                               </Text>
                                             </TouchableOpacity>
                                           </View>
+                                          <View
+                                            style={
+                                              {
+                                                "marginLeft": 16,
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "flex-end",
+                                                  "flexDirection": "column",
+                                                }
+                                              }
+                                              testID="account-balance-by-address-0xc4955c0d639d99699bfd7ec54d9fafee40e4d272"
+                                            >
+                                              <View
+                                                style={
+                                                  {
+                                                    "borderRadius": 4,
+                                                    "height": 24,
+                                                    "overflow": "hidden",
+                                                    "width": 60,
+                                                  }
+                                                }
+                                              >
+                                                <View
+                                                  collapsable={false}
+                                                  pointerEvents="none"
+                                                  style={
+                                                    {
+                                                      "backgroundColor": "#686e7d",
+                                                      "borderRadius": 4,
+                                                      "bottom": 0,
+                                                      "left": 0,
+                                                      "opacity": 0.2,
+                                                      "position": "absolute",
+                                                      "right": 0,
+                                                      "top": 0,
+                                                    }
+                                                  }
+                                                />
+                                              </View>
+                                            </View>
+                                          </View>
                                         </View>
                                       </View>
                                     </View>
@@ -1121,6 +1166,51 @@ exports[`AccountSelector should render correctly 1`] = `
                                                 0xC4966...4a756
                                               </Text>
                                             </TouchableOpacity>
+                                          </View>
+                                          <View
+                                            style={
+                                              {
+                                                "marginLeft": 16,
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "flex-end",
+                                                  "flexDirection": "column",
+                                                }
+                                              }
+                                              testID="account-balance-by-address-0xc4966c0d659d99699bfd7eb54d8fafee40e4a756"
+                                            >
+                                              <View
+                                                style={
+                                                  {
+                                                    "borderRadius": 4,
+                                                    "height": 24,
+                                                    "overflow": "hidden",
+                                                    "width": 60,
+                                                  }
+                                                }
+                                              >
+                                                <View
+                                                  collapsable={false}
+                                                  pointerEvents="none"
+                                                  style={
+                                                    {
+                                                      "backgroundColor": "#686e7d",
+                                                      "borderRadius": 4,
+                                                      "bottom": 0,
+                                                      "left": 0,
+                                                      "opacity": 0.2,
+                                                      "position": "absolute",
+                                                      "right": 0,
+                                                      "top": 0,
+                                                    }
+                                                  }
+                                                />
+                                              </View>
+                                            </View>
                                           </View>
                                         </View>
                                       </View>
