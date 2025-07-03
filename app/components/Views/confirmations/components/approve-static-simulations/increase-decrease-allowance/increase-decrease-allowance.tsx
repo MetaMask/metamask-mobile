@@ -1,5 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
+import { TransactionMeta } from '@metamask/transaction-controller';
 
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
@@ -26,7 +27,8 @@ export const IncreaseDecreaseAllowance = () => {
     rawAmount,
     spender,
   } = useApproveTransactionData();
-  const transactionMetadata = useTransactionMetadataRequest();
+  const transactionMetadata =
+    useTransactionMetadataRequest() as TransactionMeta;
   const { onSpendingCapUpdate } = useApproveTransactionActions();
   const isERC20 = tokenStandard === TokenStandard.ERC20;
 
@@ -43,7 +45,7 @@ export const IncreaseDecreaseAllowance = () => {
               approveMethod: approveMethod as ApproveMethod,
               balance: tokenBalance ?? '0',
               decimals: decimals ?? 1,
-              spendingCap: rawAmount ?? '',
+              spendingCap: rawAmount ?? '0',
               onSpendingCapUpdate,
             }}
           />
@@ -52,15 +54,15 @@ export const IncreaseDecreaseAllowance = () => {
             text={amount ?? ''}
           />
           <Address
-            address={transactionMetadata?.txParams?.to ?? ''}
-            chainId={transactionMetadata?.chainId ?? ''}
+            address={transactionMetadata.txParams.to as string}
+            chainId={transactionMetadata.chainId}
           />
         </View>
       </InfoRow>
       <InfoRow label={strings('confirm.spender')}>
         <Address
           address={spender ?? ''}
-          chainId={transactionMetadata?.chainId ?? ''}
+          chainId={transactionMetadata.chainId}
         />
       </InfoRow>
     </>

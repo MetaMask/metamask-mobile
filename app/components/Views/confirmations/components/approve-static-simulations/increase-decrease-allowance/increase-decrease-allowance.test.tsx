@@ -13,6 +13,7 @@ import {
 import { useGetTokenStandardAndDetails } from '../../../hooks/useGetTokenStandardAndDetails';
 import { TokenStandard } from '../../../types/token';
 import { IncreaseDecreaseAllowance } from './increase-decrease-allowance';
+import { ApproveMethod } from '../../../types/approve';
 
 jest.mock('../../../hooks/useGetTokenStandardAndDetails', () => ({
   useGetTokenStandardAndDetails: jest.fn(),
@@ -69,5 +70,29 @@ describe('IncreaseDecreaseAllowance', () => {
     expect(getByText(shortenedTokenAddressMock)).toBeTruthy();
     expect(getByText('Spender')).toBeTruthy();
     expect(getByText(shortenedSpenderMock)).toBeTruthy();
+  });
+
+  it('renders with default values if transaction data is not present', () => {
+    const mockUseApproveTransactionData = jest.spyOn(
+      require('../../../hooks/useApproveTransactionData'),
+      'useApproveTransactionData',
+    );
+    mockUseApproveTransactionData.mockReturnValue({
+      approveMethod: ApproveMethod.INCREASE_ALLOWANCE,
+      amount: undefined,
+      decimals: undefined,
+      tokenBalance: undefined,
+      tokenStandard: TokenStandard.ERC20,
+      rawAmount: undefined,
+      spender: '0x123456789',
+    });
+    const { getByText } = renderWithProvider(
+      <IncreaseDecreaseAllowance />,
+      {
+        state: increaseAllowanceERC20TransactionStateMock,
+      },
+    );
+    // Just assert that the spender is rendered
+    expect(getByText('0x12345...56789')).toBeTruthy();
   });
 });

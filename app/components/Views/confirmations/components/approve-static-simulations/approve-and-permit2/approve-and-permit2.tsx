@@ -1,5 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
+import { TransactionMeta } from '@metamask/transaction-controller';
 
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
@@ -30,7 +31,8 @@ export const ApproveAndPermit2 = () => {
   } = useApproveTransactionData();
   const { onSpendingCapUpdate } = useApproveTransactionActions();
 
-  const transactionMetadata = useTransactionMetadataRequest();
+  const transactionMetadata =
+    useTransactionMetadataRequest() as TransactionMeta;
   const isERC20 = tokenStandard === TokenStandard.ERC20;
   const isERC721 = tokenStandard === TokenStandard.ERC721;
   const shouldShow = isERC20 || isERC721;
@@ -49,8 +51,8 @@ export const ApproveAndPermit2 = () => {
         >
           <View style={styles.amountAndAddressContainer}>
             <Address
-              address={transactionMetadata?.txParams?.to ?? ''}
-              chainId={transactionMetadata?.chainId ?? ''}
+              address={transactionMetadata.txParams.to as string}
+              chainId={transactionMetadata.chainId}
             />
           </View>
         </InfoRow>
@@ -58,7 +60,7 @@ export const ApproveAndPermit2 = () => {
           <InfoRow label={strings('confirm.permission_from')}>
             <Address
               address={spender ?? ''}
-              chainId={transactionMetadata?.chainId ?? ''}
+              chainId={transactionMetadata.chainId}
             />
           </InfoRow>
         )}
@@ -92,15 +94,15 @@ export const ApproveAndPermit2 = () => {
             text={isERC20 ? amount ?? '' : `#${tokenId}`}
           />
           <Address
-            address={transactionMetadata?.txParams?.to ?? ''}
-            chainId={transactionMetadata?.chainId ?? ''}
+            address={transactionMetadata.txParams.to as string}
+            chainId={transactionMetadata.chainId}
           />
         </View>
       </InfoRow>
       <InfoRow label={strings('confirm.spender')}>
         <Address
           address={spender ?? ''}
-          chainId={transactionMetadata?.chainId ?? ''}
+          chainId={transactionMetadata.chainId}
         />
       </InfoRow>
     </>
