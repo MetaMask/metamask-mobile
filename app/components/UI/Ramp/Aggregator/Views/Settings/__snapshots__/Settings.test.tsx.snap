@@ -182,7 +182,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -448,7 +447,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -488,7 +486,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -521,7 +518,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -561,7 +557,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           "color": "#4459ff",
                                           "fontFamily": "CentraNo1-Medium",
                                           "fontSize": 16,
-                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -590,7 +585,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -603,7 +597,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           "color": "#121314",
                                           "fontFamily": "CentraNo1-Medium",
                                           "fontSize": 18,
-                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -618,7 +611,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           "color": "#121314",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -649,7 +641,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           "color": "#686e7d",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -732,7 +723,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -748,7 +738,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -953,7 +942,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                               "color": "#9ca1af",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -969,7 +957,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                               "color": "#9ca1af",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1143,7 +1130,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                             "color": "#4459ff",
                                             "fontFamily": "CentraNo1-Medium",
                                             "fontSize": 16,
-                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
                                           }
@@ -1354,7 +1340,6 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1620,7 +1605,6 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1660,7 +1644,6 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1693,7 +1676,6 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1733,7 +1715,6 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                           "color": "#4459ff",
                                           "fontFamily": "CentraNo1-Medium",
                                           "fontSize": 16,
-                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -1762,7 +1743,6 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1775,7 +1755,6 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                           "color": "#121314",
                                           "fontFamily": "CentraNo1-Medium",
                                           "fontSize": 18,
-                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -1790,7 +1769,6 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                           "color": "#121314",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -1818,7 +1796,6 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                           "color": "#686e7d",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -1869,7 +1846,6 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                             "color": "#4459ff",
                                             "fontFamily": "CentraNo1-Medium",
                                             "fontSize": 16,
-                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
                                           }
@@ -2080,7 +2056,6 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -2346,7 +2321,6 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -2386,7 +2360,6 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -2419,7 +2392,6 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -2631,7 +2603,6 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -2897,7 +2868,6 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -2937,7 +2907,6 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -2970,7 +2939,6 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -3010,7 +2978,6 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                           "color": "#4459ff",
                                           "fontFamily": "CentraNo1-Medium",
                                           "fontSize": 16,
-                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -3220,7 +3187,6 @@ exports[`Settings renders correctly 1`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -3486,7 +3452,6 @@ exports[`Settings renders correctly 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -3526,7 +3491,6 @@ exports[`Settings renders correctly 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -3559,7 +3523,6 @@ exports[`Settings renders correctly 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -3599,7 +3562,6 @@ exports[`Settings renders correctly 1`] = `
                                           "color": "#4459ff",
                                           "fontFamily": "CentraNo1-Medium",
                                           "fontSize": 16,
-                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -3809,7 +3771,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -4075,7 +4036,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -4115,7 +4075,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4148,7 +4107,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4188,7 +4146,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           "color": "#4459ff",
                                           "fontFamily": "CentraNo1-Medium",
                                           "fontSize": 16,
-                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -4217,7 +4174,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -4230,7 +4186,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           "color": "#121314",
                                           "fontFamily": "CentraNo1-Medium",
                                           "fontSize": 18,
-                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -4245,7 +4200,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           "color": "#121314",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -4273,7 +4227,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           "color": "#686e7d",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -4356,7 +4309,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4372,7 +4324,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4577,7 +4528,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                               "color": "#9ca1af",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4593,7 +4543,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                               "color": "#9ca1af",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4766,7 +4715,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                             "color": "#4459ff",
                                             "fontFamily": "CentraNo1-Medium",
                                             "fontSize": 16,
-                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
                                           }

@@ -411,7 +411,6 @@ exports[`Network Selector renders correctly 1`] = `
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Bold",
                                 "fontSize": 18,
-                                "fontWeight": "700",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                                 "marginBottom": 8,
@@ -589,7 +588,6 @@ exports[`Network Selector renders correctly 1`] = `
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 16,
-                                                "fontWeight": "400",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -711,7 +709,6 @@ exports[`Network Selector renders correctly 1`] = `
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 16,
-                                                "fontWeight": "400",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -808,7 +805,6 @@ exports[`Network Selector renders correctly 1`] = `
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 16,
-                                                "fontWeight": "400",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -905,7 +901,6 @@ exports[`Network Selector renders correctly 1`] = `
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 16,
-                                                "fontWeight": "400",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -1002,7 +997,6 @@ exports[`Network Selector renders correctly 1`] = `
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 16,
-                                                "fontWeight": "400",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -1078,7 +1072,6 @@ exports[`Network Selector renders correctly 1`] = `
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 16,
-                                                "fontWeight": "400",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -1103,7 +1096,6 @@ exports[`Network Selector renders correctly 1`] = `
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 16,
-                                                "fontWeight": "400",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -1200,7 +1192,6 @@ exports[`Network Selector renders correctly 1`] = `
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 16,
-                                                "fontWeight": "400",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -1232,7 +1223,6 @@ exports[`Network Selector renders correctly 1`] = `
                                         "color": "#686e7d",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1299,7 +1289,6 @@ exports[`Network Selector renders correctly 1`] = `
                                     "color": "#4459ff",
                                     "fontFamily": "CentraNo1-Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -1735,7 +1724,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Bold",
                                 "fontSize": 18,
-                                "fontWeight": "700",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                                 "marginBottom": 8,
@@ -1851,7 +1839,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                         "color": "#686e7d",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1962,7 +1949,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                   "color": "#121314",
                                                   "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 16,
-                                                  "fontWeight": "400",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -2008,7 +1994,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                     "color": "#686e7d",
                                                     "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 16,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   }
@@ -2210,7 +2195,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                   "color": "#121314",
                                                   "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 16,
-                                                  "fontWeight": "400",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -2256,7 +2240,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                     "color": "#686e7d",
                                                     "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 16,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   }
@@ -2430,7 +2413,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                   "color": "#121314",
                                                   "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 16,
-                                                  "fontWeight": "400",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -2476,7 +2458,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                     "color": "#686e7d",
                                                     "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 16,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   }
@@ -2650,7 +2631,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                   "color": "#121314",
                                                   "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 16,
-                                                  "fontWeight": "400",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -2696,7 +2676,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                     "color": "#686e7d",
                                                     "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 16,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   }
@@ -2870,7 +2849,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                   "color": "#121314",
                                                   "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 16,
-                                                  "fontWeight": "400",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -2916,7 +2894,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                     "color": "#686e7d",
                                                     "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 16,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   }
@@ -3069,7 +3046,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                   "color": "#121314",
                                                   "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 16,
-                                                  "fontWeight": "400",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -3094,7 +3070,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                   "color": "#121314",
                                                   "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 16,
-                                                  "fontWeight": "400",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -3140,7 +3115,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                     "color": "#686e7d",
                                                     "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 16,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   }
@@ -3295,7 +3269,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 16,
-                                                "fontWeight": "400",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -3327,7 +3300,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                         "color": "#686e7d",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -4138,7 +4110,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                         "color": "#686e7d",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -4205,7 +4176,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     "color": "#4459ff",
                                     "fontFamily": "CentraNo1-Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }

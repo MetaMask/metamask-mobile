@@ -233,7 +233,6 @@ exports[`CellMultiSelect should render default settings correctly 1`] = `
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -250,7 +249,6 @@ exports[`CellMultiSelect should render default settings correctly 1`] = `
                 "color": "#686e7d",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -266,7 +264,6 @@ exports[`CellMultiSelect should render default settings correctly 1`] = `
                 "color": "#686e7d",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -295,7 +292,6 @@ exports[`CellMultiSelect should render default settings correctly 1`] = `
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }

@@ -159,7 +159,6 @@ exports[`Step1 should render correctly 1`] = `
                   "color": "#ffffff",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -200,7 +199,6 @@ exports[`Step1 should render correctly 1`] = `
                   "color": "#4459ff",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }

@@ -384,7 +384,6 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -422,7 +421,6 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -437,7 +435,6 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -483,7 +480,6 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                     "color": "#686e7d",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -532,7 +528,6 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                         "marginLeft": 8,
@@ -558,7 +553,6 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                       "color": "#ca3542",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -598,7 +592,6 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -613,7 +606,6 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                         "color": "#686e7d",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
                                       }
@@ -1884,7 +1876,6 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -1922,7 +1913,6 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1937,7 +1927,6 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1983,7 +1972,6 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                     "color": "#686e7d",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -2032,7 +2020,6 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                         "marginLeft": 8,
@@ -2058,7 +2045,6 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                       "color": "#ca3542",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -2098,7 +2084,6 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -2113,7 +2098,6 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                         "color": "#686e7d",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
                                       }
@@ -3384,7 +3368,6 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -3422,7 +3405,6 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -3437,7 +3419,6 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -3483,7 +3464,6 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                     "color": "#686e7d",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -3532,7 +3512,6 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                         "marginLeft": 8,
@@ -3574,7 +3553,6 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -3589,7 +3567,6 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                         "color": "#686e7d",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
                                       }
@@ -4860,7 +4837,6 @@ exports[`BuildQuote Component Continue button functionality renders unexpected e
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -4898,7 +4874,6 @@ exports[`BuildQuote Component Continue button functionality renders unexpected e
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -4913,7 +4888,6 @@ exports[`BuildQuote Component Continue button functionality renders unexpected e
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -4959,7 +4933,6 @@ exports[`BuildQuote Component Continue button functionality renders unexpected e
                                     "color": "#686e7d",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -5008,7 +4981,6 @@ exports[`BuildQuote Component Continue button functionality renders unexpected e
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                         "marginLeft": 8,
@@ -5034,7 +5006,6 @@ exports[`BuildQuote Component Continue button functionality renders unexpected e
                                       "color": "#ca3542",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -5074,7 +5045,6 @@ exports[`BuildQuote Component Continue button functionality renders unexpected e
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -5089,7 +5059,6 @@ exports[`BuildQuote Component Continue button functionality renders unexpected e
                                         "color": "#686e7d",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
                                       }
@@ -6360,7 +6329,6 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -6398,7 +6366,6 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -6413,7 +6380,6 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -6459,7 +6425,6 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                     "color": "#686e7d",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -6508,7 +6473,6 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                         "marginLeft": 8,
@@ -6550,7 +6514,6 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -6565,7 +6528,6 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                         "color": "#686e7d",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
                                       }
@@ -7836,7 +7798,6 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -7874,7 +7835,6 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -7889,7 +7849,6 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -7935,7 +7894,6 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                     "color": "#686e7d",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -7984,7 +7942,6 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                         "marginLeft": 8,
@@ -8026,7 +7983,6 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -8041,7 +7997,6 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                         "color": "#686e7d",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
                                       }
@@ -9312,7 +9267,6 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -9350,7 +9304,6 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -9365,7 +9318,6 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -9411,7 +9363,6 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                     "color": "#686e7d",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -9460,7 +9411,6 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                         "marginLeft": 8,
@@ -9502,7 +9452,6 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -9517,7 +9466,6 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                         "color": "#686e7d",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
                                       }
@@ -10788,7 +10736,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -10826,7 +10773,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -10841,7 +10787,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -10887,7 +10832,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                     "color": "#686e7d",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -10936,7 +10880,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                         "marginLeft": 8,
@@ -10978,7 +10921,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -10993,7 +10935,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                         "color": "#686e7d",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
                                       }
@@ -12835,7 +12776,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Medium",
                                                       "fontSize": 18,
-                                                      "fontWeight": "500",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 24,
                                                     }
@@ -12916,7 +12856,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Book",
                                                                 "fontSize": 16,
-                                                                "fontWeight": "400",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -12933,7 +12872,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Medium",
                                                                 "fontSize": 18,
-                                                                "fontWeight": "500",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -13005,7 +12943,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Medium",
                                                       "fontSize": 18,
-                                                      "fontWeight": "500",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 24,
                                                     }
@@ -13086,7 +13023,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Book",
                                                                 "fontSize": 16,
-                                                                "fontWeight": "400",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -13103,7 +13039,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Medium",
                                                                 "fontSize": 18,
-                                                                "fontWeight": "500",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -13198,7 +13133,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Book",
                                                                 "fontSize": 16,
-                                                                "fontWeight": "400",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -13215,7 +13149,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Medium",
                                                                 "fontSize": 18,
-                                                                "fontWeight": "500",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -13310,7 +13243,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Book",
                                                                 "fontSize": 16,
-                                                                "fontWeight": "400",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -13327,7 +13259,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Medium",
                                                                 "fontSize": 18,
-                                                                "fontWeight": "500",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -13422,7 +13353,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Book",
                                                                 "fontSize": 16,
-                                                                "fontWeight": "400",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -13439,7 +13369,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Medium",
                                                                 "fontSize": 18,
-                                                                "fontWeight": "500",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -13534,7 +13463,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Book",
                                                                 "fontSize": 16,
-                                                                "fontWeight": "400",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -13551,7 +13479,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Medium",
                                                                 "fontSize": 18,
-                                                                "fontWeight": "500",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -13646,7 +13573,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Book",
                                                                 "fontSize": 16,
-                                                                "fontWeight": "400",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -13663,7 +13589,6 @@ exports[`BuildQuote Component Region Selection opens region modal when region bu
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Medium",
                                                                 "fontSize": 18,
-                                                                "fontWeight": "500",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -14115,7 +14040,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -14153,7 +14077,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -14168,7 +14091,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -14214,7 +14136,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                     "color": "#686e7d",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -14263,7 +14184,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                         "marginLeft": 8,
@@ -14305,7 +14225,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -14320,7 +14239,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                         "color": "#686e7d",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
                                       }
@@ -16162,7 +16080,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Medium",
                                                       "fontSize": 18,
-                                                      "fontWeight": "500",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 24,
                                                     }
@@ -16243,7 +16160,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Book",
                                                                 "fontSize": 16,
-                                                                "fontWeight": "400",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -16260,7 +16176,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Medium",
                                                                 "fontSize": 18,
-                                                                "fontWeight": "500",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -16305,7 +16220,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Medium",
                                                       "fontSize": 18,
-                                                      "fontWeight": "500",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 24,
                                                     }
@@ -16386,7 +16300,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Book",
                                                                 "fontSize": 16,
-                                                                "fontWeight": "400",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -16403,7 +16316,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Medium",
                                                                 "fontSize": 18,
-                                                                "fontWeight": "500",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -16498,7 +16410,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Book",
                                                                 "fontSize": 16,
-                                                                "fontWeight": "400",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -16515,7 +16426,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Medium",
                                                                 "fontSize": 18,
-                                                                "fontWeight": "500",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -16610,7 +16520,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Book",
                                                                 "fontSize": 16,
-                                                                "fontWeight": "400",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -16627,7 +16536,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Medium",
                                                                 "fontSize": 18,
-                                                                "fontWeight": "500",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -16749,7 +16657,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Book",
                                                                 "fontSize": 16,
-                                                                "fontWeight": "400",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -16766,7 +16673,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Medium",
                                                                 "fontSize": 18,
-                                                                "fontWeight": "500",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -16861,7 +16767,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Book",
                                                                 "fontSize": 16,
-                                                                "fontWeight": "400",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -16878,7 +16783,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Medium",
                                                                 "fontSize": 18,
-                                                                "fontWeight": "500",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -16973,7 +16877,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Book",
                                                                 "fontSize": 16,
-                                                                "fontWeight": "400",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -16990,7 +16893,6 @@ exports[`BuildQuote Component Region Selection updates fiat currency when select
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Medium",
                                                                 "fontSize": 18,
-                                                                "fontWeight": "500",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,
                                                               }
@@ -17442,7 +17344,6 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -17480,7 +17381,6 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -17495,7 +17395,6 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -17541,7 +17440,6 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                     "color": "#686e7d",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -17590,7 +17488,6 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                         "marginLeft": 8,
@@ -17632,7 +17529,6 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -17647,7 +17543,6 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                         "color": "#686e7d",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
                                       }

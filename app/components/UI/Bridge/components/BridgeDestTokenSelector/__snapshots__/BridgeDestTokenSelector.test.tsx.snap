@@ -486,7 +486,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                         "flex": 1,
                                         "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 18,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                         "textAlign": "center",
@@ -609,7 +608,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -676,7 +674,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                           "color": "#121314",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -1017,7 +1014,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1032,7 +1028,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               "color": "#686e7d",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1059,7 +1054,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1074,7 +1068,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1313,7 +1306,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1328,7 +1320,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               "color": "#686e7d",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1355,7 +1346,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1370,7 +1360,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1641,7 +1630,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1656,7 +1644,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               "color": "#686e7d",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1683,7 +1670,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1698,7 +1684,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }

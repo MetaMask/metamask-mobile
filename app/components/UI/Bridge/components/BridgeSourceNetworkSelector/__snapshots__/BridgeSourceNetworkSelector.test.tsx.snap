@@ -502,7 +502,6 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                           "flex": 1,
                                           "fontFamily": "CentraNo1-Bold",
                                           "fontSize": 18,
-                                          "fontWeight": "700",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "textAlign": "center",
@@ -595,7 +594,6 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -610,7 +608,6 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                         "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 16,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -770,7 +767,6 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Medium",
                                                 "fontSize": 18,
-                                                "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -802,7 +798,6 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                 "flex": 1,
                                                 "fontFamily": "CentraNo1-Medium",
                                                 "fontSize": 18,
-                                                "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                                 "textAlign": "right",
@@ -956,7 +951,6 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Medium",
                                                 "fontSize": 18,
-                                                "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -988,7 +982,6 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                 "flex": 1,
                                                 "fontFamily": "CentraNo1-Medium",
                                                 "fontSize": 18,
-                                                "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                                 "textAlign": "right",
@@ -1045,7 +1038,6 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                         "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 16,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }

@@ -129,7 +129,6 @@ exports[`RemoteImage should render with Solana network badge when on Solana netw
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 10,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": undefined,
                 }

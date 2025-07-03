@@ -24,7 +24,7 @@ export const getFontFamily = (
   };
 
   const fontSuffix = weightToFontSuffix[resolvedWeight as FontWeight];
-  const italicSuffix = resolvedStyle === 'italic' ? 'Italic' : '';
+  const italicSuffix = resolvedStyle === 'italic' ? ' Italic' : '';
 
   return `CentraNo1-${fontSuffix}${italicSuffix}`;
 };

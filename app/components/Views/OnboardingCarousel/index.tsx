@@ -82,7 +82,7 @@ const createStyles = () =>
       justifyContent: 'center',
       textAlign: 'center',
       paddingHorizontal: 40,
-      fontFamily: 'MMSans-Regular',
+      fontFamily: 'MM Sans Regular',
     },
     subtitle: {
       textAlign: 'center',

@@ -375,7 +375,6 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       "color": "#686e7d",
                                       "fontFamily": "CentraNo1-Medium",
                                       "fontSize": 14,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
                                     }
@@ -425,7 +424,6 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Book",
                                   "fontSize": 14,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 22,
                                 }
@@ -451,7 +449,6 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Bold",
                                   "fontSize": 32,
-                                  "fontWeight": "700",
                                   "letterSpacing": 0,
                                   "lineHeight": 40,
                                 }
@@ -466,7 +463,6 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   "color": "#9ca1af",
                                   "fontFamily": "CentraNo1-Bold",
                                   "fontSize": 32,
-                                  "fontWeight": "700",
                                   "letterSpacing": 0,
                                   "lineHeight": 40,
                                 }
@@ -504,7 +500,6 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -578,7 +573,6 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Medium",
                                       "fontSize": 16,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -619,7 +613,6 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       "color": "#1c7e33",
                                       "fontFamily": "CentraNo1-Medium",
                                       "fontSize": 16,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -634,7 +627,6 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       "color": "#686e7d",
                                       "fontFamily": "CentraNo1-Medium",
                                       "fontSize": 14,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
                                     }
@@ -686,7 +678,6 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Medium",
                                   "fontSize": 16,
-                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -723,7 +714,6 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Medium",
                                   "fontSize": 16,
-                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -760,7 +750,6 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Medium",
                                   "fontSize": 16,
-                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -811,7 +800,6 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Medium",
                                   "fontSize": 16,
-                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -1659,7 +1647,6 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   "color": "#ffffff",
                                   "fontFamily": "CentraNo1-Medium",
                                   "fontSize": 16,
-                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -2058,7 +2045,6 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       "color": "#686e7d",
                                       "fontFamily": "CentraNo1-Medium",
                                       "fontSize": 14,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
                                     }
@@ -2108,7 +2094,6 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Book",
                                   "fontSize": 14,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 22,
                                 }
@@ -2134,7 +2119,6 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Bold",
                                   "fontSize": 32,
-                                  "fontWeight": "700",
                                   "letterSpacing": 0,
                                   "lineHeight": 40,
                                 }
@@ -2149,7 +2133,6 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   "color": "#9ca1af",
                                   "fontFamily": "CentraNo1-Bold",
                                   "fontSize": 32,
-                                  "fontWeight": "700",
                                   "letterSpacing": 0,
                                   "lineHeight": 40,
                                 }
@@ -2187,7 +2170,6 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -2261,7 +2243,6 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Medium",
                                       "fontSize": 16,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -2302,7 +2283,6 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       "color": "#1c7e33",
                                       "fontFamily": "CentraNo1-Medium",
                                       "fontSize": 16,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -2317,7 +2297,6 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       "color": "#686e7d",
                                       "fontFamily": "CentraNo1-Medium",
                                       "fontSize": 14,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
                                     }
@@ -2369,7 +2348,6 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Medium",
                                   "fontSize": 16,
-                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -2406,7 +2384,6 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Medium",
                                   "fontSize": 16,
-                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -2443,7 +2420,6 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Medium",
                                   "fontSize": 16,
-                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -2494,7 +2470,6 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Medium",
                                   "fontSize": 16,
-                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -3342,7 +3317,6 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   "color": "#ffffff",
                                   "fontFamily": "CentraNo1-Medium",
                                   "fontSize": 16,
-                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }

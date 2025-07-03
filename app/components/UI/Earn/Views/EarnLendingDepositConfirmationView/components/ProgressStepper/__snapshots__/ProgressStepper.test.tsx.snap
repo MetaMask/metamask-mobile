@@ -121,7 +121,6 @@ exports[`ProgressStepper renders correctly 1`] = `
               "color": "#ffffff",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -138,7 +137,6 @@ exports[`ProgressStepper renders correctly 1`] = `
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "textAlign": "center",
@@ -152,7 +150,6 @@ exports[`ProgressStepper renders correctly 1`] = `
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -192,7 +189,6 @@ exports[`ProgressStepper renders correctly 1`] = `
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -209,7 +205,6 @@ exports[`ProgressStepper renders correctly 1`] = `
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "textAlign": "center",
@@ -223,7 +218,6 @@ exports[`ProgressStepper renders correctly 1`] = `
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -373,7 +367,6 @@ exports[`ProgressStepper renders first and second step complete state when activ
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "textAlign": "center",
@@ -387,7 +380,6 @@ exports[`ProgressStepper renders first and second step complete state when activ
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -442,7 +434,6 @@ exports[`ProgressStepper renders first and second step complete state when activ
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "textAlign": "center",
@@ -456,7 +447,6 @@ exports[`ProgressStepper renders first and second step complete state when activ
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -606,7 +596,6 @@ exports[`ProgressStepper renders first step complete and second step pending sta
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "textAlign": "center",
@@ -620,7 +609,6 @@ exports[`ProgressStepper renders first step complete and second step pending sta
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -660,7 +648,6 @@ exports[`ProgressStepper renders first step complete and second step pending sta
               "color": "#ffffff",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -677,7 +664,6 @@ exports[`ProgressStepper renders first step complete and second step pending sta
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "textAlign": "center",
@@ -691,7 +677,6 @@ exports[`ProgressStepper renders first step complete and second step pending sta
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -849,7 +834,6 @@ exports[`ProgressStepper renders first step loading when isLoading prop set to t
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "textAlign": "center",
@@ -863,7 +847,6 @@ exports[`ProgressStepper renders first step loading when isLoading prop set to t
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -903,7 +886,6 @@ exports[`ProgressStepper renders first step loading when isLoading prop set to t
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -920,7 +902,6 @@ exports[`ProgressStepper renders first step loading when isLoading prop set to t
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "textAlign": "center",
@@ -934,7 +915,6 @@ exports[`ProgressStepper renders first step loading when isLoading prop set to t
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -1069,7 +1049,6 @@ exports[`ProgressStepper renders first step pending state when active step is 0 
               "color": "#ffffff",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -1086,7 +1065,6 @@ exports[`ProgressStepper renders first step pending state when active step is 0 
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "textAlign": "center",
@@ -1100,7 +1078,6 @@ exports[`ProgressStepper renders first step pending state when active step is 0 
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -1140,7 +1117,6 @@ exports[`ProgressStepper renders first step pending state when active step is 0 
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -1157,7 +1133,6 @@ exports[`ProgressStepper renders first step pending state when active step is 0 
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "textAlign": "center",
@@ -1171,7 +1146,6 @@ exports[`ProgressStepper renders first step pending state when active step is 0 
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }

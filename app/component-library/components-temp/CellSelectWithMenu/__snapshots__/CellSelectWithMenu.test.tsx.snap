@@ -212,7 +212,6 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -257,7 +256,6 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
                     "color": "#686e7d",
                     "fontFamily": "CentraNo1-Book",
                     "fontSize": 16,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -303,7 +301,6 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
                     "color": "#121314",
                     "fontFamily": "CentraNo1-Book",
                     "fontSize": 16,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }

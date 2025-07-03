@@ -24,7 +24,6 @@ exports[`AssetOverview should render correctly 1`] = `
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -42,7 +41,6 @@ exports[`AssetOverview should render correctly 1`] = `
             "color": "#121314",
             "fontFamily": "CentraNo1-Bold",
             "fontSize": 24,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 32,
           }
@@ -92,7 +90,6 @@ exports[`AssetOverview should render correctly 1`] = `
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -205,7 +202,6 @@ exports[`AssetOverview should render correctly 1`] = `
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -236,7 +232,6 @@ exports[`AssetOverview should render correctly 1`] = `
               "color": "#686e7d",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -267,7 +262,6 @@ exports[`AssetOverview should render correctly 1`] = `
               "color": "#686e7d",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -298,7 +292,6 @@ exports[`AssetOverview should render correctly 1`] = `
               "color": "#686e7d",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -329,7 +322,6 @@ exports[`AssetOverview should render correctly 1`] = `
               "color": "#686e7d",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -360,7 +352,6 @@ exports[`AssetOverview should render correctly 1`] = `
               "color": "#686e7d",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -451,7 +442,6 @@ exports[`AssetOverview should render correctly 1`] = `
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -464,7 +454,6 @@ exports[`AssetOverview should render correctly 1`] = `
                   "color": "#686e7d",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -479,7 +468,6 @@ exports[`AssetOverview should render correctly 1`] = `
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -558,7 +546,6 @@ exports[`AssetOverview should render correctly 1`] = `
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -571,7 +558,6 @@ exports[`AssetOverview should render correctly 1`] = `
                   "color": "#686e7d",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -586,7 +572,6 @@ exports[`AssetOverview should render correctly 1`] = `
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -665,7 +650,6 @@ exports[`AssetOverview should render correctly 1`] = `
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -678,7 +662,6 @@ exports[`AssetOverview should render correctly 1`] = `
                   "color": "#686e7d",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -693,7 +676,6 @@ exports[`AssetOverview should render correctly 1`] = `
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -772,7 +754,6 @@ exports[`AssetOverview should render correctly 1`] = `
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -785,7 +766,6 @@ exports[`AssetOverview should render correctly 1`] = `
                   "color": "#686e7d",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -800,7 +780,6 @@ exports[`AssetOverview should render correctly 1`] = `
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -879,7 +858,6 @@ exports[`AssetOverview should render correctly 1`] = `
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -892,7 +870,6 @@ exports[`AssetOverview should render correctly 1`] = `
                   "color": "#686e7d",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -907,7 +884,6 @@ exports[`AssetOverview should render correctly 1`] = `
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -931,7 +907,6 @@ exports[`AssetOverview should render correctly 1`] = `
             "color": "#121314",
             "fontFamily": "CentraNo1-Bold",
             "fontSize": 18,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 24,
             "paddingHorizontal": 15,
@@ -1096,7 +1071,6 @@ exports[`AssetOverview should render correctly 1`] = `
                 "flex": 1,
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "justifyContent": "flex-start",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -1113,7 +1087,6 @@ exports[`AssetOverview should render correctly 1`] = `
                   "color": "#ca3542",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 14,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -1137,7 +1110,6 @@ exports[`AssetOverview should render correctly 1`] = `
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -1211,7 +1183,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -1229,7 +1200,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
             "color": "#121314",
             "fontFamily": "CentraNo1-Bold",
             "fontSize": 24,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 32,
           }
@@ -1279,7 +1249,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -1392,7 +1361,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -1423,7 +1391,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
               "color": "#686e7d",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -1454,7 +1421,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
               "color": "#686e7d",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -1485,7 +1451,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
               "color": "#686e7d",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -1516,7 +1481,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
               "color": "#686e7d",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -1547,7 +1511,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
               "color": "#686e7d",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -1638,7 +1601,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1651,7 +1613,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   "color": "#686e7d",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1666,7 +1627,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -1745,7 +1705,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1758,7 +1717,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   "color": "#686e7d",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1773,7 +1731,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -1852,7 +1809,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1865,7 +1821,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   "color": "#686e7d",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1880,7 +1835,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -1959,7 +1913,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1972,7 +1925,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   "color": "#686e7d",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1987,7 +1939,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -2066,7 +2017,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2079,7 +2029,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   "color": "#686e7d",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2094,7 +2043,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -2118,7 +2066,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
             "color": "#121314",
             "fontFamily": "CentraNo1-Bold",
             "fontSize": 18,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 24,
             "paddingHorizontal": 15,
@@ -2288,7 +2235,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Book",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -2320,7 +2266,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 "flex": 1,
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "justifyContent": "flex-start",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -2337,7 +2282,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   "color": "#ca3542",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 14,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -2361,7 +2305,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -2435,7 +2378,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -2453,7 +2395,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
             "color": "#121314",
             "fontFamily": "CentraNo1-Bold",
             "fontSize": 24,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 32,
           }
@@ -2469,7 +2410,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -2482,7 +2422,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
               "color": "#1c7e33",
               "fontFamily": "CentraNo1-Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -2525,7 +2464,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 "color": "#686e7d",
                 "fontFamily": "CentraNo1-Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -2618,7 +2556,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -2649,7 +2586,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
               "color": "#686e7d",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -2680,7 +2616,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
               "color": "#686e7d",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -2711,7 +2646,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
               "color": "#686e7d",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -2742,7 +2676,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
               "color": "#686e7d",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -2833,7 +2766,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2846,7 +2778,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   "color": "#686e7d",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2861,7 +2792,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -2940,7 +2870,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2953,7 +2882,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   "color": "#686e7d",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2968,7 +2896,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -3047,7 +2974,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -3060,7 +2986,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   "color": "#686e7d",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -3075,7 +3000,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -3154,7 +3078,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -3167,7 +3090,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   "color": "#686e7d",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -3182,7 +3104,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -3261,7 +3182,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -3274,7 +3194,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   "color": "#686e7d",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -3289,7 +3208,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -3313,7 +3231,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
             "color": "#121314",
             "fontFamily": "CentraNo1-Bold",
             "fontSize": 18,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 24,
             "paddingHorizontal": 15,
@@ -3512,7 +3429,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 "flex": 1,
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "justifyContent": "flex-start",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -3529,7 +3445,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   "color": "#ca3542",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 14,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -3553,7 +3468,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -3606,7 +3520,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Bold",
                 "fontSize": 18,
-                "fontWeight": "700",
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "paddingVertical": 8,
@@ -3639,7 +3552,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
                     "color": "#686e7d",
                     "fontFamily": "CentraNo1-Medium",
                     "fontSize": 16,
-                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -3654,7 +3566,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
                     "color": "#121314",
                     "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }

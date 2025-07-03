@@ -883,7 +883,6 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
             "flexShrink": 1,
             "fontFamily": "CentraNo1-Book",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
             "marginHorizontal": 8,

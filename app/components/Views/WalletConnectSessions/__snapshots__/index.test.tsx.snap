@@ -182,7 +182,6 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -567,7 +566,6 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1001,7 +999,6 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }

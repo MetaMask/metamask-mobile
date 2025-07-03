@@ -37,7 +37,6 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -67,7 +66,6 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -97,7 +95,6 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -123,7 +120,6 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
           "color": "#1c7e33",
           "fontFamily": "CentraNo1-Bold",
           "fontSize": 24,
-          "fontWeight": "700",
           "letterSpacing": 0,
           "lineHeight": 32,
         }
@@ -138,7 +134,6 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
           "color": "#686e7d",
           "fontFamily": "CentraNo1-Medium",
           "fontSize": 16,
-          "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -309,7 +304,6 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -339,7 +333,6 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -369,7 +362,6 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -395,7 +387,6 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
           "color": "#1c7e33",
           "fontFamily": "CentraNo1-Bold",
           "fontSize": 24,
-          "fontWeight": "700",
           "letterSpacing": 0,
           "lineHeight": 32,
         }
@@ -408,7 +399,6 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
           "color": "#686e7d",
           "fontFamily": "CentraNo1-Medium",
           "fontSize": 16,
-          "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -577,7 +567,6 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -607,7 +596,6 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -637,7 +625,6 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -663,7 +650,6 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
           "color": "#1c7e33",
           "fontFamily": "CentraNo1-Bold",
           "fontSize": 24,
-          "fontWeight": "700",
           "letterSpacing": 0,
           "lineHeight": 32,
         }
@@ -676,7 +662,6 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
           "color": "#686e7d",
           "fontFamily": "CentraNo1-Medium",
           "fontSize": 16,
-          "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -847,7 +832,6 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -877,7 +861,6 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -907,7 +890,6 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -933,7 +915,6 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
           "color": "#1c7e33",
           "fontFamily": "CentraNo1-Bold",
           "fontSize": 24,
-          "fontWeight": "700",
           "letterSpacing": 0,
           "lineHeight": 32,
         }
@@ -948,7 +929,6 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
           "color": "#686e7d",
           "fontFamily": "CentraNo1-Medium",
           "fontSize": 16,
-          "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -1117,7 +1097,6 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -1147,7 +1126,6 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -1177,7 +1155,6 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -1203,7 +1180,6 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
           "color": "#1c7e33",
           "fontFamily": "CentraNo1-Bold",
           "fontSize": 24,
-          "fontWeight": "700",
           "letterSpacing": 0,
           "lineHeight": 32,
         }
@@ -1218,7 +1194,6 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
           "color": "#686e7d",
           "fontFamily": "CentraNo1-Medium",
           "fontSize": 16,
-          "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -1389,7 +1364,6 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -1419,7 +1393,6 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -1449,7 +1422,6 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -1475,7 +1447,6 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
           "color": "#1c7e33",
           "fontFamily": "CentraNo1-Bold",
           "fontSize": 24,
-          "fontWeight": "700",
           "letterSpacing": 0,
           "lineHeight": 32,
         }
@@ -1490,7 +1461,6 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
           "color": "#686e7d",
           "fontFamily": "CentraNo1-Medium",
           "fontSize": 16,
-          "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
         }

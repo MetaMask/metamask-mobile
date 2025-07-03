@@ -87,7 +87,7 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       textAlign: 'center',
       paddingHorizontal: 60,
-      fontFamily: 'MMSans-Regular',
+      fontFamily: 'MM Sans Regular',
       color: importedColors.gettingStartedTextColor,
     },
     ctas: {

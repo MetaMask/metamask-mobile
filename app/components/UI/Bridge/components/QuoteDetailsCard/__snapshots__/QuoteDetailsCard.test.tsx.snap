@@ -430,7 +430,6 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -501,7 +500,6 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -518,7 +516,6 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -607,7 +604,6 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Medium",
                                       "fontSize": 16,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -651,7 +647,6 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -711,7 +706,6 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Medium",
                                       "fontSize": 16,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -755,7 +749,6 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -823,7 +816,6 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 16,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -901,7 +893,6 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -973,7 +964,6 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 16,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1017,7 +1007,6 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1104,7 +1093,6 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                             "color": "#121314",
                                             "fontFamily": "CentraNo1-Medium",
                                             "fontSize": 16,
-                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
                                           }
@@ -1162,7 +1150,6 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1184,7 +1171,6 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                             "color": "#686e7d",
                             "fontFamily": "CentraNo1-Book",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                             "textAlign": "center",
@@ -1636,7 +1622,6 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -1707,7 +1692,6 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1724,7 +1708,6 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -1813,7 +1796,6 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Medium",
                                       "fontSize": 16,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -1857,7 +1839,6 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -1917,7 +1898,6 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Medium",
                                       "fontSize": 16,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -1961,7 +1941,6 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -2029,7 +2008,6 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 16,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -2107,7 +2085,6 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -2210,7 +2187,6 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                             "color": "#686e7d",
                             "fontFamily": "CentraNo1-Book",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                             "textAlign": "center",

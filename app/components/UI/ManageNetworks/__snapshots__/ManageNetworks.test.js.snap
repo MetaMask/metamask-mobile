@@ -24,7 +24,6 @@ exports[`ManageNetworks should render correctly 1`] = `
           "color": "#121314",
           "fontFamily": "CentraNo1-Bold",
           "fontSize": 16,
-          "fontWeight": "700",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -57,7 +56,6 @@ exports[`ManageNetworks should render correctly 1`] = `
           "color": "#4459ff",
           "fontFamily": "CentraNo1-Book",
           "fontSize": 16,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -75,7 +73,6 @@ exports[`ManageNetworks should render correctly 1`] = `
           "color": "#4459ff",
           "fontFamily": "CentraNo1-Book",
           "fontSize": 16,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -128,7 +125,6 @@ exports[`ManageNetworks should render correctly 1`] = `
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 10,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": undefined,
             }
@@ -147,7 +143,6 @@ exports[`ManageNetworks should render correctly 1`] = `
           "flexShrink": 1,
           "fontFamily": "CentraNo1-Book",
           "fontSize": 16,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 24,
           "marginHorizontal": 8,
