@@ -3,7 +3,5 @@ import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagCo
 
 export const selectContentfulCarouselEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFlags): boolean => {
-    return Boolean(remoteFlags?.contentfulCarouselEnabled);
-  },
+  (remoteFlags): boolean => Boolean(remoteFlags?.contentfulCarouselEnabled),
 );
