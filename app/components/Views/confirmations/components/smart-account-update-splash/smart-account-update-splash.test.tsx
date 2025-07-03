@@ -45,15 +45,6 @@ const renderComponent = (state?: Record<string, unknown>) =>
       }),
   });
 
-const renderComponent = (state?: Record<string, unknown>) =>
-  renderWithProvider(<SmartAccountUpdateSplash />, {
-    state:
-      state ??
-      getAppStateForConfirmation(upgradeAccountConfirmation, {
-        PreferencesController: { smartAccountOptIn: false },
-      }),
-  });
-
 describe('SmartContractWithLogo', () => {
   beforeEach(() => {
     jest.spyOn(AddressUtils, 'isHardwareAccount').mockReturnValue(false);
@@ -86,16 +77,16 @@ describe('SmartContractWithLogo', () => {
     expect(mockOnReject).toHaveBeenCalledTimes(1);
   });
 
-  it('renders null if splash page is already acknowledged for the account', async () => {
-    const mockState = getAppStateForConfirmation(upgradeAccountConfirmation);
-    const { queryByText } = renderComponent({
-      ...mockState,
-      confirmation: {
-        upgradeSplashPageAcknowledgedForAccounts: [
-          upgradeAccountConfirmation.txParams.from,
-        ],
-      },
-    });
+  it('renders null if user has already opted-in for the account', async () => {
+    const { queryByText } = renderComponent(
+      getAppStateForConfirmation(upgradeAccountConfirmation, {
+        PreferencesController: {
+          smartAccountOptInForAccounts: [
+            upgradeAccountConfirmation.txParams.from,
+          ],
+        },
+      }),
+    );
 
     expect(queryByText('Request for')).toBeNull();
   });
