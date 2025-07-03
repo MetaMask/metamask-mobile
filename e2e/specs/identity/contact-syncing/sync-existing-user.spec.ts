@@ -26,7 +26,6 @@ import { UserStorageMockttpController } from '../utils/user-storage/userStorageM
 describe(
   SmokeWalletPlatform('Contact syncing - syncs previously synced contacts'),
   () => {
-    const TEST_SPECIFIC_MOCK_SERVER_PORT = 8005;
     let mockServer: MockttpServer;
     let userStorageMockttpController: UserStorageMockttpController;
 
@@ -37,10 +36,7 @@ describe(
 
       await TestHelpers.reverseServerPort();
 
-      mockServer = await startMockServer(
-        segmentMock,
-        TEST_SPECIFIC_MOCK_SERVER_PORT,
-      );
+      mockServer = await startMockServer(segmentMock);
 
       const contactsSyncMockResponse = await getContactsSyncMockResponse();
 
@@ -61,7 +57,7 @@ describe(
         newInstance: true,
         delete: true,
         launchArgs: {
-          mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT),
+          mockServerPort: mockServer.port,
           sendMetaMetricsinE2E: true,
         },
       });

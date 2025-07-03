@@ -25,7 +25,6 @@ import { MockttpServer } from 'mockttp';
 describe(
   SmokeWalletPlatform('Account syncing - syncs previously synced accounts'),
   () => {
-    const TEST_SPECIFIC_MOCK_SERVER_PORT = 8001;
     let mockServer: MockttpServer;
 
     beforeAll(async () => {
@@ -33,10 +32,7 @@ describe(
         POST: [mockEvents.POST.segmentTrack],
       };
 
-      mockServer = await startMockServer(
-        segmentMock,
-        TEST_SPECIFIC_MOCK_SERVER_PORT,
-      );
+      mockServer = await startMockServer(segmentMock);
 
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
@@ -57,7 +53,7 @@ describe(
         newInstance: true,
         delete: true,
         launchArgs: {
-          mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT),
+          mockServerPort: mockServer.port,
         },
       });
     });
