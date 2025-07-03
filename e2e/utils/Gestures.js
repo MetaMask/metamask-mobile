@@ -269,7 +269,10 @@ class Gestures {
     await waitFor(await destinationElement)
       .toBeVisible()
       .whileElement(await scrollIdentifier)
-      .scroll(scrollAmount, direction);
+      .scroll(scrollAmount, direction)
+      .catch(async (_) => {
+        await waitFor(await destinationElement).toBeVisible().withTimeout(2000);
+      });
   }
 }
 
