@@ -292,20 +292,7 @@ export const hasPermissionsToSwitchChainRequest = async (
 
   const permittedChains = await getPermittedChains(channelId);
   const isAllowedChainId = permittedChains.includes(caip2ChainId);
-
   DevLogger.log(`WC::checkWCPermissions permittedChains: ${permittedChains}`);
-
-  const providerConfig = selectProviderConfig(store.getState());
-  const activeChainIdHex = providerConfig.chainId;
-  const activeCaip2ChainId = `${KnownCaipNamespace.Eip155}:${parseInt(
-    activeChainIdHex,
-    16,
-  )}`;
-
-  DevLogger.log(
-    `WC::checkWCPermissions switching to network:`,
-    existingNetwork,
-  );
 
   return {
     allowed: isAllowedChainId,
