@@ -3,7 +3,7 @@ import {
   validatePriorityFee,
   validateMaxBaseFee,
   validateGasPrice,
-} from './gas-validations';
+} from './gas';
 
 describe('gas-validations', () => {
   describe('validateGas', () => {
