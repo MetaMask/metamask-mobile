@@ -59,6 +59,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     cryptoPill: {
       flexDirection: 'row',
+      gap: 8,
       alignItems: 'center',
       borderRadius: 100,
       paddingVertical: 8,
@@ -67,13 +68,6 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: theme.colors.background.muted,
       borderWidth: 1,
       borderColor: theme.colors.border.muted,
-    },
-    tokenLogo: {
-      width: 32,
-      height: 32,
-    },
-    cryptoText: {
-      marginLeft: 8,
     },
     paymentMethodBox: {
       backgroundColor: theme.colors.background.default,

@@ -21,6 +21,13 @@ import { isE2E } from './app/util/test/utils.js';
 
 import { Performance } from './app/core/Performance';
 import { handleCustomError, setReactNativeDefaultHandler } from './app/core/ErrorHandler';
+
+// polyfill crypto
+global.crypto = {
+  ...crypto,
+  ...global.crypto,
+};
+
 Performance.setupPerformanceObservers();
 
 LogBox.ignoreAllLogs();

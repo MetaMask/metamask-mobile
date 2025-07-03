@@ -15,7 +15,6 @@ import { onPersistedDataLoaded } from '../actions/user';
 import { toggleBasicFunctionality } from '../actions/settings';
 import Logger from '../util/Logger';
 import devToolsEnhancer from 'redux-devtools-expo-dev-plugin';
-import { setCompletedOnboarding } from '../actions/onboarding';
 
 // TODO: Improve type safety by using real Action types instead of `AnyAction`
 const pReducer = persistReducer<RootState, AnyAction>(
@@ -72,15 +71,6 @@ const createStoreAndPersistor = async () => {
     store.dispatch(
       toggleBasicFunctionality(currentState.settings.basicFunctionalityEnabled),
     );
-
-    // This sets the completedOnboarding value based on the KeyringController state
-    // This cannot be done in a migration because `state.onboarding` was previously blacklisted in `persistConfig`
-    if (
-      !currentState.onboarding.completedOnboarding &&
-      Boolean(currentState.engine.backgroundState.KeyringController.vault)
-    ) {
-      store.dispatch(setCompletedOnboarding(true));
-    }
   };
 
   persistor = persistStore(store, null, onPersistComplete);

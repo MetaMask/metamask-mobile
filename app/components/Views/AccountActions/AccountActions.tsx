@@ -429,13 +429,14 @@ const AccountActions = () => {
           )
           ///: END:ONLY_INCLUDE_IF
         }
-        {networkSupporting7702Present && (
-          <AccountAction
-            actionTitle={strings('account_actions.switch_to_smart_account')}
-            iconName={IconName.SwapHorizontal}
-            onPress={goToSwitchAccountType}
-          />
-        )}
+        {(networkSupporting7702Present &&
+          !isHardwareAccount(selectedAddress)) && (
+            <AccountAction
+              actionTitle={strings('account_actions.switch_to_smart_account')}
+              iconName={IconName.SwapHorizontal}
+              onPress={goToSwitchAccountType}
+            />
+          )}
       </View>
       <BlockingActionModal
         modalVisible={blockingModalVisible}

@@ -103,11 +103,11 @@ const DeleteWalletModal: React.FC = () => {
       clearHistory(isEnabled(), isDataCollectionForMarketingEnabled),
     );
     signOut();
-    await dispatch(setCompletedOnboarding(false));
     await CookieManager.clearAll(true);
     triggerClose();
     await resetWalletState();
     await deleteUser();
+    await dispatch(setCompletedOnboarding(false));
     track(MetaMetricsEvents.RESET_WALLET_CONFIRMED, {});
     InteractionManager.runAfterInteractions(() => {
       navigateOnboardingRoot();

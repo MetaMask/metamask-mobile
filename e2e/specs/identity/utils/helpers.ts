@@ -1,6 +1,10 @@
 import { MOCK_SRP_E2E_IDENTIFIER_BASE_KEY } from './mocks';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import { UserStorageMockttpController } from './user-storage/userStorageMockttpController';
+import {
+  UserStorageMockttpController,
+  UserStorageMockttpControllerEvents,
+  AsEnum,
+} from './user-storage/userStorageMockttpController';
 
 export interface UserStorageAccount {
   /**
@@ -45,7 +49,9 @@ export const arrangeTestUtils = (
   const BASE_TIMEOUT = 12000;
   const BASE_INTERVAL = 1000;
 
-  const prepareEventsEmittedCounter = (event: string) => {
+  const prepareEventsEmittedCounter = (
+    event: AsEnum<typeof UserStorageMockttpControllerEvents>,
+  ) => {
     let counter = 0;
     userStorageMockttpController.eventEmitter.on(event, () => {
       counter += 1;
@@ -181,8 +187,58 @@ export const arrangeTestUtils = (
       })();
     });
 
+  /**
+   * Waits until the number of synced elements equals the expected number
+   * @param {string} path - The path to check in the user storage
+   * @param {number} expectedNumber - The expected number of synced elements
+   * @returns {Promise} Resolves when the condition is met, rejects on timeout
+   */
+  const waitUntilSyncedElementsNumberEquals = (
+    path: (typeof USER_STORAGE_FEATURE_NAMES)[keyof typeof USER_STORAGE_FEATURE_NAMES],
+    expectedNumber: number,
+  ): Promise<void> =>
+    new Promise((resolve, reject) => {
+      const checkElements = () => {
+        const syncedElements =
+          userStorageMockttpController.paths.get(path)?.response;
+        return syncedElements?.length === expectedNumber;
+      };
+
+      if (checkElements()) {
+        resolve();
+        return;
+      }
+
+      (() => {
+        const ids = {} as {
+          interval: NodeJS.Timeout;
+          timeout: NodeJS.Timeout;
+        };
+
+        ids.interval = setInterval(() => {
+          if (checkElements()) {
+            clearInterval(ids.interval);
+            clearTimeout(ids.timeout);
+            resolve();
+          }
+        }, BASE_INTERVAL);
+
+        ids.timeout = setTimeout(() => {
+          clearInterval(ids.interval);
+          reject(
+            new Error(
+              `Timeout waiting for synced accounts number to be ${expectedNumber}`,
+            ),
+          );
+        }, BASE_TIMEOUT);
+
+        return ids;
+      })();
+    });
+
   return {
     prepareEventsEmittedCounter,
+    waitUntilSyncedElementsNumberEquals,
     waitUntilSyncedAccountsNumberEquals,
     waitUntilSyncedContactsNumberEquals,
   };

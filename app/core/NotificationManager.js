@@ -230,13 +230,18 @@ class NotificationManager {
           TokenBalancesController,
           TokenDetectionController,
           AccountTrackerController,
+          NetworkController,
         } = Engine.context;
+
+        const networkClientId = NetworkController.findNetworkClientIdByChainId(
+          transactionMeta.chainId,
+        );
         // account balances for ETH txs
         // Detect assets and tokens for ERC20 txs
         // Detect assets for ERC721 txs
         // right after a transaction was confirmed
         const pollPromises = [
-          AccountTrackerController.refresh(),
+          AccountTrackerController.refresh([networkClientId]),
           TokenBalancesController.updateBalancesByChainId({
             chainId: transactionMeta.chainId,
           }),
@@ -440,7 +445,11 @@ class NotificationManager {
    */
   gotIncomingTransaction = async (incomingTransactions) => {
     try {
-      const { AccountTrackerController, AccountsController } = Engine.context;
+      const {
+        AccountTrackerController,
+        AccountsController,
+        NetworkController,
+      } = Engine.context;
 
       const selectedInternalAccount = AccountsController.getSelectedAccount();
 
@@ -487,8 +496,14 @@ class NotificationManager {
         duration: 7000,
       });
 
-      // Update balance upon detecting a new incoming transaction
-      AccountTrackerController.refresh();
+      const txChainId = filteredTransactions[0]?.chainId;
+      if (txChainId) {
+        const networkClientId =
+          NetworkController.findNetworkClientIdByChainId(txChainId);
+
+        // Update balance upon detecting a new incoming transaction
+        AccountTrackerController.refresh([networkClientId]);
+      }
     } catch (error) {
       Logger.log(
         'Notifications',

@@ -79,12 +79,15 @@ exports[`ActionView should render correctly 1`] = `
       </View>
       <View
         style={
-          {
-            "flex": 0,
-            "flexDirection": "row",
-            "paddingHorizontal": 24,
-            "paddingVertical": 16,
-          }
+          [
+            {
+              "flex": 0,
+              "flexDirection": "row",
+              "paddingHorizontal": 16,
+              "paddingVertical": 16,
+            },
+            undefined,
+          ]
         }
       >
         <TouchableOpacity

@@ -142,17 +142,17 @@ export class EngineService {
       }
    */
   async initializeVaultFromBackup(): Promise<VaultBackupResult> {
-    const keyringState = await getVaultFromBackup();
+    const vaultBackupResult = await getVaultFromBackup();
     const reduxState = ReduxService.store.getState();
     const state = reduxState?.engine?.backgroundState ?? {};
     const Engine = UntypedEngine;
     // This ensures we create an entirely new engine
     await Engine.destroyEngine();
     this.engineInitialized = false;
-    if (keyringState) {
+    if (vaultBackupResult.success) {
       const newKeyringState: KeyringControllerState = {
         keyrings: [],
-        vault: keyringState.vault,
+        vault: vaultBackupResult.vault,
         isUnlocked: false,
       };
 

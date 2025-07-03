@@ -77,7 +77,7 @@ exports[`AccountPermissions renders correctly 1`] = `
             "borderTopLeftRadius": 8,
             "borderTopRightRadius": 8,
             "borderWidth": 1,
-            "maxHeight": 1334,
+            "maxHeight": 0,
             "overflow": "hidden",
             "paddingBottom": 0,
             "shadowColor": "#0000001a",
@@ -91,7 +91,7 @@ exports[`AccountPermissions renders correctly 1`] = `
           {
             "transform": [
               {
-                "translateY": 1334,
+                "translateY": 0,
               },
             ],
           },
@@ -705,7 +705,7 @@ exports[`AccountPermissions renders correctly 1`] = `
                       "width": 24,
                     }
                   }
-                  testID="main-wallet-account-actions-0"
+                  testID="main-wallet-account-actions"
                 >
                   <SvgMock
                     color="#121314"

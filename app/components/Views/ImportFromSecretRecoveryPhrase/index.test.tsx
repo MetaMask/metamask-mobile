@@ -411,7 +411,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('on entering an invalid seed phrase, spellcheck error message is shown', async () => {
-      const { getByPlaceholderText, getByRole, queryByText } = renderScreen(
+      const { getByPlaceholderText, getByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
@@ -421,7 +421,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const input = getByPlaceholderText(
         strings('import_from_seed.srp_placeholder'),
       );
-      const continueButton = getByRole('button', { name: 'Continue' });
 
       // Invalid mnemonic
       const invalidMnemonic = 'invalid '.repeat(12).trim();
@@ -430,11 +429,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       await act(async () => {
         fireEvent.changeText(input, invalidMnemonic);
       });
-      // Press continue and verify error message
-      fireEvent.press(continueButton);
 
       await waitFor(() => {
-        const errorMessage = queryByText(
+        const errorMessage = getByText(
           strings('import_from_seed.spellcheck_error'),
         );
         expect(errorMessage).toBeOnTheScreen();
@@ -858,6 +855,42 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       await waitFor(() => {
         expect(confirmPasswordInput.props.editable).toBe(true);
       });
+    });
+
+    it('confirm password field is cleared when new password is removed', async () => {
+      const { getByPlaceholderText } = await renderCreatePasswordUI();
+
+      const passwordInput = getByPlaceholderText(
+        strings('import_from_seed.enter_strong_password'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'StrongPass123!');
+      });
+
+      expect(passwordInput.props.value).toBe('StrongPass123!');
+
+      const confirmPasswordInput = getByPlaceholderText(
+        strings('import_from_seed.re_enter_password'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
+      });
+
+      expect(confirmPasswordInput.props.value).toBe('StrongPass123!');
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'StrongPass12');
+      });
+
+      expect(confirmPasswordInput.props.value).toBe('StrongPass123!');
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, '');
+      });
+
+      expect(confirmPasswordInput.props.value).toBe('');
     });
 
     it('minimum password length requirement message shown when create new password field value is less than 8 characters', async () => {

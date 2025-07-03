@@ -53,6 +53,7 @@ import { createMockControllerInitFunction } from './test-utils';
 import { getControllerOrThrow, initModularizedControllers } from './utils';
 import { AppMetadataController } from '@metamask/app-metadata-controller';
 import { appMetadataControllerInit } from '../controllers/app-metadata-controller';
+import { seedlessOnboardingControllerInit } from '../controllers/seedless-onboarding-controller';
 import { AccountTreeController } from '@metamask/account-tree-controller';
 import { accountTreeControllerInit } from '../../../multichain-accounts/controllers/account-tree-controller';
 import { WebSocketServiceInit } from '../controllers/snaps/websocket-service-init';
@@ -133,6 +134,9 @@ describe('initModularizedControllers', () => {
   const mockDeFiPositionsControllerInit = jest.mocked(
     defiPositionsControllerInit,
   );
+  const mockSeedlessOnboardingControllerInit = jest.mocked(
+    seedlessOnboardingControllerInit,
+  );
   const mockAccountTreeControllerInit = jest.mocked(accountTreeControllerInit);
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
@@ -167,6 +171,7 @@ describe('initModularizedControllers', () => {
           TransactionController: mockTransactionControllerInit,
           AppMetadataController: mockAppMetadataControllerInit,
           DeFiPositionsController: mockDeFiPositionsControllerInit,
+          SeedlessOnboardingController: mockSeedlessOnboardingControllerInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
