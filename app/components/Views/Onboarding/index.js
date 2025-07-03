@@ -71,8 +71,6 @@ const createStyles = (colors) =>
       height: 240,
     },
     largeFoxWrapper: {
-      marginTop: 60,
-      marginBottom: Device.isLargeDevice() ? 80 : 40,
       width: 240,
       height: 240,
       display: 'flex',
@@ -80,6 +78,7 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       marginHorizontal: 'auto',
       padding: 40,
+      marginTop: 16,
     },
     foxImage: {
       width: 145,
@@ -89,17 +88,21 @@ const createStyles = (colors) =>
     title: {
       fontSize: 40,
       lineHeight: 40,
-      justifyContent: 'center',
       textAlign: 'center',
       paddingHorizontal: 60,
       fontFamily: 'MMSans-Regular',
       color: importedColors.gettingStartedTextColor,
+      width: '100%',
+      marginVertical: 16,
     },
     ctas: {
       flex: 1,
-      position: 'relative',
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+      alignItems: 'center',
       width: '100%',
       paddingHorizontal: 20,
+      rowGap: 24,
     },
     footer: {
       marginBottom: 40,
@@ -119,10 +122,9 @@ const createStyles = (colors) =>
     },
     createWrapper: {
       flexDirection: 'column',
-      justifyContent: 'flex-end',
       rowGap: 16,
       marginBottom: 16,
-      marginTop: 'auto',
+      width: '100%',
     },
     buttonWrapper: {
       flexDirection: 'column',
