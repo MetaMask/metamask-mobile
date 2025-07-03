@@ -389,7 +389,7 @@ buildIosDeviceFlask(){
 }
 
 # Generates the 
-generateArchivePackages() {
+generateIosBinary() {
 	scheme="$1"
 	configuration="${2:-Release}"
 
@@ -407,9 +407,16 @@ generateArchivePackages() {
 
 	echo "exportOptionsPlist: $exportOptionsPlist"
 	echo "Generating archive packages for $scheme in $configuration configuration"
-	xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
-	echo "Generating ipa for $scheme"
-	xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
+	if [ "$IS_SIM_BUILD" = "true" ]; then
+    	echo "Binary build type: Simulator"
+		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration -sdk iphonesimulator -derivedDataPath build
+	else
+		echo "Binary build type: Device"
+		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
+		echo "Generating ipa for $scheme"
+		xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
+	fi
+
 }
 
 buildIosRelease(){
@@ -430,7 +437,7 @@ buildIosRelease(){
 		echo "Build started..."
 		brew install watchman
 		cd ios
-		generateArchivePackages "MetaMask"
+		generateIosBinary "MetaMask"
 	else
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
@@ -443,7 +450,7 @@ buildIosFlaskLocal() {
 	prebuild_ios
 
 	# Generate a Flask debug .ipa for local development
-	generateArchivePackages "MetaMask-Flask" "Debug"
+	generateIosBinary "MetaMask-Flask" "Debug"
 }
 
 buildIosFlaskRelease(){
@@ -456,7 +463,7 @@ buildIosFlaskRelease(){
 		echo "Build started..."
 		brew install watchman
 		cd ios
-		generateArchivePackages "MetaMask-Flask"
+		generateIosBinary "MetaMask-Flask"
 	else
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
@@ -475,7 +482,7 @@ buildIosReleaseE2E(){
 		echo "Pre-release E2E Build started..."
 		brew install watchman
 		cd ios
-		generateArchivePackages "MetaMask"
+		generateIosBinary "MetaMask"
 	else
 		echo "Release E2E Build started..."
 		if [ ! -f "ios/release.xcconfig" ] ; then
@@ -500,7 +507,7 @@ buildIosQA(){
 		echo "Build started..."
 		brew install watchman
 		cd ios
-		generateArchivePackages "MetaMask-QA"
+		generateIosBinary "MetaMask-QA"
 	else
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
