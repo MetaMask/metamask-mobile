@@ -3,9 +3,26 @@ import { fireEvent } from '@testing-library/react-native';
 import UnsupportedRegionModal from './UnsupportedRegionModal';
 import renderDepositTestComponent from '../../../utils/renderDepositTestComponent';
 import Routes from '../../../../../../../constants/navigation/Routes';
-import { useParams } from '../../../../../../../util/navigation/navUtils';
 
-const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
+const mockNavigate = jest.fn();
+const mockUseDepositSDK = jest.fn();
+const mockGoBack = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+    }),
+  };
+});
+
+jest.mock('../../../sdk', () => ({
+  useDepositSDK: () => mockUseDepositSDK(),
+  DepositSDKProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
 
 jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
@@ -16,21 +33,38 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   ]),
 }));
 
+jest.mock('../RegionSelectorModal', () => ({
+  createRegionSelectorModalNavigationDetails: jest.fn(() => [
+    'DepositModals',
+    'DepositRegionSelectorModal',
+    {},
+  ]),
+}));
+
 jest.mock('../../../../utils/withRampAndDepositSDK', () =>
   jest.fn((Component) => (props: Record<string, unknown>) => (
     <Component {...props} />
   )),
 );
-
 describe('UnsupportedRegionModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
-    mockUseParams.mockReturnValue({
-      onExitToWalletHome: jest.fn(),
-      onSelectDifferentRegion: jest.fn(),
+  it('render match snapshot', () => {
+    mockUseDepositSDK.mockReturnValue({
+      selectedRegion: {
+        isoCode: 'BR',
+        flag: '🇧🇷',
+        name: 'Brazil',
+        phone: {
+          prefix: '+55',
+          placeholder: '11 12345 6789',
+          template: 'XX XXXXX XXXX',
+        },
+        currency: 'BRL',
+        supported: false,
+      },
     });
 
     const { toJSON } = renderDepositTestComponent(
@@ -40,11 +74,20 @@ describe('UnsupportedRegionModal', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('calls onExitToWalletHome when exit to wallet home button is pressed', () => {
-    const mockOnExitToWalletHome = jest.fn();
-    mockUseParams.mockReturnValue({
-      onExitToWalletHome: mockOnExitToWalletHome,
-      onSelectDifferentRegion: jest.fn(),
+  it('navigates to buy screen when Buy Crypto button is pressed', () => {
+    mockUseDepositSDK.mockReturnValue({
+      selectedRegion: {
+        isoCode: 'BR',
+        flag: '🇧🇷',
+        name: 'Brazil',
+        phone: {
+          prefix: '+55',
+          placeholder: '11 12345 6789',
+          template: 'XX XXXXX XXXX',
+        },
+        currency: 'BRL',
+        supported: false,
+      },
     });
 
     const { getByText } = renderDepositTestComponent(
@@ -52,17 +95,27 @@ describe('UnsupportedRegionModal', () => {
       Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
     );
 
-    const exitButton = getByText('Exit to wallet home');
-    fireEvent.press(exitButton);
-
-    expect(mockOnExitToWalletHome).toHaveBeenCalled();
+    const buyCryptoButton = getByText('Buy Crypto');
+    fireEvent.press(buyCryptoButton);
+    expect(mockNavigate).toHaveBeenCalledWith('RampBuy');
   });
 
-  it('calls onSelectDifferentRegion when select different region button is pressed', () => {
-    const mockOnSelectDifferentRegion = jest.fn();
-    mockUseParams.mockReturnValue({
-      onExitToWalletHome: jest.fn(),
-      onSelectDifferentRegion: mockOnSelectDifferentRegion,
+  it('navigates to region selector when Change region button is pressed', () => {
+    const mockSelectedRegion = {
+      isoCode: 'BR',
+      flag: '🇧🇷',
+      name: 'Brazil',
+      phone: {
+        prefix: '+55',
+        placeholder: '11 12345 6789',
+        template: 'XX XXXXX XXXX',
+      },
+      currency: 'BRL',
+      supported: false,
+    };
+
+    mockUseDepositSDK.mockReturnValue({
+      selectedRegion: mockSelectedRegion,
     });
 
     const { getByText } = renderDepositTestComponent(
@@ -70,27 +123,19 @@ describe('UnsupportedRegionModal', () => {
       Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
     );
 
-    const selectRegionButton = getByText('Select a different region');
-    fireEvent.press(selectRegionButton);
+    const changeRegionButton = getByText('Change region');
+    fireEvent.press(changeRegionButton);
 
-    expect(mockOnSelectDifferentRegion).toHaveBeenCalled();
-  });
-
-  it('handles missing callback functions gracefully', () => {
-    mockUseParams.mockReturnValue({});
-
-    const { toJSON } = renderDepositTestComponent(
-      UnsupportedRegionModal,
-      Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'DepositModals',
+      'DepositRegionSelectorModal',
+      {},
     );
-
-    expect(toJSON()).toBeTruthy();
   });
 
-  it('handles missing regionName gracefully', () => {
-    mockUseParams.mockReturnValue({
-      onExitToWalletHome: jest.fn(),
-      onSelectDifferentRegion: jest.fn(),
+  it('handles missing region gracefully', () => {
+    mockUseDepositSDK.mockReturnValue({
+      selectedRegion: null,
     });
 
     const { toJSON } = renderDepositTestComponent(
@@ -98,6 +143,6 @@ describe('UnsupportedRegionModal', () => {
       Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
     );
 
-    expect(toJSON()).toBeTruthy();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

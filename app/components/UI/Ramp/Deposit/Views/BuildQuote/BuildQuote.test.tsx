@@ -2,9 +2,16 @@ import React from 'react';
 import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import BuildQuote from './BuildQuote';
 import Routes from '../../../../../../constants/navigation/Routes';
-import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
+import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 import { BuyQuote } from '@consensys/native-ramps-sdk';
+
+const { InteractionManager } = jest.requireActual('react-native');
+
+InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
+  callback(),
+);
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -15,31 +22,20 @@ const mockFetchKycFormData = jest.fn();
 const mockFetchUserDetails = jest.fn();
 const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
-const mockCreateUnsupportedRegionModalNavigationDetails = jest.fn();
 const mockCreateReservation = jest.fn();
 const mockCreateOrder = jest.fn();
 const mockHandleNewOrder = jest.fn();
-const mockInteractionManager = {
-  runAfterInteractions: jest.fn((callback) => callback()),
-};
 
-const MOCK_US_REGION = {
-  isoCode: 'US',
-  flag: '🇺🇸',
-  name: 'United States',
-  phone: {
-    prefix: '+1',
-    placeholder: '(555) 555-1234',
-    template: '(XXX) XXX-XXXX',
+const createMockSDKReturn = (overrides = {}) => ({
+  isAuthenticated: false,
+  selectedWalletAddress: '0x123',
+  selectedRegion: {
+    isoCode: 'US',
+    flag: '🇺🇸',
+    name: 'United States',
+    currency: 'USD',
+    supported: true,
   },
-  currency: 'USD',
-  recommended: true,
-  supported: true,
-};
-
-const createMockSDKReturn = (isAuthenticated = false, overrides = {}) => ({
-  isAuthenticated,
-  selectedRegion: MOCK_US_REGION,
   setSelectedRegion: jest.fn(),
   ...overrides,
 });
@@ -55,14 +51,9 @@ jest.mock('@react-navigation/native', () => {
         actualReactNavigation.useNavigation().setOptions,
       ),
     }),
+    useFocusEffect: jest.fn().mockImplementation((callback) => callback()),
   };
 });
-
-jest.mock('../../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn().mockReturnValue({
-    title: 'Build Quote',
-  }),
-}));
 
 jest.mock('../../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
@@ -95,7 +86,7 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
 
 jest.mock('../../hooks/useDepositTokenExchange', () => ({
   __esModule: true,
-  default: () => mockUseDepositTokenExchange(),
+  default: jest.fn(() => mockUseDepositTokenExchange()),
 }));
 
 jest.mock('../ProviderWebview/ProviderWebview', () => ({
@@ -130,6 +121,13 @@ jest.mock('../KycProcessing/KycProcessing', () => ({
   createKycProcessingNavDetails: jest.fn(() => ['KYC_PROCESSING', {}]),
 }));
 
+jest.mock('../Modals/UnsupportedRegionModal', () => ({
+  createUnsupportedRegionModalNavigationDetails: jest.fn(() => [
+    'DepositModals',
+    { screen: 'DepositUnsupportedRegionModal' },
+  ]),
+}));
+
 jest.mock('../../hooks/useUserDetailsPolling', () => ({
   KycStatus: {
     APPROVED: 'APPROVED',
@@ -138,26 +136,25 @@ jest.mock('../../hooks/useUserDetailsPolling', () => ({
   },
 }));
 
-jest.mock('../Modals/UnsupportedRegionModal', () => ({
-  createUnsupportedRegionModalNavigationDetails:
-    mockCreateUnsupportedRegionModalNavigationDetails,
-}));
-
-jest.mock('react-native', () => {
-  const actualReactNative = jest.requireActual('react-native');
-  return {
-    ...actualReactNative,
-    InteractionManager: mockInteractionManager,
-  };
-});
-
 jest.mock('../../hooks/useHandleNewOrder', () => ({
   __esModule: true,
-  default: () => mockHandleNewOrder,
+  default: jest.fn(() => mockHandleNewOrder),
 }));
 
 function render(Component: React.ComponentType) {
-  return renderDepositTestComponent(Component, Routes.DEPOSIT.BUILD_QUOTE);
+  return renderScreen(
+    Component,
+    {
+      name: Routes.DEPOSIT.BUILD_QUOTE,
+    },
+    {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    },
+  );
 }
 
 describe('BuildQuote Component', () => {
@@ -167,158 +164,12 @@ describe('BuildQuote Component', () => {
     mockUseDepositTokenExchange.mockReturnValue({
       tokenAmount: '0.00',
     });
-    mockCreateUnsupportedRegionModalNavigationDetails.mockReturnValue([
-      'DepositModals',
-      'DepositUnsupportedRegionModal',
-      {
-        regionName: 'Brazil',
-        onExitToWalletHome: expect.any(Function),
-        onSelectDifferentRegion: expect.any(Function),
-      },
-    ]);
     mockHandleNewOrder.mockResolvedValue(undefined);
   });
 
   it('render matches snapshot', () => {
     render(BuildQuote);
     expect(screen.toJSON()).toMatchSnapshot();
-  });
-
-  describe('Unsupported Region Modal', () => {
-    it('calls handleSelectRegion with supported and unsupported regions and verifies navigation', () => {
-      render(BuildQuote);
-      const regionButton = screen.getByText('US');
-      fireEvent.press(regionButton);
-
-      const handleSelectRegion =
-        mockNavigate.mock.calls[0][1].params.handleSelectRegion;
-
-      const usdRegion = {
-        code: 'CA',
-        flag: '🇨🇦',
-        name: 'Canada',
-        phonePrefix: '+1',
-        currency: 'USD',
-        phoneDigitCount: 10,
-        supported: true,
-      };
-
-      act(() => handleSelectRegion(usdRegion));
-
-      const eurRegion = {
-        code: 'DE',
-        flag: '🇩🇪',
-        name: 'Germany',
-        phonePrefix: '+49',
-        currency: 'EUR',
-        phoneDigitCount: 10,
-        supported: true,
-      };
-
-      act(() => handleSelectRegion(eurRegion));
-
-      const unsupportedRegion = {
-        code: 'BR',
-        flag: '🇧🇷',
-        name: 'Brazil',
-        phonePrefix: '+55',
-        currency: 'BRL',
-        phoneDigitCount: 11,
-        supported: false,
-      };
-
-      act(() => handleSelectRegion(unsupportedRegion));
-
-      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
-        screen: 'DepositRegionSelectorModal',
-        params: {
-          selectedRegionCode: 'US',
-          handleSelectRegion: expect.any(Function),
-        },
-      });
-    });
-
-    it('calls handleSelectRegion for a list of regions and verifies callback type and navigation', () => {
-      render(BuildQuote);
-      const regionButton = screen.getByText('US');
-      fireEvent.press(regionButton);
-
-      const handleSelectRegion =
-        mockNavigate.mock.calls[0][1].params.handleSelectRegion;
-
-      const testRegions = [
-        {
-          code: 'CA',
-          flag: '🇨🇦',
-          name: 'Canada',
-          phonePrefix: '+1',
-          currency: 'USD',
-          phoneDigitCount: 10,
-          supported: true,
-        },
-        {
-          code: 'DE',
-          flag: '🇩🇪',
-          name: 'Germany',
-          phonePrefix: '+49',
-          currency: 'EUR',
-          phoneDigitCount: 10,
-          supported: true,
-        },
-        {
-          code: 'BR',
-          flag: '🇧🇷',
-          name: 'Brazil',
-          phonePrefix: '+55',
-          currency: 'BRL',
-          phoneDigitCount: 11,
-          supported: false,
-        },
-      ];
-
-      testRegions.forEach((region) => {
-        act(() => handleSelectRegion(region));
-      });
-
-      expect(handleSelectRegion).toBeInstanceOf(Function);
-      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
-        screen: 'DepositRegionSelectorModal',
-        params: {
-          selectedRegionCode: 'US',
-          handleSelectRegion: expect.any(Function),
-        },
-      });
-    });
-
-    it('calls handleSelectRegion with an unsupported region and verifies navigation', () => {
-      render(BuildQuote);
-      const regionButton = screen.getByText('US');
-      fireEvent.press(regionButton);
-
-      const handleSelectRegion =
-        mockNavigate.mock.calls[0][1].params.handleSelectRegion;
-
-      const unsupportedRegion = {
-        code: 'BR',
-        flag: '🇧🇷',
-        name: 'Brazil',
-        phonePrefix: '+55',
-        currency: 'BRL',
-        phoneDigitCount: 11,
-        supported: false,
-      };
-
-      act(() => handleSelectRegion(unsupportedRegion));
-
-      expect(handleSelectRegion).toBeInstanceOf(Function);
-      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
-        screen: 'DepositRegionSelectorModal',
-        params: {
-          selectedRegionCode: 'US',
-          handleSelectRegion: expect.any(Function),
-        },
-      });
-    });
   });
 
   describe('Region Selection', () => {
@@ -334,184 +185,46 @@ describe('BuildQuote Component', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositRegionSelectorModal',
-        params: {
-          selectedRegionCode: 'US',
-          handleSelectRegion: expect.any(Function),
-        },
       });
     });
 
-    it('updates selected region when handleSelectRegion callback is called with USD region', () => {
+    it('displays EUR currency when selectedRegion is EUR', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: {
+            isoCode: 'DE',
+            flag: '🇩🇪',
+            name: 'Germany',
+            currency: 'EUR',
+            supported: true,
+          },
+        }),
+      );
+
       render(BuildQuote);
-      const regionButton = screen.getByText('US');
-      fireEvent.press(regionButton);
-
-      const handleSelectRegion =
-        mockNavigate.mock.calls[0][1].params.handleSelectRegion;
-
-      const mockRegion = {
-        code: 'CA',
-        flag: '🇨🇦',
-        name: 'Canada',
-        phonePrefix: '+1',
-        currency: 'USD',
-        phoneDigitCount: 10,
-        supported: true,
-      };
-
-      act(() => handleSelectRegion(mockRegion));
 
       expect(screen.toJSON()).toMatchSnapshot();
     });
 
-    it('updates selected region and fiat currency to EUR when handleSelectRegion callback is called with EUR region', () => {
+    it('navigates to unsupported region modal when selectedRegion is not supported', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: {
+            isoCode: 'XX',
+            flag: '🏳️',
+            name: 'Unsupported Region',
+            currency: 'XXX',
+            supported: false,
+          },
+        }),
+      );
+
       render(BuildQuote);
-      const regionButton = screen.getByText('US');
-      fireEvent.press(regionButton);
 
-      const handleSelectRegion =
-        mockNavigate.mock.calls[0][1].params.handleSelectRegion;
-
-      const mockRegion = {
-        code: 'DE',
-        flag: '🇩🇪',
-        name: 'Germany',
-        phonePrefix: '+49',
-        currency: 'EUR',
-        phoneDigitCount: 10,
-        supported: true,
-      };
-
-      act(() => handleSelectRegion(mockRegion));
-
-      expect(screen.toJSON()).toMatchSnapshot();
-    });
-
-    it('updates selected region but keeps USD currency when handleSelectRegion callback is called with non-USD/EUR region', () => {
-      render(BuildQuote);
-      const regionButton = screen.getByText('US');
-      fireEvent.press(regionButton);
-
-      const handleSelectRegion =
-        mockNavigate.mock.calls[0][1].params.handleSelectRegion;
-
-      const mockRegion = {
-        code: 'GB',
-        flag: '🇬🇧',
-        name: 'United Kingdom',
-        phonePrefix: '+44',
-        currency: 'GBP',
-        phoneDigitCount: 10,
-        supported: true,
-      };
-
-      act(() => handleSelectRegion(mockRegion));
-
-      expect(screen.toJSON()).toMatchSnapshot();
-    });
-
-    it('navigates to unsupported region modal when handleSelectRegion callback is called with unsupported region', () => {
-      render(BuildQuote);
-      const regionButton = screen.getByText('US');
-      fireEvent.press(regionButton);
-
-      const handleSelectRegion =
-        mockNavigate.mock.calls[0][1].params.handleSelectRegion;
-
-      const mockUnsupportedRegion = {
-        code: 'BR',
-        flag: '🇧🇷',
-        name: 'Brazil',
-        phonePrefix: '+55',
-        currency: 'BRL',
-        phoneDigitCount: 11,
-        supported: false,
-      };
-
-      act(() => handleSelectRegion(mockUnsupportedRegion));
-
-      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
-        screen: 'DepositRegionSelectorModal',
-        params: {
-          selectedRegionCode: 'US',
-          handleSelectRegion: expect.any(Function),
-        },
-      });
-    });
-
-    it('handles unsupported region selection by updating state correctly', () => {
-      render(BuildQuote);
-      const regionButton = screen.getByText('US');
-      fireEvent.press(regionButton);
-
-      const handleSelectRegion =
-        mockNavigate.mock.calls[0][1].params.handleSelectRegion;
-
-      const mockUnsupportedRegion = {
-        code: 'BR',
-        flag: '🇧🇷',
-        name: 'Brazil',
-        phonePrefix: '+55',
-        currency: 'BRL',
-        phoneDigitCount: 11,
-        supported: false,
-      };
-
-      act(() => handleSelectRegion(mockUnsupportedRegion));
-
-      expect(screen.toJSON()).toMatchSnapshot();
-    });
-
-    it('tests the handleSelectRegion callback pattern with different region types', () => {
-      render(BuildQuote);
-      const regionButton = screen.getByText('US');
-      fireEvent.press(regionButton);
-
-      const handleSelectRegion =
-        mockNavigate.mock.calls[0][1].params.handleSelectRegion;
-
-      const usdRegion = {
-        code: 'CA',
-        flag: '🇨🇦',
-        name: 'Canada',
-        phonePrefix: '+1',
-        currency: 'USD',
-        phoneDigitCount: 10,
-        supported: true,
-      };
-
-      act(() => handleSelectRegion(usdRegion));
-
-      const eurRegion = {
-        code: 'DE',
-        flag: '🇩🇪',
-        name: 'Germany',
-        phonePrefix: '+49',
-        currency: 'EUR',
-        phoneDigitCount: 10,
-        supported: true,
-      };
-
-      act(() => handleSelectRegion(eurRegion));
-
-      const unsupportedRegion = {
-        code: 'BR',
-        flag: '🇧🇷',
-        name: 'Brazil',
-        phonePrefix: '+55',
-        currency: 'BRL',
-        phoneDigitCount: 11,
-        supported: false,
-      };
-
-      act(() => handleSelectRegion(unsupportedRegion));
-
-      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
-        screen: 'DepositRegionSelectorModal',
-        params: {
-          selectedRegionCode: 'US',
-          handleSelectRegion: expect.any(Function),
-        },
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+          screen: 'DepositUnsupportedRegionModal',
+        });
       });
     });
   });
@@ -600,7 +313,9 @@ describe('BuildQuote Component', () => {
       const mockForms = { forms: [] };
       const mockUserDetails = { kyc: { l1: { status: 'APPROVED' } } };
 
-      mockUseDepositSDK.mockReturnValue(createMockSDKReturn(true));
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ isAuthenticated: true }),
+      );
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
       mockFetchUserDetails.mockResolvedValue(mockUserDetails);
@@ -623,7 +338,9 @@ describe('BuildQuote Component', () => {
       const mockForms = { forms: [] };
       const mockUserDetails = { kyc: { l1: { status: 'PENDING' } } };
 
-      mockUseDepositSDK.mockReturnValue(createMockSDKReturn(true));
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ isAuthenticated: true }),
+      );
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
       mockFetchUserDetails.mockResolvedValue(mockUserDetails);
@@ -646,7 +363,9 @@ describe('BuildQuote Component', () => {
       };
       const mockIdProofData = { data: { kycUrl: 'test-kyc-url' } };
 
-      mockUseDepositSDK.mockReturnValue(createMockSDKReturn(true));
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ isAuthenticated: true }),
+      );
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
       mockFetchKycFormData.mockResolvedValue(mockIdProofData);
@@ -674,7 +393,9 @@ describe('BuildQuote Component', () => {
       };
       const mockIdProofData = { data: { kycUrl: 'test-kyc-url' } };
 
-      mockUseDepositSDK.mockReturnValue(createMockSDKReturn(true));
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ isAuthenticated: true }),
+      );
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
       mockFetchKycFormData.mockResolvedValue(mockIdProofData);
@@ -702,7 +423,9 @@ describe('BuildQuote Component', () => {
       };
       const mockIdProofData = { data: { kycUrl: 'test-kyc-url' } };
 
-      mockUseDepositSDK.mockReturnValue(createMockSDKReturn(true));
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ isAuthenticated: true }),
+      );
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
       mockFetchKycFormData.mockResolvedValue(mockIdProofData);
@@ -729,7 +452,9 @@ describe('BuildQuote Component', () => {
         forms: [{ id: 'idProof' }],
       };
 
-      mockUseDepositSDK.mockReturnValue(createMockSDKReturn(true));
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ isAuthenticated: true }),
+      );
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
       mockFetchKycFormData.mockResolvedValue(null);
@@ -811,7 +536,10 @@ describe('BuildQuote Component', () => {
       const mockOrder = { id: 'order-123', walletAddress: 'wallet-address' };
 
       mockUseDepositSDK.mockReturnValue(
-        createMockSDKReturn(true, { selectedWalletAddress: 'selected-wallet' }),
+        createMockSDKReturn({
+          isAuthenticated: true,
+          selectedWalletAddress: 'selected-wallet',
+        }),
       );
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
@@ -847,7 +575,10 @@ describe('BuildQuote Component', () => {
       const mockUserDetails = { kyc: { l1: { status: 'APPROVED' } } };
 
       mockUseDepositSDK.mockReturnValue(
-        createMockSDKReturn(true, { selectedWalletAddress: 'selected-wallet' }),
+        createMockSDKReturn({
+          isAuthenticated: true,
+          selectedWalletAddress: 'selected-wallet',
+        }),
       );
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
@@ -880,7 +611,10 @@ describe('BuildQuote Component', () => {
       const mockReservation = { id: 'reservation-123' };
 
       mockUseDepositSDK.mockReturnValue(
-        createMockSDKReturn(true, { selectedWalletAddress: 'selected-wallet' }),
+        createMockSDKReturn({
+          isAuthenticated: true,
+          selectedWalletAddress: 'selected-wallet',
+        }),
       );
       mockGetQuote.mockResolvedValue(mockQuote);
       mockFetchKycForms.mockResolvedValue(mockForms);
