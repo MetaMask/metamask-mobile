@@ -19,6 +19,7 @@ const MOCK_CAIP_ACCOUNT_ID =
 
 const MOCK_ACCOUNTS = [
   {
+    id: 'mock-account-id-2',
     name: 'Account 2',
     address: MOCK_ACCOUNT_ADDRESS,
     isSelected: true,

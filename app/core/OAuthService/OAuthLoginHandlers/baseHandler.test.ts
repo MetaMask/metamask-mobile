@@ -1,5 +1,6 @@
 import {
   AuthConnection,
+  AuthRequestParams,
   HandleFlowParams,
   LoginHandlerResult,
 } from '../OAuthInterface';
@@ -10,8 +11,38 @@ import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 // Mock fetch globally
 global.fetch = jest.fn();
 
+const mockRandomUUID = jest.fn();
+
+jest.mock('react-native-quick-crypto', () => ({
+  randomBytes: jest.fn().mockReturnValue(Buffer.from('mock-random-bytes')),
+  randomUUID: () => mockRandomUUID(),
+}));
+
 // Mock handler class that extends BaseLoginHandler for testing
 class MockLoginHandler extends BaseLoginHandler {
+  getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams {
+    let body: AuthRequestParams;
+    if ('code' in params) {
+      body = {
+        code: params.code,
+        client_id: params.clientId,
+        login_provider: params.authConnection,
+        network: params.web3AuthNetwork,
+        redirect_uri: params.redirectUri,
+        code_verifier: params.codeVerifier,
+      };
+    } else {
+      body = {
+        id_token: params.idToken,
+        client_id: params.clientId,
+        login_provider: params.authConnection,
+        network: params.web3AuthNetwork,
+        redirect_uri: params.redirectUri,
+        code_verifier: params.codeVerifier,
+      };
+    }
+    return body;
+  }
   get authConnection(): AuthConnection {
     return AuthConnection.Google;
   }
@@ -34,12 +65,16 @@ class MockLoginHandler extends BaseLoginHandler {
     };
   }
 }
-
+const mockBaseHandlerParams = {
+  authServerUrl: 'https://auth.example.com',
+  clientId: 'mock-client-id',
+  web3AuthNetwork: Web3AuthNetwork.Mainnet,
+};
 describe('BaseLoginHandler', () => {
   let mockHandler: MockLoginHandler;
 
   beforeEach(() => {
-    mockHandler = new MockLoginHandler();
+    mockHandler = new MockLoginHandler(mockBaseHandlerParams);
     jest.clearAllMocks();
     (global.fetch as jest.Mock).mockClear();
   });
@@ -50,8 +85,10 @@ describe('BaseLoginHandler', () => {
 
   describe('constructor', () => {
     it('generates a nonce when instantiated', () => {
-      const handler1 = new MockLoginHandler();
-      const handler2 = new MockLoginHandler();
+      mockRandomUUID.mockReturnValue('mock-random-uuid-1');
+      const handler1 = new MockLoginHandler(mockBaseHandlerParams);
+      mockRandomUUID.mockReturnValue('mock-random-uuid-2');
+      const handler2 = new MockLoginHandler(mockBaseHandlerParams);
 
       expect(handler1.nonce).toBeDefined();
       expect(handler2.nonce).toBeDefined();
@@ -187,6 +224,34 @@ describe('BaseLoginHandler', () => {
       );
 
       expect(result).toEqual(mockResponse);
+
+      jest
+        .spyOn(global, 'fetch')
+        .mockResolvedValueOnce(new Response(JSON.stringify(mockResponse)));
+
+      const refreshResult = await mockHandler.refreshAuthToken('refresh-token');
+
+      expect(refreshResult).toEqual(mockResponse);
+
+      const mockRevokeResponse = {
+        new_refresh_token: 'refresh-token',
+        new_revoke_token: 'revoke-token',
+      };
+
+      jest
+        .spyOn(global, 'fetch')
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(mockRevokeResponse)),
+        );
+
+      const revokeResult = await mockHandler.revokeRefreshToken(
+        'refresh-token',
+      );
+
+      expect(revokeResult).toEqual({
+        refresh_token: 'refresh-token',
+        revoke_token: 'revoke-token',
+      });
     });
 
     it('successfully gets auth tokens with idToken', async () => {
@@ -244,8 +309,9 @@ describe('BaseLoginHandler', () => {
       };
 
       (global.fetch as jest.Mock).mockResolvedValueOnce({
-        status: 200,
+        status: 400,
         json: () => Promise.resolve(mockErrorResponse),
+        text: () => Promise.resolve('Bad Request'),
       });
 
       const params: HandleFlowParams = {
@@ -260,7 +326,8 @@ describe('BaseLoginHandler', () => {
       await expect(
         mockHandler.getAuthTokens(params, mockAuthServerUrl),
       ).rejects.toMatchObject({
-        message: 'Auth server error - Invalid credentials',
+        message:
+          'Auth server error - AuthServer Error, request failed with status: [400]: Bad Request',
         code: OAuthErrorType.AuthServerError,
       });
     });
@@ -311,7 +378,7 @@ describe('BaseLoginHandler', () => {
       };
 
       const result = await getAuthTokens(
-        params,
+        mockHandler.getAuthTokenRequestData(params),
         mockPathname,
         mockAuthServerUrl,
       );
@@ -359,7 +426,7 @@ describe('BaseLoginHandler', () => {
       };
 
       const result = await getAuthTokens(
-        params,
+        mockHandler.getAuthTokenRequestData(params),
         mockPathname,
         mockAuthServerUrl,
       );

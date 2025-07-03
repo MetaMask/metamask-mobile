@@ -351,7 +351,11 @@ class ChoosePassword extends PureComponent {
     const canSubmit = passwordsMatch && isSelected;
     if (loading) return;
     if (!canSubmit) {
-      if (password !== '' && confirmPassword !== '' && password !== confirmPassword) {
+      if (
+        password !== '' &&
+        confirmPassword !== '' &&
+        password !== confirmPassword
+      ) {
         this.track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
           wallet_setup_type: 'import',
           error_type: strings('choose_password.password_dont_match'),
@@ -380,7 +384,6 @@ class ChoosePassword extends PureComponent {
         this.state.biometryChoice,
         this.state.rememberMe,
       );
-
 
       const oauth2LoginSuccess = this.props.route.params?.oauthLoginSuccess;
       authType.oauth2Login = oauth2LoginSuccess;
@@ -602,11 +605,11 @@ class ChoosePassword extends PureComponent {
 
   onPasswordChange = (val) => {
     const passInfo = zxcvbn(val);
-    this.setState({
+    this.setState((prevState) => ({
       password: val,
       passwordStrength: passInfo.score,
-      confirmPassword: '',
-    });
+      confirmPassword: val === '' ? '' : prevState.confirmPassword,
+    }));
   };
 
   learnMore = () => {
@@ -682,10 +685,7 @@ class ChoosePassword extends PureComponent {
                   : 'secure_your_wallet.creating_password',
               )}
             </Text>
-            <Text
-              variant={TextVariant.HeadingSMRegular}
-              style={styles.subtitle}
-            >
+            <Text variant={TextVariant.BodyMD} style={styles.subtitle}>
               {strings('create_wallet.subtitle')}
             </Text>
           </View>
@@ -714,7 +714,7 @@ class ChoosePassword extends PureComponent {
                     {strings('choose_password.title')}
                   </Text>
                   <Text
-                    variant={TextVariant.BodySM}
+                    variant={TextVariant.BodyMD}
                     color={TextColor.Alternative}
                   >
                     {strings('choose_password.description')}
@@ -858,6 +858,14 @@ class ChoosePassword extends PureComponent {
                         color={TextColor.Default}
                       >
                         {strings('import_from_seed.learn_more')}
+                        <Text
+                          variant={TextVariant.BodyMD}
+                          color={TextColor.Primary}
+                          onPress={this.learnMore}
+                          testID={ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID}
+                        >
+                          {' ' + strings('reset_password.learn_more')}
+                        </Text>
                       </Text>
                     }
                   />

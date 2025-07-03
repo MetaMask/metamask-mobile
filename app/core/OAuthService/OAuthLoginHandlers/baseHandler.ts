@@ -6,32 +6,10 @@ import {
   LoginHandlerResult,
 } from '../OAuthInterface';
 import { OAuthError, OAuthErrorType } from '../error';
-
-/**
- * Pads a string to a length of 4 characters
- *
- * @param input - The base64 encoded string to pad
- * @returns The padded string
- */
-function padBase64String(input: string) {
-  const segmentLength = 4;
-  const stringLength = input.length;
-  const diff = stringLength % segmentLength;
-  if (!diff) {
-    return input;
-  }
-  let position = stringLength;
-  let padLength = segmentLength - diff;
-  const paddedStringLength = stringLength + padLength;
-  const buffer = Buffer.alloc(paddedStringLength);
-  buffer.write(input);
-  while (padLength > 0) {
-    buffer.write('=', position);
-    position += 1;
-    padLength -= 1;
-  }
-  return buffer.toString();
-}
+import { fromBase64UrlSafe, toBase64UrlSafe } from './utils';
+import { bytesToString } from '@metamask/utils';
+import { toByteArray, fromByteArray } from 'react-native-quick-base64';
+import QuickCrypto from 'react-native-quick-crypto';
 
 /**
  * Get the auth tokens from the auth server
@@ -47,54 +25,21 @@ function padBase64String(input: string) {
  * @param authServerUrl - The url of the auth server
  */
 export async function getAuthTokens(
-  params: HandleFlowParams,
+  params: AuthRequestParams,
   pathname: string,
   authServerUrl: string,
 ): Promise<AuthResponse> {
-  const {
-    authConnection,
-    clientId,
-    redirectUri,
-    codeVerifier,
-    web3AuthNetwork,
-  } = params;
-
-  let body: AuthRequestParams;
-
-  if ('code' in params) {
-    body = {
-      code: params.code,
-      client_id: clientId,
-      login_provider: authConnection,
-      network: web3AuthNetwork,
-      redirect_uri: redirectUri,
-      code_verifier: codeVerifier,
-    };
-  } else {
-    body = {
-      id_token: params.idToken,
-      client_id: clientId,
-      login_provider: authConnection,
-      network: web3AuthNetwork,
-      redirect_uri: redirectUri,
-      code_verifier: codeVerifier,
-    };
-  }
-
   const res = await fetch(`${authServerUrl}/${pathname}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(params),
   });
 
-  if (res.status === 200) {
+  if (res.status === 200 || res.status === 201) {
     const data = (await res.json()) satisfies AuthResponse;
-    if (data.success) {
-      return data;
-    }
-    throw new OAuthError(data.message, OAuthErrorType.AuthServerError);
+    return data;
   }
 
   throw new OAuthError(
@@ -105,11 +50,25 @@ export async function getAuthTokens(
   );
 }
 
+export interface BaseHandlerOptions {
+  authServerUrl: string;
+  clientId: string;
+  web3AuthNetwork: string;
+}
+
 /**
  * Base class for the login handlers
  */
 export abstract class BaseLoginHandler {
+  public options: BaseHandlerOptions;
+
   public nonce: string;
+
+  protected readonly CODE_CHALLENGE_METHOD = 'S256';
+
+  protected readonly AUTH_SERVER_TOKEN_PATH = '/api/v1/oauth/token';
+
+  protected readonly AUTH_SERVER_REVOKE_PATH = '/api/v1/oauth/revoke';
 
   abstract get authConnection(): AuthConnection;
 
@@ -119,9 +78,18 @@ export abstract class BaseLoginHandler {
 
   abstract login(): Promise<LoginHandlerResult | undefined>;
 
-  constructor() {
-    this.nonce = this.#generateNonce();
+  constructor(options: BaseHandlerOptions) {
+    this.options = options;
+    this.nonce = this.generateNonce();
   }
+
+  /**
+   * Get the auth token request data
+   *
+   * @param params - The params from the login handler
+   * @returns The auth token request data
+   */
+  abstract getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams;
 
   /**
    * Get the auth tokens from the auth server
@@ -130,7 +98,8 @@ export abstract class BaseLoginHandler {
    * @param authServerUrl - The url of the auth server
    */
   getAuthTokens(params: HandleFlowParams, authServerUrl: string) {
-    return getAuthTokens(params, this.authServerPath, authServerUrl);
+    const requestData = this.getAuthTokenRequestData(params);
+    return getAuthTokens(requestData, this.authServerPath, authServerUrl);
   }
 
   /**
@@ -141,16 +110,135 @@ export abstract class BaseLoginHandler {
    */
   decodeIdToken(idToken: string): string {
     const [, idTokenPayload] = idToken.split('.');
-    const base64String = padBase64String(idTokenPayload)
-      .replace(/-/u, '+')
-      .replace(/_/u, '/');
+    const base64String = fromBase64UrlSafe(idTokenPayload);
     // Using buffer here instead of atob because userinfo can contain emojis which are not supported by atob
     // the browser replacement for atob is https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array/fromBase64
     // which is not supported in all chrome yet
-    return Buffer.from(base64String, 'base64').toString('utf-8');
+    return bytesToString(toByteArray(base64String));
   }
 
-  #generateNonce(): string {
-    return Math.random().toString(36).substring(2, 15);
+  /**
+   * Validate the state value from the OAuth login redirect URL.
+   *
+   * @param state - The state value from the OAuth login redirect URL.
+   */
+  validateState(state: unknown): void {
+    if (typeof state !== 'string') {
+      throw new OAuthError(
+        'state is not a string',
+        OAuthErrorType.InvalidOauthStateError,
+      );
+    }
+
+    const parsedState = JSON.parse(state);
+
+    if (parsedState.nonce !== this.nonce) {
+      throw new OAuthError(
+        'nonce do not match',
+        OAuthErrorType.InvalidOauthStateError,
+      );
+    }
+  }
+
+  /**
+   * Refresh the JWT Token using the refresh token.
+   *
+   * @param refreshToken - The refresh token from the Web3Auth Authentication Server.
+   * @returns The JWT Token from the Web3Auth Authentication Server and new refresh token.
+   */
+  async refreshAuthToken(refreshToken: string): Promise<AuthResponse> {
+    const { web3AuthNetwork } = this.options;
+    const requestData = {
+      client_id: this.options.clientId,
+      login_provider: this.authConnection,
+      network: web3AuthNetwork,
+      refresh_token: refreshToken,
+      grant_type: 'refresh_token', // specify refresh token flow
+    };
+    const res = await this.requestAuthToken(JSON.stringify(requestData));
+    return res;
+  }
+
+  /**
+   * Revoke the refresh token.
+   *
+   * @param revokeToken - The revoke token from the Web3Auth Authentication Server.
+   */
+  async revokeRefreshToken(revokeToken: string): Promise<{
+    refresh_token: string;
+    revoke_token: string;
+  }> {
+    const requestData = {
+      revoke_token: revokeToken,
+    };
+
+    const res = await fetch(
+      `${this.options.authServerUrl}${this.AUTH_SERVER_REVOKE_PATH}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      },
+    );
+
+    const data = await res.json();
+    return {
+      refresh_token: data.new_refresh_token,
+      revoke_token: data.new_revoke_token,
+    };
+  }
+
+  /**
+   * Make a request to the Web3Auth Authentication Server to get the JWT Token.
+   *
+   * @param requestData - The request data for the Web3Auth Authentication Server.
+   * @returns The JWT Token from the Web3Auth Authentication Server.
+   */
+  protected async requestAuthToken(requestData: string): Promise<AuthResponse> {
+    const res = await fetch(
+      `${this.options.authServerUrl}${this.AUTH_SERVER_TOKEN_PATH}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: requestData,
+      },
+    );
+
+    const data = await res.json();
+    return data;
+  }
+
+  /**
+   * Generate a nonce value.
+   *
+   * @returns The nonce value.
+   */
+  protected generateNonce(): string {
+    return QuickCrypto.randomUUID();
+  }
+
+  /**
+   * Generate a code verifier and challenge value for PKCE flow.
+   *
+   * @returns The code verifier and challenge value.
+   */
+  protected generateCodeVerifierChallenge(): {
+    codeVerifier: string;
+    challenge: string;
+  } {
+    const codeVerifierBytes = QuickCrypto.randomBytes(32);
+    const codeVerifier = toBase64UrlSafe(fromByteArray(codeVerifierBytes));
+    const challengeBytes = QuickCrypto.createHash('sha256')
+      .update(codeVerifier)
+      .digest();
+    const challenge = toBase64UrlSafe(fromByteArray(challengeBytes));
+    return {
+      challenge,
+      codeVerifier,
+    };
   }
 }

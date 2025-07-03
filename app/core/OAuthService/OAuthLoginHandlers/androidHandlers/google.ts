@@ -1,16 +1,19 @@
 import {
   LoginHandlerIdTokenResult,
   AuthConnection,
+  AuthRequestParams,
+  HandleFlowParams,
 } from '../../OAuthInterface';
 import { signInWithGoogle } from '@metamask/react-native-acm';
-import { BaseLoginHandler } from '../baseHandler';
+import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
 import { OAuthErrorType, OAuthError } from '../../error';
+import Logger from '../../../../util/Logger';
 
 /**
  * AndroidGoogleLoginHandler is the login handler for the Google login on android.
  */
 export class AndroidGoogleLoginHandler extends BaseLoginHandler {
-  readonly #scope = ['email', 'profile'];
+  readonly #scope = ['email', 'profile', 'openid'];
 
   protected clientId: string;
 
@@ -32,8 +35,8 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
    * @param params.clientId - The web clientId for the Google login.
    * Note: The android clientId must be created from the same OAuth clientId in the web.
    */
-  constructor(params: { clientId: string }) {
-    super();
+  constructor(params: BaseHandlerOptions) {
+    super(params);
     this.clientId = params.clientId;
   }
 
@@ -64,6 +67,7 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
         OAuthErrorType.UnknownError,
       );
     } catch (error) {
+      Logger.error(error as Error, 'handleGoogleLogin: error');
       if (error instanceof OAuthError) {
         throw error;
       } else if (error instanceof Error) {
@@ -82,5 +86,21 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
         );
       }
     }
+  }
+
+  getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams {
+    if (!('idToken' in params)) {
+      throw new OAuthError(
+        'handleAndroidGoogleLogin: Invalid params',
+        OAuthErrorType.InvalidGetAuthTokenParams,
+      );
+    }
+    const { idToken, clientId, web3AuthNetwork } = params;
+    return {
+      client_id: clientId,
+      id_token: idToken,
+      login_provider: this.authConnection,
+      network: web3AuthNetwork,
+    };
   }
 }

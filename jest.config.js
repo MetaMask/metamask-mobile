@@ -14,6 +14,12 @@ process.env.LAUNCH_DARKLY_URL =
 
 process.env.MM_SMART_ACCOUNT_UI_ENABLED = 'true';
 
+process.env.ANDROID_APPLE_CLIENT_ID = 'androidAppleClientId';
+process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID = 'androidGoogleWebClientId';
+
+process.env.IOS_GOOGLE_CLIENT_ID = 'iosGoogleClientId';
+process.env.IOS_GOOGLE_REDIRECT_URI = 'iosGoogleRedirectUri';
+
 const config = {
   preset: 'react-native',
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
