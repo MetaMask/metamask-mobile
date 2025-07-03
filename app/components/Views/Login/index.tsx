@@ -102,7 +102,6 @@ const EmptyRecordConstant = {};
  */
 const Login: React.FC = () => {
   const [disabledInput, setDisabledInput] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout>();
 
   const fieldRef = useRef<TextInput>(null);
 
@@ -289,23 +288,28 @@ const Login: React.FC = () => {
     OAuthService.resetOauthState();
   };
 
-  const tooManyAttemptsError = async (remainingTime: number) => {
-    setDisabledInput(true);
-    for (let i = remainingTime; i > 0; i--) {
-      setError(strings('login.too_many_attempts', { remainingTime: i }));
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
-    setDisabledInput(false);
-  };
+  const isMountedRef = useRef(true);
 
   useEffect(
     () => () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      isMountedRef.current = false;
     },
     [],
   );
+
+  const tooManyAttemptsError = async (remainingTime: number) => {
+    setDisabledInput(true);
+    for (let i = remainingTime; i > 0; i--) {
+      if (!isMountedRef.current) {
+        return; // Exit early if component unmounted
+      }
+      setError(strings('login.too_many_attempts', { remainingTime: i }));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+    if (isMountedRef.current) {
+      setDisabledInput(false);
+    }
+  };
 
   const handleSeedlessOnboardingControllerError = (
     seedlessError: SeedlessOnboardingControllerRecoveryError,
