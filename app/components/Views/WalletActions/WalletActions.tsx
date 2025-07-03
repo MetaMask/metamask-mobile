@@ -87,6 +87,8 @@ const WalletActions = () => {
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   ///: END:ONLY_INCLUDE_IF
 
+  console.log('isPerpsEnabled', isPerpsEnabled);
+
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const { goToBridge: goToBridgeBase, goToSwaps: goToSwapsBase } =
     useSwapBridgeNavigation({
@@ -352,6 +354,7 @@ const WalletActions = () => {
   }, [closeBottomSheetAndNavigate, goToBridgeBase]);
 
   const onPerps = useCallback(() => {
+    console.log('onPerps');
     closeBottomSheetAndNavigate(() => {
       navigate(Routes.PERPS.ROOT);
     });
@@ -432,17 +435,17 @@ const WalletActions = () => {
             disabled={!canSignTransactions}
           />
         )}
-        {AppConstants.PERPS.ACTIVE && isPerpsEnabled && (
-          <WalletAction
-            actionType={WalletActionType.Perps}
-            iconName={IconName.TrendUp}
-            onPress={onPerps}
-            actionID="perps-button"
-            iconStyle={styles.icon}
-            iconSize={AvatarSize.Md}
-            disabled={!canSignTransactions}
-          />
-        )}
+        {/* {AppConstants.PERPS.ACTIVE && isPerpsEnabled && (
+        )} */}
+        <WalletAction
+          actionType={WalletActionType.Perps}
+          iconName={IconName.TrendUp}
+          onPress={onPerps}
+          actionID="perps-button"
+          iconStyle={styles.icon}
+          iconSize={AvatarSize.Md}
+          disabled={!canSignTransactions}
+        />
         <WalletAction
           actionType={WalletActionType.Send}
           iconName={IconName.Arrow2Right}

@@ -1,22 +1,29 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../component-library/hooks';
 import Button, {
   ButtonVariants,
   ButtonSize,
-  ButtonWidthTypes
+  ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import Text, {
   TextVariant,
-  TextColor
+  TextColor,
 } from '../../../component-library/components/Texts/Text';
 import ScreenView from '../../Base/ScreenView';
 import Logger from '../../../util/Logger';
+import Routes from '../../../constants/navigation/Routes';
 
 // Import Hyperliquid SDK components
-import { HttpTransport, InfoClient, WebSocketTransport, SubscriptionClient } from '@deeeed/hyperliquid-node20';
+import {
+  HttpTransport,
+  InfoClient,
+  WebSocketTransport,
+  SubscriptionClient,
+} from '@deeeed/hyperliquid-node20';
 
-interface PerpsViewProps { }
+interface PerpsViewProps {}
 
 const styleSheet = () => ({
   content: {
@@ -48,6 +55,7 @@ const styleSheet = () => ({
 
 const PerpsView: React.FC<PerpsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
+  const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
   const [testResult, setTestResult] = useState<string>('');
 
@@ -65,16 +73,20 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
       const allMids = await infoClient.allMids();
 
       if (allMids) {
-        const successMessage = '✅ SDK connection successful!\nRetrieved market data from Hyperliquid';
+        const successMessage =
+          '✅ SDK connection successful!\nRetrieved market data from Hyperliquid';
         setTestResult(successMessage);
-        Logger.log('Perps: SDK test successful', { dataCount: Object.keys(allMids).length });
+        Logger.log('Perps: SDK test successful', {
+          dataCount: Object.keys(allMids).length,
+        });
       } else {
         const warningMessage = '❌ SDK connected but no data received';
         setTestResult(warningMessage);
         Logger.log('Perps: SDK connected but no data received');
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       const fullErrorMessage = `❌ SDK test failed: ${errorMessage}`;
       setTestResult(fullErrorMessage);
       Logger.log('Perps: SDK test failed', error);
@@ -97,7 +109,12 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
 
       if (perpsMeta?.universe && perpsMeta.universe.length > 0) {
         const assets = perpsMeta.universe;
-        const successMessage = `✅ Found ${assets.length} tradeable assets:\n${assets.slice(0, 5).map((asset: { name: string }) => asset.name).join(', ')}${assets.length > 5 ? '...' : ''}`;
+        const successMessage = `✅ Found ${
+          assets.length
+        } tradeable assets:\n${assets
+          .slice(0, 5)
+          .map((asset: { name: string }) => asset.name)
+          .join(', ')}${assets.length > 5 ? '...' : ''}`;
         setTestResult(successMessage);
         Logger.log('Perps: Asset listing successful', { count: assets.length });
       } else {
@@ -106,7 +123,8 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
         Logger.log('Perps: No assets found');
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       const fullErrorMessage = `❌ Asset listing failed: ${errorMessage}`;
       setTestResult(fullErrorMessage);
       Logger.log('Perps: Asset listing failed', error);
@@ -129,9 +147,13 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
       const subscription = await subsClient.allMids((data) => {
         if (!hasReceivedData) {
           hasReceivedData = true;
-          Logger.log('Perps: WebSocket data received', { dataKeys: Object.keys(data).length });
+          Logger.log('Perps: WebSocket data received', {
+            dataKeys: Object.keys(data).length,
+          });
 
-          const successMessage = `✅ WebSocket connection successful!\nReceived real-time market data with ${Object.keys(data).length} assets`;
+          const successMessage = `✅ WebSocket connection successful!\nReceived real-time market data with ${
+            Object.keys(data).length
+          } assets`;
           setTestResult(successMessage);
 
           // Unsubscribe after receiving first data
@@ -153,18 +175,21 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
         if (!hasReceivedData) {
           try {
             await subscription.unsubscribe();
-            const timeoutMessage = '⚠️ WebSocket connection timeout - no data received within 5 seconds\nThis might be normal if the market is closed';
+            const timeoutMessage =
+              '⚠️ WebSocket connection timeout - no data received within 5 seconds\nThis might be normal if the market is closed';
             setTestResult(timeoutMessage);
-            Logger.log('Perps: WebSocket connection timeout - may be market hours related');
+            Logger.log(
+              'Perps: WebSocket connection timeout - may be market hours related',
+            );
           } catch (error) {
             Logger.log('Perps: Error during timeout cleanup', error);
           }
           setIsLoading(false);
         }
       }, 5000);
-
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       const fullErrorMessage = `❌ WebSocket test failed: ${errorMessage}`;
       setTestResult(fullErrorMessage);
       Logger.log('Perps: WebSocket test failed', error);
@@ -212,6 +237,17 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             label="Test WebSocket Connection"
             onPress={testWebSocketConnection}
             loading={isLoading}
+            style={styles.button}
+          />
+
+          <Button
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label="View Positions"
+            onPress={() =>
+              navigation.navigate(Routes.PERPS.POSITIONS_VIEW as never)
+            }
           />
         </View>
 
@@ -220,7 +256,11 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
               Test Result:
             </Text>
-            <Text variant={TextVariant.BodySM} color={TextColor.Muted} style={styles.resultText}>
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Muted}
+              style={styles.resultText}
+            >
               {testResult}
             </Text>
           </View>

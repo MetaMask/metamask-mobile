@@ -2,6 +2,7 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../constants/navigation/Routes';
 import PerpsView from './PerpsView';
+import PerpsPositionsView from './PerpsPositionsView';
 
 const Stack = createStackNavigator();
 
@@ -12,6 +13,14 @@ const PerpsScreenStack = () => (
       component={PerpsView}
       options={{
         title: 'Perps Trading',
+        headerShown: true,
+      }}
+    />
+    <Stack.Screen
+      name={Routes.PERPS.POSITIONS_VIEW}
+      component={PerpsPositionsView}
+      options={{
+        title: 'Perps Positions',
         headerShown: true,
       }}
     />
