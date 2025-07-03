@@ -1678,6 +1678,7 @@
     "receive_button": "Receive",
     "portfolio_button": "Portfolio",
     "earn_button": "Earn",
+    "perps_button": "Perps",
     "add_collectible_button": "Add",
     "info": "Info",
     "swap": "Swap",
@@ -1690,7 +1691,8 @@
       "bridge": "Bridging not supported for this account",
       "send": "Sending not supported for this account",
       "action": "This action is not supported for this account",
-      "earn": "Earning not supported for this account"
+      "earn": "Earning not supported for this account",
+      "perps": "Perps trading not supported for this account"
     },
     "description": "Description",
     "totalSupply": "Total Supply",
@@ -1707,6 +1709,7 @@
     "send_description": "Send crypto to any account",
     "receive_description": "Receive crypto",
     "earn_description": "Earn rewards on your tokens",
+    "perps_description": "Trade perpetual contracts",
     "chart_time_period": {
       "1d": "Today",
       "7d": "Past 7 days",

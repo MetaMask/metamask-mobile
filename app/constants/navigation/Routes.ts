@@ -197,6 +197,10 @@ const Routes = {
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
+  PERPS: {
+    ROOT: 'Perps',
+    TRADING_VIEW: 'PerpsTradingView',
+  },
   LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
