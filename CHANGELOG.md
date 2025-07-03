@@ -12,6 +12,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(bridge): don't show currency value unless amount is above zero ([#15798](https://github.com/MetaMask/metamask-mobile/pull/15798))
 - fix(bridge): prevent crash when viewing Solana asset details ([#16770](https://github.com/MetaMask/metamask-mobile/pull/16770))
 
+## [7.47.2]
+
+### Fixed
+- chore(runway): cherry-pick chore: bump pbkdf ([#16629](https://github.com/MetaMask/metamask-mobile/pull/16629))
+- chore(runway): cherry-pick fix: cp-7.47.2 migrate caip permission to include sessionProperties value ([#16643](https://github.com/MetaMask/metamask-mobile/pull/16643))
+- chore(runway): cherry-pick fix:  account address missmatch with identity ([#16683](https://github.com/MetaMask/metamask-mobile/pull/16683))
+- chore(runway): cherry-pick fix: Remove delay for dispatch of INIT_BG_STATE_KEY ([#16703](https://github.com/MetaMask/metamask-mobile/pull/16703))
+
+## [7.47.1]
+
+### Fixed
+- fix: ensure inpage provider retries any pending requests sent before BackgroundBridge fully initialized ([#16349](https://github.com/MetaMask/metamask-mobile/pull/16349))
 
  ## [7.47.0]
 
