@@ -38,18 +38,22 @@ const useRemainingTime = ({ creationTime, isStxPending }: Props) => {
     const secondsAfterStxSubmission = Math.round(
       (now - creationTime) / 1000,
     );
+    
+    // Check if we're past the estimated deadline
+    if (secondsAfterStxSubmission > stxEstimatedDeadlineSec && !isStxPastEstimatedDeadline) {
+      setIsStxPastEstimatedDeadline(true);
+    }
+    
+    // Determine which deadline to use for countdown
     const currentDeadline = (secondsAfterStxSubmission > stxEstimatedDeadlineSec)
       ? stxMaxDeadlineSec
       : stxEstimatedDeadlineSec;
-    if (secondsAfterStxSubmission > currentDeadline) {
-      if (secondsAfterStxSubmission > stxMaxDeadlineSec) {
-        setTimeLeftForPendingStxInSec(0);
-        return;
-      }
-      if (!isStxPastEstimatedDeadline) {
-        setIsStxPastEstimatedDeadline(true);
-      }
+      
+    if (secondsAfterStxSubmission > stxMaxDeadlineSec) {
+      setTimeLeftForPendingStxInSec(0);
+      return;
     }
+    
     setTimeLeftForPendingStxInSec(
       currentDeadline - secondsAfterStxSubmission,
     );

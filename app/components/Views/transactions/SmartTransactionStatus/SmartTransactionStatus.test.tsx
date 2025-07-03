@@ -10,6 +10,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { fireEvent } from '@testing-library/react-native';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { merge } from 'lodash';
+import { act, waitFor } from '@testing-library/react-native';
 
 const initialState = {
   engine: {
@@ -281,11 +282,17 @@ const PENDING_APPROVALS = {
   },
 };
 
-describe('SmartTransactionStatus', () => {
-  afterEach(() => {
-    mockNavigate.mockReset();
-  });
+beforeEach(() => {
+  jest.useFakeTimers();
+  jest.setSystemTime(new Date('2024-01-01T00:00:00Z').getTime());
+});
 
+afterEach(() => {
+  jest.useRealTimers();
+  mockNavigate.mockReset();
+});
+
+describe('SmartTransactionStatus', () => {
   describe('showRemainingTimeInMinAndSec', () => {
     it('should return "0:00" when input is not an integer', () => {
       expect(showRemainingTimeInMinAndSec(1.5)).toEqual('0:00');
@@ -327,20 +334,21 @@ describe('SmartTransactionStatus', () => {
         );
         expect(header).toBeDefined();
       });
-      it('should render max deadline countdown when STX past estimated time', () => {
-        const { getByText } = renderWithProvider(
+      it('should render max deadline countdown when STX past estimated time', async () => {
+        const mockNow = 1000000000000;
+        jest.setSystemTime(mockNow);
+
+        const creationTime = mockNow - (FALLBACK_STX_ESTIMATED_DEADLINE_SEC + 1) * 1000;
+
+        const { findByText } = renderWithProvider(
           <SmartTransactionStatus
             requestState={{
               smartTransaction: {
                 ...PENDING_APPROVALS.Send.pending.requestState.smartTransaction,
-                creationTime:
-                  Date.now() - (FALLBACK_STX_ESTIMATED_DEADLINE_SEC + 1) * 1000,
-                // TODO: Replace "any" with type
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                creationTime,
               } as any,
               isDapp: PENDING_APPROVALS.Send.pending.requestState.isDapp,
-              isInSwapFlow:
-                PENDING_APPROVALS.Send.pending.requestState.isInSwapFlow,
+              isInSwapFlow: PENDING_APPROVALS.Send.pending.requestState.isInSwapFlow,
             }}
             origin={PENDING_APPROVALS.Send.pending.origin}
             onConfirm={jest.fn()}
@@ -348,12 +356,22 @@ describe('SmartTransactionStatus', () => {
           { state: initialState },
         );
 
-        const header = getByText(
-          strings(
-            'smart_transactions.status_submitting_past_estimated_deadline_header',
-          ),
-        );
-        expect(header).toBeDefined();
+        // Advance timers by a lot, twice, to guarantee the interval fires and state updates
+        await act(async () => {
+          jest.advanceTimersByTime(5000);
+          await Promise.resolve();
+          jest.advanceTimersByTime(5000);
+          await Promise.resolve();
+        });
+
+        // Use findByText for async UI, with a longer timeout
+        expect(
+          await findByText(
+            strings('smart_transactions.status_submitting_past_estimated_deadline_header'),
+            {},
+            { timeout: 2000 }
+          )
+        ).toBeTruthy();
       });
     });
 
