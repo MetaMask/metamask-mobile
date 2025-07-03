@@ -70,6 +70,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/RequestPaymentView.selectors';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { debounce } from 'lodash';
 
 const KEYBOARD_OFFSET = 120;
 const createStyles = (colors) =>
@@ -432,6 +433,17 @@ class PaymentRequest extends PureComponent {
     this.setState({ searchInputValue, results });
   };
 
+  debouncedHandleSearch = debounce(this.handleSearch, 300);
+
+  handleSearchTokenList = (searchInputValue) => {
+    if (typeof searchInputValue !== 'string') {
+      searchInputValue = this.state.searchInputValue;
+    }
+    this.setState({ searchInputValue });
+
+    this.debouncedHandleSearch(searchInputValue);
+  };
+
   /** Clear search input and focus */
   clearSearchInput = () => {
     this.setState({ searchInputValue: '' });
@@ -498,8 +510,8 @@ class PaymentRequest extends PureComponent {
               style={[styles.searchInput, inputWidth]}
               autoCapitalize="none"
               autoCorrect={false}
-              onChangeText={this.handleSearch}
-              onSubmitEditing={this.handleSearch}
+              onChangeText={this.handleSearchTokenList}
+              onSubmitEditing={this.handleSearchTokenList}
               placeholder={strings('payment_request.search_assets')}
               placeholderTextColor={colors.text.muted}
               returnKeyType="go"

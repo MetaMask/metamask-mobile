@@ -262,7 +262,7 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 
-jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 jest.mock('../../../../../../util/trace', () => ({
   trace: jest.fn(),
@@ -728,6 +728,25 @@ describe('BuildQuote View', () => {
       expect(
         screen.getByText('This amount is higher than your balance'),
       ).toBeTruthy();
+    });
+
+    it('does not show insufficient balance error when amount is 0', () => {
+      mockUseLimitsValues.limits = {
+        ...mockUseLimitsValues.limits,
+        maxAmount: 10,
+      } as Limits;
+
+      mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
+        '0',
+        mockUseRampSDKValues.selectedAsset?.decimals || 18,
+      ) as BN4;
+      render(BuildQuote);
+      const initialAmount = '0';
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+      fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
+      expect(
+        screen.queryByText('This amount is higher than your balance'),
+      ).toBeNull();
     });
 
     it('updates the amount input with quick amount buttons', async () => {

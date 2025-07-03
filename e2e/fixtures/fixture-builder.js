@@ -272,34 +272,6 @@ class FixtureBuilder {
                     },
                   ],
                 },
-                '0x18c6': {
-                  blockExplorerUrls: [],
-                  chainId: '0x18c6',
-                  defaultRpcEndpointIndex: 0,
-                  name: 'Mega Testnet',
-                  nativeCurrency: 'MegaETH',
-                  rpcEndpoints: [
-                    {
-                      networkClientId: 'megaeth-testnet',
-                      type: 'custom',
-                      url: 'https://carrot.megaeth.com/rpc',
-                    },
-                  ],
-                },
-                '0x279f': {
-                  blockExplorerUrls: [],
-                  chainId: '0x279f',
-                  defaultRpcEndpointIndex: 0,
-                  name: 'Monad Testnet',
-                  nativeCurrency: 'MON',
-                  rpcEndpoints: [
-                    {
-                      networkClientId: 'monad-testnet',
-                      type: 'custom',
-                      url: 'https://testnet-rpc.monad.xyz',
-                    },
-                  ],
-                },
               },
             },
             PhishingController: {
@@ -350,6 +322,11 @@ class FixtureBuilder {
                   },
                 },
                 selectedAccount: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
+              },
+            },
+            AccountTreeController: {
+              accountTree: {
+                wallets: {},
               },
             },
             PreferencesController: {
@@ -702,9 +679,6 @@ class FixtureBuilder {
         },
         security: {
           allowLoginWithRememberMe: false,
-          automaticSecurityChecksEnabled: false,
-          hasUserSelectedAutomaticSecurityCheckOption: true,
-          isAutomaticSecurityChecksModalOpen: false,
         },
         experimentalSettings: {
           securityAlertsEnabled: true,
@@ -1012,88 +986,6 @@ class FixtureBuilder {
     return this.ensureSolanaModalSuppressed();
   }
 
-  withMegaTestnetNetwork() {
-    const fixtures = this.fixture.state.engine.backgroundState;
-
-    // Extract MegaETH Testnet network configuration from CustomNetworks
-    const megaConfig = CustomNetworks.MegaTestnet.providerConfig;
-
-    // Generate a unique key for the new network client ID
-    const newNetworkClientId = `networkClientId${
-      Object.keys(fixtures.NetworkController.networkConfigurationsByChainId)
-        .length + 1
-    }`;
-
-    // Define the MegaETH Testnet network configuration
-    const megaNetworkConfig = {
-      chainId: megaConfig.chainId,
-      rpcEndpoints: [
-        {
-          networkClientId: newNetworkClientId,
-          url: megaConfig.rpcUrl,
-          type: 'custom',
-          name: megaConfig.nickname,
-        },
-      ],
-      defaultRpcEndpointIndex: 0,
-      blockExplorerUrls: [],
-      name: megaConfig.nickname,
-      nativeCurrency: megaConfig.ticker,
-    };
-
-    // Add the new MegaETH Testnet network configuration
-    fixtures.NetworkController.networkConfigurationsByChainId[
-      megaConfig.chainId
-    ] = megaNetworkConfig;
-
-    // Update selectedNetworkClientId to the new network client ID
-    fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
-
-    // Ensure Solana feature modal is suppressed
-    return this.ensureSolanaModalSuppressed();
-  }
-
-  withMonadTestnetNetwork() {
-    const fixtures = this.fixture.state.engine.backgroundState;
-
-    // Extract Monad Testnet network configuration from CustomNetworks
-    const monadConfig = CustomNetworks.MonadTestnet.providerConfig;
-
-    // Generate a unique key for the new network client ID
-    const newNetworkClientId = `networkClientId${
-      Object.keys(fixtures.NetworkController.networkConfigurationsByChainId)
-        .length + 1
-    }`;
-
-    // Define the Monad Testnet network configuration
-    const monadNetworkConfig = {
-      chainId: monadConfig.chainId,
-      rpcEndpoints: [
-        {
-          networkClientId: newNetworkClientId,
-          url: monadConfig.rpcUrl,
-          type: 'custom',
-          name: monadConfig.nickname,
-        },
-      ],
-      defaultRpcEndpointIndex: 0,
-      blockExplorerUrls: [],
-      name: monadConfig.nickname,
-      nativeCurrency: monadConfig.ticker,
-    };
-
-    // Add the new Monad Testnet network configuration
-    fixtures.NetworkController.networkConfigurationsByChainId[
-      monadConfig.chainId
-    ] = monadNetworkConfig;
-
-    // Update selectedNetworkClientId to the new network client ID
-    fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
-
-    // Ensure Solana feature modal is suppressed
-    return this.ensureSolanaModalSuppressed();
-  }
-
   withPopularNetworks() {
     const fixtures = this.fixture.state.engine.backgroundState;
     const networkConfigurationsByChainId = {
@@ -1258,6 +1150,15 @@ class FixtureBuilder {
     return this;
   }
 
+  // Mirrors the vault contents from the extension fixture.
+  withMultiSRPKeyringController() {
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      vault: '{"keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","cipher":"LOubqgWR4O7Hv/RcdHPZ0Xi0GmCPD6whWLbO/jtnv44cAbBDumnAKX1NK1vgDNORSPVlUTkjyZwaHaStzuTIoJDurCBJN4TtsNUe5qIoJgttZ4Yv4hHxlg04V4nq/DXqAQaXedILMXnhbqZ+DP+tMc7JBXcVi12GIOiqV+ycLj8xFcasS/cdxtU6Os3pItdEZS89Rp7U58YOJBRQ2dlhBg0tCo2JnCrRhQmPGcTBuQVpn7SdkDx5PPC2slz3TRCjaHXWGCMPmx6jCDqI2sJL9ljpFB0/Jvlp18/9PE/cZ53GxybdtQiJ9andNHlfPf5WK+qI+QgySR8CMSRDWaP3hfEGHF1H0oqO7y/v6/pkShitdx7i5bC8Wt++heUOT8qpHTo1gDgUmNuZJsF4sG0Y18Hw8vLu+LfkoZgundb+cFjPFD1teTEnl2mmkpBvQCciynsCHPnHgnhKNHj6KMLhlSXWEItuYL/FY7dRpttfXzWfVQt56dQLLEYEYmO/f7C1uzAv6jbHBHqg16QtX3hCEnX0qzi1h3DQ8J5v44ckkQ/UGVvy6bOUC83b8DMLNPiSoMJDSsMaDzMmQ4J4xHzoHdD7/wBcXcbtUwccMGRHXv3jFLtHjuV+HQo0//I9xnjjAxfxX9SgyBQE8WCvUOxgCdwF8W7aBKcFEsoksLAWIQFxerWc3OxdvKSzvinI/j/MvyFMvVP5pm/BLWNj639GpFmIJVMprxkDL4H45CsgUcMe1Kiim/PFvo0D449vO1XL31ZIl9TxRVLaIr2cE3a95MFbzru9stqNkXz0EHrhSltFyoANMCim1HFxK/1yRl5Tt4u9Vjjyvj6a4Wtzy7SyLHhx0PfrlARq2euwGQal46cZYYKuMsnwvQf3ba/uJF3hF3FyAl9fn28HKRurImsiKNDvT+kaoUMFYoX6i+qR0LHoA7OfeqXpsKYyMx8LnUq7zKP4ZVc8sysI95YYYwdzhq2xzHDQfOplYRFkQllxqtkoTxMPHz/J1W1kjBTpCI7M8n8qLv53ryNq4y+hQx0RQNtvGPE9OcQTDUpkCM5dv7p8Ja8uLTDehKeKzs315IRBVJN8mdGy18EK5sjDoileDQ==","iv":"e88d2415e223bb8cc67c74ce47de1a6b","salt":"BX+ED3hq9K3tDBdnobBphA=="}'
+    })
+
+    return this
+  }
+
   withTokens(tokens) {
     merge(this.fixture.state.engine.backgroundState.TokensController, {
       allTokens: {
@@ -1335,6 +1236,16 @@ class FixtureBuilder {
       isArchived: false,
     });
 
+    return this;
+  }
+
+  /**
+   * Sets ETH as the primary currency for both currency rate controller and settings.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withETHAsPrimaryCurrency() {
+    this.fixture.state.engine.backgroundState.CurrencyRateController.currentCurrency = 'ETH';
+    this.fixture.state.settings.primaryCurrency = 'ETH';
     return this;
   }
 

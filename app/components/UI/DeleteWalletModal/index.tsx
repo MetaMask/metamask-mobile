@@ -12,9 +12,9 @@ import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
-import { DeleteWalletModalSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/DeleteWalletModal.selectors';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { ForgotPasswordModalSelectorsIDs } from '../../../../e2e/selectors/Common/ForgotPasswordModal.selectors';
+import { IMetaMetricsEvent, MetaMetricsEvents } from '../../../core/Analytics';
+import { setCompletedOnboarding } from '../../../actions/onboarding';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearHistory } from '../../../actions/browser';
 import CookieManager from '@react-native-cookies/cookies';
@@ -32,7 +32,9 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
-import { setCompletedOnboarding } from '../../../actions/onboarding';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { useMetrics } from '../../hooks/useMetrics';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
@@ -41,10 +43,10 @@ if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const DeleteWalletModal = () => {
+const DeleteWalletModal: React.FC = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder, isEnabled } = useMetrics();
+  const { isEnabled } = useMetrics();
   const styles = createStyles(colors);
 
   const modalRef = useRef<BottomSheetRef>(null);
@@ -85,21 +87,28 @@ const DeleteWalletModal = () => {
     });
   };
 
+  const track = (
+    event: IMetaMetricsEvent,
+    properties: Record<string, string | boolean | number>,
+  ) => {
+    trackOnboarding(
+      MetricsEventBuilder.createEventBuilder(event)
+        .addProperties(properties)
+        .build(),
+    );
+  };
+
   const deleteWallet = async () => {
     await dispatch(
       clearHistory(isEnabled(), isDataCollectionForMarketingEnabled),
     );
     signOut();
-    await dispatch(setCompletedOnboarding(false));
     await CookieManager.clearAll(true);
     triggerClose();
     await resetWalletState();
     await deleteUser();
-    trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.DELETE_WALLET_MODAL_WALLET_DELETED,
-      ).build(),
-    );
+    await dispatch(setCompletedOnboarding(false));
+    track(MetaMetricsEvents.RESET_WALLET_CONFIRMED, {});
     InteractionManager.runAfterInteractions(() => {
       navigateOnboardingRoot();
     });
@@ -108,16 +117,24 @@ const DeleteWalletModal = () => {
   return (
     <BottomSheet ref={modalRef}>
       {!isResetWallet ? (
-        <View style={styles.forgotPasswordContainer}>
+        <View
+          style={styles.forgotPasswordContainer}
+          testID={ForgotPasswordModalSelectorsIDs.CONTAINER}
+        >
           <Text
             style={styles.heading}
             variant={TextVariant.HeadingMD}
             color={TextColor.Default}
+            testID={ForgotPasswordModalSelectorsIDs.TITLE}
           >
             {strings('login.forgot_password_desc')}
           </Text>
 
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Default}
+            testID={ForgotPasswordModalSelectorsIDs.DESCRIPTION}
+          >
             {strings('login.forgot_password_desc_2')}
           </Text>
 
@@ -172,15 +189,18 @@ const DeleteWalletModal = () => {
             label={strings('login.reset_wallet')}
             width={ButtonWidthTypes.Full}
             isDanger
-            onPress={() => setIsResetWallet(true)}
-            testID={DeleteWalletModalSelectorsIDs.CONTINUE_BUTTON}
+            onPress={() => {
+              setIsResetWallet(true);
+              track(MetaMetricsEvents.RESET_WALLET, {});
+            }}
+            testID={ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON}
           />
         </View>
       ) : (
         <View style={styles.container}>
           <View
             style={styles.areYouSure}
-            testID={DeleteWalletModalSelectorsIDs.CONTAINER}
+            testID={ForgotPasswordModalSelectorsIDs.CONTAINER}
           >
             <View style={styles.iconContainer}>
               <ButtonIcon
@@ -202,6 +222,7 @@ const DeleteWalletModal = () => {
               style={styles.heading}
               variant={TextVariant.HeadingMD}
               color={TextColor.Default}
+              testID={ForgotPasswordModalSelectorsIDs.WARNING_TEXT}
             >
               {strings('login.are_you_sure')}
             </Text>
@@ -229,7 +250,7 @@ const DeleteWalletModal = () => {
                 label={strings('login.erase_my')}
                 width={ButtonWidthTypes.Full}
                 isDanger
-                testID={DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON}
+                testID={ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON}
               />
               <Button
                 variant={ButtonVariants.Secondary}
@@ -237,7 +258,7 @@ const DeleteWalletModal = () => {
                 onPress={triggerClose}
                 label={strings('login.cancel')}
                 width={ButtonWidthTypes.Full}
-                testID={DeleteWalletModalSelectorsIDs.CANCEL_BUTTON}
+                testID={ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON}
               />
             </View>
           </View>
@@ -247,4 +268,4 @@ const DeleteWalletModal = () => {
   );
 };
 
-export default React.memo(DeleteWalletModal);
+export default DeleteWalletModal;

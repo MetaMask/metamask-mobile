@@ -17,6 +17,11 @@
       "selectedAccount": ""
     }
   },
+  "AccountTreeController": {
+    "accountTree": {
+      "wallets": {}
+    }
+  },
   "AddressBookController": {
     "addressBook": {}
   },
@@ -204,7 +209,8 @@
       "0x504": true,
       "0x507": true,
       "0x505": true,
-      "0x64": true
+      "0x64": true,
+      "0x531": true
     },
     "isIpfsGatewayEnabled": true,
     "smartTransactionsOptInStatus": true,
@@ -353,6 +359,9 @@
     "cacheTimestamp": 0,
     "remoteFeatureFlags": {}
   },
+  "SeedlessOnboardingController": {
+    "socialBackupsMetadata": []
+  },
   "SelectedNetworkController": {
     "domains": {}
   },
@@ -389,7 +398,9 @@
     "isAccountSyncingInProgress": false,
     "isBackupAndSyncEnabled": true,
     "isBackupAndSyncUpdateLoading": false,
-    "isAccountSyncingEnabled": true
+    "isAccountSyncingEnabled": true,
+    "isContactSyncingEnabled": true,
+    "isContactSyncingInProgress": false
   },
   "MultichainBalancesController": {
     "balances": {}

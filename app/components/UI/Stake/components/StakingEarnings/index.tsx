@@ -1,35 +1,35 @@
+import { Hex } from '@metamask/utils';
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { View } from 'react-native';
-import { Hex } from '@metamask/utils';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { useSelector } from 'react-redux';
+import { strings } from '../../../../../../locales/i18n';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import styleSheet from './StakingEarnings.styles';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import EarningsHistoryButton from '../../../Earn/components/Earnings/EarningsHistoryButton/EarningsHistoryButton';
+import EarnMaintenanceBanner from '../../../Earn/components/EarnMaintenanceBanner';
+import useEarnings from '../../../Earn/hooks/useEarnings';
+import { selectPooledStakingServiceInterruptionBannerEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import { TokenI } from '../../../Tokens/types';
+import { EVENT_LOCATIONS } from '../../constants/events';
 import { useStakingChainByChainId } from '../../hooks/useStakingChain';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
-import useStakingEarnings from '../../hooks/useStakingEarnings';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { getTooltipMetricProperties } from '../../utils/metaMetrics/tooltipMetaMetricsUtils';
-import { TokenI } from '../../../Tokens/types';
-import StakingEarningsHistoryButton from './StakingEarningsHistoryButton/StakingEarningsHistoryButton';
-import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
-import { EVENT_LOCATIONS } from '../../constants/events';
-import EarnMaintenanceBanner from '../../../Earn/components/EarnMaintenanceBanner';
-import { useSelector } from 'react-redux';
-import { selectPooledStakingServiceInterruptionBannerEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
+import styleSheet from './StakingEarnings.styles';
 
 export interface StakingEarningsProps {
   asset: TokenI;
@@ -46,13 +46,13 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
 
   const {
     annualRewardRate,
-    lifetimeRewardsETH,
+    lifetimeRewards,
     lifetimeRewardsFiat,
-    estimatedAnnualEarningsETH,
+    estimatedAnnualEarnings,
     estimatedAnnualEarningsFiat,
     isLoadingEarningsData,
-    hasStakedPositions,
-  } = useStakingEarnings({ asset });
+    hasEarnPooledStakes,
+  } = useEarnings({ asset });
 
   const { isStakingSupportedChain } = useStakingChainByChainId(
     asset.chainId as Hex,
@@ -64,7 +64,7 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
       params: { chainId: asset.chainId },
     });
 
-  if (!isStakingSupportedChain || !hasStakedPositions) return <></>;
+  if (!isStakingSupportedChain || !hasEarnPooledStakes) return <></>;
 
   return (
     <View style={styles.stakingEarningsContainer}>
@@ -111,7 +111,7 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
             </SkeletonPlaceholder>
           ) : (
             <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
-              {annualRewardRate}
+              {annualRewardRate} APR
             </Text>
           )}
         </View>
@@ -146,7 +146,7 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
                   variant={TextVariant.BodySMMedium}
                   color={TextColor.Alternative}
                 >
-                  {lifetimeRewardsETH}
+                  {lifetimeRewards}
                 </Text>
               </>
             )}
@@ -185,13 +185,13 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
                   variant={TextVariant.BodySMMedium}
                   color={TextColor.Alternative}
                 >
-                  {estimatedAnnualEarningsETH}
+                  {estimatedAnnualEarnings}
                 </Text>
               </>
             )}
           </View>
         </View>
-        <StakingEarningsHistoryButton asset={asset} />
+        <EarningsHistoryButton asset={asset} />
       </View>
     </View>
   );

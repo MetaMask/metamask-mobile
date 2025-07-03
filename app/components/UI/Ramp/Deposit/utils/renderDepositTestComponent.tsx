@@ -1,18 +1,14 @@
 import React from 'react';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import { DepositSDKProvider } from '../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import withRampAndDepositSDK from '../../utils/withRampAndDepositSDK';
 
 function renderDepositTestComponent(
   Component: React.ComponentType,
   route: string,
 ) {
   return renderScreen(
-    (props) => (
-      <DepositSDKProvider>
-        <Component {...props} />
-      </DepositSDKProvider>
-    ),
+    withRampAndDepositSDK(Component),
     {
       name: route,
     },

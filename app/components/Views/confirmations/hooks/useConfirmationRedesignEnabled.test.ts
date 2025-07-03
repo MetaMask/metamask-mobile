@@ -20,6 +20,7 @@ import { selectConfirmationRedesignFlags } from '../../../../selectors/featureFl
 const disabledFeatureFlags = {
   signatures: false,
   staking_confirmations: false,
+  contract_deployment: false,
   contract_interaction: false,
   transfer: false,
   approve: false,
@@ -295,14 +296,16 @@ describe('useConfirmationRedesignEnabled', () => {
       expect(result.current.isRedesignedEnabled).toBe(true);
     });
 
-    it('returns true when flag is enabled for contract interaction transaction', async () => {
-      const state = cloneDeep(approveERC20TransactionStateMock);
-      state.engine.backgroundState.TransactionController.transactions[0].type =
-        TransactionType.contractInteraction;
+    it('returns true when flag is enabled for contract deployment transaction', async () => {
       confirmationRedesignFlagsMock.mockReturnValue({
         ...disabledFeatureFlags,
-        contract_interaction: true,
+        contract_deployment: true,
       });
+
+      const state = cloneDeep(approveERC20TransactionStateMock);
+      state.engine.backgroundState.TransactionController.transactions[0].type =
+        TransactionType.deployContract;
+
       const { result } = renderHookWithProvider(
         useConfirmationRedesignEnabled,
         {
@@ -312,6 +315,33 @@ describe('useConfirmationRedesignEnabled', () => {
 
       expect(result.current.isRedesignedEnabled).toBe(true);
     });
+
+    it.each([
+      [TransactionType.contractInteraction],
+      [TransactionType.lendingDeposit],
+      [TransactionType.lendingWithdraw],
+    ])(
+      'returns true when flag is enabled for %s transaction',
+      async (transactionType) => {
+        confirmationRedesignFlagsMock.mockReturnValue({
+          ...disabledFeatureFlags,
+          contract_interaction: true,
+        });
+
+        const state = cloneDeep(approveERC20TransactionStateMock);
+        state.engine.backgroundState.TransactionController.transactions[0].type =
+          transactionType;
+
+        const { result } = renderHookWithProvider(
+          useConfirmationRedesignEnabled,
+          {
+            state,
+          },
+        );
+
+        expect(result.current.isRedesignedEnabled).toBe(true);
+      },
+    );
   });
 
   it('if confirmation is a transaction, validates `txParams.from` is hardware account', () => {

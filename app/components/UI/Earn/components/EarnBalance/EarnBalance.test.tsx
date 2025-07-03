@@ -1,8 +1,8 @@
 import React from 'react';
 import EarnBalance from '.';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { TokenI } from '../../../Tokens/types';
 import StakingBalance from '../../../Stake/components/StakingBalance/StakingBalance';
+import { TokenI } from '../../../Tokens/types';
 import EarnLendingBalance from '../EarnLendingBalance';
 
 /**
@@ -14,15 +14,12 @@ jest.mock('../../../Stake/components/StakingBalance/StakingBalance', () => ({
   default: jest.fn(),
 }));
 
-jest.mock('../EarnLendingBalance', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
-
-jest.mock('../../hooks/useEarnTokens', () => ({
-  __esModule: true,
-  default: () => ({
-    getEarnToken: (token: TokenI) => {
+jest.mock('../../../../../selectors/earnController', () => ({
+  ...jest.requireActual('../../../../../selectors/earnController'),
+  earnSelectors: {
+    ...jest.requireActual('../../../../../selectors/earnController')
+      .earnSelectors,
+    selectEarnToken: jest.fn().mockImplementation((_state, token: TokenI) => {
       if (token.symbol === 'USDC' && token.chainId === '0x1') {
         return {
           ...token,
@@ -38,25 +35,32 @@ jest.mock('../../hooks/useEarnTokens', () => ({
         };
       }
       return null;
-    },
-    getOutputToken: (token: TokenI) => {
-      if (token.symbol === 'AETHUSDC' && token.chainId === '0x1') {
-        return {
-          ...token,
-          experience: 'STABLECOIN_LENDING',
-          balanceMinimalUnit: '100000000',
-        };
-      }
-      if (token.symbol === 'aBasUSDC' && token.chainId === '0x2105') {
-        return {
-          ...token,
-          experience: 'STABLECOIN_LENDING',
-          balanceMinimalUnit: '100000000',
-        };
-      }
-      return null;
-    },
-  }),
+    }),
+    selectEarnOutputToken: jest
+      .fn()
+      .mockImplementation((_state, token: TokenI) => {
+        if (token.symbol === 'AETHUSDC' && token.chainId === '0x1') {
+          return {
+            ...token,
+            experience: 'STABLECOIN_LENDING',
+            balanceMinimalUnit: '100000000',
+          };
+        }
+        if (token.symbol === 'aBasUSDC' && token.chainId === '0x2105') {
+          return {
+            ...token,
+            experience: 'STABLECOIN_LENDING',
+            balanceMinimalUnit: '100000000',
+          };
+        }
+        return null;
+      }),
+  },
+}));
+
+jest.mock('../EarnLendingBalance', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 describe('EarnBalance', () => {

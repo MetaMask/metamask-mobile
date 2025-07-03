@@ -8,8 +8,9 @@ import renderWithProvider, {
 import { createStackNavigator } from '@react-navigation/stack';
 import { RootState } from '../../../reducers';
 import { strings } from '../../../../locales/i18n';
-import { DeleteWalletModalSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/DeleteWalletModal.selectors';
+import { ForgotPasswordModalSelectorsIDs } from '../../../../e2e/selectors/Common/ForgotPasswordModal.selectors';
 import { SET_COMPLETED_ONBOARDING } from '../../../actions/onboarding';
+import { InteractionManager } from 'react-native';
 
 const mockInitialState = {
   engine: { backgroundState },
@@ -34,6 +35,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: jest.fn(),
+      reset: jest.fn(),
     }),
   };
 });
@@ -72,6 +74,19 @@ const renderComponent = (state: DeepPartial<RootState> = {}) =>
   );
 
 describe('DeleteWalletModal', () => {
+  const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
+    cb();
+    return {
+      then: (onfulfilled: () => void) => Promise.resolve(onfulfilled()),
+      done: (onfulfilled: () => void, onrejected: () => void) =>
+        Promise.resolve().then(onfulfilled, onrejected),
+      cancel: jest.fn(),
+    };
+  });
+  jest
+    .spyOn(InteractionManager, 'runAfterInteractions')
+    .mockImplementation(mockRunAfterInteractions);
+
   describe('bottom sheet', () => {
     it('renders matching snapshot', () => {
       const wrapper = renderComponent(mockInitialState);
@@ -114,10 +129,10 @@ describe('DeleteWalletModal', () => {
       const { getByTestId } = renderComponent(mockInitialState);
 
       fireEvent.press(
-        getByTestId(DeleteWalletModalSelectorsIDs.CONTINUE_BUTTON),
+        getByTestId(ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON),
       );
       fireEvent.press(
-        getByTestId(DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON),
+        getByTestId(ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON),
       );
 
       expect(mockSignOut).toHaveBeenCalled();
@@ -127,10 +142,10 @@ describe('DeleteWalletModal', () => {
       const { getByTestId } = renderComponent(mockInitialState);
 
       fireEvent.press(
-        getByTestId(DeleteWalletModalSelectorsIDs.CONTINUE_BUTTON),
+        getByTestId(ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON),
       );
       fireEvent.press(
-        getByTestId(DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON),
+        getByTestId(ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON),
       );
 
       expect(mockUseDispatch).toHaveBeenCalledWith(

@@ -20,6 +20,7 @@ import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../fixtures/utils';
 import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
 import { NETWORK_TEST_CONFIGS } from '../../resources/mock-configs';
+
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
 describe(SmokeConfirmations('ERC20 tokens'), () => {
@@ -135,4 +136,5 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
       );
     });
   }
+
 });

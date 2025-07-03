@@ -3,8 +3,8 @@ import {
   enableNotifications,
   disableNotifications,
   fetchAccountNotificationSettings,
-  deleteNotificationsForAccount,
-  createNotificationsForAccount,
+  disableAccounts,
+  enableAccounts,
   resetNotifications,
   toggleFeatureAnnouncements,
   fetchNotifications,
@@ -24,8 +24,8 @@ jest.mock('../../../core/Engine', () => ({
       enableMetamaskNotifications: jest.fn(),
       disableNotificationServices: jest.fn(),
       checkAccountsPresence: jest.fn(),
-      deleteOnChainTriggersByAccount: jest.fn(),
-      updateOnChainTriggersByAccount: jest.fn(),
+      disableAccounts: jest.fn(),
+      enableAccounts: jest.fn(),
       createOnChainTriggers: jest.fn(),
       setFeatureAnnouncementsEnabled: jest.fn(),
       fetchAndUpdateMetamaskNotifications: jest.fn(),
@@ -64,24 +64,22 @@ describe('helpers - checkAccountsPresence()', () => {
   });
 });
 
-describe('helpers - deleteOnChainTriggersByAccount()', () => {
+describe('helpers - disableAccounts()', () => {
   it('invoke notification services method', async () => {
     const accounts = ['0xAddr1', '0xAddr2', '0xAddr3'];
-    await deleteNotificationsForAccount(accounts);
+    await disableAccounts(accounts);
     expect(
-      Engine.context.NotificationServicesController
-        .deleteOnChainTriggersByAccount,
+      Engine.context.NotificationServicesController.disableAccounts,
     ).toHaveBeenCalledWith(accounts);
   });
 });
 
-describe('helpers - updateOnChainTriggersByAccount()', () => {
+describe('helpers - enableAccounts()', () => {
   it('invoke notification services method', async () => {
     const accounts = ['0xAddr1', '0xAddr2', '0xAddr3'];
-    await createNotificationsForAccount(accounts);
+    await enableAccounts(accounts);
     expect(
-      Engine.context.NotificationServicesController
-        .updateOnChainTriggersByAccount,
+      Engine.context.NotificationServicesController.enableAccounts,
     ).toHaveBeenCalledWith(accounts);
   });
 });

@@ -167,9 +167,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -191,9 +190,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -335,6 +333,9 @@ exports[`OrderDetails renders a cancelled order 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={11}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -423,6 +424,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                       >
                         <RCTScrollView
                           collapsable={false}
+                          handlerTag={-1}
+                          handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           refreshControl={
@@ -491,9 +494,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Medium",
+                                              "fontFamily": "Geist Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -507,9 +509,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                               "textAlign": "center",
@@ -532,9 +533,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "CentraNo1-Medium",
+                                            "fontFamily": "Geist Medium",
                                             "fontSize": 24,
-                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
                                             "textAlign": "center",
@@ -550,9 +550,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 14,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                             "textAlign": "center",
@@ -777,9 +776,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -811,9 +809,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -861,9 +858,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -894,9 +890,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -940,9 +935,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 14,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                   }
@@ -991,9 +985,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -1024,9 +1017,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -1085,9 +1077,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Book",
+                                                        "fontFamily": "Geist Regular",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -1118,9 +1109,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Bold",
+                                                        "fontFamily": "Geist Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -1170,9 +1160,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Book",
+                                                        "fontFamily": "Geist Regular",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -1205,9 +1194,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Bold",
+                                                        "fontFamily": "Geist Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -1258,9 +1246,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -1291,9 +1278,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -1352,9 +1338,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -1385,9 +1370,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -1654,9 +1638,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1678,9 +1661,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -1822,6 +1804,9 @@ exports[`OrderDetails renders a completed order 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={9}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1910,6 +1895,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                       >
                         <RCTScrollView
                           collapsable={false}
+                          handlerTag={-1}
+                          handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           refreshControl={
@@ -1996,9 +1983,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Medium",
+                                              "fontFamily": "Geist Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -2012,9 +1998,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                               "textAlign": "center",
@@ -2037,9 +2022,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "CentraNo1-Medium",
+                                            "fontFamily": "Geist Medium",
                                             "fontSize": 24,
-                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
                                             "textAlign": "center",
@@ -2055,9 +2039,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 14,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                             "textAlign": "center",
@@ -2282,9 +2265,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -2316,9 +2298,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -2366,9 +2347,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -2399,9 +2379,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -2445,9 +2424,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 14,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                   }
@@ -2496,9 +2474,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -2529,9 +2506,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -2590,9 +2566,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Book",
+                                                        "fontFamily": "Geist Regular",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -2623,9 +2598,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Bold",
+                                                        "fontFamily": "Geist Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -2675,9 +2649,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Book",
+                                                        "fontFamily": "Geist Regular",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -2710,9 +2683,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Bold",
+                                                        "fontFamily": "Geist Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -2763,9 +2735,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -2796,9 +2767,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -2857,9 +2827,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -2890,9 +2859,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -3159,9 +3127,8 @@ exports[`OrderDetails renders a created order 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -3183,9 +3150,8 @@ exports[`OrderDetails renders a created order 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -3327,6 +3293,9 @@ exports[`OrderDetails renders a created order 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={22}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -3415,6 +3384,8 @@ exports[`OrderDetails renders a created order 1`] = `
                       >
                         <RCTScrollView
                           collapsable={false}
+                          handlerTag={-1}
+                          handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           refreshControl={
@@ -3531,9 +3502,8 @@ exports[`OrderDetails renders a created order 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Medium",
+                                              "fontFamily": "Geist Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -3556,9 +3526,8 @@ exports[`OrderDetails renders a created order 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "CentraNo1-Medium",
+                                            "fontFamily": "Geist Medium",
                                             "fontSize": 24,
-                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
                                             "textAlign": "center",
@@ -3574,9 +3543,8 @@ exports[`OrderDetails renders a created order 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 14,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                             "textAlign": "center",
@@ -3801,9 +3769,8 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -3835,9 +3802,8 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -3885,9 +3851,8 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -3918,9 +3883,8 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -3964,9 +3928,8 @@ exports[`OrderDetails renders a created order 1`] = `
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 14,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                   }
@@ -4015,9 +3978,8 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -4048,9 +4010,8 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -4109,9 +4070,8 @@ exports[`OrderDetails renders a created order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Book",
+                                                        "fontFamily": "Geist Regular",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -4142,9 +4102,8 @@ exports[`OrderDetails renders a created order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Bold",
+                                                        "fontFamily": "Geist Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -4194,9 +4153,8 @@ exports[`OrderDetails renders a created order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Book",
+                                                        "fontFamily": "Geist Regular",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -4229,9 +4187,8 @@ exports[`OrderDetails renders a created order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Bold",
+                                                        "fontFamily": "Geist Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -4282,9 +4239,8 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -4315,9 +4271,8 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -4376,9 +4331,8 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -4409,9 +4363,8 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -4625,9 +4578,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -4649,9 +4601,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -4793,6 +4744,9 @@ exports[`OrderDetails renders a failed order 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={13}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -4881,6 +4835,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                       >
                         <RCTScrollView
                           collapsable={false}
+                          handlerTag={-1}
+                          handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           refreshControl={
@@ -4949,9 +4905,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Medium",
+                                              "fontFamily": "Geist Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -4965,9 +4920,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                               "textAlign": "center",
@@ -4990,9 +4944,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "CentraNo1-Medium",
+                                            "fontFamily": "Geist Medium",
                                             "fontSize": 24,
-                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
                                             "textAlign": "center",
@@ -5008,9 +4961,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 14,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                             "textAlign": "center",
@@ -5235,9 +5187,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -5269,9 +5220,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -5319,9 +5269,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -5352,9 +5301,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -5398,9 +5346,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 14,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                   }
@@ -5449,9 +5396,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -5482,9 +5428,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -5543,9 +5488,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Book",
+                                                        "fontFamily": "Geist Regular",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -5576,9 +5520,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Bold",
+                                                        "fontFamily": "Geist Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -5628,9 +5571,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Book",
+                                                        "fontFamily": "Geist Regular",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -5663,9 +5605,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Bold",
+                                                        "fontFamily": "Geist Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -5716,9 +5657,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -5749,9 +5689,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -5810,9 +5749,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -5843,9 +5781,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -6112,9 +6049,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -6136,9 +6072,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -6280,6 +6215,9 @@ exports[`OrderDetails renders a pending order 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={7}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -6368,6 +6306,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                       >
                         <RCTScrollView
                           collapsable={false}
+                          handlerTag={-1}
+                          handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           refreshControl={
@@ -6484,9 +6424,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Medium",
+                                              "fontFamily": "Geist Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -6509,9 +6448,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "CentraNo1-Medium",
+                                            "fontFamily": "Geist Medium",
                                             "fontSize": 24,
-                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
                                             "textAlign": "center",
@@ -6527,9 +6465,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 14,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                             "textAlign": "center",
@@ -6754,9 +6691,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -6788,9 +6724,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -6838,9 +6773,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -6871,9 +6805,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -6917,9 +6850,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 14,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                   }
@@ -6968,9 +6900,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -7001,9 +6932,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -7062,9 +6992,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Book",
+                                                        "fontFamily": "Geist Regular",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -7095,9 +7024,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Bold",
+                                                        "fontFamily": "Geist Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -7147,9 +7075,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Book",
+                                                        "fontFamily": "Geist Regular",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -7182,9 +7109,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Bold",
+                                                        "fontFamily": "Geist Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -7235,9 +7161,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -7268,9 +7193,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -7329,9 +7253,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -7362,9 +7285,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -7578,9 +7500,8 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -7602,9 +7523,8 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -7746,6 +7666,9 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={3}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -8012,9 +7935,8 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -8036,9 +7958,8 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -8180,6 +8101,9 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={34}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -8653,9 +8577,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -8677,9 +8600,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -8821,6 +8743,9 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={30}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -8909,6 +8834,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                       >
                         <RCTScrollView
                           collapsable={false}
+                          handlerTag={-1}
+                          handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           refreshControl={
@@ -9025,9 +8952,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Medium",
+                                              "fontFamily": "Geist Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -9041,9 +8967,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                               "textAlign": "center",
@@ -9066,9 +8991,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "CentraNo1-Medium",
+                                            "fontFamily": "Geist Medium",
                                             "fontSize": 24,
-                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
                                             "textAlign": "center",
@@ -9084,9 +9008,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 14,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                             "textAlign": "center",
@@ -9311,9 +9234,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -9345,9 +9267,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -9395,9 +9316,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -9428,9 +9348,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -9474,9 +9393,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 14,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                   }
@@ -9525,9 +9443,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -9558,9 +9475,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -9619,9 +9535,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Book",
+                                                        "fontFamily": "Geist Regular",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -9652,9 +9567,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Bold",
+                                                        "fontFamily": "Geist Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -9704,9 +9618,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Book",
+                                                        "fontFamily": "Geist Regular",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -9739,9 +9652,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Bold",
+                                                        "fontFamily": "Geist Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -9792,9 +9704,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -9825,9 +9736,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -9886,9 +9796,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -9919,9 +9828,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -10201,9 +10109,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -10225,9 +10132,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -10369,6 +10275,9 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={37}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -10457,6 +10366,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                       >
                         <RCTScrollView
                           collapsable={false}
+                          handlerTag={-1}
+                          handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           refreshControl={
@@ -10543,9 +10454,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Medium",
+                                              "fontFamily": "Geist Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -10559,9 +10469,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                               "textAlign": "center",
@@ -10584,9 +10493,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "CentraNo1-Medium",
+                                            "fontFamily": "Geist Medium",
                                             "fontSize": 24,
-                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
                                             "textAlign": "center",
@@ -10602,9 +10510,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 14,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                             "textAlign": "center",
@@ -10630,9 +10537,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                           style={
                                             {
                                               "color": "#4459ff",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                               "textAlign": "center",
@@ -10857,9 +10763,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -10891,9 +10796,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -10941,9 +10845,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -10974,9 +10877,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -11020,9 +10922,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 14,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                   }
@@ -11038,9 +10939,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                       "textDecorationLine": "underline",
@@ -11091,9 +10991,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -11124,9 +11023,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -11185,9 +11083,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Book",
+                                                        "fontFamily": "Geist Regular",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -11218,9 +11115,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Bold",
+                                                        "fontFamily": "Geist Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -11270,9 +11166,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Book",
+                                                        "fontFamily": "Geist Regular",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -11305,9 +11200,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Bold",
+                                                        "fontFamily": "Geist Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -11358,9 +11252,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -11391,9 +11284,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -11452,9 +11344,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -11485,9 +11376,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -11754,9 +11644,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -11778,9 +11667,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -11922,6 +11810,9 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={24}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -12010,6 +11901,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                       >
                         <RCTScrollView
                           collapsable={false}
+                          handlerTag={-1}
+                          handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           refreshControl={
@@ -12126,9 +12019,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Medium",
+                                              "fontFamily": "Geist Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -12151,9 +12043,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "CentraNo1-Medium",
+                                            "fontFamily": "Geist Medium",
                                             "fontSize": 24,
-                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
                                             "textAlign": "center",
@@ -12169,9 +12060,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 14,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                             "textAlign": "center",
@@ -12396,9 +12286,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -12430,9 +12319,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -12480,9 +12368,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -12513,9 +12400,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -12559,9 +12445,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 14,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                   }
@@ -12610,9 +12495,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -12643,9 +12527,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -12704,9 +12587,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Book",
+                                                        "fontFamily": "Geist Regular",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -12737,9 +12619,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Bold",
+                                                        "fontFamily": "Geist Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -12789,9 +12670,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Book",
+                                                        "fontFamily": "Geist Regular",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -12824,9 +12704,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Bold",
+                                                        "fontFamily": "Geist Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -12877,9 +12756,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -12910,9 +12788,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -12971,9 +12848,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -13004,9 +12880,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -13220,9 +13095,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -13244,9 +13118,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -13388,6 +13261,9 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={26}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -13476,6 +13352,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                       >
                         <RCTScrollView
                           collapsable={false}
+                          handlerTag={-1}
+                          handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           refreshControl={
@@ -13592,9 +13470,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Medium",
+                                              "fontFamily": "Geist Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -13608,9 +13485,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                               "textAlign": "center",
@@ -13633,9 +13509,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "CentraNo1-Medium",
+                                            "fontFamily": "Geist Medium",
                                             "fontSize": 24,
-                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
                                             "textAlign": "center",
@@ -13651,9 +13526,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 14,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                             "textAlign": "center",
@@ -13878,9 +13752,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -13912,9 +13785,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -13962,9 +13834,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -13995,9 +13866,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -14041,9 +13911,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 14,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                   }
@@ -14092,9 +13961,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -14125,9 +13993,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -14186,9 +14053,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Book",
+                                                        "fontFamily": "Geist Regular",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -14219,9 +14085,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Bold",
+                                                        "fontFamily": "Geist Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -14271,9 +14136,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Book",
+                                                        "fontFamily": "Geist Regular",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -14306,9 +14170,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "CentraNo1-Bold",
+                                                        "fontFamily": "Geist Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -14359,9 +14222,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -14392,9 +14254,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -14453,9 +14314,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -14486,9 +14346,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }

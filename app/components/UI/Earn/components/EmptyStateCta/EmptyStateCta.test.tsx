@@ -10,11 +10,15 @@ import { act, fireEvent } from '@testing-library/react-native';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../selectors/featureFlags';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
-import { EarnTokenDetails } from '../../types/lending.types';
-import { LendingProtocol } from '@metamask/stake-sdk';
+import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import useEarnTokens from '../../hooks/useEarnTokens';
+import { earnSelectors } from '../../../../../selectors/earnController';
+import Engine from '../../../../../core/Engine';
 
 jest.mock('../../../../hooks/useMetrics');
 jest.mock('../../hooks/useEarnTokens', () => ({
@@ -24,6 +28,15 @@ jest.mock('../../hooks/useEarnTokens', () => ({
 
 const mockTrackEvent = jest.fn();
 const mockNavigate = jest.fn();
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
+      setActiveNetwork: jest.fn().mockResolvedValue(undefined),
+    },
+  },
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -37,6 +50,14 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
+  selectPooledStakingEnabledFlag: jest.fn(),
+}));
+jest.mock('../../../../../selectors/earnController', () => ({
+  earnSelectors: {
+    selectEarnToken: jest.fn(),
+    selectEarnTokenPair: jest.fn(),
+    selectEarnOutputToken: jest.fn(),
+  },
 }));
 
 const initialState = {
@@ -139,6 +160,41 @@ const mockEarnToken: EarnTokenDetails = {
     },
   ],
 };
+const mockExperience = {
+  type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+  apr: '4.5',
+  estimatedAnnualRewardsFormatted: '5',
+  estimatedAnnualRewardsFiatNumber: 4.5,
+  estimatedAnnualRewardsTokenMinimalUnit: '4500000',
+  estimatedAnnualRewardsTokenFormatted: '4.50 USDC',
+  market: {
+    id: '0x123',
+    chainId: 1,
+    protocol: LendingProtocol.AAVE,
+    name: 'USDC Market',
+    address: '0x123',
+    netSupplyRate: 4.5,
+    totalSupplyRate: 4.5,
+    rewards: [],
+    tvlUnderlying: '1000000',
+    underlying: {
+      address: MOCK_USDC_MAINNET_ASSET.address,
+      chainId: 1,
+    },
+    outputToken: {
+      address: '0x456',
+      chainId: 1,
+    },
+    position: {
+      id: '0x123-0x456-COLLATERAL-0',
+      chainId: 1,
+      assets: '1000000',
+      marketId: '0x123',
+      marketAddress: '0x123',
+      protocol: LendingProtocol.AAVE,
+    },
+  },
+};
 
 const renderComponent = (token: TokenI, state = initialState) =>
   renderWithProvider(<EarnEmptyStateCta token={token} />, {
@@ -169,6 +225,39 @@ describe('EmptyStateCta', () => {
       >
     ).mockReturnValue(true);
 
+    (
+      selectPooledStakingEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    (
+      earnSelectors.selectEarnTokenPair as jest.MockedFunction<
+        typeof earnSelectors.selectEarnTokenPair
+      >
+    ).mockReturnValue({
+      earnToken: {
+        ...mockEarnToken,
+        experience: mockExperience,
+      },
+      outputToken: undefined,
+    });
+
+    (
+      earnSelectors.selectEarnToken as jest.MockedFunction<
+        typeof earnSelectors.selectEarnToken
+      >
+    ).mockReturnValue({
+      ...mockEarnToken,
+      experience: mockExperience,
+    });
+
+    (
+      earnSelectors.selectEarnOutputToken as jest.MockedFunction<
+        typeof earnSelectors.selectEarnOutputToken
+      >
+    ).mockReturnValue(undefined);
+
     (useEarnTokens as jest.Mock).mockReturnValue({
       getEarnToken: () => mockEarnToken,
       getOutputToken: () => null,
@@ -191,14 +280,33 @@ describe('EmptyStateCta', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('navigates to deposit screen when "start earning" button is clicked', async () => {
+  it('navigates to lending historic apy modal when "learn more" is clicked', async () => {
+    const { findByText } = renderComponent(mockEarnToken);
+
+    const learnMoreButton = await findByText(
+      strings('earn.empty_state_cta.learn_more'),
+    );
+
+    await act(async () => {
+      fireEvent.press(learnMoreButton);
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith('EarnModals', {
+      params: {
+        asset: mockEarnToken,
+      },
+      screen: 'EarnLendingLearnMoreModal',
+    });
+  });
+
+  it('navigates to deposit screen when "earn" button is clicked', async () => {
     const { findByText } = renderComponent(mockEarnToken);
 
     const startEarningButton = await findByText(
       strings('earn.empty_state_cta.earn'),
     );
 
-    await act(() => {
+    await act(async () => {
       fireEvent.press(startEarningButton);
     });
 
@@ -210,14 +318,14 @@ describe('EmptyStateCta', () => {
     });
   });
 
-  it('submits metrics event on button click', async () => {
+  it('submits metrics event on "earn" button click', async () => {
     const { findByText } = renderComponent(mockEarnToken);
 
     const startEarningButton = await findByText(
       strings('earn.empty_state_cta.earn'),
     );
 
-    await act(() => {
+    await act(async () => {
       fireEvent.press(startEarningButton);
     });
 
@@ -227,13 +335,69 @@ describe('EmptyStateCta', () => {
         estimatedAnnualRewards: '5',
         location: EVENT_LOCATIONS.TOKEN_DETAILS_SCREEN,
         provider: EVENT_PROVIDERS.CONSENSYS,
+        apr: '4.5%',
+        experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        text: 'Earn',
+        token: 'USDC',
         token_chain_id: '1',
         token_name: 'USDC',
-        token_symbol: 'USDC',
       },
       saveDataRecording: true,
       sensitiveProperties: {},
     });
+  });
+
+  it('calls NetworkController methods when "earn" button is clicked', async () => {
+    const { findByText } = renderComponent(mockEarnToken);
+
+    (
+      Engine.context.NetworkController.findNetworkClientIdByChainId as jest.Mock
+    ).mockReturnValue('test-network-client-id');
+    (
+      Engine.context.NetworkController.setActiveNetwork as jest.Mock
+    ).mockResolvedValue(undefined);
+
+    const startEarningButton = await findByText(
+      strings('earn.empty_state_cta.earn'),
+    );
+
+    await act(async () => {
+      fireEvent.press(startEarningButton);
+    });
+
+    expect(
+      Engine.context.NetworkController
+        .findNetworkClientIdByChainId as jest.Mock,
+    ).toHaveBeenCalledWith(mockEarnToken.chainId);
+    expect(
+      Engine.context.NetworkController.setActiveNetwork as jest.Mock,
+    ).toHaveBeenCalledWith('test-network-client-id');
+  });
+
+  it('handles case when network client ID is not found', async () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+    (
+      Engine.context.NetworkController.findNetworkClientIdByChainId as jest.Mock
+    ).mockReturnValue(null);
+
+    const { findByText } = renderComponent(mockEarnToken);
+
+    const startEarningButton = await findByText(
+      strings('earn.empty_state_cta.earn'),
+    );
+
+    await act(async () => {
+      fireEvent.press(startEarningButton);
+    });
+
+    expect(consoleSpy).toHaveBeenCalledWith(
+      `EarnDepositTokenListItem redirect failed: could not retrieve networkClientId for chainId: ${mockEarnToken.chainId}`,
+    );
+    expect(
+      Engine.context.NetworkController.setActiveNetwork as jest.Mock,
+    ).not.toHaveBeenCalled();
+
+    consoleSpy.mockRestore();
   });
 
   it('does not render if token prop is missing', () => {

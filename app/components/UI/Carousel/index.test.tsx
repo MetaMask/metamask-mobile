@@ -236,36 +236,41 @@ describe('Carousel', () => {
       fifthSlide,
       sixthSlide,
       seventhSlide,
+      eighthSlide,
     ] = slides;
 
     // Test solana banner
     fireEvent.press(firstSlide);
     expect(mockNavigate).toHaveBeenCalled();
 
-    // Test card banner
+    // Test smart account
     fireEvent.press(secondSlide);
+    expect(mockNavigate).toHaveBeenCalled();
+
+    // Test card banner
+    fireEvent.press(thirdSlide);
     expect(Linking.openURL).toHaveBeenCalledWith(
       'https://portfolio.metamask.io/card',
     );
 
     // Test fund banner
-    fireEvent.press(thirdSlide);
-    expect(mockNavigate).toHaveBeenCalled();
-
-    // Test cashout banner
     fireEvent.press(fourthSlide);
     expect(mockNavigate).toHaveBeenCalled();
 
-    // Test aggregated banner
+    // Test cashout banner
     fireEvent.press(fifthSlide);
     expect(mockNavigate).toHaveBeenCalled();
 
-    // Test multisrp banner
+    // Test aggregated banner
     fireEvent.press(sixthSlide);
     expect(mockNavigate).toHaveBeenCalled();
 
-    // Test backup and sync banner
+    // Test multisrp banner
     fireEvent.press(seventhSlide);
+    expect(mockNavigate).toHaveBeenCalled();
+
+    // Test backup and sync banner
+    fireEvent.press(eighthSlide);
     expect(mockNavigate).toHaveBeenCalled();
   });
 
@@ -277,6 +282,8 @@ describe('Carousel', () => {
       nativeEvent: {
         contentOffset: { x: 400 },
         layoutMeasurement: { width: 400 },
+        contentSize: { width: 1600, height: 400 },
+        target: flatList,
       },
     });
 

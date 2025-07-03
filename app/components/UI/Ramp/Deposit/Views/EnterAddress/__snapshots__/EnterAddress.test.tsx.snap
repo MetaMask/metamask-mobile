@@ -167,9 +167,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -350,6 +349,9 @@ exports[`EnterAddress Component displays form validation errors when continue is
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={2}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -555,9 +557,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 14,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                   "marginBottom": 20,
@@ -583,9 +584,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 6,
@@ -634,7 +634,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                         "height": 24,
@@ -653,9 +653,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                 style={
                                   {
                                     "color": "#ca3542",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 12,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginTop": 4,
@@ -681,9 +680,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 6,
@@ -732,7 +730,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                         "height": 24,
@@ -774,9 +772,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginBottom": 6,
@@ -825,7 +822,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           "borderColor": "transparent",
                                           "borderWidth": 1,
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
                                           "fontWeight": "400",
                                           "height": 24,
@@ -844,9 +841,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 12,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginTop": 4,
@@ -874,9 +870,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginBottom": 6,
@@ -925,7 +920,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           "borderColor": "transparent",
                                           "borderWidth": 1,
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
                                           "fontWeight": "400",
                                           "height": 24,
@@ -944,9 +939,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 12,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginTop": 4,
@@ -984,9 +978,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginBottom": 6,
@@ -1035,7 +1028,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           "borderColor": "transparent",
                                           "borderWidth": 1,
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
                                           "fontWeight": "400",
                                           "height": 24,
@@ -1054,9 +1047,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 12,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginTop": 4,
@@ -1084,9 +1076,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginBottom": 6,
@@ -1135,7 +1126,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           "borderColor": "transparent",
                                           "borderWidth": 1,
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
                                           "fontWeight": "400",
                                           "height": 24,
@@ -1154,9 +1145,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 12,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginTop": 4,
@@ -1431,9 +1421,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1614,6 +1603,9 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1819,9 +1811,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 14,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                   "marginBottom": 20,
@@ -1847,9 +1838,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 6,
@@ -1898,7 +1888,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                         "height": 24,
@@ -1929,9 +1919,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 6,
@@ -1980,7 +1969,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                         "height": 24,
@@ -2022,9 +2011,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginBottom": 6,
@@ -2073,7 +2061,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           "borderColor": "transparent",
                                           "borderWidth": 1,
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
                                           "fontWeight": "400",
                                           "height": 24,
@@ -2106,9 +2094,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginBottom": 6,
@@ -2157,7 +2144,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           "borderColor": "transparent",
                                           "borderWidth": 1,
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
                                           "fontWeight": "400",
                                           "height": 24,
@@ -2200,9 +2187,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginBottom": 6,
@@ -2251,7 +2237,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           "borderColor": "transparent",
                                           "borderWidth": 1,
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
                                           "fontWeight": "400",
                                           "height": 24,
@@ -2284,9 +2270,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginBottom": 6,
@@ -2335,7 +2320,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           "borderColor": "transparent",
                                           "borderWidth": 1,
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
                                           "fontWeight": "400",
                                           "height": 24,

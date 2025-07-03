@@ -6,6 +6,7 @@ import { TokenI } from '../../Tokens/types';
 export enum EARN_LENDING_ACTIONS {
   DEPOSIT = 'DEPOSIT',
   ALLOWANCE_INCREASE = 'ALLOWANCE_INCREASE',
+  ALLOWANCE_RESET = 'ALLOWANCE_RESET',
 }
 
 export type EarnTokenDetails = TokenI & {
@@ -28,3 +29,9 @@ export type EarnTokenDetails = TokenI & {
   // Token name (e.g. Aave Linea)
   token?: string;
 };
+
+// TEMP: Type isn't being exported from @metamask/stake-sdk anymore.
+// This is a stopgap until we export these types from either @metamask/earn-controller or @metamask/stake-sdk
+export enum LendingProtocol {
+  AAVE = 'aave',
+}

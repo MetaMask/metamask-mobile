@@ -22,15 +22,19 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
+import { earnSelectors } from '../../../../../selectors/earnController';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import AssetElement from '../../../AssetElement';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import { TokenI } from '../../../Tokens/types';
-import useEarnTokens from '../../hooks/useEarnTokens';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import Earnings from '../Earnings';
 import EarnEmptyStateCta from '../EmptyStateCta';
 import styleSheet from './EarnLendingBalance.styles';
 
@@ -45,11 +49,18 @@ export interface EarnLendingBalanceProps {
   asset: TokenI;
 }
 
+const { selectEarnTokenPair, selectEarnOutputToken } = earnSelectors;
 const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
+  const { trackEvent, createEventBuilder } = useMetrics();
+
   const { styles } = useStyles(styleSheet, {});
 
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
+  );
+
+  const network = useSelector((state: RootState) =>
+    selectNetworkConfigurationByChainId(state, asset?.chainId as Hex),
   );
 
   const isStablecoinLendingEnabled = useSelector(
@@ -58,10 +69,12 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
 
   const navigation = useNavigation();
 
-  const { getPairedEarnTokens, getOutputToken } = useEarnTokens();
-  const { outputToken: receiptToken, earnToken } = getPairedEarnTokens(asset);
-  const isAssetReceiptToken = getOutputToken(asset);
-
+  const { outputToken: receiptToken, earnToken } = useSelector(
+    (state: RootState) => selectEarnTokenPair(state, asset),
+  );
+  const isAssetReceiptToken = useSelector((state: RootState) =>
+    selectEarnOutputToken(state, asset),
+  );
   const pricePercentChange1d = useTokenPricePercentageChange(receiptToken);
 
   const userHasLendingPositions = useMemo(
@@ -74,22 +87,77 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
     [earnToken?.balanceMinimalUnit],
   );
 
-  const handleNavigateToWithdrawalInputScreen = () => {
-    navigation.navigate('StakeScreens', {
-      screen: Routes.STAKING.UNSTAKE,
-      params: {
-        token: receiptToken,
-      },
-    });
+  const emitLendingActionButtonMetaMetric = (
+    action: 'deposit' | 'withdrawal',
+  ) => {
+    const event =
+      action === 'deposit'
+        ? MetaMetricsEvents.EARN_LENDING_DEPOSIT_MORE_BUTTON_CLICKED
+        : MetaMetricsEvents.EARN_LENDING_WITHDRAW_BUTTON_CLICKED;
+
+    trackEvent(
+      createEventBuilder(event)
+        .addProperties({
+          action_type: action,
+          token: earnToken?.symbol,
+          network: network?.name,
+          user_earn_token_balance: earnToken?.balanceFormatted,
+          user_receipt_token_balance: receiptToken?.balanceFormatted,
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        })
+        .build(),
+    );
   };
 
-  const handleNavigateToDepositInputScreen = () => {
-    navigation.navigate('StakeScreens', {
-      screen: Routes.STAKING.STAKE,
-      params: {
-        token: earnToken,
-      },
-    });
+  const getNetworkClientId = (token: TokenI): string | undefined => {
+    const { NetworkController } = Engine.context;
+
+    const networkClientId = NetworkController.findNetworkClientIdByChainId(
+      token.chainId as Hex,
+    );
+
+    if (!networkClientId) {
+      console.error(
+        `EarnLendingBalance redirect failed: could not retrieve networkClientId for chainId: ${token.chainId}`,
+      );
+      return;
+    }
+
+    return networkClientId;
+  };
+
+  const handleNavigateToWithdrawalInputScreen = async () => {
+    emitLendingActionButtonMetaMetric('withdrawal');
+    const networkClientId = getNetworkClientId(asset);
+    if (!networkClientId) return;
+    try {
+      await Engine.context.NetworkController.setActiveNetwork(networkClientId);
+      navigation.navigate('StakeScreens', {
+        screen: Routes.STAKING.UNSTAKE,
+        params: {
+          token: receiptToken,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleNavigateToDepositInputScreen = async () => {
+    emitLendingActionButtonMetaMetric('deposit');
+    const networkClientId = getNetworkClientId(asset);
+    if (!networkClientId) return;
+    try {
+      await Engine.context.NetworkController.setActiveNetwork(networkClientId);
+      navigation.navigate('StakeScreens', {
+        screen: Routes.STAKING.STAKE,
+        params: {
+          token: earnToken,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   if (!isStablecoinLendingEnabled) return null;
@@ -157,17 +225,24 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
             testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
           />
         )}
-        {userHasUnderlyingTokensAvailableToLend && !isAssetReceiptToken && (
-          <Button
-            variant={ButtonVariants.Secondary}
-            style={styles.button}
-            size={ButtonSize.Lg}
-            label={strings('earn.deposit_more')}
-            onPress={handleNavigateToDepositInputScreen}
-            testID={EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON}
-          />
-        )}
+        {userHasUnderlyingTokensAvailableToLend &&
+          !isAssetReceiptToken &&
+          userHasLendingPositions && (
+            <Button
+              variant={ButtonVariants.Secondary}
+              style={styles.button}
+              size={ButtonSize.Lg}
+              label={strings('earn.deposit_more')}
+              onPress={handleNavigateToDepositInputScreen}
+              testID={EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON}
+            />
+          )}
       </View>
+      {isAssetReceiptToken && (
+        <View style={styles.earnings}>
+          <Earnings asset={asset} />
+        </View>
+      )}
     </View>
   );
 };

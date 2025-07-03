@@ -43,7 +43,7 @@ import { isTest } from '../../../util/test/utils';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { Dispatch } from 'redux';
 import {
-  saveOnboardingEvent as SaveEvent,
+  saveOnboardingEvent as saveEvent,
   OnboardingActionTypes,
 } from '../../../actions/onboarding';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
@@ -323,7 +323,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                     </View>
                     <View style={styles.carouselTextWrapper}>
                       <Text
-                        variant={TextVariant.HeadingSMRegular}
+                        variant={TextVariant.BodyMD}
                         style={styles.title}
                         color={onboardingCarouselColors[value].color}
                       >
@@ -370,7 +370,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
 
 const mapDispatchToProps = (dispatch: Dispatch<OnboardingActionTypes>) => ({
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) =>
-    dispatch(SaveEvent(eventArgs)),
+    dispatch(saveEvent(eventArgs)),
 });
 
 export default connect(null, mapDispatchToProps)(OnboardingCarousel);

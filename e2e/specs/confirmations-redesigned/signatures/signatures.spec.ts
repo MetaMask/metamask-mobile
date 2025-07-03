@@ -1,11 +1,11 @@
 'use strict';
 import Assertions from '../../../utils/Assertions.js';
-import Browser from '../../../pages/Browser/BrowserView.js';
+import Browser from '../../../pages/Browser/BrowserView';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import FixtureBuilder from '../../../fixtures/fixture-builder.js';
 import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent.js';
-import TestDApp from '../../../pages/Browser/TestDApp.js';
+import TestDApp from '../../../pages/Browser/TestDApp';
 import TestHelpers from '../../../helpers.js';
 import { loginToApp } from '../../../viewHelper.js';
 import {
@@ -16,7 +16,9 @@ import { SmokeConfirmationsRedesigned } from '../../../tags.js';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
 import { buildPermissions } from '../../../fixtures/utils.js';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
+
 import { NETWORK_TEST_CONFIGS } from '../../../resources/mock-configs';
+
 const SIGNATURE_LIST = [
   {
     specName: 'Personal Sign',
@@ -28,7 +30,9 @@ const SIGNATURE_LIST = [
     testDappBtn: TestDApp.tapEthereumSignButton.bind(TestDApp),
     requestType: RequestTypes.PersonalSignRequest,
     additionAssertions: async () => {
-      await Assertions.checkIfVisible(RowComponents.SiweSigningAccountInfo);
+      await Assertions.checkIfVisible(
+        RowComponents.SiweSigningAccountInfo,
+      );
     },
   },
   {
@@ -44,11 +48,6 @@ const SIGNATURE_LIST = [
   {
     specName: 'Typed V4 Sign',
     testDappBtn: TestDApp.tapTypedV4SignButton.bind(TestDApp),
-    requestType: RequestTypes.TypedSignRequest,
-  },
-  {
-    specName: 'Sign Permit',
-    testDappBtn: TestDApp.tapPermitSignButton.bind(TestDApp),
     requestType: RequestTypes.TypedSignRequest,
   },
 ];

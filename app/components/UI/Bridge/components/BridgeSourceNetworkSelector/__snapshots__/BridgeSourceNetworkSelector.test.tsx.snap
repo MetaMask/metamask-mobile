@@ -241,6 +241,9 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -371,6 +374,9 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                       >
                         <View
                           collapsable={false}
+                          enabled={true}
+                          handlerTag={-1}
+                          handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           onLayout={[Function]}
@@ -500,9 +506,8 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                         {
                                           "color": "#121314",
                                           "flex": 1,
-                                          "fontFamily": "CentraNo1-Bold",
+                                          "fontFamily": "Geist Bold",
                                           "fontSize": 18,
-                                          "fontWeight": "700",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "textAlign": "center",
@@ -593,9 +598,8 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                     {
                                       "backgroundColor": "transparent",
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -608,9 +612,8 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                     style={
                                       {
                                         "color": "#4459ff",
-                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontFamily": "Geist Medium",
                                         "fontSize": 16,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -768,9 +771,8 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "CentraNo1-Medium",
+                                                "fontFamily": "Geist Medium",
                                                 "fontSize": 18,
-                                                "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -800,9 +802,8 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                               {
                                                 "color": "#121314",
                                                 "flex": 1,
-                                                "fontFamily": "CentraNo1-Medium",
+                                                "fontFamily": "Geist Medium",
                                                 "fontSize": 18,
-                                                "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                                 "textAlign": "right",
@@ -954,9 +955,8 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "CentraNo1-Medium",
+                                                "fontFamily": "Geist Medium",
                                                 "fontSize": 18,
-                                                "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -986,9 +986,8 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                               {
                                                 "color": "#121314",
                                                 "flex": 1,
-                                                "fontFamily": "CentraNo1-Medium",
+                                                "fontFamily": "Geist Medium",
                                                 "fontSize": 18,
-                                                "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                                 "textAlign": "right",
@@ -1043,9 +1042,8 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                     style={
                                       {
                                         "color": "#4459ff",
-                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontFamily": "Geist Medium",
                                         "fontSize": 16,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }

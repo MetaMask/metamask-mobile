@@ -37,8 +37,6 @@ describe('SuccessErrorSheet', () => {
       onSecondaryButtonPress: jest.fn(),
       onClose: jest.fn(),
       customButton: null,
-      closeOnPrimaryButtonPress: true,
-      closeOnSecondaryButtonPress: true,
       descriptionAlign: 'center' as const,
       reverseButtonOrder: true,
     },
@@ -84,8 +82,6 @@ describe('SuccessErrorSheet', () => {
         onSecondaryButtonPress: jest.fn(),
         onClose: jest.fn(),
         customButton: <Text>Custom Button</Text>,
-        closeOnPrimaryButtonPress: false,
-        closeOnSecondaryButtonPress: false,
         descriptionAlign: 'center' as const,
       },
     };

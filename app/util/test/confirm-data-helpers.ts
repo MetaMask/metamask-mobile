@@ -525,7 +525,14 @@ const stakingConfirmationBaseState = {
         internalAccounts: {
           accounts: {
             '0x0000000000000000000000000000000000000000': {
+              id: '0x0000000000000000000000000000000000000000',
               address: '0x0000000000000000000000000000000000000000',
+              metadata: {
+                name: 'Account 1',
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+              },
             },
           },
           selectedAccount: '0x0000000000000000000000000000000000000000',
@@ -874,9 +881,9 @@ export function generateStateSignTypedData(mockType: SignTypedDataMockType) {
   };
 }
 
-const mockTxId = '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998';
+export const mockTxId = '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998';
 
-const mockApprovalRequest = {
+export const mockApprovalRequest = {
   id: mockTxId,
   origin: 'metamask.github.io',
   type: 'transaction',
@@ -906,7 +913,7 @@ export const mockTransaction = {
   origin: 'https://metamask.github.io',
 } as unknown as TransactionMeta;
 
-const contractInteractionBaseState = merge({}, stakingConfirmationBaseState, {
+export const contractInteractionBaseState = merge({}, stakingConfirmationBaseState, {
   engine: {
     backgroundState: {
       TransactionController: { transactions: [mockTransaction] },

@@ -57,10 +57,18 @@ const createStyles = (colors: ThemeColors) =>
       padding: 16,
     },
     textTitle: {
-      marginBottom: 30,
+      marginBottom: 24,
+    },
+    imageWrapper: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: 200,
+      height: 200,
+      padding: 20,
+      marginHorizontal: 'auto',
     },
     walletReadyImage: {
-      marginHorizontal: 'auto',
       alignSelf: 'center',
       width: 200,
       height: 200,
@@ -81,7 +89,7 @@ const createStyles = (colors: ThemeColors) =>
       width: '100%',
       flexDirection: 'column',
       rowGap: 16,
-      marginTop: 40,
+      marginTop: 24,
     },
     footerWrapper: {
       marginVertical: 24,

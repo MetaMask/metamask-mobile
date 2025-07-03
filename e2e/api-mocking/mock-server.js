@@ -110,6 +110,7 @@ export const startMockServer = async (events, port) => {
           const expectedRequest = _.cloneDeep(matchingEvent.requestBody);
 
           const ignoreFields = matchingEvent.ignoreFields || [];
+
           // Remove ignored fields from both objects for comparison
           ignoreFields.forEach(field => {
             _.unset(requestToCheck, field);

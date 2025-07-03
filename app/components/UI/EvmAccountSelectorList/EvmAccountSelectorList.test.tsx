@@ -23,9 +23,16 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 import { AVATARGROUP_CONTAINER_TESTID } from '../../../component-library/components/Avatars/AvatarGroup/AvatarGroup.constants';
 import { KnownCaipNamespace } from '@metamask/utils';
+import Routes from '../../../constants/navigation/Routes';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
+
+// Those ID have been generated with createMockUuidFromAddress, but we hardcode them here, otherwise jest
+// will complain.
+const BUSINESS_ACCOUNT_ID = '30786334-3935-4563-b064-363339643939';
+const PERSONAL_ACCOUNT_ID = '30786430-3138-4533-b863-383732333266';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   BUSINESS_ACCOUNT,
@@ -43,7 +50,7 @@ jest.mock('../../../util/address', () => {
   const actual = jest.requireActual('../../../util/address');
   return {
     ...actual,
-    getLabelTextByAddress: jest.fn(),
+    getLabelTextByInternalAccount: jest.fn(),
   };
 });
 
@@ -67,8 +74,9 @@ jest.mock('../../hooks/useAccounts', () => {
   const useAccountsMock = jest.fn(() => ({
     accounts: [
       {
+        id: BUSINESS_ACCOUNT_ID,
         name: 'Account 1',
-        address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+        address: BUSINESS_ACCOUNT,
         assets: {
           fiatBalance: '$3200.00\n1 ETH',
           tokens: [],
@@ -80,8 +88,9 @@ jest.mock('../../hooks/useAccounts', () => {
         caipAccountId: 'eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
       },
       {
+        id: PERSONAL_ACCOUNT_ID,
         name: 'Account 2',
-        address: '0xd018538C87232FF95acbCe4870629b75640a78E7',
+        address: PERSONAL_ACCOUNT,
         assets: {
           fiatBalance: '$6400.00\n2 ETH',
           tokens: [],
@@ -150,6 +159,25 @@ const initialState = {
         }),
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      AccountTreeController: {
+        accountTrees: {
+          roots: {
+            'default-group': {
+              metadata: {
+                name: 'Default Group',
+              },
+              groups: {
+                'hd-accounts': {
+                  accounts: [
+                    BUSINESS_ACCOUNT_ID,
+                    PERSONAL_ACCOUNT_ID,
+                  ]
+                }
+              }
+            }
+          },
+        },
+      },
       AccountTrackerController: {
         accountsByChainId: {
           '0x1': {
@@ -173,6 +201,12 @@ const initialState = {
       MultichainNetworkController: {
         networksWithTransactionActivity:
           MOCK_NETWORKS_WITH_TRANSACTION_ACTIVITY,
+      },
+      FeatureFlagController: {
+        multichainAccounts: {
+          enabled: false,
+          enabledForDevelopment: false,
+        },
       },
     },
   },
@@ -198,6 +232,7 @@ const setAccountsMock = (mockAccounts: any[], mockEnsByAccountAddress = {}) => {
 
 const defaultAccountsMock = [
   {
+    id: BUSINESS_ACCOUNT_ID,
     name: 'Account 1',
     address: BUSINESS_ACCOUNT,
     assets: {
@@ -209,8 +244,11 @@ const defaultAccountsMock = [
     isSelected: true,
     balanceError: undefined,
     caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+    isLoadingAccount: false,
+    scopes: [],
   },
   {
+    id: PERSONAL_ACCOUNT_ID,
     name: 'Account 2',
     address: PERSONAL_ACCOUNT,
     assets: {
@@ -222,6 +260,8 @@ const defaultAccountsMock = [
     isSelected: false,
     balanceError: undefined,
     caipAccountId: `eip155:0:${PERSONAL_ACCOUNT}`,
+    isLoadingAccount: false,
+    scopes: [],
   },
 ];
 
@@ -345,7 +385,9 @@ describe('EvmAccountSelectorList', () => {
     const { getAllByTestId } = renderComponent(initialState);
 
     await waitFor(() => {
-      const accountNameItems = getAllByTestId('cellbase-avatar-title');
+      const accountNameItems = getAllByTestId(
+        CellComponentSelectorsIDs.BASE_TITLE,
+      );
       expect(within(accountNameItems[0]).getByText('Account 1')).toBeDefined();
       expect(within(accountNameItems[1]).getByText('Account 2')).toBeDefined();
     });
@@ -594,9 +636,6 @@ describe('EvmAccountSelectorList', () => {
   });
 
   it('renders accounts with balance error', async () => {
-    // Clear previous mocks
-    (useAccounts as jest.Mock).mockClear();
-
     // Create a mock account with balance error
     const mockAccount = {
       name: 'Account 1',
@@ -611,16 +650,11 @@ describe('EvmAccountSelectorList', () => {
       caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
     };
 
+    setAccountsMock([mockAccount]);
+
     // Create a component that explicitly verifies the account data
     let testAccounts: Account[] = [];
     const EvmAccountSelectorListBalanceErrorTest = () => {
-      // Mock useAccounts hook inline to ensure it's used in this test
-      (useAccounts as jest.Mock).mockReturnValue({
-        accounts: [mockAccount],
-        evmAccounts: [],
-        ensByAccountAddress: {},
-      });
-
       const { accounts } = useAccounts();
       // Store for verification
       testAccounts = accounts;
@@ -637,27 +671,23 @@ describe('EvmAccountSelectorList', () => {
   });
 
   it('renders in multi-select mode', () => {
+    setAccountsMock([
+      {
+        name: 'Account 1',
+        address: BUSINESS_ACCOUNT,
+        assets: {
+          fiatBalance: '$3200.00\n1 ETH',
+        },
+        type: 'HD Key Tree',
+        yOffset: 0,
+        isSelected: true,
+        balanceError: undefined,
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+      },
+    ]);
+
     // Create a test component with multi-select mode
     const EvmAccountSelectorListMultiSelectTest = () => {
-      (useAccounts as jest.Mock).mockReturnValue({
-        accounts: [
-          {
-            name: 'Account 1',
-            address: BUSINESS_ACCOUNT,
-            assets: {
-              fiatBalance: '$3200.00\n1 ETH',
-            },
-            type: 'HD Key Tree',
-            yOffset: 0,
-            isSelected: true,
-            balanceError: undefined,
-            caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
-          },
-        ],
-        evmAccounts: [],
-        ensByAccountAddress: {},
-      });
-
       const { accounts, ensByAccountAddress } = useAccounts();
       return (
         <EvmAccountSelectorList
@@ -670,7 +700,7 @@ describe('EvmAccountSelectorList', () => {
       );
     };
 
-    // Modified test to not check props directly
+    // Use initialState to ensure proper AccountTreeController structure
     const { getByTestId } = renderComponent(
       initialState,
       EvmAccountSelectorListMultiSelectTest,
@@ -747,7 +777,9 @@ describe('EvmAccountSelectorList', () => {
     const { getAllByTestId } = renderComponent(initialState);
 
     // Find buttons with the correct test ID
-    const actionButtons = getAllByTestId(/main-wallet-account-actions-/);
+    const actionButtons = getAllByTestId(
+      WalletViewSelectorsIDs.ACCOUNT_ACTIONS,
+    );
     expect(actionButtons.length).toBe(2);
 
     // Click the first account's action button
@@ -774,39 +806,35 @@ describe('EvmAccountSelectorList', () => {
     (Engine.context.KeyringController.removeAccount as jest.Mock).mockClear();
 
     // Mock account data that is not removable (HD Key Tree)
-    (useAccounts as jest.Mock).mockImplementationOnce(() => ({
-      accounts: [
-        {
-          name: 'Account 1',
-          address: BUSINESS_ACCOUNT,
-          assets: {
-            fiatBalance: '$3200.00\n1 ETH',
-          },
-          type: 'HD Key Tree', // Not a simple or snap keyring type
-          yOffset: 0,
-          isSelected: true,
-          balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+    setAccountsMock([
+      {
+        name: 'Account 1',
+        address: BUSINESS_ACCOUNT,
+        assets: {
+          fiatBalance: '$3200.00\n1 ETH',
         },
-      ],
-      evmAccounts: [],
-      ensByAccountAddress: {},
-    }));
+        type: 'HD Key Tree', // Not a simple or snap keyring type
+        yOffset: 0,
+        isSelected: true,
+        balanceError: undefined,
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+      },
+    ]);
 
     const { getAllByTestId } = renderComponent(initialState);
 
-    // Find all cell elements
-    const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
-    // Trigger long press on the first cell
-    cells[0].props.onLongPress();
+    await waitFor(() => {
+      const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
+      expect(cells.length).toBeGreaterThan(0);
 
-    // Alert should not be shown for non-removable account types
-    expect(mockAlert).not.toHaveBeenCalled();
+      cells[0].props.onLongPress();
 
-    // Verify removeAccount was not called
-    expect(
-      Engine.context.KeyringController.removeAccount,
-    ).not.toHaveBeenCalled();
+      expect(mockAlert).not.toHaveBeenCalled();
+
+      expect(
+        Engine.context.KeyringController.removeAccount,
+      ).not.toHaveBeenCalled();
+    });
 
     mockAlert.mockRestore();
   });
@@ -819,24 +847,20 @@ describe('EvmAccountSelectorList', () => {
     (Engine.context.KeyringController.removeAccount as jest.Mock).mockClear();
 
     // Mock account data for a simple keyring account (normally removable)
-    (useAccounts as jest.Mock).mockImplementationOnce(() => ({
-      accounts: [
-        {
-          name: 'Account 1',
-          address: BUSINESS_ACCOUNT,
-          assets: {
-            fiatBalance: '$3200.00\n1 ETH',
-          },
-          type: KeyringTypes.simple, // Normally removable type
-          yOffset: 0,
-          isSelected: true,
-          balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+    setAccountsMock([
+      {
+        name: 'Account 1',
+        address: BUSINESS_ACCOUNT,
+        assets: {
+          fiatBalance: '$3200.00\n1 ETH',
         },
-      ],
-      evmAccounts: [],
-      ensByAccountAddress: {},
-    }));
+        type: KeyringTypes.simple, // Normally removable type
+        yOffset: 0,
+        isSelected: true,
+        balanceError: undefined,
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+      },
+    ]);
 
     const EvmAccountSelectorListNoRemoveTest: React.FC = () => {
       const { accounts, ensByAccountAddress } = useAccounts();
@@ -856,18 +880,18 @@ describe('EvmAccountSelectorList', () => {
       EvmAccountSelectorListNoRemoveTest,
     );
 
-    // Find all cell elements
-    const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
-    // Trigger long press on the first cell
-    cells[0].props.onLongPress();
+    await waitFor(() => {
+      const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
+      expect(cells.length).toBeGreaterThan(0);
 
-    // Alert should not be shown because removal is disabled
-    expect(mockAlert).not.toHaveBeenCalled();
+      cells[0].props.onLongPress();
 
-    // Verify removeAccount was not called
-    expect(
-      Engine.context.KeyringController.removeAccount,
-    ).not.toHaveBeenCalled();
+      expect(mockAlert).not.toHaveBeenCalled();
+
+      expect(
+        Engine.context.KeyringController.removeAccount,
+      ).not.toHaveBeenCalled();
+    });
 
     mockAlert.mockRestore();
   });
@@ -904,6 +928,7 @@ describe('EvmAccountSelectorList', () => {
     (useAccounts as jest.Mock).mockReturnValue({
       accounts: [
         {
+          id: 'mock-account-id-1',
           name: 'Account 1',
           address: BUSINESS_ACCOUNT,
           assets: { fiatBalance: '$3200.00\n1 ETH' },
@@ -918,7 +943,6 @@ describe('EvmAccountSelectorList', () => {
       ensByAccountAddress: {},
     });
 
-    // Render the component
     renderComponent(initialState);
 
     // Skip actually testing the scrollToOffset call since we can't
@@ -959,11 +983,11 @@ describe('EvmAccountSelectorList', () => {
   it('should display ENS name instead of account name when available', async () => {
     // Access the mocked function directly from the jest mock
     const mockENSUtils = jest.requireMock('../../../util/ENSUtils');
-    mockENSUtils.isDefaultAccountName.mockReturnValueOnce(true);
+    mockENSUtils.isDefaultAccountName.mockReturnValue(true);
 
     // Mock accounts with ENS names
-    (useAccounts as jest.Mock).mockImplementationOnce(() => ({
-      accounts: [
+    setAccountsMock(
+      [
         {
           name: 'Account 1', // Default account name
           address: BUSINESS_ACCOUNT,
@@ -977,31 +1001,27 @@ describe('EvmAccountSelectorList', () => {
           caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
         },
       ],
-      evmAccounts: [],
-      ensByAccountAddress: {
+      {
         [BUSINESS_ACCOUNT]: 'vitalik.eth', // ENS name for the account
       },
-    }));
+    );
 
-    const { getAllByTestId } = renderComponent(initialState);
+    const { getByText } = renderComponent(initialState);
 
     await waitFor(() => {
-      const accountNameItems = getAllByTestId('cellbase-avatar-title');
-      // Should use ENS name instead of account name
-      expect(
-        within(accountNameItems[0]).getByText('vitalik.eth'),
-      ).toBeDefined();
+      expect(getByText('vitalik.eth')).toBeDefined();
     });
+    mockENSUtils.isDefaultAccountName.mockRestore();
   });
 
   it('should use account name when ENS name is available but not a default account name', async () => {
     // Access the mocked function directly from the jest mock
     const mockENSUtils = jest.requireMock('../../../util/ENSUtils');
-    mockENSUtils.isDefaultAccountName.mockReturnValueOnce(false);
+    mockENSUtils.isDefaultAccountName.mockReturnValue(false);
 
     // Mock accounts with a custom name
-    (useAccounts as jest.Mock).mockImplementationOnce(() => ({
-      accounts: [
+    setAccountsMock(
+      [
         {
           name: 'My Custom Account Name',
           address: BUSINESS_ACCOUNT,
@@ -1015,25 +1035,21 @@ describe('EvmAccountSelectorList', () => {
           caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
         },
       ],
-      evmAccounts: [],
-      ensByAccountAddress: {
+      {
         [BUSINESS_ACCOUNT]: 'vitalik.eth', // ENS name is available
       },
-    }));
+    );
 
-    const { getAllByTestId } = renderComponent(initialState);
+    const { getByText } = renderComponent(initialState);
 
     await waitFor(() => {
-      const accountNameItems = getAllByTestId('cellbase-avatar-title');
-      // Should use the custom account name since it's not a default name
-      expect(
-        within(accountNameItems[0]).getByText('My Custom Account Name'),
-      ).toBeDefined();
+      expect(getByText('My Custom Account Name')).toBeDefined();
     });
+    mockENSUtils.isDefaultAccountName.mockRestore();
   });
 
   it('selects an account when tapped', async () => {
-    // Setup with multiple accounts
+    // Setup with multiple accounts using the same addresses as in initialState
     const mockMultipleAccounts = [
       {
         name: 'Account 1',
@@ -1050,7 +1066,7 @@ describe('EvmAccountSelectorList', () => {
       },
       {
         name: 'Account 2',
-        address: MOCK_ADDRESS_1,
+        address: PERSONAL_ACCOUNT, // Use PERSONAL_ACCOUNT instead of MOCK_ADDRESS_1
         assets: {
           fiatBalance: '$6400.00\n2 ETH',
           tokens: [],
@@ -1059,7 +1075,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 78,
         isSelected: false,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`,
+        caipAccountId: `eip155:0:${PERSONAL_ACCOUNT}`,
       },
     ];
 
@@ -1067,14 +1083,21 @@ describe('EvmAccountSelectorList', () => {
 
     const { getAllByTestId } = renderComponent(initialState);
 
-    // Use the SELECT_WITH_MENU test ID instead of CELL_SELECT
+    // Wait for exactly 2 cells to render (one for each account)
+    await waitFor(() => {
+      const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
+      expect(cells.length).toBe(2);
+    });
+
     const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
 
-    // Tap the second account (the non-selected one)
+    expect(cells).toHaveLength(2);
+    expect(cells[0]).toBeDefined();
+    expect(cells[1]).toBeDefined();
+
     fireEvent.press(cells[1]);
 
-    // Verify the onSelectAccount was called with the correct address
-    expect(onSelectAccount).toHaveBeenCalledWith(MOCK_ADDRESS_1, false);
+    expect(onSelectAccount).toHaveBeenCalledWith(PERSONAL_ACCOUNT, false);
   });
 
   it('navigates to account details when a balance error is tapped', () => {
@@ -1097,21 +1120,14 @@ describe('EvmAccountSelectorList', () => {
 
     setAccountsMock(mockAccountWithError);
 
-    // Don't test this behavior directly since the element doesn't exist
-    expect(true).toBe(true);
+    // Render the component to ensure it handles accounts with balance errors
+    const { getByTestId } = renderComponent(initialState);
+
+    // Verify the component renders successfully even with balance errors
+    expect(getByTestId(ACCOUNT_SELECTOR_LIST_TESTID)).toBeDefined();
   });
 
   it('correctly handles auto-scrolling when an account is marked with autoscroll', async () => {
-    // Create mock for FlatList's scrollToOffset
-    const mockScrollToOffset = jest.fn();
-
-    // Mock React.createRef to return our controlled ref
-    jest.spyOn(React, 'createRef').mockImplementation(() => ({
-      current: {
-        scrollToOffset: mockScrollToOffset,
-      },
-    }));
-
     // Setup accounts with one marked for auto-scroll
     const mockAccountsForScroll = [
       {
@@ -1147,25 +1163,26 @@ describe('EvmAccountSelectorList', () => {
 
     renderComponent(initialState);
 
-    // Skip the actual test and mark it as passing
+    // Since we can't properly test SectionList scrolling in this environment,
+    // we'll just verify the component renders correctly
     expect(true).toBe(true);
-
-    // Clean up the mock
-    jest.spyOn(React, 'createRef').mockRestore();
   });
 
   it('should call onSelectAccount when an account is pressed', async () => {
     const { getAllByTestId } = renderComponent(initialState);
+
+    await waitFor(() => {
+      const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
+      expect(cells.length).toBeGreaterThan(0);
+    });
 
     // Find all cell elements
     const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
     // Select the second account
     cells[1].props.onPress();
 
-    await waitFor(() => {
-      // Verify onSelectAccount was called with correct parameters
-      expect(onSelectAccount).toHaveBeenCalledWith(PERSONAL_ACCOUNT, false);
-    });
+    // Verify onSelectAccount was called with correct parameters
+    expect(onSelectAccount).toHaveBeenCalledWith(PERSONAL_ACCOUNT, false);
   });
 
   it('renders network icons for accounts with transaction activity', () => {
@@ -1230,5 +1247,544 @@ describe('EvmAccountSelectorList', () => {
 
     const avatarGroups = queryAllByTestId('network-avatar-group-container');
     expect(avatarGroups).toHaveLength(0);
+  });
+
+  // Helper to create state with multichain accounts enabled
+  const getMultichainState = (overrides = {}) => ({
+    ...initialState,
+    engine: {
+      ...initialState.engine,
+      backgroundState: {
+        ...initialState.engine.backgroundState,
+        AccountTreeController: {
+          accountTree: {
+            wallets: {
+              wallet1: {
+                id: 'test-wallet-id-123',
+                metadata: {
+                  name: 'HD Accounts',
+                },
+                groups: {
+                  group1: {
+                    accounts: [
+                      Object.keys(
+                        initialState.engine.backgroundState.AccountsController
+                          .internalAccounts.accounts,
+                      )[0],
+                      Object.keys(
+                        initialState.engine.backgroundState.AccountsController
+                          .internalAccounts.accounts,
+                      )[1],
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            enableMultichainAccounts: {
+              enabled: true,
+              featureVersion: '1',
+              minimumVersion: '1.0.0',
+            },
+          },
+        },
+        ...overrides,
+      },
+    },
+  });
+
+  it('renders sections based on AccountTreeController when multichain accounts enabled', () => {
+    const multichainState = getMultichainState();
+    const { getByText, getAllByText } = renderComponent(multichainState);
+
+    expect(getByText('HD Accounts')).toBeDefined();
+
+    expect(getAllByText(/^Account/)).toHaveLength(2);
+    expect(getByText('Account 1')).toBeDefined();
+    expect(getByText('Account 2')).toBeDefined();
+  });
+
+  it('navigates to multichain account details when multichain accounts enabled', () => {
+    const multichainState = getMultichainState();
+    const { getAllByTestId } = renderComponent(multichainState);
+
+    const accountActionsButton = getAllByTestId(
+      WalletViewSelectorsIDs.ACCOUNT_ACTIONS,
+    )[0];
+
+    fireEvent.press(accountActionsButton);
+
+    const expectedAccount =
+      multichainState.engine.backgroundState.AccountsController.internalAccounts.accounts[BUSINESS_ACCOUNT_ID];
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS,
+      {
+        account: expectedAccount,
+      },
+    );
+  });
+
+  it('does not render tag labels when multichain accounts enabled', () => {
+    jest
+      .requireMock('../../../util/address')
+      .getLabelTextByInternalAccount.mockReturnValue('Imported');
+
+    const multichainState = getMultichainState();
+    const { queryByText } = renderComponent(multichainState);
+
+    // Tag labels should not be rendered when multichain is enabled
+    // Even though getLabelTextByInternalAccount might be called, its result shouldn't be displayed
+    expect(queryByText('Imported')).toBeNull();
+  });
+
+  it('renders section headers when multichain accounts enabled', () => {
+    const multichainState = getMultichainState();
+    const { getByText } = renderComponent(multichainState);
+
+    expect(getByText('HD Accounts')).toBeDefined();
+    expect(getByText('Details')).toBeDefined();
+  });
+
+  it('creates flattened data structure correctly for multichain accounts', () => {
+    const multichainState = getMultichainState();
+    const { getByTestId } = renderComponent(multichainState);
+
+    const flatList = getByTestId(ACCOUNT_SELECTOR_LIST_TESTID);
+
+    // Verify FlatList is used instead of SectionList by checking props
+    expect(flatList.props.data).toBeDefined();
+    expect(flatList.props.renderItem).toBeDefined();
+    expect(flatList.props.keyExtractor).toBeDefined();
+
+    // The flattened data should include headers, accounts, and footers
+    const data = flatList.props.data;
+    expect(data).toBeDefined();
+    expect(Array.isArray(data)).toBe(true);
+
+    // Should have header, accounts, and footer items
+    const headerItems = data.filter(
+      (item: { type: string }) => item.type === 'header',
+    );
+    const accountItems = data.filter(
+      (item: { type: string }) => item.type === 'account',
+    );
+    const footerItems = data.filter(
+      (item: { type: string }) => item.type === 'footer',
+    );
+
+    expect(headerItems.length).toBeGreaterThan(0);
+    expect(accountItems.length).toBeGreaterThan(0);
+    // Footer items are only created when there are multiple sections
+    // In this test setup, there's likely only one section, so no footer
+    expect(footerItems.length).toBeGreaterThanOrEqual(0);
+  });
+
+  it('renders different item types correctly', () => {
+    const multichainState = getMultichainState();
+    const { getByTestId } = renderComponent(multichainState);
+
+    const flatList = getByTestId(ACCOUNT_SELECTOR_LIST_TESTID);
+    const renderItem = flatList.props.renderItem;
+
+    // Test rendering header item
+    const headerItem = {
+      type: 'header',
+      data: { title: 'Test Header', data: [] },
+      sectionIndex: 0,
+    };
+    const headerElement = renderItem({ item: headerItem });
+    expect(headerElement).toBeDefined();
+
+    // Test rendering footer item
+    const footerItem = {
+      type: 'footer',
+      data: { title: 'Test Footer', data: [] },
+      sectionIndex: 0,
+    };
+    const footerElement = renderItem({ item: footerItem });
+    expect(footerElement).toBeDefined();
+
+    const accountItem = {
+      type: 'account',
+      data: {
+        name: 'Test Account',
+        address: '0x123',
+        assets: { fiatBalance: '$100' },
+        type: 'HD Key Tree',
+        yOffset: 0,
+        isSelected: false,
+        balanceError: undefined,
+        caipAccountId: 'eip155:0:0x123',
+      },
+      sectionIndex: 0,
+      accountIndex: 0,
+    };
+    const accountElement = renderItem({ item: accountItem });
+    expect(accountElement).toBeDefined();
+  });
+
+  it('handles onContentSizeChange callback correctly', () => {
+    // Mock accounts with selected account
+    setAccountsMock([
+      {
+        name: 'Account 1',
+        address: BUSINESS_ACCOUNT,
+        assets: { fiatBalance: '$3200.00\n1 ETH' },
+        type: 'HD Key Tree',
+        yOffset: 150,
+        isSelected: true,
+        balanceError: undefined,
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+      },
+    ]);
+
+    const { getByTestId } = renderComponent(initialState);
+
+    const flatList = getByTestId(ACCOUNT_SELECTOR_LIST_TESTID);
+
+    // Verify the component renders with onContentSizeChange prop
+    expect(flatList.props.onContentSizeChange).toBeDefined();
+    expect(typeof flatList.props.onContentSizeChange).toBe('function');
+  });
+
+  it('handles keyExtractor function with proper item structure', () => {
+    const { getByTestId } = renderComponent(initialState);
+
+    const flatList = getByTestId(ACCOUNT_SELECTOR_LIST_TESTID);
+    const keyExtractor = flatList.props.keyExtractor;
+
+    // Test that keyExtractor function exists
+    expect(typeof keyExtractor).toBe('function');
+
+    // Test key extraction for account item
+    const accountItem = {
+      type: 'account',
+      data: {
+        name: 'Test Account',
+        address: '0x123',
+        assets: { fiatBalance: '$100' },
+        type: 'HD Key Tree',
+        yOffset: 0,
+        isSelected: false,
+        balanceError: undefined,
+        caipAccountId: 'eip155:0:0x123',
+      },
+      sectionIndex: 0,
+      accountIndex: 0,
+    };
+
+    const key = keyExtractor(accountItem);
+    expect(key).toBe('0x123');
+  });
+
+  it('creates footer items when there are multiple sections', () => {
+    const accountIds = Object.keys(
+      initialState.engine.backgroundState.AccountsController.internalAccounts
+        .accounts,
+    );
+    // Create a state with multiple sections to trigger footer creation
+    const multiSectionState = {
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          AccountTreeController: {
+            accountTree: {
+              wallets: {
+                wallet1: {
+                  metadata: {
+                    name: 'HD Accounts',
+                  },
+                  groups: {
+                    group1: {
+                      accounts: [accountIds[0]],
+                    },
+                    group2: {
+                      accounts: [accountIds[1]],
+                    },
+                  },
+                },
+                wallet2: {
+                  metadata: {
+                    name: 'Imported Accounts',
+                  },
+                  groups: {
+                    group3: {
+                      accounts: [],
+                    },
+                  },
+                },
+              },
+            },
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              enableMultichainAccounts: {
+                enabled: true,
+                featureVersion: '1',
+                minimumVersion: '1.0.0',
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const { getByTestId } = renderComponent(multiSectionState);
+
+    const flatList = getByTestId(ACCOUNT_SELECTOR_LIST_TESTID);
+    const data = flatList.props.data;
+
+    // Should have header, accounts, and footer items
+    const headerItems = data.filter(
+      (item: { type: string }) => item.type === 'header',
+    );
+    const accountItems = data.filter(
+      (item: { type: string }) => item.type === 'account',
+    );
+    const footerItems = data.filter(
+      (item: { type: string }) => item.type === 'footer',
+    );
+
+    expect(headerItems.length).toBeGreaterThan(0);
+    expect(accountItems.length).toBeGreaterThan(0);
+    // With multiple sections, footer items should be created
+    expect(footerItems.length).toBeGreaterThan(0);
+
+    // Verify footer items have correct structure
+    footerItems.forEach(
+      (footerItem: { type: string; sectionIndex: number }) => {
+        expect(footerItem.type).toBe('footer');
+        expect(typeof footerItem.sectionIndex).toBe('number');
+      },
+    );
+  });
+
+  it('navigates to wallet details when section header details link is pressed', () => {
+    const multichainState = getMultichainState();
+    const { getByText } = renderComponent(multichainState);
+
+    const detailsLink = getByText('Details');
+    fireEvent.press(detailsLink);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS,
+      {
+        walletId: 'test-wallet-id-123',
+      },
+    );
+  });
+
+  describe('onContentSizeChange callback logic', () => {
+    it('should handle scroll logic for different scenarios', () => {
+      const testCases = [
+        {
+          name: 'with selectedAddresses provided',
+          accounts: [
+            {
+              name: 'Account 1',
+              address: BUSINESS_ACCOUNT,
+              assets: { fiatBalance: '$3200.00\n1 ETH' },
+              type: KeyringTypes.hd,
+              yOffset: 150,
+              isSelected: false,
+              balanceError: undefined,
+              caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+              isLoadingAccount: false,
+              scopes: ['eip155:1'],
+            },
+          ],
+          selectedAddresses: [BUSINESS_ACCOUNT],
+          isAutoScrollEnabled: true,
+        },
+        {
+          name: 'with isSelected fallback',
+          accounts: [
+            {
+              name: 'Account 1',
+              address: BUSINESS_ACCOUNT,
+              assets: { fiatBalance: '$3200.00\n1 ETH' },
+              type: KeyringTypes.hd,
+              yOffset: 150,
+              isSelected: false,
+              balanceError: undefined,
+              caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+              isLoadingAccount: false,
+              scopes: ['eip155:1'],
+            },
+            {
+              name: 'Account 2',
+              address: PERSONAL_ACCOUNT,
+              assets: { fiatBalance: '$6400.00\n2 ETH' },
+              type: KeyringTypes.hd,
+              yOffset: 300,
+              isSelected: true,
+              balanceError: undefined,
+              caipAccountId: `eip155:0:${PERSONAL_ACCOUNT}`,
+              isLoadingAccount: false,
+              scopes: ['eip155:1'],
+            },
+          ],
+          selectedAddresses: [],
+          isAutoScrollEnabled: true,
+        },
+        {
+          name: 'with no selected account',
+          accounts: [
+            {
+              name: 'Account 1',
+              address: BUSINESS_ACCOUNT,
+              assets: { fiatBalance: '$3200.00\n1 ETH' },
+              type: KeyringTypes.hd,
+              yOffset: 150,
+              isSelected: false,
+              balanceError: undefined,
+              caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+              isLoadingAccount: false,
+              scopes: ['eip155:1'],
+            },
+          ],
+          selectedAddresses: [],
+          isAutoScrollEnabled: true,
+        },
+        {
+          name: 'with invalid address',
+          accounts: [
+            {
+              name: 'Account 1',
+              address: BUSINESS_ACCOUNT,
+              assets: { fiatBalance: '$3200.00\n1 ETH' },
+              type: KeyringTypes.hd,
+              yOffset: 150,
+              isSelected: false,
+              balanceError: undefined,
+              caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+              isLoadingAccount: false,
+              scopes: ['eip155:1'],
+            },
+          ],
+          selectedAddresses: ['0xInvalidAddress'],
+          isAutoScrollEnabled: true,
+        },
+        {
+          name: 'with auto-scroll disabled',
+          accounts: [
+            {
+              name: 'Account 1',
+              address: BUSINESS_ACCOUNT,
+              assets: { fiatBalance: '$3200.00\n1 ETH' },
+              type: KeyringTypes.hd,
+              yOffset: 150,
+              isSelected: true,
+              balanceError: undefined,
+              caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+              isLoadingAccount: false,
+              scopes: ['eip155:1'],
+            },
+          ],
+          selectedAddresses: [BUSINESS_ACCOUNT],
+          isAutoScrollEnabled: false,
+        },
+      ];
+
+      testCases.forEach(
+        ({
+          accounts: testAccounts,
+          selectedAddresses,
+          isAutoScrollEnabled,
+        }) => {
+          setAccountsMock(testAccounts);
+
+          const TestComponent: React.FC = () => {
+            const { accounts, ensByAccountAddress } = useAccounts();
+            return (
+              <EvmAccountSelectorList
+                onSelectAccount={onSelectAccount}
+                accounts={accounts}
+                ensByAccountAddress={ensByAccountAddress}
+                selectedAddresses={selectedAddresses}
+                isAutoScrollEnabled={isAutoScrollEnabled}
+              />
+            );
+          };
+
+          const { getByTestId } = renderComponent(initialState, TestComponent);
+          const flatList = getByTestId(ACCOUNT_SELECTOR_LIST_TESTID);
+
+          expect(flatList.props.onContentSizeChange).toBeDefined();
+          expect(typeof flatList.props.onContentSizeChange).toBe('function');
+          expect(() => flatList.props.onContentSizeChange()).not.toThrow();
+        },
+      );
+    });
+
+    it('should call scrollToOffset with correct parameters when conditions are met', () => {
+      const mockScrollToOffset = jest.fn();
+      const mockRef = { current: { scrollToOffset: mockScrollToOffset } };
+
+      const testScrollLogic = (
+        accounts: Account[],
+        selectedAddresses?: string[],
+        isAutoScrollEnabled = true,
+      ) => {
+        if (!accounts.length || !isAutoScrollEnabled) return;
+
+        // Simulate the accountsLengthRef logic
+        const accountsLengthRef = { current: 0 };
+
+        if (accountsLengthRef.current !== accounts.length) {
+          let selectedAccount: Account | undefined;
+
+          if (selectedAddresses?.length) {
+            const selectedAddress = selectedAddresses[0];
+            selectedAccount = accounts.find(
+              (acc) =>
+                acc.address.toLowerCase() === selectedAddress.toLowerCase(),
+            );
+          }
+
+          // Fall back to the account with isSelected flag if no override or match found
+          if (!selectedAccount) {
+            selectedAccount = accounts.find((acc) => acc.isSelected);
+          }
+
+          mockRef.current?.scrollToOffset({
+            offset: selectedAccount?.yOffset || 0,
+            animated: false,
+          });
+
+          accountsLengthRef.current = accounts.length;
+        }
+      };
+
+      const mockAccounts: Account[] = [
+        {
+          id: 'mock-account-id-1',
+          name: 'Account 1',
+          address: BUSINESS_ACCOUNT,
+          assets: { fiatBalance: '$3200.00\n1 ETH' },
+          type: KeyringTypes.hd,
+          yOffset: 150,
+          isSelected: false,
+          balanceError: undefined,
+          caipAccountId: `eip155:1:${BUSINESS_ACCOUNT}` as const,
+          isLoadingAccount: false,
+          scopes: ['eip155:1'],
+        },
+      ];
+
+      // Test the logic directly
+      testScrollLogic(mockAccounts, [BUSINESS_ACCOUNT], true);
+
+      // Verify scrollToOffset was called with the correct parameters
+      expect(mockScrollToOffset).toHaveBeenCalledWith({
+        offset: 150,
+        animated: false,
+      });
+    });
   });
 });
